@@ -790,7 +790,17 @@ export async function persistRelationships(
   results: ExtractionResult[],
   shardRelationships: ExtractedRelationship[],
   options: { workspaceRoot?: string } = {},
-): Promise<{ relationshipCount: number; kbModified: boolean }> {
+): Promise<{
+  relationshipCount: number;
+  kbModified: boolean;
+  /**
+   * Source files whose own (front-matter) relationships could not be
+   * asserted. The caller keeps them out of the sync cache so the next sync
+   * extracts them again: an edge whose target failed to compile is otherwise
+   * never retried once only the target is fixed.
+   */
+  retrySources: string[];
+}> {
   // Distinct edges asserted: an edge stated in an entity's front matter and in
   // a relationship shard, or extracted twice, is asserted more than once but
   // stored once, so counting assert calls overstates what this sync added.
@@ -814,27 +824,36 @@ export async function persistRelationships(
     fromId: string;
     toId: string;
     error: string;
+    sourcePath?: string | undefined;
   }> = [];
   const pendingRelationships: Array<{
     readonly rel: ExtractedRelationship;
     readonly fromId: string;
     readonly toId: string;
     readonly goal: string;
+    readonly sourcePath?: string | undefined;
   }> = [];
 
-  for (const { relationships } of results) {
+  for (const { entity, relationships } of results) {
+    const sourcePath = entity.source;
     for (const rel of relationships) {
       try {
         const fromId = idLookup.get(rel.from) || rel.from;
         const toId = idLookup.get(rel.to) || rel.to;
 
         const goal = `kb_assert_relationship(${toPrologAtom(rel.type)}, ${toPrologAtom(fromId)}, ${toPrologAtom(toId)}, [])`;
-        pendingRelationships.push({ rel, fromId, toId, goal });
+        pendingRelationships.push({ rel, fromId, toId, goal, sourcePath });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         const fromId = idLookup.get(rel.from) || rel.from;
         const toId = idLookup.get(rel.to) || rel.to;
-        failedRelationships.push({ rel, fromId, toId, error: message });
+        failedRelationships.push({
+          rel,
+          fromId,
+          toId,
+          error: message,
+          sourcePath,
+        });
       }
     }
   }
@@ -920,6 +939,7 @@ export async function persistRelationships(
               single.error,
               relationshipBatchRunner ? batch.error : undefined,
             ),
+            sourcePath: item.sourcePath,
           });
         }
       } catch (error) {
@@ -928,6 +948,7 @@ export async function persistRelationships(
           fromId: item.fromId,
           toId: item.toId,
           error: error instanceof Error ? error.message : String(error),
+          sourcePath: item.sourcePath,
         });
       }
     }
@@ -943,7 +964,7 @@ export async function persistRelationships(
   ) {
     const remainingFailed: typeof failedRelationships = [];
 
-    for (const { rel, fromId, toId } of failedRelationships) {
+    for (const { rel, fromId, toId, sourcePath } of failedRelationships) {
       try {
         const goal = `kb_assert_relationship(${toPrologAtom(rel.type)}, ${toPrologAtom(fromId)}, ${toPrologAtom(toId)}, [])`;
         const result = await prolog.query(goal);
@@ -956,11 +977,12 @@ export async function persistRelationships(
             fromId,
             toId,
             error: result.error || "Unknown error",
+            sourcePath,
           });
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        remainingFailed.push({ rel, fromId, toId, error: message });
+        remainingFailed.push({ rel, fromId, toId, error: message, sourcePath });
       }
     }
 
@@ -1041,5 +1063,12 @@ export async function persistRelationships(
     }
   }
 
-  return { relationshipCount: assertedEdges.size, kbModified };
+  const retrySources = [
+    ...new Set(
+      failedRelationships.flatMap(({ sourcePath }) =>
+        sourcePath ? [sourcePath] : [],
+      ),
+    ),
+  ].sort();
+  return { relationshipCount: assertedEdges.size, kbModified, retrySources };
 }

@@ -7267,5 +7267,19 @@
         "./packages/cli/tests/commands/check-staged-generated.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-sync-relationship-retry",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/commands/sync.test.ts",
+        "-t",
+        "retries a front-matter relationship"
+      ]
+    ]
   }
 ]

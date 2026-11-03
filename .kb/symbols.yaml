@@ -4191,11 +4191,19 @@ symbols:
     title: persistRelationships
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     granularity_reason: legacy-link
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T11:17:51.870Z
     relationships:
-      - type: implements
-        target: REQ-core-persistence
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-sync-relationship-retry
+      - type: implements
+        target: REQ-core-persistence
+      - type: implements
+        target: REQ-sync-relationship-retry
   - id: SYM-cli-prepare-operation-input
     title: prepareOperationInput
     status: active
@@ -66621,3 +66629,16 @@ symbols:
         target: TEST-kibi-tree-sitter-script-references
       - type: implements
         target: REQ-kibi-tree-sitter-script-references
+  - id: SYM-test-sync-relationship-retry
+    title: retriesRelationshipOnceTargetIsAdded
+    status: active
+    sourceFile: packages/cli/tests/commands/sync.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T11:17:46.561Z
+    relationships:
+      - type: executable_for
+        target: TEST-sync-relationship-retry
