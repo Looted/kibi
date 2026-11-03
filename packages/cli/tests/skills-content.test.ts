@@ -13,6 +13,7 @@ describe("bundled Kibi skills", () => {
       "kibi-commit-review",
       "kibi-decisions",
       "kibi-freshness",
+      "kibi-provable-code",
       "kibi-traceability",
       "kibi-usage",
     ]);

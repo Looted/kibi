@@ -134,6 +134,27 @@ describe("requirement grounding", () => {
     ]);
   });
 
+  test("a fact with no claim falls back to the statement, else shows nothing", () => {
+    const local = (id: string): EntitySummary =>
+      ({
+        "REQ-stated": {
+          id: "REQ-stated",
+          title: "Totals",
+          statement: "Totals are rounded once.",
+          links: [{ type: "constrains", target: "FACT-none" }],
+        },
+        "REQ-bare": {
+          id: "REQ-bare",
+          title: "Totals",
+          links: [{ type: "constrains", target: "FACT-none" }],
+        },
+      })[id] ?? { id };
+    expect(requirementGroundingLines("REQ-stated", local)).toEqual([
+      "REQ-stated must keep true: Totals are rounded once.",
+    ]);
+    expect(requirementGroundingLines("REQ-bare", local)).toEqual([]);
+  });
+
   test("a retired or ungrounded requirement contributes nothing", () => {
     expect(requirementGroundingLines("REQ-old", summarize)).toEqual([]);
     expect(requirementGroundingLines("REQ-unknown", summarize)).toEqual([]);

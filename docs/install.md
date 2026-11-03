@@ -743,6 +743,34 @@ for `Looted/kibi` and `"enabledPlugins": {"kibi-claude@kibi": true}` to the
 repository's `.claude/settings.json` (the exact snippet is in
 `packages/claude/README.md`).
 
+### Optional: languages beyond TypeScript and JavaScript
+
+TypeScript and JavaScript symbols are built in. For Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, SWI-Prolog and Terraform/HCL, add the optional `kibi-plugin-treesitter` package and the grammar pack of each language the repository uses. Each pack is a small data-only `kibi-lang-*` package: `kibi-lang-python`, `kibi-lang-go`, `kibi-lang-rust`, `kibi-lang-java`, `kibi-lang-csharp`, `kibi-lang-php`, `kibi-lang-c`, `kibi-lang-cpp`, `kibi-lang-bash`, `kibi-lang-ruby`, `kibi-lang-hcl` and `kibi-lang-prolog`. `kibi init` and `kibi doctor` name the packs the tracked sources need, at the version the plugin pins. Generated files (`linguist-generated` in `.gitattributes`, or a generator header) count only when the KB references them, and a pack the project does not want can go in `package.json` `kibi.declinedLanguagePacks`; see the [plugin guide](plugin-development.md).
+
+```bash
+npm install --save-dev kibi-plugin-treesitter kibi-lang-python kibi-lang-go
+```
+
+Then activate it in `package.json`. `kibi.symbol-extractor.v2` gives symbols, their coordinates and the commit gate for those languages; `kibi.reference-extractor.v1` also lets source proofs read what Go, Java, C#, Rust, PHP, C and Bash files import, call and read from the environment, and the values Terraform/HCL files set:
+
+```json
+{
+  "kibi": {
+    "plugins": [
+      {
+        "package": "kibi-plugin-treesitter",
+        "capabilities": {
+          "kibi.symbol-extractor.v2": { "mode": "augment" },
+          "kibi.reference-extractor.v1": { "mode": "augment" }
+        }
+      }
+    ]
+  }
+}
+```
+
+A project without a `package.json` (a Go, Rust or Java project, say) creates a minimal one first with `npm init -y`; Kibi reads only its `devDependencies` and `kibi.plugins`. Add `node_modules/` to `.gitignore`. Code and source proofs read TypeScript, JavaScript, Python and SWI-Prolog without the plugin. The [plugin reference](./plugin-development.md) and the [`kibi-plugin-treesitter` README](https://www.npmjs.com/package/kibi-plugin-treesitter) cover symbol titles, partial analysis and what each language reads; [proving requirements](./proving-requirements.md) covers what source proofs list and refuse in each language.
+
 ### Optional capability plugins
 
 Builtin classification, ontology matching, and symbol extraction need no plugin configuration. Installing an optional package does not activate it.

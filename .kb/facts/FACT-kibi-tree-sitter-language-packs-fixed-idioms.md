@@ -1,12 +1,12 @@
 ---
-title: 'Tree-sitter language packs: kibi-plugin-treesitter must read a C or C++ header include guard, a C++ '
+title: 'Tree-sitter language packs: The kibi-plugin-treesitter plugin must read a C or C++ header include guard'
 status: active
 fact_kind: property_value
 subject_key: kibi.tree_sitter_language_packs
 property_key: fixed_idioms_not_gaps
 operator: eq
-claim_key: CLAIM-3C54C5F1D5098E7C
-claim_text: 'kibi-plugin-treesitter must read a C or C++ header include guard, a C++ linkage guard, an #if 0 block and the nested blocks of a Terraform resource without reporting them as analysis gaps'
+claim_key: CLAIM-46F6BC65ACB8AA0F
+claim_text: 'The kibi-plugin-treesitter plugin must read a C or C++ header include guard, a C++ linkage guard, an #if 0 block and the nested blocks of a Terraform resource without reporting them as analysis gaps'
 value_type: bool
 value_bool: true
 tags:

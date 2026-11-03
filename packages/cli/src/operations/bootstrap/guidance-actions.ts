@@ -130,7 +130,7 @@ export function buildActions(
         .map(([capability, mode]) => `"${capability}": { "mode": "${mode}" }`)
         .join(
           ", ",
-        )}; on no, add "${offer.package}" to kibi.declinedPlugins so bootstrap stops offering it.`,
+        )}; on no, add "${offer.package}" to kibi.declinedPlugins so bootstrap stops offering it.${offer.alsoInstall === undefined ? "" : " The operator may also decline single grammar packs: list each unwanted kibi-lang-* pack in package.json kibi.declinedLanguagePacks instead of installing it."}`,
     });
   result.push({
     order,

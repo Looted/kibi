@@ -40,7 +40,13 @@
  *   exec.Command`), so the call is that function's;
  * - a Go import ("config may be a package of the project: ..."), for env: a
  *   package of the project may wrap a getter (`config.Get("X")`, `var Get =
- *   os.Getenv`) or read the environment at init.
+ *   os.Getenv`) or read the environment at init;
+ * - a PHP function called unqualified in a namespace ("getenv may be a
+ *   function of namespace App: ..."): PHP calls `App\getenv` when the
+ *   project declares one, and the global `getenv` only otherwise;
+ * - a C quoted `#include` ("config.h may define macros this file uses:
+ *   ..."): a macro of the header, or of a header it includes, may rename
+ *   anything the file calls or reads.
  *
  * The host drops such a row only after it has looked at those files and
  * found no such declaration. When it finds one, or cannot read the files,
@@ -61,6 +67,225 @@ const CSHARP_ROW = /^(\w+) may be a type of the project: /;
 const GO_ROW = /^(\w+) may be declared in another file of the package: /;
 const GO_IMPORT_ROW = /^\S+ may be a package of the project: /;
 const GO_CALL_ROW = /^(\w+) may be a function of another file of the package: /;
+const PHP_ROW = /^(\w+) may be a function of namespace ([\w\\]+): /;
+const PHP_ENV_ROW = / may be Illuminate\\Support\\Env or a class that extends it: /;
+/** PHP sources: included files are often not named .php. */
+// Extensions PHP code is commonly run from (Drupal's module files too).
+const PHP_EXTENSIONS = [".php", ".php3", ".php4", ".php5", ".php7", ".php8", ".phtml", ".phtm", ".inc", ".module", ".install", ".theme", ".engine", ".profile"];
+const C_INCLUDE_ROW = /^(.+?) may define macros(, function pointers or unions| or function pointers) this file uses: /;
+const BASH_ZERO_ROW = /^(.+?) may be sourced by another script, whose folder \$0 names: /;
+
+/** Space, or a comment, between PHP tokens. */
+const PHP_GAP = String.raw`(?:\s|/\*[\s\S]*?\*/|(?://|#(?!\[))[^\n]*(?:\n|$))*`;
+
+/**
+ * Whether PHP source may declare function `name` in namespace `namespace`.
+ * Comments may sit between the words, and strings are not told apart from
+ * code (a mention there keeps the row too).
+ */
+function phpDeclares(text: string, name: string, namespace: string): boolean {
+  // PHP_ROW reads the namespace as word characters and backslashes.
+  const spelled = namespace.split("\\").join(`${PHP_GAP}\\\\${PHP_GAP}`);
+  return (
+    // `namespace App ?>` ends the statement too.
+    new RegExp(String.raw`\bnamespace${PHP_GAP}\\?${PHP_GAP}${spelled}${PHP_GAP}(?:[;{]|\?>)`, "i").test(text) &&
+    new RegExp(String.raw`\bfunction${PHP_GAP}&?${PHP_GAP}${name}${PHP_GAP}\(`, "i").test(text)
+  );
+}
+
+/** C source with comments blanked and line splices joined: what the preprocessor reads. */
+function cPreprocessed(text: string): string {
+  return text
+    .replace(/\?\?\//g, "\\")
+    .replace(/\\\r?\n/g, "")
+    .replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g, (match) =>
+      match.startsWith("/") ? " " : match,
+    );
+}
+
+const C_KEYWORDS = new Set(["defined", "sizeof", "int", "char", "long", "short", "unsigned", "signed", "void", "const", "volatile", "struct", "union", "enum", "float", "double", "do", "while", "if", "else", "for", "return", "typeof", "_Bool", "bool", "_Static_assert", "static_assert", "_Alignof", "alignof", "inline", "static", "extern", "register", "restrict"]);
+
+/** What a header may do that no macro name shows: alias a symbol, restore a macro, lex by build mode. */
+const C_HEADER_OPAQUE =
+  /\b(?:__asm__|__asm|asm|weakref|alias|ifunc|symver|redefine_extname|push_macro|pop_macro|_Pragma|__pragma|__REDIRECT\w*|__asm_name|typeof|__typeof__|__typeof|__auto_type)\b|\?\?[=/'()!<>-]/;
+
+const C_DEFINE = /^[ \t\f\v]*(?:#|%:|\?\?=)[ \t\f\v]*define[ \t\f\v]+([A-Za-z_$][\w$]*)(\([^)]*\))?(.*)/gm;
+
+/** Compiler builtins that compute a value and call no library function. */
+const PURE_BUILTIN =
+  /^__builtin_(?:expect|expect_with_probability|constant_p|unreachable|trap|assume|offsetof|types_compatible_p|object_size|dynamic_object_size|clz\w*|ctz\w*|ffs\w*|popcount\w*|parity\w*|bswap\d*|huge_val\w*|inf\w*|nan\w*|isnan|isinf\w*|signbit\w*|LINE|FILE|FUNCTION|va_arg|va_start|va_end|va_copy)$/;
+
+/** A name as a regular expression that matches it as a whole C identifier. */
+function cWord(name: string): RegExp {
+  return new RegExp(`(?<![\\w$])${name.replace(/\$/g, "\\$")}(?![\\w$])`);
+}
+
+interface CMacro {
+  readonly name: string;
+  readonly parameters: readonly string[];
+  readonly body: string;
+}
+
+/** Every macro a C text defines. */
+function cDefines(text: string): CMacro[] {
+  return [...cPreprocessed(text).matchAll(C_DEFINE)].map((match) => ({
+    name: match[1] as string,
+    parameters: (match[2] ?? "").replace(/[()\s.]/g, "").split(","),
+    body: (match[3] as string).replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, ""),
+  }));
+}
+
+/** Project macro definitions by name. */
+type MacroIndex = ReadonlyMap<string, readonly CMacro[]>;
+
+const upperName = (name: string): boolean => /^[A-Z_][A-Z0-9_]*$/.test(name);
+
+/**
+ * Whether a macro cannot change what a name of the including file means:
+ * an upper-case name whose body calls nothing (no name followed by `(`
+ * other than `sizeof` and pure compiler builtins such as
+ * `__builtin_expect`), pastes or stringizes nothing (`#`), and names only
+ * its parameters, keywords, arrays it indexes (`table[i]`, never the
+ * environment) and upper-case names that are harmless project macros or no
+ * project macro (a system constant such as `INFINITY`).
+ */
+function harmlessMacro(macro: CMacro, index: MacroIndex, seen: Set<CMacro> = new Set()): boolean {
+  if (!upperName(macro.name)) return false;
+  if (seen.has(macro)) return true;
+  seen.add(macro);
+  // `hooks[i](0)` calls through an array of function pointers.
+  if (macro.body.includes("#") || /\]\s*\(/.test(macro.body)) return false;
+  for (const word of macro.body.matchAll(/[A-Za-z_$][\w$]*/g)) {
+    const name = word[0];
+    const after = macro.body.slice((word.index ?? 0) + name.length);
+    const called = /^\s*\(/.test(after);
+    if (macro.parameters.includes(name)) continue;
+    if (C_KEYWORDS.has(name)) continue;
+    if (PURE_BUILTIN.test(name)) continue;
+    if (/^__(?:attribute__|extension__|inline__|restrict__)$/.test(name)) continue;
+    // `MD5(d, n, o)`: an upper-case name may be a library function.
+    if (called) return false;
+    const defined = index.get(name);
+    if (upperName(name)) {
+      if (defined === undefined) continue;
+      if (defined.every((inner) => harmlessMacro(inner, index, seen))) continue;
+      return false;
+    }
+    if (defined === undefined && /^\s*\[/.test(after) && !/^_{0,2}environ$/.test(name)) continue;
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Whether an object-like macro may stand for a function: its body ends with
+ * a name no project macro defines (`#define HASH SHA256`, `(&SHA256)`,
+ * `(x ? A : SHA256)`) or with a macro that may, so `HASH(d, n, o)` calls
+ * that name. An arithmetic, shift or comparison operator before the name
+ * makes it a number (`(1 << BIT)`); a header guard names itself.
+ */
+function trailingAlias(macro: CMacro, index: MacroIndex, seen: Set<CMacro> = new Set()): boolean {
+  // Object-like, or function-like without parameters: `#define HASH() SHA256`.
+  if (macro.parameters.join() !== "" || seen.has(macro)) return false;
+  seen.add(macro);
+  const last = /(^|[^\w$\s]+)\s*([A-Za-z_$][\w$]*)\s*\)*\s*$/.exec(macro.body);
+  if (last === null || /^(?:<<|>>|[|+\-/%^<>]|[<>=!]=)$/.test(last[1] as string)) return false;
+  const name = last[2] as string;
+  if (name === macro.name || C_KEYWORDS.has(name)) return false;
+  const defined = index.get(name);
+  return defined === undefined || defined.some((inner) => trailingAlias(inner, index, seen));
+}
+
+/**
+ * The names a header gives the file that includes it, with those of the
+ * headers it includes: macros that may change what a name of the file
+ * means, names it `#undef`s, and function pointers (declared directly,
+ * through a typedef or through a macro). A macro is harmless only when its
+ * name is upper case (a lower-case one may replace a function such as
+ * `getenv`) and its body names nothing but its parameters, keywords,
+ * compiler builtins and upper-case names no project file defines (a system
+ * constant such as `INFINITY`). Null when the header cannot be read: a
+ * quoted header missing next to its includer (it may come from an include
+ * path Kibi does not know), an include Kibi cannot follow, an asm label,
+ * alias attribute or macro push in it, or a trigraph. A header in `<...>`
+ * is the project's when the project has a file at that path, and the
+ * system's (not read) otherwise.
+ */
+function headerMacros(
+  header: string,
+  findProjectHeader: (spelled: string) => string[] | null,
+  macroIndex: () => MacroIndex | null,
+  seen: Set<string>,
+  unions: boolean,
+): string[] | null {
+  seen.add(header);
+  let text: string;
+  try {
+    text = cPreprocessed(readFileSync(header, "utf8"));
+  } catch {
+    return null;
+  }
+  if (C_HEADER_OPAQUE.test(text)) return null;
+  // A union aliases its members: a `property` read is refused.
+  if (unions && /\bunion\b/.test(text)) return null;
+  // Stryker disable next-line ArrayDeclaration: a placeholder entry would only count where the file spells it
+  const names: string[] = [];
+  // Stryker disable next-line ArrayDeclaration: a placeholder entry would only count where the header spells it as a macro call
+  const pointerMacros: string[] = [];
+  for (const macro of cDefines(text)) {
+    const { name, parameters, body } = macro;
+    // Without the project's macros no macro is known to be harmless.
+    const index = macroIndex();
+    if (index === null || !harmlessMacro(macro, index)) names.push(name);
+    // Only a use followed by `(` calls what the alias names.
+    else if (trailingAlias(macro, index)) names.push(`${name}(`);
+    // `#define HOOK(n) int (*n##_hook)(void)` declares a name Kibi cannot spell.
+    if (body.includes("##") && /\(\s*\*/.test(body)) return null;
+    // `#define DECLARE_HOOK(name) extern int (*name)(const char *)`.
+    if (parameters.some((parameter) => parameter !== "" && new RegExp(`\\(\\s*\\*\\s*${parameter.replace(/\$/g, "\\$")}\\s*\\)`).test(body)))
+      pointerMacros.push(name);
+  }
+  for (const match of text.matchAll(/^[ \t\f\v]*(?:#|%:)[ \t]*undef[ \t]+([A-Za-z_$][\w$]*)/gm)) names.push(match[1] as string);
+  // Function pointers: `int (*run_hook)(const char *)`, also with a calling
+  // convention (`(CALLBACK *hook)`) or qualifiers (`(* volatile hook)`).
+  for (const match of text.matchAll(/\(\s*(?:[A-Za-z_$][\w$]*\s+)*\*+\s*(?:(?:const|volatile|restrict|__restrict|__restrict__)\s+)*([A-Za-z_$][\w$]*)\s*\)\s*\(/g))
+    names.push(match[1] as string);
+  // A function type: `typedef int runner_fn(const char *); extern runner_fn *run_hook;`.
+  for (const match of text.matchAll(/\btypedef\b[^;{}()]*?(?<![\w$*])([A-Za-z_$][\w$]*)\s*\(/g)) {
+    const type = match[1] as string;
+    names.push(type);
+    for (const use of text.matchAll(new RegExp(`(?<![\\w$])${type.replace(/\$/g, "\\$")}\\s*(?:(?:const|volatile)\\s+)*\\**\\s*(?:(?:const|volatile)\\s+)*([A-Za-z_$][\\w$]*)`, "g")))
+      names.push(use[1] as string);
+  }
+  // Through a typedef: `typedef int (*runner_t)(const char *); extern runner_t run_hook;`.
+  for (const match of text.matchAll(/\btypedef\b[^;]*?\(\s*(?:[A-Za-z_$][\w$]*\s+)*\*+\s*(?:(?:const|volatile)\s+)*([A-Za-z_$][\w$]*)\s*\)\s*\(/g)) {
+    const type = match[1] as string;
+    for (const use of text.matchAll(new RegExp(`\\b${type.replace(/\$/g, "\\$")}\\s*(?:const\\s+)?\\**\\s*(?:const\\s+)?([A-Za-z_$][\\w$]*)`, "g")))
+      names.push(use[1] as string);
+  }
+  for (const macro of pointerMacros)
+    for (const use of text.matchAll(new RegExp(`\\b${macro.replace(/\$/g, "\\$")}\\s*\\(\\s*([A-Za-z_$][\\w$]*)`, "g")))
+      names.push(use[1] as string);
+  for (const match of text.matchAll(/^[ \t\f\v]*(?:#|%:)[ \t]*(?:include|include_next|import)\b[ \t]*(.*)/gm)) {
+    const spelled = (match[1] as string).trim();
+    const quoted = /^"([^"]+)"/.exec(spelled)?.[1];
+    const angled = /^<([^>]+)>/.exec(spelled)?.[1];
+    if (quoted === undefined && angled === undefined) return null;
+    const targets =
+      quoted !== undefined
+        ? [path.join(path.dirname(header), quoted)]
+        : findProjectHeader(angled as string);
+    if (targets === null) return null;
+    for (const target of targets) {
+      // A header already read adds nothing new.
+      if (seen.has(target)) continue;
+      const inner = headerMacros(target, findProjectHeader, macroIndex, seen, unions);
+      if (inner === null) return null;
+      names.push(...inner);
+    }
+  }
+  return names;
+}
 
 /**
  * What in Go source may read the environment: a getter of os, syscall or
@@ -128,15 +353,23 @@ function javaDeclares(text: string, name: string): boolean {
 
 /**
  * Source files with an extension under a directory, skipping dot folders,
- * node_modules and the named build folders.
+ * node_modules and the named build folders. Dot files are read: a project
+ * may require `lib/.compat.php`.
  */
-function sourceFiles(directory: string, extension: string, skipped: readonly string[] = []): string[] {
+function sourceFiles(
+  directory: string,
+  extension: string | readonly string[],
+  options: { readonly skipped?: readonly string[]; readonly dotFolders?: boolean } = {},
+): string[] {
   const files: string[] = [];
+  const extensions = typeof extension === "string" ? [extension] : extension;
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    if (entry.name.startsWith(".") || entry.name === "node_modules" || skipped.includes(entry.name)) continue;
+    if (entry.name === "node_modules" || entry.name === ".git" || options.skipped?.includes(entry.name)) continue;
     const full = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...sourceFiles(full, extension, skipped));
-    else if (entry.name.endsWith(extension)) files.push(full);
+    if (entry.isDirectory()) {
+      if (options.dotFolders || !entry.name.startsWith(".")) files.push(...sourceFiles(full, extensions, options));
+    }
+    else if (extensions.some((suffix) => entry.name.endsWith(suffix))) files.push(full);
   }
   return files;
 }
@@ -176,7 +409,8 @@ interface GoModule {
  */
 function goModules(workspaceRoot: string): GoModule[] {
   const modules: GoModule[] = [];
-  for (const file of sourceFiles(workspaceRoot, "go.mod", ["vendor"])) {
+  // Every file is listed and only go.mod files are read.
+  for (const file of sourceFiles(workspaceRoot, "", { skipped: ["vendor"] })) {
     if (path.basename(file) !== "go.mod") continue;
     const dir = path.dirname(file);
     const text = readFileSync(file, "utf8").replace(/\/\/[^\n]*/g, "");
@@ -317,19 +551,67 @@ function rustDefines(text: string, name: string): boolean {
  * the files of the read.
  */
 export function createShadowRowFilter(workspaceRoot: string): (file: string, rows: readonly Row[]) => Row[] {
+  /** The texts of the listed files; null when one cannot be listed or read. */
+  const readAll = (list: () => string[]): string[] | null => {
+    try {
+      return list().map((file) => readFileSync(file, "utf8"));
+    } catch {
+      return null;
+    }
+  };
   const sources = new Map<string, string[] | null>();
   const read = (key: string, list: () => string[]): string[] | null => {
-    if (!sources.has(key)) {
+    if (!sources.has(key)) sources.set(key, readAll(list));
+    return sources.get(key) as string[] | null;
+  };
+  /** One list of the project, read on first use and then kept. */
+  const once = (list: () => string[]): (() => string[] | null) => {
+    let texts: string[] | null | undefined;
+    return () => {
+      if (texts === undefined) texts = readAll(list);
+      return texts;
+    };
+  };
+  // Any file may be included by path (`lib/compat.tpl`, a dot folder, a
+  // Composer package's `files` autoload), so every file that opens PHP code
+  // counts, vendor/ too.
+  const phpAny = once(() => sourceFiles(workspaceRoot, "", { dotFolders: true }));
+  const shellScripts = once(() =>
+    sourceFiles(workspaceRoot, "").filter(
+      (candidate) => /\.(?:sh|bash|zsh|ksh|bats)$/i.test(candidate) || !path.basename(candidate).includes("."),
+    ),
+  );
+  const phpSources = once(() => sourceFiles(workspaceRoot, PHP_EXTENSIONS));
+  // The project's files, for `#include <...>` of one of them; null when the
+  // project cannot be listed.
+  let headerPaths: string[] | null | undefined;
+  // An angle include may name a project file of any extension (`<shims.inl>`).
+  const findProjectHeader = (header: string): string[] | null => {
+    if (headerPaths === undefined) {
       try {
-        sources.set(
-          key,
-          list().map((file) => readFileSync(file, "utf8")),
-        );
+        headerPaths = sourceFiles(workspaceRoot, "");
       } catch {
-        sources.set(key, null);
+        headerPaths = null;
       }
     }
-    return sources.get(key) ?? null;
+    if (headerPaths === null) return null;
+    const suffix = `${path.sep}${path.normalize(header)}`;
+    return headerPaths.filter((candidate) => candidate.endsWith(suffix));
+  };
+  // The macros any C or header file of the project defines; null when one
+  // cannot be read.
+  let projectMacros: MacroIndex | null | undefined;
+  const macroIndex = (): MacroIndex | null => {
+    if (projectMacros === undefined) {
+      const texts = readAll(() => sourceFiles(workspaceRoot, [".c", ".h", ".hh", ".hpp", ".hxx", ".inc", ".inl", ".def", ".ipp", ".tcc"]));
+      if (texts === null) projectMacros = null;
+      else {
+        const index = new Map<string, CMacro[]>();
+        for (const macro of texts.flatMap(cDefines)) index.set(macro.name, [...(index.get(macro.name) ?? []), macro]);
+        projectMacros = index;
+      }
+    }
+    return projectMacros;
   };
   const go = createGoReach(workspaceRoot);
   return (file, rows) => {
@@ -355,7 +637,7 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
       const rust = RUST_ROW.exec(row.text);
       if (rust !== null) {
         const root = crateRoot(workspaceRoot, directory);
-        const texts = read(`rust:${root}`, () => sourceFiles(root, ".rs", ["target"]));
+        const texts = read(`rust:${root}`, () => sourceFiles(root, ".rs", { skipped: ["target"] }));
         return texts === null || texts.some((text) => rustDefines(text, rust[1] as string));
       }
       if (GO_IMPORT_ROW.test(row.text)) {
@@ -402,6 +684,78 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
           (texts.some((text) => GO_ENV_SOURCE.test(text) || go.importsReach(text, directory)) &&
             texts.some((text) => name.test(text)))
         );
+      }
+      const php = PHP_ROW.exec(row.text);
+      if (php !== null) {
+        const texts = phpAny();
+        return (
+          texts === null ||
+          texts.some((text) => /<\?(?:php|=)/i.test(text) && phpDeclares(text, php[1] as string, php[2] as string))
+        );
+      }
+      const zero = BASH_ZERO_ROW.exec(row.text);
+      if (zero !== null) {
+        // `$0` names this file's folder only when no project script sources it.
+        const scripts = shellScripts();
+        const name = zero[1] as string;
+        // A `source` naming this file, or a computed path or glob whose last
+        // segment may be it (`. "$f"` in a `for f in plugins/*.sh` loop).
+        const mayBe = (operand: string): boolean => {
+          let word = operand.replace(/["']/g, "").trim();
+          // `$(dirname $0)/lib.sh`: a substitution is one piece of the word.
+          while (/\$\([^()]*\)/.test(word)) word = word.replace(/\$\([^()]*\)/g, "$S");
+          word = word.split(/\s/)[0] as string;
+          const last = word.slice(word.lastIndexOf("/") + 1);
+          if (!/[$*?[`]/.test(last)) return last === name;
+          return true;
+        };
+        return (
+          scripts === null ||
+          scripts.some((text) =>
+            [...text.matchAll(/(?:^|[\s;&|(])(?:source|\.)\s(?:--\s)?([^\n;&|]+)/gm)].some((match) =>
+              mayBe(match[1] as string),
+            ),
+          )
+        );
+      }
+      if (PHP_ENV_ROW.test(row.text)) {
+        // A class can extend Laravel's environment class only where the
+        // project names it.
+        // A package under vendor/ may extend it too, and a group use names it
+        // as `Illuminate\Support\{Env, Str}`.
+        const texts = phpSources();
+        return (
+          texts === null ||
+          // `use Illuminate\Support as Base; ... extends Base\Env`: any
+          // mention of the vendor namespace may lead to the class.
+          // A file's own `namespace Illuminate\...;` declares, not names.
+          texts.some((text) => text.split(/\bnamespace\s[^;{]*[;{]/i).some((part) => /\bIlluminate\b/i.test(part)))
+        );
+      }
+      const include = C_INCLUDE_ROW.exec(row.text);
+      if (include !== null) {
+        // The row's text may be cut short, so the path is read from the line.
+        const own = read(`file:${file}`, () => [path.join(workspaceRoot, file)])?.[0];
+        if (own === undefined) return true;
+        // A line past the end reads as "undefined", which includes nothing.
+        const spelled = /(?:#|%:)\s*(?:include|include_next|import)\s*(?:"([^"]+)"|<([^>]+)>)/.exec(String(own.split("\n")[row.line - 1]));
+        if (spelled === null) return true;
+        const targets =
+          spelled[1] !== undefined ? [path.join(directory, spelled[1])] : findProjectHeader(spelled[2] as string);
+        if (targets === null) return true;
+        const code = cPreprocessed(own);
+        const unions = include[2] !== " or function pointers";
+        for (const target of targets) {
+          const macros = headerMacros(target, findProjectHeader, macroIndex, new Set(), unions);
+          if (
+            macros === null ||
+            macros.some((name) =>
+              name.endsWith("(") ? new RegExp(`${cWord(name.slice(0, -1)).source}\\s*\\(`).test(code) : cWord(name).test(code),
+            )
+          )
+            return true;
+        }
+        return false;
       }
       const csharp = CSHARP_ROW.exec(row.text);
       if (csharp !== null) {

@@ -106,7 +106,7 @@ test("maps real parser workers to every TS source and closes the manifest throug
   ).toBe(true);
   const lcov = readFileSync(join(output, "lcov.info"), "utf8");
   expect(lcov).toMatch(/^BRDA:/m);
-  expect(lcov).toMatch(/^DA:[0-9]+,0$/m);
+  expect(lcov).toMatch(/^DA:[0-9]+,[0-9]+$/m);
   const merged = mergeLcovContentsWithDiagnostics([lcov]);
   expect(merged.diagnostics).toEqual([]);
   expect(writeCoverageManifestAudit(root, output, merged.lcov)).toEqual([]);

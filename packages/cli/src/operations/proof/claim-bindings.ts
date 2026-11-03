@@ -377,7 +377,7 @@ async function derivedProblem(
  * excludes claim about what the code reads; the env extract reads them all.
  */
 const ENVIRONMENT_GETTER =
-  /(?:^|[.:/])(?:getenv|Getenv|LookupEnv|getenvb|GetEnvironmentVariable)$|(?:^|[.:/])env::var(?:_os)?$|^(?:os\.environ\.get|ENV\.fetch|process\.env)$/;
+  /(?:^|[.:/\\])(?:getenv|Getenv|LookupEnv|getenvb|GetEnvironmentVariable[AW]?|secure_getenv|apache_getenv|_wgetenv|printenv)$|(?:^|[.:/])env::var(?:_os)?$|(?:^|\\)Env::get$|^(?:os\.environ\.get|ENV\.fetch|process\.env)$/i;
 
 export function environmentGetterCallee(callee: string): boolean {
   return ENVIRONMENT_GETTER.test(callee.replace(/\s+/g, "").replace(/\/\d+$/, ""));

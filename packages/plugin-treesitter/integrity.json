@@ -1,7 +1,7 @@
 {
   "schemaVersion": "kibi.package-integrity.v1",
   "package": "kibi-plugin-treesitter",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "algorithm": "sha256",
   "selfHash": {
     "path": "integrity.json",
@@ -11,8 +11,8 @@
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 26332,
-      "sha256": "0228bede4dc8afd835ba43db5bbc20b400ac19bffd9e4e5ceee00cc881edaffc"
+      "bytes": 35851,
+      "sha256": "7d8c162005bcd67046789f7aec7495501de768ee577e8a044c654a932c04a7e2"
     },
     {
       "path": "LICENSE.md",
@@ -21,13 +21,13 @@
     },
     {
       "path": "README.md",
-      "bytes": 16530,
-      "sha256": "25e856abb7249ac13bc368c3e2a9b86f7e8081a72a441f5e5ca0d753f4619d3b"
+      "bytes": 27056,
+      "sha256": "537aef111cc1701e3ac1a94b0b8ea19ee818d3cf08da6ad7fa4b8a69e55dcba5"
     },
     {
       "path": "SBOM.spdx.json",
       "bytes": 3981,
-      "sha256": "35be6f461678e3b04bee9823e6ed8adb631886335bc66590d80f6c8e8a1d0605"
+      "sha256": "27e83274e9c1f04e9a4eb058fdef08d6067f76cbc7d916011831c61f1e9bbd44"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -122,7 +122,7 @@
     {
       "path": "catalog.json",
       "bytes": 18499,
-      "sha256": "88c1139144c89835eed2d8a4dc736e4fe8391b50c7aeecf967dd3cbe8163f937"
+      "sha256": "2706fa2dc9852231f398352f3433509ca76d8d4141a99c465e1dbcddf82be86d"
     },
     {
       "path": "dist/analysis-worker.d.ts",
@@ -136,8 +136,8 @@
     },
     {
       "path": "dist/analysis-worker.js",
-      "bytes": 73753,
-      "sha256": "9120078de07b39fd5caced87610eb262d94e9cf1ba5c19ddf0413baacffab4fe"
+      "bytes": 73813,
+      "sha256": "e05022b3a689b0b17b616bc5df6a03fc06f658f4581d598e9888b4ae7be4119a"
     },
     {
       "path": "dist/catalog.d.ts",
@@ -162,12 +162,12 @@
     {
       "path": "dist/extractor.d.ts.map",
       "bytes": 1689,
-      "sha256": "36794bb0ed5c00ce7aa110f0832371fb915b4ad3037e0ec574f6acd1fa6f67c4"
+      "sha256": "e4c3f19320786188b38f3fe2328cea3b76a2e3d6cc26e61961874f92d9526344"
     },
     {
       "path": "dist/extractor.js",
-      "bytes": 19237,
-      "sha256": "30e8aaea27afd15d1d4323bf9708b86bae84f1e77c0bae74d50dac85aa737d31"
+      "bytes": 19418,
+      "sha256": "baebe75cf0f786d48611d030a2bd8f58f763027848b1fe8e75ec78a4b0dc99c6"
     },
     {
       "path": "dist/index.d.ts",
@@ -222,27 +222,102 @@
     {
       "path": "dist/preprocessor-idioms.d.ts.map",
       "bytes": 214,
-      "sha256": "c7fca18fe4f469b78c68632644306c208106e0500dfe06bef8c0527e8c68486f"
+      "sha256": "633913fd5f6dca955324537ef697bcc95d28e8c341a7737ef61b0e46c66cf3e5"
     },
     {
       "path": "dist/preprocessor-idioms.js",
-      "bytes": 6192,
-      "sha256": "92973c7f0c017fdd340a084e39e5febadd4254bc822c0f86f46a05c1463c1870"
+      "bytes": 8057,
+      "sha256": "6d9e4892ae5a24495635558a844276dc5d828a9473495c3743da8b97700cd2ea"
+    },
+    {
+      "path": "dist/reference-nodes.d.ts",
+      "bytes": 551,
+      "sha256": "df66070b64960458fb81a90bec2b2a8611e0255183391b5e8086767d86f710da"
+    },
+    {
+      "path": "dist/reference-nodes.d.ts.map",
+      "bytes": 552,
+      "sha256": "208979ba069aab6ce395dc815378a4dc8d94a4a1c119a0c46bfc58efd7dab5ca"
+    },
+    {
+      "path": "dist/reference-nodes.js",
+      "bytes": 974,
+      "sha256": "faaf1d994b25d306de616d6d2d6b116c21a70f56be2925da1355e52b3e8836d4"
+    },
+    {
+      "path": "dist/references-bash.d.ts",
+      "bytes": 1048,
+      "sha256": "e53328622b79cae645628e1bd9a13c6aea19f2fe92da4e010607db656c84a80d"
+    },
+    {
+      "path": "dist/references-bash.d.ts.map",
+      "bytes": 513,
+      "sha256": "2e3b432447c58b249d0822eb8737fc034ab3e1a808db3916ade8998a3d0621b5"
+    },
+    {
+      "path": "dist/references-bash.js",
+      "bytes": 79761,
+      "sha256": "a489fb9edaef7fae75341744114754fcf1ce855bba86c205aa741a29f44cf6cf"
+    },
+    {
+      "path": "dist/references-c.d.ts",
+      "bytes": 1159,
+      "sha256": "c8f74f56ff274287475d5ba8d17daa77b2576ea87c6f43ce61a8cc3aba08e0ae"
+    },
+    {
+      "path": "dist/references-c.d.ts.map",
+      "bytes": 547,
+      "sha256": "0d9f4ff47b511422a9b58d9e8afd7c2aa241dba2e2f5c367cd96d25d0c8cff50"
+    },
+    {
+      "path": "dist/references-c.js",
+      "bytes": 40950,
+      "sha256": "cb8feb16769a464c21ec85bdfacbf123a6f3645f96cf041057ca8d2288364346"
+    },
+    {
+      "path": "dist/references-hcl.d.ts",
+      "bytes": 361,
+      "sha256": "726b434af99c7b6d760ac56719328e1c3ef579d896094c531208320a5c7add08"
+    },
+    {
+      "path": "dist/references-hcl.d.ts.map",
+      "bytes": 387,
+      "sha256": "b4b070b6258c4464190d05fcdaf678863f1ff1c3db8f2ec4fa39b30381b46428"
+    },
+    {
+      "path": "dist/references-hcl.js",
+      "bytes": 26716,
+      "sha256": "66a8e4ca74424ac780e0741d03d9a5919ce8c8777e6c1e304878cdd9a910f266"
+    },
+    {
+      "path": "dist/references-php.d.ts",
+      "bytes": 1035,
+      "sha256": "ab82dde342ce8bc2a1c880c124d6002ff9646b902a68de9d7d780edac492e6b3"
+    },
+    {
+      "path": "dist/references-php.d.ts.map",
+      "bytes": 583,
+      "sha256": "9cc60bfb5b77357ae76d5b6c38699dc6264c202e7d7d982286755ee10dfd50eb"
+    },
+    {
+      "path": "dist/references-php.js",
+      "bytes": 81618,
+      "sha256": "ae4cf157c6dbb328045508c287936b9884043e94d00d7276db99d0d1d13f5a66"
     },
     {
       "path": "dist/references.d.ts",
-      "bytes": 1454,
-      "sha256": "46c3aa294932e88bdb4481aba8bcfe76e1fe3a972a5a404286546545c63479f8"
+      "bytes": 1728,
+      "sha256": "ec41ccf590a4addad0514486b008dffc778c905eb5d34e07f0f708638a6db5e5"
     },
     {
       "path": "dist/references.d.ts.map",
-      "bytes": 1028,
-      "sha256": "bc50c2c627508f04745442b61f02dedb792d7c9479d245951ce50a1053bd4aa7"
+      "bytes": 1122,
+      "sha256": "2fc3bcffc64efdedc7adf398360aaeb021f8edfc56a65e22bc80c65feb51b407"
     },
     {
       "path": "dist/references.js",
-      "bytes": 134556,
-      "sha256": "13f481356aa17fc1b19ec573430c2235645ea0047e8474ced1373c0d88e19e87"
+      "bytes": 140595,
+      "sha256": "cf763fd23496eb572fcd12439049af3c4fc39494943b31d31b459f3d7d75b7d5"
     },
     {
       "path": "licenses/web-tree-sitter-MIT.txt",
@@ -251,8 +326,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 2957,
-      "sha256": "5df90de14b219f4ae13c6cfd17206cbb70115c5a29f50ddb62f11d4abf891f9e"
+      "bytes": 2967,
+      "sha256": "937b86bc67a367ef92da63d1c5b51933d898fa445115e0a22a4609897e186611"
     }
   ]
 }

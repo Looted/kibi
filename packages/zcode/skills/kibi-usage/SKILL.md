@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.40.1
+  version: 2.42.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -458,6 +458,9 @@ arithmetic, smt, rule, state_machine, regex, source) reach `proved` for the clai
 predicate bound with `harness_for` (scope `harness`) also counts toward
 `proved`; an intent-scope binding stays `tested`. When the `evidence-floor` rule fails, follow Debugging
 proof regressions in `resources/proof.md` and use `kibi proof explain`.
+Load `kibi-provable-code` before writing or refactoring code that implements
+a requirement, when a source read is refused for a computed name, dynamic
+import, reflection or eval, or when deciding how to treat generated code.
 
 ## Quantified claims: model the dimension
 

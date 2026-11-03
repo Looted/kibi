@@ -4,10 +4,10 @@
 export const qualifiedSourceAnalyzers = [
   {
     packageName: "kibi-plugin-treesitter",
-    version: "3.0.0",
+    version: "3.1.0",
     files: {
       "SBOM.spdx.json":
-        "35be6f461678e3b04bee9823e6ed8adb631886335bc66590d80f6c8e8a1d0605",
+        "27e83274e9c1f04e9a4eb058fdef08d6067f76cbc7d916011831c61f1e9bbd44",
       "THIRD_PARTY_NOTICES.md":
         "942f1846cafc59c32d64422fcf1939be7036af4d82d776957aab8f4aeb107029",
       "assets/queries/bash.scm":
@@ -45,13 +45,13 @@ export const qualifiedSourceAnalyzers = [
       "assets/queries/terraform.scm":
         "8a6974a8eb48e13b5b8cd64e7c81262a825b4251df01ab383aee5cdda8151e7e",
       "catalog.json":
-        "88c1139144c89835eed2d8a4dc736e4fe8391b50c7aeecf967dd3cbe8163f937",
+        "2706fa2dc9852231f398352f3433509ca76d8d4141a99c465e1dbcddf82be86d",
       "dist/analysis-worker.js":
-        "9120078de07b39fd5caced87610eb262d94e9cf1ba5c19ddf0413baacffab4fe",
+        "e05022b3a689b0b17b616bc5df6a03fc06f658f4581d598e9888b4ae7be4119a",
       "dist/catalog.js":
         "c485cd1bf81098c3e2e86d37f78bf9f55af122f5d6b9587c0c57b494d68e4968",
       "dist/extractor.js":
-        "30e8aaea27afd15d1d4323bf9708b86bae84f1e77c0bae74d50dac85aa737d31",
+        "baebe75cf0f786d48611d030a2bd8f58f763027848b1fe8e75ec78a4b0dc99c6",
       "dist/index.js":
         "a7dcc81f40848a17a4b7adf4fe573a57a50c18425fab40fbb098489dfd092f3f",
       "dist/language-packs.js":
@@ -59,15 +59,25 @@ export const qualifiedSourceAnalyzers = [
       "dist/performance-timing.js":
         "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff",
       "dist/preprocessor-idioms.js":
-        "92973c7f0c017fdd340a084e39e5febadd4254bc822c0f86f46a05c1463c1870",
+        "6d9e4892ae5a24495635558a844276dc5d828a9473495c3743da8b97700cd2ea",
+      "dist/reference-nodes.js":
+        "faaf1d994b25d306de616d6d2d6b116c21a70f56be2925da1355e52b3e8836d4",
+      "dist/references-bash.js":
+        "a489fb9edaef7fae75341744114754fcf1ce855bba86c205aa741a29f44cf6cf",
+      "dist/references-c.js":
+        "cb8feb16769a464c21ec85bdfacbf123a6f3645f96cf041057ca8d2288364346",
+      "dist/references-hcl.js":
+        "66a8e4ca74424ac780e0741d03d9a5919ce8c8777e6c1e304878cdd9a910f266",
+      "dist/references-php.js":
+        "ae4cf157c6dbb328045508c287936b9884043e94d00d7276db99d0d1d13f5a66",
       "dist/references.js":
-        "13f481356aa17fc1b19ec573430c2235645ea0047e8474ced1373c0d88e19e87",
+        "cf763fd23496eb572fcd12439049af3c4fc39494943b31d31b459f3d7d75b7d5",
       "integrity.json":
-        "53d8a644a2bd4fcba93d60704b1f69c886f4705a8cbe78acc673ba8b50b00e1b",
+        "2301f3e42eaa22f398fc9e9a4003caf357ab10b9a0ed585d24cdf5c12ac640d4",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":
-        "5df90de14b219f4ae13c6cfd17206cbb70115c5a29f50ddb62f11d4abf891f9e",
+        "937b86bc67a367ef92da63d1c5b51933d898fa445115e0a22a4609897e186611",
     },
     dependencies: [
       {

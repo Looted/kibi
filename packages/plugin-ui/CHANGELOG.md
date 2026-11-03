@@ -1,5 +1,12 @@
 # kibi-plugin-ui
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [1ab386d]
+  - kibi-plugin-sdk@0.7.0
+
 ## 0.1.1
 
 ### Patch Changes

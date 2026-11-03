@@ -76,11 +76,11 @@ describe("language pack suggestions", () => {
 
   it("suggests the plugin for symbols alone in a language it cannot prove", () => {
     const suggestion = referenceLanguageSuggestion(
-      ["web/index.php", "deploy.sh"],
+      ["app/models/user.rb", "src/engine.cpp"],
       {},
     );
     expect(suggestion?.capabilities).toEqual(["kibi.symbol-extractor.v2"]);
-    expect(suggestion?.packs).toEqual(["kibi-lang-php", "kibi-lang-bash"]);
+    expect(suggestion?.packs).toEqual(["kibi-lang-cpp", "kibi-lang-ruby"]);
     expect(
       describeReferenceLanguageSuggestion(
         suggestion as NonNullable<typeof suggestion>,

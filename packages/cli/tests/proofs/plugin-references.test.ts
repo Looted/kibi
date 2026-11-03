@@ -102,6 +102,92 @@ describe("the references reader on Go, Java, C# and Rust", () => {
     ).toEqual({ ok: true, model: { members: ["System", "System.Net.Http"] } });
   });
 
+  // executable_for TEST-kibi-tree-sitter-references
+  test("refuses Terraform values an override file of the folder may replace", async () => {
+    proofReferenceExtractorLoader.load = async () => ({
+      extractors: [
+        { ...fakeExtractor, supports: ({ path: file }) => /\.tf$/.test(file) },
+      ],
+      problems: [],
+    });
+    const root = workspace({
+      "infra/main.tf": "uses(private)\n",
+      "infra/prod_override.tf": "uses(public)\n",
+      "other/main.tf": "uses(x)\n",
+    });
+    const refused = await read(root, {
+      reader: "references",
+      files: "infra/main.tf",
+      extract: "property",
+      key: "acl",
+    });
+    expect(refused.ok).toBe(false);
+    if (!refused.ok)
+      expect(refused.reason).toContain(
+        "infra/prod_override.tf may override values of this folder's blocks",
+      );
+    // Read together, the override would replace the value, not add to it.
+    const merged = await read(root, {
+      reader: "references",
+      files: "infra/*.tf",
+      extract: "property",
+      key: "acl",
+    });
+    expect(merged.ok).toBe(false);
+    // OpenTofu reads a .tofu file in place of the .tf file of its name.
+    const tofu = workspace({
+      "main.tf": "uses(private)\n",
+      "main.tofu": "uses(public)\n",
+    });
+    const replaced = await read(tofu, {
+      reader: "references",
+      files: "main.tf",
+      extract: "property",
+      key: "acl",
+    });
+    expect(replaced.ok).toBe(false);
+    if (!replaced.ok)
+      expect(replaced.reason).toContain(
+        "main.tofu may replace or override this folder's .tf files under OpenTofu",
+      );
+    expect(
+      await read(root, {
+        reader: "references",
+        files: "other/main.tf",
+        extract: "property",
+        key: "acl",
+      }),
+    ).toEqual({ ok: true, model: { members: ["x"] } });
+    // Terragrunt may generate an override into the folder it runs in.
+    for (const [config, refuses] of [
+      ['generate "acl" {\n  path = "acl_override.tf"\n}\n', true],
+      ['include "root" {\n  path = find_in_parent_folders()\n}\n', true],
+      ['generate acl {\n  path = "acl_override.tf"\n}\n', true],
+      ["include root {\n  path = find_in_parent_folders()\n}\n", true],
+      [
+        '{\n  "generate": [{ "acl": { "path": "acl_override.tf" } }]\n}\n',
+        true,
+      ],
+      ['inputs = {\n  bucket = "logs"\n}\n', false],
+    ] as const) {
+      const generated = workspace({
+        "main.tf": "uses(private)\n",
+        "terragrunt.hcl": config,
+      });
+      const result = await read(generated, {
+        reader: "references",
+        files: "main.tf",
+        extract: "property",
+        key: "acl",
+      });
+      expect(result.ok).toBe(!refuses);
+      if (!result.ok)
+        expect(result.reason).toContain(
+          "terragrunt.hcl may generate files that override this folder's blocks",
+        );
+    }
+  });
+
   test("refuses with what to install when no provider is active", async () => {
     const root = workspace({ "main.go": "package main\n" });
     const refused = await read(root, {
@@ -158,7 +244,7 @@ describe("the references reader on Go, Java, C# and Rust", () => {
     expect(refused.ok).toBe(false);
     if (!refused.ok)
       expect(refused.reason).toContain(
-        "Go, Java, C# and Rust through kibi-plugin-treesitter",
+        "Go, Java, C#, Rust, PHP, C, Bash and Terraform/HCL through kibi-plugin-treesitter",
       );
   });
 

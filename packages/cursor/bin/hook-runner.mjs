@@ -1851,13 +1851,16 @@ function sandboxedHome(env) {
   return resolved !== temp && resolved.startsWith(`${temp}${path5.sep}`);
 }
 var KIBI_REPOSITORY_PACKAGE = "kibi";
-function thisModuleFile() {
+function moduleFileFromUrl(readUrl) {
   try {
-    const url = import.meta.url;
+    const url = readUrl();
     return typeof url === "string" && url !== "" ? fileURLToPath(url) : undefined;
   } catch {
     return;
   }
+}
+function thisModuleFile() {
+  return moduleFileFromUrl(() => import.meta.url);
 }
 function insideKibiCheckout(file) {
   const resolved = realDirectory(file);

@@ -1,6 +1,8 @@
 import { spawn } from "node:child_process";
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { OperationError } from "../cli-errors.js";
+import { noteCliErrorCategory } from "../usage-telemetry.js";
 
 import { executeIngestProof } from "../operations/proof/ingest-proof.js";
 import type { IngestProofResult } from "../operations/proof/ingest-proof.js";
@@ -591,7 +593,11 @@ export async function proveCommand(
   try {
     const integrations = loadProofIntegrations(context.workspaceRoot);
     if (!integrations.available)
-      throw new Error(`prove: ${integrations.error}`);
+      throw new OperationError(
+        "PROOF_INTEGRATIONS_UNAVAILABLE",
+        `prove: ${integrations.error}`,
+        false,
+      );
     const selected = await selectTests(context, options);
     if (selected.length === 0) {
       process.stdout.write(
@@ -601,7 +607,11 @@ export async function proveCommand(
       return { exitCode: 0 };
     }
     const before = await readWorkspaceSnapshot(context);
-    if (!before.available) throw new Error(`prove: ${before.error}`);
+    if (!before.available)
+      throw new OperationError(
+        "WORKSPACE_SNAPSHOT_UNAVAILABLE",
+        `prove: ${before.error}`,
+      );
     const snapshot = before.snapshot.hash;
     // Packed contracts run in separate processes; one shared packed-tarball
     // cache area per campaign snapshot replaces dozens of repeated packs and
@@ -914,6 +924,10 @@ export async function proveCommand(
     process.stdout.write(`${JSON.stringify(summary)}\n`);
     completed = true;
     await runtime.afterSuccess(ingestProofSpec, context);
+    // A test that ran and failed is the expected outcome of a proof run; an
+    // integration that produced no receipts is a separate failure.
+    if (failed > 0) noteCliErrorCategory("tests_failed");
+    else if (failures.length > 0) noteCliErrorCategory("integration_failed");
     return { exitCode: failures.length > 0 || failed > 0 ? 1 : 0 };
   } finally {
     await runtime.close(

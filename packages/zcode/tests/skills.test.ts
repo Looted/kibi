@@ -16,6 +16,7 @@ const requiredSkills = [
   "kibi-traceability",
   "kibi-decisions",
   "kibi-commit-review",
+  "kibi-provable-code",
 ] as const;
 
 const expectedSkillNames: Record<(typeof requiredSkills)[number], string> = {
@@ -25,6 +26,7 @@ const expectedSkillNames: Record<(typeof requiredSkills)[number], string> = {
   "kibi-traceability": "kibi-traceability",
   "kibi-decisions": "kibi-decisions",
   "kibi-commit-review": "kibi-commit-review",
+  "kibi-provable-code": "kibi-provable-code",
 };
 
 /**

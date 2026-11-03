@@ -9626,6 +9626,27 @@ test(includes_and_subset_need_a_certain_member) :-
     reference_ok("subset_of", ["os.path", "*.m", "java.sql.*"], ["os.*", "*.m", "java.*"]),
     reference_ok("subset_of", ["anything"], ["*"]).
 
+test(php_names_split_at_backslashes) :-
+    reference_problem("excludes", ["Foo\\Bar::make"], ["Foo\\Bar"], "within Foo\\Bar"),
+    reference_problem("excludes", ["app\\svc\\exec"], ["exec"], "it may be the exec"),
+    reference_ok("includes", ["Foo\\Bar\\Baz"], ["Foo\\Bar\\*"]),
+    reference_ok("excludes", ["Foo\\Barista"], ["Foo\\Bar"]).
+
+test(excludes_ignores_letter_case_for_names) :-
+    reference_problem("excludes", ["App\\Mail\\Mailer::SEND"], ["App\\Mail\\Mailer::send"], "the names differ only in letter case"),
+    reference_problem("excludes", ["*.SEND"], ["App\\Mail\\Mailer::send"], "Kibi cannot decide the claim"),
+    reference_problem("excludes", ["runtimeexception"], ["RuntimeException"], "Kibi cannot decide the claim"),
+    reference_ok("excludes", ["App\\Mail\\Mailer::sender"], ["App\\Mail\\Mailer::send"]),
+    % Values and environment names keep their case.
+    Certificate = _{version: "kibi.code-certificate.v1", kind: "source",
+                    test_id: "TEST-R",
+                    source: _{reader: "references", files: ["a.php"], extract: "string_args"},
+                    model: _{members: ["Private"]}},
+    model_check:model_check_obligation(source,
+        _{kind: "set_relation", operator: "excludes", members: ["private"]},
+        Certificate, Values),
+    assertion(Values == ok).
+
 test(eq_and_other_readers_compare_spellings) :-
     reference_problem("eq", ["*.m"], ["X.m"], "missing X.m"),
     reference_ok("eq", ["java.sql.*"], ["java.sql.*"]),
@@ -9633,5 +9654,29 @@ test(eq_and_other_readers_compare_spellings) :-
     assertion(Json == ok),
     reference_relation("json", "excludes", ["a.b"], ["a.*"], JsonPattern),
     assertion(JsonPattern == ok).
+
+test(names_fold_for_thrown_and_imports_too) :-
+    forall(member(Extract, ["thrown", "imports"]),
+           (   Certificate = _{version: "kibi.code-certificate.v1", kind: "source",
+                               test_id: "TEST-R",
+                               source: _{reader: "references", files: ["a.php"], extract: Extract},
+                               model: _{members: ["app\\errors\\fatal"]}},
+               model_check:model_check_obligation(source,
+                   _{kind: "set_relation", operator: "excludes", members: ["App\\Errors\\Fatal"]},
+                   Certificate, Result),
+               assertion(Result = problem(_))
+           )).
+
+test(an_excluded_member_read_exactly_is_named_alone) :-
+    reference_relation("references", "excludes", ["os.Exit"], ["os.Exit"], Result),
+    assertion(Result = problem(_)),
+    Result = problem(Reason),
+    assertion(sub_string(Reason, _, _, _, "os.Exit")),
+    assertion(\+ sub_string(Reason, _, _, _, "within")),
+    assertion(\+ sub_string(Reason, _, _, _, "letter case")).
+
+test(other_readers_include_only_exact_spellings) :-
+    reference_relation("json", "includes", ["a.b"], ["a.*"], Json),
+    assertion(Json = problem(_)).
 
 :- end_tests(reference_member_matching).

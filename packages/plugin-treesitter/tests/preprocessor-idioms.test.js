@@ -72,6 +72,25 @@ describe("C and C++ header idioms", () => {
     );
   });
 
+  it("leaves a guard whose #define has a body, and lexes comments and digraphs", () => {
+    const body = "#ifndef run\n#define run system\nint f(void);\n#endif\n";
+    assert.equal(blankHeaderIdioms(body), body);
+    for (const guard of ["#define G 1", "#define G G"])
+      assert.equal(
+        blankHeaderIdioms(`#ifndef G\n${guard}\nint f(void);\n#endif\n`)
+          .split("\n")[1]
+          .trim(),
+        "",
+      );
+    // `%:endif` closes `#if 0`; a `//` comment ending in `\` goes on.
+    assert.equal(
+      blankHeaderIdioms("#if 0\n%:endif\nint f(void);\n").split("\n")[2],
+      "int f(void);",
+    );
+    const spliced = "#if 0\n// a\\\n#endif\nint g;\n#endif\n";
+    assert.equal(blankHeaderIdioms(spliced).split("\n")[4], "      ");
+  });
+
   it("accepts the defined() spellings of both guards", () => {
     for (const open of ["#if !defined(G)", "#if !defined G", "# ifndef G"]) {
       const text = `${open}\n#define G\nint f(void);\n#endif\n`;
@@ -245,5 +264,113 @@ describe("Terraform blocks without an address", () => {
         "TREESITTER_LOCAL_GAPS_SUMMARIZED",
       ],
     );
+  });
+});
+
+/** Asserts that exactly the lines at `indices` are blanked. */
+function blanks(text, ...indices) {
+  const want = text
+    .split("\n")
+    .map((line, index) =>
+      indices.includes(index) ? line.replace(/[^\r]/g, " ") : line,
+    )
+    .join("\n");
+  assert.equal(blankHeaderIdioms(text), want, JSON.stringify(text));
+}
+
+describe("C and C++ header idioms: exact reads", () => {
+  it("finds directives only at the start of a line", () => {
+    blanks("  #if 0\nb\n  #endif\n", 0, 1, 2);
+    blanks("a #if 0\nb\n#endif\n");
+    blanks("#if 0/1\nb\n#endif\n");
+    // A line break other than a CRLF's in the line: not a directive.
+    blanks("#if \r0\nb\n#endif\n");
+    blanks(`#if 0${String.fromCharCode(0x2028)}x\nb\n#endif\n`);
+    blanks("#if 0\r\nb\r\n#endif\r\n", 0, 1, 2);
+    blanks("#if 0 // off\nb\n#endif // off\n", 0, 1, 2);
+    blanks("#if ifdef __cplusplus\n}\n#endif\n");
+  });
+
+  it("reads comments as the compiler does", () => {
+    blanks("#if/**/0\nb\n#endif\n", 0, 1, 2);
+    blanks("/*/\n#if 0\n*/\nint a;\n#endif\n");
+    blanks("#if 0\nb\n#endif\nint a; /* open", 0, 1, 2);
+    // A backslash and blanks at the end splice a line comment.
+    blanks("// a\\x\n#if 0\nb\n#endif\n", 1, 2, 3);
+    blanks("// a\\\v\n#if 0\nb\n#endif\n");
+    blanks("// a\\ \t\f\n#if 0\nb\n#endif\n");
+  });
+
+  it("reads string and character literals as the compiler does", () => {
+    blanks("int c = '/*';\n#if 0\nb\n#endif\n", 1, 2, 3);
+    blanks('char *s = "/*";\n#if 0\nb\n#endif\n', 1, 2, 3);
+    blanks('char *s = "a"; /*\n#if 0\nb\n#endif\n*/\n');
+    blanks('char *s = "a\\"b"; /*\n#if 0\nb\n#endif\n*/\n');
+    blanks('char *s = "ab"; /*\n#if 0\nb\n#endif\n*/\n');
+    // A literal ends at the line end unless a backslash and blanks splice
+    // it: then the `/*` on the next line is in the literal.
+    for (const splice of ["", " \t", "\v", "\r"])
+      blanks(`char *s = "a\\${splice}\n/*";\n#if 0\nb\n#endif\n`, 2, 3, 4);
+    for (const end of ["", "\\x", `\\${" ".repeat(90)}`])
+      blanks(`char *s = "a${end}\n/*";\n#if 0\nb\n#endif\n`);
+    blanks('#if 0\nb\n#endif\nchar *s = "open', 0, 1, 2);
+  });
+
+  it("reads #if 0 with every branch and nesting", () => {
+    blanks("#if 0\n#ifdef X\n#else\n#endif\n#endif\n", 0, 1, 2, 3, 4);
+    for (const branch of ["#else", "#elif 1", "#elifdef X", "#elifndef X"])
+      blanks(`#if 0\na\n${branch}\nb\n#endif\n`);
+    blanks("#if 0\n#if 0\nb\n#endif\n", 1, 2, 3);
+    blanks("int a;\n#if 0\nb\n#endif\n#if 0\nc\n#endif\n", 1, 2, 3, 4, 5, 6);
+  });
+
+  it("refuses trigraphs and nothing else", () => {
+    blanks("??=if 0\nb\n??=endif\n");
+    blanks("#if 0\nb??x\n#endif\n", 0, 1, 2);
+    blanks("");
+    blanks("int a;\nint b;\n");
+  });
+
+  it("blanks exactly an include guard's three lines", () => {
+    blanks("#ifndef G\n#define G\nint f;\n#endif\n", 0, 1, 3);
+    blanks("#ifndef MY__H\n#define MY__H\nint f;\n#endif\n", 0, 1, 3);
+    blanks("#ifndef H__\n#define H__\nint f;\n#endif\n", 0, 1, 3);
+    blanks("#ifndef __H\n#define __H\nint f;\n#endif\n");
+    for (const open of [
+      "#if ! defined(GG)",
+      "#if !defined( GG )",
+      "#if !defined GG",
+    ])
+      blanks(`${open}\n#define GG\nint f;\n#endif\n`, 0, 1, 3);
+    for (const define of ["#define G 1", "#define G G", "#define G  1"])
+      blanks(`#ifndef G\n${define}\nint f;\n#endif\n`, 0, 1, 3);
+    for (const text of [
+      "#ifndef G\n#define G 2\nint f;\n#endif\n",
+      "#ifndef G\n#define G 1 2\nint f;\n#endif\n",
+      "#ifndef G\n#undef G\nint f;\n#endif\n",
+      "#ifndef G\nint f;\n#endif\n",
+      "#ifndef G junk\n#define G\nint f;\n#endif\n",
+      "#elifndef G\n#define G\nint f;\n#endif\n",
+      "#if ifndef G\n#define G\nint f;\n#endif\n",
+    ])
+      blanks(text);
+  });
+
+  it("blanks exactly a C++ linkage guard", () => {
+    for (const open of [
+      "#ifdef __cplusplus",
+      "#if defined( __cplusplus )",
+      "#if defined __cplusplus",
+    ])
+      for (const body of [
+        'extern "C" {',
+        'extern  "C"  {',
+        'extern "C"{',
+        "  }",
+      ])
+        blanks(`int a;\n${open}\n\n${body}\n\n#endif\nint b;\n`, 1, 2, 3, 4, 5);
+    blanks("#ifdef X\n}\n#endif\n");
+    blanks("#ifdef __cplusplus_x\n}\n#endif\n");
+    blanks('#ifdef __cplusplus\nextern "C" {\nint a;\n#endif\n');
   });
 });

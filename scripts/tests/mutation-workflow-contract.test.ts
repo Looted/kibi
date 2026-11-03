@@ -12,6 +12,10 @@ import strykerConfig, {
   CLI_MUTATION_MODULES,
   PLUGIN_MUTATION_MODULES,
 } from "../../stryker.conf.mjs";
+import treesitterConfig, {
+  TREESITTER_MUTATION_MODULES,
+  TREESITTER_MUTATION_TESTS,
+} from "../../stryker.treesitter.conf.mjs";
 
 const ROOT = join(import.meta.dir, "..", "..");
 const MUTATION_PACKAGES = [
@@ -186,6 +190,7 @@ describe("mutation testing workflow contract", () => {
       ...MUTATION_PACKAGES.flatMap((pkg) => walkTsFiles(pkg, "src", ".ts")),
       ...Object.keys(CLI_MUTATION_MODULES),
       ...Object.keys(PLUGIN_MUTATION_MODULES),
+      ...TREESITTER_MUTATION_MODULES,
     ];
     for (const file of sources) {
       const lines = readFileSync(join(ROOT, file), "utf8").split("\n");
@@ -197,6 +202,76 @@ describe("mutation testing workflow contract", () => {
           `${file}:${index + 1} disables mutants without a "rationale:" comment above`,
         ).toBe(true);
       });
+    }
+  });
+});
+
+describe("tree-sitter reader mutation contract", () => {
+  const ts = treesitterConfig as StrykerConfig & { buildCommand?: string };
+
+  test("the reader gate is absolute and uses the bun runner", () => {
+    expect(ts.thresholds).toEqual({ high: 100, low: 100, break: 100 });
+    expect(ts.testRunner).toBe("bun");
+    expect(ts.coverageAnalysis).toBe("perTest");
+    expect(ts.mutate).toEqual(TREESITTER_MUTATION_MODULES);
+  });
+
+  test("every mutated reader and registered test exists", () => {
+    for (const module of TREESITTER_MUTATION_MODULES) {
+      expect(module).toMatch(/^packages\/plugin-treesitter\/src\/.+\.ts$/);
+      expect(statSync(join(ROOT, module)).isFile()).toBe(true);
+    }
+    for (const test of TREESITTER_MUTATION_TESTS) {
+      expect(statSync(join(ROOT, test)).isFile()).toBe(true);
+    }
+    expect(ts.bun?.testFiles).toEqual(
+      TREESITTER_MUTATION_TESTS.map((test) => `./${test}`),
+    );
+  });
+
+  test("every mutation-*.test.js of the plugin is registered", () => {
+    const onDisk = readdirSync(join(ROOT, "packages/plugin-treesitter/tests"))
+      .filter((name) => /^mutation-.+\.test\.js$/.test(name))
+      .map((name) => `packages/plugin-treesitter/tests/${name}`);
+    expect(onDisk.length).toBeGreaterThan(0);
+    for (const test of onDisk)
+      expect(TREESITTER_MUTATION_TESTS).toContain(test);
+  });
+
+  test("the sandbox build compiles the instrumented source and runs it in-process", () => {
+    expect(ts.buildCommand).toContain("scripts/mutation-sandbox-treesitter.sh");
+    const script = readFileSync(
+      join(ROOT, "scripts/mutation-sandbox-treesitter.sh"),
+      "utf8",
+    );
+    expect(script).toContain("scripts/mutation-sandbox-setup.sh");
+    expect(script).toContain("scripts/mutation-treesitter-inprocess.mjs");
+  });
+
+  test("CI runs the reader gate on reader changes", () => {
+    const pkg = JSON.parse(
+      readFileSync(join(ROOT, "package.json"), "utf8"),
+    ) as {
+      scripts?: Record<string, string>;
+    };
+    expect(pkg.scripts?.["test:mutation:treesitter"]).toBe(
+      "stryker run stryker.treesitter.conf.mjs",
+    );
+    const workflow = readFileSync(
+      join(ROOT, ".github/workflows/mutation-treesitter.yml"),
+      "utf8",
+    );
+    expect(workflow).toContain("schedule:");
+    expect(workflow).toContain("run: bun run test:mutation:treesitter");
+    for (const path of [
+      "packages/plugin-treesitter/src/**",
+      "packages/plugin-treesitter/tests/**",
+      "stryker.treesitter.conf.mjs",
+      "scripts/mutation-sandbox-treesitter.sh",
+      "scripts/mutation-treesitter-inprocess.mjs",
+      "scripts/mutation-sandbox-setup.sh",
+    ]) {
+      expect(workflow).toContain(`- '${path}'`);
     }
   });
 });

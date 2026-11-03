@@ -29,6 +29,7 @@ const requiredPluginFiles = [
   path.join("skills", "kibi-traceability", "SKILL.md"),
   path.join("skills", "kibi-decisions", "SKILL.md"),
   path.join("skills", "kibi-commit-review", "SKILL.md"),
+  path.join("skills", "kibi-provable-code", "SKILL.md"),
 ];
 
 function tarPath(relative: string): string {

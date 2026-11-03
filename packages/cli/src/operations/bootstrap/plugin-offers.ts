@@ -8,6 +8,7 @@ import {
   pinnedPackVersions,
   referenceLanguageSuggestion,
   workspaceInstalledVersion,
+  workspacePackRelevance,
 } from "../../plugins/reference-language-suggestion.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { KB_PATHS } from "../../utils/kb-paths.js";
@@ -53,7 +54,8 @@ function kibiConfigOf(manifest: unknown): ProjectKibiConfig {
   const kibi = (manifest as Record<string, unknown>).kibi;
   if (typeof kibi !== "object" || kibi === null || Array.isArray(kibi))
     return {};
-  const { plugins, declinedPlugins } = kibi as Record<string, unknown>;
+  const { plugins, declinedPlugins, declinedLanguagePacks, generatedPaths } =
+    kibi as Record<string, unknown>;
   return {
     plugins: Array.isArray(plugins)
       ? plugins.flatMap((entry) => {
@@ -80,6 +82,10 @@ function kibiConfigOf(manifest: unknown): ProjectKibiConfig {
           (name): name is string => typeof name === "string",
         )
       : [],
+    // A non-string entry names no pack and matches no path, so these lists
+    // are passed on as written; a value that is not a list is ignored.
+    ...(Array.isArray(declinedLanguagePacks) ? { declinedLanguagePacks } : {}),
+    ...(Array.isArray(generatedPaths) ? { generatedPaths } : {}),
   };
 }
 
@@ -158,7 +164,8 @@ async function requirementFiles(
  * question worded differently from them is likely to miss; neither is
  * offered once the project activated or declined it. kibi-plugin-treesitter
  * is offered for sources in any language it reads until it is listed, and
- * for Go, Java, C# and Rust sources until it is active for source proofs.
+ * for Go, Java, C#, Rust, PHP, C, Bash and Terraform sources until it is active
+ * for source proofs.
  */
 // implements REQ-bootstrap-ui-plugin-offer, REQ-kibi-plugin-search-hints, REQ-kibi-tree-sitter-references
 export async function pluginOffers(
@@ -189,6 +196,11 @@ export async function pluginOffers(
         pinnedPackVersions(context.workspaceRoot),
         undefined,
         manifestDeclares(manifest, REFERENCE_PLUGIN_PACKAGE),
+        workspacePackRelevance(
+          context.workspaceRoot,
+          files,
+          kibiConfigOf(manifest),
+        ),
       )
     : null;
   if (references !== null && references.capabilities.length > 0) {

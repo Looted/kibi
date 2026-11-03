@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-342dc2cf15e0
+  - type: assumes
+    from: SCEN-NEG-kibi-tree-sitter-script-references-EVAL
+    to: FACT-NEG-kibi-tree-sitter-script-references-EVAL
+    created_at: 2026-11-02T12:20:17.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b63f55fb3ed0
+  - type: verified_by
+    from: SCEN-NEG-kibi-tree-sitter-script-references-EVAL
+    to: TEST-kibi-tree-sitter-script-references
+    created_at: 2026-11-02T12:20:28.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efc6bbcb29d0

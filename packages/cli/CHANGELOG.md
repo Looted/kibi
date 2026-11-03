@@ -1,5 +1,72 @@
 # kibi-cli
 
+## 2.41.0
+
+### Minor Changes
+
+- 0c508e0: Clearer CLI failures, found through anonymous usage telemetry:
+  - Every JSON-only command (`plan-bootstrap`, `upsert`, `apply-plan`, …) takes `--schema`, which prints the JSON Schema its `--input` is validated against, with every field and its allowed values. A `VALIDATION_FAILED` input error points at it, and a command run without `--input` now says how to pass the document (`echo '{}' | kibi plan-bootstrap --input -`).
+  - A reader that closes stdout early (`kibi query req | head`) no longer crashes the CLI with `write EPIPE`; the command exits with its own exit code.
+  - `kibi sync` refusing a hand-edited `.kb/` file that `kb_upsert` wrote and Git does not track yet (`Pending source hash drift`) now names the way out: stage the file with `git add` to keep the edit, or write it through `kb_upsert`. Before, the message gave no fix, and `kibi branch recover --apply`, the fix named for a deleted pending source, failed with the same error.
+  - `kibi proof explain` with an id the branch KB does not hold, or holds as another type, says so and suggests `kibi sync`, instead of `Proof explain query failed: Query failed`.
+
+  Technical summary: sync refusals are `SyncError`s with a `code` (`PENDING_SOURCE_HASH_DRIFT`, `PENDING_SOURCE_MISSING`, `PENDING_SOURCE_ESCAPES_WORKSPACE`, `PENDING_SOURCE_RECEIPT_CHANGED`, `PENDING_SOURCE_RECEIPT_IO`, `SOURCE_ANALYZER_UNAVAILABLE`, `SYMBOLS_MANIFEST_INVALID`, `COORDINATE_ARTIFACT_INVALID`), engine start failures carry `ENGINE_START_FAILED`, `proof explain` throws `INVALID_TARGET` / `ENTITY_NOT_FOUND` / `PROLOG_UNAVAILABLE`, and `prove` throws `PROOF_INTEGRATIONS_UNAVAILABLE` / `WORKSPACE_SNAPSHOT_UNAVAILABLE`, so usage telemetry records a stable category instead of `uncaught_error`. A missing `--input` records `MISSING_INPUT`. A non-zero exit that is the command's own answer records an outcome category: `check_violations` (`check`, `check-diff`), `generated_artifacts_stale` (`check-generated`), `tests_failed` (`prove`, `proof run-steps`) and `integration_failed` (`prove` when an integration produced no receipts). `main()` treats `EPIPE`/`ERR_STREAM_DESTROYED` on stdout as a closed reader.
+
+- 1ab386d: Kibi now leaves generated code to its generator. `kibi doctor`, `kibi init` and `kb_plan_bootstrap` no longer ask for grammar packs because of files a tool generated, and the commit gate no longer asks for requirement links on regenerated code. A repository whose `tree-sitter init`, protobuf or bindgen output adds Rust, C++ or Python files no longer needs those packs, unless its KB actually points at one of those files. A project can also turn down a single pack with the new `kibi.declinedLanguagePacks` list in `package.json`, and the doctor line now says which languages a pack is wanted for.
+  - Files marked `linguist-generated` or `linguist-vendored` in `.gitattributes`, or opening with a generator marker (`@generated`, `Code generated ... DO NOT EDIT`, `auto-generated`), count toward a pack only when a tracked KB file names them (a symbol's `sourceFile`, a proof contract's `files`). The doctor line counts the skipped files and marks a language kept only for the KB as "generated, used by the KB".
+  - `kibi.declinedLanguagePacks` (validated by `kibi-plugin-sdk` as `kibi-lang-*` names) stops every pack suggestion for that language. Sync and the staged check treat its files as files no plugin reads: coordinates by text match, and a whole-file review instead of the missing-pack block. A generated file whose pack is missing gets the same review. The staged check takes the declined list from the committed configuration, so a pack declined in the same commit as a source change in its language counts from the next commit.
+  - `kibi check --staged` no longer asks for requirement links on symbols of generated TypeScript or JavaScript files, and no longer warns `staged_file_ownership_missing` for generated files. A file counts as generated when the commit's base marks it: a `package.json` `kibi.generatedPaths` glob (new; `!` patterns mark a path hand-written), `linguist-generated`/`linguist-vendored` in `.gitattributes` (read from the base tree, `linguist-generated=false` respected), or a generator header in the committed version. A generated file that `.kb/symbols.yaml` names, and symbols that already carry a requirement link, stay fully checked. The output lists the exempted files.
+  - When source proofs are suggested next to symbol-only languages, the line names which languages are for proofs and which for symbols only, and every pack named has its files listed.
+  - The `kibi-bootstrap` skill (3.19.0) asks about each offered grammar pack and records unwanted ones in `kibi.declinedLanguagePacks`.
+
+- 8e6f606: New bundled skill `kibi-provable-code` for writing code that implements a requirement.
+
+  It teaches general design practices that make code easier to review, test and replace and that also let Kibi prove claims exactly: state each decision once as data, name dependencies and configuration keys literally, read configuration at one boundary, keep deciders pure with effects at the edge, make states and transitions explicit, name failures, and declare routes, middleware and schemas in one place. It draws the line between a good refactor and a change made only for the tool (no duplicated constants, unrolled loops or dropped proof files), says when dynamic code is the design (plugins, serialization, registries, dependency injection) and how to fence it, and treats generated and vendored code as a boundary: mark it, change the generator input instead of the output, prove claims over the input and the hand-written wrapper, and cover the output with tests. It also says what to do when a source read is refused for a computed name, dynamic import, reflection or eval.
+
+  `kibi-usage` and the OpenCode guidance point to the new skill.
+
+- 8a7f08d: Source proofs read PHP, C, Bash and Terraform/HCL files through `kibi-plugin-treesitter`, each exact or refused with its place.
+  - **PHP**: imports, calls, environment reads, first arguments, thrown errors and property values (array keys, named arguments, property and constant defaults). Class names resolve through the namespace and `use` imports and are written with backslashes (`App\Mail\Mailer::send`); function names are lower case. An unqualified call inside a namespace is kept only after no project file that opens PHP code (`vendor` included) declares that function in the namespace. `getenv`, `$_ENV`/`$_SERVER` subscripts, `env()`, `Env::get` and `filter_input(INPUT_ENV, ...)` are environment reads; dynamic calls and classes, `eval`, `$$name`, `$GLOBALS`, Reflection and stream-wrapper includes refuse. Numbers are compared by value, `define()`, enum values and array writes are property values (a promoted constructor parameter refuses); in a merge the last literal wins, and duplicate keys, later unread operands, writes through references, `unset`, key-rebuilding functions and property hooks refuse.
+  - **C** (`.c` and `.h`): imports, calls, environment reads, first arguments and designated initializer values. Macros the file defines are expanded (a function-like one only where `(` follows); conditional macros, `#`/`##`, symbol-renaming pragmas, trigraphs and `#if` blocks that add members refuse, and an `#include` refuses until Kibi finds that the header defines none of the macros the file uses, other than plain upper-case constant-like ones, no function pointer it calls and no `asm` or symbol alias. Calls through function pointers, `environ`, getter-like unknown functions, a three-parameter `main` and inline `asm` refuse. `property` reads initializers only.
+  - **Bash** (`.sh`, `.bash`): imports (`source`, with the script-folder idioms resolved), calls, environment reads and first arguments. A variable the script expands but never sets is an environment read, and one it sets only on some paths refuses. `~`, `test -v` and array-index arithmetic read the environment too. Commands behind `sudo`, `env`, `timeout` and similar wrappers are read; the first arguments `xargs` and `find -exec {}` supply, runners Kibi cannot name, `eval`, `sh -c`, `trap` code, `/proc/*/environ`, alias and prompt code and commands held in variables refuse. A `$0`-relative `source` refuses while another project script sources the file.
+  - **Terraform/HCL** (`.tf`, `.hcl`): literal values of an attribute or object key (`extract: property`). Strings keep their blanks and numbers are exact decimals. Values that need evaluation, computed and duplicate keys, `merge` with an unread later argument and `jsondecode`-like functions refuse, and so do a Terragrunt `include` block, any `override.tf`, `*_override.tf` or `.tofu` file in the folder, and a folder Kibi cannot list.
+
+  Values evaluation may drop or convert are refused rather than read: HCL conditional branches, selected collections, `coalesce` arguments and typed variable defaults; PHP slots passed to functions that may take them by reference; C initializers in macros, unions and struct-field calls; Bash commands named at run time and arithmetic on values that are not certainly numbers.
+
+  `kibi init` and `kibi doctor` now suggest the plugin and the matching pack for source proofs in these languages too, and member matching splits PHP names at `\`; for PHP, `excludes` also refuses a member that differs from an excluded item only in letter case. kibi-usage 2.42.0 describes the new languages.
+
+### Patch Changes
+
+- f718e79: Remove unreachable branches found while covering the multi-language proof code with unit tests. Behavior is unchanged:
+  - The type-position check of the TypeScript references reader stops at the enclosing statement without a trailing fallback.
+  - Source classification reads the two ambiguous extensions (`.pl`, `.h`) without a third, impossible case.
+  - A symbol refresh failure no longer has a message for a coarse symbol, which is anchored to its whole file and never reported.
+  - The tree-sitter reference reader's first-error search and its `System.Environment` check drop branches no input can reach.
+  - `kibi-agent-core` exports `moduleFileFromUrl`, which telemetry uses to find its own module file when a bundle drops `import.meta.url`; the Claude Code, Codex and Cursor hook bundles are rebuilt with it.
+
+- 4187218: Rust source proofs read `#[cfg(...)]`-gated code instead of refusing the whole file. Every gated item is read as if its build compiled it, so an `excludes` or `subset_of` claim holds in every build:
+  - A name that gated items bind in several ways (`#[cfg(unix)] use std::process as p;` next to `#[cfg(not(unix))] use mycrate::process as p;`) resolves to each binding, and a getter or macro that is standard in only one branch still refuses.
+  - A gated binding may be left out of a build, so the binding of an outer scope (or another crate) is read too.
+  - A `cfg_attr` counts as the attributes it applies: `cfg_attr(feature = "serde", derive(Debug))` reads as usual, `cfg_attr(x, tokio::main)` refuses `calls`, and one Kibi cannot split refuses every extract.
+  - `#[cfg(test)]` items, and the bindings they make, are still skipped, also with a doc comment between the attribute and the item.
+
+  Files such as tree-sitter's generated `bindings/rust/lib.rs`, whose query constants are `#[cfg(with_*_query)]`, can now be read. The kibi-usage skill (2.41.1) and the proof docs describe the new reading.
+
+- f303b42: Source-proof readers now refuse or read correctly several forms they used to misread:
+  - HCL: a negative number that is indexed or selected from (`-1[0]`, `-1.5.x`) is unresolved instead of read as the number.
+  - C: environment handed to `main` through a parenthesized declarator or a function returning a function pointer is refused, and a number too large for a double (`1e400`) is refused instead of read as `Infinity`.
+  - PHP: lone-surrogate escapes (`"\u{D800}"`) are refused, a blank line in a CRLF heredoc keeps its `\r`, `filter_input_array` takes its filter from the second argument, a filter definition such as `['filter' => FILTER_DEFAULT]` is no longer mistaken for a callback, and getter named arguments match case exactly.
+  - Bash: `env -` is read as `env -i`, a line splice inside a word or an assignment the grammar joins with the next line is refused, `ip netns exec` is followed past `ip` options that take an argument (an option that may be either kind refuses the read), subscripts of `unset`/`declare` that run code are refused for code reads, `unset 'a[${#k}]'` reads `k` and `${!k}` refuses, and `declare a[i]+=1` reads `a`.
+  - Java and C shadow filters: a second definition of a macro is checked on its own, and an angle include in a project whose files cannot be listed keeps the row.
+
+- Updated dependencies [f718e79]
+- Updated dependencies [1ab386d]
+- Updated dependencies [8a7f08d]
+  - kibi-agent-core@0.11.2
+  - kibi-plugin-sdk@0.7.0
+  - kibi-core@0.30.0
+  - kibi-plugin-builtin@0.5.5
+
 ## 2.40.0
 
 ### Minor Changes
