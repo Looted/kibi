@@ -87,7 +87,7 @@ function fakeEnv(options: Options = {}) {
     posture: "root_active",
   } as WorkContext;
   const state: SmartEnforcementState = {
-    recentEdits: [],
+    recentEditCount: 0,
     hasRecentKbEdit: false,
     recentCommentSuggestion: {
       suggestionType: "fact",
@@ -279,7 +279,7 @@ describe("file lifecycle bookkeeping", () => {
     expect(named(calls, "lifecycle")).toEqual([["src/traced.ts", lifecycle]]);
     expect(named(calls, "hint")).toEqual([["src/traced.ts", "code"]]);
     expect(named(calls, "reconcile")).toEqual([["src/traced.ts"]]);
-    expect(named(calls, "recent")).toEqual([[["edits"], pathKinds]]);
+    expect(named(calls, "recent")).toEqual([[["edits"]]]);
     expect(pathKinds.get("src/traced.ts")).toBe("code");
     expect(named(calls, "schedule")).toEqual([[reason, "src/traced.ts"]]);
   });
@@ -293,7 +293,7 @@ describe("file lifecycle bookkeeping", () => {
     expect(pathKinds.get(".kb/facts/FACT-a.md")).toBe("fact");
     expect(named(calls, "hint")).toEqual([[".kb/facts/FACT-a.md", "fact"]]);
     expect(named(calls, "reconcile")).toEqual([[".kb/facts/FACT-a.md"]]);
-    expect(named(calls, "recent")).toEqual([[["edits"], pathKinds]]);
+    expect(named(calls, "recent")).toEqual([[["edits"]]]);
     expect(named(calls, "schedule")).toEqual([
       ["file.deleted", ".kb/facts/FACT-a.md"],
     ]);

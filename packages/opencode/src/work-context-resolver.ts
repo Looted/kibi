@@ -14,9 +14,9 @@ import { type RepoPosture, detectPosture } from "./repo-posture.js";
 export interface ResolveWorkContextInput {
   inputDirectory: string;
   inputWorktree: string;
-  filePath?: string;
-  sessionId?: string;
-  agentIdentity?: string;
+  filePath?: string | undefined;
+  sessionId?: string | undefined;
+  agentIdentity?: string | undefined;
 }
 
 export interface WorkContext {

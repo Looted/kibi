@@ -58,7 +58,8 @@ export interface PluginEvent {
 /** Mutable cross-event state shared by the event and chat hooks. */
 // implements REQ-opencode-kibi-plugin-v1
 export interface SmartEnforcementState {
-  recentEdits: Array<{ path: string; kind: PathKind; timestamp: number }>;
+  /** Session edits counted for the guidance log, capped. */
+  recentEditCount: number;
   hasRecentKbEdit: boolean;
   recentCommentSuggestion: CommentAnalysisResult | null;
   seenFingerprints: Set<string>;
@@ -102,10 +103,7 @@ export interface KibiEventEnv {
     dirtyRelevantInputs: Iterable<string | null | undefined>,
   ): CacheKey;
   readFileContent(filePath: string, worktree?: string): string;
-  updateRecentEditsFromSession(
-    sessionEdits: Array<{ filePath: string; lastReconciledAt: number }>,
-    scopedPathKindCache: Map<string, PathKind>,
-  ): SmartEnforcementState["recentEdits"];
+  updateRecentEditsFromSession(sessionEdits: readonly unknown[]): void;
   recordWarning(
     category: WarningCategory | string,
     filePath: string,
@@ -233,6 +231,46 @@ function resolveFileEvent(
   };
 }
 
+/** Risk class of an edited file, with what it was derived from. */
+// implements REQ-opencode-kibi-plugin-v1
+export function classifyEditedFile(
+  env: Pick<KibiEventEnv, "cfg" | "readFileContent" | "resolveWorktreePath">,
+  worktreeRoot: string,
+  normalizedFilePath: string,
+  pathAnalysis: PathAnalysis,
+): {
+  hasMustPriority: boolean;
+  precomputedSuggestion: CommentAnalysisResult | null;
+  riskClass: RiskClass;
+} {
+  const fileContent = env.readFileContent(normalizedFilePath, worktreeRoot);
+  const hasMustPriority =
+    pathAnalysis.kind === "requirement"
+      ? isMustPriorityRequirement(normalizedFilePath, worktreeRoot)
+      : false;
+
+  let precomputedSuggestion: CommentAnalysisResult | null = null;
+  // rationale: only code reaches a class that uses the suggestion, so reading
+  // other files too would change nothing but the work done.
+  // Stryker disable next-line ConditionalExpression
+  const readsComments = pathAnalysis.kind === "code";
+  if (readsComments && env.cfg.guidance.commentDetection.enabled) {
+    precomputedSuggestion = analyzeCodeFile(
+      env.resolveWorktreePath(normalizedFilePath, worktreeRoot),
+      { minLines: env.cfg.guidance.commentDetection.minLines },
+    );
+  }
+
+  const { riskClass } = classifyRisk({
+    pathKind: pathAnalysis.kind,
+    isUnderKb: pathAnalysis.isUnderKb,
+    hasMustPriority,
+    hasDurableComment: !!precomputedSuggestion,
+    fileContent,
+  });
+  return { hasMustPriority, precomputedSuggestion, riskClass };
+}
+
 // implements REQ-opencode-file-context-guidance-v1
 // implements REQ-opencode-kibi-plugin-v1
 export function handleFileLifecycleEvent(
@@ -297,37 +335,13 @@ export function handleFileLifecycleEvent(
     );
   }
 
-  const fileContent = env.readFileContent(
-    normalizedFilePath,
-    eventContext.worktreeRoot,
-  );
-
-  const hasMustPriority =
-    pathAnalysis.kind === "requirement"
-      ? isMustPriorityRequirement(normalizedFilePath, eventContext.worktreeRoot)
-      : false;
-
-  let precomputedSuggestion: CommentAnalysisResult | null = null;
-  // rationale: only code reaches a class that uses the suggestion, so reading
-  // other files too would change nothing but the work done.
-  // Stryker disable next-line ConditionalExpression
-  const readsComments = pathAnalysis.kind === "code";
-  if (readsComments && env.cfg.guidance.commentDetection.enabled) {
-    precomputedSuggestion = analyzeCodeFile(
-      env.resolveWorktreePath(normalizedFilePath, eventContext.worktreeRoot),
-      {
-        minLines: env.cfg.guidance.commentDetection.minLines,
-      },
+  const { hasMustPriority, precomputedSuggestion, riskClass } =
+    classifyEditedFile(
+      env,
+      eventContext.worktreeRoot,
+      normalizedFilePath,
+      pathAnalysis,
     );
-  }
-
-  const { riskClass } = classifyRisk({
-    pathKind: pathAnalysis.kind,
-    isUnderKb: pathAnalysis.isUnderKb,
-    hasMustPriority,
-    hasDurableComment: !!precomputedSuggestion,
-    fileContent,
-  });
 
   // Only code files get a comment suggestion, and code is never
   // safe_docs_only, so the suggestion never changes the class.
@@ -375,7 +389,7 @@ export function handleFileLifecycleEvent(
     targetedChecksBlocked,
   });
 
-  env.updateRecentEditsFromSession(sessionEdits, scopedPathKindCache);
+  env.updateRecentEditsFromSession(sessionEdits);
 
   if (
     effectiveRiskClass === "safe_docs_only" ||
@@ -488,7 +502,7 @@ function handleDeletedFile(
   );
   scopedSessionEditState.reconcilePath(normalizedFilePath);
   const sessionEdits = scopedSessionEditState.getSessionEdits();
-  env.updateRecentEditsFromSession(sessionEdits, scopedPathKindCache);
+  env.updateRecentEditsFromSession(sessionEdits);
   // Schedule background sync for deleted files that pass shouldHandleFile
   if (
     env.cfg.sync.enabled &&

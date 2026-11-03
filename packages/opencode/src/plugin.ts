@@ -7,10 +7,6 @@ import {
   invalidateKibiOpencodePackage,
   runBunInstallForOpenCodePlugin,
 } from "./auto-update.js";
-import {
-  type CommentAnalysisResult,
-  analyzeCodeFile,
-} from "./comment-analysis.js";
 import { getE2eCoverageSignal } from "./e2e-coverage-signals.js"; // implements REQ-opencode-file-context-guidance-v1
 import {
   buildDirtyRelevantFingerprint,
@@ -44,13 +40,14 @@ import {
 import * as logger from "./logger.js";
 import { classifyMeaningfulChange } from "./meaningful-change-classifier.js";
 import { type PathKind, analyzePath } from "./path-kind.js";
-import { runPluginStartup } from "./plugin-startup.js";
+import {
+  latchSchedulerRunFailures,
+  runPluginStartup,
+} from "./plugin-startup.js";
 import { SENTINEL, buildPrompt } from "./prompt.js";
-import { isMustPriorityRequirement } from "./requirement-doc.js";
-import { type RiskClass, classifyRisk } from "./risk-classifier.js";
+import type { RiskClass } from "./risk-classifier.js";
 import { type SyncScheduler, createSyncScheduler } from "./scheduler.js";
 import {
-  type SessionEditEntry,
   type SessionEditState,
   createSessionEditState,
 } from "./session-edit-state.js";
@@ -58,12 +55,14 @@ import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
 import type { SmartEnforcementState } from "./smart-enforcement-events.js";
 import {
   type KibiEventEnv,
+  classifyEditedFile,
   handleFileLifecycleEvent,
   handleKbToolEvent,
   isKbToolEventType,
 } from "./smart-enforcement-events.js";
 import {
   type StartupNotifierClient,
+  knownVersions,
   notifyStartup,
 } from "./startup-notifier.js";
 import {
@@ -77,12 +76,6 @@ import {
 } from "./work-context-resolver.js";
 
 type ToastCapableClient = SendToastClient;
-
-interface RecentEdit {
-  path: string;
-  kind: PathKind;
-  timestamp: number;
-}
 
 export function resetCommentSuggestion(): null {
   return null;
@@ -205,20 +198,17 @@ const startupNotifyGlobals = globalThis as typeof globalThis & {
  * Lint requirement documents for embedded scenarios/tests and oversized content.
  */
 // implements REQ-opencode-kibi-plugin-v1
-function lintRequirementDoc(
+export function lintRequirementDoc(
   filePath: string,
-  worktree?: string,
+  worktree: string,
 ): Array<{ category: WarningCategory; message: string }> {
   const warnings: Array<{ category: WarningCategory; message: string }> = [];
 
   try {
-    const resolvedPath =
-      worktree && !filePath.startsWith("/")
-        ? `${worktree}/${filePath}`
-        : filePath;
-    const content = fs.readFileSync(resolvedPath, "utf-8");
+    const content = String(fs.readFileSync(path.resolve(worktree, filePath)));
 
-    if (/given\s+[\s\S]*?when\s+[\s\S]*?then/i.test(content)) {
+    // The lazy gaps absorb any further whitespace after each keyword.
+    if (/given\s[\s\S]*?when\s[\s\S]*?then/i.test(content)) {
       warnings.push({
         category: "embedded-scenario-in-req",
         message: `Requirement file ${filePath} appears to contain embedded scenario (Given/When/Then). Consider extracting to a separate SCEN entity.`,
@@ -249,40 +239,32 @@ function lintRequirementDoc(
   return warnings;
 }
 
+// rationale: an unreadable file must classify like text without exports; an
+// emptied catch or another fallback text classifies the same, so neither
+// mutant can be observed.
+// Stryker disable BlockStatement,StringLiteral
+function readTextOrEmpty(fullPath: string): string {
+  try {
+    return String(fs.readFileSync(fullPath));
+  } catch {
+    return "";
+  }
+}
+// rationale: ends the exemption for the read fallback above.
+// Stryker restore BlockStatement,StringLiteral
+
 // implements REQ-opencode-kibi-plugin-v1
 const kibiOpencodePlugin: Plugin = async (
   input: PluginInput,
 ): Promise<Hooks> => {
+  // sendToast and notifyStartup only call the host's own functions on it.
   const makeToastClient = (
     client: NonNullable<typeof input.client>,
-  ): ToastCapableClient => {
-    const tui = client.tui as ToastCapableClient["tui"] | undefined;
-    if (!tui) return {};
-    const mappedTui: NonNullable<ToastCapableClient["tui"]> = {};
-    if (typeof tui.toast === "function") {
-      mappedTui.toast = tui.toast.bind(tui);
-    }
-    if (typeof tui.showToast === "function") {
-      mappedTui.showToast = tui.showToast.bind(tui);
-    }
-    if (typeof tui.executeCommand === "function") {
-      mappedTui.executeCommand = tui.executeCommand.bind(tui);
-    }
-    if (typeof tui.clearPrompt === "function") {
-      mappedTui.clearPrompt = tui.clearPrompt.bind(tui);
-    }
-    if (typeof tui.submitPrompt === "function") {
-      mappedTui.submitPrompt = tui.submitPrompt.bind(tui);
-    }
-    return { tui: mappedTui };
-  };
+  ): ToastCapableClient => client as ToastCapableClient;
 
   const makeStartupClient = (
     client: NonNullable<typeof input.client>,
-  ): StartupNotifierClient => ({
-    ...makeToastClient(client),
-    app: client.app,
-  });
+  ): StartupNotifierClient => client as StartupNotifierClient;
 
   const startup = await runPluginStartup(input);
   if (!startup) {
@@ -314,7 +296,7 @@ const kibiOpencodePlugin: Plugin = async (
   // Plugin instance state (not module globals)
   const MAX_RECENT_EDITS = 5;
   const enforcementState: SmartEnforcementState = {
-    recentEdits: [],
+    recentEditCount: 0,
     hasRecentKbEdit: false,
     recentCommentSuggestion: null,
     seenFingerprints: new Set(), // For deduplication
@@ -333,85 +315,65 @@ const kibiOpencodePlugin: Plugin = async (
     >;
     __kibi_test_scheduler_factory?: typeof createSyncScheduler;
   };
-  const sessionEditStateRegistry = new Map<string, SessionEditState>();
-  const fileOperationStateRegistry = new Map<string, FileOperationState>();
-  const checkpointRunnerRegistry = new Map<string, KibiCheckpointRunner>();
-  const pathKindCacheRegistry = new Map<string, Map<string, PathKind>>();
+  /** Per worktree and branch state, created together on first use. */
+  interface ScopedState {
+    sessionEdits: SessionEditState;
+    fileOperations: FileOperationState;
+    pathKinds: Map<string, PathKind>;
+    checkpointRunner?: KibiCheckpointRunner;
+  }
+  const scopedStates = new Map<string, ScopedState>();
   const freshnessStore = createKbFreshnessEvidenceStore();
 
   function resolveScopedWorkContext(filePath?: string): WorkContext {
     return resolveWorkContext({
       inputDirectory: input.directory,
       inputWorktree: input.worktree,
-      ...(filePath !== undefined ? { filePath } : {}),
-      ...(input.sessionId !== undefined ? { sessionId: input.sessionId } : {}),
-      ...(input.agentIdentity !== undefined
-        ? { agentIdentity: input.agentIdentity }
-        : {}),
+      filePath,
+      sessionId: input.sessionId,
+      agentIdentity: input.agentIdentity,
     });
   }
 
-  function buildStateScopeKey(context: WorkContext, lane: string): string {
-    return buildEnforcementScopeKey({
-      sessionId: context.sessionId,
-      agentIdentity: context.agentIdentity,
-      worktreeRoot: context.worktreeRoot,
-      branch: context.branch,
-      dirtyRelevantFingerprint: lane,
-    });
-  }
-
-  function getSessionEditState(context: WorkContext): SessionEditState {
-    const key = buildStateScopeKey(context, "session-edits");
-    let state = sessionEditStateRegistry.get(key);
+  // The session and agent are fixed for the plugin instance.
+  function scopedState(context: WorkContext): ScopedState {
+    const key = JSON.stringify([context.worktreeRoot, context.branch]);
+    let state = scopedStates.get(key);
     if (!state) {
-      state = createSessionEditState({ worktree: context.worktreeRoot });
-      sessionEditStateRegistry.set(key, state);
+      state = {
+        sessionEdits: createSessionEditState({
+          worktree: context.worktreeRoot,
+        }),
+        // implements REQ-opencode-file-context-guidance-v1
+        fileOperations: createFileOperationState({
+          worktree: context.worktreeRoot,
+        }),
+        pathKinds: new Map<string, PathKind>(),
+      };
+      scopedStates.set(key, state);
     }
     return state;
   }
 
-  function getFileOperationState(context: WorkContext): FileOperationState {
-    const key = buildStateScopeKey(context, "file-operations");
-    let state = fileOperationStateRegistry.get(key);
-    if (!state) {
-      state = createFileOperationState({
-        worktree: context.worktreeRoot,
-      }); // implements REQ-opencode-file-context-guidance-v1
-      fileOperationStateRegistry.set(key, state);
-    }
-    return state;
-  }
+  const getSessionEditState = (context: WorkContext): SessionEditState =>
+    scopedState(context).sessionEdits;
+  const getFileOperationState = (context: WorkContext): FileOperationState =>
+    scopedState(context).fileOperations;
+  const getPathKindCache = (context: WorkContext): Map<string, PathKind> =>
+    scopedState(context).pathKinds;
 
   function getCheckpointRunnerForContext(
     context: WorkContext,
   ): KibiCheckpointRunner {
-    const key = buildStateScopeKey(context, "checkpoint-runner");
-    let runner = checkpointRunnerRegistry.get(key);
-    if (!runner) {
-      runner = new KibiCheckpointRunner({
-        config: cfg,
-        onRunComplete: (meta) => {
-          // Checkpoint runs are smart-enforcement syncs, whose sync failures
-          // never latch the degraded state; failed checks do.
-          if (meta.checkExitCode !== undefined && meta.checkExitCode !== 0) {
-            latchRuntimeDegraded("scheduler_check_failed");
-          }
-        },
-      });
-      checkpointRunnerRegistry.set(key, runner);
-    }
-    return runner;
-  }
-
-  function getPathKindCache(context: WorkContext): Map<string, PathKind> {
-    const key = buildStateScopeKey(context, "path-kind-cache");
-    let scopedCache = pathKindCacheRegistry.get(key);
-    if (!scopedCache) {
-      scopedCache = new Map<string, PathKind>();
-      pathKindCacheRegistry.set(key, scopedCache);
-    }
-    return scopedCache;
+    const state = scopedState(context);
+    state.checkpointRunner ??= new KibiCheckpointRunner({
+      config: cfg,
+      // Checkpoint runs are smart-enforcement syncs, whose sync failures
+      // never latch the degraded state; failed checks do.
+      onRunComplete: (meta) =>
+        latchSchedulerRunFailures(meta, latchRuntimeDegraded),
+    });
+    return state.checkpointRunner;
   }
 
   function getSchedulerForContext(context: WorkContext): SyncScheduler | null {
@@ -435,19 +397,8 @@ const kibiOpencodePlugin: Plugin = async (
       const scopedScheduler = schedulerFactory({
         worktree: worktreeRoot,
         config: cfg,
-        onRunComplete: (meta) => {
-          const normalizedReason = meta.reason.endsWith(".trailing")
-            ? meta.reason.slice(0, -".trailing".length)
-            : meta.reason;
-          const isSmartEnforcementSync =
-            normalizedReason.startsWith("smart-enforcement.");
-          if (meta.exitCode !== 0 && !isSmartEnforcementSync) {
-            latchRuntimeDegraded("scheduler_sync_failed");
-          }
-          if (meta.checkExitCode !== undefined && meta.checkExitCode !== 0) {
-            latchRuntimeDegraded("scheduler_check_failed");
-          }
-        },
+        onRunComplete: (meta) =>
+          latchSchedulerRunFailures(meta, latchRuntimeDegraded),
       });
       schedulerRegistry.set(worktreeRoot, scopedScheduler);
       return scopedScheduler;
@@ -484,10 +435,7 @@ const kibiOpencodePlugin: Plugin = async (
   }
 
   const rootWorkContext = resolveScopedWorkContext();
-  const fileOperationState = getFileOperationState(rootWorkContext);
-  const scheduler = getSchedulerForContext(rootWorkContext);
   let degradedWarnedOnce = false;
-  const pathKindCache = getPathKindCache(rootWorkContext);
 
   function normalizeSessionPath(
     filePath: string,
@@ -504,118 +452,76 @@ const kibiOpencodePlugin: Plugin = async (
     filePath: string,
     worktree = input.worktree,
   ): string {
-    return worktree && !path.isAbsolute(filePath)
-      ? path.join(worktree, filePath)
-      : filePath;
+    return path.resolve(worktree, filePath);
   }
 
   function buildRiskPathScopeKey(
     context: WorkContext,
     filePath: string,
   ): string {
-    return `${buildStateScopeKey(context, "risk")}:${normalizeSessionPath(filePath, context.worktreeRoot)}`;
+    return JSON.stringify([
+      context.worktreeRoot,
+      context.branch,
+      normalizeSessionPath(filePath, context.worktreeRoot),
+    ]);
   }
 
-  function getTransformFocusFilePath(transformInput: unknown): string | null {
-    if (!transformInput || typeof transformInput !== "object") {
-      return null;
-    }
-    const inputRecord = transformInput as SystemTransformInput;
+  function getTransformFocusFilePath(
+    transformInput: unknown,
+  ): string | undefined {
+    // Primitives carry none of the path fields.
+    const inputRecord = transformInput as SystemTransformInput | null;
     const directPath =
-      inputRecord.focusFilePath ??
-      inputRecord.filePath ??
-      inputRecord.path ??
-      inputRecord.file ??
-      inputRecord.focusEdit?.path ??
-      inputRecord.focusEdit?.filePath;
-    if (typeof directPath !== "string" || directPath.length === 0) {
-      return null;
-    }
-    return normalizeSessionPath(directPath);
+      inputRecord?.focusFilePath ??
+      inputRecord?.filePath ??
+      inputRecord?.path ??
+      inputRecord?.file ??
+      inputRecord?.focusEdit?.path ??
+      inputRecord?.focusEdit?.filePath;
+    return typeof directPath === "string" && directPath !== ""
+      ? normalizeSessionPath(directPath)
+      : undefined;
   }
 
   function readFileContent(
     filePath: string,
     worktree = input.worktree,
   ): string {
-    try {
-      return fs.readFileSync(resolveWorktreePath(filePath, worktree), "utf-8");
-    } catch {
-      return "";
-    }
+    return readTextOrEmpty(resolveWorktreePath(filePath, worktree));
   }
 
-  function updateRecentEditsFromSession(
-    sessionEdits: SessionEditEntry[],
-    scopedPathKindCache: Map<string, PathKind>,
-  ): RecentEdit[] {
-    enforcementState.recentEdits = sessionEdits
-      .slice(-MAX_RECENT_EDITS)
-      .map((entry) => ({
-        path: entry.filePath,
-        kind: scopedPathKindCache.get(entry.filePath) ?? "unknown",
-        timestamp: entry.lastReconciledAt,
-      }));
-    return enforcementState.recentEdits;
+  function updateRecentEditsFromSession(sessionEdits: readonly unknown[]) {
+    enforcementState.recentEditCount = Math.min(
+      sessionEdits.length,
+      MAX_RECENT_EDITS,
+    );
   }
 
   function deriveRiskContext(
     context: WorkContext,
     filePath: string,
     scopedPathKindCache: Map<string, PathKind>,
-  ): {
-    effectiveRiskClass: RiskClass;
-    pathAnalysis: ReturnType<typeof analyzePath>;
-    hasMustPriority: boolean;
-    precomputedSuggestion: CommentAnalysisResult | null;
-  } {
+  ): RiskClass {
     const normalizedFilePath = normalizeSessionPath(
       filePath,
       context.worktreeRoot,
     );
     const pathAnalysis = analyzePath(normalizedFilePath, context.worktreeRoot);
     scopedPathKindCache.set(normalizedFilePath, pathAnalysis.kind);
-    const fileContent = readFileContent(
-      normalizedFilePath,
+    const { precomputedSuggestion, riskClass } = classifyEditedFile(
+      eventEnv,
       context.worktreeRoot,
+      normalizedFilePath,
+      pathAnalysis,
     );
-    const hasMustPriority =
-      pathAnalysis.kind === "requirement"
-        ? isMustPriorityRequirement(normalizedFilePath, context.worktreeRoot)
-        : false;
-    let precomputedSuggestion: CommentAnalysisResult | null = null;
-    if (pathAnalysis.kind === "code" && cfg.guidance.commentDetection.enabled) {
-      precomputedSuggestion = analyzeCodeFile(
-        resolveWorktreePath(normalizedFilePath, context.worktreeRoot),
-        {
-          minLines: cfg.guidance.commentDetection.minLines,
-        },
-      );
-    }
-    const { riskClass } = classifyRisk({
-      pathKind: pathAnalysis.kind,
-      isUnderKb: pathAnalysis.isUnderKb,
-      hasMustPriority,
-      hasDurableComment: !!precomputedSuggestion,
-      fileContent,
-    });
-    // Only code files get a comment suggestion, and code is never
-    // safe_docs_only, so the suggestion never changes the class.
-    const effectiveRiskClass: RiskClass = riskClass;
-    enforcementState.recentCommentSuggestion =
-      pathAnalysis.kind === "code" ? precomputedSuggestion : null;
-    enforcementState.lastRiskClass = effectiveRiskClass;
+    enforcementState.recentCommentSuggestion = precomputedSuggestion;
+    enforcementState.lastRiskClass = riskClass;
     enforcementState.lastRiskFilePath = normalizedFilePath;
     enforcementState.lastRiskScopeKey = buildRiskPathScopeKey(
       context,
       normalizedFilePath,
     );
-    return {
-      effectiveRiskClass,
-      pathAnalysis,
-      hasMustPriority,
-      precomputedSuggestion,
-    };
+    return riskClass;
   }
 
   const eventEnv: KibiEventEnv = {
@@ -697,7 +603,7 @@ const kibiOpencodePlugin: Plugin = async (
         const transformFocusFilePath =
           getTransformFocusFilePath(transformInput);
         const promptWorkContext = resolveScopedWorkContext(
-          transformFocusFilePath ?? undefined,
+          transformFocusFilePath,
         );
         const promptSessionEditState = getSessionEditState(promptWorkContext);
         const promptFileOperationState =
@@ -715,55 +621,36 @@ const kibiOpencodePlugin: Plugin = async (
 
         const transformSessionEdits = promptSessionEditState.getSessionEdits();
         const transformFocusEdit = promptSessionEditState.getFocusEdit();
-        const transformRecentEdits = transformSessionEdits
-          .slice(-MAX_RECENT_EDITS)
-          .map((e) => ({
-            path: e.filePath,
-            kind: promptPathKindCache.get(e.filePath) ?? "unknown",
-          }));
+        // A missing kind reaches the prompt's cache bucket as "unknown".
         const transformPromptFocusEdit = transformFocusEdit
           ? {
               path: transformFocusEdit.filePath,
-              kind:
-                promptPathKindCache.get(transformFocusEdit.filePath) ??
-                "unknown",
+              kind: promptPathKindCache.get(
+                transformFocusEdit.filePath,
+              ) as PathKind,
             }
           : null;
         const riskContextFilePath =
           transformFocusEdit?.filePath ?? transformFocusFilePath;
-        const riskScopeKey = riskContextFilePath
-          ? buildRiskPathScopeKey(promptWorkContext, riskContextFilePath)
-          : null;
+        // The last classified file's class stands unless the focus file is
+        // another one (or nothing was classified yet).
         let effectiveRiskClass: RiskClass | null =
-          riskScopeKey !== null &&
-          enforcementState.lastRiskScopeKey === riskScopeKey
-            ? enforcementState.lastRiskClass
-            : null;
+          enforcementState.lastRiskClass;
         if (
           riskContextFilePath &&
-          (enforcementState.lastRiskClass === null ||
-            enforcementState.lastRiskScopeKey !== riskScopeKey)
+          (effectiveRiskClass === null ||
+            enforcementState.lastRiskScopeKey !==
+              buildRiskPathScopeKey(promptWorkContext, riskContextFilePath))
         ) {
-          const riskCtx = deriveRiskContext(
+          effectiveRiskClass = deriveRiskContext(
             promptWorkContext,
             riskContextFilePath,
             promptPathKindCache,
           );
-          effectiveRiskClass = riskCtx.effectiveRiskClass;
-          enforcementState.recentCommentSuggestion = adoptPrecomputedSuggestion(
-            enforcementState.recentCommentSuggestion,
-            riskCtx.precomputedSuggestion,
-          );
-        }
-        if (
-          effectiveRiskClass === null &&
-          enforcementState.lastRiskClass !== null
-        ) {
-          effectiveRiskClass = enforcementState.lastRiskClass;
         }
 
         const promptFocusFilePath: string | undefined =
-          transformFocusEdit?.filePath ?? transformFocusFilePath ?? undefined;
+          transformFocusEdit?.filePath ?? transformFocusFilePath;
 
         // Steps 3-4: File-operation reminder selection with suppression // implements REQ-opencode-file-context-guidance-v1
         let fileOperationReminder:
@@ -947,7 +834,10 @@ const kibiOpencodePlugin: Plugin = async (
           }
         }
         const guidance = buildPrompt({
-          recentEdits: transformRecentEdits,
+          // Session edits always leave a focus edit, which the prompt
+          // reads first, and a risk class, so the legacy edit list that only
+          // serves classless prompts stays empty.
+          recentEdits: [],
           focusEdit: transformPromptFocusEdit,
           workspaceHealth,
           hasRecentKbEdit: enforcementState.hasRecentKbEdit,
@@ -986,7 +876,7 @@ const kibiOpencodePlugin: Plugin = async (
               ? "emit"
               : "skip",
           risk_class: enforcementState.lastRiskClass,
-          recent_edits: enforcementState.recentEdits.length,
+          recent_edits: enforcementState.recentEditCount,
           static_degraded: posture.maintenanceDegraded,
           runtime_degraded: runtimeOverlay.degraded,
           merged_degraded: maintenanceDegraded,
@@ -1153,15 +1043,11 @@ const kibiOpencodePlugin: Plugin = async (
 
     scheduleStartupNotify(() => {
       const meta = readKibiPackageVersions();
-      const versions: Record<string, string> = {};
-      for (const key of ["opencode", "mcp", "cli", "core"] as const) {
-        if (meta[key] !== "unknown") versions[key] = meta[key];
-      }
       if (!maintenanceDegraded) {
         notifyStartup(makeStartupClient(client), {
           suppressToast: cfg.ux.toastStartup === false,
           directory: input.directory,
-          ...(Object.keys(versions).length > 0 ? { versions } : {}),
+          ...knownVersions(meta),
           versionMetadataSource: meta.source,
         });
       }
@@ -1181,7 +1067,7 @@ const kibiOpencodePlugin: Plugin = async (
               duration: 8000,
             });
           }
-          logger.info("auto-update.notification", { message });
+          logger.info(message);
         },
         log: (message, metadata) => logger.info(message, metadata),
       });

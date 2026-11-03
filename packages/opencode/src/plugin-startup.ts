@@ -6,7 +6,11 @@ import * as config from "./config.js";
 import { getGuidanceCache } from "./guidance-cache.js";
 import * as logger from "./logger.js";
 import { detectPosture } from "./repo-posture.js";
-import { type SchedulerOptions, createSyncScheduler } from "./scheduler.js";
+import {
+  type SchedulerOptions,
+  type SyncRunMetadata,
+  createSyncScheduler,
+} from "./scheduler.js";
 import { getSessionTracker } from "./session-tracker.js";
 import {
   type EffectiveMode,
@@ -18,9 +22,21 @@ import type { PluginInput } from "./index.js";
 
 type PostureSnapshot = ReturnType<typeof detectPosture>;
 
-function isSmartEnforcementSyncReason(reason: string): boolean {
-  // A trailing run keeps its trigger's prefix.
-  return reason.startsWith("smart-enforcement.");
+/**
+ * Latches the degraded state a finished sync reports: a failed sync unless
+ * smart enforcement asked for it (a trailing run keeps its trigger's prefix),
+ * and any failed check.
+ */
+export function latchSchedulerRunFailures(
+  meta: SyncRunMetadata,
+  latch: (cause: "scheduler_sync_failed" | "scheduler_check_failed") => void,
+): void {
+  if (meta.exitCode !== 0 && !meta.reason.startsWith("smart-enforcement.")) {
+    latch("scheduler_sync_failed");
+  }
+  if (meta.checkExitCode !== undefined && meta.checkExitCode !== 0) {
+    latch("scheduler_check_failed");
+  }
 }
 
 const workspaceCacheState = new Map<
@@ -245,19 +261,8 @@ export async function runPluginStartup(
           const schedulerOpts: SchedulerOptions = {
             worktree: input.worktree,
             config: cfg,
-            onRunComplete: (meta) => {
-              if (
-                meta.exitCode !== 0 &&
-                !isSmartEnforcementSyncReason(meta.reason)
-              )
-                latchRuntimeDegraded("scheduler_sync_failed");
-              if (
-                meta.checkExitCode !== undefined &&
-                meta.checkExitCode !== 0
-              ) {
-                latchRuntimeDegraded("scheduler_check_failed");
-              }
-            },
+            onRunComplete: (meta) =>
+              latchSchedulerRunFailures(meta, latchRuntimeDegraded),
           };
           return schedulerFactory(schedulerOpts);
         } catch {

@@ -271,37 +271,17 @@ function sourceLinkBullets(
   // from the shared kibi-agent-core projection. One fact keeps the bullet
   // inside the prompt's word budget; retired requirements contribute
   // nothing.
-  const grounding = requirementGrounding(leadId, workspaceRoot, {
-    maxFacts: 1,
-  });
+  // The knowledge readers behind it catch their own I/O errors.
+  const grounding = requirementGroundingLines(
+    leadId,
+    createEntitySummarizer(workspaceRoot),
+    { maxFacts: 1 },
+  );
   return [
     ...(grounding.length > 0 ? [`- ${grounding.join(" ")}`] : []),
     `- Existing Kibi links: ${linkedIds.join(", ")}`,
   ];
 }
-
-// rationale: the knowledge readers behind the grounding catch their own I/O
-// errors, so no test can make this throw; an unexpected Error must still only
-// drop the grounding, and anything else is rethrown.
-// Stryker disable all
-function requirementGrounding(
-  requirementId: string,
-  workspaceRoot: string,
-  options: { maxFacts: number },
-): string[] {
-  try {
-    return requirementGroundingLines(
-      requirementId,
-      createEntitySummarizer(workspaceRoot),
-      options,
-    );
-  } catch (error) {
-    if (!(error instanceof Error)) throw error;
-    return [];
-  }
-}
-// rationale: ends the exemption for the defensive grounding lookup above.
-// Stryker restore all
 
 function buildContextualGuidance(
   context: PromptContext,
