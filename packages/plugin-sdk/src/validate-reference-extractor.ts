@@ -70,13 +70,13 @@ export function validateReferenceExtractionResult(
     const unresolved: UnresolvedReferenceV1[] = value.unresolved.map((row) => {
       if (
         !isRecord(row) ||
-        typeof row.line !== "number" ||
+        // Number.isInteger is false for every non-number.
         !Number.isInteger(row.line) ||
-        row.line < 1 ||
+        (row.line as number) < 1 ||
         typeof row.text !== "string"
       )
         failResult("unresolved rows must carry a positive line and its text");
-      return { line: row.line, text: row.text.slice(0, MAX_TEXT) };
+      return { line: row.line as number, text: row.text.slice(0, MAX_TEXT) };
     });
     return {
       contractVersion: "kibi.reference-extractor.v1",

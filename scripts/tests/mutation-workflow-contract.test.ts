@@ -10,6 +10,7 @@ import { join } from "node:path";
 
 import strykerConfig, {
   CLI_MUTATION_MODULES,
+  MUTATION_PACKAGES,
   PLUGIN_MUTATION_MODULES,
 } from "../../stryker.conf.mjs";
 import treesitterConfig, {
@@ -18,11 +19,6 @@ import treesitterConfig, {
 } from "../../stryker.treesitter.conf.mjs";
 
 const ROOT = join(import.meta.dir, "..", "..");
-const MUTATION_PACKAGES = [
-  "packages/runtime",
-  "packages/codex",
-  "packages/cursor",
-] as const;
 
 type StrykerConfig = {
   testRunner?: string;
@@ -74,6 +70,13 @@ describe("mutation testing workflow contract", () => {
     for (const pattern of globs) {
       const matches = globSync(pattern, { cwd: ROOT });
       expect(matches.length).toBeGreaterThan(0);
+    }
+  });
+
+  test("every whole package in scope is mutated", () => {
+    expect(MUTATION_PACKAGES).toContain("packages/runtime");
+    for (const pkg of MUTATION_PACKAGES) {
+      expect(config.mutate).toContain(`${pkg}/src/**/*.ts`);
     }
   });
 

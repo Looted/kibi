@@ -15,10 +15,13 @@
 import { readdirSync } from "node:fs";
 import { join, posix } from "node:path";
 
-const MUTATION_PACKAGES = [
+// Whole packages in scope: every src/**/*.ts file is mutated and every
+// tests/**/*.test.ts file runs against the mutants.
+export const MUTATION_PACKAGES = [
   "packages/runtime",
   "packages/codex",
   "packages/cursor",
+  "packages/plugin-sdk",
 ];
 
 // kibi-cli is too large and engine-heavy to mutate whole. Each module joins
@@ -60,9 +63,6 @@ export const CLI_MUTATION_MODULES = {
 // Plugin package modules gated the same way: each with the hermetic tests of
 // its own package.
 export const PLUGIN_MUTATION_MODULES = {
-  "packages/plugin-sdk/src/validate-search-hints.ts": [
-    "packages/plugin-sdk/tests/search-hints.test.ts",
-  ],
   "packages/plugin-search-hints/src/tokenizer.ts": [
     "packages/plugin-search-hints/tests/tokenizer.test.ts",
   ],
@@ -120,6 +120,7 @@ const config = {
     "!packages/runtime/src/index.ts",
     "packages/codex/src/**/*.ts",
     "packages/cursor/src/**/*.ts",
+    "packages/plugin-sdk/src/**/*.ts",
     ...Object.keys(CLI_MUTATION_MODULES),
     ...Object.keys(PLUGIN_MUTATION_MODULES),
   ],

@@ -28,6 +28,8 @@ on:
       - 'packages/codex/tests/**'
       - 'packages/cursor/src/**'
       - 'packages/cursor/tests/**'
+      - 'packages/plugin-sdk/src/**'
+      - 'packages/plugin-sdk/tests/**'
       - 'packages/agent-core/src/**'
       # kibi-cli modules in scope (CLI_MUTATION_MODULES in stryker.conf.mjs)
       - 'packages/cli/src/cli-input.ts'
@@ -52,8 +54,6 @@ on:
       - 'packages/cli/src/plugins/generated-sources.ts'
       - 'packages/cli/tests/plugins/generated-sources-mutation.test.ts'
       - 'packages/cli/tests/plugins/language-pack-relevance.test.ts'
-      - 'packages/plugin-sdk/src/validate-search-hints.ts'
-      - 'packages/plugin-sdk/tests/search-hints.test.ts'
       - 'packages/plugin-search-hints/src/**'
       - 'packages/plugin-search-hints/tests/**'
       - 'packages/plugin-search-hints/assets/**'
