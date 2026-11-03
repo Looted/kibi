@@ -9,8 +9,8 @@
  * transcript and the model keep the original text.
  *
  * It runs for every streamed batch of assistant text, so it stays tiny: no
- * Kibi imports, and an immediate exit when the batch has no fence and no
- * fence is open from an earlier batch of the same message.
+ * Kibi imports, and no state written unless a fence stays open across
+ * batches of the same message.
  */
 import fs from "node:fs";
 import os from "node:os";
@@ -44,19 +44,18 @@ export function unwrapSignoffFences(
   delta: string,
   open: boolean,
 ): DisplayResult {
-  if (!open && !delta.includes("```kibi-")) return { open: false };
   const lines = delta.split(/(?<=\n)/);
   const kept: string[] = [];
   let inside = open;
   let changed = false;
   for (const line of lines) {
-    const bare = line.replace(/\r?\n$/, "");
-    if (!inside && OPEN_FENCE.test(bare)) {
+    // The fence patterns end in \s*, which takes the line's own \r\n or \n.
+    if (!inside && OPEN_FENCE.test(line)) {
       inside = true;
       changed = true;
       continue;
     }
-    if (inside && CLOSE_FENCE.test(bare)) {
+    if (inside && CLOSE_FENCE.test(line)) {
       inside = false;
       changed = true;
       continue;
@@ -76,15 +75,17 @@ function stateFile(messageId: string): string {
 function parseBatch(raw: string): DisplayBatch | undefined {
   try {
     const input = JSON.parse(raw) as Record<string, unknown>;
-    if (typeof input.delta !== "string") return undefined;
-    return {
-      messageId: typeof input.message_id === "string" ? input.message_id : "",
-      delta: input.delta,
-      final: input.final === true,
-    };
+    if (typeof input.delta === "string") {
+      return {
+        messageId: typeof input.message_id === "string" ? input.message_id : "",
+        delta: input.delta,
+        final: input.final === true,
+      };
+    }
   } catch {
-    return undefined;
+    // Not JSON, or JSON null.
   }
+  return undefined;
 }
 
 // implements REQ-kibi-signoff-views
@@ -103,7 +104,8 @@ export function handleDisplayBatch(
     if (result.open && !batch.final && batch.messageId !== "") {
       if (!wasOpen) fs.writeFileSync(file, "1");
     } else if (wasOpen) {
-      fs.rmSync(file, { force: true });
+      // A file removed since the check above throws, which is ignored below.
+      fs.rmSync(file);
     }
   } catch {
     // State is best effort: without it a later batch shows the closing fence.
@@ -117,16 +119,30 @@ export function handleDisplayBatch(
   });
 }
 
-function isInvokedAsCli(argv1: string | undefined, moduleUrl: string): boolean {
+export function isInvokedAsCli(
+  argv1: string | undefined,
+  moduleUrl: string,
+): boolean {
   const invokedPath = argv1 ? pathToFileURL(path.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 
-if (isInvokedAsCli(process.argv[1], import.meta.url)) {
+/** Handle the batch on stdin; display hooks never block, so errors are dropped. */
+export function runDisplayCli(): void {
   try {
-    const output = handleDisplayBatch(fs.readFileSync(0, "utf8"));
+    const output = handleDisplayBatch(String(fs.readFileSync(0)));
     if (output) process.stdout.write(`${output}\n`);
   } catch {
-    // Display hooks never block: on any error the original text is shown.
+    // On any error the original text is shown.
   }
 }
+
+/** Run the display hook when this module is the process entry point. */
+export function runDisplayCliIfMain(
+  isMain = isInvokedAsCli(process.argv[1], import.meta.url),
+  run: () => void = runDisplayCli,
+): void {
+  if (isMain) run();
+}
+
+runDisplayCliIfMain();

@@ -153,6 +153,57 @@ describe("resolution edges", () => {
     expect(launcher.resolveLocalEntry(fixture.workspaceRoot)).toBe(entry);
   });
 
+  function rewriteManifest(
+    packageRoot: string,
+    change: (manifest: Record<string, unknown>) => void,
+  ): void {
+    const manifestPath = path.join(packageRoot, "package.json");
+    const manifest = JSON.parse(
+      fs.readFileSync(manifestPath, "utf8"),
+    ) as Record<string, unknown>;
+    change(manifest);
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+  }
+
+  test("a string bin field is launched from the package directory", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-claude-edges-stringbin-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    const packageRoot = fixture.packageRoot as string;
+    rewriteManifest(packageRoot, (manifest) => {
+      manifest.bin = "bin/kibi-mcp.js";
+    });
+    expect(launcher.resolveLocalEntry(fixture.workspaceRoot)).toBe(
+      fs.realpathSync(fixture.entryPath as string),
+    );
+  });
+
+  test("a package without a bin field has no local entry", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-claude-edges-nobin-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    rewriteManifest(fixture.packageRoot as string, (manifest) => {
+      manifest.bin = undefined;
+    });
+    expect(launcher.resolveLocalEntry(fixture.workspaceRoot)).toBeNull();
+  });
+
+  test("a resolved entry with no kibi-mcp manifest above it has no local entry", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-claude-edges-noowner-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    rewriteManifest(fixture.packageRoot as string, (manifest) => {
+      manifest.name = "not-kibi-mcp";
+    });
+    expect(launcher.resolveLocalEntry(fixture.workspaceRoot)).toBeNull();
+  });
+
   test("Windows PATH lookup prefers shims and skips unresolvable ones", () => {
     const binDir = tempRoot("kibi-claude-edges-winpath-");
     const emptyDir = tempRoot("kibi-claude-edges-winempty-");

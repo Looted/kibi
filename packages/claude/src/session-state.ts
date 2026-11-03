@@ -196,7 +196,7 @@ export function loadSessionState(dir: string | undefined): SessionState {
     return state;
   }
   for (const line of journal.split("\n")) {
-    if (line.length === 0) continue;
+    // An empty line fails to parse like a torn one.
     try {
       applyEvent(state, JSON.parse(line) as SessionEvent);
     } catch {

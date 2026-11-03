@@ -9,20 +9,17 @@ var SIGNOFF_DISPLAY_ENV = "KIBI_SIGNOFF_DISPLAY";
 var OPEN_FENCE = /^\s*```kibi-(?:signoff|questions)\s*$/;
 var CLOSE_FENCE = /^\s*```\s*$/;
 function unwrapSignoffFences(delta, open) {
-  if (!open && !delta.includes("```kibi-"))
-    return { open: false };
   const lines = delta.split(/(?<=\n)/);
   const kept = [];
   let inside = open;
   let changed = false;
   for (const line of lines) {
-    const bare = line.replace(/\r?\n$/, "");
-    if (!inside && OPEN_FENCE.test(bare)) {
+    if (!inside && OPEN_FENCE.test(line)) {
       inside = true;
       changed = true;
       continue;
     }
-    if (inside && CLOSE_FENCE.test(bare)) {
+    if (inside && CLOSE_FENCE.test(line)) {
       inside = false;
       changed = true;
       continue;
@@ -38,16 +35,15 @@ function stateFile(messageId) {
 function parseBatch(raw) {
   try {
     const input = JSON.parse(raw);
-    if (typeof input.delta !== "string")
-      return;
-    return {
-      messageId: typeof input.message_id === "string" ? input.message_id : "",
-      delta: input.delta,
-      final: input.final === true
-    };
-  } catch {
-    return;
-  }
+    if (typeof input.delta === "string") {
+      return {
+        messageId: typeof input.message_id === "string" ? input.message_id : "",
+        delta: input.delta,
+        final: input.final === true
+      };
+    }
+  } catch {}
+  return;
 }
 function handleDisplayBatch(raw, env = process.env) {
   if (env[SIGNOFF_DISPLAY_ENV] === "0")
@@ -63,7 +59,7 @@ function handleDisplayBatch(raw, env = process.env) {
       if (!wasOpen)
         fs.writeFileSync(file, "1");
     } else if (wasOpen) {
-      fs.rmSync(file, { force: true });
+      fs.rmSync(file);
     }
   } catch {}
   if (result.displayContent === undefined)
@@ -79,16 +75,24 @@ function isInvokedAsCli(argv1, moduleUrl) {
   const invokedPath = argv1 ? pathToFileURL(path.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
-if (isInvokedAsCli(process.argv[1], import.meta.url)) {
+function runDisplayCli() {
   try {
-    const output = handleDisplayBatch(fs.readFileSync(0, "utf8"));
+    const output = handleDisplayBatch(String(fs.readFileSync(0)));
     if (output)
       process.stdout.write(`${output}
 `);
   } catch {}
 }
+function runDisplayCliIfMain(isMain = isInvokedAsCli(process.argv[1], import.meta.url), run = runDisplayCli) {
+  if (isMain)
+    run();
+}
+runDisplayCliIfMain();
 export {
   SIGNOFF_DISPLAY_ENV,
   handleDisplayBatch,
+  isInvokedAsCli,
+  runDisplayCli,
+  runDisplayCliIfMain,
   unwrapSignoffFences
 };
