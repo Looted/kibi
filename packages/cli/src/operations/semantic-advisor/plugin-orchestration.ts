@@ -93,17 +93,9 @@ function laneRank(lane: SemanticLane | SemanticAdvisorLane): number {
 }
 
 function toolForLane(lane: SemanticAdvisorLane): string {
-  switch (lane) {
-    case "strict_property":
-      return "kb_model_requirement";
-    case "predicate":
-    case "rule":
-      return "kb_suggest_predicates";
-    case "observation_review":
-      return "kb_model_requirement";
-    default:
-      return "kb_model_requirement";
-  }
+  return lane === "predicate" || lane === "rule"
+    ? "kb_suggest_predicates"
+    : "kb_model_requirement";
 }
 
 /**
@@ -177,11 +169,6 @@ export function applyOntologyMatchSuggestions(
       propositions.find((proposition) =>
         proposition.claim_text.includes(match.evidence),
       )?.claim_key ??
-      propositions.find((proposition) =>
-        match.evidence.length > 0
-          ? proposition.claim_text.includes(match.evidence)
-          : false,
-      )?.claim_key ??
       propositions[0]?.claim_key;
     if (!claimKey) continue;
     const proposition = propositions.find(
@@ -224,8 +211,9 @@ export function applyOntologyMatchSuggestions(
           entry.claim_key === existing.claim_key &&
           entry.kind === existing.kind,
       );
-      if (index >= 0) suggestions[index] = advisory;
-      else suggestions.push(advisory);
+      // existing is always one of suggestions: the map only holds entries
+      // of that list.
+      suggestions[index] = advisory;
     } else {
       suggestions.push(advisory);
     }
@@ -305,13 +293,12 @@ export function applyClassificationRouting(
     }
     if (decision.lane === "none") return proposition;
 
-    let status = proposition.status;
-    if (decision.ambiguity?.ambiguous === true && status === "missing") {
-      status = "ambiguous";
-    } else if (decision.lane === "predicate" && status === "missing") {
-      // Route toward predicate modeling without claiming the claim is grounded.
-      status = "missing";
-    }
+    // A predicate lane routes toward predicate modeling without claiming
+    // the claim is grounded, so only ambiguity changes the status.
+    const status =
+      decision.ambiguity?.ambiguous === true && proposition.status === "missing"
+        ? "ambiguous"
+        : proposition.status;
     return {
       ...proposition,
       status,

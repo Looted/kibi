@@ -13,12 +13,12 @@ import {
   type MigrationAction,
   migrationAction,
 } from "../../../src/public/operations/migration-plan.js";
+import { git } from "../../helpers/in-process-workspace.js";
 import {
   writeCurrentRequirement,
   writeDriftedRequirement,
   writeManifest,
 } from "../../helpers/schema6-fixture.js";
-import { git } from "../../helpers/in-process-workspace.js";
 import { scratch } from "../helpers.js";
 
 const cleanups: Array<() => void> = [];
@@ -71,7 +71,11 @@ describe("requirement status actions", () => {
     setStatus(ws.root, "REQ-i", "draft");
     writeCurrentRequirement(ws.root, "REQ-f", "The system must log out users.");
     setStatus(ws.root, "REQ-f", "bogus");
-    writeCurrentRequirement(ws.root, "REQ-g", "The system must reset passwords.");
+    writeCurrentRequirement(
+      ws.root,
+      "REQ-g",
+      "The system must reset passwords.",
+    );
     setStatus(ws.root, "REQ-g", "pending");
     const actions = requirementStatusActions(ws.root);
     expect(actions.map((action) => action.id)).toStrictEqual([
@@ -100,7 +104,9 @@ describe("requirement status actions", () => {
     ).toBe("semantic-inventory-rederive-REQ-c");
     const rederiveC = byId(actions, "semantic-inventory-rederive-REQ-c");
     expect(rederiveC.safety).toBe("review");
-    expect(rederiveC.dependsOn).toStrictEqual(["req-status-vocabulary-map-REQ-c"]);
+    expect(rederiveC.dependsOn).toStrictEqual([
+      "req-status-vocabulary-map-REQ-c",
+    ]);
     expect(rederiveC.invocation).toStrictEqual({
       kind: "cli",
       command_argv: [
@@ -118,10 +124,15 @@ describe("requirement status actions", () => {
       "This drift shows once the requirement has status open; approve it together with req-status-vocabulary-map-REQ-c.",
     );
     expect(
-      (byId(actions, "req-status-vocabulary-map-REQ-d").evidence.latentDrift as Record<string, unknown>)
-        .rederiveAction,
+      (
+        byId(actions, "req-status-vocabulary-map-REQ-d").evidence
+          .latentDrift as Record<string, unknown>
+      ).rederiveAction,
     ).toBe("semantic-inventory-rederive-drop-grounding-REQ-d");
-    const dropD = byId(actions, "semantic-inventory-rederive-drop-grounding-REQ-d");
+    const dropD = byId(
+      actions,
+      "semantic-inventory-rederive-drop-grounding-REQ-d",
+    );
     expect(dropD.dependsOn).toStrictEqual(["req-status-vocabulary-map-REQ-d"]);
     expect(dropD.evidence.afterStatus).toBe("open");
     expect(dropD.evidence.alternativeTo).toBeUndefined();
@@ -129,9 +140,7 @@ describe("requirement status actions", () => {
       " --approved-action req-status-vocabulary-map-REQ-d --approved-action ",
     );
     const mapI = byId(actions, "req-status-vocabulary-map-REQ-i");
-    expect(
-      (mapI.evidence.latentDrift as Record<string, unknown>).note,
-    ).toBe(
+    expect((mapI.evidence.latentDrift as Record<string, unknown>).note).toBe(
       "After the mapping, kibi sync rejects this requirement until its inventory is fixed by hand; rerun kibi migrate for the semantic_inventory_review action.",
     );
     const mapF = byId(actions, "req-status-vocabulary-map-REQ-f");
@@ -156,13 +165,17 @@ describe("requirement status actions", () => {
       "semantic-inventory-rederive-drop-grounding-REQ-d",
     ])
       await applySchema6MigrationAction(byId(actions, id), context(ws.root));
-    expect(readFileSync(file(ws.root, ".kb/requirements/REQ-c.md"), "utf8")).toContain(
-      "status: open",
-    );
+    expect(
+      readFileSync(file(ws.root, ".kb/requirements/REQ-c.md"), "utf8"),
+    ).toContain("status: open");
     expect(requirementStatusActions(ws.root)).toStrictEqual([]);
     expect(
-      buildSchema6MigrationFragment({ workspaceRoot: ws.root, currentSchemaVersion: 99 })
-        .actions.filter((action) => action.code.startsWith("semantic_inventory")),
+      buildSchema6MigrationFragment({
+        workspaceRoot: ws.root,
+        currentSchemaVersion: 99,
+      }).actions.filter((action) =>
+        action.code.startsWith("semantic_inventory"),
+      ),
     ).toStrictEqual([]);
   });
 });
@@ -202,7 +215,11 @@ describe("buildSchema6MigrationFragment", () => {
       workspaceRoot: ws.root,
       currentSchemaVersion: 5,
       claimCandidates: [
-        { test_id: "TEST-one", kind: "rule", candidates: [candidate("c1", "derived")] },
+        {
+          test_id: "TEST-one",
+          kind: "rule",
+          candidates: [candidate("c1", "derived")],
+        },
         {
           test_id: "TEST-many",
           kind: "rule",
@@ -216,23 +233,36 @@ describe("buildSchema6MigrationFragment", () => {
     expect(ids).toContain("semantic-inventory-review-REQ-b");
     expect(ids).toContain("semantic-inventory-rederive-drop-grounding-REQ-b");
     expect(ids).toContain("semantic-inventory-review-REQ-h");
-    expect(ids).not.toContain("semantic-inventory-rederive-drop-grounding-REQ-h");
+    expect(ids).not.toContain(
+      "semantic-inventory-rederive-drop-grounding-REQ-h",
+    );
     expect(ids).toContain("req-status-delivered-map");
-    expect(fragment.sourceRewriteActionIds).toContain("proof-contract-claims-pin");
-    expect(fragment.sourceRewriteActionIds).toContain("semantic-inventory-rederive-REQ-a");
-    expect(fragment.sourceRewriteActionIds).toContain("req-status-delivered-map");
+    expect(fragment.sourceRewriteActionIds).toContain(
+      "proof-contract-claims-pin",
+    );
+    expect(fragment.sourceRewriteActionIds).toContain(
+      "semantic-inventory-rederive-REQ-a",
+    );
+    expect(fragment.sourceRewriteActionIds).toContain(
+      "req-status-delivered-map",
+    );
     expect(fragment.diagnostics).toStrictEqual([
       "2 requirement inventory(ies) need a manual fix before kibi sync succeeds; see the semantic_inventory_review actions.",
     ]);
     const review = byId(fragment.actions, "semantic-inventory-review-REQ-b");
-    expect(String((review.invocation as { instruction: string }).instruction)).toContain(
+    expect(
+      String((review.invocation as { instruction: string }).instruction),
+    ).toContain(
       "Or approve semantic-inventory-rederive-drop-grounding-REQ-b, which writes that contract",
     );
     const reviewH = byId(fragment.actions, "semantic-inventory-review-REQ-h");
-    expect(String((reviewH.invocation as { instruction: string }).instruction)).not.toContain(
-      "Or approve",
+    expect(
+      String((reviewH.invocation as { instruction: string }).instruction),
+    ).not.toContain("Or approve");
+    const drop = byId(
+      fragment.actions,
+      "semantic-inventory-rederive-drop-grounding-REQ-b",
     );
-    const drop = byId(fragment.actions, "semantic-inventory-rederive-drop-grounding-REQ-b");
     expect(drop.dependsOn).toStrictEqual([]);
     expect(drop.evidence.alternativeTo).toBe("semantic-inventory-review-REQ-b");
     expect(drop.invocation).toStrictEqual({
@@ -257,12 +287,17 @@ describe("buildSchema6MigrationFragment", () => {
       currentSchemaVersion: 99,
     });
     await applySchema6MigrationAction(
-      byId(fragment.actions, "semantic-inventory-rederive-drop-grounding-REQ-b"),
+      byId(
+        fragment.actions,
+        "semantic-inventory-rederive-drop-grounding-REQ-b",
+      ),
       context(ws.root),
     );
     expect(
-      buildSchema6MigrationFragment({ workspaceRoot: ws.root, currentSchemaVersion: 99 })
-        .actions,
+      buildSchema6MigrationFragment({
+        workspaceRoot: ws.root,
+        currentSchemaVersion: 99,
+      }).actions,
     ).toStrictEqual([]);
   });
 });
@@ -270,23 +305,47 @@ describe("buildSchema6MigrationFragment", () => {
 describe("unapprovedExceptionsFromSources", () => {
   test("skips superseded, approved and unknown exceptions", () => {
     const ws = workspace();
-    writeCurrentRequirement(ws.root, "REQ-base", "Uploads must verify checksums.");
-    writeCurrentRequirement(ws.root, "REQ-x1", "Uploads from mirrors may skip it.", {
-      links: [{ type: "exempts", target: "REQ-base" }],
-    });
-    writeCurrentRequirement(ws.root, "REQ-x2", "Uploads from LAN may skip it.", {
-      links: [
-        { type: "exempts", target: "REQ-base" },
-        { type: "exempts", target: "REQ-other" },
-      ],
-    });
-    writeCurrentRequirement(ws.root, "REQ-x3", "Uploads from tests may skip it.", {
-      approved_by: "alice",
-      links: [{ type: "exempts", target: "REQ-base" }],
-    });
-    writeCurrentRequirement(ws.root, "REQ-new", "Uploads from CI may skip it.", {
-      links: [{ type: "supersedes", target: "REQ-x1" }],
-    });
+    writeCurrentRequirement(
+      ws.root,
+      "REQ-base",
+      "Uploads must verify checksums.",
+    );
+    writeCurrentRequirement(
+      ws.root,
+      "REQ-x1",
+      "Uploads from mirrors may skip it.",
+      {
+        links: [{ type: "exempts", target: "REQ-base" }],
+      },
+    );
+    writeCurrentRequirement(
+      ws.root,
+      "REQ-x2",
+      "Uploads from LAN may skip it.",
+      {
+        links: [
+          { type: "exempts", target: "REQ-base" },
+          { type: "exempts", target: "REQ-other" },
+        ],
+      },
+    );
+    writeCurrentRequirement(
+      ws.root,
+      "REQ-x3",
+      "Uploads from tests may skip it.",
+      {
+        approved_by: "alice",
+        links: [{ type: "exempts", target: "REQ-base" }],
+      },
+    );
+    writeCurrentRequirement(
+      ws.root,
+      "REQ-new",
+      "Uploads from CI may skip it.",
+      {
+        links: [{ type: "supersedes", target: "REQ-x1" }],
+      },
+    );
     ws.write(".kb/requirements/broken.md", "---\nid: [\n---\n");
     ws.write(".kb/relationships/bad.yaml", "{{{");
     expect(unapprovedExceptionsFromSources(ws.root)).toStrictEqual([
@@ -377,9 +436,15 @@ describe("applySchema6MigrationAction", () => {
       ".kb/requirements/REQ-src.md",
       "---\nid: REQ-src\ntitle: REQ-src\ntype: req\nstatus: open\nsource: src/gone.ts\n---\n\nThe system must do src.\n",
     );
-    ws.write(".kb/facts/FACT-untyped.md", "---\nid: FACT-untyped\ntitle: x\n---\n\nFact.\n");
+    ws.write(
+      ".kb/facts/FACT-untyped.md",
+      "---\nid: FACT-untyped\ntitle: x\n---\n\nFact.\n",
+    );
     // A flow mapping cannot take a type line in place.
-    ws.write(".kb/facts/FACT-flow.md", "---\n{id: FACT-flow, title: x}\n---\n\nFact.\n");
+    ws.write(
+      ".kb/facts/FACT-flow.md",
+      "---\n{id: FACT-flow, title: x}\n---\n\nFact.\n",
+    );
     const fragment = buildSchema6MigrationFragment({
       workspaceRoot: ws.root,
       currentSchemaVersion: 99,
@@ -400,18 +465,20 @@ describe("applySchema6MigrationAction", () => {
     edit(ws.root, ".kb/requirements/REQ-src.md", (text) =>
       text.replace("source: src/gone.ts", "source: src/other.ts"),
     );
-    await expect(applySchema6MigrationAction(delivered, context(ws.root))).rejects.toThrow(
+    await expect(
+      applySchema6MigrationAction(delivered, context(ws.root)),
+    ).rejects.toThrow(
       "; set status: closed and add the tag implemented by hand.",
     );
-    await expect(applySchema6MigrationAction(closure, context(ws.root))).rejects.toThrow(
-      "; set status: closed by hand.",
-    );
-    await expect(applySchema6MigrationAction(repair, context(ws.root))).rejects.toThrow(
-      "; rerun kibi migrate and approve the new plan.",
-    );
-    await expect(applySchema6MigrationAction(typing, context(ws.root))).rejects.toThrow(
-      "; add the type line by hand.",
-    );
+    await expect(
+      applySchema6MigrationAction(closure, context(ws.root)),
+    ).rejects.toThrow("; set status: closed by hand.");
+    await expect(
+      applySchema6MigrationAction(repair, context(ws.root)),
+    ).rejects.toThrow("; rerun kibi migrate and approve the new plan.");
+    await expect(
+      applySchema6MigrationAction(typing, context(ws.root)),
+    ).rejects.toThrow("; add the type line by hand.");
   });
 
   test("refuses actions that name no requirement or file", async () => {
@@ -430,7 +497,10 @@ describe("applySchema6MigrationAction", () => {
         ...fields,
       } as Parameters<typeof migrationAction>[0]);
     await expect(
-      applySchema6MigrationAction(action("semantic_inventory_rederive"), context(ws.root)),
+      applySchema6MigrationAction(
+        action("semantic_inventory_rederive"),
+        context(ws.root),
+      ),
     ).rejects.toThrow("Inventory re-derivation names no requirement.");
     await expect(
       applySchema6MigrationAction(
@@ -439,15 +509,22 @@ describe("applySchema6MigrationAction", () => {
         }),
         context(ws.root),
       ),
-    ).rejects.toThrow("Inventory re-derivation names no requirement or contract hash.");
+    ).rejects.toThrow(
+      "Inventory re-derivation names no requirement or contract hash.",
+    );
     await expect(
-      applySchema6MigrationAction(action("req_status_vocabulary_map"), context(ws.root)),
+      applySchema6MigrationAction(
+        action("req_status_vocabulary_map"),
+        context(ws.root),
+      ),
     ).rejects.toThrow(
       "Requirement status mapping names no file or target status; set the status by hand.",
     );
     await expect(
       applySchema6MigrationAction(action("no_such_code"), context(ws.root)),
-    ).rejects.toThrow("Migration action 'no_such_code' has no schema 6 executor.");
+    ).rejects.toThrow(
+      "Migration action 'no_such_code' has no schema 6 executor.",
+    );
     // Malformed planned records are ignored; a well-formed one that no
     // longer matches the workspace is reported.
     await applySchema6MigrationAction(
@@ -472,7 +549,9 @@ describe("applySchema6MigrationAction", () => {
       );
     // A requirement that no longer drifts has nothing to re-derive.
     await applySchema6MigrationAction(
-      action("semantic_inventory_rederive", { affectedEntityIds: ["REQ-none"] }),
+      action("semantic_inventory_rederive", {
+        affectedEntityIds: ["REQ-none"],
+      }),
       context(ws.root),
     );
     await expect(
@@ -481,7 +560,10 @@ describe("applySchema6MigrationAction", () => {
           affectedEntityIds: ["REQ-none"],
           evidence: {
             contractHash: "x",
-            droppedGrounding: [{ type: 1, target: "y" }, { type: "requires_predicate", target: 2 }],
+            droppedGrounding: [
+              { type: 1, target: "y" },
+              { type: "requires_predicate", target: 2 },
+            ],
           },
         }),
         context(ws.root),
@@ -497,7 +579,10 @@ describe("applySchema6MigrationAction", () => {
     const log = spyOn(console, "log").mockImplementation(() => {});
     const error = spyOn(console, "error").mockImplementation(() => {});
     try {
-      await applySchema6MigrationAction(migrationSyncAction([]), context(ws.root));
+      await applySchema6MigrationAction(
+        migrationSyncAction([]),
+        context(ws.root),
+      );
     } finally {
       warn.mockRestore();
       log.mockRestore();
