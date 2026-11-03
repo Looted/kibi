@@ -12,6 +12,13 @@
 % compared are wrapped in once/1, so a mutant cannot pass by backtracking
 % into a later answer; first_answer_is_last/1 checks the cuts.
 
+%% rqp_forget_memo
+% Empties requirement_proof's pure-function memo before each unit, so a unit
+% never reads answers that an earlier load of the module computed.
+rqp_forget_memo :-
+    retractall(requirement_proof:pure_memo(_, _, _)),
+    retractall(requirement_proof:pure_memo_size(_)).
+
 %% rqp_kb(:Goal)
 % Goal's first answer on a fresh, empty KB.
 :- meta_predicate rqp_kb(0).
@@ -27,7 +34,7 @@ rqp_roundtrip(Term, Parsed) :-
 rqp_hash(Char, Hash) :-
     length(Codes, 64), maplist(=(Char), Codes), atom_codes(Hash, Codes).
 
-:- begin_tests(requirement_proof_normalizers).
+:- begin_tests(requirement_proof_normalizers, [setup(rqp_forget_memo)]).
 
 test(normalize_integer_shapes) :-
     once(requirement_proof:normalize_integer('^^'("7", xsd), I1)), I1 == 7,
@@ -130,7 +137,7 @@ rqp_gaps(Overrides, Gaps) :-
     rqp_full_stages(Overrides, Stages),
     once(requirement_proof:proof_issues(Stages, Gaps, _)).
 
-:- begin_tests(requirement_proof_gaps).
+:- begin_tests(requirement_proof_gaps, [setup(rqp_forget_memo)]).
 
 test(a_clean_ladder_has_no_gaps) :-
     rqp_full_stages([], Stages),
@@ -252,7 +259,7 @@ test(stage_dict_enumerates_every_stage) :-
 
 :- end_tests(requirement_proof_gaps).
 
-:- begin_tests(requirement_proof_intent).
+:- begin_tests(requirement_proof_intent, [setup(rqp_forget_memo)]).
 
 rqp_origin(Dict, origin=Json) :-
     with_output_to(string(Json), json_write_dict(current_output, Dict, [width(0)])).
@@ -306,7 +313,7 @@ test(intent_claim_level) :-
 
 :- end_tests(requirement_proof_intent).
 
-:- begin_tests(requirement_proof_evidence_levels).
+:- begin_tests(requirement_proof_evidence_levels, [setup(rqp_forget_memo)]).
 
 test(evidence_entries_and_level) :-
     once(requirement_proof:requirement_evidence([], tested, ['T'], ['T2'-smt, 'T1'-exhaustive, 'T1'-smt], L1, E1)),
@@ -451,7 +458,7 @@ test(freshness_only_candidates) :-
 
 :- end_tests(requirement_proof_evidence_levels).
 
-:- begin_tests(requirement_proof_inventory).
+:- begin_tests(requirement_proof_inventory, [setup(rqp_forget_memo)]).
 
 rqp_entry(Key, Status, Start, End,
           _{claim_key: Key, claim_text: "Users sign in", role: assertion, status: Status,
@@ -511,7 +518,7 @@ test(valid_inventory_entry_needs_every_field, [nondet]) :-
 
 :- end_tests(requirement_proof_inventory).
 
-:- begin_tests(requirement_proof_helper_tables).
+:- begin_tests(requirement_proof_helper_tables, [setup(rqp_forget_memo)]).
 
 test(applicability_exclusion_reasons) :-
     rqp_kb((
@@ -742,7 +749,7 @@ test(requirement_source_path_fallback) :-
 
 :- end_tests(requirement_proof_helper_tables).
 
-:- begin_tests(requirement_proof_context_and_scenarios).
+:- begin_tests(requirement_proof_context_and_scenarios, [setup(rqp_forget_memo)]).
 
 test(context_reads_the_findings_and_the_check_time) :-
     rqp_kb((
@@ -779,7 +786,7 @@ test(scenario_stage_without_unknown_or_negative_scenarios) :-
 
 :- end_tests(requirement_proof_context_and_scenarios).
 
-:- begin_tests(requirement_proof_certified_claims).
+:- begin_tests(requirement_proof_certified_claims, [setup(rqp_forget_memo)]).
 
 %% rqp_contract_test(+TestId, +Contract, +Snapshot)
 % A unit test with Contract and one passed receipt on Snapshot that matches
@@ -848,7 +855,7 @@ rqp_no_findings(_{unsafeRules: [], unverifiableRules: []}).
 rqp_ground_fields(Stage, Keys, Pairs) :-
     findall(Key-Value, (member(Key, Keys), get_dict(Key, Stage, Value)), Pairs).
 
-:- begin_tests(requirement_proof_logic_grounding).
+:- begin_tests(requirement_proof_logic_grounding, [setup(rqp_forget_memo)]).
 
 test(every_lane_grounds_its_claim) :-
     rqp_kb((
@@ -952,7 +959,7 @@ test(claim_key_and_text_helpers) :-
 
 :- end_tests(requirement_proof_logic_grounding).
 
-:- begin_tests(requirement_proof_contradiction_stage).
+:- begin_tests(requirement_proof_contradiction_stage, [setup(rqp_forget_memo)]).
 
 rqp_witness_context(Witnesses, _{contradictionWitnesses: Witnesses}).
 
@@ -988,7 +995,7 @@ test(unmodeled_propositions_make_no_conflict_incomplete) :-
 
 :- end_tests(requirement_proof_contradiction_stage).
 
-:- begin_tests(requirement_proof_negative_path).
+:- begin_tests(requirement_proof_negative_path, [setup(rqp_forget_memo)]).
 
 rqp_negative_stage(ScenarioStage, Stage) :-
     requirement_proof_context(abc, '2026-05-02T00:00:00Z', 100, Context),
@@ -1063,7 +1070,7 @@ test(negative_path_links_and_claim_keys) :-
 
 :- end_tests(requirement_proof_negative_path).
 
-:- begin_tests(requirement_proof_scenario_obligations).
+:- begin_tests(requirement_proof_scenario_obligations, [setup(rqp_forget_memo)]).
 
 rqp_items(States, Items) :-
     findall(_{testId: T, state: S}, (nth1(N, States, S), format(atom(T), 'T-~w', [N])), Items).
@@ -1156,7 +1163,7 @@ test(evidence_kinds) :-
 
 :- end_tests(requirement_proof_scenario_obligations).
 
-:- begin_tests(requirement_proof_symbol_stages).
+:- begin_tests(requirement_proof_symbol_stages, [setup(rqp_forget_memo)]).
 
 test(executable_symbol_stage) :-
     rqp_kb((
@@ -1222,7 +1229,7 @@ test(production_stage_status_reasons) :-
 
 :- end_tests(requirement_proof_symbol_stages).
 
-:- begin_tests(requirement_proof_source_coordinates).
+:- begin_tests(requirement_proof_source_coordinates, [setup(rqp_forget_memo)]).
 
 test(source_coordinate_stage_outcomes) :-
     rqp_kb((
@@ -1291,7 +1298,7 @@ rqp_cert_context(Context) :-
     rqp_hash(0'a, Snapshot),
     requirement_proof_context(Snapshot, '2026-05-01T00:05:00Z', 100000, Context).
 
-:- begin_tests(requirement_proof_certified_bindings).
+:- begin_tests(requirement_proof_certified_bindings, [setup(rqp_forget_memo)]).
 
 test(a_derived_code_binding_certifies_the_claim) :-
     rqp_kb((
@@ -1332,7 +1339,7 @@ test(a_stale_certificate_certifies_nothing) :-
 
 :- end_tests(requirement_proof_certified_bindings).
 
-:- begin_tests(requirement_proof_gap_table).
+:- begin_tests(requirement_proof_gap_table, [setup(rqp_forget_memo)]).
 
 rqp_all_gap_stages(ContradictionStatus, ScenarioStatus, Stages) :-
     rqp_full_stages([
@@ -1398,7 +1405,7 @@ test(gap_definitions_table) :-
 
 :- end_tests(requirement_proof_gap_table).
 
-:- begin_tests(requirement_proof_applicability).
+:- begin_tests(requirement_proof_applicability, [setup(rqp_forget_memo)]).
 
 test(exempt_and_not_current_requirements_skip_the_ladder) :-
     rqp_kb((
@@ -1434,7 +1441,7 @@ test(proof_exempt_needs_a_true_flag_and_a_reason) :-
 
 :- end_tests(requirement_proof_applicability).
 
-:- begin_tests(requirement_proof_default_context).
+:- begin_tests(requirement_proof_default_context, [setup(rqp_forget_memo)]).
 
 test(default_context_parameters) :-
     rqp_kb((
@@ -2358,7 +2365,7 @@ rqp_view(
     status-not_required
   ]).
 
-:- begin_tests(requirement_proof_full_ladder).
+:- begin_tests(requirement_proof_full_ladder, [setup(rqp_forget_memo)]).
 
 test(a_rechecked_certificate_proves_the_requirement) :-
     rqp_full_cert(["a", "b"], [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "passed"}], Cert),
@@ -2393,7 +2400,7 @@ test(binding_variants_leave_the_claim_tested) :-
 
 :- end_tests(requirement_proof_full_ladder).
 
-:- begin_tests(requirement_proof_direct_helpers).
+:- begin_tests(requirement_proof_direct_helpers, [setup(rqp_forget_memo)]).
 
 rqp_evidence_facts(ReqId, FactIds) :-
     findall(FactId, (requirement_proof:valid_ground_evidence(ReqId, E), get_dict(factId, E, FactId)), FactIds).
@@ -2561,7 +2568,7 @@ test(receipt_evidence_states_for_missing_and_malformed_receipts) :-
 
 :- end_tests(requirement_proof_direct_helpers).
 
-:- begin_tests(requirement_proof_explanations).
+:- begin_tests(requirement_proof_explanations, [setup(rqp_forget_memo)]).
 
 test(reused_receipt_reasons) :-
     findall(R, requirement_proof:reused_receipt_reject_reasons([_{testId: 'T-1', state: passed}], 'T-1', R), Passed),
@@ -2692,7 +2699,7 @@ rqp_case_row(Row, Constraint-Predicted-Coverage-Scenarios-Waiver) :-
     get_dict(scenarios, Row, Scenarios),
     (   get_dict(waiver, Row, W) -> rqp_canon(W, Waiver) ; Waiver = none ).
 
-:- begin_tests(requirement_proof_case_stage).
+:- begin_tests(requirement_proof_case_stage, [setup(rqp_forget_memo)]).
 
 test(cases_list_each_row_and_summarize_the_coverage) :-
     rqp_kb((
@@ -2793,7 +2800,7 @@ rqp_rule_cert_fixture :-
     pf_receipts_json([R], RJ),
     pf_entity(test, 'T-RULE', [status=passing, verification_scope=unit, proof_receipts=RJ]).
 
-:- begin_tests(requirement_proof_dimension_stage).
+:- begin_tests(requirement_proof_dimension_stage, [setup(rqp_forget_memo)]).
 
 test(a_quantified_ground_predicate_claim_lacks_its_dimension) :-
     rqp_kb((
@@ -2860,7 +2867,7 @@ rqp_claim_entries(ReqId, Status, Stage, Context, Entries, Proved) :-
                                           Entries0, Proved, _)),
     rqp_canon(Entries0, Entries).
 
-:- begin_tests(requirement_proof_claim_evidence).
+:- begin_tests(requirement_proof_claim_evidence, [setup(rqp_forget_memo)]).
 
 test(a_stale_certificate_binds_nothing) :-
     rqp_kb((
@@ -2953,7 +2960,7 @@ rqp_quota_fixture(Expects) :-
     pf_entity(scenario, 'SCN-QZERO', [expects=Expects]),
     pf_raw_rel(assumes, 'SCN-QZERO', 'F-QZERO').
 
-:- begin_tests(requirement_proof_linked_entities).
+:- begin_tests(requirement_proof_linked_entities, [setup(rqp_forget_memo)]).
 
 test(only_linked_scenarios_are_infeasible_or_negative) :-
     forall(member(Expects-Key, [success-infeasibleScenarios, rejection-negativeScenarios]),
@@ -3017,7 +3024,7 @@ test(a_failing_unit_test_gives_no_structural_contract) :-
 
 :- end_tests(requirement_proof_linked_entities).
 
-:- begin_tests(requirement_proof_open_queries).
+:- begin_tests(requirement_proof_open_queries, [setup(rqp_forget_memo)]).
 
 test(inventory_text_is_parsed_once_through_the_memo) :-
     retractall(requirement_proof:pure_memo(_, _, _)),
@@ -3323,7 +3330,7 @@ rqp_common_evidence_pair(Key-_) :-
     memberchk(Key, [testId, state, scope, receiptId, outcome, codeSnapshot, environmentHash,
                     startedAt, finishedAt, artifactDigest, ageSeconds]).
 
-:- begin_tests(requirement_proof_receipt_fields).
+:- begin_tests(requirement_proof_receipt_fields, [setup(rqp_forget_memo)]).
 
 test(only_v2_receipts_carry_a_kind) :-
     rqp_bare_receipt("kibi.proof-receipt.v1", V1),
