@@ -20,7 +20,7 @@ import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
-import { parseDocument } from "yaml";
+import { type YAMLSeq, isMap, isSeq, parseDocument } from "yaml";
 
 /**
  * Represents a relationship record stored in shard files.
@@ -71,7 +71,7 @@ export function readShard(shardPath: string): RelationshipRecord[] {
     return [];
   }
 
-  const content = fs.readFileSync(shardPath, "utf8");
+  const content = fs.readFileSync(shardPath).toString();
   const parsed = parsedShards.get(content);
   // rationale: parsing is a pure function of the text and callers get copies
   // either way, so skipping the memo changes only the time a read takes.
@@ -132,50 +132,33 @@ export function parseShardText(
     }
 
     const rec = record as Record<string, unknown>;
+    const field = (name: keyof RelationshipRecord): string => {
+      const value = rec[name];
+      if (typeof value !== "string" || value === "") {
+        throw new Error(
+          `Missing or invalid '${name}' at ${shardPath}[${index}]`,
+        );
+      }
+      return value;
+    };
 
-    // Validate required fields
-    if (typeof rec.id !== "string" || !rec.id) {
-      throw new Error(`Missing or invalid 'id' at ${shardPath}[${index}]`);
-    }
-    if (typeof rec.type !== "string" || !rec.type) {
-      throw new Error(`Missing or invalid 'type' at ${shardPath}[${index}]`);
-    }
-    if (typeof rec.from !== "string" || !rec.from) {
-      throw new Error(`Missing or invalid 'from' at ${shardPath}[${index}]`);
-    }
-    if (typeof rec.to !== "string" || !rec.to) {
-      throw new Error(`Missing or invalid 'to' at ${shardPath}[${index}]`);
-    }
-
-    // Handle created_at - YAML may auto-convert ISO dates to Date objects
-    let createdAt: string;
-    if (rec.created_at instanceof Date) {
-      createdAt = rec.created_at.toISOString().replace(/\.000Z$/, "Z");
-    } else if (typeof rec.created_at === "string" && rec.created_at) {
-      createdAt = rec.created_at;
-    } else {
-      throw new Error(
-        `Missing or invalid 'created_at' at ${shardPath}[${index}]`,
-      );
-    }
-
-    if (typeof rec.created_by !== "string" || !rec.created_by) {
-      throw new Error(
-        `Missing or invalid 'created_by' at ${shardPath}[${index}]`,
-      );
-    }
-    if (typeof rec.source !== "string" || !rec.source) {
-      throw new Error(`Missing or invalid 'source' at ${shardPath}[${index}]`);
-    }
-
+    const id = field("id");
+    const type = field("type");
+    const from = field("from");
+    const to = field("to");
+    // YAML may auto-convert ISO dates to Date objects.
+    const createdAt =
+      rec.created_at instanceof Date
+        ? rec.created_at.toISOString().replace(".000Z", "Z")
+        : field("created_at");
     const result: RelationshipRecord = {
-      id: rec.id,
-      type: rec.type,
-      from: rec.from,
-      to: rec.to,
+      id,
+      type,
+      from,
+      to,
       created_at: createdAt,
-      created_by: rec.created_by,
-      source: rec.source,
+      created_by: field("created_by"),
+      source: field("source"),
     };
 
     if (rec.confidence !== undefined) {
@@ -199,11 +182,7 @@ export function writeShard(
   shardPath: string,
   records: RelationshipRecord[],
 ): void {
-  const dir = path.dirname(shardPath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-
+  fs.mkdirSync(path.dirname(shardPath), { recursive: true });
   atomicWriteText(shardPath, renderShardRecords(records));
 }
 
@@ -214,7 +193,7 @@ function renderShardRecords(records: RelationshipRecord[]): string {
   const unique: RelationshipRecord[] = [];
 
   for (const record of sorted) {
-    const key = `${record.type}|${record.from}|${record.to}`;
+    const key = relationshipKey(record);
     if (seen.has(key)) continue;
     seen.add(key);
     unique.push(record);
@@ -229,17 +208,16 @@ function renderShardRecords(records: RelationshipRecord[]): string {
  * for the next sync or Git operation.
  */
 function atomicWriteText(targetPath: string, body: string): void {
-  const temporary = `${targetPath}.kibi-write-${process.pid}-${Date.now()}-${Math.random()
-    .toString(16)
-    .slice(2)}`;
+  const temporary = `${targetPath}.kibi-write-${process.pid}-${crypto.randomUUID()}`;
   try {
-    fs.writeFileSync(temporary, body, { encoding: "utf8", mode: 0o600 });
+    fs.writeFileSync(temporary, body, { mode: 0o600 });
     fs.renameSync(temporary, targetPath);
   } catch (error) {
     try {
-      if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+      fs.unlinkSync(temporary);
     } catch {
-      // Preserve the original publication failure.
+      // No temporary was written, or it cannot be removed: preserve the
+      // original publication failure.
     }
     throw error;
   }
@@ -250,6 +228,11 @@ export type RelationshipSelector = Readonly<{
   from: string;
   to: string;
 }>;
+
+/** The identity of a relationship: its type and both endpoints. */
+function relationshipKey(relationship: RelationshipSelector): string {
+  return `${relationship.type}\0${relationship.from}\0${relationship.to}`;
+}
 
 export type RemovedRelationshipRecords = Readonly<{
   selector: RelationshipSelector;
@@ -273,32 +256,37 @@ export function renderShardWithout(
   selectors: readonly RelationshipSelector[],
   shardPath: string,
 ): string {
-  const wanted = new Set(
-    selectors.map(
-      (selector) => `${selector.type}\0${selector.from}\0${selector.to}`,
-    ),
-  );
+  const wanted = new Set(selectors.map(relationshipKey));
   const document = parseDocument(text);
-  const sequence = document.get("relationships", true);
-  if (!sequence || typeof sequence !== "object" || !("items" in sequence)) {
+  const sequence = relationshipSequence(document, shardPath);
+  sequence.items = sequence.items.filter(
+    (item) =>
+      !(
+        isMap(item) &&
+        wanted.has(
+          relationshipKey({
+            type: String(item.get("type")),
+            from: String(item.get("from")),
+            to: String(item.get("to")),
+          }),
+        )
+      ),
+  );
+  return document.toString();
+}
+
+/** The `relationships` sequence of a parsed shard document. */
+function relationshipSequence(
+  document: ReturnType<typeof parseDocument>,
+  shardPath: string,
+): YAMLSeq<unknown> {
+  const sequence = document.get("relationships");
+  if (!isSeq(sequence)) {
     throw new Error(
       `Invalid shard file: missing 'relationships' array at ${shardPath}`,
     );
   }
-  const items = (sequence as { items: unknown[] }).items;
-  for (let index = items.length - 1; index >= 0; index -= 1) {
-    const item = items[index];
-    if (!item || typeof item !== "object" || !("get" in item)) continue;
-    const get = (item as { get(name: string): unknown }).get.bind(item);
-    if (
-      wanted.has(
-        `${String(get("type"))}\0${String(get("from"))}\0${String(get("to"))}`,
-      )
-    ) {
-      document.deleteIn(["relationships", index]);
-    }
-  }
-  return document.toString();
+  return sequence;
 }
 
 export type PlannedShardRemovals = Readonly<{
@@ -316,29 +304,18 @@ export function planRelationshipShardRemovals(
   kbRoot: string,
   selectors: readonly RelationshipSelector[],
 ): PlannedShardRemovals {
-  const wanted = new Set(
-    selectors.map(
-      (selector) => `${selector.type}\0${selector.from}\0${selector.to}`,
-    ),
-  );
+  const wanted = new Set(selectors.map(relationshipKey));
   const removed = new Map<string, { paths: string[]; sources: string[] }>();
   const bodies = new Map<string, string>();
   for (const shardPath of listShards(kbRoot)) {
-    const records = readShard(shardPath);
-    const matching = records.filter((record) =>
-      wanted.has(`${record.type}\0${record.from}\0${record.to}`),
+    const text = fs.readFileSync(shardPath).toString();
+    const matching = parseShardText(text, shardPath).filter((record) =>
+      wanted.has(relationshipKey(record)),
     );
     if (matching.length === 0) continue;
-    bodies.set(
-      shardPath,
-      renderShardWithout(
-        fs.readFileSync(shardPath, "utf8"),
-        selectors,
-        shardPath,
-      ),
-    );
+    bodies.set(shardPath, renderShardWithout(text, selectors, shardPath));
     for (const record of matching) {
-      const key = `${record.type}\0${record.from}\0${record.to}`;
+      const key = relationshipKey(record);
       const entry = removed.get(key) ?? { paths: [], sources: [] };
       entry.paths.push(shardPath);
       entry.sources.push(record.source);
@@ -348,9 +325,7 @@ export function planRelationshipShardRemovals(
   return {
     bodies,
     removals: selectors.map((selector) => {
-      const entry = removed.get(
-        `${selector.type}\0${selector.from}\0${selector.to}`,
-      );
+      const entry = removed.get(relationshipKey(selector));
       return {
         selector,
         shardPaths: entry?.paths ?? [],
@@ -417,13 +392,11 @@ export function appendRelationship(
 ): { shardPath: string; recordId: string } {
   const shardPath = computeShardPath(kbRoot, relationship.from);
   const existing = fs.existsSync(shardPath)
-    ? fs.readFileSync(shardPath, "utf8")
+    ? fs.readFileSync(shardPath).toString()
     : null;
   const next = renderShardWithRelationship(shardPath, existing, relationship);
   if (next !== null) {
-    if (existing === null) {
-      fs.mkdirSync(path.dirname(shardPath), { recursive: true });
-    }
+    fs.mkdirSync(path.dirname(shardPath), { recursive: true });
     atomicWriteText(shardPath, next);
   }
 
@@ -450,17 +423,6 @@ export function renderShardWithRelationship(
   existing: string | null,
   relationship: Omit<RelationshipRecord, "id">,
 ): string | null {
-  const records = existing === null ? [] : parseShardText(existing, shardPath);
-  if (
-    records.some(
-      (r) =>
-        r.type === relationship.type &&
-        r.from === relationship.from &&
-        r.to === relationship.to,
-    )
-  ) {
-    return null;
-  }
   const newRecord: RelationshipRecord = {
     ...relationship,
     id: relationshipIdFor(
@@ -470,14 +432,16 @@ export function renderShardWithRelationship(
     ),
   };
   if (existing === null) return renderShardRecords([newRecord]);
-  const document = parseDocument(existing);
-  const sequence = document.get("relationships", true);
-  if (!sequence || typeof sequence !== "object" || !("items" in sequence)) {
-    throw new Error(
-      `Invalid shard file: missing 'relationships' array at ${shardPath}`,
-    );
+  const key = relationshipKey(relationship);
+  if (
+    parseShardText(existing, shardPath).some(
+      (record) => relationshipKey(record) === key,
+    )
+  ) {
+    return null;
   }
-  (sequence as { items: unknown[] }).items.push(newRecord);
+  const document = parseDocument(existing);
+  relationshipSequence(document, shardPath).items.push(newRecord);
   return document.toString();
 }
 
@@ -500,15 +464,7 @@ export function listShards(kbRoot: string): string[] {
  * Reads all relationships from all shards.
  */
 export function readAllShards(kbRoot: string): RelationshipRecord[] {
-  const shards = listShards(kbRoot);
-  const allRecords: RelationshipRecord[] = [];
-
-  for (const shardPath of shards) {
-    const records = readShard(shardPath);
-    allRecords.push(...records);
-  }
-
-  return allRecords;
+  return listShards(kbRoot).flatMap((shardPath) => readShard(shardPath));
 }
 
 /**
@@ -551,18 +507,14 @@ export function mergeRecords(
 ): RelationshipRecord[] {
   const recordMap = new Map<string, RelationshipRecord>();
 
-  // Helper to create key from record
-  const makeKey = (r: RelationshipRecord): string =>
-    `${r.type}|${r.from}|${r.to}`;
-
   // Add existing records
   for (const record of existing) {
-    recordMap.set(makeKey(record), record);
+    recordMap.set(relationshipKey(record), record);
   }
 
   // Merge incoming records
   for (const record of incoming) {
-    const key = makeKey(record);
+    const key = relationshipKey(record);
     const existingRecord = recordMap.get(key);
 
     if (!existingRecord) {
