@@ -54,7 +54,7 @@ export function analyzePath(
     isUnderKb = true;
     const rest = normalized.slice(KB_PREFIX.length + 1);
     for (const lane of KIBI_LANE_KINDS) {
-      if (rest === lane.prefix || rest.startsWith(lane.prefix)) {
+      if (rest.startsWith(lane.prefix)) {
         kind = lane.kind;
         isKibiDocRelevant = true;
         break;

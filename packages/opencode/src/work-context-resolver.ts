@@ -14,9 +14,9 @@ import { type RepoPosture, detectPosture } from "./repo-posture.js";
 export interface ResolveWorkContextInput {
   inputDirectory: string;
   inputWorktree: string;
-  filePath?: string;
-  sessionId?: string;
-  agentIdentity?: string;
+  filePath?: string | undefined;
+  sessionId?: string | undefined;
+  agentIdentity?: string | undefined;
 }
 
 export interface WorkContext {
@@ -38,22 +38,26 @@ export interface GitMetadata {
   isLinkedWorktree: boolean;
 }
 
-function safeStat(path: string): Stats | null {
+function safeStat(path: string): Stats | undefined {
   try {
     return statSync(path);
   } catch {
-    return null;
+    // Missing or unreadable: undefined below.
   }
+  return undefined;
 }
 
-function readFirstLine(path: string): string | null {
+function readFirstLine(path: string): string | undefined {
   try {
-    const [firstLine] = readFileSync(path, "utf8").split(/\r?\n/, 1);
-    const trimmed = firstLine?.trim();
-    return trimmed && trimmed.length > 0 ? trimmed : null;
+    // split() always yields at least one (possibly empty) line.
+    const [firstLine] = readFileSync(path, "utf8").split(/\r?\n/, 1) as [
+      string,
+    ];
+    return firstLine.trim() || undefined;
   } catch {
-    return null;
+    // Missing or unreadable: undefined below.
   }
+  return undefined;
 }
 
 function readLinkedGitDir(
@@ -99,28 +103,14 @@ export function nextAncestorDirectory(current: string): string | undefined {
 
 function findGitMetadata(
   candidatePath: string,
-  searchBoundary?: string,
+  boundary: string,
 ): GitMetadata | null {
   let current: string | undefined = directorySearchStart(candidatePath);
-  const boundary = searchBoundary ? resolve(searchBoundary) : null;
 
   while (current !== undefined) {
     const dotGitPath = join(current, ".git");
-    const dotGitStats = safeStat(dotGitPath);
 
-    if (dotGitStats?.isFile()) {
-      const gitDir = readLinkedGitDir(current, dotGitPath);
-      if (gitDir) {
-        return {
-          worktreeRoot: current,
-          gitDir,
-          commonGitDir: readCommonGitDir(gitDir),
-          isLinkedWorktree: true,
-        };
-      }
-    }
-
-    if (dotGitStats?.isDirectory()) {
+    if (safeStat(dotGitPath)?.isDirectory()) {
       return {
         worktreeRoot: current,
         gitDir: dotGitPath,
@@ -129,7 +119,21 @@ function findGitMetadata(
       };
     }
 
-    if (boundary !== null && current === boundary) {
+    // A `.git` file (linked worktree) points at its git directory; anything
+    // else (missing, unreadable, no gitdir line) yields null.
+    const gitDir = readLinkedGitDir(current, dotGitPath);
+    if (gitDir) {
+      return {
+        worktreeRoot: current,
+        gitDir,
+        commonGitDir: readCommonGitDir(gitDir),
+        isLinkedWorktree: true,
+      };
+    }
+
+    // Never search above the declared root. A path outside it never passes
+    // through the root, so its search runs to the filesystem root.
+    if (current === boundary) {
       return null;
     }
 
@@ -140,25 +144,6 @@ function findGitMetadata(
 
 function hasRootKbConfig(root: string): boolean {
   return existsSync(join(root, ".kb", "manifest.json"));
-}
-
-function uniqueResolved(paths: Array<string | null | undefined>): string[] {
-  const seen = new Set<string>();
-  const result: string[] = [];
-
-  for (const path of paths) {
-    if (!path) {
-      continue;
-    }
-    const resolved = resolve(path);
-    if (seen.has(resolved)) {
-      continue;
-    }
-    seen.add(resolved);
-    result.push(resolved);
-  }
-
-  return result;
 }
 
 function authorityRootFromCommonGitDir(commonGitDir: string): string | null {
@@ -197,18 +182,19 @@ function resolveAuthorityRoot(
     return git.worktreeRoot;
   }
 
-  const candidates = uniqueResolved([
+  // Every candidate is already an absolute, resolved path.
+  const candidates = [
     authorityRootFromCommonGitDir(git.commonGitDir),
     authorityRootFromLinkedGitDir(git.gitDir),
     ...ancestorKbRoots(git.worktreeRoot),
     inputDirectory,
     git.worktreeRoot,
-  ]);
+  ].filter((candidate): candidate is string => candidate !== null);
 
+  // inputDirectory and the worktree root keep the list non-empty.
   return (
     candidates.find((candidate) => hasRootKbConfig(candidate)) ??
-    candidates[0] ??
-    git.worktreeRoot
+    (candidates[0] as string)
   );
 }
 
@@ -222,17 +208,10 @@ export function resolveBranch(git: GitMetadata | null): string {
     return "unknown";
   }
 
-  if (!head.startsWith("ref:")) {
-    return "HEAD";
-  }
-
-  const ref = head.slice("ref:".length).trim();
-  if (!ref.startsWith("refs/heads/")) {
-    return "HEAD";
-  }
-
-  const branch = ref.slice("refs/heads/".length);
-  return branch;
+  // A detached or non-branch HEAD reads as "HEAD". The group always
+  // participates in a match.
+  const match = /^ref:\s*refs\/heads\/(.*)/.exec(head);
+  return match ? (match[1] as string) : "HEAD";
 }
 
 function normalizeRepoRelativePath(
@@ -267,20 +246,9 @@ const resolveWorkContext = function resolveWorkContext(
       : resolve(declaredWorktreeRoot, input.filePath)
     : undefined;
 
-  const fileRelativeToDeclaredRoot = absoluteFilePath
-    ? relative(declaredWorktreeRoot, absoluteFilePath)
-    : null;
-  const fileSearchBoundary =
-    fileRelativeToDeclaredRoot !== null &&
-    !fileRelativeToDeclaredRoot.startsWith(`..${sep}`) &&
-    fileRelativeToDeclaredRoot !== ".." &&
-    !isAbsolute(fileRelativeToDeclaredRoot)
-      ? declaredWorktreeRoot
-      : undefined;
-
   const git =
     (absoluteFilePath
-      ? findGitMetadata(absoluteFilePath, fileSearchBoundary)
+      ? findGitMetadata(absoluteFilePath, declaredWorktreeRoot)
       : null) ?? findGitMetadata(declaredWorktreeRoot, declaredWorktreeRoot);
 
   const worktreeRoot = git?.worktreeRoot ?? declaredWorktreeRoot;

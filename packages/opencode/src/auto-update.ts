@@ -65,13 +65,13 @@ interface DistTagsLike {
   [key: string]: unknown;
 }
 
+/**
+ * Parsed JSON, or null when it does not parse. Only named fields are read
+ * from the result, and a scalar or array has none of them.
+ */
 function parseJsonObject(raw: string): Record<string, unknown> | null {
   try {
-    const parsed: unknown = JSON.parse(raw);
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      return parsed as Record<string, unknown>;
-    }
-    return null;
+    return JSON.parse(raw) as Record<string, unknown> | null;
   } catch (err: unknown) {
     logger.info("auto-update: failed to parse JSON", {
       error: err instanceof Error ? err.message : String(err),
@@ -81,7 +81,8 @@ function parseJsonObject(raw: string): Record<string, unknown> | null {
 }
 
 function stripJsonComments(raw: string): string {
-  return raw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|\s)\/\/.*$/gm, "$1");
+  // A line comment takes the whitespace before it, which JSON never needs.
+  return raw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|\s)\/\/.*/gm, "");
 }
 
 function configPaths(directory: string): string[] {
@@ -184,18 +185,9 @@ function parseSemver(version: string): ParsedSemver | null {
   if (!match) {
     return null;
   }
-  const major = Number(match[1]);
-  const minor = Number(match[2]);
-  const patch = Number(match[3]);
-  if (
-    !Number.isInteger(major) ||
-    !Number.isInteger(minor) ||
-    !Number.isInteger(patch)
-  ) {
-    return null;
-  }
+  // The digit groups always convert to whole numbers.
   return {
-    core: [major, minor, patch],
+    core: [Number(match[1]), Number(match[2]), Number(match[3])],
     prerelease: match[4]?.split(".") ?? [],
   };
 }
@@ -216,35 +208,36 @@ function comparePrereleaseIdentifiers(left: string, right: string): number {
   if (rightIsNumeric) {
     return 1;
   }
-  return left.localeCompare(right, "en", { sensitivity: "variant" });
+  // "variant" is the default sensitivity for comparisons.
+  return left.localeCompare(right, "en");
 }
 
-function comparePrerelease(left: string[], right: string[]): number {
-  if (left.length === 0 && right.length === 0) {
-    return 0;
-  }
+/** Whether prerelease `left` ranks above `right`; empty means a release. */
+function isPrereleaseGreater(left: string[], right: string[]): boolean {
   if (left.length === 0) {
-    return 1;
+    return right.length > 0;
   }
   if (right.length === 0) {
-    return -1;
+    return false;
   }
-  const maxLength = Math.max(left.length, right.length);
-  for (let index = 0; index < maxLength; index += 1) {
-    const leftPart = left[index];
+  for (let index = 0; index < left.length; index += 1) {
     const rightPart = right[index];
-    if (leftPart === undefined) {
-      return -1;
-    }
     if (rightPart === undefined) {
-      return 1;
+      // Equal so far and longer: more identifiers rank higher.
+      return true;
     }
-    const comparison = comparePrereleaseIdentifiers(leftPart, rightPart);
-    if (comparison !== 0) {
-      return comparison;
+    const comparison = comparePrereleaseIdentifiers(
+      left[index] as string,
+      rightPart,
+    );
+    if (comparison < 0) {
+      return false;
+    }
+    if (comparison > 0) {
+      return true;
     }
   }
-  return 0;
+  return false;
 }
 
 function isSemverGreaterThan(candidate: string, current: string): boolean {
@@ -261,18 +254,21 @@ function isSemverGreaterThan(candidate: string, current: string): boolean {
       return false;
     }
   }
-  return (
-    comparePrerelease(candidateVersion.prerelease, currentVersion.prerelease) >
-    0
+  return isPrereleaseGreater(
+    candidateVersion.prerelease,
+    currentVersion.prerelease,
   );
 }
 
-function readVersionFromPackageJson(packageJsonPath: string): string | null {
-  if (!fs.existsSync(packageJsonPath)) {
+function readVersionFromPackageJson(
+  packageJsonPath: string | null,
+): string | null {
+  // existsSync answers false for a null path as well.
+  if (!fs.existsSync(packageJsonPath as string)) {
     return null;
   }
   const parsed = parseJsonObject(
-    fs.readFileSync(packageJsonPath, "utf8"),
+    fs.readFileSync(packageJsonPath as string, "utf8"),
   ) as PackageJsonLike | null;
   return typeof parsed?.version === "string" ? parsed.version : null;
 }
@@ -326,10 +322,7 @@ export function getCachedPluginVersion(): string | null {
     }
   }
 
-  const runningPackageJson = findPackageJsonUp(import.meta.url);
-  return runningPackageJson
-    ? readVersionFromPackageJson(runningPackageJson)
-    : null;
+  return readVersionFromPackageJson(findPackageJsonUp(import.meta.url));
 }
 
 export async function getLatestPluginVersion(
@@ -362,7 +355,7 @@ function removePackageDir(dir: string): boolean {
   if (!fs.existsSync(dir)) {
     return false;
   }
-  fs.rmSync(dir, { recursive: true, force: true });
+  fs.rmSync(dir, { recursive: true });
   return true;
 }
 
@@ -373,10 +366,7 @@ function removeSpecifierCacheDirs(cacheDir: string): boolean {
   let removed = false;
   for (const entry of fs.readdirSync(cacheDir, { withFileTypes: true })) {
     if (entry.isDirectory() && entry.name.startsWith(`${PACKAGE_NAME}@`)) {
-      fs.rmSync(path.join(cacheDir, entry.name), {
-        recursive: true,
-        force: true,
-      });
+      fs.rmSync(path.join(cacheDir, entry.name), { recursive: true });
       removed = true;
     }
   }
@@ -425,7 +415,8 @@ export function invalidateKibiOpencodePackage(): boolean {
   return removedPackageDirs || removedSpecifierDirs || removedLock;
 }
 
-function activeInstallWorkspace(): string {
+/** The directory OpenCode installs the plugin into. */
+export function activeInstallWorkspace(): string {
   const configDir = getOpenCodeConfigDir();
   const cacheRoot = getOpenCodeCacheRoot();
   const packagesCacheDir = getOpenCodePackagesCacheDir();
@@ -493,10 +484,7 @@ export function createAutoUpdateRunner(deps: AutoUpdateRunnerDeps) {
       return { status: "latest-version-unknown", currentVersion };
     }
 
-    if (
-      currentVersion === latestVersion ||
-      !isSemverGreaterThan(latestVersion, currentVersion)
-    ) {
+    if (!isSemverGreaterThan(latestVersion, currentVersion)) {
       deps.log("auto-update: plugin already up to date", {
         currentVersion,
         latestVersion,
@@ -533,7 +521,7 @@ export function createAutoUpdateRunner(deps: AutoUpdateRunnerDeps) {
 }
 
 export async function notifyAutoUpdate(message: string): Promise<void> {
-  logger.info("auto-update.notification", { message });
+  logger.info(message);
 }
 
 export const runKibiOpencodeAutoUpdate = createAutoUpdateRunner({

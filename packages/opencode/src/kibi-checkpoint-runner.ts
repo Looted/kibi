@@ -21,12 +21,6 @@ import type { WorkContext } from "./work-context-resolver.js";
 const HARD_CHECKPOINT_TIMEOUT_MS = 30_000;
 const CHECKPOINT_REASON = "smart-enforcement.checkpoint";
 
-const NO_E2E_SIGNAL: E2eCoverageSignal = {
-  level: "none",
-  evidence: [],
-  reminderText: null,
-};
-
 export interface KibiCheckpointContext {
   workContext: WorkContext;
   config?: KibiConfig;
@@ -92,10 +86,7 @@ export class KibiCheckpointRunner {
   private readonly clearTimeoutFn: (handle: TimeoutHandle) => void;
   private readonly requested = new Map<string, RequestedCheckpoint>();
   private readonly passed = new Map<string, KibiCheckpointMetadata>();
-  private readonly passedScopeKeysByFingerprint = new Map<
-    string,
-    Set<string>
-  >();
+  private readonly passedFingerprints = new Set<string>();
 
   constructor(options: KibiCheckpointRunnerOptions = {}) {
     this.config = options.config;
@@ -156,10 +147,7 @@ export class KibiCheckpointRunner {
     if (context) {
       return this.passed.has(this.scopeKey(context, normalizedFingerprint));
     }
-    return (
-      (this.passedScopeKeysByFingerprint.get(normalizedFingerprint)?.size ??
-        0) > 0
-    );
+    return this.passedFingerprints.has(normalizedFingerprint);
   }
 
   // implements REQ-opencode-smart-enforcement-v1
@@ -213,65 +201,65 @@ export class KibiCheckpointRunner {
       },
     });
 
-    try {
-      scheduler.scheduleSync(
-        CHECKPOINT_REASON,
-        context.filePath,
-        normalizedCheckRules(context),
-      );
+    scheduler.scheduleSync(
+      CHECKPOINT_REASON,
+      context.filePath,
+      normalizedCheckRules(context),
+    );
+    const outcome = await this.withTimeout(scheduler.flush());
+    // rationale: disposing only releases the flush still waiting on a run
+    // that timed out; nothing reads it afterwards, so skipping it is unseen
+    // Stryker disable next-line CallExpression
+    scheduler.dispose();
 
-      const outcome = await this.withTimeout(scheduler.flush());
-      if (outcome === "timeout") {
-        scheduler.dispose();
-        return {
-          kind: "hard_block",
-          metadata: {
-            ...request.metadata,
-            reason: "timeout",
-            timeoutMs: this.timeoutMs,
-            checkRules: normalizedCheckRules(context),
-          },
-        };
-      }
-
-      const sync = completions[completions.length - 1];
-      if (!sync) {
-        return {
-          kind: "hard_block",
-          metadata: {
-            ...request.metadata,
-            reason: "sync_not_run",
-            checkRules: normalizedCheckRules(context),
-          },
-        };
-      }
-
-      const failureReason = checkpointFailureReason(
-        sync,
-        normalizedCheckRules(context),
-      );
-      if (failureReason) {
-        return {
-          kind: "hard_block",
-          metadata: {
-            ...request.metadata,
-            sync,
-            reason: failureReason,
-            checkRules: normalizedCheckRules(context),
-          },
-        };
-      }
-
-      const passedMetadata: KibiCheckpointMetadata = {
-        ...request.metadata,
-        sync,
-        checkRules: normalizedCheckRules(context),
+    if (outcome === "timeout") {
+      return {
+        kind: "hard_block",
+        metadata: {
+          ...request.metadata,
+          reason: "timeout",
+          timeoutMs: this.timeoutMs,
+          checkRules: normalizedCheckRules(context),
+        },
       };
-      this.recordPassed(passedMetadata);
-      return { kind: "passed", metadata: passedMetadata };
-    } finally {
-      scheduler.dispose();
     }
+
+    const sync = completions[completions.length - 1];
+    if (!sync) {
+      return {
+        kind: "hard_block",
+        metadata: {
+          ...request.metadata,
+          reason: "sync_not_run",
+          checkRules: normalizedCheckRules(context),
+        },
+      };
+    }
+
+    const failureReason = checkpointFailureReason(
+      sync,
+      normalizedCheckRules(context),
+    );
+    if (failureReason) {
+      return {
+        kind: "hard_block",
+        metadata: {
+          ...request.metadata,
+          sync,
+          reason: failureReason,
+          checkRules: normalizedCheckRules(context),
+        },
+      };
+    }
+
+    const passedMetadata: KibiCheckpointMetadata = {
+      ...request.metadata,
+      sync,
+      checkRules: normalizedCheckRules(context),
+    };
+    this.passed.set(passedMetadata.scopeKey, passedMetadata);
+    this.passedFingerprints.add(passedMetadata.fingerprint);
+    return { kind: "passed", metadata: passedMetadata };
   }
 
   private baseMetadata(
@@ -314,23 +302,27 @@ export class KibiCheckpointRunner {
       resolvedContext: context.workContext,
       effectiveMode: "hard",
       lifecycleEvents: context.lifecycleEvents ?? [
-        defaultLifecycleEvent(context),
+        {
+          normalizedPath:
+            context.filePath ?? context.workContext.repoRelativePath,
+          lifecycle: "edited",
+        },
       ],
       pathKinds: context.pathKinds ?? ["code"],
-      linkedEntityResults: context.linkedEntityResults ?? [
-        { ids: [], source: "none" },
-      ],
-      e2eSignals: context.e2eSignals ?? [NO_E2E_SIGNAL],
+      // Missing links and e2e signals default to none in the policy.
+      linkedEntityResults: context.linkedEntityResults,
+      e2eSignals: context.e2eSignals,
       checkpointEvidence: false,
       posture: context.workContext.posture,
     });
 
-    return policy.kind === "hard_block" ? policy.text : null;
+    // In hard mode only a hard block carries text.
+    return policy.text;
   }
 
   private async withTimeout(
     promise: Promise<void>,
-  ): Promise<"done" | "timeout"> {
+  ): Promise<"timeout" | undefined> {
     let timeoutHandle: TimeoutHandle | undefined;
     const timeout = new Promise<"timeout">((resolve) => {
       timeoutHandle = this.setTimeoutFn(
@@ -338,32 +330,10 @@ export class KibiCheckpointRunner {
         this.timeoutMs,
       );
     });
-
-    const result = await Promise.race([
-      promise.then(() => "done" as const),
-      timeout,
-    ]);
-
-    if (timeoutHandle !== undefined) {
-      this.clearTimeoutFn(timeoutHandle);
-    }
-
+    const result = await Promise.race([promise as Promise<undefined>, timeout]);
+    // The executor above runs at once, so the handle is set.
+    this.clearTimeoutFn(timeoutHandle as TimeoutHandle);
     return result;
-  }
-
-  private recordPassed(metadata: KibiCheckpointMetadata): void {
-    this.passed.set(metadata.scopeKey, metadata);
-    const existing = this.passedScopeKeysByFingerprint.get(
-      metadata.fingerprint,
-    );
-    if (existing) {
-      existing.add(metadata.scopeKey);
-      return;
-    }
-    this.passedScopeKeysByFingerprint.set(
-      metadata.fingerprint,
-      new Set([metadata.scopeKey]),
-    );
   }
 }
 
@@ -380,16 +350,6 @@ function normalizedCheckRules(
     : undefined;
 }
 
-function defaultLifecycleEvent(
-  context: KibiCheckpointContext,
-): EnforcementLifecycleEvent {
-  return {
-    normalizedPath:
-      context.filePath ?? context.workContext.repoRelativePath ?? "<unknown>",
-    lifecycle: "edited",
-  };
-}
-
 function checkpointFailureReason(
   sync: SyncRunMetadata,
   checkRules: string[] | undefined,
@@ -398,7 +358,8 @@ function checkpointFailureReason(
     return "sync_failed";
   }
 
-  if (checkRules && checkRules.length > 0 && sync.checkExitCode !== 0) {
+  // Rules are never an empty list here.
+  if (checkRules && sync.checkExitCode !== 0) {
     return "check_failed";
   }
 

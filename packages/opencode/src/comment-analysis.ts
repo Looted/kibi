@@ -16,23 +16,21 @@ export interface CommentAnalyzerOptions {
   minLines: number;
 }
 
-/**
- * Detect language from file extension.
- */
-function detectLanguage(
-  filePath: string,
-): "javascript" | "typescript" | "python" | null {
-  const ext = filePath.toLowerCase().split(".").pop();
-  if (ext === "py") return "python";
-  if (["js", "jsx"].includes(ext || "")) return "javascript";
-  if (["ts", "tsx"].includes(ext || "")) return "typescript";
-  return null;
-}
+type Language = "javascript" | "typescript" | "python";
+type ExtractedComment = { text: string; kind: "block-comment" | "docstring" };
+
+const LANGUAGES = new Map<string, Language>([
+  ["py", "python"],
+  ["js", "javascript"],
+  ["jsx", "javascript"],
+  ["ts", "typescript"],
+  ["tsx", "typescript"],
+]);
 
 /**
  * Create a simple fingerprint for deduplication.
  */
-function createFingerprint(text: string): string {
+export function createFingerprint(text: string): string {
   // Normalize and hash the first 200 chars for dedupe
   const normalized = text
     .slice(0, 200)
@@ -48,63 +46,51 @@ function createFingerprint(text: string): string {
   return hash.toString(16);
 }
 
+/** Leading whitespace width of a line. */
+function indentOf(line: string): number {
+  return line.length - line.trimStart().length;
+}
+
 /**
  * Extract JS/TS comment blocks (line and block comments).
  */
-function extractJsTsComments(
-  content: string,
-): Array<{ text: string; kind: "block-comment" }> {
-  const comments: Array<{ text: string; kind: "block-comment" }> = [];
-  const lines = content.split("\n");
+export function extractJsTsComments(content: string): ExtractedComment[] {
+  const comments: ExtractedComment[] = [];
+  const lines = content.split(/\r?\n/);
   let i = 0;
 
   while (i < lines.length) {
-    const line = lines[i];
-    if (line === undefined) break;
+    const trimmed = (lines[i] as string).trim();
 
-    if (line.trim().startsWith("/*")) {
-      const blockLines: string[] = [];
+    if (trimmed.startsWith("/*")) {
+      // The block runs to the first line holding "*/", or to the end.
       let j = i;
-      while (j < lines.length) {
-        const blockLine = lines[j];
-        if (blockLine === undefined) break;
-        blockLines.push(blockLine);
-        if (blockLine.includes("*/")) break;
-        j++;
-      }
-      if (blockLines.length > 0) {
-        const text = blockLines
-          .join("\n")
-          .replace(/^\/\*\*?\s*/, "")
-          .replace(/\*\/$/, "")
-          .replace(/^\s*\*\s?/gm, "")
-          .trim();
-        if (text.length > 0) {
-          comments.push({ text, kind: "block-comment" });
-        }
-      }
+      while (j < lines.length && !(lines[j] as string).includes("*/")) j++;
+      const text = lines
+        .slice(i, j + 1)
+        .join("\n")
+        .trim()
+        // The trimmed block starts with the opener, the first match.
+        .replace(/\/\*\*?/, "")
+        .replace(/\*\/$/, "")
+        .replace(/^\s*\*\s?/gm, "")
+        .trim();
+      if (text) comments.push({ text, kind: "block-comment" });
       i = j + 1;
       continue;
     }
 
-    if (line.trim().startsWith("//")) {
+    if (trimmed.startsWith("//")) {
       const commentLines: string[] = [];
-      let j = i;
-      while (j < lines.length) {
-        const commentLine = lines[j];
-        if (commentLine === undefined || !commentLine.trim().startsWith("//")) {
-          break;
-        }
-        commentLines.push(commentLine.trim().replace(/^\/\/\s?/, ""));
-        j++;
+      while (i < lines.length) {
+        const commentLine = (lines[i] as string).trim();
+        if (!commentLine.startsWith("//")) break;
+        // Every line starts with "//", so the first match is at its start.
+        commentLines.push(commentLine.replace(/\/\/\s?/, ""));
+        i++;
       }
-      if (commentLines.length > 0) {
-        const text = commentLines.join("\n").trim();
-        if (text.length > 0) {
-          comments.push({ text, kind: "block-comment" });
-        }
-      }
-      i = j;
+      const text = commentLines.join("\n").trim();
+      if (text) comments.push({ text, kind: "block-comment" });
       continue;
     }
 
@@ -115,195 +101,99 @@ function extractJsTsComments(
 }
 
 /**
- * Check if a line starts a class or function definition.
+ * Reads the triple-quoted string that opens line `start` (after its
+ * indentation). Returns its trimmed text and the index of the line that
+ * closes it (`lines.length` when it is never closed). Inner lines indented
+ * less than the opening line are left out.
  */
-function isClassOrDef(line: string): boolean {
-  return /^\s*(class|def)\s+\w+/.test(line);
+function readTripleQuoted(
+  lines: string[],
+  start: number,
+  indent: number,
+): { text: string; end: number } {
+  const opening = (lines[start] as string).trim();
+  const quote = opening.slice(0, 3);
+  const rest = opening.slice(3);
+  const sameLineClose = rest.indexOf(quote);
+  if (sameLineClose >= 0) {
+    return { text: rest.slice(0, sameLineClose).trim(), end: start };
+  }
+  const parts = [rest];
+  let end = start + 1;
+  for (; end < lines.length; end++) {
+    const line = lines[end] as string;
+    const close = line.indexOf(quote);
+    if (close >= 0) {
+      parts.push(line.slice(0, close));
+      break;
+    }
+    if (line.trim() === "" || indentOf(line) >= indent) parts.push(line);
+  }
+  return {
+    text: parts
+      .map((part) => part.trim())
+      .join("\n")
+      .trim(),
+    end,
+  };
 }
 
 /**
  * Extract Python comment blocks (# and true docstrings only).
  * See REQ-opencode-comment-routing and SCEN-opencode-python-comment-routing for docstring detection rules.
  */
-function extractPythonComments(
-  content: string,
-): Array<{ text: string; kind: "block-comment" | "docstring" }> {
-  const comments: Array<{ text: string; kind: "block-comment" | "docstring" }> =
-    [];
-  const lines = content.split("\n");
-
-  let foundModuleDocstring = false;
-  let insideClassOrDef = false;
-  let classOrDefIndent = 0;
-  let foundClassDocstring = false;
-
-  function getIndent(line: string): number {
-    return line.match(/^(\s*)/)?.[1]?.length ?? 0;
-  }
-
-  function isSignificantLine(line: string): boolean {
-    const trimmed = line.trim();
-    return trimmed.length > 0 && !trimmed.startsWith("#");
-  }
-
-  function extractDocstring(
-    startIdx: number,
-    quote: '"""' | "'''",
-    indent: number,
-  ): { text: string; endIdx: number } | null {
-    const docstringLines: string[] = [];
-    let j = startIdx;
-    const startLine = lines[j];
-    if (startLine === undefined) return null;
-    const trimmedStartLine = startLine.trim();
-
-    // Extract content from opening line
-    const openingMatch = trimmedStartLine.match(
-      new RegExp(`^\\s*${quote}(.*)$`),
-    );
-    if (openingMatch?.[1]) {
-      docstringLines.push(openingMatch[1].trim());
-    }
-
-    j++;
-    while (j < lines.length) {
-      const docLine = lines[j];
-      if (docLine === undefined) break;
-      if (docLine.includes(quote)) {
-        // Closing line
-        const closingMatch = docLine.match(new RegExp(`^(.*?)${quote}`));
-        if (closingMatch?.[1]?.trim()) {
-          docstringLines.push(closingMatch[1].trim());
-        }
-        break;
-      }
-      // Only include lines at same or greater indent, or empty lines
-      if (docLine.trim() === "" || getIndent(docLine) >= indent) {
-        docstringLines.push(docLine.trim());
-      }
-      j++;
-    }
-
-    const text = docstringLines.join("\n").trim();
-    if (text.length > 0) {
-      return { text, endIdx: j };
-    }
-    return null;
-  }
+export function extractPythonComments(content: string): ExtractedComment[] {
+  const comments: ExtractedComment[] = [];
+  const lines = content.split(/\r?\n/);
+  // A triple-quoted string is a docstring when it is the first statement of
+  // the module, or of a class/def body (indented deeper than the header).
+  // `docstringIndent` is the least indent such a string may have, or
+  // infinite once that first statement has passed.
+  let docstringIndent = 0;
 
   let i = 0;
   while (i < lines.length) {
-    const line = lines[i];
-    if (line === undefined) break;
+    const line = lines[i] as string;
     const trimmed = line.trim();
-    const indent = getIndent(line);
+    const indent = indentOf(line);
 
-    // Process # line comments FIRST (before skipping)
     if (trimmed.startsWith("#")) {
+      // Collect contiguous # comments at the same indent level
       const commentLines: string[] = [];
-      let j = i;
-      const currentIndent = getIndent(line);
-
-      // Collect contiguous # comments at same indent level
-      while (j < lines.length) {
-        const commentLine = lines[j];
-        if (commentLine === undefined) break;
-        const lineHashMatch = commentLine.match(/^(\s*)#(.*)$/);
-        if (!lineHashMatch) break;
-        if (getIndent(commentLine) !== currentIndent) break;
-        const commentText = lineHashMatch[2];
-        if (commentText === undefined) break;
-        commentLines.push(commentText.trim());
-        j++;
+      while (i < lines.length) {
+        const commentLine = lines[i] as string;
+        const commentTrimmed = commentLine.trim();
+        if (!commentTrimmed.startsWith("#") || indentOf(commentLine) !== indent)
+          break;
+        commentLines.push(commentTrimmed.slice(1).trim());
+        i++;
       }
-
-      if (commentLines.length > 0) {
-        const text = commentLines.join("\n").trim();
-        if (text.length > 0) {
-          comments.push({ text, kind: "block-comment" });
-        }
-      }
-      i = j;
+      const text = commentLines.join("\n").trim();
+      if (text) comments.push({ text, kind: "block-comment" });
       continue;
     }
 
-    // Skip empty lines for docstring detection
     if (trimmed === "") {
       i++;
       continue;
     }
 
-    // Check for class/def definitions
-    if (isClassOrDef(line)) {
-      insideClassOrDef = true;
-      classOrDefIndent = indent;
-      foundClassDocstring = false;
+    if (/^(class|def)\s+\w/.test(trimmed)) {
+      docstringIndent = indent + 1;
       i++;
       continue;
     }
 
-    // Check if we've exited the class/def body
-    if (
-      insideClassOrDef &&
-      indent <= classOrDefIndent &&
-      isSignificantLine(line)
-    ) {
-      insideClassOrDef = false;
-    }
-
-    // Check for triple-quoted strings
-    const isTripleQuote =
-      trimmed.startsWith('"""') || trimmed.startsWith("'''");
-
-    if (isTripleQuote) {
-      const quote = trimmed.startsWith('"""') ? '"""' : "'''";
-
-      // Check if this is a valid docstring position
-      let isDocstring = false;
-
-      if (!foundModuleDocstring && !insideClassOrDef) {
-        // Module-level: first significant statement can be docstring
-        isDocstring = true;
-        foundModuleDocstring = true;
-      } else if (insideClassOrDef && !foundClassDocstring) {
-        // Class/function-level: first significant statement after def can be docstring
-        // Check that we're indented more than the class/def
-        if (indent > classOrDefIndent) {
-          isDocstring = true;
-          foundClassDocstring = true;
-        }
+    if (trimmed.startsWith('"""') || trimmed.startsWith("'''")) {
+      const { text, end } = readTripleQuoted(lines, i, indent);
+      if (indent >= docstringIndent && text) {
+        comments.push({ text, kind: "docstring" });
       }
-
-      if (isDocstring) {
-        const result = extractDocstring(i, quote, indent);
-        if (result) {
-          comments.push({ text: result.text, kind: "docstring" });
-          i = result.endIdx + 1;
-          continue;
-        }
-      }
-
-      // Find the closing quote
-      i++;
-      while (i < lines.length) {
-        const nextLine = lines[i];
-        if (nextLine === undefined || nextLine.includes(quote)) {
-          break;
-        }
-        i++;
-      }
-      i++;
-      continue;
+      i = end;
     }
 
-    // Any other significant line means we've passed the docstring opportunity
-    if (!foundModuleDocstring && isSignificantLine(line)) {
-      foundModuleDocstring = true;
-    }
-    if (insideClassOrDef && !foundClassDocstring && isSignificantLine(line)) {
-      foundClassDocstring = true;
-    }
-
+    // Any statement ends the docstring opportunity.
+    docstringIndent = Number.POSITIVE_INFINITY;
     i++;
   }
 
@@ -314,7 +204,7 @@ function extractPythonComments(
  * Count content lines (non-empty) in text.
  */
 function countContentLines(text: string): number {
-  return text.split("\n").filter((line) => line.trim().length > 0).length;
+  return text.split("\n").filter((line) => line.trim() !== "").length;
 }
 
 /**
@@ -326,56 +216,41 @@ export function analyzeCodeFile(
   filePath: string,
   options: CommentAnalyzerOptions,
 ): CommentAnalysisResult | null {
+  const language = LANGUAGES.get(
+    filePath.toLowerCase().split(".").pop() as string,
+  );
+  if (!language) return null;
+
+  let content: string;
   try {
-    const language = detectLanguage(filePath);
-    if (!language) return null;
-
-    const content = fs.readFileSync(filePath, "utf-8");
-    let comments: Array<{ text: string; kind: "block-comment" | "docstring" }> =
-      [];
-
-    if (language === "python") {
-      comments = extractPythonComments(content);
-    } else {
-      comments = extractJsTsComments(content);
-    }
-
-    // Filter by minLines threshold
-    const longComments = comments.filter(
-      (c) => countContentLines(c.text) >= options.minLines,
-    );
-
-    if (longComments.length === 0) return null;
-
-    // Find the best classification (highest confidence, prefer high over medium)
-    let bestResult: CommentAnalysisResult | null = null;
-
-    for (const comment of longComments) {
-      const suggestion = classifyKnowledge(comment.text);
-      if (!suggestion) continue;
-      if (suggestion.confidence === "low") continue;
-
-      const result: CommentAnalysisResult = {
-        filePath,
-        suggestionType: suggestion.type,
-        confidence: suggestion.confidence,
-        reasoning: suggestion.reasoning,
-        fingerprint: createFingerprint(comment.text),
-        sourceKind: comment.kind,
-      };
-
-      // Prefer high confidence, then prefer earlier comments
-      if (
-        !bestResult ||
-        (bestResult.confidence === "medium" && result.confidence === "high")
-      ) {
-        bestResult = result;
-      }
-    }
-
-    return bestResult;
+    content = fs.readFileSync(filePath, "utf-8");
   } catch {
-    // Conservative fallback: return null on any error
+    // Conservative fallback: an unreadable file has no suggestion
     return null;
   }
+  const comments =
+    language === "python"
+      ? extractPythonComments(content)
+      : extractJsTsComments(content);
+
+  // The first high-confidence suggestion wins, else the first medium one.
+  let bestResult: CommentAnalysisResult | null = null;
+  for (const comment of comments) {
+    if (countContentLines(comment.text) < options.minLines) continue;
+    const suggestion = classifyKnowledge(comment.text);
+    if (!suggestion) continue;
+
+    const result: CommentAnalysisResult = {
+      filePath,
+      suggestionType: suggestion.type,
+      confidence: suggestion.confidence,
+      reasoning: suggestion.reasoning,
+      fingerprint: createFingerprint(comment.text),
+      sourceKind: comment.kind,
+    };
+    if (result.confidence === "high") return result;
+    bestResult ??= result;
+  }
+
+  return bestResult;
 }

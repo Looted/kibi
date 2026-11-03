@@ -146,8 +146,8 @@ export function legacyInputFromV2Context(
 }
 
 function stringField(value: unknown, key: string): string | undefined {
-  if (!value || typeof value !== "object") return undefined;
-  const field = (value as Record<string, unknown>)[key];
+  // Primitives have none of the looked-up fields.
+  const field = (value as Record<string, unknown> | null | undefined)?.[key];
   return typeof field === "string" && field.length > 0 ? field : undefined;
 }
 
@@ -175,7 +175,8 @@ export function extractPatchFileOperations(
     if (line.startsWith(PATCH_MOVE_MARKER)) {
       const destination = line.slice(PATCH_MOVE_MARKER.length).trim();
       const previous = operations[operations.length - 1];
-      if (destination && previous?.type === "file.edited") {
+      // The line is trimmed, so the destination is never empty.
+      if (previous?.type === "file.edited") {
         previous.type = "file.deleted";
         operations.push({ type: "file.created", file: destination });
       }
@@ -183,8 +184,8 @@ export function extractPatchFileOperations(
     }
     for (const [marker, type] of PATCH_MARKERS) {
       if (line.startsWith(marker)) {
-        const file = line.slice(marker.length).trim();
-        if (file) operations.push({ type, file });
+        // The line is trimmed, so a matched marker is followed by a name.
+        operations.push({ type, file: line.slice(marker.length).trim() });
         break;
       }
     }
@@ -192,19 +193,10 @@ export function extractPatchFileOperations(
   return operations;
 }
 
-function booleanField(value: unknown, key: string): boolean | undefined {
-  if (!value || typeof value !== "object") return undefined;
-  const field = (value as Record<string, unknown>)[key];
-  return typeof field === "boolean" ? field : undefined;
-}
-
-/** The structured output of a completed v2 tool call, if any. */
-function toolOutput(input: V2ToolExecuteAfterInput): unknown {
-  if (input.status !== "completed") return undefined;
-  const result = input.result;
-  if (!result || typeof result !== "object") return undefined;
-  return (result as Record<string, unknown>).output;
-}
+type CompletedToolResult =
+  | { output?: { existed?: unknown } | null }
+  | null
+  | undefined;
 
 /**
  * Translates a v2 `tool.execute.after` hook payload into the legacy bus events
@@ -242,9 +234,9 @@ export function legacyEventsFromToolExecution(
       stringField(input.input, "path") ?? stringField(input.input, "filePath");
     if (file) {
       // The v2 write tool reports whether the file existed before the call.
+      const result = input.result as CompletedToolResult;
       const created =
-        input.tool === "write" &&
-        booleanField(toolOutput(input), "existed") === false;
+        input.tool === "write" && result?.output?.existed === false;
       events.push({
         type: created ? "file.created" : "file.edited",
         properties: { file: resolve(file) },
@@ -298,7 +290,7 @@ async function registerSystemTransform(
       const output = { system: [...existing] };
       await hook({}, output);
       for (const text of output.system.slice(existing.length)) {
-        if (typeof text === "string" && text.length > 0) {
+        if (typeof text === "string" && text !== "") {
           request.system.push({ type: "text", text });
         }
       }

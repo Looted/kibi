@@ -87,6 +87,24 @@ New tests that pin reader results go in
 listed in `TREESITTER_MUTATION_TESTS`; the contract test checks both.
 `references.ts` (the older readers) is not in this gate.
 
+## Editor hosts
+
+`bun run test:mutation:editors` runs a third Stryker gate,
+`stryker.editors.conf.mjs`, over every `src/**/*.ts` file of kibi-opencode and
+kibi-vscode, tested by every `*.test.ts` under their `tests/` directories.
+`.github/workflows/mutation-editors.yml` runs it nightly on `develop`, on
+demand, and on pull requests that touch either package or this setup. Like
+the other gates it fails on any surviving mutant.
+
+The vscode sources import the `vscode` module, which only exists inside the
+editor. The bun runner's coverage preload imports every mutated module before
+the tests register their stub, so the lane runs `bun test` with
+`bunfig.mutation-editors.toml`: the root `bunfig.toml` plus a preload of
+`packages/vscode/tests/shared/vscode-preload.ts`. Keep the two bunfig files in
+step; the contract test checks that they differ only by that preload.
+`packages/opencode/src/tui.tsx` is not mutated (Stryker's `*.ts` glob), but its
+lines are covered by the unit suite.
+
 ## TypeScript gate scope
 
 `stryker.conf.mjs` mutates these whole packages (`MUTATION_PACKAGES`), each
@@ -162,3 +180,4 @@ production runtime; the remaining excluded mutants fall into these groups:
 | `packages/agent-core/src/usage-telemetry.ts` | The Node runtime name is unreachable under Bun, whose global cannot be removed; `timer.unref()` only changes process lifetime; `force` on removing claimed or listed queue files only matters in a cross-process race; an empty claimed-batch list and a placeholder path are both dropped as unreadable. |
 | `packages/agent-core/src/snippets.ts`, `packages/agent-core/src/requirement-candidates.ts`, `packages/agent-core/src/path-policy.ts`, `packages/agent-core/src/knowledge-index.ts` | Early returns that only save reading a file, an empty list whose placeholder entry reads as a primitive with no fields, the unowned-path shortcut, and the backslash normalization that cannot show on a POSIX runner. |
 | `packages/plugin-sdk/src/validate.ts`, `packages/zcode/src/hook-runner.ts`, `packages/claude/src/hook-runner.ts` | Fallback `[]` values for absent ownership and markers, the missing-target guard whose throw the caller turns into the same missing context, a missing command start time that matches no file, and the `"read"` snippet surface, which is equivalent to any non-`"edit"` value. |
+| `packages/opencode/src` (`plugin.ts`, `hook-telemetry.ts`, `file-operation-reminders.ts`, `guidance-cache.ts`, `kibi-checkpoint-runner.ts`, `scheduler.ts`, `plugin-startup.ts`, `smart-enforcement-events.ts`, `kibi-bootstrap-capability.ts`) | Literals only used as opaque cache keys or log event names, an `?? "advisory"` default the caller always fills, git's stderr setting (stdout is the same), an SDK lookup by name that cannot succeed in this repository, a read fallback replaced on the next refresh, a catch that returns what an emptied block returns, a suggestion precompute that only non-code files would skip, a checkpoint runner looked up outside hard mode (only hard mode reads its evidence), and a scheduler dispose that only releases a waiter nothing reads after a timed-out run. |

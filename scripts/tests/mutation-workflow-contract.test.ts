@@ -14,6 +14,11 @@ import strykerConfig, {
   MUTATION_TEST_EXCLUDES,
   PLUGIN_MUTATION_MODULES,
 } from "../../stryker.conf.mjs";
+import editorsConfig, {
+  EDITOR_MUTATION_BUNFIG,
+  EDITOR_MUTATION_PACKAGES,
+  editorTestFiles,
+} from "../../stryker.editors.conf.mjs";
 import treesitterConfig, {
   TREESITTER_MUTATION_MODULES,
   TREESITTER_MUTATION_TESTS,
@@ -198,6 +203,9 @@ describe("mutation testing workflow contract", () => {
       ...Object.keys(CLI_MUTATION_MODULES),
       ...Object.keys(PLUGIN_MUTATION_MODULES),
       ...TREESITTER_MUTATION_MODULES,
+      ...EDITOR_MUTATION_PACKAGES.flatMap((pkg) =>
+        walkTsFiles(pkg, "src", ".ts"),
+      ),
     ];
     for (const file of sources) {
       const lines = readFileSync(join(ROOT, file), "utf8").split("\n");
@@ -276,6 +284,80 @@ describe("tree-sitter reader mutation contract", () => {
       "stryker.treesitter.conf.mjs",
       "scripts/mutation-sandbox-treesitter.sh",
       "scripts/mutation-treesitter-inprocess.mjs",
+      "scripts/mutation-sandbox-setup.sh",
+    ]) {
+      expect(workflow).toContain(`- '${path}'`);
+    }
+  });
+});
+
+describe("editor host mutation contract", () => {
+  const editors = editorsConfig as StrykerConfig & {
+    bun?: { bunArgs?: string[] };
+  };
+
+  test("the editor gate is absolute and covers both hosts", () => {
+    expect(editors.thresholds).toEqual({ high: 100, low: 100, break: 100 });
+    expect(editors.testRunner).toBe("bun");
+    expect(editors.coverageAnalysis).toBe("perTest");
+    expect(EDITOR_MUTATION_PACKAGES).toEqual([
+      "packages/opencode",
+      "packages/vscode",
+    ]);
+    expect(editors.mutate).toEqual([
+      "packages/opencode/src/**/*.ts",
+      "packages/vscode/src/**/*.ts",
+    ]);
+  });
+
+  test("every test file of both hosts runs against the mutants", () => {
+    const onDisk = EDITOR_MUTATION_PACKAGES.flatMap((pkg) =>
+      globSync(`${pkg}/tests/**/*.test.ts`, { cwd: ROOT }),
+    ).sort();
+    expect(onDisk.length).toBeGreaterThan(0);
+    expect(editorTestFiles()).toEqual(onDisk);
+    expect(editors.bun?.testFiles).toEqual(onDisk.map((test) => `./${test}`));
+  });
+
+  test("the lane's bunfig is the root bunfig plus the vscode preload", () => {
+    expect(editors.bun?.bunArgs).toEqual([
+      `--config=${EDITOR_MUTATION_BUNFIG}`,
+    ]);
+    const root = readFileSync(join(ROOT, "bunfig.toml"), "utf8");
+    const lane = readFileSync(join(ROOT, EDITOR_MUTATION_BUNFIG), "utf8");
+    const preload =
+      'preload = ["./packages/vscode/tests/shared/vscode-preload.ts"]\n';
+    expect(lane.slice(lane.indexOf("[test]\n"))).toBe(
+      root.replace("[test]\n", `[test]\n${preload}`),
+    );
+    expect(
+      statSync(
+        join(ROOT, "packages/vscode/tests/shared/vscode-preload.ts"),
+      ).isFile(),
+    ).toBe(true);
+  });
+
+  test("CI runs the editor gate on host changes", () => {
+    const pkg = JSON.parse(
+      readFileSync(join(ROOT, "package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+    expect(pkg.scripts?.["test:mutation:editors"]).toBe(
+      "stryker run stryker.editors.conf.mjs",
+    );
+    const workflow = readFileSync(
+      join(ROOT, ".github/workflows/mutation-editors.yml"),
+      "utf8",
+    );
+    expect(workflow).toContain("schedule:");
+    expect(workflow).toContain("run: bun run test:mutation:editors");
+    for (const path of [
+      "packages/opencode/src/**",
+      "packages/opencode/tests/**",
+      "packages/vscode/src/**",
+      "packages/vscode/tests/**",
+      "stryker.editors.conf.mjs",
+      "bunfig.mutation-editors.toml",
+      "bunfig.toml",
       "scripts/mutation-sandbox-setup.sh",
     ]) {
       expect(workflow).toContain(`- '${path}'`);

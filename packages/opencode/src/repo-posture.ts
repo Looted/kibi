@@ -70,16 +70,29 @@ function rootKbManifestExists(cwd: string): boolean {
 
 /** Check if all canonical KB targets resolve (directories / files exist). */
 function rootTargetsAllResolve(cwd: string): boolean {
-  for (const raw of Object.values(CANONICAL_KB_TARGETS)) {
-    if (!raw) return false;
-    const isFile = raw.endsWith(".yaml") || raw.endsWith(".yml");
-    if (isFile) {
-      if (!existsSync(resolve(cwd, raw))) return false;
-    } else if (!existsSync(resolve(cwd, raw))) {
-      return false;
-    }
+  return Object.values(CANONICAL_KB_TARGETS).every((target) =>
+    existsSync(resolve(cwd, target)),
+  );
+}
+
+/** A file's text, or undefined when it cannot be read. */
+function readText(file: string): string | undefined {
+  try {
+    return String(readFileSync(file));
+  } catch {
+    // Unreadable: undefined below.
   }
-  return true;
+  return undefined;
+}
+
+/** A file's JSON value, or undefined when it cannot be read or parsed. */
+function readJson(file: string): unknown {
+  try {
+    return JSON.parse(String(readFileSync(file)));
+  } catch {
+    // Unreadable or not JSON: undefined below.
+  }
+  return undefined;
 }
 
 /** Detect root-level Kibi intent (plugin config present but no .kb). */
@@ -88,30 +101,23 @@ function hasRootKibiIntent(cwd: string): boolean {
     return true;
   }
 
-  try {
-    const oc = JSON.parse(readFileSync(join(cwd, "opencode.json"), "utf8"));
-    if (
-      oc &&
-      Array.isArray(oc.plugin) &&
-      oc.plugin.some((p: string) => typeof p === "string" && p.includes("kibi"))
-    ) {
-      return true;
-    }
-  } catch (error) {
-    if (!(error instanceof Error)) throw error;
+  const plugins = (
+    readJson(join(cwd, "opencode.json")) as { plugin?: unknown } | null
+  )?.plugin;
+  if (
+    Array.isArray(plugins) &&
+    plugins.some((p) => typeof p === "string" && p.includes("kibi"))
+  ) {
+    return true;
   }
 
   for (const guidanceFile of [
     "AGENTS.md",
     join(".github", "copilot-instructions.md"),
   ]) {
-    try {
-      const content = readFileSync(join(cwd, guidanceFile), "utf8");
-      if (content.includes("kb_query") || content.includes("kb_search")) {
-        return true;
-      }
-    } catch (error) {
-      if (!(error instanceof Error)) throw error;
+    const content = readText(join(cwd, guidanceFile));
+    if (content?.includes("kb_query") || content?.includes("kb_search")) {
+      return true;
     }
   }
 

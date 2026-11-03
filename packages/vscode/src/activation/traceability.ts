@@ -13,6 +13,12 @@ import { RelationshipCache } from "../relationshipCache";
 import { resolveSymbolsManifestPaths } from "../shared/manifestResolver";
 import { type SymbolIndex, buildIndex } from "../symbolIndex";
 
+/** The documents the traceability providers serve. */
+const SOURCE_SELECTOR = [
+  { language: "typescript" },
+  { language: "javascript" },
+];
+
 export interface TraceabilityRegistrationResult {
   browseLinkedEntitiesCommand?: vscode.Disposable;
   codeActionRegistration?: vscode.Disposable;
@@ -73,7 +79,7 @@ export function registerTraceability(
 
     results.codeActionRegistration =
       vscode.languages.registerCodeActionsProvider(
-        [{ language: "typescript" }, { language: "javascript" }],
+        SOURCE_SELECTOR,
         codeActionProvider,
         {
           providedCodeActionKinds: [KibiCodeActionProvider.ACTION_KIND],
@@ -97,7 +103,7 @@ export function registerTraceability(
     codeLensProvider.watchSources(context);
 
     results.codeLensRegistration = vscode.languages.registerCodeLensProvider(
-      [{ language: "typescript" }, { language: "javascript" }],
+      SOURCE_SELECTOR,
       codeLensProvider,
     );
     codeLensProvider.refresh();
@@ -128,7 +134,7 @@ export function registerTraceability(
     );
 
     results.hoverRegistration = vscode.languages.registerHoverProvider(
-      [{ language: "typescript" }, { language: "javascript" }],
+      SOURCE_SELECTOR,
       hoverProvider,
     );
 

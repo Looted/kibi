@@ -20,7 +20,6 @@
 // plugin builds KibiEventEnv once per instance; hooks.event dispatches to
 // these functions. All plugin-instance state is reached through the env.
 
-import * as fs from "node:fs";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
 import { analyzeCodeFile } from "./comment-analysis.js";
 import * as fileFilter from "./file-filter.js";
@@ -59,7 +58,8 @@ export interface PluginEvent {
 /** Mutable cross-event state shared by the event and chat hooks. */
 // implements REQ-opencode-kibi-plugin-v1
 export interface SmartEnforcementState {
-  recentEdits: Array<{ path: string; kind: PathKind; timestamp: number }>;
+  /** Session edits counted for the guidance log, capped. */
+  recentEditCount: number;
   hasRecentKbEdit: boolean;
   recentCommentSuggestion: CommentAnalysisResult | null;
   seenFingerprints: Set<string>;
@@ -103,10 +103,7 @@ export interface KibiEventEnv {
     dirtyRelevantInputs: Iterable<string | null | undefined>,
   ): CacheKey;
   readFileContent(filePath: string, worktree?: string): string;
-  updateRecentEditsFromSession(
-    sessionEdits: Array<{ filePath: string; lastReconciledAt: number }>,
-    scopedPathKindCache: Map<string, PathKind>,
-  ): SmartEnforcementState["recentEdits"];
+  updateRecentEditsFromSession(sessionEdits: readonly unknown[]): void;
   recordWarning(
     category: WarningCategory | string,
     filePath: string,
@@ -199,7 +196,6 @@ interface FileEventResolution {
   scopedScheduler: SyncScheduler | null;
   normalizedFilePath: string;
   lifecycle: FileLifecycle;
-  focusEdit: unknown;
 }
 
 function resolveFileEvent(
@@ -232,8 +228,47 @@ function resolveFileEvent(
     scopedScheduler,
     normalizedFilePath,
     lifecycle,
-    focusEdit: undefined,
   };
+}
+
+/** Risk class of an edited file, with what it was derived from. */
+// implements REQ-opencode-kibi-plugin-v1
+export function classifyEditedFile(
+  env: Pick<KibiEventEnv, "cfg" | "readFileContent" | "resolveWorktreePath">,
+  worktreeRoot: string,
+  normalizedFilePath: string,
+  pathAnalysis: PathAnalysis,
+): {
+  hasMustPriority: boolean;
+  precomputedSuggestion: CommentAnalysisResult | null;
+  riskClass: RiskClass;
+} {
+  const fileContent = env.readFileContent(normalizedFilePath, worktreeRoot);
+  const hasMustPriority =
+    pathAnalysis.kind === "requirement"
+      ? isMustPriorityRequirement(normalizedFilePath, worktreeRoot)
+      : false;
+
+  let precomputedSuggestion: CommentAnalysisResult | null = null;
+  // rationale: only code reaches a class that uses the suggestion, so reading
+  // other files too would change nothing but the work done.
+  // Stryker disable next-line ConditionalExpression
+  const readsComments = pathAnalysis.kind === "code";
+  if (readsComments && env.cfg.guidance.commentDetection.enabled) {
+    precomputedSuggestion = analyzeCodeFile(
+      env.resolveWorktreePath(normalizedFilePath, worktreeRoot),
+      { minLines: env.cfg.guidance.commentDetection.minLines },
+    );
+  }
+
+  const { riskClass } = classifyRisk({
+    pathKind: pathAnalysis.kind,
+    isUnderKb: pathAnalysis.isUnderKb,
+    hasMustPriority,
+    hasDurableComment: !!precomputedSuggestion,
+    fileContent,
+  });
+  return { hasMustPriority, precomputedSuggestion, riskClass };
 }
 
 // implements REQ-opencode-file-context-guidance-v1
@@ -255,11 +290,10 @@ export function handleFileLifecycleEvent(
   } = resolution;
 
   scopedFileOperationState.recordLifecycle(
-    filePathOf(resolution),
-    resolution.lifecycle,
+    normalizedFilePath,
+    lifecycle,
     Date.now(),
   );
-  scopedFileOperationState.normalizePath(filePathOf(resolution));
 
   const pathAnalysis = analyzePath(
     normalizedFilePath,
@@ -286,7 +320,6 @@ export function handleFileLifecycleEvent(
   scopedSessionEditState.reconcilePath(normalizedFilePath);
   scopedPathKindCache.set(normalizedFilePath, pathAnalysis.kind);
   const sessionEdits = scopedSessionEditState.getSessionEdits();
-  const focusEdit = scopedSessionEditState.getFocusEdit();
 
   if (
     env.cfg.sync.enabled &&
@@ -302,41 +335,17 @@ export function handleFileLifecycleEvent(
     );
   }
 
-  const fileContent = env.readFileContent(
-    normalizedFilePath,
-    eventContext.worktreeRoot,
-  );
-
-  const hasMustPriority =
-    pathAnalysis.kind === "requirement"
-      ? isMustPriorityRequirement(normalizedFilePath, eventContext.worktreeRoot)
-      : false;
-
-  let precomputedSuggestion: CommentAnalysisResult | null = null;
-  if (
-    pathAnalysis.kind === "code" &&
-    env.cfg.guidance.commentDetection.enabled
-  ) {
-    precomputedSuggestion = analyzeCodeFile(
-      env.resolveWorktreePath(normalizedFilePath, eventContext.worktreeRoot),
-      {
-        minLines: env.cfg.guidance.commentDetection.minLines,
-      },
+  const { hasMustPriority, precomputedSuggestion, riskClass } =
+    classifyEditedFile(
+      env,
+      eventContext.worktreeRoot,
+      normalizedFilePath,
+      pathAnalysis,
     );
-  }
 
-  const { riskClass } = classifyRisk({
-    pathKind: pathAnalysis.kind,
-    isUnderKb: pathAnalysis.isUnderKb,
-    hasMustPriority,
-    hasDurableComment: !!precomputedSuggestion,
-    fileContent,
-  });
-
-  const effectiveRiskClass: RiskClass =
-    riskClass === "safe_docs_only" && precomputedSuggestion
-      ? "traceability_candidate"
-      : riskClass;
+  // Only code files get a comment suggestion, and code is never
+  // safe_docs_only, so the suggestion never changes the class.
+  const effectiveRiskClass: RiskClass = riskClass;
   env.state.lastRiskClass = effectiveRiskClass;
   env.state.lastRiskFilePath = normalizedFilePath;
   env.state.lastRiskScopeKey = env.buildRiskPathScopeKey(
@@ -380,7 +389,7 @@ export function handleFileLifecycleEvent(
     targetedChecksBlocked,
   });
 
-  env.updateRecentEditsFromSession(sessionEdits, scopedPathKindCache);
+  env.updateRecentEditsFromSession(sessionEdits);
 
   if (
     effectiveRiskClass === "safe_docs_only" ||
@@ -393,7 +402,7 @@ export function handleFileLifecycleEvent(
   const cacheKey = env.buildScopedCacheKey(
     eventContext,
     effectiveRiskClass,
-    fileBucketOf(pathAnalysis.kind),
+    pathAnalysis.kind,
     [normalizedFilePath, pathAnalysis.kind, effectiveRiskClass],
   );
 
@@ -457,26 +466,12 @@ export function handleFileLifecycleEvent(
     return;
   }
 
-  if (
-    effectiveRiskClass === "behavior_candidate" ||
-    effectiveRiskClass === "traceability_candidate"
-  ) {
-    emitBehaviorSuggestions(env, {
-      eventContext,
-      normalizedFilePath,
-      pathKind: pathAnalysis.kind,
-      commentDetectionEnabled: env.cfg.guidance.commentDetection.enabled,
-      precomputedSuggestion,
-    });
-  }
-}
-
-function filePathOf(resolution: FileEventResolution): string {
-  return resolution.normalizedFilePath;
-}
-
-function fileBucketOf(kind: PathKind): string {
-  return kind;
+  // Only behavior_candidate and traceability_candidate remain here.
+  emitBehaviorSuggestions(env, {
+    eventContext,
+    normalizedFilePath,
+    precomputedSuggestion,
+  });
 }
 
 function handleDeletedFile(
@@ -498,15 +493,8 @@ function handleDeletedFile(
     normalizedFilePath,
     pathKind,
   } = args;
-  // Preserve last known semantic risk if path was already tracked during session
-  const lastKnownKind = scopedPathKindCache.get(normalizedFilePath);
-  if (lastKnownKind) {
-    // Path was tracked — preserve last known semantic risk for reminder routing
-    scopedPathKindCache.set(normalizedFilePath, pathKind);
-  } else {
-    // Not tracked — classify only for reminder routing.
-    scopedPathKindCache.set(normalizedFilePath, pathKind);
-  }
+  // Tracked or not, the path keeps its kind for reminder routing.
+  scopedPathKindCache.set(normalizedFilePath, pathKind);
   scopedSessionEditState.recordEventHint(
     normalizedFilePath,
     pathKind,
@@ -514,7 +502,7 @@ function handleDeletedFile(
   );
   scopedSessionEditState.reconcilePath(normalizedFilePath);
   const sessionEdits = scopedSessionEditState.getSessionEdits();
-  env.updateRecentEditsFromSession(sessionEdits, scopedPathKindCache);
+  env.updateRecentEditsFromSession(sessionEdits);
   // Schedule background sync for deleted files that pass shouldHandleFile
   if (
     env.cfg.sync.enabled &&
@@ -566,8 +554,8 @@ function scheduleTargetedChecksForRisk(
         ? [
             "required-fields",
             "no-dangling-refs",
+            // Requirements are req_policy_candidate, never kb_doc_structural.
             ...(pathKind === "fact" ? ["strict-fact-shape"] : []),
-            ...(pathKind === "requirement" ? ["strict-req-fact-pairing"] : []),
           ]
         : null;
 
@@ -614,17 +602,6 @@ function handleManualKbEdit(
   }
 }
 
-function lintRequirementPolicy(
-  env: KibiEventEnv,
-  normalizedFilePath: string,
-  worktreeRoot: string,
-): void {
-  const lintWarnings = env.lintRequirementDoc(normalizedFilePath, worktreeRoot);
-  for (const warning of lintWarnings) {
-    env.recordWarning(warning.category, normalizedFilePath, warning.message);
-  }
-}
-
 function warnDegradedFor(
   env: KibiEventEnv,
   riskClass: string,
@@ -642,9 +619,8 @@ function warnDegradedFor(
     risk_class: riskClass,
     posture,
     posture_state: posture,
-    maintenance_state: env.getMaintenanceDegraded()
-      ? "maintenance_degraded"
-      : "maintenance_available",
+    // Only reached while degraded.
+    maintenance_state: "maintenance_degraded",
     reason: env.runtimeOverlay.primaryCause ?? "non_authoritative_posture",
     reason_code: env.runtimeOverlay.primaryCause ?? "non_authoritative_posture",
     static_degraded: false,
@@ -666,9 +642,12 @@ function handleReqPolicyCandidate(
 ): void {
   const { eventContext, scopedScheduler, normalizedFilePath, hasMustPriority } =
     args;
-  warnDegradedFor(env, "req_policy_candidate", normalizedFilePath, {
-    posture: eventContext.posture,
-  });
+  warnDegradedFor(
+    env,
+    "req_policy_candidate",
+    normalizedFilePath,
+    eventContext.posture,
+  );
 
   if (
     !env.getMaintenanceDegraded() &&
@@ -722,19 +701,12 @@ function emitBehaviorSuggestions(
   args: {
     eventContext: WorkContext;
     normalizedFilePath: string;
-    pathKind: PathKind;
-    commentDetectionEnabled: boolean;
     precomputedSuggestion: CommentAnalysisResult | null;
   },
 ): void {
-  const { eventContext, normalizedFilePath, pathKind, precomputedSuggestion } =
-    args;
-  const inspectingCodeComments =
-    pathKind === "code" && env.cfg.guidance.commentDetection.enabled;
-  const suggestion = nextRecentCommentSuggestion(
-    inspectingCodeComments,
-    precomputedSuggestion,
-  );
+  // Only code files with comment detection on get a suggestion.
+  const { eventContext, normalizedFilePath } = args;
+  const suggestion = args.precomputedSuggestion;
   env.state.recentCommentSuggestion = suggestion;
   if (suggestion) {
     const dedupeKey = `${env.buildRiskPathScopeKey(eventContext, normalizedFilePath)}:${suggestion.suggestionType}:${suggestion.fingerprint}`;
@@ -758,12 +730,4 @@ function emitBehaviorSuggestions(
       );
     }
   }
-}
-
-function nextRecentCommentSuggestion<T>(
-  inspectingCodeComments: boolean,
-  suggestion: T | null | undefined,
-): T | null {
-  if (inspectingCodeComments && suggestion) return suggestion;
-  return null;
 }

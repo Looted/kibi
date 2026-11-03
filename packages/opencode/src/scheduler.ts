@@ -1,4 +1,4 @@
-import { exec } from "node:child_process";
+import { type ExecException, exec } from "node:child_process";
 import path from "node:path";
 import type { KibiConfig } from "./config.js";
 import { shouldHandleFile } from "./file-filter.js";
@@ -37,8 +37,8 @@ export type CheckRunner = (
   rules: string[],
 ) => Promise<{
   readonly exitCode: number;
-  readonly stdout?: string;
-  readonly stderr?: string;
+  readonly stdout?: string | undefined;
+  readonly stderr?: string | undefined;
 }>;
 
 export interface SchedulerOptions {
@@ -55,8 +55,8 @@ export interface SchedulerOptions {
 
 export type PendingTrigger = {
   reason: string;
-  filePath?: string;
-  checkRules?: string[];
+  filePath?: string | undefined;
+  checkRules?: string[] | undefined;
 };
 
 export interface SyncScheduler {
@@ -80,10 +80,8 @@ class WorktreeSyncScheduler implements SyncScheduler {
 
   private timer: TimeoutHandle | null = null;
   private inFlight = false;
-  private dirty = false;
   private pending: PendingTrigger | null = null;
   private trailing: PendingTrigger | null = null;
-  private lastFileEditedAt = 0;
   private flushWaiters: Array<() => void> = [];
 
   constructor(opts: SchedulerOptions) {
@@ -109,14 +107,9 @@ class WorktreeSyncScheduler implements SyncScheduler {
     if (isFileLifecycle) {
       if (!filePath) return;
       if (!shouldHandleFile(filePath, this.worktree)) return;
-      this.lastFileEditedAt = this.now();
     }
 
-    this.pending = {
-      reason,
-      ...(filePath !== undefined ? { filePath } : {}),
-      ...(checkRules !== undefined ? { checkRules } : {}),
-    };
+    this.pending = { reason, filePath, checkRules };
     if (this.timer) this.clearTimeoutFn(this.timer);
     this.timer = this.setTimeoutFn(() => {
       this.timer = null;
@@ -129,28 +122,20 @@ class WorktreeSyncScheduler implements SyncScheduler {
   }
 
   onToolExecuteAfter(reason = "tool.execute.after"): void {
-    // Only proceed if tool.after notifications are enabled
-    if (!this.isToolExecuteAfterEnabled()) return;
+    // With the explicit hint the host reports edits itself, so tool calls
+    // never schedule a sync; otherwise only compat mode listens to them.
+    if (this.explicitToolAfterHint) return;
+    if (this.config.prompt.hookMode !== "compat") return;
 
-    // Reset debounce window by setting lastFileEditedAt to now
-    // This ensures the check at lines 97-100 won't allow sync through
-    const now = this.now();
-    this.lastFileEditedAt = now;
+    // The tool call restarts the debounce window and is still inside it, so
+    // only a negative window lets it through.
+    if (this.config.sync.debounceMs >= 0) return;
 
-    // Debounce check - if we just reset lastFileEditedAt, it will fail
-    if (now - this.lastFileEditedAt <= this.config.sync.debounceMs) {
-      return;
-    }
-
-    // Tool.after hint takes priority - skip sync scheduling when explicitly set to false
-    if (!this.explicitToolAfterHint) {
-      this.scheduleSync(reason);
-    }
+    this.scheduleSync(reason);
   }
 
   async flush(): Promise<void> {
-    if (!this.config.sync.enabled) return;
-
+    // A disabled scheduler never has a timer or pending trigger, so it is idle.
     if (this.timer) {
       this.clearTimeoutFn(this.timer);
       this.timer = null;
@@ -178,18 +163,12 @@ class WorktreeSyncScheduler implements SyncScheduler {
     }
   }
 
-  private isToolExecuteAfterEnabled(): boolean {
-    if (this.explicitToolAfterHint) return true;
-    return this.config.prompt.hookMode === "compat";
-  }
-
   private flushPending(): void {
     if (!this.pending) return;
     const trigger = this.pending;
     this.pending = null;
 
     if (this.inFlight) {
-      this.dirty = true;
       this.trailing = trigger;
       return;
     }
@@ -269,18 +248,12 @@ class WorktreeSyncScheduler implements SyncScheduler {
       );
       this.inFlight = false;
 
-      if (this.dirty) {
-        const trailing = this.trailing ?? { reason: "sync.trailing" };
-        this.dirty = false;
+      const trailing = this.trailing;
+      if (trailing) {
         this.trailing = null;
         void this.startRun({
+          ...trailing,
           reason: `${trailing.reason}.trailing`,
-          ...(trailing.filePath !== undefined
-            ? { filePath: trailing.filePath }
-            : {}),
-          ...(trailing.checkRules !== undefined
-            ? { checkRules: trailing.checkRules }
-            : {}),
         });
       }
 
@@ -289,18 +262,11 @@ class WorktreeSyncScheduler implements SyncScheduler {
   }
 
   private isIdle(): boolean {
-    return (
-      !this.inFlight &&
-      !this.timer &&
-      !this.pending &&
-      !this.dirty &&
-      !this.trailing
-    );
+    return !this.inFlight && !this.timer && !this.pending && !this.trailing;
   }
 
   private resolveFlushWaitersIfIdle(): void {
     if (!this.isIdle()) return;
-    if (this.flushWaiters.length === 0) return;
     const waiters = this.flushWaiters.splice(0);
     for (const waiter of waiters) {
       waiter();
@@ -319,11 +285,9 @@ class WorktreeSyncScheduler implements SyncScheduler {
     syncCommand?: string,
   ): void {
     const durationMs = Math.max(0, this.now() - startedAt);
-    const normalizedReason = trigger.reason.endsWith(".trailing")
-      ? trigger.reason.slice(0, -".trailing".length)
-      : trigger.reason;
+    // A ".trailing" suffix never changes the reason's prefix.
     const isSmartEnforcementSync =
-      normalizedReason.startsWith("smart-enforcement.");
+      trigger.reason.startsWith("smart-enforcement.");
     const meta: SyncRunMetadata = {
       reason: trigger.reason,
       worktree: this.worktree,
@@ -362,29 +326,38 @@ function truncateSyncOutput(value: string | undefined): string | undefined {
   return value;
 }
 
+/** The result of a `kibi sync` that exited with an error. */
+export function syncFailureResult(
+  error: Pick<ExecException, "code" | "signal" | "message">,
+  stdout: string,
+  stderr: string,
+): SyncRunnerResult {
+  const truncatedOut = truncateSyncOutput(stdout);
+  const truncatedErr = truncateSyncOutput(stderr);
+  const signal = error.signal ? ` (signal: ${error.signal})` : "";
+  const errorMessage = error.message
+    ? `${error.message}${signal}`
+    : signal || undefined;
+  return {
+    exitCode: typeof error.code === "number" ? error.code : 1,
+    syncCommand: "kibi sync",
+    ...(truncatedOut !== undefined ? { syncStdout: truncatedOut } : {}),
+    ...(truncatedErr !== undefined ? { syncStderr: truncatedErr } : {}),
+    ...(errorMessage ? { syncErrorMessage: errorMessage } : {}),
+  };
+}
+
 // Background sync runner: uses default sync (no --refresh-symbol-coordinates)
 // to avoid writing committed coordinate artifacts during automatic background execution.
 async function runKibiSync(worktree: string): Promise<SyncRunnerResult> {
   return new Promise((resolve) => {
     try {
       exec("kibi sync", { cwd: worktree }, (error, stdout, stderr) => {
-        if (error) {
-          const truncatedOut = truncateSyncOutput(stdout || undefined);
-          const truncatedErr = truncateSyncOutput(stderr || undefined);
-          const signal = error.signal ? ` (signal: ${error.signal})` : "";
-          const errorMessage = error.message
-            ? `${error.message}${signal}`
-            : signal || undefined;
-          resolve({
-            exitCode: typeof error.code === "number" ? error.code : 1,
-            syncCommand: "kibi sync",
-            ...(truncatedOut !== undefined ? { syncStdout: truncatedOut } : {}),
-            ...(truncatedErr !== undefined ? { syncStderr: truncatedErr } : {}),
-            ...(errorMessage ? { syncErrorMessage: errorMessage } : {}),
-          });
-        } else {
-          resolve({ exitCode: 0, syncCommand: "kibi sync" });
-        }
+        resolve(
+          error
+            ? syncFailureResult(error, stdout, stderr)
+            : { exitCode: 0, syncCommand: "kibi sync" },
+        );
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -407,12 +380,15 @@ async function runKibiCheck(
       `kibi check --rules ${rulesArg} --format json`,
       { cwd: worktree },
       (error, stdout, stderr) => {
-        const truncatedOut = truncateSyncOutput(stdout || undefined);
-        const truncatedErr = truncateSyncOutput(stderr || undefined);
         resolve({
-          exitCode: error && typeof error.code === "number" ? error.code : 0,
-          ...(truncatedOut !== undefined ? { stdout: truncatedOut } : {}),
-          ...(truncatedErr !== undefined ? { stderr: truncatedErr } : {}),
+          // A check killed by a signal has no numeric code and still failed.
+          exitCode: error
+            ? typeof error.code === "number"
+              ? error.code
+              : 1
+            : 0,
+          stdout: truncateSyncOutput(stdout),
+          stderr: truncateSyncOutput(stderr),
         });
       },
     );
@@ -444,8 +420,7 @@ function logAdvisoryQualityDiagnostics(
     );
   }
 
-  const first = diagnostics[0];
-  if (first === undefined) return;
+  const first = diagnostics[0] as AdvisoryQualityDiagnostic;
 
   logger.warn(
     `check.advisory_quality ${JSON.stringify({
@@ -463,31 +438,37 @@ function parseQualityDiagnostics(
   stderr: string | undefined,
 ): AdvisoryQualityDiagnostic[] {
   for (const output of [stdout, stderr]) {
-    if (output === undefined || output.trim().length === 0) continue;
-    try {
-      const parsed: unknown = JSON.parse(output);
-      const candidates = qualityDiagnosticCandidates(parsed);
-      const diagnostics = candidates.flatMap(
-        (candidate) => parseQualityDiagnostic(candidate) ?? [],
-      );
-      if (diagnostics.length > 0) return diagnostics;
-    } catch (error: unknown) {
-      if (error instanceof SyntaxError) continue;
-      throw error;
-    }
+    const candidates = qualityDiagnosticList(parseJson(output));
+    if (!Array.isArray(candidates)) continue;
+    const diagnostics = candidates.flatMap(
+      (candidate) => parseQualityDiagnostic(candidate) ?? [],
+    );
+    if (diagnostics.length > 0) return diagnostics;
   }
   return [];
 }
 
-function qualityDiagnosticCandidates(value: unknown): readonly unknown[] {
-  if (!isRecord(value)) return [];
-  const structuredContent = value.structuredContent;
-  if (isRecord(structuredContent)) {
-    const diagnostics = structuredContent.qualityDiagnostics;
-    return Array.isArray(diagnostics) ? diagnostics : [];
+function parseJson(output: string | undefined): unknown {
+  try {
+    // A missing or blank stream throws like any other non-JSON output.
+    // rationale: the catch below only returns undefined, which an emptied
+    // block also returns, so its mutant cannot be observed.
+    // Stryker disable BlockStatement
+    return JSON.parse(output as string);
+  } catch {
+    // Not JSON: the stream has no diagnostics.
+    return undefined;
   }
-  const diagnostics = value.qualityDiagnostics;
-  return Array.isArray(diagnostics) ? diagnostics : [];
+}
+
+// rationale: ends the catch-block exemption of parseJson.
+// Stryker restore BlockStatement
+function qualityDiagnosticList(value: unknown): unknown {
+  if (!isRecord(value)) return undefined;
+  const structuredContent = value.structuredContent;
+  return isRecord(structuredContent)
+    ? structuredContent.qualityDiagnostics
+    : value.qualityDiagnostics;
 }
 
 function parseQualityDiagnostic(

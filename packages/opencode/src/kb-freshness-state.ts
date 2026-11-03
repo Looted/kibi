@@ -147,7 +147,7 @@ export function evaluateKbFreshness(
   if (evidence.decision === "no-impact") {
     const missingEvidence: string[] = [];
 
-    if (!evidence.rationale || evidence.rationale === "") {
+    if (!evidence.rationale) {
       missingEvidence.push("rationale");
     }
     if (!evidence.sourceLinkedDiscovery) {
@@ -201,7 +201,6 @@ interface ScopeEvidence {
   kbCheck: boolean;
   decision?: KbFreshnessDecision;
   rationale?: string;
-  checkRules?: string[];
 }
 
 type ToolName = string;
@@ -233,8 +232,9 @@ export interface KbFreshnessEvidenceStore {
 }
 
 function buildScopeKey(scope: KbFreshnessScope): string {
+  // join() renders a missing sessionId as an empty part.
   const parts = [
-    scope.sessionId ?? "",
+    scope.sessionId,
     scope.agentIdentity,
     scope.worktree,
     scope.branch,
@@ -308,9 +308,6 @@ export function createKbFreshnessEvidenceStore(): KbFreshnessEvidenceStore {
         ...(record.decision !== undefined ? { decision: record.decision } : {}),
         ...(record.rationale !== undefined
           ? { rationale: record.rationale }
-          : {}),
-        ...(record.checkRules !== undefined
-          ? { checkRules: record.checkRules }
           : {}),
       };
     },

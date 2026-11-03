@@ -57,8 +57,9 @@ function readLatest(workspaceRoot: string, file: string): string | undefined {
   try {
     return fs.readFileSync(path.join(workspaceRoot, SIGNOFF_DIR, file), "utf8");
   } catch {
-    return undefined;
+    // Not written yet, or being rewritten.
   }
+  return undefined;
 }
 
 const EMPTY_PAGE = `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"></head><body style="font-family:sans-serif;padding:16px"><p>No signoff view yet. The agent writes one with <code>kibi signoff</code>.</p></body></html>`;
@@ -75,9 +76,9 @@ export function registerSignoff(
 ): vscode.Disposable[] {
   let panel: vscode.WebviewPanel | undefined;
 
-  const render = () => {
-    if (!panel) return;
-    panel.webview.html = readLatest(workspaceRoot, "latest.html") ?? EMPTY_PAGE;
+  const render = (target: vscode.WebviewPanel) => {
+    target.webview.html =
+      readLatest(workspaceRoot, "latest.html") ?? EMPTY_PAGE;
   };
 
   const show = () => {
@@ -94,20 +95,17 @@ export function registerSignoff(
         panel = undefined;
       });
     }
-    render();
+    render(panel);
   };
 
   const command = vscode.commands.registerCommand(SIGNOFF_COMMAND, show);
 
   const watcher = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(
-      workspaceRoot,
-      path.posix.join(".kb", "briefs", "signoff", "latest.json"),
-    ),
+    new vscode.RelativePattern(workspaceRoot, ".kb/briefs/signoff/latest.json"),
   );
   const onChange = async () => {
     if (panel) {
-      render();
+      render(panel);
       return;
     }
     const latest = readLatest(workspaceRoot, "latest.json");
