@@ -37,20 +37,20 @@ describe("schema version status", () => {
   });
 
   test("a missing version needs migration", () => {
-    expect(getSchemaVersionStatus()).toStrictEqual(MISSING);
-    expect(getSchemaVersionStatus(null)).toStrictEqual(MISSING);
-    expect(getSchemaVersionStatus({ schemaVersion: undefined })).toStrictEqual(
-      MISSING,
-    );
+    expect<unknown>(getSchemaVersionStatus()).toStrictEqual(MISSING);
+    expect<unknown>(getSchemaVersionStatus(null)).toStrictEqual(MISSING);
+    expect<unknown>(
+      getSchemaVersionStatus({ schemaVersion: undefined }),
+    ).toStrictEqual(MISSING);
   });
 
   test("a recorded but unusable version is invalid", () => {
-    expect(getSchemaVersionStatus({ schemaVersion: null })).toStrictEqual(
-      INVALID,
-    );
-    expect(getSchemaVersionStatus({ schemaVersion: "x" })).toStrictEqual(
-      INVALID,
-    );
+    expect<unknown>(
+      getSchemaVersionStatus({ schemaVersion: null }),
+    ).toStrictEqual(INVALID);
+    expect<unknown>(
+      getSchemaVersionStatus({ schemaVersion: "x" }),
+    ).toStrictEqual(INVALID);
   });
 
   test("older, current and newer versions", () => {

@@ -153,7 +153,7 @@ describe("legacy config recognition", () => {
       read({ schemaVersion: true, symbolsManifest: 1, defaultBranch: 1 }),
     ).toStrictEqual({ kind: "present", config: {} });
     for (const value of ["pending", "completed", "not_applicable"]) {
-      expect(read({ semanticAdvisorBackfill: value })).toStrictEqual({
+      expect<unknown>(read({ semanticAdvisorBackfill: value })).toStrictEqual({
         kind: "present",
         config: { semanticAdvisorBackfill: value },
       });
