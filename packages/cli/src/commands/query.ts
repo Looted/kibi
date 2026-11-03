@@ -89,21 +89,17 @@ async function queryRelationships(
     const binding = result.bindings.Results;
     if (!result.success || !binding) return [];
     return parseListOfLists(binding).flatMap((row) => {
-      const [typeValue, fromValue, toValue] = row;
-      if (!typeValue || !fromValue || !toValue) return [];
-      const type = parsePrologValue(typeValue);
-      const from = parsePrologValue(fromValue);
-      const to = parsePrologValue(toValue);
+      // A short row has no string target, and a non-string type or source
+      // fails its comparison on its own.
+      const [type, from, to] = row.map(parsePrologValue);
       if (
-        typeof type !== "string" ||
-        typeof from !== "string" ||
         typeof to !== "string" ||
         from !== fromId ||
-        !REL_TYPES.includes(type)
+        !(REL_TYPES as readonly unknown[]).includes(type)
       ) {
         return [];
       }
-      return [{ type, from, to }];
+      return [{ type: type as string, from: fromId, to }];
     });
   });
 }
@@ -127,8 +123,9 @@ function printRelationships(
   });
   for (const item of items) {
     table.push([
-      item.type || "N/A",
-      item.from.substring(0, 16) || "N/A",
+      // Type and source are never empty: both passed the filter above.
+      item.type,
+      item.from.substring(0, 16),
       item.to.substring(0, 16) || "N/A",
     ]);
   }
