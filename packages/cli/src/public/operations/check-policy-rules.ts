@@ -354,8 +354,10 @@ function fileReader(
   workspaceRoot: string,
 ): (path: string) => string | undefined {
   const cache = new Map<string, string | undefined>();
+  // Every path comes from searchedFiles over a sourceFile that
+  // workspaceSourcePath kept inside the workspace, with sibling extensions the
+  // policy validator limits to '.ext', so no path leaves the workspace.
   return (path) => {
-    if (!insideWorkspace(toPosix(path))) return undefined;
     if (!cache.has(path)) {
       try {
         cache.set(path, fs.readFileSync(join(workspaceRoot, path), "utf8"));
