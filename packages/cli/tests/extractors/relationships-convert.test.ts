@@ -79,6 +79,33 @@ describe("convertRecordToRelationship", () => {
     });
   });
 
+  test("metadata carries only the provenance fields a record has", () => {
+    const bare = {
+      id: "rel-1",
+      type: "implements",
+      from: "SYM-1",
+      to: "REQ-1",
+    } as unknown as RelationshipRecord;
+    const edge = { type: "implements", from: "SYM-1", to: "REQ-1" };
+    expect(convertRecordToRelationship(bare)).toStrictEqual(edge);
+    expect(
+      convertRecordToRelationship({ ...bare, created_at: "" }),
+    ).toStrictEqual(edge);
+    for (const [field, value] of [
+      ["created_at", "t"],
+      ["created_by", "me"],
+      ["source", "s.ts"],
+      ["confidence", 0],
+    ] as const) {
+      expect(
+        convertRecordToRelationship({ ...bare, [field]: value }),
+      ).toStrictEqual({ ...edge, metadata: { [field]: value } });
+    }
+    expect(
+      convertRecordToRelationship({ ...bare, created_by: "", source: "s" }),
+    ).toStrictEqual({ ...edge, metadata: { created_by: "", source: "s" } });
+  });
+
   test("an unknown type or an empty endpoint is rejected", () => {
     for (const type of ["", "Implements", "implemented_by"]) {
       expect(() => convertRecordToRelationship(record({ type }))).toThrow(

@@ -127,20 +127,34 @@ export function convertRecordToRelationship(
     throw new Error(`Missing from or to in relationship record ${record.id}`);
   }
 
-  // A shard record always carries its provenance.
-  return {
+  const relationship: ExtractedRelationship = {
     type: record.type,
     from: record.from,
     to: record.to,
-    metadata: {
-      created_at: record.created_at,
-      created_by: record.created_by,
-      source: record.source,
+  };
+
+  // Include metadata if present; snapshot rows carry none.
+  if (
+    record.created_at ||
+    record.created_by ||
+    record.source ||
+    record.confidence !== undefined
+  ) {
+    relationship.metadata = {
+      ...(record.created_at !== undefined
+        ? { created_at: record.created_at }
+        : {}),
+      ...(record.created_by !== undefined
+        ? { created_by: record.created_by }
+        : {}),
+      ...(record.source !== undefined ? { source: record.source } : {}),
       ...(record.confidence !== undefined
         ? { confidence: record.confidence }
         : {}),
-    },
-  };
+    };
+  }
+
+  return relationship;
 }
 
 /**
