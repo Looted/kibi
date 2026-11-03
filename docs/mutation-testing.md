@@ -105,6 +105,18 @@ step; the contract test checks that they differ only by that preload.
 `packages/opencode/src/tui.tsx` is not mutated (Stryker's `*.ts` glob), but its
 lines are covered by the unit suite.
 
+## kibi-mcp
+
+`bun run test:mutation:mcp` runs a fourth Stryker gate, `stryker.mcp.conf.mjs`,
+over every `src/**/*.ts` file of kibi-mcp (type declarations aside), tested
+by every `*.test.ts` under `packages/mcp/tests`. The suite starts real Kibi
+engines, so `.github/workflows/mutation-mcp.yml` installs the pipeline-built
+SWI-Prolog, and one `bun test` run may take up to five minutes (the whole
+suite takes about two and a half). Tests that change `process.env` must set
+and delete keys in place and restore them (`tests/helpers/process-env.ts`):
+replacing the object detaches `os.tmpdir()` from `TMPDIR` for the rest of the
+run.
+
 ## TypeScript gate scope
 
 `stryker.conf.mjs` mutates these whole packages (`MUTATION_PACKAGES`), each

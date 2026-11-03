@@ -19,6 +19,10 @@ import editorsConfig, {
   EDITOR_MUTATION_PACKAGES,
   editorTestFiles,
 } from "../../stryker.editors.conf.mjs";
+import mcpConfig, {
+  MCP_MUTATION_PACKAGE,
+  mcpTestFiles,
+} from "../../stryker.mcp.conf.mjs";
 import treesitterConfig, {
   TREESITTER_MUTATION_MODULES,
   TREESITTER_MUTATION_TESTS,
@@ -206,6 +210,7 @@ describe("mutation testing workflow contract", () => {
       ...EDITOR_MUTATION_PACKAGES.flatMap((pkg) =>
         walkTsFiles(pkg, "src", ".ts"),
       ),
+      ...walkTsFiles(MCP_MUTATION_PACKAGE, "src", ".ts"),
     ];
     for (const file of sources) {
       const lines = readFileSync(join(ROOT, file), "utf8").split("\n");
@@ -357,6 +362,56 @@ describe("editor host mutation contract", () => {
       "packages/vscode/tests/**",
       "stryker.editors.conf.mjs",
       "bunfig.mutation-editors.toml",
+      "bunfig.toml",
+      "scripts/mutation-sandbox-setup.sh",
+    ]) {
+      expect(workflow).toContain(`- '${path}'`);
+    }
+  });
+});
+
+describe("kibi-mcp mutation contract", () => {
+  const mcp = mcpConfig as StrykerConfig & { bun?: { timeout?: number } };
+
+  test("the mcp gate is absolute and covers the whole package", () => {
+    expect(mcp.thresholds).toEqual({ high: 100, low: 100, break: 100 });
+    expect(mcp.testRunner).toBe("bun");
+    expect(mcp.coverageAnalysis).toBe("perTest");
+    expect(MCP_MUTATION_PACKAGE).toBe("packages/mcp");
+    expect(mcp.mutate).toEqual([
+      "packages/mcp/src/**/*.ts",
+      "!packages/mcp/src/types/**/*.d.ts",
+    ]);
+    expect(mcp.bun?.timeout).toBeGreaterThanOrEqual(300000);
+  });
+
+  test("every mcp test file runs against the mutants", () => {
+    const onDisk = globSync("packages/mcp/tests/**/*.test.ts", {
+      cwd: ROOT,
+    }).sort();
+    expect(onDisk.length).toBeGreaterThan(0);
+    expect(mcpTestFiles()).toEqual(onDisk);
+    expect(mcp.bun?.testFiles).toEqual(onDisk.map((test) => `./${test}`));
+  });
+
+  test("CI runs the mcp gate with SWI-Prolog on mcp changes", () => {
+    const pkg = JSON.parse(
+      readFileSync(join(ROOT, "package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+    expect(pkg.scripts?.["test:mutation:mcp"]).toBe(
+      "stryker run stryker.mcp.conf.mjs",
+    );
+    const workflow = readFileSync(
+      join(ROOT, ".github/workflows/mutation-mcp.yml"),
+      "utf8",
+    );
+    expect(workflow).toContain("schedule:");
+    expect(workflow).toContain("run: bun run test:mutation:mcp");
+    expect(workflow).toContain("uses: ./.github/actions/use-bundled-swipl");
+    for (const path of [
+      "packages/mcp/src/**",
+      "packages/mcp/tests/**",
+      "stryker.mcp.conf.mjs",
       "bunfig.toml",
       "scripts/mutation-sandbox-setup.sh",
     ]) {

@@ -45,6 +45,7 @@
     "test:mutation": "stryker run",
     "test:mutation:treesitter": "stryker run stryker.treesitter.conf.mjs",
     "test:mutation:editors": "stryker run stryker.editors.conf.mjs",
+    "test:mutation:mcp": "stryker run stryker.mcp.conf.mjs",
     "test:coverage:unit": "bun run scripts/run-unit-coverage.ts",
     "proof:run": "bun packages/cli/bin/kibi prove --all",
     "proof:gate": "sh scripts/proof-gate.sh",
