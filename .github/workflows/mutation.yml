@@ -30,6 +30,8 @@ on:
       - 'packages/cursor/tests/**'
       - 'packages/plugin-sdk/src/**'
       - 'packages/plugin-sdk/tests/**'
+      - 'packages/plugin-jev/src/**'
+      - 'packages/plugin-jev/tests/**'
       - 'packages/agent-core/src/**'
       # kibi-cli modules in scope (CLI_MUTATION_MODULES in stryker.conf.mjs)
       - 'packages/cli/src/cli-input.ts'

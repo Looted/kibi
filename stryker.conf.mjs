@@ -22,6 +22,7 @@ export const MUTATION_PACKAGES = [
   "packages/codex",
   "packages/cursor",
   "packages/plugin-sdk",
+  "packages/plugin-jev",
 ];
 
 // kibi-cli is too large and engine-heavy to mutate whole. Each module joins
@@ -121,6 +122,7 @@ const config = {
     "packages/codex/src/**/*.ts",
     "packages/cursor/src/**/*.ts",
     "packages/plugin-sdk/src/**/*.ts",
+    "packages/plugin-jev/src/**/*.ts",
     ...Object.keys(CLI_MUTATION_MODULES),
     ...Object.keys(PLUGIN_MUTATION_MODULES),
   ],
