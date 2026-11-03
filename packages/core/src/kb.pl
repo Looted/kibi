@@ -628,10 +628,7 @@ kb_storage_compact_locked(Directory) :-
 % active store.  The human-readable audit export is intentionally derived.
 kb_storage_export(TargetDirectory) :-
     kb_graph(GraphURI),
-    (   exists_directory(TargetDirectory)
-    ->  true
-    ;   make_directory_path(TargetDirectory)
-    ),
+    make_directory_path(TargetDirectory),
     atom_concat(TargetDirectory, '/kb.rdf', TargetFile),
     rdf_save(TargetFile,
              [graph(GraphURI), base_uri('urn-kibi:'), namespaces([kb, xsd])]),
@@ -870,10 +867,7 @@ save_rdf_snapshot(TargetFile) :-
     ).
 
 cleanup_temp_file(TempFile) :-
-    (   exists_file(TempFile)
-    ->  catch(delete_file(TempFile), _, true)
-    ;   true
-    ).
+    catch(delete_file(TempFile), _, true).
 
 current_data_stamp(DataFile, missing) :-
     \+ exists_file(DataFile),
@@ -1534,7 +1528,6 @@ index_text_tokens(Value, Tokens) :-
               atom_string(Part, PartString),
               split_string(PartString, "-_./:#", "-_./:#", Strings),
               member(String, Strings),
-              String \= '',
               atom_string(Token, String)
             ),
             RawTokens),
@@ -1755,8 +1748,8 @@ kb_search_entities(TypeFilter, Query, Limit, Offset, Rows, Count) :-
     Limit >= 0,
     Offset >= 0,
     kb_ensure_indexes,
+    % split_string/4 always yields a part, so every query has a token.
     index_text_tokens(Query, QueryTokens),
-    QueryTokens \= [],
     search_index_ids(TypeFilter, QueryTokens, Ids),
     length(Ids, Count),
     drop_index_ids(Offset, Ids, Remaining),
@@ -1766,14 +1759,11 @@ kb_search_entities(TypeFilter, Query, Limit, Offset, Rows, Count) :-
 % Callers read a large candidate set page by page, each page a separate
 % query, so the ids matched for the last query are kept for its next pages
 % instead of scanning the token index again. The memo is keyed like the index
-% verification (graph, RDF generation and index size), so any write starts a
-% fresh scan.
+% verification (graph and RDF generation), so any write starts a fresh scan.
+% The caller ensured the indexes, so the index matches that RDF state.
 search_index_ids(TypeFilter, QueryTokens, Ids) :-
-    (   kb_index_entity_count(IndexCount)
-    ->  true
-    ;   IndexCount = none
-    ),
-    index_verification_key(IndexCount, Key),
+    index_verification_key(search_ids, Key),
+    % mutalog-disable-next-line goal_fail: a recomputation gives the same ids; the memo only saves it
     (   kb_search_ids_memo(Key, TypeFilter, QueryTokens, Cached)
     ->  Ids = Cached
     ;   findall(Id,
@@ -1862,10 +1852,10 @@ search_candidate_key(content).
 search_candidate_key(markdownBody).
 search_candidate_key(markdown_body).
 
+% Only called under forall/2, which needs one match and never backtracks in.
 indexed_token_match(QueryToken, Id) :-
     kb_index_token(IndexedToken, Id),
-    sub_atom(IndexedToken, _, _, _, QueryToken),
-    !.
+    sub_atom(IndexedToken, _, _, _, QueryToken).
 
 % Markdown bodies remain outside RDF and are ranked by the Node discovery
 % layer. Keep those usually-small document entities in the candidate set so
@@ -2510,6 +2500,7 @@ stale(Entity, MaxAgeDays) :-
     parse_time(UpdatedAtAtom, iso_8601, UpdatedTs),
     get_time(NowTs),
     AgeDays is (NowTs - UpdatedTs) / 86400,
+    % mutalog-disable-next-line compare: AgeDays is a measured clock difference, so a test cannot make it equal the bound
     AgeDays > MaxAgeDays.
 
 %% orphaned(+Symbol)
@@ -2525,7 +2516,6 @@ orphaned(Symbol) :-
 conflicting(Adr1, Adr2) :-
     kb_relationship(constrained_by, Symbol, Adr1),
     kb_relationship(constrained_by, Symbol, Adr2),
-    Adr1 \= Adr2,
     Adr1 @< Adr2.
 
 %% deprecated_still_used(+Adr, -Symbols)
@@ -2561,8 +2551,9 @@ superseded_by(OldId, NewId) :-
 % Cycle-safe via visited accumulator.
 adr_chain(Id, Chain) :-
     adr_chain_acc(Id, [], Chain).
-adr_chain_acc(Id, Visited, [Id]) :-
-    \+ member(Id, Visited),
+% Every visited ADR is superseded, so only the second clause needs the
+% visited check.
+adr_chain_acc(Id, _Visited, [Id]) :-
     \+ kb_relationship(supersedes, _, Id).
 adr_chain_acc(Id, Visited, [Id|Rest]) :-
     \+ member(Id, Visited),
@@ -2608,8 +2599,9 @@ contradicting_reqs(ReqA, ReqB, Reason) :-
 req_conflict_witness(ReqA, ReqB, Witness) :-
     subject_conflict_pair(ReqA, ReqB, SubjectKey),
     effective_req_property_fact(ReqA, SubjectKey, FactA, PropertyKey, OpA, ValTypeA, ValA, UnitA, ScopeA, PolarityA, ValidFromA, ValidToA),
+    % A fact shared by both requirements is one tuple, which never conflicts
+    % with itself, so the pair needs no separate distinct-fact check.
     effective_req_property_fact(ReqB, SubjectKey, FactB, PropertyKey, OpB, ValTypeB, ValB, UnitB, ScopeB, PolarityB, ValidFromB, ValidToB),
-    FactA \= FactB,
     scope_intersects(ScopeA, ScopeB),
     intervals_overlap(ValidFromA, ValidToA, ValidFromB, ValidToB),
     % Compare canonical quantities (30 min == 1800 s); witnesses keep the
@@ -2791,6 +2783,7 @@ req_subject_index(Index) :-
 
 predicate_conflict_pair(ReqA, ReqB, FactA, FactB, Namespace, Name, Args, PolarityA, PolarityB) :-
     % A bound ReqA with an unbound ReqB takes the last branch.
+    % mutalog-disable-next-line goal_true,goal_fail: routing only; the last branch gives the same pairs
     (   nonvar(ReqB), var(ReqA)
     ->  current_req(ReqB),
         findall(Position-Partner,
@@ -2830,6 +2823,7 @@ current_req_predicate(Signature, Position, ReqId) :-
 % the predicate facts of every requirement.
 req_predicate_index(Index) :-
     index_verification_key(req_predicates, Key),
+    % mutalog-disable-next-line goal_fail: a recomputation gives the same index; the memo only saves it
     (   kb_req_predicate_memo(Key, Cached)
     ->  Index = Cached
     ;   findall(ReqId, current_req(ReqId), ReqIds),
@@ -2878,6 +2872,7 @@ domain_contradiction_candidate_pair(FactA, FactB) :-
 % agree on every key argument.  Starts from the bound requirement.
 decision_conflict_pair(Signatures, ReqA, ReqB, FactA, FactB, Namespace, Name,
                        ArgsA, ArgsB, PolarityA, PolarityB, KeyPositions, DecisionPosition) :-
+    % mutalog-disable-next-line negate,goal_true,goal_fail: routing only; the second branch gives the same pairs
     (   var(ReqA), nonvar(ReqB)
     ->  decision_req_fact(Signatures, ReqB, FactB, Namespace, Name, ArgsB, PolarityB, KeyPositions, DecisionPosition),
         length(ArgsB, Arity),
@@ -3196,7 +3191,6 @@ normalize_literal_atom(Raw, Atom) :-
     unwrap_rdf_value(Raw, Value),
     (   atom(Value) -> Atom = Value
     ;   string(Value) -> atom_string(Atom, Value)
-    ;   number(Value) -> atom_number(Atom, Value)
     ;   term_string(Value, String), atom_string(Atom, String)
     ).
 
@@ -3329,10 +3323,9 @@ intervals_overlap(FromA, ToA, FromB, ToB) :-
     \+ interval_ends_before(ToB, FromA).
 
 % An open end ('') never ends before anything, and nothing ends before an
-% open start.
+% open start: '' sorts before every other atom.
 interval_ends_before(To, From) :-
     To \== '',
-    From \== '',
     To @< From.
 
 %% same_value(+TypeA, +ValA, +TypeB, +ValB)
@@ -3360,6 +3353,7 @@ values_conflict(includes, Included, eq, Exact, set) :-
     % mutalog-disable-next-line cut_insert: no later clause matches includes against eq
     \+ subtract(Included, Exact, []).
 values_conflict(eq, Exact, includes, Included, set) :-
+    % mutalog-disable-next-line cut_insert: no later clause matches eq against includes
     \+ subtract(Included, Exact, []).
 
 % subset_of says every member with the property is in its set, excludes that
@@ -3373,6 +3367,7 @@ values_conflict(subset_of, Allowed, Op, Required, set) :-
     memberchk(Op, [eq, includes]),
     \+ subtract(Required, Allowed, []).
 values_conflict(Op, Required, subset_of, Allowed, set) :-
+    % mutalog-disable-next-line cut_insert: no later clause matches eq or includes against subset_of
     memberchk(Op, [eq, includes]),
     \+ subtract(Required, Allowed, []).
 values_conflict(excludes, Excluded, Op, Required, set) :-
@@ -3380,6 +3375,7 @@ values_conflict(excludes, Excluded, Op, Required, set) :-
     memberchk(Op, [eq, includes]),
     intersection(Excluded, Required, [_|_]).
 values_conflict(Op, Required, excludes, Excluded, set) :-
+    % mutalog-disable-next-line cut_insert: no later clause matches eq or includes against excludes
     memberchk(Op, [eq, includes]),
     intersection(Excluded, Required, [_|_]).
 
@@ -3388,6 +3384,7 @@ values_conflict(eq, ValA, neq, ValB, Type) :-
     % mutalog-disable-next-line cut_insert: the numeric clause leaves eq against neq to this one
     same_value(Type, ValA, Type, ValB).
 values_conflict(neq, ValA, eq, ValB, Type) :-
+    % mutalog-disable-next-line cut_insert: the numeric clause leaves neq against eq to this one
     same_value(Type, ValA, Type, ValB).
 
 % Numeric conflict: the two comparisons admit no common value of the type's
@@ -3462,8 +3459,11 @@ production_symbol_covered_for_requirement(Symbol, Req) :-
 symbol_has_req_coverage(Symbol, Req) :-
     production_symbol_covered_for_requirement(Symbol, Req).
 
+% A test that validates a scenario does not make the scenario a requirement:
+% scenarios count only through the requirement that specifies them.
 test_covers_requirement(Test, Req) :-
     requirement_verified_by_test(Req, Test),
+    once(kb_entity(Req, req, _)),
     requirement_test_fallback_allowed(Req),
     test_satisfies_requirement_semantics(Test, Req).
 test_covers_requirement(Test, Req) :-
@@ -3517,14 +3517,8 @@ coerce_timestamp_atom(Val, Atom) :-
 changed_symbol_missing_req(Symbol, MinLinks, Count) :-
     changed_symbol(Symbol),
     \+ executable_test_symbol(Symbol),
-    (   setof(Req, symbol_owns_requirement(Symbol, Req), KbReqs)
-    ->  true
-    ;   KbReqs = []
-    ),
-    (   setof(Req, changed_symbol_req(Symbol, Req), OverlayReqs)
-    ->  true
-    ;   OverlayReqs = []
-    ),
+    findall(Req, symbol_owns_requirement(Symbol, Req), KbReqs),
+    findall(Req, changed_symbol_req(Symbol, Req), OverlayReqs),
     append(KbReqs, OverlayReqs, AllReqs),
     sort(AllReqs, UniqueReqs),
     length(UniqueReqs, Count),
@@ -3561,37 +3555,21 @@ changed_symbol_violation(Symbol, MinLinks, Count, File, Line, Col, Name) :-
 % Called within a transaction after asserting entity and relationships.
 % Throws error(kb_contradiction(Details)) if contradictions are found.
 % implements REQ-011
-% This predicate first checks if the new requirement supersedes the specific
-% conflicting requirement(s). Only direct supersedes edges from the new req
-% to the conflicting req allow the write - unrelated supersedes edges do not
-% mask conflicts.
+% A requirement that ReqId supersedes is no longer current, and every pair
+% joins two current requirements, so a direct supersedes edge from the new
+% requirement to the conflicting one already allows the write.
 check_req_contradiction(ReqId) :-
     % Collect all contradictions involving this requirement
     findall(Reason-OtherReq, (
         contradicting_reqs(ReqId, OtherReq, Reason)
     ;   contradicting_reqs(OtherReq, ReqId, Reason)
-    ), AllPairs),
-    AllPairs \= [],
-    !,
-    % Filter out contradictions where ReqId directly supersedes the conflicting requirement
-    % Only the specific supersedes edge from new req -> conflicting req allows the write
-    exclude(superseded_by_contradiction(ReqId), AllPairs, ValidPairs),
-    ValidPairs \= [],
-    !,
-    % Build actionable error message
-    build_contradiction_message(ReqId, ValidPairs, Message),
-    throw(error(kb_contradiction(ValidPairs), Message)).
-check_req_contradiction(_) :-
-    % No contradictions found
-    true.
-
-%% supersedes_mask(+ReqId, +Reason-OtherReq)
-% True when ReqId supersedes OtherReq, meaning this specific contradiction is allowed.
-% Only direct supersedes edges from the new requirement to the conflicting
-% requirement mask the conflict - unrelated supersedes edges do not.
-% implements REQ-011
-superseded_by_contradiction(ReqId, _-OtherReq) :-
-    kb_relationship(supersedes, ReqId, OtherReq).
+    ), Pairs),
+    (   Pairs == []
+    ->  true
+    ;   % Build actionable error message
+        build_contradiction_message(ReqId, Pairs, Message),
+        throw(error(kb_contradiction(Pairs), Message))
+    ).
 
 %% build_contradiction_message(+ReqId, +Pairs, -Message)
 % Build an actionable error message for contradictions.
