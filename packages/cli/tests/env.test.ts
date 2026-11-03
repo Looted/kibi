@@ -71,3 +71,10 @@ describe("cli env helpers", () => {
     expect(isPrologDebugEnabled()).toBe(true);
   });
 });
+
+describe("branch override edge cases", () => {
+  test("an empty KIBI_BRANCH is no override", () => {
+    process.env.KIBI_BRANCH = "";
+    expect(getBranchOverride()).toBeUndefined();
+  });
+});
