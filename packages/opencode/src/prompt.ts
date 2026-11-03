@@ -27,7 +27,7 @@ export const MAX_BULLETS = 5;
 const MAX_WORDS = 117; // Reserve 3 words for sentinel so total injected prompt stays ≤ 120
 
 function countWords(text: string): number {
-  return text.split(/\s+/).filter(Boolean).length;
+  return text.trim().split(/\s+/).length;
 }
 
 function countBullets(lines: string[]): number {
@@ -38,16 +38,16 @@ const ENTITY_ID_RE =
   /\b(?:REQ|SYM|SCEN|TEST|ADR|FACT|FLAG|EVT)-[A-Za-z0-9_-]+\b/g;
 
 // implements REQ-opencode-file-context-guidance-v1
-function hasOverlappingEntityIds(textA: string, textB: string): boolean {
-  const idsA = new Set(textA.match(ENTITY_ID_RE) ?? []);
-  const idsB = textB.match(ENTITY_ID_RE) ?? [];
-  return idsB.length > 0 && idsB.some((id) => idsA.has(id));
+export function hasOverlappingEntityIds(
+  textA: string | null,
+  textB: string,
+): boolean {
+  const idsA = new Set(textA?.match(ENTITY_ID_RE));
+  return textB.match(ENTITY_ID_RE)?.some((id) => idsA.has(id)) === true;
 }
 
-function enforceBudget(
-  block: string,
-  maxBullets: number = MAX_BULLETS,
-): string {
+/** Trims a block to `maxBullets` bullets and the prompt word budget. */
+export function enforceBudget(block: string, maxBullets: number): string {
   const lines = block.split("\n");
   if (countBullets(lines) > maxBullets || countWords(block) > MAX_WORDS) {
     // Trim to budget: keep header + first maxBullets bullet lines
@@ -69,16 +69,10 @@ function enforceBudget(
   return block;
 }
 
-function insertBulletAfterHeader(block: string, bullet: string): string {
+export function insertBulletAfterHeader(block: string, bullet: string): string {
   const headerEnd = block.indexOf("\n");
   if (headerEnd === -1) return `${block}\n${bullet}`;
   return `${block.slice(0, headerEnd + 1)}${bullet}\n${block.slice(headerEnd + 1)}`;
-}
-
-// ── File bucket derivation ─────────────────────────────────────────────
-
-function deriveFileBucket(pathKind: PathKind): string {
-  return pathKind;
 }
 
 function getFocusEdit(
@@ -220,9 +214,6 @@ export function postureGuidance(
 ): string | null {
   // implements REQ-opencode-guidance-injection
   switch (posture) {
-    case "vendored_only":
-      // Minimal guidance only, no bootstrap nags
-      return null;
     case "root_uninitialized":
       return `🔧 **Bootstrap required**
 
@@ -232,6 +223,7 @@ ${buildBootstrapRequiredBody(capability)}`;
 
 Root .kb/manifest.json exists but some canonical KB targets under .kb/ are missing. Guidance remains advisory until the user/operator restores the canonical layout.`;
     default:
+      // Other postures, vendored_only among them, add no bootstrap nags.
       return null;
   }
 }
@@ -241,6 +233,76 @@ Root .kb/manifest.json exists but some canonical KB targets under .kb/ are missi
 /**
  * Build prompt guidance block based on posture, risk class, and cache state.
  */
+function guidanceCacheKey(
+  context: PromptContext,
+  workspaceRoot: string,
+  branch: string,
+  posture: RepoPosture,
+  riskClass: RiskClass,
+): CacheKey {
+  return {
+    workspaceRoot,
+    branch,
+    posture,
+    riskClass,
+    fileBucket: getFocusEdit(context)?.kind ?? "unknown",
+  };
+}
+
+/**
+ * Bullets naming the requirements the focus file implements: the lead
+ * requirement's grounding first, then the links, each to be inserted after
+ * the header in turn so the links bullet ends up on top.
+ */
+function sourceLinkBullets(
+  context: PromptContext,
+  workspaceRoot: string,
+): string[] {
+  const editedPath = getFocusEdit(context)?.path;
+  if (!editedPath) return [];
+  const absEdited = path.isAbsolute(editedPath)
+    ? editedPath
+    : path.join(workspaceRoot, editedPath);
+  // At most three IDs come back; manifest read errors give none.
+  const linkedIds = getSourceLinkedRequirementIds(workspaceRoot, absEdited);
+  const leadId = linkedIds[0];
+  if (leadId === undefined) return [];
+  // What the lead requirement must keep true and the decision behind it,
+  // from the shared kibi-agent-core projection. One fact keeps the bullet
+  // inside the prompt's word budget; retired requirements contribute
+  // nothing.
+  const grounding = requirementGrounding(leadId, workspaceRoot, {
+    maxFacts: 1,
+  });
+  return [
+    ...(grounding.length > 0 ? [`- ${grounding.join(" ")}`] : []),
+    `- Existing Kibi links: ${linkedIds.join(", ")}`,
+  ];
+}
+
+// rationale: the knowledge readers behind the grounding catch their own I/O
+// errors, so no test can make this throw; an unexpected Error must still only
+// drop the grounding, and anything else is rethrown.
+// Stryker disable all
+function requirementGrounding(
+  requirementId: string,
+  workspaceRoot: string,
+  options: { maxFacts: number },
+): string[] {
+  try {
+    return requirementGroundingLines(
+      requirementId,
+      createEntitySummarizer(workspaceRoot),
+      options,
+    );
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+    return [];
+  }
+}
+// rationale: ends the exemption for the defensive grounding lookup above.
+// Stryker restore all
+
 function buildContextualGuidance(
   context: PromptContext,
   capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
@@ -276,8 +338,7 @@ function buildContextualGuidance(
   }
   // Priority 3: Posture warnings for non-active states — not cache-suppressed
   else if (posture === "root_uninitialized" || posture === "root_partial") {
-    const postureBlock = postureGuidance(posture, capability);
-    if (postureBlock) selectedBlock = postureBlock;
+    selectedBlock = postureGuidance(posture, capability);
   } else if (!context.posture && context.workspaceHealth?.needsBootstrap) {
     selectedBlock = `🔧 **Bootstrap required**
 
@@ -296,14 +357,13 @@ ${buildBootstrapRequiredBody(capability)}`;
       !context.kbFreshness?.requiresEvidence &&
       riskClass
     ) {
-      const focusEdit = getFocusEdit(context);
-      const key: CacheKey = {
-        workspaceRoot: context.workspaceRoot,
-        branch: context.branch,
+      const key = guidanceCacheKey(
+        context,
+        context.workspaceRoot,
+        context.branch,
         posture,
         riskClass,
-        fileBucket: deriveFileBucket(focusEdit?.kind ?? "unknown"),
-      };
+      );
       if (context.cache.isSatisfied(key)) {
         if (hasFileOpReminders) {
           cacheSuppressedSemantic = true;
@@ -313,13 +373,10 @@ ${buildBootstrapRequiredBody(capability)}`;
       }
     }
 
-    // Priority 5: Risk-class-driven guidance (for non-safe classes)
-    if (
-      !cacheSuppressedSemantic &&
-      riskClass &&
-      riskClass !== "safe_docs_only" &&
-      riskClass !== "safe_test_only"
-    ) {
+    // Priority 5: Risk-class-driven guidance (safe classes map to no block)
+    if (cacheSuppressedSemantic) {
+      // The semantic block was recently shown; only reminders follow.
+    } else if (riskClass) {
       // For behavior/traceability with comment suggestions, use suggestion guidance
       if (
         (riskClass === "behavior_candidate" ||
@@ -330,27 +387,20 @@ ${buildBootstrapRequiredBody(capability)}`;
           context.recentCommentSuggestion,
         );
       } else {
-        const block = GUIDANCE_BY_RISK[riskClass];
-        if (block) selectedBlock = block;
+        selectedBlock = GUIDANCE_BY_RISK[riskClass];
       }
     }
     // Priority 6: Legacy path-kind fallback (when no risk class)
-    else if (!cacheSuppressedSemantic && !riskClass) {
+    else {
       const codeEdits = context.recentEdits.filter((e) => e.kind === "code");
       const reqEdits = context.recentEdits.filter(
         (e) => e.kind === "requirement",
       );
       const kbDocEdits = context.recentEdits.filter((e) =>
-        [
-          "requirement",
-          "scenario",
-          "test",
-          "adr",
-          "fact",
-          "flag",
-          "event",
-          "symbol",
-        ].includes(e.kind),
+        // Requirement edits are matched above.
+        ["scenario", "test", "adr", "fact", "flag", "event", "symbol"].includes(
+          e.kind,
+        ),
       );
 
       if (codeEdits.length > 0) {
@@ -389,44 +439,8 @@ If you're adding long explanatory comments, consider routing that knowledge to:
       riskClass === "traceability_candidate") &&
     context.workspaceRoot
   ) {
-    try {
-      const focusEdit = getFocusEdit(context);
-      if (focusEdit?.path) {
-        const editedPath = focusEdit.path;
-        const absEdited = path.isAbsolute(editedPath)
-          ? editedPath
-          : path.join(context.workspaceRoot, editedPath);
-        const linkedIds = getSourceLinkedRequirementIds(
-          context.workspaceRoot,
-          absEdited,
-        );
-        const leadId = linkedIds[0];
-        if (leadId !== undefined && linkedIds.length <= 3) {
-          // What the lead requirement must keep true and the decision behind
-          // it, from the shared kibi-agent-core projection. One fact keeps
-          // the bullet inside the prompt's word budget; retired requirements
-          // contribute nothing.
-          const grounding = requirementGroundingLines(
-            leadId,
-            createEntitySummarizer(context.workspaceRoot),
-            { maxFacts: 1 },
-          );
-          if (grounding.length > 0) {
-            selectedBlock = insertBulletAfterHeader(
-              selectedBlock,
-              `- ${grounding.join(" ")}`,
-            );
-          }
-          selectedBlock = insertBulletAfterHeader(
-            selectedBlock,
-            `- Existing Kibi links: ${linkedIds.join(", ")}`,
-          );
-        }
-      }
-    } catch (error) {
-      if (!(error instanceof Error)) {
-        throw error;
-      }
+    for (const bullet of sourceLinkBullets(context, context.workspaceRoot)) {
+      selectedBlock = insertBulletAfterHeader(selectedBlock, bullet);
     }
   }
 
@@ -435,25 +449,18 @@ If you're adding long explanatory comments, consider routing that knowledge to:
   // are subject to prompt budget trimming. Per-path suppression is handled
   // by the caller via file-operation-state hasShown/markShown.
   // implements REQ-opencode-file-context-guidance-v1
-  if (hasFileOpReminders && fileOpReminder) {
+  if (fileOpReminder) {
     const foBullets: string[] = [];
+    const lifecycleReminder = fileOpReminder.lifecycleReminder;
 
-    if (fileOpReminder.lifecycleReminder) {
-      // Skip lifecycleReminder if source-linked context already shows the same IDs
-      const hasSourceLinked =
-        selectedBlock?.includes("- Existing Kibi links:") === true;
-      const lifecycleHasEntities =
-        fileOpReminder.lifecycleReminder.includes("Kibi entities:");
+    if (lifecycleReminder) {
+      // Skip the lifecycle reminder when the source-linked bullet already
+      // shows the same IDs; only that bullet puts entity IDs in the block.
       const overlapsSourceLinked =
-        hasSourceLinked &&
-        lifecycleHasEntities &&
-        selectedBlock !== null &&
-        hasOverlappingEntityIds(
-          selectedBlock,
-          fileOpReminder.lifecycleReminder,
-        );
+        lifecycleReminder.includes("Kibi entities:") &&
+        hasOverlappingEntityIds(selectedBlock, lifecycleReminder);
       if (!overlapsSourceLinked) {
-        foBullets.push(fileOpReminder.lifecycleReminder);
+        foBullets.push(lifecycleReminder);
       }
     }
 
@@ -495,15 +502,16 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     context.branch &&
     riskClass
   ) {
-    const focusEdit = getFocusEdit(context);
-    const key: CacheKey = {
-      workspaceRoot: context.workspaceRoot,
-      branch: context.branch,
-      posture,
-      riskClass,
-      fileBucket: deriveFileBucket(focusEdit?.kind ?? "unknown"),
-    };
-    context.cache.recordSatisfied(key, "guidance");
+    context.cache.recordSatisfied(
+      guidanceCacheKey(
+        context,
+        context.workspaceRoot,
+        context.branch,
+        posture,
+        riskClass,
+      ),
+      "guidance",
+    );
   }
 
   const REMINDER_RISK_CLASSES: RiskClass[] = [
@@ -511,17 +519,13 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     "traceability_candidate",
     "req_policy_candidate",
   ];
-  const reminderWillBeAppended =
-    !!selectedBlock &&
+  const appendReminder =
     context.completionReminder === true &&
     !context.maintenanceDegraded &&
-    riskClass != null &&
-    REMINDER_RISK_CLASSES.includes(riskClass) &&
+    REMINDER_RISK_CLASSES.includes(riskClass as RiskClass) &&
     posture !== "root_uninitialized" &&
     posture !== "root_partial";
-  const effectiveMaxBullets = reminderWillBeAppended
-    ? MAX_BULLETS - 1
-    : MAX_BULLETS;
+  const effectiveMaxBullets = appendReminder ? MAX_BULLETS - 1 : MAX_BULLETS;
 
   // Apply budget enforcement before appending the completion reminder so the
   // reminder bullet is never silently trimmed when bullet count exceeds MAX_BULLETS.
@@ -531,15 +535,7 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
 
   // Append completion reminder for risky classes when enabled
   let finalBlock = budgeted;
-  if (
-    finalBlock &&
-    context.completionReminder === true &&
-    !context.maintenanceDegraded &&
-    riskClass &&
-    REMINDER_RISK_CLASSES.includes(riskClass) &&
-    posture !== "root_uninitialized" &&
-    posture !== "root_partial"
-  ) {
+  if (finalBlock && appendReminder) {
     finalBlock = `${finalBlock}\n- Kibi impact evidence is required before completion/commit: run \`kb_check\` before completing this task.`;
   }
 
@@ -651,7 +647,7 @@ export function buildPrompt(
   capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
 ): string {
   if (!context) {
-    return buildBaseGuidance(capability).trim();
+    return buildBaseGuidance(capability);
   }
   return buildContextualGuidance(context, capability).trim();
 }
