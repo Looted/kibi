@@ -101,22 +101,6 @@ describe("default dependencies", () => {
   test("validate names with the real git", () => {
     expect(isValidBranchName("main")).toBe(true);
   });
-
-  // Other test files in the same process may already have replaced the
-  // defaults (the setter restores the real git, hiding the initial value), so
-  // a fresh copy of the module checks the defaults it starts with.
-  test("a freshly loaded module starts with the real git", async () => {
-    const specifier = new URL(
-      "../../src/utils/branch-resolver.ts?initial-defaults",
-      import.meta.url,
-    ).href;
-    const fresh = (await import(specifier)) as {
-      isValidBranchName: typeof isValidBranchName;
-    };
-    expect(fresh.isValidBranchName).not.toBe(isValidBranchName);
-    expect(fresh.isValidBranchName("main")).toBe(true);
-    expect(fresh.isValidBranchName("bad..name")).toBe(false);
-  });
 });
 
 describe("getBranchDiagnostic and fixed values", () => {

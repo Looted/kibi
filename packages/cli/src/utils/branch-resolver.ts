@@ -100,17 +100,19 @@ export interface BranchResolverDeps {
   execFileSync: typeof import("node:child_process").execFileSync;
 }
 
-const defaultDeps: BranchResolverDeps = {
-  execSync: rawExecSync,
-  execFileSync: rawExecFileSync,
-};
+function realBranchResolverDeps(): BranchResolverDeps {
+  return { execSync: rawExecSync, execFileSync: rawExecFileSync };
+}
+
+const defaultDeps: BranchResolverDeps = realBranchResolverDeps();
 
 export function _setBranchResolverDepsForTests(
   deps: Partial<BranchResolverDeps>,
 ): void {
   // implements REQ-branch-store-recovery-v4
-  defaultDeps.execSync = deps.execSync ?? rawExecSync;
-  defaultDeps.execFileSync = deps.execFileSync ?? rawExecFileSync;
+  const real = realBranchResolverDeps();
+  defaultDeps.execSync = deps.execSync ?? real.execSync;
+  defaultDeps.execFileSync = deps.execFileSync ?? real.execFileSync;
 }
 
 // Files to exclude when copying branch snapshots (volatile artifacts)
