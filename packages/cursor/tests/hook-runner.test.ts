@@ -979,6 +979,46 @@ describe("Cursor decision guard", () => {
       "recorded nothing in the knowledge base",
     );
   });
+
+  test("a dry-run MCP upsert is no record; a CLI upsert is", async () => {
+    const dryRun = conversation();
+    await dryRun.event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(dryRun.workspace, "src/checkout.ts") },
+    });
+    await dryRun.event({
+      hook_event_name: "postToolUse",
+      tool_name: "CallMcpTool",
+      tool_input: { toolName: "kb_upsert", arguments: { dryRun: true } },
+    });
+    const asked = await dryRun.event({
+      hook_event_name: "stop",
+      status: "completed",
+    });
+    expect(asked.followup_message ?? "").toContain(
+      "recorded nothing in the knowledge base",
+    );
+
+    const cli = conversation();
+    await cli.event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(cli.workspace, "src/checkout.ts") },
+    });
+    await cli.event({
+      hook_event_name: "postToolUse",
+      tool_name: "Shell",
+      tool_input: { command: "kibi upsert --input req.json" },
+    });
+    const quiet = await cli.event({
+      hook_event_name: "stop",
+      status: "completed",
+    });
+    expect(quiet.followup_message ?? "").not.toContain(
+      "recorded nothing in the knowledge base",
+    );
+  });
 });
 
 describe("Cursor hook runner result contracts", () => {

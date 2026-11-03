@@ -24,7 +24,6 @@ import type {
   Node,
   Project,
   SourceFile,
-  VariableDeclaration,
 } from "ts-morph";
 import { tsMorph } from "./ts-morph-runtime.js";
 import {
@@ -64,16 +63,30 @@ export interface ManifestSymbolEntry {
   [key: string]: unknown;
 }
 
-type NamedDeclarationCandidate = Node | ClassDeclaration | VariableDeclaration;
+interface NamedDeclarationMatch {
+  readonly node: Node;
+  readonly nameNode: Node;
+}
+
+type ResolvedEntry =
+  | {
+      readonly entry: ManifestSymbolEntry;
+      readonly ok: true;
+      readonly absolutePath: string | null;
+    }
+  | {
+      readonly entry: ManifestSymbolEntry;
+      readonly ok: false;
+      readonly error: unknown;
+    };
 
 // implements REQ-capability-plugin-builtin-parity-v1
 export async function enrichSymbolCoordinatesWithTsMorph(
   entries: ManifestSymbolEntry[],
   workspaceRoot: string,
 ): Promise<ManifestSymbolEntry[]> {
-  const project = new (tsMorph().Project)({
-    skipAddingFilesFromTsConfig: true,
-  });
+  // Without a tsconfig path the project reads no tsconfig files.
+  const project = new (tsMorph().Project)();
   const sourceFileCache = new Map<string, SourceFile>();
 
   // Add every source file before the first declaration lookup. Export checks
@@ -82,10 +95,7 @@ export async function enrichSymbolCoordinatesWithTsMorph(
   // resolution) once per newly seen file. A declaration's own symbol does
   // not depend on which other root files are present, so the coordinates are
   // unchanged; only the repeated program construction disappears.
-  const resolvedPaths: Array<
-    | { readonly ok: true; readonly absolutePath: string | null }
-    | { readonly ok: false; readonly error: unknown }
-  > = [];
+  const resolvedEntries: ResolvedEntry[] = [];
   for (const entry of entries) {
     try {
       const absolutePath = await resolveSourcePath(
@@ -95,18 +105,18 @@ export async function enrichSymbolCoordinatesWithTsMorph(
       if (absolutePath) {
         getOrAddSourceFile(project, sourceFileCache, absolutePath);
       }
-      resolvedPaths.push({ ok: true, absolutePath });
+      resolvedEntries.push({ entry, ok: true, absolutePath });
     } catch (error) {
-      resolvedPaths.push({ ok: false, error });
+      resolvedEntries.push({ entry, ok: false, error });
     }
   }
 
   const enriched: ManifestSymbolEntry[] = [];
-  for (const [index, entry] of entries.entries()) {
+  for (const resolved of resolvedEntries) {
+    const { entry } = resolved;
     try {
-      const resolved = resolvedPaths[index];
-      if (resolved !== undefined && !resolved.ok) throw resolved.error;
-      const absolutePath = resolved?.absolutePath ?? null;
+      if (!resolved.ok) throw resolved.error;
+      const { absolutePath } = resolved;
       if (!absolutePath) {
         enriched.push(entry);
         continue;
@@ -137,17 +147,17 @@ export async function enrichSymbolCoordinatesWithTsMorph(
         continue;
       }
 
-      const nameStart = match.getNameNode().getStart();
-      const end = match.node.getEnd();
-
-      const startLc = sourceFile.getLineAndColumnAtPos(nameStart);
-      const endLc = sourceFile.getLineAndColumnAtPos(end);
+      // ts-morph columns are 1-based; manifest columns are 0-based.
+      const startLc = sourceFile.getLineAndColumnAtPos(
+        match.nameNode.getStart(),
+      );
+      const endLc = sourceFile.getLineAndColumnAtPos(match.node.getEnd());
 
       const coordinates: SymbolCoordinates = {
         sourceLine: startLc.line,
-        sourceColumn: Math.max(0, startLc.column - 1),
+        sourceColumn: startLc.column - 1,
         sourceEndLine: endLc.line,
-        sourceEndColumn: Math.max(0, endLc.column - 1),
+        sourceEndColumn: endLc.column - 1,
         coordinatesGeneratedAt: new Date().toISOString(),
       };
 
@@ -164,10 +174,8 @@ export async function enrichSymbolCoordinatesWithTsMorph(
         entry.sourceFile,
         workspaceRoot,
       );
-      if (!absolutePath) {
-        enriched.push(entry);
-        continue;
-      }
+      // A source that no longer resolves is just another unreadable file for
+      // the text fallback, which then keeps the entry as it is.
       enriched.push(await enrichWithTextFallback(entry, absolutePath));
     }
   }
@@ -199,34 +207,31 @@ function getOrAddSourceFile(
   project: Project,
   cache: Map<string, SourceFile>,
   absolutePath: string,
-): SourceFile | null {
-  const cached = cache.get(absolutePath);
-  if (cached) return cached;
-
-  try {
-    const sourceFile = project.addSourceFileAtPath(absolutePath);
-    cache.set(absolutePath, sourceFile);
-    return sourceFile;
-  } catch {
-    return null;
+): SourceFile | undefined {
+  let sourceFile = cache.get(absolutePath);
+  if (!sourceFile) {
+    try {
+      sourceFile = project.addSourceFileAtPath(absolutePath);
+      cache.set(absolutePath, sourceFile);
+    } catch {
+      // An unparseable file falls back to a text search.
+    }
   }
+  return sourceFile;
 }
 
 async function enrichWithTextFallback(
   entry: ManifestSymbolEntry,
-  absolutePath: string,
+  absolutePath: string | null,
 ): Promise<ManifestSymbolEntry> {
   try {
-    const content = await readFile(absolutePath, "utf8");
-    const lines = content.split(/\r?\n/);
+    const content = await readFile(absolutePath as string, "utf8");
     const escapedTitle = entry.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const pattern = new RegExp(`\\b${escapedTitle}\\b`);
 
-    for (let index = 0; index < lines.length; index++) {
-      const line = lines[index];
-      if (!line) continue;
+    for (const [index, line] of content.split(/\r?\n/).entries()) {
       const match = pattern.exec(line);
-      if (!match || match.index < 0) continue;
+      if (!match) continue;
 
       return {
         ...entry,
@@ -244,218 +249,124 @@ async function enrichWithTextFallback(
   }
 }
 
+type ClassLike = ClassDeclaration | ClassExpression;
+type ClassMember = ReturnType<ClassLike["getMembers"]>[number] & {
+  getName(): string;
+  getNameNode(): Node;
+};
+
+/** Class expressions bound by exported `const X = class {}` declarations. */
+function exportedClassExpressions(
+  sourceFile: SourceFile,
+): Array<{ readonly name: string; readonly declaration: ClassExpression }> {
+  return sourceFile
+    .getVariableStatements()
+    .filter((statement) => statement.isExported())
+    .flatMap((statement) => statement.getDeclarations())
+    .flatMap((variable) => {
+      const declaration = variable.getInitializerIfKind(
+        tsMorph().SyntaxKind.ClassExpression,
+      );
+      return declaration ? [{ name: variable.getName(), declaration }] : [];
+    });
+}
+
+function namedMatch(
+  node: Node & { getNameNode(): Node },
+): NamedDeclarationMatch {
+  return { node, nameNode: node.getNameNode() };
+}
+
+function methodsOf(declaration: ClassLike): ClassMember[] {
+  return declaration.getMethods();
+}
+
+function propertiesAndAccessorsOf(declaration: ClassLike): ClassMember[] {
+  return [
+    ...declaration.getProperties(),
+    ...declaration.getGetAccessors(),
+    ...declaration.getSetAccessors(),
+  ];
+}
+
 function findNamedDeclaration(
   sourceFile: SourceFile,
   title: string,
-): { node: NamedDeclarationCandidate; getNameNode: () => Node } | null {
+): NamedDeclarationMatch | undefined {
   const qualifiedMethod = parseQualifiedMethodTitle(title);
   if (qualifiedMethod) {
-    for (const cls of sourceFile.getClasses()) {
-      if (cls.getName() !== qualifiedMethod.className) continue;
-      const match = findClassMember(cls, qualifiedMethod.methodName);
+    const owners = [
+      ...sourceFile
+        .getClasses()
+        .map((declaration) => ({ name: declaration.getName(), declaration })),
+      ...exportedClassExpressions(sourceFile),
+    ];
+    for (const { name, declaration } of owners) {
+      if (name !== qualifiedMethod.className) continue;
+      const match = findClassMember(declaration, qualifiedMethod.methodName);
       if (match) return match;
     }
-
-    for (const statement of sourceFile.getVariableStatements()) {
-      if (!statement.isExported()) continue;
-      for (const declaration of statement.getDeclarations()) {
-        if (declaration.getName() !== qualifiedMethod.className) continue;
-        const classExpression = declaration.getInitializerIfKind(
-          tsMorph().SyntaxKind.ClassExpression,
-        );
-        const match = classExpression
-          ? findClassMember(classExpression, qualifiedMethod.methodName)
-          : null;
-        if (match) return match;
-      }
-    }
-
-    return null;
+    return undefined;
   }
 
-  const candidates: Array<{
-    node: NamedDeclarationCandidate;
-    getNameNode: () => Node;
-  }> = [];
-
-  for (const decl of sourceFile.getFunctions()) {
-    if (!decl.isExported()) continue;
-    if (decl.getName() !== title) continue;
-    const nameNode = decl.getNameNode();
-    if (!nameNode) continue;
-    candidates.push({ node: decl, getNameNode: () => nameNode });
-  }
-
-  for (const decl of sourceFile.getClasses()) {
-    if (!decl.isExported()) continue;
-    if (decl.getName() !== title) continue;
-    const nameNode = decl.getNameNode();
-    if (!nameNode) continue;
-    candidates.push({ node: decl, getNameNode: () => nameNode });
-  }
-
-  for (const decl of sourceFile.getInterfaces()) {
-    if (!decl.isExported()) continue;
-    if (decl.getName() !== title) continue;
-    const nameNode = decl.getNameNode();
-    if (!nameNode) continue;
-    candidates.push({ node: decl, getNameNode: () => nameNode });
-  }
-
-  for (const decl of sourceFile.getTypeAliases()) {
-    if (!decl.isExported()) continue;
-    if (decl.getName() !== title) continue;
-    const nameNode = decl.getNameNode();
-    if (!nameNode) continue;
-    candidates.push({ node: decl, getNameNode: () => nameNode });
-  }
-
-  for (const decl of sourceFile.getEnums()) {
-    if (!decl.isExported()) continue;
-    if (decl.getName() !== title) continue;
-    const nameNode = decl.getNameNode();
-    if (!nameNode) continue;
-    candidates.push({ node: decl, getNameNode: () => nameNode });
-  }
-
+  // A named (non-default) declaration always has a name node.
+  const exported = [
+    ...sourceFile.getFunctions(),
+    ...sourceFile.getClasses(),
+    ...sourceFile.getInterfaces(),
+    ...sourceFile.getTypeAliases(),
+    ...sourceFile.getEnums(),
+  ]
+    .filter((decl) => decl.isExported() && decl.getName() === title)
+    .map((decl) => namedMatch(decl as Node & { getNameNode(): Node }));
   for (const statement of sourceFile.getVariableStatements()) {
     if (!statement.isExported()) continue;
-
     for (const declaration of statement.getDeclarations()) {
-      if (declaration.getName() !== title) continue;
-      const nameNode = declaration.getNameNode();
-      candidates.push({ node: declaration, getNameNode: () => nameNode });
+      if (declaration.getName() === title) {
+        exported.push(namedMatch(declaration));
+      }
     }
   }
-
-  if (candidates.length === 0) {
-    const internalCandidates: Array<{
-      node: NamedDeclarationCandidate;
-      getNameNode: () => Node;
-    }> = [];
-
-    for (const decl of sourceFile.getFunctions()) {
-      if (decl.isExported()) continue;
-      if (decl.getName() !== title) continue;
-      const nameNode = decl.getNameNode();
-      if (!nameNode) continue;
-      internalCandidates.push({ node: decl, getNameNode: () => nameNode });
-    }
-
-    const uniqueInternal = onlyCandidate(internalCandidates);
-    if (uniqueInternal) {
-      return uniqueInternal;
-    }
-
-    const methodCandidates: Array<{
-      node: NamedDeclarationCandidate;
-      getNameNode: () => Node;
-    }> = [];
-
-    for (const cls of sourceFile.getClasses()) {
-      for (const method of cls.getMethods()) {
-        if (isPrivateClassMember(method)) continue;
-        if (method.getName() !== title) continue;
-        const nameNode = method.getNameNode();
-        if (!nameNode) continue;
-        methodCandidates.push({ node: method, getNameNode: () => nameNode });
-      }
-    }
-
-    for (const statement of sourceFile.getVariableStatements()) {
-      if (!statement.isExported()) continue;
-      for (const declaration of statement.getDeclarations()) {
-        const classExpression = declaration.getInitializerIfKind(
-          tsMorph().SyntaxKind.ClassExpression,
-        );
-        if (!classExpression) continue;
-        for (const method of classExpression.getMethods()) {
-          if (isPrivateClassMember(method)) continue;
-          if (method.getName() !== title) continue;
-          const nameNode = method.getNameNode();
-          if (!nameNode) continue;
-          methodCandidates.push({
-            node: method,
-            getNameNode: () => nameNode,
-          });
-        }
-      }
-    }
-
-    const uniqueMethod = onlyCandidate(methodCandidates);
-    if (uniqueMethod) {
-      return uniqueMethod;
-    }
-
-    const memberCandidates: Array<{
-      node: NamedDeclarationCandidate;
-      getNameNode: () => Node;
-    }> = [];
-
-    for (const cls of sourceFile.getClasses()) {
-      for (const property of cls.getProperties()) {
-        if (isPrivateClassMember(property)) continue;
-        if (property.getName() !== title) continue;
-        const nameNode = property.getNameNode();
-        if (!nameNode) continue;
-        memberCandidates.push({ node: property, getNameNode: () => nameNode });
-      }
-      for (const accessor of [
-        ...cls.getGetAccessors(),
-        ...cls.getSetAccessors(),
-      ]) {
-        if (isPrivateClassMember(accessor)) continue;
-        if (accessor.getName() !== title) continue;
-        const nameNode = accessor.getNameNode();
-        if (!nameNode) continue;
-        memberCandidates.push({ node: accessor, getNameNode: () => nameNode });
-      }
-    }
-
-    for (const statement of sourceFile.getVariableStatements()) {
-      if (!statement.isExported()) continue;
-      for (const declaration of statement.getDeclarations()) {
-        const classExpression = declaration.getInitializerIfKind(
-          tsMorph().SyntaxKind.ClassExpression,
-        );
-        if (!classExpression) continue;
-        for (const property of classExpression.getProperties()) {
-          if (isPrivateClassMember(property)) continue;
-          if (property.getName() !== title) continue;
-          const nameNode = property.getNameNode();
-          if (!nameNode) continue;
-          memberCandidates.push({
-            node: property,
-            getNameNode: () => nameNode,
-          });
-        }
-        for (const accessor of [
-          ...classExpression.getGetAccessors(),
-          ...classExpression.getSetAccessors(),
-        ]) {
-          if (isPrivateClassMember(accessor)) continue;
-          if (accessor.getName() !== title) continue;
-          const nameNode = accessor.getNameNode();
-          if (!nameNode) continue;
-          memberCandidates.push({
-            node: accessor,
-            getNameNode: () => nameNode,
-          });
-        }
-      }
-    }
-
-    const uniqueMember = onlyCandidate(memberCandidates);
-    if (uniqueMember) {
-      return uniqueMember;
-    }
-
-    return null;
+  if (exported.length > 0) {
+    // The earliest declaration of the name wins.
+    const earliest = Math.min(
+      ...exported.map((candidate) => candidate.nameNode.getStart()),
+    );
+    return exported.find(
+      (candidate) => candidate.nameNode.getStart() === earliest,
+    );
   }
-  candidates.sort(
-    (a, b) => a.getNameNode().getStart() - b.getNameNode().getStart(),
+
+  const internalFunction = onlyCandidate(
+    sourceFile
+      .getFunctions()
+      .filter((decl) => !decl.isExported() && decl.getName() === title),
   );
-  return candidates[0] ?? null;
+  if (internalFunction) {
+    return namedMatch(internalFunction as Node & { getNameNode(): Node });
+  }
+
+  const classes: ClassLike[] = [
+    ...sourceFile.getClasses(),
+    ...exportedClassExpressions(sourceFile).map(
+      ({ declaration }) => declaration,
+    ),
+  ];
+  const uniquePublicMember = (
+    membersOf: (declaration: ClassLike) => ClassMember[],
+  ): ClassMember | undefined =>
+    onlyCandidate(
+      classes
+        .flatMap(membersOf)
+        .filter(
+          (member) =>
+            !isPrivateClassMember(member) && member.getName() === title,
+        ),
+    );
+  const member =
+    uniquePublicMember(methodsOf) ??
+    uniquePublicMember(propertiesAndAccessorsOf);
+  return member ? namedMatch(member) : undefined;
 }
 
 /**
@@ -464,30 +375,17 @@ function findNamedDeclaration(
  */
 // implements REQ-capability-plugin-builtin-parity-v1
 function findClassMember(
-  declaration: ClassDeclaration | ClassExpression,
+  declaration: ClassLike,
   name: string,
-): { node: NamedDeclarationCandidate; getNameNode: () => Node } | null {
-  const visible = (member: Parameters<typeof isPrivateClassMember>[0]) =>
-    !isPrivateClassMember(member);
-  for (const method of declaration.getMethods()) {
-    if (method.getName() !== name || !visible(method)) continue;
-    const nameNode = method.getNameNode();
-    if (nameNode) return { node: method, getNameNode: () => nameNode };
-  }
-  for (const property of declaration.getProperties()) {
-    if (property.getName() !== name || !visible(property)) continue;
-    const nameNode = property.getNameNode();
-    if (nameNode) return { node: property, getNameNode: () => nameNode };
-  }
-  for (const accessor of [
-    ...declaration.getGetAccessors(),
-    ...declaration.getSetAccessors(),
-  ]) {
-    if (accessor.getName() !== name || !visible(accessor)) continue;
-    const nameNode = accessor.getNameNode();
-    if (nameNode) return { node: accessor, getNameNode: () => nameNode };
-  }
-  return null;
+): NamedDeclarationMatch | undefined {
+  const member = [
+    ...methodsOf(declaration),
+    ...propertiesAndAccessorsOf(declaration),
+  ].find(
+    (candidate) =>
+      candidate.getName() === name && !isPrivateClassMember(candidate),
+  );
+  return member ? namedMatch(member) : undefined;
 }
 
 /**
@@ -500,35 +398,35 @@ function namesPrivateClassMember(
   title: string,
 ): boolean {
   const qualified = parseQualifiedMethodTitle(title);
-  const classes: Array<ClassDeclaration | ClassExpression> = [
-    ...sourceFile.getClasses(),
-  ];
+  const owners: Array<{ name: string | undefined; declaration: ClassLike }> =
+    sourceFile
+      .getClasses()
+      .map((declaration) => ({ name: declaration.getName(), declaration }));
   for (const statement of sourceFile.getVariableStatements()) {
-    for (const declaration of statement.getDeclarations()) {
-      const classExpression = declaration.getInitializerIfKind(
+    for (const variable of statement.getDeclarations()) {
+      const declaration = variable.getInitializerIfKind(
         tsMorph().SyntaxKind.ClassExpression,
       );
-      if (classExpression) classes.push(classExpression);
+      if (declaration) {
+        owners.push({
+          name: declaration.getName() ?? variable.getName(),
+          declaration,
+        });
+      }
     }
   }
-  return classes.some((declaration) => {
-    const className =
-      declaration.getName() ??
-      declaration
-        .getParentIfKind(tsMorph().SyntaxKind.VariableDeclaration)
-        ?.getName();
-    if (qualified && qualified.className !== className) return false;
-    const memberName = qualified ? qualified.methodName : title;
-    return [
-      ...declaration.getMethods(),
-      ...declaration.getProperties(),
-      ...declaration.getGetAccessors(),
-      ...declaration.getSetAccessors(),
-    ].some(
-      (member) =>
-        member.getName() === memberName && isPrivateClassMember(member),
-    );
-  });
+  const memberName = qualified ? qualified.methodName : title;
+  return owners.some(
+    ({ name, declaration }) =>
+      (!qualified || qualified.className === name) &&
+      [
+        ...methodsOf(declaration),
+        ...propertiesAndAccessorsOf(declaration),
+      ].some(
+        (member) =>
+          member.getName() === memberName && isPrivateClassMember(member),
+      ),
+  );
 }
 
 function privateMemberRefreshFailure(title: string): string {
@@ -538,10 +436,10 @@ function privateMemberRefreshFailure(title: string): string {
 function parseQualifiedMethodTitle(
   title: string,
 ): { className: string; methodName: string } | null {
-  const separatorIndex = title.lastIndexOf(".");
-  if (separatorIndex <= 0 || separatorIndex === title.length - 1) return null;
-  return {
-    className: title.slice(0, separatorIndex),
-    methodName: title.slice(separatorIndex + 1),
-  };
+  const parts = title.split(".");
+  // split always yields at least one part. A trailing dot leaves an empty
+  // member name, which no member has, so it needs no separate rejection.
+  const methodName = parts.pop() as string;
+  const className = parts.join(".");
+  return className ? { className, methodName } : null;
 }

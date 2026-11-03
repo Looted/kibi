@@ -81,7 +81,14 @@ export function resolveWorkspaceSourceAbsolute(
     const realRoot = realpathSync.native(path.resolve(workspaceRoot));
     const realFile = realpathSync.native(absolute);
     const confined = path.relative(realRoot, realFile);
-    if (confined.startsWith("..") || path.isAbsolute(confined)) return null;
+    // A name that only starts with two dots (`..config.ts`) stays inside.
+    if (
+      confined === ".." ||
+      confined.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(confined)
+    ) {
+      return null;
+    }
     return realFile;
   } catch {
     // Missing path: lexical confinement from normalizeRepoRelativePath is enough.

@@ -41,10 +41,10 @@ function strings(value: unknown): string[] {
 export function canonicalKbOperation(
   toolName: string | undefined,
 ): string | undefined {
-  const name = toolName?.trim() ?? "";
-  const lastSegment = name.includes("__")
-    ? (name.split("__").at(-1) ?? "")
-    : name;
+  // `undefined` is not an operation name, so it needs no special case.
+  const name = `${toolName}`.trim();
+  // split always yields at least one segment.
+  const lastSegment = name.split("__").at(-1) as string;
   const operation = lastSegment.replace(/^kibi_/, "");
   return /^kb_[a-z_]+$/.test(operation) ? operation : undefined;
 }
@@ -96,8 +96,7 @@ export function extractMcpKbUsage(
  * a commit that reached PostToolUse (failures go to PostToolUseFailure)
  * passed `kibi check --staged`.
  */
-export function isVerifiedGitCommit(command: unknown): boolean {
-  if (typeof command !== "string") return false;
+export function isVerifiedGitCommit(command: string): boolean {
   // `git [-C dir | -c key=value | --flag]... commit` followed by a separator.
   const gitCommit =
     /(?:^|[\s;&|(])git(?:\s+-[Cc]\s+\S+|\s+--?[\w-]+(?:=\S+)?)*\s+commit(?=\s|$|[;&|)])/;
@@ -109,17 +108,18 @@ export function isVerifiedGitCommit(command: unknown): boolean {
  * Recognize a Kibi CLI call in a Bash command. JSON piped to `--input -` is
  * inspected when it appears inline in the command.
  */
-export function extractCliKbUsage(command: unknown): KbUsage | undefined {
-  if (typeof command !== "string") return undefined;
+export function extractCliKbUsage(command: string): KbUsage | undefined {
   const operation = kibiCliOperation(command);
   if (!operation) return undefined;
 
   let payload: Record<string, unknown> = {};
   const inline = /'(\{.*\})'/s.exec(command) ?? /"(\{.*\})"/s.exec(command);
-  if (inline?.[1]) {
+  if (inline) {
+    // The group always takes part in a match.
+    const json = inline[1] as string;
     try {
-      const parsed: unknown = JSON.parse(inline[1]);
-      if (isRecord(parsed)) payload = parsed;
+      // Text in braces only parses to an object.
+      payload = JSON.parse(json) as Record<string, unknown>;
     } catch {
       // Shell-escaped JSON the hook cannot decode: fall back to flags.
     }

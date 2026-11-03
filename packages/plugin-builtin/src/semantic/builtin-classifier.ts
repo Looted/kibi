@@ -90,11 +90,11 @@ interface DetectedSignal {
 
 // implements REQ-capability-plugin-builtin-parity-v1
 export function detectSignals(prose: string): readonly DetectedSignal[] {
-  const seen = new Set<SemanticSignalKind>();
+  // Each kind appears once in SIGNAL_PATTERNS, so every kind is reported at
+  // most once without further de-duplication.
   return SIGNAL_PATTERNS.flatMap((candidate) => {
     const evidence = prose.match(candidate.pattern)?.[0];
-    if (!evidence || seen.has(candidate.kind)) return [];
-    seen.add(candidate.kind);
+    if (!evidence) return [];
     return [
       {
         kind: candidate.kind,
@@ -106,6 +106,18 @@ export function detectSignals(prose: string): readonly DetectedSignal[] {
   });
 }
 
+/** Lane each signal kind points to, as declared by SIGNAL_PATTERNS. */
+const LANE_OF_KIND: ReadonlyMap<SemanticSignalKind, SemanticLane> = new Map(
+  SIGNAL_PATTERNS.map(({ kind, candidateLane }) => [kind, candidateLane]),
+);
+
+/** Lanes in precedence order: the first lane any signal points to wins. */
+const LANE_PRECEDENCE = [
+  "strict_property",
+  "predicate",
+  "observation_review",
+] as const satisfies readonly SemanticLane[];
+
 /**
  * Lane selection shared with the host analysis receipt.
  * Host snake_case receipts may omit candidateLane; only `kind` is required.
@@ -114,50 +126,21 @@ export function detectSignals(prose: string): readonly DetectedSignal[] {
 export function chooseLane(
   signals: readonly { readonly kind: SemanticSignalKind }[],
 ): SemanticLane {
-  if (
-    signals.some(
-      ({ kind }) =>
-        kind === "numeric_cardinality" || kind === "numeric_threshold",
-    )
-  )
-    return "strict_property";
-  if (
-    signals.some(
-      ({ kind }) =>
-        kind === "conditional" ||
-        kind === "permission" ||
-        kind === "state_or_default",
-    )
-  )
-    return "predicate";
-  return signals.some(({ kind }) => kind === "normative_modal")
-    ? "observation_review"
-    : "none";
+  return (
+    LANE_PRECEDENCE.find((lane) =>
+      signals.some(({ kind }) => LANE_OF_KIND.get(kind) === lane),
+    ) ?? "none"
+  );
 }
 
-function confidenceForLane(
-  lane: SemanticLane,
-  signals: readonly DetectedSignal[],
-): number {
-  if (lane === "none" || signals.length === 0) return 0;
-  const relevant =
-    lane === "strict_property"
-      ? signals.filter(
-          ({ kind }) =>
-            kind === "numeric_cardinality" || kind === "numeric_threshold",
-        )
-      : lane === "predicate"
-        ? signals.filter(
-            ({ kind }) =>
-              kind === "conditional" ||
-              kind === "permission" ||
-              kind === "state_or_default",
-          )
-        : lane === "observation_review"
-          ? signals.filter(({ kind }) => kind === "normative_modal")
-          : signals;
-  const pool = relevant.length > 0 ? relevant : signals;
-  return Math.max(...pool.map((signal) => signal.confidence));
+/**
+ * Confidence of the strongest detected signal, or 0 without any. Lane
+ * precedence follows signal confidence (strict_property cues outscore
+ * predicate cues, which outscore normative_modal), so the strongest signal
+ * always points to the lane chooseLane picks.
+ */
+function strongestConfidence(signals: readonly DetectedSignal[]): number {
+  return Math.max(0, ...signals.map(({ confidence }) => confidence));
 }
 
 // implements REQ-capability-plugin-builtin-parity-v1
@@ -172,7 +155,7 @@ export class BuiltinSemanticClassifier implements SemanticClassifierV1 {
         const decision: SemanticClassificationDecision = {
           claimKey: proposition.claimKey,
           lane,
-          confidence: confidenceForLane(lane, signals),
+          confidence: strongestConfidence(signals),
         };
         if (signals.length > 0) {
           return {

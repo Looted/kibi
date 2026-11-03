@@ -102,6 +102,19 @@ describe("resolveWorkspaceSourceAbsolute", () => {
     }
   });
 
+  test("a file whose name starts with two dots stays inside the workspace", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "kibi-ws-dots-"));
+    try {
+      const file = path.join(root, "..config.ts");
+      writeFileSync(file, "export const a = 1;\n", "utf8");
+      expect(resolveWorkspaceSourceAbsolute(root, "..config.ts")).toBe(
+        realpathSync.native(file),
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   test("refuses absolute and relative escapes so coordinate refresh cannot oracle outside files", () => {
     const root = mkdtempSync(path.join(tmpdir(), "kibi-ws-escape-"));
     const outside = mkdtempSync(path.join(tmpdir(), "kibi-outside-"));

@@ -18,7 +18,8 @@ const MAX_SCANNED = 2000;
 export const MAX_REQUIREMENT_CANDIDATES = 3;
 
 /** Path words that name a layout, a language or a role, not a behavior. */
-const LAYOUT_WORDS = new Set([
+// Stems: a plural entry would be redundant (words() drops the plural s).
+const LAYOUT_WORDS = stems([
   "src",
   "app",
   "apps",
@@ -26,44 +27,31 @@ const LAYOUT_WORDS = new Set([
   "libs",
   "source",
   "page",
-  "pages",
   "component",
-  "components",
   "view",
-  "views",
   "screen",
-  "screens",
   "package",
-  "packages",
   "main",
   "index",
   "shared",
   "common",
   "core",
   "util",
-  "utils",
   "helper",
-  "helpers",
   "public",
   "static",
   "asset",
-  "assets",
   "web",
   "client",
   "server",
   "frontend",
   "backend",
   "module",
-  "modules",
   "feature",
-  "features",
   "internal",
   "service",
-  "services",
   "test",
-  "tests",
   "spec",
-  "specs",
   "dist",
   "build",
   "html",
@@ -86,7 +74,7 @@ const LAYOUT_WORDS = new Set([
 ]);
 
 /** Words of a title that carry no topic. */
-const FILLER_WORDS = new Set([
+const FILLER_WORDS = stems([
   "the",
   "and",
   "for",
@@ -97,7 +85,6 @@ const FILLER_WORDS = new Set([
   "may",
   "can",
   "are",
-  "is",
   "its",
   "their",
   "that",
@@ -115,16 +102,26 @@ const FILLER_WORDS = new Set([
 
 /** Lowercase word stems of an identifier, path segment or title. */
 function words(text: string): string[] {
-  return text
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((word) => word.length >= 3 && !/\d/.test(word))
-    .map((word) =>
-      word.length > 4 && word.endsWith("s") && !word.endsWith("ss")
-        ? word.slice(0, -1)
-        : word,
-    );
+  return (
+    text
+      .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+      .toLowerCase()
+      .match(/[a-z0-9]+/g)
+      ?.filter((word) => word.length >= 3 && !/\d/.test(word))
+      .map((word) =>
+        word.length > 4 && word.endsWith("s") && !word.endsWith("ss")
+          ? word.slice(0, -1)
+          : word,
+      ) ?? []
+  );
+}
+
+/**
+ * A stop list in the same stemmed form words() produces, so "always" filters
+ * the "alway" stem and plural entries cannot silently miss.
+ */
+function stems(list: readonly string[]): ReadonlySet<string> {
+  return new Set(list.flatMap(words));
 }
 
 // implements REQ-kb-unowned-file-candidates
@@ -134,13 +131,11 @@ function words(text: string): string[] {
  * coach-dashboard.html` -> `coach`, `dashboard`).
  */
 export function pathTopicWords(relativePath: string): string[] {
-  const segments = relativePath.split(/[\\/]/).filter(Boolean);
-  const last = segments.pop() ?? "";
-  const stem = last.includes(".") ? last.slice(0, last.indexOf(".")) : last;
-  const roles = last.includes(".") ? last.slice(last.indexOf(".") + 1) : "";
-  const found = [...segments, stem, roles]
-    .flatMap(words)
-    .filter((word) => !LAYOUT_WORDS.has(word) && !FILLER_WORDS.has(word));
+  // Separators, dots and dashes all split words, so the whole path reads
+  // left to right: directories, file stem, then its role and extension.
+  const found = words(relativePath).filter(
+    (word) => !LAYOUT_WORDS.has(word) && !FILLER_WORDS.has(word),
+  );
   return [...new Set(found)];
 }
 
@@ -171,12 +166,14 @@ function readHead(file: string): RequirementHead | undefined {
     return undefined;
   }
   const lines = head.split(/\r?\n/);
-  if (lines[0]?.trim() !== "---") return undefined;
+  // split always yields at least one line.
+  if ((lines[0] as string).trim() !== "---") return undefined;
   const fields: Record<string, string> = {};
   for (const line of lines.slice(1)) {
     if (line.trim() === "---") break;
-    const match = /^(id|title|status):\s*(.+)$/.exec(line);
-    if (match?.[1] && match[2]) fields[match[1]] = unquote(match[2]);
+    // unquote trims the value, so the space after the colon is optional.
+    const match = /^(id|title|status):(.+)/.exec(line);
+    if (match) fields[match[1] as string] = unquote(match[2] as string);
   }
   if (!fields.id || !fields.title) return undefined;
   return {
@@ -203,7 +200,7 @@ export function requestTopicWords(text: string, limit = 40): string[] {
 }
 
 /** Request words that carry no topic of their own. */
-const REQUEST_FILLER_WORDS = new Set([
+const REQUEST_FILLER_WORDS = stems([
   "please",
   "could",
   "would",
@@ -277,11 +274,10 @@ export function rankRequirementCandidates(
   relativePath: string,
   requirements: readonly RequirementHead[],
   limit: number = MAX_REQUIREMENT_CANDIDATES,
-  requestWords: readonly string[] = [],
+  requestWords?: readonly string[],
 ): RequirementHead[] {
   const topic = new Set(pathTopicWords(relativePath));
-  const request = new Set(requestWords.filter((word) => !topic.has(word)));
-  if (topic.size === 0 && request.size === 0) return [];
+  const request = new Set(requestWords?.filter((word) => !topic.has(word)));
   const scored: {
     head: RequirementHead;
     shared: number;
@@ -289,7 +285,7 @@ export function rankRequirementCandidates(
     uses: number;
   }[] = [];
   for (const head of requirements) {
-    if (head.status !== undefined && RETIRED_STATUS.test(head.status)) continue;
+    if (RETIRED_STATUS.test(String(head.status))) continue;
     const titleWords = words(head.title);
     const pathHits = titleWords.filter((word) => topic.has(word));
     const requestHits = titleWords.filter((word) => request.has(word));
@@ -325,10 +321,17 @@ export function requirementCandidatesForPath(
   workspaceRoot: string,
   relativePath: string,
   limit: number = MAX_REQUIREMENT_CANDIDATES,
-  requestWords: readonly string[] = [],
+  requestWords?: readonly string[],
 ): RequirementHead[] {
-  if (pathTopicWords(relativePath).length === 0 && requestWords.length < 2)
+  // rationale: a shortcut only; ranking finds nothing without topic words
+  // and with fewer than two request words, but skips the directory scan.
+  // Stryker disable ConditionalExpression
+  if (
+    pathTopicWords(relativePath).length === 0 &&
+    (requestWords?.length ?? 0) < 2
+  )
     return [];
+  // Stryker restore ConditionalExpression
   const directory = path.join(workspaceRoot, REQUIREMENTS_DIR);
   let names: string[];
   try {

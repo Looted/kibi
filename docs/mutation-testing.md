@@ -87,6 +87,21 @@ New tests that pin reader results go in
 listed in `TREESITTER_MUTATION_TESTS`; the contract test checks both.
 `references.ts` (the older readers) is not in this gate.
 
+## TypeScript gate scope
+
+`stryker.conf.mjs` mutates these whole packages (`MUTATION_PACKAGES`), each
+tested by every `*.test.ts` under its own `tests/` directory: `runtime`,
+`codex`, `cursor`, `plugin-sdk`, `plugin-jev`, `agent-core`, `zcode`,
+`claude`, `plugin-ui`, `plugin-search-hints` and `plugin-builtin`. `CLI_MUTATION_MODULES` adds
+single kibi-cli modules and `PLUGIN_MUTATION_MODULES` single files outside a
+`src/` tree (`packages/swipl/index.js`), each with the tests named for it.
+
+`MUTATION_TEST_EXCLUDES` lists test files of those packages that cannot run
+in the sandbox: `packages/claude/tests/distribution.test.ts` compares the
+committed hook bundle with the source, which the sandbox instruments. New
+tests for a package in scope go in its `tests/` directory, where the gate
+picks them up; the contract test checks that every one is registered.
+
 ## Equivalent mutants and exclusions
 
 Some mutants are semantically equivalent to the original code (for example,
@@ -144,3 +159,6 @@ production runtime; the remaining excluded mutants fall into these groups:
 | `packages/cli/src/entity-body-context.ts` (`classifyLines`) | A prose row's `heading: ""` is never read, and `match[1]?.length` only satisfies the indexed-access type (the pattern always captures the hashes). |
 | `packages/cli/src/logic/ir.ts` | `renameTerm`'s variable guard and the declared-name guard only narrow types (a missing name is never looked up), and the `?? []` fallback over declared variables yields entries without a name, which rename nothing. |
 | `packages/cli` check speedups (`source-analysis-cache.ts`, `symbol-coordinates.ts`, `shards.ts`, `symbol-granularity-check.ts`, `requirement-quality.ts`, `aggregated-checks.ts`) and `packages/mcp/src/tools/check-prolog.ts` | These modules are not in the gated set; their speedup lines were mutated by line range. A pure-function memo skipped or recomputed gives the same answer; the builtin analyzer always resolves where tests run; `force` on removing a directory that exists changes nothing; Windows separator normalization cannot show on a POSIX runner; an incomplete analysis carries no symbols; every requirement asked for is in the fanout index. |
+| `packages/agent-core/src/usage-telemetry.ts` | The Node runtime name is unreachable under Bun, whose global cannot be removed; `timer.unref()` only changes process lifetime; `force` on removing claimed or listed queue files only matters in a cross-process race; an empty claimed-batch list and a placeholder path are both dropped as unreadable. |
+| `packages/agent-core/src/snippets.ts`, `packages/agent-core/src/requirement-candidates.ts`, `packages/agent-core/src/path-policy.ts`, `packages/agent-core/src/knowledge-index.ts` | Early returns that only save reading a file, an empty list whose placeholder entry reads as a primitive with no fields, the unowned-path shortcut, and the backslash normalization that cannot show on a POSIX runner. |
+| `packages/plugin-sdk/src/validate.ts`, `packages/zcode/src/hook-runner.ts`, `packages/claude/src/hook-runner.ts` | Fallback `[]` values for absent ownership and markers, the missing-target guard whose throw the caller turns into the same missing context, a missing command start time that matches no file, and the `"read"` snippet surface, which is equivalent to any non-`"edit"` value. |

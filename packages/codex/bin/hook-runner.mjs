@@ -16,7 +16,7 @@ var REQUIREMENTS_DIR = path.join(".kb", "requirements");
 var HEAD_BYTES = 4096;
 var MAX_SCANNED = 2000;
 var MAX_REQUIREMENT_CANDIDATES = 3;
-var LAYOUT_WORDS = new Set([
+var LAYOUT_WORDS = stems([
   "src",
   "app",
   "apps",
@@ -24,44 +24,31 @@ var LAYOUT_WORDS = new Set([
   "libs",
   "source",
   "page",
-  "pages",
   "component",
-  "components",
   "view",
-  "views",
   "screen",
-  "screens",
   "package",
-  "packages",
   "main",
   "index",
   "shared",
   "common",
   "core",
   "util",
-  "utils",
   "helper",
-  "helpers",
   "public",
   "static",
   "asset",
-  "assets",
   "web",
   "client",
   "server",
   "frontend",
   "backend",
   "module",
-  "modules",
   "feature",
-  "features",
   "internal",
   "service",
-  "services",
   "test",
-  "tests",
   "spec",
-  "specs",
   "dist",
   "build",
   "html",
@@ -82,7 +69,7 @@ var LAYOUT_WORDS = new Set([
   "swift",
   "php"
 ]);
-var FILLER_WORDS = new Set([
+var FILLER_WORDS = stems([
   "the",
   "and",
   "for",
@@ -93,7 +80,6 @@ var FILLER_WORDS = new Set([
   "may",
   "can",
   "are",
-  "is",
   "its",
   "their",
   "that",
@@ -109,14 +95,13 @@ var FILLER_WORDS = new Set([
   "auto"
 ]);
 function words(text) {
-  return text.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length >= 3 && !/\d/.test(word)).map((word) => word.length > 4 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word);
+  return text.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase().match(/[a-z0-9]+/g)?.filter((word) => word.length >= 3 && !/\d/.test(word)).map((word) => word.length > 4 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word) ?? [];
+}
+function stems(list) {
+  return new Set(list.flatMap(words));
 }
 function pathTopicWords(relativePath) {
-  const segments = relativePath.split(/[\\/]/).filter(Boolean);
-  const last = segments.pop() ?? "";
-  const stem = last.includes(".") ? last.slice(0, last.indexOf(".")) : last;
-  const roles = last.includes(".") ? last.slice(last.indexOf(".") + 1) : "";
-  const found = [...segments, stem, roles].flatMap(words).filter((word) => !LAYOUT_WORDS.has(word) && !FILLER_WORDS.has(word));
+  const found = words(relativePath).filter((word) => !LAYOUT_WORDS.has(word) && !FILLER_WORDS.has(word));
   return [...new Set(found)];
 }
 function unquote(value) {
@@ -138,14 +123,14 @@ function readHead(file) {
     return;
   }
   const lines = head.split(/\r?\n/);
-  if (lines[0]?.trim() !== "---")
+  if (lines[0].trim() !== "---")
     return;
   const fields = {};
   for (const line of lines.slice(1)) {
     if (line.trim() === "---")
       break;
-    const match = /^(id|title|status):\s*(.+)$/.exec(line);
-    if (match?.[1] && match[2])
+    const match = /^(id|title|status):(.+)/.exec(line);
+    if (match)
       fields[match[1]] = unquote(match[2]);
   }
   if (!fields.id || !fields.title)
@@ -161,7 +146,7 @@ function requestTopicWords(text, limit = 40) {
   const found = words(text).filter((word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word));
   return [...new Set(found)].slice(0, limit);
 }
-var REQUEST_FILLER_WORDS = new Set([
+var REQUEST_FILLER_WORDS = stems([
   "please",
   "could",
   "would",
@@ -222,14 +207,12 @@ var REQUEST_FILLER_WORDS = new Set([
   "too",
   "very"
 ]);
-function rankRequirementCandidates(relativePath, requirements, limit = MAX_REQUIREMENT_CANDIDATES, requestWords = []) {
+function rankRequirementCandidates(relativePath, requirements, limit = MAX_REQUIREMENT_CANDIDATES, requestWords) {
   const topic = new Set(pathTopicWords(relativePath));
-  const request = new Set(requestWords.filter((word) => !topic.has(word)));
-  if (topic.size === 0 && request.size === 0)
-    return [];
+  const request = new Set(requestWords?.filter((word) => !topic.has(word)));
   const scored = [];
   for (const head of requirements) {
-    if (head.status !== undefined && RETIRED_STATUS.test(head.status))
+    if (RETIRED_STATUS.test(String(head.status)))
       continue;
     const titleWords = words(head.title);
     const pathHits = titleWords.filter((word) => topic.has(word));
@@ -248,8 +231,8 @@ function rankRequirementCandidates(relativePath, requirements, limit = MAX_REQUI
   scored.sort((a, b) => b.shared - a.shared || b.asked - a.asked || b.uses - a.uses || a.head.id.localeCompare(b.head.id));
   return scored.slice(0, limit).map((entry) => entry.head);
 }
-function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_REQUIREMENT_CANDIDATES, requestWords = []) {
-  if (pathTopicWords(relativePath).length === 0 && requestWords.length < 2)
+function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_REQUIREMENT_CANDIDATES, requestWords) {
+  if (pathTopicWords(relativePath).length === 0 && (requestWords?.length ?? 0) < 2)
     return [];
   const directory = path.join(workspaceRoot, REQUIREMENTS_DIR);
   let names;
@@ -289,56 +272,36 @@ function unquote2(raw) {
   if (value.startsWith("'") && value.endsWith("'") && value.length >= 2) {
     return value.slice(1, -1).replaceAll("''", "'");
   }
-  const comment = value.search(/\s#/);
-  return comment >= 0 ? value.slice(0, comment).trimEnd() : value;
+  return value.replace(/\s#[\s\S]*/, "").trimEnd();
 }
+var FLOW_BLANK = /(?:[ \t\n\r]|#[^\n]*)*/y;
+var DOUBLE_QUOTED = /"(?:[^"\\]|\\[\s\S])*"/y;
+var SINGLE_QUOTED = /'(?:[^']|'')*'/y;
 function parseFlow(text, start = 0) {
   let pos = start;
   const skip = () => {
-    while (pos < text.length) {
-      const char = text[pos];
-      if (char === "#") {
-        while (pos < text.length && text[pos] !== `
-`)
-          pos += 1;
-      } else if (char === " " || char === "\t" || char === `
-` || char === "\r") {
-        pos += 1;
-      } else {
-        break;
-      }
-    }
+    FLOW_BLANK.lastIndex = pos;
+    FLOW_BLANK.test(text);
+    pos = FLOW_BLANK.lastIndex;
   };
   const scalar = (stops) => {
-    const quote = text[pos];
+    const quote = text.charAt(pos);
     if (quote === '"' || quote === "'") {
-      let cursor = pos + 1;
-      while (cursor < text.length) {
-        if (quote === '"' && text[cursor] === "\\")
-          cursor += 2;
-        else if (text[cursor] === quote) {
-          if (quote === "'" && text[cursor + 1] === "'")
-            cursor += 2;
-          else
-            break;
-        } else
-          cursor += 1;
-      }
-      if (cursor >= text.length)
-        return;
-      const raw = text.slice(pos, cursor + 1);
-      pos = cursor + 1;
+      const pattern = quote === '"' ? DOUBLE_QUOTED : SINGLE_QUOTED;
+      pattern.lastIndex = pos;
+      const raw = pattern.exec(text)[0];
+      pos = pattern.lastIndex;
       return unquote2(raw);
     }
     let cursor = pos;
-    while (cursor < text.length) {
-      const char = text[cursor] ?? "";
+    for (;; ) {
+      const char = text.charAt(cursor);
       if (stops.includes(char) && char !== ":" || char === `
 ` || char === "\r")
         break;
-      if (stops.includes(":") && char === ":" && (cursor + 1 >= text.length || /[\s,\]}]/.test(text[cursor + 1] ?? "")))
+      if (stops.includes(":") && char === ":" && /[\s,\]}]/.test(text.charAt(cursor + 1)))
         break;
-      if (char === "#" && /\s/.test(text[cursor - 1] ?? ""))
+      if (char === "#" && /\s/.test(text.charAt(cursor - 1)))
         break;
       cursor += 1;
     }
@@ -347,27 +310,22 @@ function parseFlow(text, start = 0) {
     return raw;
   };
   const value = () => {
-    skip();
-    const open = text[pos];
+    const open = text.charAt(pos);
     if (open === "[") {
       pos += 1;
       const items = [];
       for (;; ) {
         skip();
-        if (text[pos] === "]") {
+        if (text.charAt(pos) === "]") {
           pos += 1;
           return items;
         }
-        if (pos >= text.length)
-          throw new SyntaxError("unterminated flow sequence");
-        const item = value();
-        if (item !== undefined)
-          items.push(item);
+        items.push(value());
         skip();
-        if (text[pos] === ",")
+        if (text.charAt(pos) === ",")
           pos += 1;
-        else if (text[pos] !== "]")
-          throw new SyntaxError("expected , or ]");
+        else if (text.charAt(pos) !== "]")
+          throw new SyntaxError;
       }
     }
     if (open === "{") {
@@ -375,46 +333,37 @@ function parseFlow(text, start = 0) {
       const record = {};
       for (;; ) {
         skip();
-        if (text[pos] === "}") {
+        if (text.charAt(pos) === "}") {
           pos += 1;
           return record;
         }
-        if (pos >= text.length)
-          throw new SyntaxError("unterminated flow mapping");
         const key = scalar(":,}");
-        if (key === undefined)
-          throw new SyntaxError("unterminated key");
         skip();
         let entry;
-        if (text[pos] === ":") {
+        if (text.charAt(pos) === ":") {
           pos += 1;
           skip();
-          entry = text[pos] === "," || text[pos] === "}" ? undefined : value();
+          entry = text.charAt(pos) === "," || text.charAt(pos) === "}" ? undefined : value();
         }
         if (key.length > 0)
           record[key] = entry;
         skip();
-        if (text[pos] === ",")
+        if (text.charAt(pos) === ",")
           pos += 1;
-        else if (text[pos] !== "}")
-          throw new SyntaxError("expected , or }");
+        else if (text.charAt(pos) !== "}")
+          throw new SyntaxError;
       }
     }
-    const raw = scalar(",]}");
-    if (raw === undefined)
-      throw new SyntaxError("unterminated scalar");
-    return raw;
+    return scalar(",]}");
   };
   try {
     const parsed = value();
     return { value: parsed, end: pos };
-  } catch {
-    return;
-  }
+  } catch {}
+  return;
 }
 function opensFlow(raw) {
-  const value = raw.trim();
-  return value.startsWith("[") || value.startsWith("{");
+  return raw.startsWith("[") || raw.startsWith("{");
 }
 var keyValue = /^([A-Za-z0-9_"'-][^:]*?):(?:\s+(.*))?$/;
 function completeFlowValue(raw) {
@@ -427,7 +376,7 @@ function completeFlowValue(raw) {
   return rest.length === 0 || rest.startsWith("#") ? parsed : undefined;
 }
 function parseScalarOrFlow(raw) {
-  if (raw === undefined || raw.trim().length === 0)
+  if (!raw)
     return;
   return completeFlowValue(raw)?.value ?? unquote2(raw);
 }
@@ -441,32 +390,27 @@ function flowRecords(text, start) {
   const parsed = parseFlow(text, start);
   if (!Array.isArray(parsed?.value))
     return;
-  return parsed.value.filter((item) => item !== null && typeof item === "object" && !Array.isArray(item));
+  return parsed.value.filter((item) => typeof item === "object" && !Array.isArray(item));
 }
 function scanFlowSection(text, sectionKey) {
-  const escapedKey = sectionKey.replaceAll(/[.*+?^$(){}|[\]\\]/g, "\\$&");
-  const header = new RegExp(`^${escapedKey}:[ \\t]*(\\[)?`);
+  const header = new RegExp(`^${sectionKey}:[ \\t]*(\\[)?`);
   let offset = 0;
   let first = true;
   let afterHeader = false;
   for (const piece of text.split(/(\r?\n)/)) {
     const content = piece.trim();
-    const indent = piece.length - piece.trimStart().length;
     if (content.length > 0 && !content.startsWith("#")) {
-      if (afterHeader) {
-        return content.startsWith("[") ? flowRecords(text, offset + piece.indexOf("[")) : undefined;
-      }
-      if (first && content.startsWith("[")) {
-        return flowRecords(text, offset + piece.indexOf("["));
-      }
+      const bracket = offset + piece.indexOf("[");
+      if ((first || afterHeader) && content.startsWith("["))
+        return flowRecords(text, bracket);
+      if (afterHeader)
+        return;
       first = false;
-      if (indent === 0) {
-        const match = header.exec(piece);
-        if (match) {
-          if (match[1] !== undefined)
-            return flowRecords(text, offset + piece.indexOf("["));
-          afterHeader = true;
-        }
+      const match = header.exec(piece);
+      if (match) {
+        if (match[1] !== undefined)
+          return flowRecords(text, bracket);
+        afterHeader = true;
       }
     }
     offset += piece.length;
@@ -478,123 +422,96 @@ function scanRecordSequence(text, sectionKey) {
   if (flowSection !== undefined)
     return flowSection;
   const records = [];
-  let itemIndent;
-  let keyIndent = 0;
-  let current;
+  let item;
   let listKey;
   let listItem;
-  let section = "root";
+  let otherSection = false;
   let pendingFlow;
+  const assign = (target, key, raw, recordIndent) => {
+    if (raw !== undefined && unbalancedFlow(raw)) {
+      pendingFlow = { target, key, first: raw, text: raw, recordIndent };
+      return false;
+    }
+    const value = parseScalarOrFlow(raw);
+    if (value === undefined)
+      return true;
+    target[key] = value;
+    return false;
+  };
   for (const rawLine of text.split(/\r?\n/)) {
     const content = rawLine.trim();
     if (content.length === 0 || content.startsWith("#"))
       continue;
     const indent = rawLine.length - rawLine.trimStart().length;
     const dash = /^(\s*)-(\s+)(.*)$/.exec(rawLine);
-    if (pendingFlow !== undefined && current !== undefined) {
-      const target = pendingFlow.onListItem && listItem !== undefined ? listItem : current;
-      if (indent > (itemIndent ?? 0) && !(dash && indent === itemIndent)) {
+    if (pendingFlow !== undefined) {
+      if (indent > pendingFlow.recordIndent) {
         pendingFlow.text += `
 ${content}`;
         const parsed = parseFlow(pendingFlow.text);
         if (parsed === undefined)
           continue;
-        target[pendingFlow.key] = parsed.value;
+        pendingFlow.target[pendingFlow.key] = parsed.value;
         pendingFlow = undefined;
         continue;
       }
-      target[pendingFlow.key] = unquote2(pendingFlow.first);
+      pendingFlow.target[pendingFlow.key] = unquote2(pendingFlow.first);
       pendingFlow = undefined;
     }
     if (indent === 0 && !dash) {
       const pair = keyValue.exec(content);
-      section = pair?.[1] !== undefined && unquote2(pair[1]) === sectionKey ? "records" : "other";
-      current = undefined;
-      itemIndent = undefined;
+      otherSection = pair === null || unquote2(pair[1]) !== sectionKey;
+      item = undefined;
       continue;
     }
-    if (section === "other")
+    if (otherSection)
       continue;
-    if (dash && (itemIndent === undefined || indent === itemIndent)) {
-      itemIndent = indent;
-      keyIndent = (dash[1]?.length ?? 0) + 1 + (dash[2]?.length ?? 1);
-      current = {};
-      records.push(current);
+    if (dash && (item === undefined || indent === item.indent)) {
+      const rest = dash[3];
+      item = { record: {}, indent, keyIndent: rawLine.length - rest.length };
+      records.push(item.record);
       listKey = undefined;
       listItem = undefined;
-      const pair = keyValue.exec(dash[3] ?? "");
-      if (pair?.[1] !== undefined) {
+      const pair = keyValue.exec(rest);
+      if (pair !== null) {
         const key = unquote2(pair[1]);
-        if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
-          pendingFlow = {
-            key,
-            first: pair[2],
-            text: pair[2],
-            onListItem: false
-          };
-          continue;
-        }
-        const value = parseScalarOrFlow(pair[2]);
-        if (value !== undefined)
-          current[key] = value;
-        else
+        if (assign(item.record, key, pair[2], indent))
           listKey = key;
       }
       continue;
     }
-    if (current === undefined || itemIndent === undefined)
-      continue;
-    if (indent <= itemIndent)
+    if (item === undefined || indent <= item.indent)
       continue;
     if (dash) {
       if (listKey === undefined)
         continue;
-      const list = Array.isArray(current[listKey]) ? current[listKey] : [];
-      current[listKey] = list;
-      const item = dash[3] ?? "";
-      const flowItem = completeFlowValue(item);
-      const pair = flowItem === undefined ? keyValue.exec(item) : null;
+      const list = Array.isArray(item.record[listKey]) ? item.record[listKey] : [];
+      item.record[listKey] = list;
+      const rest = dash[3];
+      const flowItem = completeFlowValue(rest);
+      listItem = undefined;
       if (flowItem !== undefined) {
-        listItem = undefined;
         list.push(flowItem.value);
-      } else if (pair?.[1] !== undefined && pair[2] !== undefined) {
+        continue;
+      }
+      const pair = keyValue.exec(rest);
+      if (pair?.[2] !== undefined) {
         listItem = { [unquote2(pair[1])]: parseScalarOrFlow(pair[2]) };
         list.push(listItem);
       } else {
-        listItem = undefined;
-        list.push(unquote2(item));
+        list.push(unquote2(rest));
       }
       continue;
     }
     const pair = keyValue.exec(content);
-    if (pair?.[1] === undefined)
+    if (pair === null)
       continue;
     const key = unquote2(pair[1]);
-    if (indent === keyIndent) {
+    if (indent === item.keyIndent) {
       listItem = undefined;
-      if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
-        pendingFlow = {
-          key,
-          first: pair[2],
-          text: pair[2],
-          onListItem: false
-        };
-        listKey = undefined;
-        continue;
-      }
-      const value = parseScalarOrFlow(pair[2]);
-      if (value === undefined) {
-        listKey = key;
-      } else {
-        current[key] = value;
-        listKey = undefined;
-      }
-    } else if (listItem !== undefined && pair[2] !== undefined) {
-      if (unbalancedFlow(pair[2])) {
-        pendingFlow = { key, first: pair[2], text: pair[2], onListItem: true };
-        continue;
-      }
-      listItem[key] = parseScalarOrFlow(pair[2]);
+      listKey = assign(item.record, key, pair[2], item.indent) ? key : undefined;
+    } else if (listItem !== undefined) {
+      assign(listItem, key, pair[2], item.indent);
     }
   }
   return records;
@@ -602,49 +519,43 @@ ${content}`;
 function scanSymbolCoordinates(text) {
   const coordinates = {};
   let inCoordinates = false;
-  let idIndent;
-  let currentId;
+  let current;
   for (const rawLine of text.split(/\r?\n/)) {
-    const content = rawLine.trim();
-    if (content.length === 0 || content.startsWith("#"))
+    const pair = keyValue.exec(rawLine.trim());
+    if (pair === null)
       continue;
     const indent = rawLine.length - rawLine.trimStart().length;
-    const pair = keyValue.exec(content);
-    if (pair?.[1] === undefined)
-      continue;
     const key = unquote2(pair[1]);
     if (indent === 0) {
       inCoordinates = key === "coordinates";
-      idIndent = undefined;
-      currentId = undefined;
+      current = undefined;
       continue;
     }
     if (!inCoordinates)
       continue;
-    if (idIndent === undefined || indent === idIndent) {
-      idIndent = indent;
-      currentId = key;
-      coordinates[currentId] ??= {};
+    if (current !== undefined && indent < current.indent)
+      continue;
+    if (current === undefined || indent === current.indent) {
+      coordinates[key] ??= {};
+      current = { indent, entry: coordinates[key] };
       continue;
     }
-    if (currentId === undefined || indent < idIndent)
+    if (pair[2] === undefined)
       continue;
-    const entry = coordinates[currentId] ?? {};
+    const value = unquote2(pair[2]);
     if (key === "sourceFile") {
-      const sourceFile = normalizeSourceFile(unquote2(pair[2] ?? ""));
+      const sourceFile = normalizeSourceFile(value);
       if (sourceFile.length > 0)
-        entry.sourceFile = sourceFile;
-      coordinates[currentId] = entry;
+        current.entry.sourceFile = sourceFile;
       continue;
     }
-    const numeric = Number.parseInt(unquote2(pair[2] ?? ""), 10);
+    const numeric = Number.parseInt(value, 10);
     if (!Number.isFinite(numeric))
       continue;
     if (key === "sourceLine")
-      entry.line = numeric;
+      current.entry.line = numeric;
     if (key === "sourceEndLine")
-      entry.endLine = numeric;
-    coordinates[currentId] = entry;
+      current.entry.endLine = numeric;
   }
   return coordinates;
 }
@@ -691,7 +602,19 @@ function buildKnowledgeIndex(records, coordinates = {}, options = {}, manifest =
       coveredBy: [],
       executableFor: []
     };
-    const relationships = [];
+    const relate = (type, target) => {
+      if (type === "implements")
+        pushUnique(symbol.implements, target);
+      else if (type === "covered_by")
+        pushUnique(symbol.coveredBy, target);
+      else if (type === "executable_for")
+        pushUnique(symbol.executableFor, target);
+    };
+    const relateTyped = (relation) => {
+      const typed = relation ?? {};
+      if (typeof typed.target === "string")
+        relate(typed.type, typed.target);
+    };
     if (options.legacyLinksAsImplements !== false) {
       let links = [];
       if (typeof record.links === "string")
@@ -699,31 +622,15 @@ function buildKnowledgeIndex(records, coordinates = {}, options = {}, manifest =
       else if (Array.isArray(record.links))
         links = record.links;
       for (const link of links) {
-        if (typeof link === "string") {
-          relationships.push({ type: "implements", target: link });
-        } else if (link !== null && typeof link === "object") {
-          const typed = link;
-          if (typeof typed.type === "string" && typeof typed.target === "string") {
-            relationships.push({ type: typed.type, target: typed.target });
-          }
-        }
+        if (typeof link === "string")
+          relate("implements", link);
+        else
+          relateTyped(link);
       }
     }
-    for (const relation of Array.isArray(record.relationships) ? record.relationships : []) {
-      if (relation === null || typeof relation !== "object")
-        continue;
-      const typed = relation;
-      if (typeof typed.type === "string" && typeof typed.target === "string")
-        relationships.push({ type: typed.type, target: typed.target });
-    }
-    for (const { type, target } of relationships) {
-      if (type === "implements")
-        pushUnique(symbol.implements, target);
-      else if (type === "covered_by")
-        pushUnique(symbol.coveredBy, target);
-      else if (type === "executable_for")
-        pushUnique(symbol.executableFor, target);
-    }
+    if (Array.isArray(record.relationships))
+      for (const relation of record.relationships)
+        relateTyped(relation);
     if (symbol.implements.length + symbol.coveredBy.length + symbol.executableFor.length === 0) {
       continue;
     }
@@ -751,9 +658,8 @@ function fileSignature(filePath) {
 function readText(filePath) {
   try {
     return fs2.readFileSync(filePath, "utf8");
-  } catch {
-    return;
-  }
+  } catch {}
+  return;
 }
 function writeCacheAtomically(cachePath, payload) {
   try {
@@ -763,28 +669,33 @@ function writeCacheAtomically(cachePath, payload) {
     fs2.renameSync(temporary, cachePath);
   } catch {}
 }
+function readCachedIndex(cachePath, signature) {
+  try {
+    const parsed = JSON.parse(String(fs2.readFileSync(cachePath)));
+    if (parsed.signature === signature && parsed.index)
+      return parsed.index;
+  } catch {}
+  return;
+}
+function scanKnowledgeIndex(symbolsPath, coordinatesPath, options) {
+  const symbolsText = readText(symbolsPath);
+  const coordinatesText = readText(coordinatesPath);
+  const records = symbolsText === undefined ? [] : scanSymbolsManifest(symbolsText);
+  return buildKnowledgeIndex(records, coordinatesText === undefined ? {} : scanSymbolCoordinates(coordinatesText), options, manifestStateOf(symbolsText, records.length));
+}
 function loadKnowledgeIndex(workspaceRoot, cacheDir, options = {}) {
   const symbolsPath = path2.join(workspaceRoot, SYMBOLS_MANIFEST);
   const coordinatesPath = path2.join(workspaceRoot, SYMBOL_COORDINATES);
+  if (!cacheDir)
+    return scanKnowledgeIndex(symbolsPath, coordinatesPath, options);
   const legacyMode = options.legacyLinksAsImplements === false ? "typed" : "legacy";
   const signature = `${INDEX_FORMAT}|${legacyMode}|${fileSignature(symbolsPath)}|${fileSignature(coordinatesPath)}`;
-  const cachePath = cacheDir ? path2.join(cacheDir, options.cacheFileName ?? CACHE_FILE) : undefined;
-  if (cachePath) {
-    const cached = readText(cachePath);
-    if (cached !== undefined) {
-      try {
-        const parsed = JSON.parse(cached);
-        if (parsed.signature === signature && parsed.index)
-          return parsed.index;
-      } catch {}
-    }
-  }
-  const symbolsText = readText(symbolsPath);
-  const records = symbolsText === undefined ? [] : scanSymbolsManifest(symbolsText);
-  const index = buildKnowledgeIndex(records, scanSymbolCoordinates(readText(coordinatesPath) ?? ""), options, manifestStateOf(symbolsText, records.length));
-  if (cachePath) {
-    writeCacheAtomically(cachePath, JSON.stringify({ signature, index }));
-  }
+  const cachePath = path2.join(cacheDir, options.cacheFileName ?? CACHE_FILE);
+  const cached = readCachedIndex(cachePath, signature);
+  if (cached !== undefined)
+    return cached;
+  const index = scanKnowledgeIndex(symbolsPath, coordinatesPath, options);
+  writeCacheAtomically(cachePath, JSON.stringify({ signature, index }));
   return index;
 }
 var ENTITY_LANES = [
@@ -816,8 +727,7 @@ function readScalar(lines, index, raw) {
   const block = /^[>|][+-]?$/.test(raw.trim());
   const parts = block ? [] : [raw.trim()];
   let last = index;
-  while (last + 1 < lines.length) {
-    const next = lines[last + 1] ?? "";
+  for (const next of lines.slice(index + 1)) {
     if (next.trim() === "---" || !/^\s+\S/.test(next))
       break;
     if (!block && /^\s+-\s/.test(next))
@@ -825,7 +735,7 @@ function readScalar(lines, index, raw) {
     parts.push(next.trim());
     last += 1;
   }
-  const joined = parts.join(" ").trim();
+  const joined = parts.join(" ");
   return { value: block ? joined : unquote2(joined), last };
 }
 function firstParagraph(lines) {
@@ -844,7 +754,7 @@ function firstParagraph(lines) {
     }
     paragraph.push(text);
   }
-  return paragraph.length > 0 ? paragraph.join(" ") : undefined;
+  return paragraph.join(" ");
 }
 var MAX_SUMMARY_LINKS = 24;
 var RELATIONSHIPS_DIR = ".kb/relationships";
@@ -856,21 +766,18 @@ function shardPathFor(workspaceRoot, entityId) {
 function shardLinksFrom(workspaceRoot, entityId) {
   const shardPath = shardPathFor(workspaceRoot, entityId);
   const signature = fileSignature(shardPath);
-  if (signature === "missing") {
-    shardCache.delete(shardPath);
-    return [];
-  }
   let cached = shardCache.get(shardPath);
   if (cached?.signature !== signature) {
     const byFrom = new Map;
-    const records = scanRecordSequence(readText(shardPath) ?? "", "relationships");
-    for (const { type, from, to } of records) {
-      if (typeof type !== "string" || typeof from !== "string" || typeof to !== "string") {
-        continue;
+    const text = readText(shardPath);
+    if (text !== undefined) {
+      for (const { type, from, to } of scanRecordSequence(text, "relationships")) {
+        if (typeof type !== "string" || typeof to !== "string")
+          continue;
+        const list = byFrom.get(from) ?? [];
+        list.push({ type, target: to });
+        byFrom.set(from, list);
       }
-      const list = byFrom.get(from) ?? [];
-      list.push({ type, target: to });
-      byFrom.set(from, list);
     }
     cached = { signature, byFrom };
     shardCache.set(shardPath, cached);
@@ -902,7 +809,7 @@ function readEntitySummary(workspaceRoot, entityId) {
     return { id: entityId };
   }
   const lines = head.split(/\r?\n/);
-  if (lines[0]?.trim() !== "---")
+  if (lines[0].trim() !== "---")
     return { id: entityId };
   const summary = { id: entityId };
   const authored = [];
@@ -916,20 +823,20 @@ function readEntitySummary(workspaceRoot, entityId) {
   let bodyStart = lines.length;
   let pending;
   for (let index = 1;index < lines.length; index += 1) {
-    const line = lines[index] ?? "";
+    const line = lines[index];
     if (line.trim() === "---") {
       closed = true;
       bodyStart = index + 1;
       break;
     }
-    const scalar = /^([a-z_]+):\s*(.*)$/.exec(line);
-    const scalarField = scalar ? SUMMARY_SCALARS[scalar[1] ?? ""] : undefined;
+    const scalar = /^([a-z_]+):\s*(.*)/.exec(line);
+    const scalarField = scalar ? SUMMARY_SCALARS[scalar[1]] : undefined;
     if (scalar && scalarField && scalar[2]) {
       const { value, last } = readScalar(lines, index, scalar[2]);
       if (value !== "") {
         if (scalarField === "statement")
           summary.statement = value;
-        else if (scalarField !== "values")
+        else
           claim[scalarField] = value;
       }
       index = last;
@@ -939,19 +846,19 @@ function readEntitySummary(workspaceRoot, entityId) {
       inValueSet = false;
       continue;
     }
-    if (scalar && SCALAR_VALUE_FIELDS.has(scalar[1] ?? "") && scalar[2]) {
+    if (scalar && SCALAR_VALUE_FIELDS.has(scalar[1]) && scalar[2]) {
       values.push(unquote2(scalar[2]));
     }
     const flowSet = /^value_set:\s*\[(.*)\]\s*$/.exec(line);
-    if (flowSet?.[1]?.trim()) {
+    if (flowSet !== null && flowSet[1].trim()) {
       values.push(...flowSet[1].split(",").map((member) => unquote2(member)));
     }
     if (/^\S/.test(line))
       inValueSet = /^value_set:\s*$/.test(line);
     else if (inValueSet) {
-      const member = /^\s*-\s*(.+)$/.exec(line);
+      const member = /^\s*-\s*(.+)/.exec(line);
       if (member)
-        values.push(unquote2(member[1] ?? ""));
+        values.push(unquote2(member[1]));
     }
     const flowOrigin = /^origin:\s*\{.*\bkind:\s*["']?([a-z]+)/.exec(line);
     if (flowOrigin)
@@ -961,7 +868,7 @@ function readEntitySummary(workspaceRoot, entityId) {
       originKind = nestedKind[1];
     if (/^\S/.test(line))
       inOrigin = /^origin:\s*$/.test(line);
-    const match = /^(title|status|firmness):\s*(.*)$/.exec(line);
+    const match = /^(title|status|firmness):\s*(.*)/.exec(line);
     if (match?.[1] === "title" && match[2])
       summary.title = unquote2(match[2]);
     if (match?.[1] === "status" && match[2])
@@ -976,19 +883,19 @@ function readEntitySummary(workspaceRoot, entityId) {
     }
     if (!inLinks)
       continue;
-    const entry = /^\s*-\s*(.*)$/.exec(line);
+    const entry = /^\s*-\s*(.*)/.exec(line);
     if (entry) {
       flushLink(authored, pending);
       pending = {};
     }
     if (!pending)
       continue;
-    const body = (entry ? entry[1] ?? "" : line).trim();
-    const field = /^(type|target):\s*(.+)$/.exec(body);
+    const body = (entry ? entry[1] : line).trim();
+    const field = /^(type|target):\s*(.+)/.exec(body);
     if (field?.[1] === "type")
-      pending.type = unquote2(field[2] ?? "");
+      pending.type = unquote2(field[2]);
     else if (field?.[1] === "target")
-      pending.target = unquote2(field[2] ?? "");
+      pending.target = unquote2(field[2]);
     else if (entry && SAFE_ENTITY_ID.test(unquote2(body)))
       pending.bare = unquote2(body);
   }
@@ -1036,38 +943,21 @@ function truncate(text, limit) {
   return text.length <= limit ? text : `${text.slice(0, limit - 1)}…`;
 }
 function overlaps(symbol, range) {
-  if (symbol.line === undefined)
-    return false;
-  const end = symbol.endLine ?? symbol.line;
-  return symbol.line <= range.end && end >= range.start;
+  const line = Number(symbol.line);
+  return line <= range.end && Number(symbol.endLine ?? line) >= range.start;
+}
+function span(symbol) {
+  return Number(symbol.endLine ?? symbol.line) - Number(symbol.line);
 }
 function focusedSymbols(symbols, focus) {
-  if (!focus || focus.length === 0)
+  if (!focus)
     return [];
-  return symbols.filter((symbol) => focus.some((range) => overlaps(symbol, range))).sort((left, right) => (left.endLine ?? left.line ?? 0) - (left.line ?? 0) - ((right.endLine ?? right.line ?? 0) - (right.line ?? 0)));
-}
-function isRecord(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return symbols.filter((symbol) => focus.some((range) => overlaps(symbol, range))).sort((left, right) => span(left) - span(right));
 }
 function editFocus(absolutePath, toolInput) {
-  if (!isRecord(toolInput))
-    return;
-  const needles = [];
-  const collect = (record) => {
-    for (const key of ["old_string", "oldString"]) {
-      const value = record[key];
-      if (typeof value === "string")
-        needles.push(value);
-    }
-  };
-  collect(toolInput);
-  if (Array.isArray(toolInput.edits)) {
-    for (const edit of toolInput.edits) {
-      if (isRecord(edit))
-        collect(edit);
-    }
-  }
-  const usable = needles.filter((needle) => needle.length > 0);
+  const input = toolInput ?? {};
+  const edits = Array.isArray(input.edits) ? input.edits : [];
+  const usable = [input, ...edits.map((edit) => edit ?? {})].flatMap((record) => [record.old_string, record.oldString]).filter((needle) => typeof needle === "string" && needle.length > 0);
   if (usable.length === 0)
     return;
   let content;
@@ -1096,7 +986,7 @@ function formatList(items, limit) {
 }
 var RETIRED_STATUS2 = /supersed|deprecat|reject|obsolete|retired/i;
 function isRetiredStatus(status) {
-  return status !== undefined && RETIRED_STATUS2.test(status);
+  return RETIRED_STATUS2.test(String(status));
 }
 function describeEntity(summary) {
   const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
@@ -1113,7 +1003,7 @@ function displayTitle(summary) {
   if (!/^\.\S/.test(rest))
     return title;
   const end = rest.search(/[.!?](?:\s|$)/);
-  return end < 0 ? statement : statement.slice(0, title.length + end);
+  return end === -1 ? statement : statement.slice(0, title.length + end);
 }
 function jsonString(value) {
   return JSON.stringify(value);
@@ -1125,7 +1015,7 @@ function unownedSourceNote(relativePath, candidates = []) {
     const named = candidates.slice(0, shown).map((candidate) => `${candidate.id}: ${truncate(candidate.title, MAX_TITLE)}`);
     const note = [
       head,
-      `Requirements whose titles share words with this path or the request: ${named.join("; ")}. kb_query({id:${jsonString(candidates[0]?.id ?? "")}}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).`,
+      `Requirements whose titles share words with this path or the request: ${named.join("; ")}. kb_query({id:${jsonString(candidates[0].id)}}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).`,
       search
     ].join(`
 `);
@@ -1178,13 +1068,13 @@ var OPERATOR_PHRASES = {
   excludes: "must not include"
 };
 function joinMembers(values, conjunction) {
-  if (values.length <= 1)
-    return values[0] ?? "";
+  if (values.length === 1)
+    return values[0];
   return `${values.slice(0, -1).join(", ")} ${conjunction} ${values.at(-1)}`;
 }
 var MODAL = /^(.{1,100}?)\s+(?:must|may|can|cannot|should|shall|will|never)\b/i;
 function subjectPhrase(claim) {
-  const spoken = MODAL.exec(claim.claimText ?? "")?.[1];
+  const spoken = MODAL.exec(String(claim.claimText))?.[1];
   if (spoken)
     return spoken;
   return claim.subjectKey?.replace(/[._]+/g, " ").trim() || undefined;
@@ -1269,10 +1159,7 @@ function createEntitySummarizer(workspaceRoot) {
 }
 function requirementOwners(symbols, focus) {
   const owners = new Map;
-  const ordered = [
-    ...focus,
-    ...symbols.filter((symbol) => !focus.includes(symbol))
-  ];
+  const ordered = new Set([...focus, ...symbols]);
   for (const symbol of ordered) {
     for (const requirement of symbol.implements) {
       const titles = owners.get(requirement) ?? [];
@@ -1284,7 +1171,7 @@ function requirementOwners(symbols, focus) {
   const focusOwners = new Set(focus.flatMap((symbol) => symbol.implements));
   const requirementIds = [...owners.keys()].sort((left, right) => {
     const focusOrder = Number(focusOwners.has(right)) - Number(focusOwners.has(left));
-    return focusOrder !== 0 ? focusOrder : (owners.get(right)?.length ?? 0) - (owners.get(left)?.length ?? 0);
+    return focusOrder !== 0 ? focusOrder : owners.get(right).length - owners.get(left).length;
   });
   return { owners, requirementIds };
 }
@@ -1305,7 +1192,7 @@ function fileKnowledgeSnippet(input) {
     `Kibi knowledge for ${relativePath} (symbol manifest):`
   ];
   for (const requirementId of requirementIds.slice(0, MAX_REQUIREMENTS)) {
-    const symbolTitles = owners.get(requirementId) ?? [];
+    const symbolTitles = owners.get(requirementId);
     lines.push(`- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`);
   }
   if (requirementIds.length > MAX_REQUIREMENTS) {
@@ -1344,18 +1231,18 @@ function editKnowledgeContext(input) {
     if (snippets.length >= (input.maxFiles ?? 3))
       break;
     const symbols = input.symbolsFor(relativePath);
-    const snippet = symbols.length > 0 ? fileKnowledgeSnippet({
+    const snippet = fileKnowledgeSnippet({
       relativePath,
       symbols,
       surface: "edit",
       focus: input.focusFor?.(relativePath),
       summarize: input.summarize,
       maxChars: input.maxChars
-    }) : undefined;
+    });
     const text = snippet ?? input.noteFor?.(relativePath);
     if (!text)
       continue;
-    const key = `${input.sessionId ?? ""}\x00edit\x00${relativePath}`;
+    const key = `${String(input.sessionId)}\x00edit\x00${relativePath}`;
     if (!claimSnippetSlot(input.stateDir, key))
       continue;
     snippets.push(text);
@@ -1424,32 +1311,39 @@ function firmEditNotice(where, requirements) {
 }
 function sessionPath(session, name) {
   if (!session.stateDir)
-    return;
+    throw new Error;
   const key = createHash3("sha256").update(session.sessionId?.trim() || "unattributed").digest("hex").slice(0, 32);
   return path4.join(session.stateDir, "decision-guard", key, name);
 }
-function writeMarker(file, content, flag) {
+function writeMarker(file, content) {
   fs4.mkdirSync(path4.dirname(file), { recursive: true });
-  fs4.writeFileSync(file, content, { flag });
+  fs4.writeFileSync(file, content);
+}
+function touchMarker(file, flag) {
+  fs4.mkdirSync(path4.dirname(file), { recursive: true });
+  fs4.closeSync(fs4.openSync(file, flag));
+}
+function readMarker(session, name) {
+  return JSON.parse(String(fs4.readFileSync(sessionPath(session, name))));
+}
+function stringList(value) {
+  return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
 function markDecisionFlag(session, flag) {
-  const file = sessionPath(session, flag);
-  if (!file)
-    return;
   try {
-    writeMarker(file, "", "w");
+    touchMarker(sessionPath(session, flag), "w");
   } catch {}
 }
 function hasDecisionFlag(session, flag) {
-  const file = sessionPath(session, flag);
-  return file !== undefined && fs4.existsSync(file);
+  try {
+    return fs4.existsSync(sessionPath(session, flag));
+  } catch {
+    return false;
+  }
 }
 function claimDecisionFlag(session, flag) {
-  const file = sessionPath(session, flag);
-  if (!file)
-    return false;
   try {
-    writeMarker(file, "", "wx");
+    touchMarker(sessionPath(session, flag), "wx");
     return true;
   } catch {
     return false;
@@ -1457,23 +1351,16 @@ function claimDecisionFlag(session, flag) {
 }
 function recordRequest(session, prompt) {
   const rule = statedRule(prompt);
-  const file = sessionPath(session, "request-words.json");
-  if (file) {
-    try {
-      writeMarker(file, JSON.stringify(requestTopicWords(prompt)), "w");
-    } catch {}
-  }
+  try {
+    writeMarker(sessionPath(session, "request-words.json"), JSON.stringify(requestTopicWords(prompt)));
+  } catch {}
   if (rule !== undefined)
     markDecisionFlag(session, "rule-prompt");
   return rule;
 }
 function requestWords(session) {
-  const file = sessionPath(session, "request-words.json");
-  if (!file)
-    return [];
   try {
-    const parsed = JSON.parse(fs4.readFileSync(file, "utf8"));
-    return Array.isArray(parsed) ? parsed.filter((word) => typeof word === "string") : [];
+    return stringList(readMarker(session, "request-words.json"));
   } catch {
     return [];
   }
@@ -1483,7 +1370,7 @@ function claimCaptureReminder(session) {
 }
 var SIGNOFF_LATEST_JSON = path4.join(".kb", "briefs", "signoff", "latest.json");
 function record(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value) ? value : undefined;
+  return typeof value === "object" && !Array.isArray(value) ? value : undefined;
 }
 function isRequirementUpsert(toolInput) {
   const input = record(toolInput);
@@ -1491,20 +1378,18 @@ function isRequirementUpsert(toolInput) {
   return args?.type === "req" && args.dryRun !== true;
 }
 function mtimeMs(file) {
-  if (!file)
-    return;
+  let time = Number.NaN;
   try {
-    return fs4.statSync(file).mtimeMs;
-  } catch {
-    return;
-  }
+    time = fs4.statSync(file()).mtimeMs;
+  } catch {}
+  return time;
 }
 function claimSignoffReminder(session, workspaceRoot) {
-  const recorded = mtimeMs(sessionPath(session, "requirement-recorded"));
-  if (recorded === undefined)
+  const recorded = mtimeMs(() => sessionPath(session, "requirement-recorded"));
+  if (Number.isNaN(recorded))
     return false;
-  const shown = mtimeMs(path4.join(workspaceRoot, SIGNOFF_LATEST_JSON));
-  if (shown !== undefined && shown >= recorded)
+  const shown = mtimeMs(() => path4.join(workspaceRoot, SIGNOFF_LATEST_JSON));
+  if (shown >= recorded)
     return false;
   return claimDecisionFlag(session, "signoff-asked");
 }
@@ -1515,25 +1400,19 @@ function signoffReminder() {
   ].join(`
 `);
 }
-function readSettled(file) {
-  if (!file)
-    return [];
+function readSettled(session) {
   try {
-    const parsed = JSON.parse(fs4.readFileSync(file, "utf8"));
-    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === "string") : [];
+    return stringList(readMarker(session, "firm-settled.json"));
   } catch {
     return [];
   }
 }
 function settledFirmRequirements(session) {
-  return new Set(readSettled(sessionPath(session, "firm-settled.json")));
+  return new Set(readSettled(session));
 }
 function settleFirmRequirements(session, ids) {
-  const file = sessionPath(session, "firm-settled.json");
-  if (!file)
-    return;
   try {
-    writeMarker(file, JSON.stringify([...new Set([...readSettled(file), ...ids])]), "w");
+    writeMarker(sessionPath(session, "firm-settled.json"), JSON.stringify([...new Set([...readSettled(session), ...ids])]));
   } catch {}
 }
 
@@ -1543,7 +1422,7 @@ import fs6 from "node:fs";
 import path7 from "node:path";
 
 // ../agent-core/dist/kb-mcp-tools.js
-function isRecord2(value) {
+function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readString(record, keys) {
@@ -1577,87 +1456,60 @@ function readStringArray(record, keys) {
 function readRecord(record, keys) {
   for (const key of keys) {
     const value = record[key];
-    if (isRecord2(value)) {
+    if (isRecord(value)) {
       return value;
     }
   }
   return;
 }
 function canonicalKbToolName(toolName) {
-  const trimmed = toolName?.trim() ?? "";
-  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) ?? "" : trimmed.replace(/^MCP:/i, "");
+  const trimmed = String(toolName).trim();
+  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) : trimmed.replace(/^MCP:/i, "");
   const operation = lastSegment.replace(/^kibi_/, "");
   return operation.startsWith("kb_") ? operation : undefined;
 }
 var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
 function isKibiMcpToolName(toolName) {
-  const name = toolName?.trim() ?? "";
+  const name = String(toolName).trim();
   if (/^MCP:kb_[a-z_]+$/i.test(name))
     return true;
   const segments = name.split("__");
-  if (segments.length < 3 || segments[0] !== "mcp")
+  if (segments[0] !== "mcp")
     return false;
   const server = segments.slice(1, -1).join("__");
-  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1) ?? "");
+  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1));
 }
 function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
   if (!workspaceRoot || !isKibiMcpToolName(toolName))
     return;
-  const base = isRecord2(toolInput) ? toolInput : {};
+  const base = isRecord(toolInput) ? toolInput : {};
   return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
 }
+var TOOL_NAME_KEYS = ["toolName", "tool_name", "name"];
 function extractKbMcpToolCall(toolName, toolInput) {
-  let normalizedToolName = canonicalKbToolName(toolName);
-  if (isRecord2(toolInput)) {
-    normalizedToolName ??= readString(toolInput, [
-      "toolName",
-      "tool_name",
-      "name"
-    ]);
-    const args = readRecord(toolInput, ["arguments", "args"]);
-    const payload = args ?? toolInput;
-    const includeImpactDiagnostics = readBoolean(payload, [
+  const input = isRecord(toolInput) ? toolInput : {};
+  let name = canonicalKbToolName(toolName) ?? readString(input, TOOL_NAME_KEYS);
+  if (!name?.startsWith("kb_")) {
+    const nested = input.arguments ?? input.args;
+    const nestedTool = isRecord(nested) ? readString(nested, TOOL_NAME_KEYS) : undefined;
+    return nestedTool?.startsWith("kb_") ? { toolName: nestedTool, impactCheckRun: false, sourceFiles: [] } : undefined;
+  }
+  const payload = readRecord(input, ["arguments", "args"]) ?? input;
+  if (name === "kb_upsert" && readBoolean(payload, ["dryRun"]) === true) {
+    name = "kb_validate_upsert";
+  }
+  const sourceFiles = readStringArray(payload, ["sourceFiles", "source_files"]);
+  return {
+    toolName: name,
+    impactCheckRun: name === "kb_check" && readBoolean(payload, [
       "includeImpactDiagnostics",
       "include_impact_diagnostics"
-    ]);
-    const includeWorkingTreeDiff = readBoolean(payload, [
+    ]) === true && readBoolean(payload, [
       "includeWorkingTreeDiff",
       "include_working_tree_diff"
-    ]);
-    const sourceFiles = readStringArray(payload, [
-      "sourceFiles",
-      "source_files"
-    ]);
-    if (normalizedToolName === "kb_upsert" && readBoolean(payload, ["dryRun"]) === true) {
-      normalizedToolName = "kb_validate_upsert";
-    }
-    if (normalizedToolName?.startsWith("kb_")) {
-      return {
-        toolName: normalizedToolName,
-        impactCheckRun: normalizedToolName === "kb_check" && includeImpactDiagnostics === true && includeWorkingTreeDiff === true && sourceFiles.length > 0,
-        sourceFiles
-      };
-    }
-    const nestedArgs = toolInput.arguments ?? toolInput.args;
-    if (isRecord2(nestedArgs)) {
-      const nestedTool = readString(nestedArgs, [
-        "toolName",
-        "tool_name",
-        "name"
-      ]);
-      if (nestedTool?.startsWith("kb_")) {
-        return { toolName: nestedTool, impactCheckRun: false, sourceFiles: [] };
-      }
-    }
-  }
-  if (normalizedToolName?.startsWith("kb_")) {
-    return {
-      toolName: normalizedToolName,
-      impactCheckRun: false,
-      sourceFiles: []
-    };
-  }
-  return;
+    ]) === true && sourceFiles.length > 0,
+    sourceFiles
+  };
 }
 var KIBI_CLI_ROUTES = {
   check: "kb_check",
@@ -1681,9 +1533,9 @@ function kibiCliOperation(command) {
 var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
 function hostKbOperation(toolName, toolInput) {
   const mcp = canonicalKbToolName(toolName);
-  if (mcp !== undefined && /^kb_[a-z_]+$/.test(mcp))
+  if (/kb_[a-z_]+$/.test(String(mcp)))
     return mcp;
-  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord2(toolInput)) {
+  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord(toolInput)) {
     return;
   }
   return kibiCliOperation(toolInput.command);
@@ -1775,7 +1627,7 @@ var explicitPathKeys = new Set([
   "relative_path",
   "target_path"
 ]);
-function isRecord3(value) {
+function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function normalizeWorkspacePath(candidate) {
@@ -1802,7 +1654,7 @@ function visitExplicitPathFields(value, output) {
       visitExplicitPathFields(item, output);
     return;
   }
-  if (!isRecord3(value))
+  if (!isRecord2(value))
     return;
   for (const [key, child] of Object.entries(value)) {
     if (explicitPathKeys.has(key.toLowerCase()))
@@ -1815,7 +1667,7 @@ function extractExplicitPathFields(input) {
   visitExplicitPathFields(input, paths);
   return [...new Set(paths)];
 }
-var patchFileHeader = /^\*\*\* (?:Update|Add|Delete) File: (.+)$/;
+var patchFileHeader = /^\*\*\* (?:Update|Add|Delete) File: (.+)/;
 var patchTextKeys = ["command", "patch", "input", "patchText"];
 function extractPatchFilePaths(patch) {
   const paths = [];
@@ -1829,10 +1681,10 @@ function extractPatchFilePaths(patch) {
 }
 function extractEditedPaths(toolInput) {
   const paths = extractExplicitPathFields(toolInput);
-  if (isRecord3(toolInput)) {
+  if (isRecord2(toolInput)) {
     for (const key of patchTextKeys) {
       const value = toolInput[key];
-      if (typeof value === "string" && value.includes("*** ")) {
+      if (typeof value === "string") {
         paths.push(...extractPatchFilePaths(value));
       }
     }
@@ -1841,8 +1693,6 @@ function extractEditedPaths(toolInput) {
 }
 function canonicalizeWorkspacePath(workspaceRoot, options) {
   const trimmed = normalizeWorkspacePath(options.rawPath);
-  if (trimmed.length === 0)
-    return;
   const base = options.base ?? options.eventCwd ?? workspaceRoot;
   const absolute = path5.isAbsolute(trimmed) ? path5.resolve(trimmed) : path5.resolve(base, trimmed);
   const workspaceRelative = path5.relative(workspaceRoot, absolute).replaceAll("\\", "/");
@@ -1860,11 +1710,13 @@ function classifyPath(relativePath) {
   if (segments.some((segment) => documentationSegments.has(segment))) {
     return "other";
   }
-  const basename = segments.at(-1) ?? "";
+  const basename = segments.at(-1);
+  if (basename === undefined)
+    return "other";
   const extension = path5.extname(basename).toLowerCase();
   if (!codeExtensions.has(extension))
     return "other";
-  if (testBasename.test(basename) || segments.slice(0, -1).some((segment) => testSegments.has(segment))) {
+  if (testBasename.test(basename) || segments.some((segment) => testSegments.has(segment))) {
     return "test";
   }
   return "source";
@@ -1873,11 +1725,8 @@ function isKbPath(candidate) {
   return pathSegments(candidate).includes(".kb");
 }
 function isCanonicalKbKnowledgePath(segments) {
-  const kbIndex = segments.indexOf(".kb");
-  if (kbIndex < 0)
-    return false;
-  const lane = segments[kbIndex + 1];
-  return lane !== undefined && (canonicalKbKnowledgeFiles.has(lane) || canonicalKbKnowledgeLanes.has(lane));
+  const lane = segments[segments.indexOf(".kb") + 1];
+  return canonicalKbKnowledgeFiles.has(lane) || canonicalKbKnowledgeLanes.has(lane);
 }
 function isMeaningfulTrackedPath(candidate) {
   const segments = pathSegments(candidate);
@@ -1885,14 +1734,16 @@ function isMeaningfulTrackedPath(candidate) {
     return false;
   if (segments.includes(".kb"))
     return isCanonicalKbKnowledgePath(segments);
-  const basename = segments.at(-1) ?? "";
+  const basename = segments.at(-1);
+  if (basename === undefined)
+    return false;
   const extension = path5.extname(basename).toLowerCase();
   if (basename === "README.md")
     return true;
   if (segments.some((segment) => documentationSegments.has(segment))) {
     return documentationExtensions.has(extension);
   }
-  if (testBasename.test(basename) || segments.slice(0, -1).some((segment) => testSegments.has(segment))) {
+  if (testBasename.test(basename) || segments.some((segment) => testSegments.has(segment))) {
     return codeExtensions.has(extension) || documentationExtensions.has(extension);
   }
   return codeExtensions.has(extension);
@@ -1922,9 +1773,7 @@ var MAX_EVENT_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 var MAX_QUEUE_BYTES = 1024 * 1024;
 var DEFAULT_FLUSH_TIMEOUT_MS = 1500;
 function flagValue(value) {
-  const normalized = value?.trim().toLowerCase();
-  if (normalized === undefined || normalized === "")
-    return;
+  const normalized = String(value).trim().toLowerCase();
   if (["1", "true", "yes", "on"].includes(normalized))
     return true;
   if (["0", "false", "no", "off"].includes(normalized))
@@ -1988,7 +1837,7 @@ var SESSION_ENV_KEYS = [
   "CODEX_THREAD_ID"
 ];
 function hostKey(name) {
-  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 function detectTelemetryHost(env = process.env) {
   const explicit = env.KIBI_HOST?.trim() || env.KIBI_MCP_HOST?.trim();
@@ -2025,16 +1874,17 @@ function sandboxedHome(env) {
     return false;
   const temp = realDirectory(os.tmpdir());
   const resolved = realDirectory(home);
-  return resolved !== temp && resolved.startsWith(`${temp}${path6.sep}`);
+  return resolved.startsWith(`${temp}${path6.sep}`);
 }
 var KIBI_REPOSITORY_PACKAGE = "kibi";
 function moduleFileFromUrl(readUrl) {
+  let file;
   try {
     const url = readUrl();
-    return typeof url === "string" && url !== "" ? fileURLToPath(url) : undefined;
-  } catch {
-    return;
-  }
+    if (typeof url === "string")
+      file = fileURLToPath(url);
+  } catch {}
+  return file;
 }
 function thisModuleFile() {
   return moduleFileFromUrl(() => import.meta.url);
@@ -2065,7 +1915,7 @@ function telemetryChannel(env = process.env, moduleFile = thisModuleFile() ?? nu
   const explicit = env.KIBI_TELEMETRY_CHANNEL?.trim();
   if (explicit)
     return {
-      channel: telemetryCategory(explicit) ?? "release",
+      channel: telemetryCategory(explicit),
       source: "KIBI_TELEMETRY_CHANNEL"
     };
   if (!moduleFile)
@@ -2089,7 +1939,7 @@ function telemetryDirectory(env = process.env) {
 }
 function readTelemetryConfig(env = process.env) {
   try {
-    const parsed = JSON.parse(fs5.readFileSync(path6.join(telemetryDirectory(env), CONFIG_FILE), "utf8"));
+    const parsed = JSON.parse(String(fs5.readFileSync(path6.join(telemetryDirectory(env), CONFIG_FILE))));
     return typeof parsed === "object" && parsed !== null ? parsed : {};
   } catch {
     return {};
@@ -2099,7 +1949,7 @@ function writeTelemetryConfig(config, env) {
   const directory = telemetryDirectory(env);
   fs5.mkdirSync(directory, { recursive: true });
   fs5.writeFileSync(path6.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
-`, "utf8");
+`);
 }
 function telemetryStatus(env = process.env) {
   const directory = telemetryDirectory(env);
@@ -2172,8 +2022,8 @@ function sessionMarkersPath(env) {
 }
 function readSessionMarkers(env) {
   try {
-    const parsed = JSON.parse(fs5.readFileSync(sessionMarkersPath(env), "utf8"));
-    return parsed !== null && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    const parsed = JSON.parse(String(fs5.readFileSync(sessionMarkersPath(env))));
+    return typeof parsed === "object" && parsed !== null ? parsed : {};
   } catch {
     return {};
   }
@@ -2228,14 +2078,14 @@ function baseProperties(source, env) {
     $lib: "kibi",
     package: source.packageName,
     package_version: source.packageVersion ?? null,
-    host: source.host?.trim() && hostKey(source.host) || detectTelemetryHost(env) || "unknown",
+    host: source.host && hostKey(source.host) || detectTelemetryHost(env) || "unknown",
     remote: remoteEnvironment(env),
     channel: detectTelemetryChannel(env),
     session: sessionProperty(source, env),
     os: process.platform,
     arch: process.arch,
     runtime: runtimeName(),
-    runtime_version: process.versions.node.split(".")[0] ?? null
+    runtime_version: process.versions.node.split(".")[0]
   };
 }
 function queuePath(env) {
@@ -2250,7 +2100,7 @@ function appendEvent(event, env) {
         return;
     } catch {}
     fs5.appendFileSync(file, `${JSON.stringify(event)}
-`, "utf8");
+`);
   } catch {}
 }
 function telemetryCategory(value) {
@@ -2280,8 +2130,6 @@ function parseQueued(text, now) {
   const events = [];
   for (const line of text.split(`
 `)) {
-    if (line.trim() === "")
-      continue;
     try {
       const event = JSON.parse(line);
       const age = now - Date.parse(event.timestamp);
@@ -2305,7 +2153,7 @@ function flushDue(file, now) {
   if (lines.length >= FLUSH_BATCH_EVENTS)
     return true;
   try {
-    const first = JSON.parse(lines[0] ?? "");
+    const first = JSON.parse(lines[0]);
     return now - Date.parse(first.timestamp) >= FLUSH_MAX_AGE_MS;
   } catch {
     return true;
@@ -2347,8 +2195,6 @@ async function flushTelemetry(options = {}, env = process.env) {
   if (!options.force && !flushDue(queuePath(env), now))
     return 0;
   const claimed = claimBatches(directory, now);
-  if (claimed.length === 0)
-    return 0;
   const events = [];
   for (const file of claimed) {
     try {
@@ -2366,7 +2212,7 @@ async function flushTelemetry(options = {}, env = process.env) {
   const fetchImpl = options.fetchImpl ?? globalThis.fetch;
   const controller = new AbortController;
   const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_FLUSH_TIMEOUT_MS);
-  timer.unref?.();
+  timer.unref();
   try {
     const response = await fetchImpl(`${telemetryHost(env)}/batch/`, {
       method: "POST",
@@ -2379,7 +2225,7 @@ async function flushTelemetry(options = {}, env = process.env) {
       signal: controller.signal
     });
     if (!response.ok && response.status >= 500)
-      throw new Error("retry");
+      throw new Error;
     release();
     return response.ok ? events.length : 0;
   } catch {
@@ -2449,7 +2295,7 @@ function appendHookUsage(row, env = process.env) {
     const logPath = path7.join(row.workspaceRoot, ".kb", "usage.log");
     fs6.mkdirSync(path7.dirname(logPath), { recursive: true });
     fs6.appendFileSync(logPath, `${JSON.stringify(record)}
-`, "utf8");
+`);
   } catch {}
 }
 function kbUsageTrace(toolName, toolInput) {
@@ -2472,8 +2318,6 @@ function editTraces(relativePaths, requirementIdsFor) {
   return traces;
 }
 function appendHookUsageRows(row, traces, env = process.env) {
-  if (!hookTracesWanted(env))
-    return;
   for (const trace of traces)
     appendHookUsage({ ...row, trace }, env);
 }
@@ -2489,16 +2333,16 @@ async function finishHookTelemetry(input, env = process.env) {
 }
 function readPackageVersion(packageJsonPath) {
   try {
-    const parsed = JSON.parse(fs6.readFileSync(packageJsonPath, "utf8"));
-    if (typeof parsed === "object" && parsed !== null && "version" in parsed && typeof parsed.version === "string") {
-      return parsed.version;
-    }
+    const parsed = JSON.parse(String(fs6.readFileSync(packageJsonPath)));
+    const version = parsed.version;
+    if (typeof version === "string")
+      return version;
   } catch {}
   return null;
 }
 
 // src/hook-input.ts
-function isRecord4(value) {
+function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readString2(record, keys) {
@@ -2511,7 +2355,7 @@ function readString2(record, keys) {
   return;
 }
 function parseHookInput(input) {
-  if (!isRecord4(input)) {
+  if (!isRecord3(input)) {
     return { event: "" };
   }
   const event = readString2(input, [
@@ -2596,7 +2440,7 @@ function emptyHookState() {
 function statePath(pluginData) {
   return path8.join(pluginData, stateFileName);
 }
-function isRecord5(value) {
+function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function normalizeDirtyPath(dirtyPath) {
@@ -2613,7 +2457,7 @@ function mergeDirtyPaths(existingPaths, dirtyPaths) {
   };
 }
 function coerceHookState(value) {
-  if (!isRecord5(value) || !Array.isArray(value.dirtyPaths)) {
+  if (!isRecord4(value) || !Array.isArray(value.dirtyPaths)) {
     return emptyHookState();
   }
   const dirtyPaths = value.dirtyPaths.filter((dirtyPath) => typeof dirtyPath === "string").map(normalizeDirtyPath).filter((dirtyPath) => dirtyPath.length > 0);
@@ -2661,11 +2505,11 @@ function readJournal(pluginData, initialState) {
       return state;
     try {
       const value = JSON.parse(line);
-      if (!isRecord5(value) || typeof value.kind !== "string")
+      if (!isRecord4(value) || typeof value.kind !== "string")
         return state;
       if (value.kind === "clear")
         return applyJournalEvent(state, { kind: "clear" });
-      if (value.kind === "replace" && isRecord5(value.state)) {
+      if (value.kind === "replace" && isRecord4(value.state)) {
         return applyJournalEvent(state, {
           kind: "replace",
           state: coerceHookState(value.state)
@@ -3068,7 +2912,8 @@ async function runHook(rawInput, environment = {}) {
         if (isKnownEditTool(input.toolName) && dirtyPaths.some(isSourceImpactRelevantPath2)) {
           markDecisionFlag(session, "source-edited");
         }
-        if (kbToolCall?.toolName === "kb_upsert" || kbUsageTrace(input.toolName, input.toolInput)?.kbOperation === "kb_upsert") {
+        const kbOperation = kbToolCall ? kbToolCall.toolName : kbUsageTrace(input.toolName, input.toolInput)?.kbOperation;
+        if (kbOperation === "kb_upsert") {
           markDecisionFlag(session, "kb-recorded");
           if (isRequirementUpsert(input.toolInput)) {
             markDecisionFlag(session, "requirement-recorded");

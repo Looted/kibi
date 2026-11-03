@@ -19,22 +19,12 @@ import {
  */
 export { type HookTrace, hookTelemetryEnabled };
 
-let cachedPluginVersion: string | null | undefined;
-
-function pluginVersion(): string | null {
-  if (cachedPluginVersion !== undefined) return cachedPluginVersion;
-  // Both the bundled bin/hook-runner.mjs and dist/*.js sit one level below
-  // the plugin root that holds package.json. An unreadable manifest is
-  // cached as null rather than re-read on every row.
-  cachedPluginVersion = readPackageVersion(
-    path.join(
-      path.dirname(fileURLToPath(import.meta.url)),
-      "..",
-      "package.json",
-    ),
-  );
-  return cachedPluginVersion;
-}
+// Both the bundled bin/hook-runner.mjs and dist/*.js sit one level below the
+// plugin root that holds package.json. A hook process records at most a few
+// rows, so the manifest is read once, on load; an unreadable one is null.
+const pluginVersion = readPackageVersion(
+  path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "package.json"),
+);
 
 export type HookUsageRow = {
   workspaceRoot: string;
@@ -54,9 +44,9 @@ export function appendHookUsage(
   appendSharedHookUsage(
     {
       ...row,
+      // The shared recorder names the claude-code adapter package kibi-claude.
       host: "claude-code",
-      packageName: "kibi-claude",
-      packageVersion: pluginVersion(),
+      packageVersion: pluginVersion,
     },
     env,
   );
@@ -68,13 +58,4 @@ export function appendHookUsage(
  * queue: always on Stop, which runs every turn, so events reach PostHog even
  * when an ephemeral container is reclaimed without a session-end hook.
  */
-export async function flushHookTelemetry(
-  input: {
-    readonly event: string;
-    readonly workspaceRoot: string | undefined;
-    readonly sessionId: string | undefined;
-  },
-  env: NodeJS.ProcessEnv = process.env,
-): Promise<void> {
-  await finishHookTelemetry(input, env);
-}
+export const flushHookTelemetry = finishHookTelemetry;
