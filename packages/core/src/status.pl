@@ -74,13 +74,11 @@ status_scope_dict(_{snapshotId: unknown, syncedAt: null}).
 attached_kb_info(Branch, KbPath, DataFile) :-
     kb:kb_attached(KbPath),
     branch_workspace_from_kb_path(KbPath, Branch, _WorkspaceRoot),
-    kb:kb_storage_mode(journaled),
-    !,
-    directory_file_path(KbPath, 'CURRENT', DataFile).
-attached_kb_info(Branch, KbPath, DataFile) :-
-    kb:kb_attached(KbPath),
-    branch_workspace_from_kb_path(KbPath, Branch, _WorkspaceRoot),
-    directory_file_path(KbPath, 'kb.rdf', DataFile).
+    (   kb:kb_storage_mode(journaled)
+    ->  DataName = 'CURRENT'
+    ;   DataName = 'kb.rdf'
+    ),
+    directory_file_path(KbPath, DataName, DataFile).
 
 snapshot_id(SnapshotId) :-
     kb:kb_attached_snapshot(journal_snapshot(_Generation, Sequence)),
@@ -103,8 +101,7 @@ snapshot_id(unknown).
 
 journal_before_first_commit :-
     kb:kb_storage_mode(journaled),
-    kb:kb_attached_snapshot(journal_snapshot(_, 0)),
-    !.
+    kb:kb_attached_snapshot(journal_snapshot(_, 0)).
 
 synced_at(_, null) :-
     journal_before_first_commit,
@@ -118,12 +115,8 @@ synced_at(DataFile, SyncedAt) :-
 % Before the first successful sync there is no kb.rdf, so the public JSON contract must expose syncedAt: null.
 synced_at(_, null).
 
-journal_before_first_commit_state(true, unknown) :-
+freshness_state(_, true, unknown) :-
     journal_before_first_commit,
-    !.
-
-freshness_state(_, Dirty, State) :-
-    journal_before_first_commit_state(Dirty, State),
     !.
 freshness_state(DataFile, true, stale) :-
     exists_file(DataFile),
@@ -165,29 +158,27 @@ stale_indexed_source_reason(Index, Reason) :-
     ;   Code = indexed_source_missing
     ),
     entity_ids_for_source(Index, RelativeSource, EntityIds),
-    Reason = _{code: Code, path: RelativeSource, entityIds: EntityIds}.
+    Reason = stale_reason{code: Code, path: RelativeSource, entityIds: EntityIds}.
 
 stale_knowledge_lane_reason(Index, Reason) :-
     attached_workspace_root(WorkspaceRoot),
     knowledge_lane(Lane),
     directory_file_path(WorkspaceRoot, '.kb', KbRoot),
     directory_file_path(KbRoot, Lane, LaneRoot),
-    exists_directory(LaneRoot),
     kb_snapshot_time(SnapshotTime),
     directory_tree_newer_path(LaneRoot, SnapshotTime, Path),
     workspace_relative_path(WorkspaceRoot, Path, RelativePath),
     entity_ids_for_source(Index, RelativePath, EntityIds),
-    Reason = _{code: knowledge_source_newer, path: RelativePath, entityIds: EntityIds}.
+    Reason = stale_reason{code: knowledge_source_newer, path: RelativePath, entityIds: EntityIds}.
 
 stale_documentation_reason(Index, Reason) :-
     attached_workspace_root(WorkspaceRoot),
     directory_file_path(WorkspaceRoot, 'documentation', DocumentationRoot),
-    exists_directory(DocumentationRoot),
     kb_snapshot_time(SnapshotTime),
     directory_tree_newer_path(DocumentationRoot, SnapshotTime, Path),
     workspace_relative_path(WorkspaceRoot, Path, RelativePath),
     entity_ids_for_source(Index, RelativePath, EntityIds),
-    Reason = _{code: documentation_source_newer, path: RelativePath, entityIds: EntityIds}.
+    Reason = stale_reason{code: documentation_source_newer, path: RelativePath, entityIds: EntityIds}.
 
 kb_snapshot_time(SnapshotTime) :-
     kb:kb_attached(KbPath),
@@ -248,15 +239,13 @@ entity_source_property(Props, RawSource) :-
 entity_source_property(Props, RawSource) :-
     memberchk(source=RawSource, Props).
 
+% freshness_state/3 commits to the first change found, so neither these
+% predicates nor the tree walk below need cuts of their own.
 workspace_state_changed(SnapshotTime) :-
-    workspace_source_changed(SnapshotTime),
-    !.
-workspace_state_changed(SnapshotTime) :-
-    knowledge_lane_tree_changed(SnapshotTime),
-    !.
-workspace_state_changed(SnapshotTime) :-
-    documentation_tree_changed(SnapshotTime),
-    !.
+    (   workspace_source_changed(SnapshotTime)
+    ;   knowledge_lane_tree_changed(SnapshotTime)
+    ;   documentation_tree_changed(SnapshotTime)
+    ).
 
 workspace_source_changed(SnapshotTime) :-
     attached_workspace_root(WorkspaceRoot),
@@ -267,70 +256,50 @@ workspace_source_changed(SnapshotTime) :-
     (   exists_file(SourcePath)
     ->  time_file(SourcePath, FileTime),
         FileTime > SnapshotTime
-    ;   exists_directory(SourcePath)
-    ->  fail
-    ;   true
-    ),
-    !.
+    ;   \+ exists_directory(SourcePath)
+    ).
 
 knowledge_lane_tree_changed(SnapshotTime) :-
     attached_workspace_root(WorkspaceRoot),
     knowledge_lane(Lane),
     directory_file_path(WorkspaceRoot, '.kb', KbRoot),
     directory_file_path(KbRoot, Lane, LaneRoot),
-    exists_directory(LaneRoot),
-    directory_tree_newer(LaneRoot, SnapshotTime),
-    !.
+    directory_tree_newer_path(LaneRoot, SnapshotTime, _).
 
 documentation_tree_changed(SnapshotTime) :-
     attached_workspace_root(WorkspaceRoot),
     directory_file_path(WorkspaceRoot, 'documentation', DocumentationRoot),
-    exists_directory(DocumentationRoot),
-    directory_tree_newer(DocumentationRoot, SnapshotTime),
-    !.
+    directory_tree_newer_path(DocumentationRoot, SnapshotTime, _).
 
-directory_tree_newer(Path, SnapshotTime) :-
-    newer_entity_documentation_file(Path, SnapshotTime),
-    !.
-
-directory_tree_newer(Path, SnapshotTime) :-
-    \+ ignored_documentation_file(Path),
-    exists_directory(Path),
-    directory_files(Path, Entries),
-    member(Entry, Entries),
-    Entry \= '.',
-    Entry \= '..',
-    directory_file_path(Path, Entry, ChildPath),
-    directory_tree_newer(ChildPath, SnapshotTime),
-    !.
-
-directory_tree_newer_path(Path, SnapshotTime, Path) :-
-    newer_entity_documentation_file(Path, SnapshotTime).
-directory_tree_newer_path(Path, SnapshotTime, ChildPath) :-
-    \+ ignored_documentation_file(Path),
-    exists_directory(Path),
-    directory_files(Path, Entries),
-    member(Entry, Entries),
-    Entry \= '.',
-    Entry \= '..',
-    directory_file_path(Path, Entry, Candidate),
-    directory_tree_newer_path(Candidate, SnapshotTime, ChildPath).
+%% directory_tree_newer_path(+Path, +SnapshotTime, -NewerPath) is nondet.
+% NewerPath is Path, or a file under it, that is an entity document newer
+% than the snapshot.  A missing Path has none.
+directory_tree_newer_path(Path, SnapshotTime, NewerPath) :-
+    (   newer_entity_documentation_file(Path, SnapshotTime)
+    ->  NewerPath = Path
+    ;   \+ ignored_documentation_file(Path),
+        exists_directory(Path),
+        directory_files(Path, Entries),
+        member(Entry, Entries),
+        Entry \= '.',
+        Entry \= '..',
+        directory_file_path(Path, Entry, Candidate),
+        directory_tree_newer_path(Candidate, SnapshotTime, NewerPath)
+    ).
 
 :- dynamic workspace_root_memo/2.
 
 % Resolved once per attached KB path: status maps every entity source to a
 % workspace-relative path, and re-deriving the root per entity dominated it.
+% Status asks for it only once attached_kb_info/3 has placed the KB under a
+% branches directory, so the root is always found.
 attached_workspace_root(WorkspaceRoot) :-
     kb:kb_attached(KbPath),
-    (   workspace_root_memo(KbPath, Memo)
-    ->  Memo = found(WorkspaceRoot)
-    ;   (   once(branch_workspace_from_kb_path(KbPath, _Branch, Root))
-        ->  Memo = found(Root)
-        ;   Memo = none
-        ),
+    (   workspace_root_memo(KbPath, Root)
+    ->  WorkspaceRoot = Root
+    ;   once(branch_workspace_from_kb_path(KbPath, _Branch, WorkspaceRoot)),
         retractall(workspace_root_memo(_, _)),
-        assertz(workspace_root_memo(KbPath, Memo)),
-        Memo = found(WorkspaceRoot)
+        assertz(workspace_root_memo(KbPath, WorkspaceRoot))
     ).
 
 branch_workspace_from_kb_path(KbPath, Branch, WorkspaceRoot) :-
@@ -361,11 +330,11 @@ repo_relative_source(SourceAtom, RelativeSource) :-
     ).
 
 source_path_candidate(Source) :-
-    sub_atom(Source, _, _, _, '/'),
-    !.
-source_path_candidate(Source) :-
-    file_name_extension(_, Extension, Source),
-    Extension \= ''.
+    (   sub_atom(Source, _, _, _, '/')
+    ->  true
+    ;   file_name_extension(_, Extension, Source),
+        Extension \= ''
+    ).
 
 workspace_relative_path(WorkspaceRoot, SourcePath, RelativePath) :-
     atom_concat(WorkspaceRoot, '/', Prefix),
@@ -377,10 +346,7 @@ strip_fragment(SourceAtom, NoFragment) :-
     ;   NoFragment = SourceAtom
     ).
 
-source_value_atom(Val, Atom) :-
-    nonvar(Val),
-    compound(Val),
-    Val =.. ['^^', Inner, _Type],
+source_value_atom('^^'(Inner, _Type), Atom) :-
     !,
     source_value_atom(Inner, Atom).
 source_value_atom(literal(type(_, Val)), Atom) :-
@@ -407,15 +373,12 @@ knowledge_lane(flags).
 knowledge_lane(events).
 
 ignored_documentation_file(Path) :-
-    file_base_name(Path, 'README.md').
-ignored_documentation_file(Path) :-
-    sub_atom(Path, _, _, _, '/tests/e2e/').
-ignored_documentation_file(Path) :-
-    sub_atom(Path, _, _, 0, '/tests/e2e').
-ignored_documentation_file(Path) :-
-    sub_atom(Path, _, _, _, '/tests/benchmarks/').
-ignored_documentation_file(Path) :-
-    sub_atom(Path, _, _, 0, '/tests/benchmarks').
+    (   file_base_name(Path, 'README.md')
+    ;   sub_atom(Path, _, _, _, '/tests/e2e/')
+    ;   sub_atom(Path, _, _, 0, '/tests/e2e')
+    ;   sub_atom(Path, _, _, _, '/tests/benchmarks/')
+    ;   sub_atom(Path, _, _, 0, '/tests/benchmarks')
+    ).
 
 %% newer_entity_documentation_file(+Path, +SnapshotTime) is semidet.
 % Cheap path and mtime tests run before the file is read, and the content
