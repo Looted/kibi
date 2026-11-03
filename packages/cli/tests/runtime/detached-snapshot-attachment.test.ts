@@ -135,7 +135,7 @@ describe("resolveOperationAttachment", () => {
     });
     expect(attachment).toStrictEqual(resolveReadBranchAttachment(root));
     expect(syncSpy).toHaveBeenCalledTimes(1);
-    expect(syncSpy.mock.calls[0]).toEqual([
+    expect<unknown>(syncSpy.mock.calls[0]).toEqual([
       { workspaceRoot: root, detachedSnapshot: attachment, quiet: true },
     ]);
   });

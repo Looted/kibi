@@ -334,8 +334,8 @@ describe("the injected Prolog port", () => {
         readSpec(["workspace-read"], false),
         { prolog: port, signal },
       );
-      expect(await context.engine?.execute(command)).toBe("ran");
-      expect(await context.engine?.execute(command, own)).toBe("ran");
+      expect<unknown>(await context.engine?.execute(command)).toBe("ran");
+      expect<unknown>(await context.engine?.execute(command, own)).toBe("ran");
       expect(calls).toEqual([
         [kind, command, signal, true],
         [kind, command, own, true],
@@ -352,7 +352,7 @@ describe("operations that may run without Prolog", () => {
       readSpec(["kb-read"], false),
     );
     const attachment = resolveReadBranchAttachment(root);
-    expect(context.branchAttachment).toStrictEqual(attachment);
+    expect<unknown>(context.branchAttachment).toStrictEqual(attachment);
     expect(syncSpy).toHaveBeenCalledTimes(1);
     expect(warnings()).toEqual([
       `[KIBI] ${"readOnly" in attachment ? attachment.readOnly?.notice : ""}`,
