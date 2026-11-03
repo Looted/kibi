@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from "bun:test";
+import { afterEach, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { mkdtempSync, readFileSync } from "node:fs";
 import {
@@ -18,7 +18,7 @@ import {
   buildHeldOutCatalog,
   buildPublicCatalog,
 } from "../catalog";
-import { probeFixtureReadiness } from "../fixture-readiness";
+import { main, probeFixtureReadiness } from "../fixture-readiness";
 import {
   parseHeldOutTaskSpec,
   parsePublicTaskSpec,
@@ -123,6 +123,58 @@ test("seeded readiness probe stops and removes its workspace on success or setup
     else await promise;
     expect(events).toEqual(["setup", "stop"]);
     await expect(access(workspace)).rejects.toThrow();
+  }
+});
+
+test("the readiness command reports usage, a pass and a failed setup", async () => {
+  const root = await mkdtemp(join(tmpdir(), "skillopt-readiness-main-"));
+  roots.push(root);
+  const stdout: string[] = [];
+  const stderr: string[] = [];
+  const out = spyOn(process.stdout, "write").mockImplementation(((
+    text: string,
+  ) => {
+    stdout.push(text);
+    return true;
+  }) as never);
+  const err = spyOn(process.stderr, "write").mockImplementation(((
+    text: string,
+  ) => {
+    stderr.push(text);
+    return true;
+  }) as never);
+  try {
+    expect(await main(["only-one"])).toBe(2);
+    expect(stderr.at(-1)).toBe(
+      "Usage: fixture-readiness.ts NEW_WORKSPACE CLI_ROOT\n",
+    );
+    const passing = {
+      setup: async () => undefined,
+      stop: async () => undefined,
+    };
+    expect(await main([join(root, "pass"), "/trusted/cli"], passing)).toBe(0);
+    expect(stdout.at(-1)).toBe("seeded-fixture-readiness:pass\n");
+    const failing = {
+      ...passing,
+      setup: async () => {
+        throw new Error("synthetic_setup_failure");
+      },
+    };
+    expect(await main([join(root, "fail"), "/trusted/cli"], failing)).toBe(1);
+    expect(stderr.at(-1)).toBe("synthetic_setup_failure\n");
+    const throwsValue = {
+      ...passing,
+      setup: async () => {
+        throw "plain value";
+      },
+    };
+    expect(await main([join(root, "value"), "/trusted/cli"], throwsValue)).toBe(
+      1,
+    );
+    expect(stderr.at(-1)).toBe("plain value\n");
+  } finally {
+    out.mockRestore();
+    err.mockRestore();
   }
 });
 
