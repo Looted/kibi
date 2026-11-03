@@ -32,12 +32,12 @@ import { runBoundedProcess } from "./process";
 
 const BodySchema = z.object({ body: z.string().min(1) }).strict();
 
+// JSON.parse of a string only ever throws SyntaxError.
 function parseJson(text: string): unknown {
   try {
     return JSON.parse(text);
-  } catch (error) {
-    if (error instanceof SyntaxError) return undefined;
-    throw error;
+  } catch {
+    return undefined;
   }
 }
 
