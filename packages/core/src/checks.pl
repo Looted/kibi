@@ -101,82 +101,61 @@ all_relationship_types([
 % Each value is a list of violation terms: violation(Rule, EntityId, Description, Suggestion, Source)
 % For symbol-traceability, uses RequireAdr=false as default.
 check_all(ViolationsDict) :-
-    check_must_priority_coverage(MustPriority),
-    check_symbol_coverage(SymbolCoverage),
-    check_symbol_traceability(false, SymbolTraceability),
-    check_no_dangling_refs(DanglingRefs),
-    check_no_cycles(Cycles),
-    check_required_fields(RequiredFields),
-    check_deprecated_adrs(DeprecatedADRs),
-    check_superseded_requirement_open(SupersededRequirementOpen),
-    check_symbol_owner_superseded(SymbolOwnerSuperseded),
-    check_adr_unlinked(AdrUnlinked),
-    check_adr_proposed(AdrProposed),
-    check_scenario_feasibility(ScenarioFeasibility),
-    check_scenario_feasibility_unknown(ScenarioFeasibilityUnknown),
-    check_scenario_outcome_mismatch(ScenarioOutcomeMismatch),
-    check_exception_claim_keys(ExceptionClaimKeys),
-    check_numeric_string_values(NumericStringValues),
-    check_domain_contradictions(Contradictions),
-    check_rule_key_arguments_missing(RuleKeyArgumentsMissing),
-    check_strict_fact_shape(StrictFactShape),
-    check_strict_req_fact_pairing(StrictReqFactPairing),
-    check_strict_readiness(StrictReadiness),
-    check_predicate_verifiability(PredicateVerifiability),
-    check_logic_coverage(LogicCoverage),
-    check_rule_safety(RuleSafety),
-    check_rule_verifiability(RuleVerifiability),
-    check_semantic_completeness(SemanticCompleteness),
-    check_related_requirement_unmodeled(RelatedRequirementUnmodeled),
-    check_req_status_vocabulary(ReqStatusVocabulary),
-    check_proof_contract_symbols(ProofContractSymbols),
-    check_entity_id_style(EntityIdStyle),
-    check_domain_redundancy(DomainRedundancy),
-    check_domain_implication(DomainImplication),
-    check_subject_key_identity(SubjectKeyIdentity),
-    check_subject_key_shape(SubjectKeyShape),
-    check_ontology_quality(OntologyQuality),
-    check_kb_consistency(KbConsistency),
-    check_kb_consistency_unresolved(KbConsistencyUnresolved),
-    ViolationsDict = _{
-        must_priority_coverage: MustPriority,
-        symbol_coverage: SymbolCoverage,
-        symbol_traceability: SymbolTraceability,
-        no_dangling_refs: DanglingRefs,
-        no_cycles: Cycles,
-        required_fields: RequiredFields,
-        deprecated_adr_no_successor: DeprecatedADRs,
-        superseded_requirement_open: SupersededRequirementOpen,
-        symbol_owner_superseded: SymbolOwnerSuperseded,
-        adr_unlinked: AdrUnlinked,
-        adr_proposed: AdrProposed,
-        scenario_feasibility: ScenarioFeasibility,
-        scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
-        scenario_outcome_mismatch: ScenarioOutcomeMismatch,
-        exception_claim_keys: ExceptionClaimKeys,
-        numeric_string_value: NumericStringValues,
-        domain_contradictions: Contradictions,
-        rule_key_arguments_missing: RuleKeyArgumentsMissing,
-        strict_fact_shape: StrictFactShape,
-        strict_req_fact_pairing: StrictReqFactPairing,
-        strict_readiness: StrictReadiness,
-        predicate_verifiability: PredicateVerifiability,
-        logic_coverage: LogicCoverage,
-        rule_safety: RuleSafety,
-        rule_verifiability: RuleVerifiability,
-        semantic_completeness: SemanticCompleteness,
-        related_requirement_unmodeled: RelatedRequirementUnmodeled,
-        req_status_vocabulary: ReqStatusVocabulary,
-        proof_contract_symbols: ProofContractSymbols,
-        entity_id_style: EntityIdStyle,
-        domain_redundancy: DomainRedundancy,
-        domain_implication: DomainImplication,
-        subject_key_identity: SubjectKeyIdentity,
-        subject_key_shape: SubjectKeyShape,
-        ontology_quality: OntologyQuality,
-        kb_consistency: KbConsistency,
-        kb_consistency_unresolved: KbConsistencyUnresolved
-    }.
+    check_all_with_options(ViolationsDict, false).
+
+%% aggregated_check(?Key, ?Rule, ?Check)
+% Every aggregated check: its key in the violations dict, its rule name and
+% the predicate that computes its violations (called with -Violations;
+% symbol-traceability also takes the RequireAdr option).  check_all/1,
+% check_all_with_options/2 and check_selected/2 all read this one table, so
+% the full and the selected runs cover the same rules.
+aggregated_check(must_priority_coverage, 'must-priority-coverage', check_must_priority_coverage).
+aggregated_check(symbol_coverage, 'symbol-coverage', check_symbol_coverage).
+aggregated_check(symbol_traceability, 'symbol-traceability', check_symbol_traceability).
+aggregated_check(no_dangling_refs, 'no-dangling-refs', check_no_dangling_refs).
+aggregated_check(no_cycles, 'no-cycles', check_no_cycles).
+aggregated_check(required_fields, 'required-fields', check_required_fields).
+aggregated_check(deprecated_adr_no_successor, 'deprecated-adr-no-successor', check_deprecated_adrs).
+aggregated_check(superseded_requirement_open, 'superseded-requirement-open', check_superseded_requirement_open).
+aggregated_check(symbol_owner_superseded, 'symbol-owner-superseded', check_symbol_owner_superseded).
+aggregated_check(adr_unlinked, 'adr-unlinked', check_adr_unlinked).
+aggregated_check(adr_proposed, 'adr-proposed', check_adr_proposed).
+aggregated_check(scenario_feasibility, 'scenario-feasibility', check_scenario_feasibility).
+aggregated_check(scenario_feasibility_unknown, 'scenario-feasibility-unknown', check_scenario_feasibility_unknown).
+aggregated_check(scenario_outcome_mismatch, 'scenario-outcome-mismatch', check_scenario_outcome_mismatch).
+aggregated_check(exception_claim_keys, 'exception-claim-keys', check_exception_claim_keys).
+aggregated_check(numeric_string_value, 'numeric-string-value', check_numeric_string_values).
+aggregated_check(domain_contradictions, 'domain-contradictions', check_domain_contradictions).
+aggregated_check(rule_key_arguments_missing, 'rule-key-arguments-missing', check_rule_key_arguments_missing).
+aggregated_check(strict_fact_shape, 'strict-fact-shape', check_strict_fact_shape).
+aggregated_check(strict_req_fact_pairing, 'strict-req-fact-pairing', check_strict_req_fact_pairing).
+aggregated_check(strict_readiness, 'strict-readiness', check_strict_readiness).
+aggregated_check(predicate_verifiability, 'predicate-verifiability', check_predicate_verifiability).
+aggregated_check(logic_coverage, 'logic-coverage', check_logic_coverage).
+aggregated_check(rule_safety, 'rule-safety', check_rule_safety).
+aggregated_check(rule_verifiability, 'rule-verifiability', check_rule_verifiability).
+aggregated_check(semantic_completeness, 'semantic-completeness', check_semantic_completeness).
+aggregated_check(related_requirement_unmodeled, 'related-requirement-unmodeled', check_related_requirement_unmodeled).
+aggregated_check(req_status_vocabulary, 'req-status-vocabulary', check_req_status_vocabulary).
+aggregated_check(proof_contract_symbols, 'proof-contract-symbols', check_proof_contract_symbols).
+aggregated_check(entity_id_style, 'entity-id-style', check_entity_id_style).
+aggregated_check(domain_redundancy, 'domain-redundancy', check_domain_redundancy).
+aggregated_check(domain_implication, 'domain-implication', check_domain_implication).
+aggregated_check(subject_key_identity, 'subject-key-identity', check_subject_key_identity).
+aggregated_check(subject_key_shape, 'subject-key-shape', check_subject_key_shape).
+aggregated_check(ontology_quality, 'ontology-quality', check_ontology_quality).
+aggregated_check(kb_consistency, 'kb-consistency', check_kb_consistency).
+aggregated_check(kb_consistency_unresolved, 'kb-consistency-unresolved', check_kb_consistency_unresolved).
+
+%% run_aggregated_check(+RequireAdr, +Key-Check, -Key-Violations)
+% Check none is a rule check_selected/2 leaves out.
+run_aggregated_check(_, Key-none, Key-[]) :-
+    !.
+run_aggregated_check(RequireAdr, Key-check_symbol_traceability, Key-Violations) :-
+    !,
+    check_symbol_traceability(RequireAdr, Violations).
+run_aggregated_check(_, Key-Check, Key-Violations) :-
+    call(Check, Violations).
 
 %% check_must_priority_coverage(-Violations)
 % Finds all must-priority requirements lacking scenario and/or test coverage.
@@ -359,28 +338,28 @@ symbol_traceability_violation(RequireAdr, violation(
     ;   HasReq = false
     ),
     % Check if symbol has constrained_by to ADR (only if required)
-    (   RequireAdr = true ->
-        (   kb_relationship(constrained_by, SymbolId, AdrId),
-            kb_entity(AdrId, adr, _)
-        ->  HasAdr = true
-        ;   HasAdr = false
-        )
-    ;   HasAdr = true  % Not required, so pass this check
+    (   RequireAdr == true,
+        \+ ( kb_relationship(constrained_by, SymbolId, AdrId),
+              kb_entity(AdrId, adr, _)
+            )
+    ->  HasAdr = false
+    ;   HasAdr = true
     ),
     \+ executable_test_symbol(SymbolId),
-    % Determine what is missing
-    (   HasReq = false, HasAdr = false, RequireAdr = true ->
-        Description = "Symbol has no direct requirement ownership and no ADR constraint.",
-        Suggestion = "Add a direct 'implements: REQ-<area>-<behavior>' link for ownership, use 'covered_by' only for production coverage, use 'executable_for' only for executable test code, and add 'constrained_by: ADR-<decision>' in symbols.yaml."
-    ;   HasReq = false ->
-        Description = "Symbol has no direct requirement ownership.",
-        Suggestion = "Add a direct 'implements: REQ-<area>-<behavior>' link for ownership. Use 'covered_by' for production coverage and 'executable_for' for executable test code identity."
-    ;   HasAdr = false ->
-        Description = "Symbol has no ADR constraint.",
-        Suggestion = "Add 'constrained_by: ADR-<decision>' in symbols.yaml."
-    ;   fail  % No violation
-    ),
+    symbol_traceability_gap(HasReq, HasAdr, Description, Suggestion),
     violation_source(SymbolId, symbol, Source).
+
+% What a symbol misses, by whether it has a requirement owner and (when the
+% ADR constraint is required) an ADR; a symbol with both has no gap.
+symbol_traceability_gap(false, false,
+    "Symbol has no direct requirement ownership and no ADR constraint.",
+    "Add a direct 'implements: REQ-<area>-<behavior>' link for ownership, use 'covered_by' only for production coverage, use 'executable_for' only for executable test code, and add 'constrained_by: ADR-<decision>' in symbols.yaml.").
+symbol_traceability_gap(false, true,
+    "Symbol has no direct requirement ownership.",
+    "Add a direct 'implements: REQ-<area>-<behavior>' link for ownership. Use 'covered_by' for production coverage and 'executable_for' for executable test code identity.").
+symbol_traceability_gap(true, false,
+    "Symbol has no ADR constraint.",
+    "Add 'constrained_by: ADR-<decision>' in symbols.yaml.").
 
 %% check_proof_contract_symbols(-Violations)
 % Advisory integrity for proof_contract.required_proofs and optional
@@ -452,9 +431,7 @@ proof_contract_symbol_violation(violation(
     violation_source(TestId, test, Source).
 
 required_proof_symbol_id(Contract, SymbolId) :-
-    (   get_dict(required_proofs, Contract, Raw)
-    ;   get_dict('required_proofs', Contract, Raw)
-    ),
+    get_dict(required_proofs, Contract, Raw),
     parse_json_list(Raw, Entries),
     member(Entry, Entries),
     (   is_dict(Entry),
@@ -640,8 +617,8 @@ cycle_to_violation(Cycle, violation(
         (   member(Id, Cycle),
             (   kb_entity(Id, _, Props),
                 memberchk(source=SourcePath0, Props)
-            ->  normalize_term_atom(SourcePath0, SourcePath),
-                file_base_name(SourcePath, Name)
+            ->  % normalize_term_atom/2 keeps the last path segment
+                normalize_term_atom(SourcePath0, Name)
             ;   Name = Id
             )
         ),
@@ -3913,95 +3890,16 @@ check_selected_json(Rules, JsonString) :-
 % simply produce no Prolog-side violations.
 check_selected(Rules, ViolationsDict) :-
     require_known_rules(Rules),
-    check_selected_dispatch(Rules, ViolationsDict).
+    findall(Key-Check, selected_check(Rules, Key, Check), Checks),
+    maplist(run_aggregated_check(false), Checks, Pairs),
+    dict_pairs(ViolationsDict, _, Pairs).
 
-check_selected_dispatch(Rules, _{
-    must_priority_coverage: MustPriority,
-    symbol_coverage: SymbolCoverage,
-    symbol_traceability: SymbolTraceability,
-    no_dangling_refs: DanglingRefs,
-    no_cycles: Cycles,
-    required_fields: RequiredFields,
-    deprecated_adr_no_successor: DeprecatedADRs,
-    superseded_requirement_open: SupersededRequirementOpen,
-    symbol_owner_superseded: SymbolOwnerSuperseded,
-    adr_unlinked: AdrUnlinked,
-    adr_proposed: AdrProposed,
-    scenario_feasibility: ScenarioFeasibility,
-    scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
-    scenario_outcome_mismatch: ScenarioOutcomeMismatch,
-    exception_claim_keys: ExceptionClaimKeys,
-    numeric_string_value: NumericStringValues,
-    domain_contradictions: Contradictions,
-    rule_key_arguments_missing: RuleKeyArgumentsMissing,
-    strict_fact_shape: StrictFactShape,
-    strict_req_fact_pairing: StrictReqFactPairing,
-    strict_readiness: StrictReadiness,
-    predicate_verifiability: PredicateVerifiability,
-    logic_coverage: LogicCoverage,
-    rule_safety: RuleSafety,
-    rule_verifiability: RuleVerifiability,
-    semantic_completeness: SemanticCompleteness,
-    related_requirement_unmodeled: RelatedRequirementUnmodeled,
-    req_status_vocabulary: ReqStatusVocabulary,
-    proof_contract_symbols: ProofContractSymbols,
-    entity_id_style: EntityIdStyle,
-    domain_redundancy: DomainRedundancy,
-    domain_implication: DomainImplication,
-    subject_key_identity: SubjectKeyIdentity,
-    subject_key_shape: SubjectKeyShape,
-    ontology_quality: OntologyQuality,
-    kb_consistency: KbConsistency,
-    kb_consistency_unresolved: KbConsistencyUnresolved
-}) :-
-    selected_rule(Rules, 'must-priority-coverage', check_must_priority_coverage, MustPriority),
-    selected_rule(Rules, 'symbol-coverage', check_symbol_coverage, SymbolCoverage),
-    selected_rule_with_options(Rules, 'symbol-traceability', check_symbol_traceability, SymbolTraceability),
-    selected_rule(Rules, 'no-dangling-refs', check_no_dangling_refs, DanglingRefs),
-    selected_rule(Rules, 'no-cycles', check_no_cycles, Cycles),
-    selected_rule(Rules, 'required-fields', check_required_fields, RequiredFields),
-    selected_rule(Rules, 'deprecated-adr-no-successor', check_deprecated_adrs, DeprecatedADRs),
-    selected_rule(Rules, 'superseded-requirement-open', check_superseded_requirement_open, SupersededRequirementOpen),
-    selected_rule(Rules, 'symbol-owner-superseded', check_symbol_owner_superseded, SymbolOwnerSuperseded),
-    selected_rule(Rules, 'adr-unlinked', check_adr_unlinked, AdrUnlinked),
-    selected_rule(Rules, 'adr-proposed', check_adr_proposed, AdrProposed),
-    selected_rule(Rules, 'scenario-feasibility', check_scenario_feasibility, ScenarioFeasibility),
-    selected_rule(Rules, 'scenario-feasibility-unknown', check_scenario_feasibility_unknown, ScenarioFeasibilityUnknown),
-    selected_rule(Rules, 'scenario-outcome-mismatch', check_scenario_outcome_mismatch, ScenarioOutcomeMismatch),
-    selected_rule(Rules, 'exception-claim-keys', check_exception_claim_keys, ExceptionClaimKeys),
-    selected_rule(Rules, 'numeric-string-value', check_numeric_string_values, NumericStringValues),
-    selected_rule(Rules, 'domain-contradictions', check_domain_contradictions, Contradictions),
-    selected_rule(Rules, 'rule-key-arguments-missing', check_rule_key_arguments_missing, RuleKeyArgumentsMissing),
-    selected_rule(Rules, 'strict-fact-shape', check_strict_fact_shape, StrictFactShape),
-    selected_rule(Rules, 'strict-req-fact-pairing', check_strict_req_fact_pairing, StrictReqFactPairing),
-    selected_rule(Rules, 'strict-readiness', check_strict_readiness, StrictReadiness),
-    selected_rule(Rules, 'predicate-verifiability', check_predicate_verifiability, PredicateVerifiability),
-    selected_rule(Rules, 'logic-coverage', check_logic_coverage, LogicCoverage),
-    selected_rule(Rules, 'rule-safety', check_rule_safety, RuleSafety),
-    selected_rule(Rules, 'rule-verifiability', check_rule_verifiability, RuleVerifiability),
-    selected_rule(Rules, 'semantic-completeness', check_semantic_completeness, SemanticCompleteness),
-    selected_rule(Rules, 'related-requirement-unmodeled', check_related_requirement_unmodeled, RelatedRequirementUnmodeled),
-    selected_rule(Rules, 'req-status-vocabulary', check_req_status_vocabulary, ReqStatusVocabulary),
-    selected_rule(Rules, 'proof-contract-symbols', check_proof_contract_symbols, ProofContractSymbols),
-    selected_rule(Rules, 'entity-id-style', check_entity_id_style, EntityIdStyle),
-    selected_rule(Rules, 'domain-redundancy', check_domain_redundancy, DomainRedundancy),
-    selected_rule(Rules, 'domain-implication', check_domain_implication, DomainImplication),
-    selected_rule(Rules, 'subject-key-identity', check_subject_key_identity, SubjectKeyIdentity),
-    selected_rule(Rules, 'subject-key-shape', check_subject_key_shape, SubjectKeyShape),
-    selected_rule(Rules, 'ontology-quality', check_ontology_quality, OntologyQuality),
-    selected_rule(Rules, 'kb-consistency', check_kb_consistency, KbConsistency),
-    selected_rule(Rules, 'kb-consistency-unresolved', check_kb_consistency_unresolved, KbConsistencyUnresolved).
-
-selected_rule(Rules, Name, Goal, Violations) :-
+% A rule that is not selected runs nothing and reports no violations.
+selected_check(Rules, Key, Check) :-
+    aggregated_check(Key, Name, Check0),
     (   memberchk(Name, Rules)
-    ->  call(Goal, Violations)
-    ;   Violations = []
-    ).
-
-selected_rule_with_options(Rules, Name, Goal, Violations) :-
-    (   memberchk(Name, Rules)
-    ->  call(Goal, false, Violations)
-    ;   Violations = []
+    ->  Check = Check0
+    ;   Check = none
     ).
 
 %% require_known_rules(+Rules)
@@ -4089,80 +3987,9 @@ violations_json_to_file(ViolationsDict, Path) :-
 %% check_all_with_options(-ViolationsDict, +RequireAdr)
 % Returns a dict with all violations, respecting options.
 check_all_with_options(ViolationsDict, RequireAdr) :-
-    check_must_priority_coverage(MustPriority),
-    check_symbol_coverage(SymbolCoverage),
-    check_symbol_traceability(RequireAdr, SymbolTraceability),
-    check_no_dangling_refs(DanglingRefs),
-    check_no_cycles(Cycles),
-    check_required_fields(RequiredFields),
-    check_deprecated_adrs(DeprecatedADRs),
-    check_superseded_requirement_open(SupersededRequirementOpen),
-    check_symbol_owner_superseded(SymbolOwnerSuperseded),
-    check_adr_unlinked(AdrUnlinked),
-    check_adr_proposed(AdrProposed),
-    check_scenario_feasibility(ScenarioFeasibility),
-    check_scenario_feasibility_unknown(ScenarioFeasibilityUnknown),
-    check_scenario_outcome_mismatch(ScenarioOutcomeMismatch),
-    check_exception_claim_keys(ExceptionClaimKeys),
-    check_numeric_string_values(NumericStringValues),
-    check_domain_contradictions(Contradictions),
-    check_rule_key_arguments_missing(RuleKeyArgumentsMissing),
-    check_strict_fact_shape(StrictFactShape),
-    check_strict_req_fact_pairing(StrictReqFactPairing),
-    check_strict_readiness(StrictReadiness),
-    check_predicate_verifiability(PredicateVerifiability),
-    check_logic_coverage(LogicCoverage),
-    check_rule_safety(RuleSafety),
-    check_rule_verifiability(RuleVerifiability),
-    check_semantic_completeness(SemanticCompleteness),
-    check_req_status_vocabulary(ReqStatusVocabulary),
-    check_proof_contract_symbols(ProofContractSymbols),
-    check_entity_id_style(EntityIdStyle),
-    check_domain_redundancy(DomainRedundancy),
-    check_domain_implication(DomainImplication),
-    check_subject_key_identity(SubjectKeyIdentity),
-    check_subject_key_shape(SubjectKeyShape),
-    check_ontology_quality(OntologyQuality),
-    check_kb_consistency(KbConsistency),
-    check_kb_consistency_unresolved(KbConsistencyUnresolved),
-    ViolationsDict = _{
-        must_priority_coverage: MustPriority,
-        symbol_coverage: SymbolCoverage,
-        symbol_traceability: SymbolTraceability,
-        no_dangling_refs: DanglingRefs,
-        no_cycles: Cycles,
-        required_fields: RequiredFields,
-        deprecated_adr_no_successor: DeprecatedADRs,
-        superseded_requirement_open: SupersededRequirementOpen,
-        symbol_owner_superseded: SymbolOwnerSuperseded,
-        adr_unlinked: AdrUnlinked,
-        adr_proposed: AdrProposed,
-        scenario_feasibility: ScenarioFeasibility,
-        scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
-        scenario_outcome_mismatch: ScenarioOutcomeMismatch,
-        exception_claim_keys: ExceptionClaimKeys,
-        numeric_string_value: NumericStringValues,
-        domain_contradictions: Contradictions,
-        rule_key_arguments_missing: RuleKeyArgumentsMissing,
-        strict_fact_shape: StrictFactShape,
-        strict_req_fact_pairing: StrictReqFactPairing,
-        strict_readiness: StrictReadiness,
-        predicate_verifiability: PredicateVerifiability,
-        logic_coverage: LogicCoverage,
-        rule_safety: RuleSafety,
-        rule_verifiability: RuleVerifiability,
-        semantic_completeness: SemanticCompleteness,
-        req_status_vocabulary: ReqStatusVocabulary,
-        proof_contract_symbols: ProofContractSymbols,
-        entity_id_style: EntityIdStyle,
-        domain_redundancy: DomainRedundancy,
-        domain_implication: DomainImplication,
-        subject_key_identity: SubjectKeyIdentity,
-        subject_key_shape: SubjectKeyShape,
-        ontology_quality: OntologyQuality,
-        kb_consistency: KbConsistency,
-        kb_consistency_unresolved: KbConsistencyUnresolved
-    }.
+    findall(Key-Check, aggregated_check(Key, _, Check), Checks),
+    maplist(run_aggregated_check(RequireAdr), Checks, Pairs),
+    dict_pairs(ViolationsDict, _, Pairs).
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)
 % Converts a dict of violation/5 term lists to a dict of JSON-compatible dicts.
@@ -4266,11 +4093,3 @@ violation_source(EntityId, Type, Source) :-
 with_output_to_string(Goal, String) :-
     with_output_to(codes(Codes), Goal),
     string_codes(String, Codes).
-
-file_base_name(Path, Base) :-
-    normalize_term_atom(Path, PathAtom),
-    (   sub_atom(PathAtom, _, _, _, '/')
-    ->  split_string(PathAtom, '/', '', Parts),
-        last(Parts, Base)
-    ;   Base = PathAtom
-    ).
