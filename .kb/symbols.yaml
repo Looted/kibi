@@ -10124,7 +10124,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-proof-bundled-skill-catalog
+      - type: covered_by
         target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-kibi-bundled-skill-catalog
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-loadBundledSkill
@@ -66621,3 +66625,17 @@ symbols:
         target: TEST-kibi-tree-sitter-script-references
       - type: implements
         target: REQ-kibi-tree-sitter-script-references
+  - id: SYM-proof-bundled-skill-catalog
+    title: canonicalSkillCatalogCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/skill-catalog.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T10:48:40.140Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-bundled-skill-catalog
