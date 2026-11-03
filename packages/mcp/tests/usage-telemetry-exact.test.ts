@@ -8,12 +8,13 @@ import {
   recordMcpToolTelemetry,
   startMcpTelemetry,
 } from "../src/usage-telemetry.js";
+import { restoreProcessEnv } from "./helpers/process-env.js";
 
 const spies: { mockRestore: () => void }[] = [];
 const savedEnv = { ...process.env };
 afterEach(() => {
   for (const spy of spies.splice(0)) spy.mockRestore();
-  process.env = { ...savedEnv };
+  restoreProcessEnv(savedEnv);
 });
 
 function captureRecords() {
