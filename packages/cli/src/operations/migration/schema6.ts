@@ -1256,13 +1256,9 @@ export async function applySchema6MigrationAction(
     }
     case MIGRATION_SYNC_CODE: {
       const { syncCommand } = await import("../../commands/sync.js");
-      const result = await syncCommand({
-        workspaceRoot: context.workspaceRoot,
-      });
-      if (!result.success)
-        throw new Error(
-          "kibi sync did not complete after the migration rewrote sources; run kibi sync to see why.",
-        );
+      // A full sync (not validate-only) throws on every failure; it returns
+      // only once the store holds the rewritten sources.
+      await syncCommand({ workspaceRoot: context.workspaceRoot });
       return;
     }
     default:

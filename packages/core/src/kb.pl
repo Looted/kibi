@@ -3473,11 +3473,11 @@ intervals_overlap(FromA, ToA, FromB, ToB) :-
     \+ interval_ends_before(ToA, FromB),
     \+ interval_ends_before(ToB, FromA).
 
-interval_ends_before('', _) :-
-    fail.
-interval_ends_before(_, '') :-
-    fail.
+% An open end ('') never ends before anything, and nothing ends before an
+% open start.
 interval_ends_before(To, From) :-
+    To \== '',
+    From \== '',
     To @< From.
 
 %% same_value(+TypeA, +ValA, +TypeB, +ValB)

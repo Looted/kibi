@@ -535,8 +535,6 @@ class Parser {
       case "N":
         if (this.syntax.flavor === "python") this.fail("a \\N{name} escape");
         break;
-      default:
-        break;
     }
     // An identity escape: a syntax character stands for itself (in Python
     // any ASCII punctuation does); any other escape is one Kibi does not
@@ -971,7 +969,7 @@ export type LanguageDecision =
   | Readonly<{ holds: true }>
   | Readonly<{ holds: false; witness: string; reason: string }>;
 
-type Relation = "equal" | "disjoint" | "subset";
+type Relation = "equal" | "disjoint";
 
 function decide(
   left: LanguageSpec,
@@ -999,12 +997,6 @@ function decide(
         };
       if (relation === "disjoint" && inA && inB)
         return { holds: false, witness, reason: `${JSON.stringify(witness)} is in both languages` };
-      if (relation === "subset" && inA && !inB)
-        return {
-          holds: false,
-          witness,
-          reason: `${JSON.stringify(witness)} is in the first language but not the second`,
-        };
     }
     for (const unit of alphabet) {
       const wf = wellFormedStep(node.wf, unit);
@@ -1031,12 +1023,6 @@ export function languagesEqual(left: LanguageSpec, right: LanguageSpec): Languag
 // implements REQ-kibi-non-numeric-proof-kinds
 export function languagesDisjoint(left: LanguageSpec, right: LanguageSpec): LanguageDecision {
   return decide(left, right, "disjoint");
-}
-
-/** Whether every string of `left` is in `right`. */
-// implements REQ-kibi-non-numeric-proof-kinds
-export function languageIncluded(left: LanguageSpec, right: LanguageSpec): LanguageDecision {
-  return decide(left, right, "subset");
 }
 
 /** Whether a language holds `text` (a well-formed string). */

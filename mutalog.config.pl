@@ -2,8 +2,10 @@
 % (scripts/run-prolog-mutation.pl). See docs/mutation-testing.md.
 %
 % The lane covers modules with hermetic plunit files: the logic IR
-% interpreter, the numeric interval procedure, unit canonicalization and the
-% symbol classification tables.
+% interpreter, the numeric interval procedure, unit canonicalization, the
+% symbol classification tables, the CHR coverage pilot, the SPARQL client,
+% KB consistency findings, certificates, requirement edge cases, the rule
+% registry and status freshness.
 % Like the Stryker lanes it gates at 100%: every mutant is killed or
 % suppressed as an equivalent.
 
@@ -11,13 +13,27 @@ mutate([
     "packages/core/src/logic_ir.pl",
     "packages/core/src/intervals.pl",
     "packages/core/src/units.pl",
-    "packages/core/src/symbol_classification.pl"
+    "packages/core/src/symbol_classification.pl",
+    "packages/core/src/derived_chr.pl",
+    "packages/core/src/sparql_client.pl",
+    "packages/core/src/kb_consistency.pl",
+    "packages/core/src/certificates.pl",
+    "packages/core/src/cases.pl",
+    "packages/core/src/rule_registry.pl",
+    "packages/core/src/status.pl"
 ]).
 tests([
     "packages/core/tests/logic_ir.plt",
     "packages/core/tests/intervals.plt",
     "packages/core/tests/units.plt",
-    "packages/core/tests/symbol_classification.plt"
+    "packages/core/tests/symbol_classification.plt",
+    "packages/core/tests/derived_chr.plt",
+    "packages/core/tests/sparql_client.plt",
+    "packages/core/tests/kb_consistency.plt",
+    "packages/core/tests/certificates.plt",
+    "packages/core/tests/cases.plt",
+    "packages/core/tests/rule_registry.plt",
+    "packages/core/tests/status.plt"
 ]).
 
 % Equivalent mutants are suppressed in the source, with a

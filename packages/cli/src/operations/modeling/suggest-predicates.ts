@@ -904,23 +904,16 @@ async function groundingPlan(
   }
   // A stored ledger is restated with this claim marked modeled, so the
   // proposition-complete check sees one modeled entry per grounding link.
-  // A claim the ledger does not carry cannot be grounded by this plan.
-  const inventory = Array.isArray(stored.semantic_inventory)
-    ? (stored.semantic_inventory as unknown[])
-    : null;
-  if (inventory !== null) {
+  // The ledger carries the claim: a ledger without it is ledgerMissing, and
+  // no relationship plan (so no hash-bound plan) is built for it.
+  if (Array.isArray(stored.semantic_inventory)) {
+    const inventory = stored.semantic_inventory as unknown[];
     const entry = inventory.find(
       (row): row is Record<string, unknown> =>
         row !== null &&
         typeof row === "object" &&
         (row as Record<string, unknown>).claim_key === input.claimKey,
     );
-    if (entry === undefined) {
-      input.warnings.push(
-        `No hash-bound plan: the ledger of ${input.requirementId} has no proposition ${input.claimKey} for this text. Run kb_model mode analyze with the requirement's complete prose and pass one of its clauses as text; applyPlan can still be written with kb_upsert.`,
-      );
-      return null;
-    }
     stored.semantic_inventory = inventory.map((row) =>
       row === entry
         ? {

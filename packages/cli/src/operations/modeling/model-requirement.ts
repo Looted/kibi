@@ -335,12 +335,11 @@ type ModeledStatement = ExtractedClaim & {
   sourceFiles: string[];
 };
 
+// Every step a write set or logic plan produces carries a properties object.
 function stepProperties(
   step: Record<string, unknown>,
 ): Record<string, unknown> {
-  return step.properties !== null && typeof step.properties === "object"
-    ? (step.properties as Record<string, unknown>)
-    : {};
+  return step.properties as Record<string, unknown>;
 }
 
 // implements REQ-kibi-truthful-consistency

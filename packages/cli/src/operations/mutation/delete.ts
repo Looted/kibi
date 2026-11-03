@@ -638,18 +638,15 @@ async function applyApprovedDeletionPlan(
     errors: [],
     outcome: "plan_applied",
     planHash: plan.planHash,
-    sourcePaths: Array.isArray(result.sourcePaths)
-      ? (result.sourcePaths as string[])
-      : [],
-    ...(typeof result.recoveryJournalId === "string"
-      ? { recoveryJournalId: result.recoveryJournalId }
-      : {}),
+    // An entity deletion plan always removes the entities' documents, so
+    // its result names the source paths and the journal that wrote them,
+    // and a result needing repairs carries its nextActions.
+    sourcePaths: result.sourcePaths as string[],
+    recoveryJournalId: result.recoveryJournalId as string,
     ...(repairs
       ? {
           status: "committed_with_repairs" as const,
-          nextActions: Array.isArray(result.nextActions)
-            ? (result.nextActions as DeleteNextAction[])
-            : [],
+          nextActions: result.nextActions as DeleteNextAction[],
         }
       : {}),
   };

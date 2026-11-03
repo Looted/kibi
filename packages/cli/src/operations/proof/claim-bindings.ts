@@ -27,7 +27,10 @@ import {
 } from "../../public/operations/prolog-json.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { matchWorkspaceFiles } from "../../public/proof-sources.js";
-import type { OperationContext } from "../../public/operations/runtime-types.js";
+import type {
+  OperationContext,
+  PrologPort,
+} from "../../public/operations/runtime-types.js";
 import type { ProofContract } from "../../public/proof-protocol.js";
 import type { ClaimBinding } from "../../public/proof-receipt.js";
 import {
@@ -151,7 +154,7 @@ async function typecheckSetProblem(
   } finally {
     rmSync(absolute, { force: true });
   }
-  return `${exportName} as a type is not exactly the fact's set {${obligation.members.join(", ")}}${lastReason ? ` (${lastReason.replace(/ the witness \S+/, " the set-equality witness")})` : ""}`;
+  return `${exportName} as a type is not exactly the fact's set {${obligation.members.join(", ")}}${lastReason ? ` (${lastReason.replace(` the witness ${witnessPath}`, " the set-equality witness")})` : ""}`;
 }
 
 function smtNegation(obligation: NumericObligation): string {
@@ -258,7 +261,7 @@ async function requiredFieldsProblem(
   }
   if (failures.length > 0)
     return `${exportName} does not have every field of {${fields.join(", ")}} as a required, non-nullable field: ${failures.join("; ")}`;
-  return `${exportName} does not have every field of {${fields.join(", ")}} as a required, non-nullable field${lastReason ? ` (${lastReason.replace(/ the witness \S+/, " the required-fields witness")})` : ""}`;
+  return `${exportName} does not have every field of {${fields.join(", ")}} as a required, non-nullable field${lastReason ? ` (${lastReason.replace(` the witness ${witnessPath}`, " the required-fields witness")})` : ""}`;
 }
 
 /** The symbols a non-numeric certificate read, which must be in code scope. */
@@ -279,6 +282,7 @@ function modelSymbols(contract: ProofContract): string[] {
 
 async function nonNumericProblem(
   context: OperationContext,
+  prolog: PrologPort,
   contract: ProofContract,
   certificate: Record<string, unknown>,
   obligation: Record<string, unknown>,
@@ -297,10 +301,8 @@ async function nonNumericProblem(
     );
   if (obligationKind === "string_constraint")
     return stringConstraintProblem(certificate, obligation, factId);
-  if (context.prolog === undefined)
-    return "no Prolog runtime is attached to model check the claim";
   const checked = await runOperationJsonQuery<{ ok?: boolean; reason?: string }>(
-    context.prolog,
+    prolog,
     "claim_obligations.pl",
     `claim_obligations:claim_model_check_json(${toPrologAtom(contract.kind ?? "")}, ${toPrologAtom(JSON.stringify(obligation))}, ${toPrologAtom(JSON.stringify(certificate))}, JsonString)`,
     "Claim model check",
@@ -324,6 +326,8 @@ const NON_NUMERIC_OBLIGATIONS = new Set([
 
 async function derivedProblem(
   context: OperationContext,
+  // judgeClaimBindings rejects every claim without Prolog before this runs.
+  prolog: PrologPort,
   contract: ProofContract,
   certificate: Record<string, unknown>,
   row: ObligationRow,
@@ -333,7 +337,15 @@ async function derivedProblem(
   const kind = contract.kind;
   const factId = row.fact_id ?? "the grounding fact";
   if (NON_NUMERIC_OBLIGATIONS.has(text(obligation.kind)))
-    return nonNumericProblem(context, contract, certificate, obligation, factId, coveredBy);
+    return nonNumericProblem(
+      context,
+      prolog,
+      contract,
+      certificate,
+      obligation,
+      factId,
+      coveredBy,
+    );
   if (kind === "exhaustive" || kind === "typecheck") {
     const set = obligation as unknown as SetObligation;
     const domainId = contract.domain_source?.symbol_id ?? "";
@@ -568,14 +580,15 @@ export async function judgeClaimBindings(
 ): Promise<ClaimBinding[] | undefined> {
   const keys = input.contract.proves ?? [];
   if (keys.length === 0 || input.contract.kind === undefined) return undefined;
-  if (context.prolog === undefined)
+  const prolog = context.prolog;
+  if (prolog === undefined)
     return keys.map((key) => ({
       claim_key: key,
       binding: "rejected",
       reason: "no Prolog runtime is attached to resolve the claim",
     }));
   const rows = await runOperationJsonQuery<ObligationRow[]>(
-    context.prolog,
+    prolog,
     "claim_obligations.pl",
     `claim_obligations:test_claim_obligations_json(${toPrologAtom(input.testId)}, ${toPrologAtom(JSON.stringify(keys))}, ${toPrologAtom(input.contract.kind)}, JsonString)`,
     "Claim obligations",
@@ -624,7 +637,14 @@ export async function judgeClaimBindings(
       const codeProblem =
         input.contract.kind === "typecheck" &&
         input.verdict.certificate !== undefined
-          ? await derivedProblem(context, input.contract, certificate, row, coveredBy)
+          ? await derivedProblem(
+              context,
+              prolog,
+              input.contract,
+              certificate,
+              row,
+              coveredBy,
+            )
           : null;
       bindings.push({
         ...base,
@@ -636,7 +656,14 @@ export async function judgeClaimBindings(
     }
     const problem =
       (await scopeCheck?.(row)) ??
-      (await derivedProblem(context, input.contract, certificate, row, coveredBy));
+      (await derivedProblem(
+        context,
+        prolog,
+        input.contract,
+        certificate,
+        row,
+        coveredBy,
+      ));
     const numeric = text(obligation.kind) === "numeric_constraint";
     bindings.push(
       problem === null

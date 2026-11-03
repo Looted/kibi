@@ -604,13 +604,16 @@ function workspacePackageBases(
   let dir = path.dirname(path.resolve(root, fromFile));
   for (;;) {
     const link = path.join(dir, "node_modules", name);
-    if (existsSync(link)) {
-      let real: string;
-      try {
-        real = realpathSync(link);
-      } catch {
-        return [];
-      }
+    // realpathSync throws for a missing or dangling link, which is the
+    // same as no package at this level.
+    let found: string | null = null;
+    try {
+      found = realpathSync(link);
+    } catch {
+      found = null;
+    }
+    if (found !== null) {
+      const real = found;
       const relative = path.relative(root, real);
       if (
         relative.startsWith("..") ||

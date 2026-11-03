@@ -873,14 +873,10 @@ const SUMMARY_ENTITY_FIELDS = [
   "updated_at",
 ] as const;
 
-function summarizeMatch<TMatch extends { readonly entity: unknown }>(
-  match: TMatch,
-): TMatch {
-  const entity = match.entity;
-  if (entity === null || typeof entity !== "object" || Array.isArray(entity)) {
-    return match;
-  }
-  const row = entity as Record<string, unknown>;
+function summarizeMatch<
+  TMatch extends { readonly entity: Record<string, unknown> },
+>(match: TMatch): TMatch {
+  const row = match.entity;
   const summary: Record<string, unknown> = {};
   for (const field of SUMMARY_ENTITY_FIELDS) {
     if (row[field] !== undefined) summary[field] = row[field];

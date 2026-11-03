@@ -40,8 +40,11 @@ clear_chr_facts :-
 derive_chr_facts :-
     clear_chr_facts,
     forall(kb:must_requirement(Req), seen_must_req(Req)),
-    forall(kb:has_scenario(Req), seen_scenario(Req)),
-    forall(kb:has_test(Req), seen_test(Req)),
+    % has_scenario/1 and has_test/1 expect a bound requirement: called
+    % unbound, their once/1 stops at the first edge in the KB and misses
+    % every other covered requirement.
+    forall((snapshot_must_req(Req), kb:has_scenario(Req)), seen_scenario(Req)),
+    forall((snapshot_must_req(Req), kb:has_test(Req)), seen_test(Req)),
     forall(kb:production_symbol(Symbol), seen_production_symbol(Symbol)),
     forall(kb:production_symbol_covered_for_requirement(Symbol, _), seen_symbol_req_coverage(Symbol)),
     derive_coverage_gaps,

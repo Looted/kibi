@@ -80,6 +80,7 @@ describe("unit coverage runner contract", () => {
       "cli.sync-modules",
       "cli.doctor",
       "cli.operations",
+      "cli.commands-coverage",
       "cli.public",
       "cli.support.staged-symbols-manifest",
       "cli.support.traceability",

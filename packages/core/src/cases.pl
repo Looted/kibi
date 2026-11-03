@@ -82,9 +82,12 @@ claim_key_of(FactId, Key) :-
     ;   Key = FactId
     ).
 
-effective_operator(require, Op, Op) :- !.
-effective_operator(forbid, Op, Negated) :- negated_operator(Op, Negated), !.
-effective_operator(_, Op, Op).
+effective_operator(Polarity, Op, Effective) :-
+    (   Polarity == forbid,
+        negated_operator(Op, Negated)
+    ->  Effective = Negated
+    ;   Effective = Op
+    ).
 
 negated_operator(eq, neq).
 negated_operator(neq, eq).
@@ -109,7 +112,7 @@ keep_new_case(_-C-P, Kept, Kept) :-
     !.
 keep_new_case(Case, Kept, [Case|Kept]).
 
-subsumed_constraint(C, C) :- !.
+% Only numeric classes can repeat or nest: a set fact's members are unique.
 subsumed_constraint(num(Type, Op, Value), num(Type, EarlierOp, EarlierValue)) :-
     integer_variables(Type, Var, IntVars),
     numeric_constraint_entailed([c(Op, Var, Value)], c(EarlierOp, Var, EarlierValue), IntVars).
@@ -117,22 +120,20 @@ subsumed_constraint(num(Type, Op, Value), num(Type, EarlierOp, EarlierValue)) :-
 %% fact_case(+ValueType, +Op, +Value, -Generator, -Constraint, -Predicted)
 % Numeric facts: the bound itself and the nearest value past it, then the
 % zero, one and many classes when the property is an integer count.
-fact_case(Type, Op, Value, Generator, num(Type, CaseOp, CaseValue), Predicted) :-
-    numeric_type(Type),
-    number(Value),
-    numeric_case(Type, Op, Value, Generator, CaseOp, CaseValue),
-    numeric_prediction(Type, Op, Value, CaseOp, CaseValue, Predicted).
-% Set facts: each member, then the value class outside the set.
+% Set facts: each member, then the value class outside the set.  A set
+% fact whose value did not read as a list has none.
 fact_case(set, Op, Members, member, member(Member), success) :-
     memberchk(Op, [eq, includes, subset_of]),
-    is_list(Members),
     member(Member, Members).
 fact_case(set, Op, Members, non_member, non_member(Members), Predicted) :-
     is_list(Members),
     non_member_prediction(Op, Predicted).
 fact_case(set, excludes, Members, excluded_member, excluded(Member), rejection) :-
-    is_list(Members),
     member(Member, Members).
+fact_case(Type, Op, Value, Generator, num(Type, CaseOp, CaseValue), Predicted) :-
+    numeric_value(Type, Value),
+    numeric_case(Type, Op, Value, Generator, CaseOp, CaseValue),
+    numeric_prediction(Type, Op, Value, CaseOp, CaseValue, Predicted).
 
 upper_past(eq, gt).
 upper_past(neq, gt).
@@ -145,6 +146,10 @@ lower_past(gt, lte).
 
 numeric_type(int).
 numeric_type(number).
+
+numeric_value(Type, Value) :-
+    numeric_type(Type),
+    number(Value).
 
 non_member_prediction(eq, rejection).
 non_member_prediction(subset_of, rejection).
@@ -161,14 +166,23 @@ numeric_case(_, Op, V, boundary, PastOp, V) :-
     upper_past(Op, PastOp).
 numeric_case(Type, Op, V, boundary, PastOp, V) :-
     lower_past(Op, PastOp),
-    \+ (Type == int, PastOp == lt, V =< 0),
-    \+ (Type == int, PastOp == lte, V < 0).
+    \+ (Type == int, no_count_below(PastOp, V)).
 % Zero, one and many: the partition a one-item test hides.  It applies to
 % an integer property bounded at one or more; a bound of zero is already
 % split by its boundary rows.
+% At a bound of one the boundary rows already hold the value one (as the
+% bound, or as the row past it), so the one class starts at a bound of two.
 numeric_case(int, _, V, cardinality, eq, 0) :- V >= 1.
-numeric_case(int, _, V, cardinality, eq, 1) :- V >= 1.
+numeric_case(int, _, V, cardinality, eq, 1) :- V >= 2.
 numeric_case(int, _, V, cardinality, gte, 2) :- V >= 1.
+
+% An integer property counts something: no count lies below zero, so
+% x < V for V =< 0 and x =< V for V < 0 name no class.
+no_count_below(PastOp, V) :-
+    (   PastOp == lt
+    ->  V =< 0
+    ;   V < 0
+    ).
 
 % A case is predicted success when every value it admits satisfies the
 % claim and rejection when none does.  A class that straddles the bound
@@ -183,8 +197,11 @@ numeric_prediction(Type, Op, Value, CaseOp, CaseValue, Predicted) :-
     ->  Predicted = rejection
     ).
 
-integer_variables(int, Var, [Var]) :- !.
-integer_variables(_, _, []).
+integer_variables(Type, Var, IntVars) :-
+    (   Type == int
+    ->  IntVars = [Var]
+    ;   IntVars = []
+    ).
 
 case_id(ClaimKey, Generator, Constraint, Id) :-
     format(string(Text), '~w|~w|~q', [ClaimKey, Generator, Constraint]),
@@ -230,22 +247,26 @@ assumption_entails(FactId, Subject-Property, Constraint) :-
     effective_operator(Polarity, AuthoredOp, Op),
     constraint_entailed(ValueType, Op, Value, Constraint).
 
-constraint_entailed(Type, Op, Value, num(_, CaseOp, CaseValue)) :-
-    numeric_type(Type),
-    number(Value),
-    integer_variables(Type, Var, IntVars),
-    numeric_constraint_entailed([c(Op, Var, Value)], c(CaseOp, Var, CaseValue), IntVars).
-constraint_entailed(set, Op, Members, member(Member)) :-
-    memberchk(Op, [eq, includes]),
-    memberchk(Member, Members).
-constraint_entailed(set, Op, Members, non_member(Allowed)) :-
-    memberchk(Op, [eq, includes]),
-    member(Member, Members),
-    \+ memberchk(Member, Allowed),
-    !.
-constraint_entailed(set, Op, Members, excluded(Member)) :-
-    memberchk(Op, [eq, includes]),
-    memberchk(Member, Members).
+constraint_entailed(Type, Op, Value, Constraint) :-
+    (   Constraint = num(_, CaseOp, CaseValue)
+    ->  numeric_value(Type, Value),
+        integer_variables(Type, Var, IntVars),
+        numeric_constraint_entailed([c(Op, Var, Value)], c(CaseOp, Var, CaseValue), IntVars)
+    ;   Type == set,
+        memberchk(Op, [eq, includes]),
+        set_constraint_entailed(Constraint, Value)
+    ).
+
+% A set that includes the members Members lands in member(M) and
+% excluded(M) when it names M, and in non_member(Allowed) when it names a
+% value outside Allowed.
+set_constraint_entailed(Constraint, Members) :-
+    (   Constraint = non_member(Allowed)
+    ->  subtract(Members, Allowed, Outside),
+        Outside \== []
+    ;   arg(1, Constraint, Member),
+        memberchk(Member, Members)
+    ).
 
 %% case_dict(+Case, -Dict)
 % The case as reported, with the assumption a scenario would state to land
@@ -265,18 +286,15 @@ case_dict(case(Id, ClaimKey, FactId, Subject-Property, Generator, Constraint, Pr
         assumption: Assumption
     }.
 
-constraint_assumption(Subject, Property, num(Type, Op, Value), Assumption) :-
+constraint_assumption(Subject, Property, Constraint, Assumption) :-
+    assumed_value(Constraint, Op, Type, Value),
     Assumption = _{fact_kind: property_value, subject_key: Subject, property_key: Property,
                    operator: Op, value_type: Type, value: Value}.
-constraint_assumption(Subject, Property, member(Member), Assumption) :-
-    Assumption = _{fact_kind: property_value, subject_key: Subject, property_key: Property,
-                   operator: includes, value_type: set, value: [Member]}.
-constraint_assumption(Subject, Property, non_member(_), Assumption) :-
-    Assumption = _{fact_kind: property_value, subject_key: Subject, property_key: Property,
-                   operator: includes, value_type: set, value: ['<a value outside the set>']}.
-constraint_assumption(Subject, Property, excluded(Member), Assumption) :-
-    Assumption = _{fact_kind: property_value, subject_key: Subject, property_key: Property,
-                   operator: includes, value_type: set, value: [Member]}.
+
+assumed_value(num(Type, Op, Value), Op, Type, Value).
+assumed_value(member(Member), includes, set, [Member]).
+assumed_value(non_member(_), includes, set, ['<a value outside the set>']).
+assumed_value(excluded(Member), includes, set, [Member]).
 
 %% fact_case_waiver(+FactId, -Waiver)
 % A grounding fact whose cases a person accepted as covered some other way
@@ -300,12 +318,12 @@ fact_case_waiver(FactId, Waiver) :-
     ;   Waiver = _{}
     ).
 
-constraint_text(num(_, Op, Value), Text) :-
-    format(string(Text), '~w ~w', [Op, Value]).
-constraint_text(member(Member), Text) :-
-    format(string(Text), 'includes ~w', [Member]).
-constraint_text(non_member(Allowed), Text) :-
-    atomic_list_concat(Allowed, ', ', Joined),
-    format(string(Text), 'includes a value outside [~w]', [Joined]).
-constraint_text(excluded(Member), Text) :-
-    format(string(Text), 'includes ~w', [Member]).
+constraint_text(Constraint, Text) :-
+    constraint_format(Constraint, Format, Args),
+    format(string(Text), Format, Args).
+
+constraint_format(num(_, Op, Value), '~w ~w', [Op, Value]).
+constraint_format(member(Member), 'includes ~w', [Member]).
+constraint_format(excluded(Member), 'includes ~w', [Member]).
+constraint_format(non_member(Allowed), 'includes a value outside [~w]', [Joined]) :-
+    atomic_list_concat(Allowed, ', ', Joined).

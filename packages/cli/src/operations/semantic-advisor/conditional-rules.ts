@@ -188,7 +188,12 @@ function condition(text: string): Readonly<{
   propertyKey: string;
   comparison: Comparison;
 }> | null {
-  if (/\b(?:and|or|but)\b|,/i.test(text)) return null;
+  // A conjunction or disjunction is not one comparison; "10 or more" and
+  // "4 or fewer" are, so a trailing "or more/less/fewer" is not a disjunction.
+  if (
+    /\b(?:and|but)\b|,|\bor\b(?!\s+(?:more|less|fewer)[.!?]*\s*$)/i.test(text)
+  )
+    return null;
   const match = text
     .trim()
     .replace(/[.!?]+$/, "")

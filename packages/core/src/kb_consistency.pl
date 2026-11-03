@@ -18,8 +18,6 @@
     check_kb_consistency_unresolved/1
 ]).
 
-:- encoding(utf8).
-
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(http/json)).
@@ -75,9 +73,8 @@ consistency_verification(Bundle, Report) :-
 
 compute_consistency_verification(Bundle, Report) :-
     kb_certificates(Produced),
-    with_output_to(string(Json), json_write_dict(current_output, Produced, [width(0)])),
-    open_string(Json, Stream),
-    json_read_dict(Stream, Bundle, [value_string_as(string)]),
+    with_output_to(string(Json), json_write_dict(current_output, Produced)),
+    atom_json_dict(Json, Bundle, [value_string_as(string)]),
     verify_certificates(Bundle, Report).
 
 numbered_certificates(Bundle, Numbered) :-
@@ -95,7 +92,17 @@ contradiction_violation(Certificate, violation('kb-consistency', EntityId, Descr
     entity_label(Requirements, Facts, EntityId),
     suggestion_text(Kind, Requirements, Suggestion).
 
-contradiction_text(property_contradiction, Certificate, Facts, Description) :-
+% Each kind of contradiction has its own writer.
+contradiction_text(Kind, Certificate, Facts, Description) :-
+    contradiction_writer(Kind, Writer),
+    call(Writer, Certificate, Facts, Description).
+
+contradiction_writer(property_contradiction, property_contradiction_text).
+contradiction_writer(predicate_contradiction, predicate_contradiction_text).
+contradiction_writer(decision_contradiction, decision_contradiction_text).
+contradiction_writer(rule_negation_cycle, negation_cycle_text).
+
+property_contradiction_text(Certificate, Facts, Description) :-
     Facts = Certificate.core,
     context_text(Certificate, Context),
     atomic_list_concat(Facts, ', ', FactText),
@@ -108,19 +115,19 @@ contradiction_text(property_contradiction, Certificate, Facts, Description) :-
     format(string(Description),
         "Facts ~w cannot all hold for ~w: no value satisfies them together, and dropping any one leaves a value (~w)",
         [FactText, Context, DropText]).
-contradiction_text(predicate_contradiction, Certificate, Facts, Description) :-
+predicate_contradiction_text(Certificate, Facts, Description) :-
     Facts = Certificate.core,
     Facts = [FactA, FactB],
     atom_text(Certificate, Atom),
     format(string(Description),
         "Facts ~w and ~w give ~w opposite truth values", [FactA, FactB, Atom]).
-contradiction_text(decision_contradiction, Certificate, Facts, Description) :-
+decision_contradiction_text(Certificate, Facts, Description) :-
     Facts = Certificate.core,
     Facts = [FactA, FactB],
     decision_text(Certificate, Decision),
     format(string(Description),
         "Facts ~w and ~w decide ~w differently: one allows it and the other denies it", [FactA, FactB, Decision]).
-contradiction_text(rule_negation_cycle, Certificate, [], Description) :-
+negation_cycle_text(Certificate, [], Description) :-
     findall(Text,
         (   member(Edge, Certificate.cycle),
             signature_text(Edge.head, Head),
@@ -195,9 +202,12 @@ fact_requirements(Facts, Requirements) :-
         Requirements0),
     sort(Requirements0, Requirements).
 
-entity_label([], [], "") :- !.
-entity_label([], Facts, Label) :- !, atomic_list_concat(Facts, '/', Label0), atom_string(Label0, Label).
-entity_label(Requirements, _Facts, Label) :- atomic_list_concat(Requirements, '/', Label0), atom_string(Label0, Label).
+% The requirements behind the facts, or the facts when no current
+% requirement names them.
+entity_label(Requirements, Facts, Label) :-
+    (   Requirements == [] -> Parts = Facts ; Parts = Requirements ),
+    atomic_list_concat(Parts, '/', Label0),
+    atom_string(Label0, Label).
 
 context_text(Label, Text) :-
     (   get_dict(scope, Label, Scope0) -> atom_string(Scope0, Scope) ; Scope = "" ),
