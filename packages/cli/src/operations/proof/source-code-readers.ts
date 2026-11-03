@@ -189,8 +189,10 @@ export function extractScriptReferences(
   const names = new Map<string, string>();
   // Local names bound to a module itself (import * as cp, const cp = require(...)).
   const moduleNames = new Set<string>();
-  // The declarations those names come from.
+  // The declarations those names come from. A declaration that binds no name
+  // (const window = pick()) is an ordinary local, so it shadows a global.
   const bindingDeclarations = new Set<Node>();
+  let bindings = 0;
   const GLOBAL_OBJECTS = new Set(["globalThis", "global", "window", "self"]);
   const canonical = (written: string): string => {
     let current = written;
@@ -226,6 +228,7 @@ export function extractScriptReferences(
   const bindPattern = (pattern: import("typescript").BindingName, from: string): void => {
     if (ts.isIdentifier(pattern)) {
       names.set(pattern.text, from);
+      bindings++;
       return;
     }
     if (!ts.isObjectBindingPattern(pattern)) return;
@@ -265,7 +268,7 @@ export function extractScriptReferences(
         moduleNames.add(node.name.text);
       }
     } else if (ts.isVariableDeclaration(node) && node.initializer) {
-      bindingDeclarations.add(node);
+      const before = bindings;
       const init = unwrapped(node.initializer);
       const module = loaded(init);
       if (module !== undefined) {
@@ -275,11 +278,15 @@ export function extractScriptReferences(
         }
       } else if (ts.isCallExpression(init) && REQUIRE_FACTORIES.has(canonical(chain(init.expression) ?? ""))) {
         // const req = createRequire(import.meta.url): req loads modules.
-        if (ts.isIdentifier(node.name)) names.set(node.name.text, "require");
+        if (ts.isIdentifier(node.name)) {
+          names.set(node.name.text, "require");
+          bindings++;
+        }
       } else {
         const from = chain(init);
         if (from !== null) bindPattern(node.name, from);
       }
+      if (bindings !== before) bindingDeclarations.add(node);
     }
     ts.forEachChild(node, collect);
   };
@@ -368,6 +375,25 @@ export function extractScriptReferences(
     const top = outer(node);
     const parent = top.parent;
     return parent !== undefined && ts.isVariableDeclaration(parent) && parent.initializer === top;
+  };
+  // `typeof window` only asks for the kind of the value, and `"Notification" in
+  // window` only asks whether a global other than process exists: neither
+  // hands the object on, so neither can read a variable.
+  const queried = (node: Node, name: string): boolean => {
+    const top = outer(node);
+    const parent = top.parent;
+    if (parent === undefined) return false;
+    if (ts.isTypeOfExpression(parent)) return true;
+    if (
+      GLOBAL_OBJECTS.has(name) &&
+      ts.isBinaryExpression(parent) &&
+      parent.operatorToken.kind === ts.SyntaxKind.InKeyword &&
+      parent.right === top
+    ) {
+      const key = literal(parent.left);
+      return key !== null && key !== "process" && key !== "Bun";
+    }
+    return false;
   };
   // Code built from text runs anything.
   const DYNAMIC_CODE = new Set(["eval", "Function", "vm.runInThisContext", "vm.runInNewContext", "vm.runInContext", "vm.compileFunction", "vm.Script", "vm.SourceTextModule"]);
@@ -458,9 +484,10 @@ export function extractScriptReferences(
           const name = canonical(chain(node) ?? "");
           if (ts.isIdentifier(node) && shadowed(node, node.text)) break;
           const handedOn =
-            ENV_OBJECTS.has(name) ||
+            !queried(node, name) &&
+            (ENV_OBJECTS.has(name) ||
             (name === "process" && !readsAProperty(node)) ||
-            (GLOBAL_OBJECTS.has(name) && !readsAProperty(node));
+            (GLOBAL_OBJECTS.has(name) && !readsAProperty(node)));
           if (handedOn) {
             unresolved.push(at(node));
             return;
