@@ -67,7 +67,8 @@ async function staged(root: string, options: Record<string, unknown> = {}) {
   }
 }
 
-const REQ = `---\nid: REQ-1\ntitle: Req one\nstatus: open\ntype: req\n---\n\nThe system does one thing.\n\n## Context\n\nWhy it matters.\n`;
+const REQ =
+  "---\nid: REQ-1\ntitle: Req one\nstatus: open\ntype: req\n---\n\nThe system does one thing.\n\n## Context\n\nWhy it matters.\n";
 const SOURCE = "export function a() {\n  return 1;\n}\n";
 
 describe("checkCommand --staged symbol extraction", () => {
