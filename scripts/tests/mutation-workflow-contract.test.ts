@@ -21,6 +21,8 @@ import editorsConfig, {
 } from "../../stryker.editors.conf.mjs";
 import mcpConfig, {
   MCP_MUTATION_PACKAGE,
+  MCP_MUTATION_SHARDS,
+  mcpMutateFor,
   mcpTestFiles,
 } from "../../stryker.mcp.conf.mjs";
 import treesitterConfig, {
@@ -385,6 +387,34 @@ describe("kibi-mcp mutation contract", () => {
     expect(mcp.bun?.timeout).toBeGreaterThanOrEqual(300000);
   });
 
+  test("the CI shards mutate every source file exactly once", () => {
+    const sources = globSync("packages/mcp/src/**/*.ts", { cwd: ROOT })
+      .filter((file) => !/^packages\/mcp\/src\/types\/.*\.d\.ts$/.test(file))
+      .sort();
+    const listed = MCP_MUTATION_SHARDS.flat();
+    expect(new Set(listed).size).toBe(listed.length);
+    for (const file of listed) expect(sources).toContain(file);
+    for (const [index, group] of MCP_MUTATION_SHARDS.entries()) {
+      expect(group.length).toBeGreaterThan(0);
+      expect(mcpMutateFor(String(index + 1))).toEqual(group);
+    }
+    const rest = mcpMutateFor(String(MCP_MUTATION_SHARDS.length + 1));
+    expect(rest).toEqual([
+      ...(mcp.mutate ?? []),
+      ...listed.map((file) => `!${file}`),
+    ]);
+    expect(mcpMutateFor(undefined)).toEqual(mcp.mutate);
+    expect(mcpMutateFor("")).toEqual(mcp.mutate);
+    for (const bad of [
+      "0",
+      String(MCP_MUTATION_SHARDS.length + 2),
+      "1.5",
+      "x",
+    ]) {
+      expect(() => mcpMutateFor(bad)).toThrow("MCP_MUTATION_SHARD must be");
+    }
+  });
+
   test("every mcp test file runs against the mutants", () => {
     const onDisk = globSync("packages/mcp/tests/**/*.test.ts", {
       cwd: ROOT,
@@ -407,6 +437,12 @@ describe("kibi-mcp mutation contract", () => {
     );
     expect(workflow).toContain("schedule:");
     expect(workflow).toContain("run: bun run test:mutation:mcp");
+    const shards = Array.from(
+      { length: MCP_MUTATION_SHARDS.length + 1 },
+      (_, index) => index + 1,
+    );
+    expect(workflow).toContain(`shard: [${shards.join(", ")}]`);
+    expect(workflow).toContain("MCP_MUTATION_SHARD: ${{ matrix.shard }}");
     expect(workflow).toContain("uses: ./.github/actions/use-bundled-swipl");
     for (const path of [
       "packages/mcp/src/**",
