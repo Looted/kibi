@@ -317,6 +317,7 @@ ${shapes.join("\n")}
 export const TERMINAL_SVG_PATH = "assets/terminal-demo.svg";
 
 /** Writes the README terminal SVG; `bun run docs:terminal-demo` calls this. */
+// implements REQ-docs-site-root-pages
 export async function writeTerminalDemoSvg(
   repoRoot = `${import.meta.dir}/..`,
 ): Promise<string> {

@@ -194,11 +194,14 @@ export async function main() {
   return prepared;
 }
 
-const invokedPath = process.argv[1];
-if (
-  invokedPath &&
-  path.resolve(invokedPath) === fileURLToPath(import.meta.url)
-) {
+/** Runs `main` when this file is the invoked script; reports failures. */
+// implements REQ-test-journaled-engine-harness
+export async function runIfInvoked(invokedPath = process.argv[1]) {
+  if (
+    !invokedPath ||
+    path.resolve(invokedPath) !== fileURLToPath(import.meta.url)
+  )
+    return;
   try {
     await main();
   } catch (error) {
@@ -208,3 +211,5 @@ if (
     process.exitCode = 1;
   }
 }
+
+await runIfInvoked();

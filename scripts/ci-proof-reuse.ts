@@ -522,6 +522,7 @@ async function decide(outputPath: string): Promise<void> {
     );
 }
 
+// implements REQ-kibi-verification-evidence-contract
 export async function main(argv: readonly string[]): Promise<void> {
   const [command, output] = argv;
   if (!output || (command !== "attest" && command !== "decide"))

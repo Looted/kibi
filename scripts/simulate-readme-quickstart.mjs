@@ -307,6 +307,7 @@ export function parseArgs(argv) {
 }
 
 /** Command-line entry: returns the process exit code. */
+// implements REQ-prolog-bundled-quickstart
 export function main(argv) {
   try {
     const options = parseArgs(argv);
