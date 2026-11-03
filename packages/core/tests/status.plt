@@ -1,7 +1,7 @@
 :- use_module(library(plunit)).
 :- use_module(library(filesex)).
 :- use_module(library(http/json)).
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), [rdf_transaction/1]).
 :- use_module('../src/kb.pl').
 :- use_module('../src/status.pl').
 :- use_module(test_helpers).
