@@ -132,7 +132,11 @@ test(an_empty_bundle_writes_an_empty_summary) :-
     with_fixture_kb(kb_write_certificates(Path, Summary)),
     read_file_to_string(Path, Written, []),
     delete_file(Path),
-    Written == "{\"certificates\": [], \"version\":\"kibi.certificates.v1\"}\n",
+    % The JSON writer's spacing differs between SWI-Prolog releases, so the
+    % file is compared as JSON plus its trailing newline.
+    sub_string(Written, _, 1, 0, "\n"),
+    atom_json_dict(Written, WrittenDict, [value_string_as(atom)]),
+    same(WrittenDict, _{certificates: [], version: 'kibi.certificates.v1'}),
     atom_json_dict(Summary, SummaryDict, [value_string_as(atom)]),
     atom_string(PathAtom, Path),
     same(SummaryDict, _{path: PathAtom, certificates: 0, byKind: _{}}).
