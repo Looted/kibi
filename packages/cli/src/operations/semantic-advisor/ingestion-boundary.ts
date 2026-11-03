@@ -521,9 +521,10 @@ const INVENTORY_ERROR_RULES: readonly (readonly [RegExp, string, string])[] = [
 /**
  * The inventory errors as rejection issues for anonymous telemetry. A
  * payload that sent no inventory at all is one issue, `inventory_missing`:
- * the other errors follow from it.
+ * the other errors follow from it. A message no rule names is
+ * `inventory_other`, so a new check still reports as a refusal.
  */
-function inventoryIssues(
+export function inventoryIssues(
   payload: Payload,
   errors: readonly string[],
 ): RejectionIssue[] {

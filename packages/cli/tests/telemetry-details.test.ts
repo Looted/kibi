@@ -5,7 +5,10 @@ import { KbRejection } from "../src/cli-errors";
 import { prepareOperationInput } from "../src/cli-validate";
 import { validateUpsertInput } from "../src/operations/mutation/validation";
 import { analyzeSemanticAdvisorInput } from "../src/operations/semantic-advisor/analyze-prose";
-import { assertSemanticInventoryBoundary } from "../src/operations/semantic-advisor/ingestion-boundary";
+import {
+  assertSemanticInventoryBoundary,
+  inventoryIssues,
+} from "../src/operations/semantic-advisor/ingestion-boundary";
 import {
   kibiSchemaFieldNames,
   operationTelemetrySignals,
@@ -166,6 +169,15 @@ describe("rejections carry their issues", () => {
     expect(rules).toContain("source_hash");
     expect(rules).toContain("inventory_count");
     expect(rules).toContain("logic_claims_mismatch");
+    expect(
+      inventoryIssues(stale, [
+        "semantic_inventory[2] does not match advisor proposition 'x'",
+        "a check added later",
+      ]),
+    ).toStrictEqual([
+      { rule: "proposition_mismatch", field: "semantic_inventory" },
+      { rule: "inventory_other" },
+    ]);
   });
 
   test("invalid JSON input names its schema rule", () => {
