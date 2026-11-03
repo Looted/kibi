@@ -13,8 +13,6 @@
     kb_write_certificates/2
 ]).
 
-:- encoding(utf8).
-
 :- use_module(library(http/json)).
 :- use_module(library(apply)).
 :- use_module(library(lists)).
@@ -95,34 +93,49 @@ members_model(Domain, Members, Value) :-
     forall(member(Member, Members), certificate_member_holds(Domain, Member, Value)),
     !.
 
+% context_domain/3 in certificate_check.pl gives every context one of these
+% five domains.
 model_candidates(Domain, Members, Candidates) :-
-    memberchk(Domain, [int, number]),
-    !,
+    (   memberchk(Domain, [int, number])
+    ->  numeric_candidates(Domain, Members, Candidates)
+    ;   Domain == bool
+    ->  Candidates = [true, false]
+    ;   Domain == string
+    ->  string_candidates(Members, Candidates)
+    ;   set_candidates(Members, Candidates)
+    ).
+
+% Each bound, the integers or numbers next to it, the midpoint between two
+% neighbouring number bounds, and zero.
+numeric_candidates(Domain, Members, Candidates) :-
     findall(Bound, member(m(_, _, Bound, _, _), Members), Bounds0),
     sort(Bounds0, Bounds),
     (   Domain == int
     ->  findall(Candidate,
             (   member(Bound, Bounds),
                 member(Base, [floor(Bound), ceiling(Bound)]),
-                member(Offset, [-1, 0, 1]),
-                Candidate is Base + Offset
+                member(Next, [Base - 1, Base, Base + 1]),
+                Candidate is Next
             ),
             Candidates0)
     ;   findall(Candidate,
-            (   member(Bound, Bounds), member(Offset, [-1, 0, 1]), Candidate is Bound + Offset
-            ;   nextto(Low, High, Bounds), Candidate is (Low + High) / 2
+            (   member(Bound, Bounds),
+                member(Next, [Bound - 1, Bound, Bound + 1]),
+                Candidate is Next
+            ;   nextto(Low, High, Bounds),
+                Candidate is (Low + High) / 2
             ),
             Candidates0)
     ),
     sort([0|Candidates0], Candidates).
-model_candidates(bool, _Members, [true, false]) :- !.
-model_candidates(string, Members, Candidates) :-
+
+string_candidates(Members, Candidates) :-
     findall(Bound, member(m(_, _, Bound, _, _), Members), Bounds0),
     sort(Bounds0, Bounds),
     fresh_text(Bounds, 0, Fresh),
     append(Bounds, [Fresh], Candidates).
 
-model_candidates(set, Members, Candidates) :-
+set_candidates(Members, Candidates) :-
     findall(Set, (member(m(_, _, Bound, _, _), Members), set_texts(Bound, Set)), Sets0),
     sort(Sets0, Sets),
     findall(Text, (member(Set, Sets), member(Text, Set)), Texts0),
@@ -145,20 +158,24 @@ fresh_text(Bounds, Index, Fresh) :-
     ;   Fresh = Candidate
     ).
 
-text_value(Value, Text) :- atom(Value), !, atom_string(Value, Text).
-text_value(Value, Text) :- string(Value), !, Text = Value.
+text_value(Value, Text) :-
+    (   atom(Value)
+    ->  atom_string(Value, Text)
+    ;   string(Value),
+        Text = Value
+    ).
 
 %% irreducible_core(+Domain, +Members, -Core)
 % Deletion filter: drop each member whose removal keeps the set
 % unsatisfiable.  What remains admits no value, and every proper subset
-% does.
+% does.  No member is ever dropped from a one-member core: the empty set
+% is satisfiable in every domain.
 irreducible_core(Domain, Members, Core) :-
     foldl(core_step(Domain), Members, Members, Core).
 
 core_step(Domain, Member, Current, Next) :-
     exclude(==(Member), Current, Without),
-    (   Without \== [],
-        \+ certificate_members_satisfiable(Domain, Without)
+    (   \+ certificate_members_satisfiable(Domain, Without)
     ->  Next = Without
     ;   Next = Current
     ).
@@ -195,8 +212,7 @@ rule_certificates(Edges, [Certificate]) :-
     findall(Signature, (member(edge(Head, Body, _), Edges), member(Signature, [Head, Body])), Signatures0),
     sort(Signatures0, Signatures),
     findall(Signature-0, member(Signature, Signatures), Initial),
-    length(Signatures, Count),
-    Rounds is Count + 1,
+    length(Signatures, Rounds),
     (   relax_strata(Rounds, Edges, Initial, Strata)
     ->  findall(_{namespace: Namespace, name: Name, arity: Arity, stratum: Stratum},
             member(predicate(Namespace, Name, Arity)-Stratum, Strata),
@@ -216,34 +232,34 @@ signature_dict(predicate(Namespace, Name, Arity), _{namespace: Namespace, name: 
 
 % Raise each head to at least its body's stratum (one more across a negated
 % edge) until nothing changes.  Without a negation cycle that happens within
-% one round per predicate; a cycle keeps raising, and relaxation fails.
-relax_strata(0, _Edges, _Strata, _Final) :- !, fail.
+% one round per predicate: a stratum is at most the number of predicates
+% less one, each round settles one more step of every dependency chain, and
+% the last round changes nothing.  A cycle keeps raising, and relaxation
+% fails.
 relax_strata(Rounds, Edges, Strata, Final) :-
+    succ(Remaining, Rounds),
     foldl(relax_edge, Edges, Strata, Next),
     (   Next == Strata
     ->  Final = Strata
-    ;   Remaining is Rounds - 1,
-        relax_strata(Remaining, Edges, Next, Final)
+    ;   relax_strata(Remaining, Edges, Next, Final)
     ).
 
 relax_edge(edge(Head, Body, Sign), Strata, Next) :-
     memberchk(Head-HeadStratum, Strata),
     memberchk(Body-BodyStratum, Strata),
     (   Sign == negative -> Required is BodyStratum + 1 ; Required = BodyStratum ),
-    (   HeadStratum < Required
-    ->  selectchk(Head-HeadStratum, Strata, Head-Required, Next)
-    ;   Next = Strata
-    ).
+    Stratum is max(HeadStratum, Required),
+    selectchk(Head-HeadStratum, Strata, Head-Stratum, Next).
 
 % A negated edge Head -> Body with a dependency path from Body back to Head.
 negation_cycle(Edges, [edge(Head, Body, negative)|Path]) :-
     member(edge(Head, Body, negative), Edges),
-    dependency_path(Body, Head, Edges, [Body], Path),
+    (   Body == Head
+    ->  Path = []
+    ;   dependency_path(Body, Head, Edges, [Body], Path)
+    ),
     !.
 
-dependency_path(Current, Target, _Edges, _Seen, []) :-
-    Current == Target,
-    !.
 dependency_path(Current, Target, Edges, Seen, [edge(Current, Next, Sign)|Path]) :-
     member(edge(Current, Next, Sign), Edges),
     (   Next == Target
