@@ -79,11 +79,11 @@ describe("tools runtime, exact", () => {
     expect(current.resetProlog).toHaveBeenCalledWith("why");
   });
 
-  test("a write without an attached store does not refresh the stamp", async () => {
+  test("the stamp refresh asks the session for the store again", async () => {
     const current = session("a");
     current.getAttachedBranchKbPath
-      .mockReturnValueOnce(null)
-      .mockReturnValue("/nonexistent-kibi-root/.kb/branches/a");
+      .mockReturnValueOnce("/nonexistent-kibi-root/.kb/branches/a")
+      .mockReturnValue(null);
     useSession(current, true);
     const spec = {
       name: "kb_upsert",
@@ -94,7 +94,8 @@ describe("tools runtime, exact", () => {
       workspaceRoot: "/nonexistent-kibi-root",
     });
     await DEFAULT_TOOLS_RUNTIME.operationRuntime.afterSuccess(spec, context);
-    expect(current.getAttachedBranchKbPath).toHaveBeenCalledTimes(1);
+    // The write sees an attached store; the refresh then finds none.
+    expect(current.getAttachedBranchKbPath).toHaveBeenCalledTimes(2);
     expect(current.updateAttachedBranchStamp).not.toHaveBeenCalled();
   });
 
