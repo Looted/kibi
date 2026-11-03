@@ -97,6 +97,19 @@ export function nextRecentCommentSuggestion<T>(
   return resetCommentSuggestion();
 }
 
+/** Logs a checkpoint run that rejected instead of reporting a result. */
+export function logCheckpointFailure(
+  fingerprint: string,
+): (error: unknown) => void {
+  return (error) => {
+    logger.errorStructuredOnly("smart-enforcement.checkpoint-failed", {
+      event: "smart_enforcement_checkpoint_failed",
+      fingerprint,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  };
+}
+
 export function adoptPrecomputedSuggestion<T>(
   recent: T | null,
   precomputed: T | null | undefined,
@@ -105,10 +118,6 @@ export function adoptPrecomputedSuggestion<T>(
 }
 
 import * as fs from "node:fs";
-
-function deriveFileBucket(kind: PathKind): string {
-  return kind;
-}
 
 export interface PluginInput {
   worktree: string;
@@ -383,14 +392,8 @@ const kibiOpencodePlugin: Plugin = async (
       runner = new KibiCheckpointRunner({
         config: cfg,
         onRunComplete: (meta) => {
-          const normalizedReason = meta.reason.endsWith(".trailing")
-            ? meta.reason.slice(0, -".trailing".length)
-            : meta.reason;
-          const isSmartEnforcementSync =
-            normalizedReason.startsWith("smart-enforcement.");
-          if (meta.exitCode !== 0 && !isSmartEnforcementSync) {
-            latchRuntimeDegraded("scheduler_sync_failed");
-          }
+          // Checkpoint runs are smart-enforcement syncs, whose sync failures
+          // never latch the degraded state; failed checks do.
           if (meta.checkExitCode !== undefined && meta.checkExitCode !== 0) {
             latchRuntimeDegraded("scheduler_check_failed");
           }
@@ -596,10 +599,9 @@ const kibiOpencodePlugin: Plugin = async (
       hasDurableComment: !!precomputedSuggestion,
       fileContent,
     });
-    const effectiveRiskClass: RiskClass =
-      riskClass === "safe_docs_only" && precomputedSuggestion
-        ? "traceability_candidate"
-        : riskClass;
+    // Only code files get a comment suggestion, and code is never
+    // safe_docs_only, so the suggestion never changes the class.
+    const effectiveRiskClass: RiskClass = riskClass;
     enforcementState.recentCommentSuggestion =
       pathAnalysis.kind === "code" ? precomputedSuggestion : null;
     enforcementState.lastRiskClass = effectiveRiskClass;
@@ -858,17 +860,11 @@ const kibiOpencodePlugin: Plugin = async (
                 resolvedContext: promptWorkContext,
                 checkpointEvidence,
               });
-              if (reminderResult.policyDecision === "hard_block") {
-                const policyResult = reminderResult.policyResult;
+              const policyResult = reminderResult.policyResult;
+              if (policyResult.kind === "hard_block") {
                 hardGateBlock = {
-                  shownPaths:
-                    "shownPaths" in policyResult
-                      ? policyResult.shownPaths
-                      : [normalizedFocusPath],
-                  remainingCount:
-                    "remainingCount" in policyResult
-                      ? policyResult.remainingCount
-                      : 0,
+                  shownPaths: policyResult.shownPaths,
+                  remainingCount: policyResult.remainingCount,
                   reason: "checkpoint_required",
                 };
                 hardGateConsumedPath = normalizedFocusPath;
@@ -895,25 +891,10 @@ const kibiOpencodePlugin: Plugin = async (
                           event: "smart_enforcement_checkpoint",
                           fingerprint: checkpointFingerprint,
                           result: result.kind,
-                          reason:
-                            "reason" in result.metadata
-                              ? result.metadata.reason
-                              : undefined,
+                          reason: result.metadata.reason,
                         });
                       })
-                      .catch((error) => {
-                        logger.errorStructuredOnly(
-                          "smart-enforcement.checkpoint-failed",
-                          {
-                            event: "smart_enforcement_checkpoint_failed",
-                            fingerprint: checkpointFingerprint,
-                            error:
-                              error instanceof Error
-                                ? error.message
-                                : String(error),
-                          },
-                        );
-                      });
+                      .catch(logCheckpointFailure(checkpointFingerprint));
                   }
                 }
               } else {

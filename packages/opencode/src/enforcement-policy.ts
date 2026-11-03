@@ -279,16 +279,7 @@ function advisoryText(event: NormalizedPolicyEvent): string {
 }
 
 function collectUnique(values: string[]): string[] {
-  const seen = new Set<string>();
-  const result: string[] = [];
-  for (const value of values) {
-    if (seen.has(value)) {
-      continue;
-    }
-    seen.add(value);
-    result.push(value);
-  }
-  return result;
+  return [...new Set(values)];
 }
 
 function linkedIdsText(events: NormalizedPolicyEvent[]): string | null {

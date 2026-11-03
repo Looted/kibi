@@ -1,4 +1,4 @@
-import { exec } from "node:child_process";
+import { type ExecException, exec } from "node:child_process";
 import path from "node:path";
 import type { KibiConfig } from "./config.js";
 import { shouldHandleFile } from "./file-filter.js";
@@ -80,10 +80,8 @@ class WorktreeSyncScheduler implements SyncScheduler {
 
   private timer: TimeoutHandle | null = null;
   private inFlight = false;
-  private dirty = false;
   private pending: PendingTrigger | null = null;
   private trailing: PendingTrigger | null = null;
-  private lastFileEditedAt = 0;
   private flushWaiters: Array<() => void> = [];
 
   constructor(opts: SchedulerOptions) {
@@ -109,7 +107,6 @@ class WorktreeSyncScheduler implements SyncScheduler {
     if (isFileLifecycle) {
       if (!filePath) return;
       if (!shouldHandleFile(filePath, this.worktree)) return;
-      this.lastFileEditedAt = this.now();
     }
 
     this.pending = {
@@ -132,15 +129,9 @@ class WorktreeSyncScheduler implements SyncScheduler {
     // Only proceed if tool.after notifications are enabled
     if (!this.isToolExecuteAfterEnabled()) return;
 
-    // Reset debounce window by setting lastFileEditedAt to now
-    // This ensures the check at lines 97-100 won't allow sync through
-    const now = this.now();
-    this.lastFileEditedAt = now;
-
-    // Debounce check - if we just reset lastFileEditedAt, it will fail
-    if (now - this.lastFileEditedAt <= this.config.sync.debounceMs) {
-      return;
-    }
+    // The tool call restarts the debounce window and is still inside it, so
+    // only a negative window lets it through.
+    if (this.config.sync.debounceMs >= 0) return;
 
     // Tool.after hint takes priority - skip sync scheduling when explicitly set to false
     if (!this.explicitToolAfterHint) {
@@ -189,7 +180,6 @@ class WorktreeSyncScheduler implements SyncScheduler {
     this.pending = null;
 
     if (this.inFlight) {
-      this.dirty = true;
       this.trailing = trigger;
       return;
     }
@@ -269,18 +259,12 @@ class WorktreeSyncScheduler implements SyncScheduler {
       );
       this.inFlight = false;
 
-      if (this.dirty) {
-        const trailing = this.trailing ?? { reason: "sync.trailing" };
-        this.dirty = false;
+      const trailing = this.trailing;
+      if (trailing) {
         this.trailing = null;
         void this.startRun({
+          ...trailing,
           reason: `${trailing.reason}.trailing`,
-          ...(trailing.filePath !== undefined
-            ? { filePath: trailing.filePath }
-            : {}),
-          ...(trailing.checkRules !== undefined
-            ? { checkRules: trailing.checkRules }
-            : {}),
         });
       }
 
@@ -289,18 +273,11 @@ class WorktreeSyncScheduler implements SyncScheduler {
   }
 
   private isIdle(): boolean {
-    return (
-      !this.inFlight &&
-      !this.timer &&
-      !this.pending &&
-      !this.dirty &&
-      !this.trailing
-    );
+    return !this.inFlight && !this.timer && !this.pending && !this.trailing;
   }
 
   private resolveFlushWaitersIfIdle(): void {
     if (!this.isIdle()) return;
-    if (this.flushWaiters.length === 0) return;
     const waiters = this.flushWaiters.splice(0);
     for (const waiter of waiters) {
       waiter();
@@ -362,29 +339,38 @@ function truncateSyncOutput(value: string | undefined): string | undefined {
   return value;
 }
 
+/** The result of a `kibi sync` that exited with an error. */
+export function syncFailureResult(
+  error: Pick<ExecException, "code" | "signal" | "message">,
+  stdout: string,
+  stderr: string,
+): SyncRunnerResult {
+  const truncatedOut = truncateSyncOutput(stdout);
+  const truncatedErr = truncateSyncOutput(stderr);
+  const signal = error.signal ? ` (signal: ${error.signal})` : "";
+  const errorMessage = error.message
+    ? `${error.message}${signal}`
+    : signal || undefined;
+  return {
+    exitCode: typeof error.code === "number" ? error.code : 1,
+    syncCommand: "kibi sync",
+    ...(truncatedOut !== undefined ? { syncStdout: truncatedOut } : {}),
+    ...(truncatedErr !== undefined ? { syncStderr: truncatedErr } : {}),
+    ...(errorMessage ? { syncErrorMessage: errorMessage } : {}),
+  };
+}
+
 // Background sync runner: uses default sync (no --refresh-symbol-coordinates)
 // to avoid writing committed coordinate artifacts during automatic background execution.
 async function runKibiSync(worktree: string): Promise<SyncRunnerResult> {
   return new Promise((resolve) => {
     try {
       exec("kibi sync", { cwd: worktree }, (error, stdout, stderr) => {
-        if (error) {
-          const truncatedOut = truncateSyncOutput(stdout || undefined);
-          const truncatedErr = truncateSyncOutput(stderr || undefined);
-          const signal = error.signal ? ` (signal: ${error.signal})` : "";
-          const errorMessage = error.message
-            ? `${error.message}${signal}`
-            : signal || undefined;
-          resolve({
-            exitCode: typeof error.code === "number" ? error.code : 1,
-            syncCommand: "kibi sync",
-            ...(truncatedOut !== undefined ? { syncStdout: truncatedOut } : {}),
-            ...(truncatedErr !== undefined ? { syncStderr: truncatedErr } : {}),
-            ...(errorMessage ? { syncErrorMessage: errorMessage } : {}),
-          });
-        } else {
-          resolve({ exitCode: 0, syncCommand: "kibi sync" });
-        }
+        resolve(
+          error
+            ? syncFailureResult(error, stdout, stderr)
+            : { exitCode: 0, syncCommand: "kibi sync" },
+        );
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -407,8 +393,8 @@ async function runKibiCheck(
       `kibi check --rules ${rulesArg} --format json`,
       { cwd: worktree },
       (error, stdout, stderr) => {
-        const truncatedOut = truncateSyncOutput(stdout || undefined);
-        const truncatedErr = truncateSyncOutput(stderr || undefined);
+        const truncatedOut = truncateSyncOutput(stdout);
+        const truncatedErr = truncateSyncOutput(stderr);
         resolve({
           exitCode: error && typeof error.code === "number" ? error.code : 0,
           ...(truncatedOut !== undefined ? { stdout: truncatedOut } : {}),
@@ -444,8 +430,7 @@ function logAdvisoryQualityDiagnostics(
     );
   }
 
-  const first = diagnostics[0];
-  if (first === undefined) return;
+  const first = diagnostics[0] as AdvisoryQualityDiagnostic;
 
   logger.warn(
     `check.advisory_quality ${JSON.stringify({
@@ -463,17 +448,16 @@ function parseQualityDiagnostics(
   stderr: string | undefined,
 ): AdvisoryQualityDiagnostic[] {
   for (const output of [stdout, stderr]) {
-    if (output === undefined || output.trim().length === 0) continue;
     try {
-      const parsed: unknown = JSON.parse(output);
+      // A missing or blank stream throws like any other non-JSON output.
+      const parsed: unknown = JSON.parse(output as string);
       const candidates = qualityDiagnosticCandidates(parsed);
       const diagnostics = candidates.flatMap(
         (candidate) => parseQualityDiagnostic(candidate) ?? [],
       );
       if (diagnostics.length > 0) return diagnostics;
-    } catch (error: unknown) {
-      if (error instanceof SyntaxError) continue;
-      throw error;
+    } catch {
+      // Not JSON (only JSON.parse throws here): try the next stream.
     }
   }
   return [];

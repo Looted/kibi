@@ -267,12 +267,15 @@ function isSemverGreaterThan(candidate: string, current: string): boolean {
   );
 }
 
-function readVersionFromPackageJson(packageJsonPath: string): string | null {
-  if (!fs.existsSync(packageJsonPath)) {
+function readVersionFromPackageJson(
+  packageJsonPath: string | null,
+): string | null {
+  // existsSync answers false for a null path as well.
+  if (!fs.existsSync(packageJsonPath as string)) {
     return null;
   }
   const parsed = parseJsonObject(
-    fs.readFileSync(packageJsonPath, "utf8"),
+    fs.readFileSync(packageJsonPath as string, "utf8"),
   ) as PackageJsonLike | null;
   return typeof parsed?.version === "string" ? parsed.version : null;
 }
@@ -326,10 +329,7 @@ export function getCachedPluginVersion(): string | null {
     }
   }
 
-  const runningPackageJson = findPackageJsonUp(import.meta.url);
-  return runningPackageJson
-    ? readVersionFromPackageJson(runningPackageJson)
-    : null;
+  return readVersionFromPackageJson(findPackageJsonUp(import.meta.url));
 }
 
 export async function getLatestPluginVersion(

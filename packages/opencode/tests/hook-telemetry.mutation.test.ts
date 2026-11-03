@@ -205,6 +205,22 @@ describe("recordOpencodeToolTelemetry", () => {
     expect(rows(root)).toStrictEqual([]);
   });
 
+  test("a failing telemetry write never reaches the tool call", () => {
+    const root = workspace();
+    const args = {
+      get filePath(): string {
+        throw new Error("unreadable args");
+      },
+    };
+    expect(() =>
+      recordOpencodeToolTelemetry(
+        { worktree: root, tool: "edit", args, sessionId: "ses-x", startedAt },
+        diagnosticEnv(),
+      ),
+    ).not.toThrow();
+    expect(rows(root)).toStrictEqual([]);
+  });
+
   test("a workspace without .kb is left alone", () => {
     const root = workspace(false);
     const watched = watchedArgs(path.join(root, "src", "a.ts"));

@@ -168,10 +168,9 @@ export async function runPluginStartup(
         overlay_cause: cause,
         runtime_degraded: true,
         static_degraded: posture.maintenanceDegraded,
-        merged_degraded: getMaintenanceDegraded(),
-        maintenance_state: getMaintenanceDegraded()
-          ? "maintenance_degraded"
-          : "maintenance_available",
+        // The overlay was just latched, so the merged state is degraded.
+        merged_degraded: true,
+        maintenance_state: "maintenance_degraded",
         effective_mode: getEffectiveMode(),
       });
     } else if (!runtimeOverlay.causes.includes(cause)) {

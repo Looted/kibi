@@ -62,6 +62,12 @@ function taggedMock(options: {
     },
     workspace: {
       workspaceFolders: folders,
+      getConfiguration: () => ({
+        get: <T>(key: string, defaultValue?: T) =>
+          (key === "mcp.serverPath"
+            ? "/nonexistent/kibi-mcp"
+            : defaultValue) as T,
+      }),
       createFileSystemWatcher: (pattern: { pattern: string }) => ({
         ...tagged(`watch:${pattern.pattern}`),
         onDidChange() {},
@@ -115,7 +121,7 @@ describe("activate", () => {
     expect(channels).toEqual(["Kibi"]);
     expect(lines[0]).toBe("Activating Kibi extension...");
     expect(lines).toContain(
-      "Kibi MCP server path is not configured and kibi-mcp was not found in PATH.",
+      "Kibi MCP server not found at configured path: /nonexistent/kibi-mcp",
     );
     expect(lines.at(-1)).toBe("Kibi extension activation complete.");
     expect(tags(context.subscriptions)).toEqual([
@@ -166,6 +172,13 @@ describe("activate", () => {
     // A change that still resolves no workspace initializes nothing.
     changeListeners[0]?.();
     expect(tags(context.subscriptions)).toEqual(["output", "onFolders"]);
+  });
+});
+
+describe("deactivate", () => {
+  test("has nothing to release", async () => {
+    const { deactivate } = await freshExtension();
+    expect(deactivate()).toBeUndefined();
   });
 });
 

@@ -333,10 +333,9 @@ export function handleFileLifecycleEvent(
     fileContent,
   });
 
-  const effectiveRiskClass: RiskClass =
-    riskClass === "safe_docs_only" && precomputedSuggestion
-      ? "traceability_candidate"
-      : riskClass;
+  // Only code files get a comment suggestion, and code is never
+  // safe_docs_only, so the suggestion never changes the class.
+  const effectiveRiskClass: RiskClass = riskClass;
   env.state.lastRiskClass = effectiveRiskClass;
   env.state.lastRiskFilePath = normalizedFilePath;
   env.state.lastRiskScopeKey = env.buildRiskPathScopeKey(
@@ -614,17 +613,6 @@ function handleManualKbEdit(
   }
 }
 
-function lintRequirementPolicy(
-  env: KibiEventEnv,
-  normalizedFilePath: string,
-  worktreeRoot: string,
-): void {
-  const lintWarnings = env.lintRequirementDoc(normalizedFilePath, worktreeRoot);
-  for (const warning of lintWarnings) {
-    env.recordWarning(warning.category, normalizedFilePath, warning.message);
-  }
-}
-
 function warnDegradedFor(
   env: KibiEventEnv,
   riskClass: string,
@@ -642,9 +630,8 @@ function warnDegradedFor(
     risk_class: riskClass,
     posture,
     posture_state: posture,
-    maintenance_state: env.getMaintenanceDegraded()
-      ? "maintenance_degraded"
-      : "maintenance_available",
+    // Only reached while degraded.
+    maintenance_state: "maintenance_degraded",
     reason: env.runtimeOverlay.primaryCause ?? "non_authoritative_posture",
     reason_code: env.runtimeOverlay.primaryCause ?? "non_authoritative_posture",
     static_degraded: false,

@@ -69,46 +69,28 @@ export function notifyStartup(
       };
 
       if (result.status === "delivered") {
-        void client.app
-          .log({
-            body: {
-              ...base,
-              level: "info",
-              message: "startup toast delivered",
-              transport: result.transport,
-            },
-          })
-          .catch(() => {
-            // Advisory log failure stays silent
-          });
+        logQuietly(client, {
+          ...base,
+          level: "info",
+          message: "startup toast delivered",
+          transport: result.transport,
+        });
       } else if (result.status === "unavailable") {
-        void client.app
-          .log({
-            body: {
-              ...base,
-              level: "info",
-              message: "startup toast unavailable",
-              reason: result.reason,
-            },
-          })
-          .catch(() => {
-            // Advisory log failure stays silent
-          });
+        logQuietly(client, {
+          ...base,
+          level: "info",
+          message: "startup toast unavailable",
+          reason: result.reason,
+        });
       } else {
-        void client.app
-          .log({
-            body: {
-              ...base,
-              level: "warn",
-              message: "startup toast delivery failed",
-              transport: result.transport,
-              reason: result.reason,
-              ...(result.error ? { error: result.error } : {}),
-            },
-          })
-          .catch(() => {
-            // Advisory log failure stays silent
-          });
+        logQuietly(client, {
+          ...base,
+          level: "warn",
+          message: "startup toast delivery failed",
+          transport: result.transport,
+          reason: result.reason,
+          ...(result.error ? { error: result.error } : {}),
+        });
       }
     });
   }
@@ -133,7 +115,14 @@ export function notifyStartup(
     logBody.directory = cfg.directory;
   }
 
-  void Promise.resolve(client.app.log({ body: logBody })).catch(() => {
+  logQuietly(client, logBody);
+}
+
+function logQuietly(
+  client: StartupNotifierClient,
+  body: Record<string, unknown>,
+): void {
+  void Promise.resolve(client.app.log({ body })).catch(() => {
     // Advisory log failure stays silent
   });
 }
