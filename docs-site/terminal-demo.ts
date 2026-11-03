@@ -316,10 +316,16 @@ ${shapes.join("\n")}
 /** Committed copy of the README terminal, regenerated with `bun run docs:terminal-demo`. */
 export const TERMINAL_SVG_PATH = "assets/terminal-demo.svg";
 
-if (import.meta.main) {
+/** Writes the README terminal SVG; `bun run docs:terminal-demo` calls this. */
+export async function writeTerminalDemoSvg(
+  repoRoot = `${import.meta.dir}/..`,
+): Promise<string> {
   const { writeFileSync } = await import("node:fs");
   const path = await import("node:path");
-  const out = path.resolve(import.meta.dir, "..", TERMINAL_SVG_PATH);
+  const out = path.resolve(repoRoot, TERMINAL_SVG_PATH);
   writeFileSync(out, terminalDemoSvg());
   console.log(`Wrote ${TERMINAL_SVG_PATH}`);
+  return out;
 }
+
+if (import.meta.main) await writeTerminalDemoSvg();
