@@ -111,20 +111,16 @@ export function readRunningPackageInfo(entrypointUrl: string): McpPackageInfo {
 
 export function resolveProjectLocalMcp(cwd: string): McpPackageInfo | null {
   try {
+    // Without a project package.json, createRequire throws and this answers
+    // null below.
     const projectPackageJson = nearestPackageJsonFromDirectory(cwd);
-    if (!projectPackageJson) {
-      return null;
-    }
-    const projectRequire = createRequire(projectPackageJson);
+    const projectRequire = createRequire(projectPackageJson as string);
     const resolved = projectRequire.resolve(PACKAGE_NAME);
     const entrypoint =
       fs.realpathSync.native?.(resolved) ?? fs.realpathSync(resolved);
     return packageInfoFromEntrypoint(entrypoint);
-  } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
-    if (code === "MODULE_NOT_FOUND" || code === "ERR_MODULE_NOT_FOUND") {
-      return null;
-    }
+  } catch {
+    // Not installed, unresolvable or not kibi-mcp: there is no project copy.
     return null;
   }
 }

@@ -27,8 +27,7 @@ import {
 } from "kibi-runtime";
 
 function getEnvValue(key: string): string | undefined {
-  const value = process.env[key];
-  return typeof value === "string" ? value : undefined;
+  return process.env[key];
 }
 
 function getTrimmedEnvValue(key: string): string | undefined {

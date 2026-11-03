@@ -41,10 +41,10 @@ function telemetrySource(clientName: string | undefined): TelemetrySource {
 
 /** A failed result's error code, e.g. `UPSERT_DRY_RUN_INVALID`. */
 function resultErrorCode(result: unknown): string | undefined {
-  if (result === null || typeof result !== "object") return undefined;
-  const error = (result as { error?: unknown }).error;
-  if (error === null || typeof error !== "object") return undefined;
-  const code = (error as { code?: unknown }).code;
+  // A primitive result or error has no code property to read.
+  const code = (
+    result as { error?: { code?: unknown } | null } | null | undefined
+  )?.error?.code;
   return typeof code === "string" ? code : undefined;
 }
 
