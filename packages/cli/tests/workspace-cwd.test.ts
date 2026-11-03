@@ -74,4 +74,71 @@ describe("resolveWorkspaceCwd", () => {
       fs.rmSync(outside, { recursive: true, force: true });
     }
   });
+
+  test("every path option is made absolute, in both spellings", () => {
+    const result = resolveWorkspaceCwd(
+      argv(
+        "check",
+        "--output",
+        "o.json",
+        "--certificates=c.json",
+        "--input",
+        "/abs/in.json",
+        "--outputs",
+        "--output=-",
+        "--write-certificates",
+        "--json",
+        "--input",
+      ),
+      sub,
+      {},
+    );
+    expect(result).toStrictEqual({
+      cwd: root,
+      argv: argv(
+        "check",
+        "--output",
+        path.join(sub, "o.json"),
+        `--certificates=${path.join(sub, "c.json")}`,
+        "--input",
+        "/abs/in.json",
+        "--outputs",
+        "--output=-",
+        "--write-certificates",
+        "--json",
+        "--input",
+      ),
+    });
+  });
+
+  test("an unchanged result still copies argv", () => {
+    const input = argv("status", "--input", "rel.json");
+    const result = resolveWorkspaceCwd(input, root, {});
+    expect(result).toStrictEqual({ cwd: root, argv: input });
+    expect(result.argv).not.toBe(input);
+  });
+
+  test("a blank workspace variable does not count as set", () => {
+    for (const key of ["KIBI_WORKSPACE", "KIBI_PROJECT_ROOT", "KIBI_ROOT"]) {
+      expect(
+        resolveWorkspaceCwd(argv("status"), sub, { [key]: "  " }).cwd,
+      ).toBe(root);
+      expect(resolveWorkspaceCwd(argv("status"), sub, { [key]: "x" }).cwd).toBe(
+        sub,
+      );
+    }
+  });
+
+  test("the command is the first argument that is not a flag", () => {
+    expect(resolveWorkspaceCwd(argv("-v", "init"), sub, {}).cwd).toBe(sub);
+    expect(resolveWorkspaceCwd(argv("--json", "status"), sub, {}).cwd).toBe(
+      root,
+    );
+  });
+
+  test("no command at all stays put", () => {
+    expect(
+      resolveWorkspaceCwd(argv("--help", "--input=x"), sub, {}),
+    ).toStrictEqual({ cwd: sub, argv: argv("--help", "--input=x") });
+  });
 });
