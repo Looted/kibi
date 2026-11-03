@@ -225,8 +225,10 @@ export function parseCoordinateArtifact(
   try {
     parsed = parseYAML(content);
   } catch (error) {
-    // js-yaml only throws YAMLException, an Error.
-    return { status: "invalid", reason: (error as Error).message };
+    return {
+      status: "invalid",
+      reason: error instanceof Error ? error.message : String(error),
+    };
   }
   if (parsed === null || parsed === undefined) {
     return { status: "legacy", coordinates: {} };

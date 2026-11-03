@@ -16,11 +16,12 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import * as yaml from "js-yaml";
 import type { ManifestSymbolRecord } from "../../src/extractors/manifest.js";
 import {
   CoordinateArtifactError,
@@ -198,6 +199,20 @@ describe("isValidCoordinateSpan", () => {
 });
 
 describe("parseCoordinateArtifact", () => {
+  test("reports a thrown value that is not an Error", () => {
+    const spy = spyOn(yaml, "load").mockImplementation(() => {
+      throw "not-an-error";
+    });
+    try {
+      expect(parse("x: 1")).toStrictEqual({
+        status: "invalid",
+        reason: "not-an-error",
+      });
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   test("reports YAML errors with their message", () => {
     const result = parseCoordinateArtifact("a: [");
     expect(result.status).toBe("invalid");
