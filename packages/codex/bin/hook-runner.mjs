@@ -1792,7 +1792,7 @@ var SMALL_COUNT_BUCKETS = [
 var KIBI_SOURCE_PACKAGES = "agent-core|cli|mcp|core|runtime|claude|codex|cursor|opencode|zcode|vscode|plugin-[a-z0-9-]+|lang-[a-z0-9-]+";
 var SOURCE_FRAME = new RegExp(`(?:^|/)packages/(${KIBI_SOURCE_PACKAGES})/((?:src|dist|bin)/.+)$`);
 function isRecord3(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === "object" && value !== null;
 }
 var SKILL_FILE = /(?:^|[\\/])(kibi-[a-z0-9-]+)[\\/]SKILL\.md\b/i;
 function skillName(name) {
@@ -1805,8 +1805,7 @@ function skillInStrings(value, depth) {
   }
   if (depth <= 0)
     return;
-  const children = Array.isArray(value) ? value : isRecord3(value) ? Object.values(value) : [];
-  for (const child of children.slice(0, 50)) {
+  for (const child of Object.values(value ?? {}).slice(0, 50)) {
     const found = skillInStrings(child, depth - 1);
     if (found)
       return found;
@@ -1819,7 +1818,7 @@ function kibiSkillLoad(toolName, toolInput) {
       const value = toolInput[key];
       if (typeof value !== "string")
         continue;
-      const bare = value.trim().split(":").at(-1)?.toLowerCase() ?? "";
+      const bare = value.trim().split(":").at(-1).toLowerCase();
       if (/^kibi-[a-z0-9-]+$/.test(bare))
         return skillName(bare);
     }
@@ -1829,17 +1828,21 @@ function kibiSkillLoad(toolName, toolInput) {
 function recentPath(directory) {
   return path6.join(directory, RECENT_FILE);
 }
+function entries(value) {
+  return Array.isArray(value) ? value : [];
+}
+function fresh(entry, now, windowMs) {
+  return isRecord3(entry) && typeof entry.t === "number" && now - entry.t <= windowMs;
+}
 function readRecent(directory, now) {
+  let parsed = {};
   try {
-    const parsed = JSON.parse(String(fs5.readFileSync(recentPath(directory))));
-    if (!isRecord3(parsed))
-      return { calls: [], skills: [] };
-    const calls = Array.isArray(parsed.calls) ? parsed.calls.filter((entry) => isRecord3(entry) && typeof entry.k === "string" && typeof entry.t === "number" && typeof entry.o === "string" && now - entry.t <= RETRY_WINDOW_MS) : [];
-    const skills = Array.isArray(parsed.skills) ? parsed.skills.filter((entry) => isRecord3(entry) && typeof entry.w === "string" && typeof entry.t === "number" && now - entry.t <= SKILL_WINDOW_MS) : [];
-    return { calls, skills };
-  } catch {
-    return { calls: [], skills: [] };
-  }
+    parsed = JSON.parse(String(fs5.readFileSync(recentPath(directory)))) ?? parsed;
+  } catch {}
+  return {
+    calls: entries(parsed.calls).filter((entry) => fresh(entry, now, RETRY_WINDOW_MS) && typeof entry.o === "string"),
+    skills: entries(parsed.skills).filter((entry) => fresh(entry, now, SKILL_WINDOW_MS))
+  };
 }
 function writeRecent(directory, recent) {
   try {

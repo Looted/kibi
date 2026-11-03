@@ -17,23 +17,22 @@ import relationshipSchema from "./public/schemas/relationship.js";
  * name an agent invented is reported as `other`, and no value is read.
  */
 
+/** An object to read fields from; a list's named fields are all missing. */
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === "object" && value !== null;
 }
 
+/**
+ * Every key of a `properties` map anywhere in a schema. Lists are walked by
+ * their positions; enum and const values are strings, so they add nothing.
+ */
 function collectFieldNames(schema: unknown, names: Set<string>): void {
-  if (Array.isArray(schema)) {
-    for (const item of schema) collectFieldNames(item, names);
-    return;
-  }
   if (!isRecord(schema)) return;
   for (const [key, value] of Object.entries(schema)) {
-    if (key === "properties" && isRecord(value)) {
-      for (const name of Object.keys(value)) names.add(name);
+    if (key === "properties") {
+      for (const name of Object.keys(value as object)) names.add(name);
     }
-    if (key !== "enum" && key !== "const" && key !== "examples") {
-      collectFieldNames(value, names);
-    }
+    collectFieldNames(value, names);
   }
 }
 
@@ -48,18 +47,17 @@ const UPSERT_INPUT_FIELDS = [
   "plannedFacts",
 ] as const;
 
-let schemaFieldNames: ReadonlySet<string> | undefined;
+const SCHEMA_FIELD_NAMES: ReadonlySet<string> = (() => {
+  const names = new Set<string>(UPSERT_INPUT_FIELDS);
+  collectFieldNames(entitySchema, names);
+  collectFieldNames(relationshipSchema, names);
+  return names;
+})();
 
 // implements REQ-kibi-telemetry-agent-signals
 /** Every field name the entity and relationship schemas define. */
 export function kibiSchemaFieldNames(): ReadonlySet<string> {
-  if (schemaFieldNames === undefined) {
-    const names = new Set<string>(UPSERT_INPUT_FIELDS);
-    collectFieldNames(entitySchema, names);
-    collectFieldNames(relationshipSchema, names);
-    schemaFieldNames = names;
-  }
-  return schemaFieldNames;
+  return SCHEMA_FIELD_NAMES;
 }
 
 // implements REQ-kibi-telemetry-agent-signals
@@ -69,21 +67,23 @@ export function kibiSchemaFieldNames(): ReadonlySet<string> {
  * `other`, so a key an agent invented never leaves the machine.
  */
 export function schemaFieldPath(segments: readonly string[]): string {
-  const known = kibiSchemaFieldNames();
-  const mapped = segments
-    .filter((segment) => segment !== "")
-    .map((segment) =>
-      /^\d+$/.test(segment) ? "*" : known.has(segment) ? segment : null,
-    );
+  const mapped = segments.map((segment) =>
+    /^\d+$/.test(segment)
+      ? "*"
+      : SCHEMA_FIELD_NAMES.has(segment)
+        ? segment
+        : null,
+  );
   if (mapped.some((segment) => segment === null)) return "other";
   return mapped.join(".");
 }
 
+/**
+ * A JSON pointer's segments. Escapes (`~0`, `~1`) are left as they are: no
+ * Kibi field name contains `~` or `/`, so an escaped key maps to `other`.
+ */
 function pointerSegments(pointer: string): string[] {
-  return pointer
-    .split("/")
-    .slice(1)
-    .map((segment) => segment.replaceAll("~1", "/").replaceAll("~0", "~"));
+  return pointer.split("/").slice(1);
 }
 
 // implements REQ-kibi-telemetry-agent-signals
@@ -98,12 +98,9 @@ export function schemaIssues(
 ): RejectionIssue[] {
   return (errors ?? []).map((error) => {
     const params = error.params as Record<string, unknown>;
-    const named =
-      typeof params.missingProperty === "string"
-        ? params.missingProperty
-        : typeof params.additionalProperty === "string"
-          ? params.additionalProperty
-          : undefined;
+    const named = [params.missingProperty, params.additionalProperty].find(
+      (value): value is string => typeof value === "string",
+    );
     const segments = [
       ...prefix,
       ...pointerSegments(error.instancePath),
@@ -117,16 +114,12 @@ export function schemaIssues(
   });
 }
 
-/** A rejection issue as a Kibi check name, with no field. */
-export function checkIssue(rule: string, field?: string): RejectionIssue {
-  return field === undefined ? { rule } : { rule, field };
-}
-
+/** The result payload: `data` of a CLI envelope, `structuredContent` of MCP. */
 function dataOf(result: unknown): Record<string, unknown> | undefined {
-  if (!isRecord(result)) return undefined;
-  if (isRecord(result.data)) return result.data;
-  if (isRecord(result.structuredContent)) return result.structuredContent;
-  return undefined;
+  const data = isRecord(result)
+    ? (result.data ?? result.structuredContent)
+    : undefined;
+  return isRecord(data) ? data : undefined;
 }
 
 function rejectionOf(
@@ -175,9 +168,8 @@ export function operationTelemetrySignals(input: {
   ];
   const signals: {
     -readonly [Key in keyof OperationSignals]: OperationSignals[Key];
-  } = {};
+  } = { error: input.error };
   if (issues.length > 0) signals.issues = issues;
-  if (input.error !== undefined) signals.error = input.error;
   if (UPSERT_OPERATIONS.has(input.operation)) {
     signals.dryRun =
       input.operation === "kb_validate_upsert" || args.dryRun === true;
@@ -187,12 +179,10 @@ export function operationTelemetrySignals(input: {
     if (typeof args.type === "string" && typeof args.id === "string") {
       signals.retryKey = `${args.type}\0${args.id}`;
     }
-    const rejection = rejectionOf(data);
-    if (typeof rejection?.code === "string") {
-      signals.rejectionCode = rejection.code;
-    } else if (data?.valid === false && typeof data.errorCode === "string") {
-      signals.rejectionCode = data.errorCode;
-    }
+    const code =
+      rejectionOf(data)?.code ??
+      (data?.valid === false ? data.errorCode : undefined);
+    if (typeof code === "string") signals.rejectionCode = code;
   }
   if (input.operation === "kb_search" && data !== undefined) {
     signals.search = true;

@@ -281,3 +281,88 @@ describe("operation signals", () => {
     ).toEqual({});
   });
 });
+
+describe("signal edges", () => {
+  test("schema names come from properties maps of both schemas only", () => {
+    const names = kibiSchemaFieldNames();
+    expect(names.has("confidence")).toBe(true);
+    expect(names.has("closedWorld")).toBe(true);
+    expect(names.has("minLength")).toBe(false);
+    expect(names.has("additionalProperties")).toBe(false);
+    expect(names.has("depends_on")).toBe(false);
+    expect(schemaFieldPath(["relationships", "12", "to"])).toBe(
+      "relationships.*.to",
+    );
+    expect(schemaFieldPath(["relationships", "3a"])).toBe("other");
+    expect(schemaFieldPath(["relationships", "a3"])).toBe("other");
+    expect(schemaFieldPath(["", "status"])).toBe("other");
+    expect(
+      schemaIssues([
+        {
+          keyword: "required",
+          instancePath: "/properties",
+          schemaPath: "#",
+          params: { missingProperty: 5, additionalProperty: "status" },
+        },
+      ]),
+    ).toStrictEqual([{ rule: "required", field: "properties.status" }]);
+  });
+
+  test("results and issues are read strictly", () => {
+    const signals = (result: unknown, operation = "kb_upsert") =>
+      operationTelemetrySignals({
+        operation,
+        args: { id: "REQ-1", relationships: "x" },
+        result,
+      });
+    expect(
+      signals({
+        data: {
+          rejection: {
+            issues: [
+              null,
+              { field: "status" },
+              { rule: "enum", field: 5 },
+              { rule: "type", field: "status" },
+            ],
+          },
+        },
+      }),
+    ).toStrictEqual({
+      error: undefined,
+      issues: [{ rule: "enum" }, { rule: "type", field: "status" }],
+      dryRun: false,
+    });
+    expect(
+      signals({ data: { valid: true, errorCode: "DOCUMENT_PATH_REQUIRED" } }),
+    ).toStrictEqual({ error: undefined, dryRun: false });
+    expect(
+      signals({
+        data: { valid: false, errorCode: 7 },
+        structuredContent: { valid: false, errorCode: "IGNORED" },
+      }),
+    ).toStrictEqual({ error: undefined, dryRun: false });
+    expect(
+      signals({ structuredContent: { valid: false, errorCode: "MCP_CODE" } }),
+    ).toStrictEqual({
+      error: undefined,
+      dryRun: false,
+      rejectionCode: "MCP_CODE",
+    });
+    expect(signals({ data: "x" })).toStrictEqual({
+      error: undefined,
+      dryRun: false,
+    });
+    expect(signals({ data: {} }, "kb_search")).toStrictEqual({
+      error: undefined,
+      search: true,
+      hintsShown: false,
+    });
+    expect(
+      signals(
+        { data: { queryAnalysis: { hints: { items: [] } } } },
+        "kb_search",
+      ),
+    ).toStrictEqual({ error: undefined, search: true, hintsShown: false });
+  });
+});

@@ -865,7 +865,12 @@ export function recordOperationTelemetry(
 
 /** The workspace's hash and its parents', for markers set in a parent. */
 function workspaceHashes(workspaceRoot: string | undefined): string[] {
+  // rationale: a placeholder entry is not a workspace key, and skill markers
+  // only ever hold workspace keys, so it matches none.
+  // Stryker disable next-line ArrayDeclaration
   if (!workspaceRoot) return [];
+  // rationale: as above, a placeholder entry matches no skill marker.
+  // Stryker disable next-line ArrayDeclaration
   const hashes: string[] = [];
   let current = path.resolve(workspaceRoot);
   for (;;) {
@@ -889,11 +894,14 @@ function signalProperties(
   env: Env,
 ): Record<string, unknown> {
   const signals = operation.signals ?? {};
-  const issues = (signals.issues ?? []).slice(0, 50);
+  const issues = signals.issues ?? [];
   const first = issues[0];
   const workspace = source.workspaceRoot
     ? path.resolve(source.workspaceRoot)
-    : "";
+    : // rationale: without a workspace every call hashes the same fallback,
+      // so which string it is cannot change a retry or repeat match.
+      // Stryker disable next-line StringLiteral
+      "";
   const recall = recallOperation(telemetryDirectory(env), {
     retryHash: signals.retryKey
       ? hashTelemetryId(`retry\0${workspace}\0${signals.retryKey}`)
@@ -917,14 +925,9 @@ function signalProperties(
     rejection_code: telemetryCategory(signals.rejectionCode),
     validation_rule: telemetryRule(first?.rule),
     validation_field: telemetryField(first?.field),
-    issue_count:
-      issues.length > 0
-        ? countBucket(issues.length, SMALL_COUNT_BUCKETS)
-        : null,
-    attempt:
-      recall.attempt === null
-        ? null
-        : countBucket(recall.attempt, SMALL_COUNT_BUCKETS),
+    // No issues and no attempt are in no bucket, so both are sent as null.
+    issue_count: countBucket(issues.length, SMALL_COUNT_BUCKETS),
+    attempt: countBucket(recall.attempt, SMALL_COUNT_BUCKETS),
     prior_outcome: recall.priorOutcome,
     skill_loaded_before: recall.skillLoadedBefore,
     result_count: countBucket(signals.resultCount, RESULT_COUNT_BUCKETS),

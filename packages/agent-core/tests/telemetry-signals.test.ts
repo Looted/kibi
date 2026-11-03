@@ -10,8 +10,10 @@ import {
   kbUsageTrace,
 } from "../src/hook-usage-log";
 import {
+  KIBI_SKILL_NAMES,
   RELATIONSHIP_COUNT_BUCKETS,
   RESULT_COUNT_BUCKETS,
+  RETRY_WINDOW_MS,
   SEARCH_REPEAT_WINDOW_MS,
   SKILL_WINDOW_MS,
   SMALL_COUNT_BUCKETS,
@@ -27,6 +29,7 @@ import {
 import {
   flushTelemetry,
   recordOperationTelemetry,
+  rememberTelemetrySkillLoad,
 } from "../src/usage-telemetry";
 
 const roots: string[] = [];
@@ -391,6 +394,8 @@ describe("sent signals", () => {
       search_repeat: false,
       attempt: null,
       dry_run: null,
+      issue_count: null,
+      validation_rule: null,
     });
     expect(failed).toMatchObject({
       status: "error",
@@ -412,5 +417,303 @@ describe("sent signals", () => {
     expect(payload).not.toContain("REQ-secret");
     expect(payload).not.toContain("alice");
     expect(payload).not.toContain(workspace);
+  });
+});
+
+describe("signal edges", () => {
+  test("windows, skill names and count edges are fixed", () => {
+    expect([RETRY_WINDOW_MS, SEARCH_REPEAT_WINDOW_MS, SKILL_WINDOW_MS]).toEqual(
+      [600_000, 120_000, 1_800_000],
+    );
+    expect([...KIBI_SKILL_NAMES]).toEqual([
+      "kibi-bootstrap",
+      "kibi-commit-review",
+      "kibi-decisions",
+      "kibi-freshness",
+      "kibi-provable-code",
+      "kibi-traceability",
+      "kibi-usage",
+    ]);
+    expect(countBucket(2.9, SMALL_COUNT_BUCKETS)).toBe("2");
+    expect(countBucket(-0.5, RELATIONSHIP_COUNT_BUCKETS)).toBeNull();
+  });
+
+  test("field paths keep their limits", () => {
+    expect(telemetryField(" status ")).toBe("status");
+    expect(telemetryField("   ")).toBeNull();
+    expect(telemetryField("a.b.c.d.e.f")).toBe("a.b.c.d.e.f");
+    const longest = `${"a".repeat(59)}.${"b".repeat(60)}`;
+    expect(telemetryField(longest)).toBe(longest);
+    expect(telemetryField(`${longest}c`)).toBe("other");
+    expect(telemetryField("status.bad key")).toBe("other");
+    expect(telemetryField("bad key.status")).toBe("other");
+  });
+
+  test("stack frames are parsed strictly", () => {
+    const frames = (...lines: string[]) =>
+      kibiStackFrames(["Error: x", ...lines].join("\n"));
+    const at = (fn: string, file: string) => `    at ${fn} (${file})`;
+    expect(frames(at("f", "node_modules/kibi-cli/dist/a.js:1:1"))).toEqual([
+      "kibi-cli/dist/a#f",
+    ]);
+    expect(
+      frames(at("f", "C:\\Users\\a\\node_modules\\kibi-cli\\dist\\b.js:3:4")),
+    ).toEqual(["kibi-cli/dist/b#f"]);
+    expect(frames(at("f", "/n/node_modules/kibi-cli/dist/c.js:12"))).toEqual([
+      "kibi-cli/dist/c#f",
+    ]);
+    expect(frames(at("f", "/n/node_modules/kibi-cli/dist/d.js:1:23"))).toEqual([
+      "kibi-cli/dist/d#f",
+    ]);
+    expect(
+      frames(at("f", "/home/a:1/node_modules/kibi-cli/dist/e.js:3:4")),
+    ).toEqual(["kibi-cli/dist/e#f"]);
+    expect(
+      frames(
+        at("f", "/n/node_modules/kibi-cli/dist/vendor.js/inner.js:1:1"),
+        at("g", "/n/node_modules/kibi-cli/dist/m.mjs:1:1"),
+        at("h", "/n/node_modules/kibi-cli/dist/c.cts:1:1"),
+      ),
+    ).toEqual([
+      "kibi-cli/dist/vendor.js/inner#f",
+      "kibi-cli/dist/m#g",
+      "kibi-cli/dist/c#h",
+    ]);
+    expect(
+      frames(
+        at("f", "/n/node_modules/kibi-cli/dist/we ird.js:1:1"),
+        at("f", "/n/node_modules/kibi-cli/a/b/c/d/e/f/g/h/i.js:1:1"),
+        at("f", "/n/node_modules/kibi-cli/../../etc/x.js:1:1"),
+      ),
+    ).toEqual([]);
+    expect(
+      frames(at("f", "/n/node_modules/kibi-cli/a/b/c/d/e/f/g/h.js:1:1")),
+    ).toEqual(["kibi-cli/a/b/c/d/e/f/g/h#f"]);
+    // The first line is the message, even when it looks like a frame.
+    expect(
+      kibiStackFrames(at("leak", "/n/node_modules/kibi-cli/dist/l.js:1:1")),
+    ).toEqual([]);
+    const deep = Array.from({ length: 64 }, () => "    at x (node:fs:1:1)");
+    expect(
+      frames(...deep, at("late", "/n/node_modules/kibi-cli/dist/z.js:1:1")),
+    ).toEqual([]);
+    expect(
+      frames(
+        "    flat foo (/n/node_modules/kibi-cli/dist/a.js:1:1)",
+        "    ... 3 more",
+        "",
+        "    at  spaced  (/n/node_modules/kibi-cli/dist/s.js:1:1)",
+        "    at myasync foo (/n/node_modules/kibi-cli/dist/t.js:1:1)",
+      ),
+    ).toEqual(["kibi-cli/dist/s#spaced", "kibi-cli/dist/t#anonymous"]);
+    expect(
+      frames(
+        at("[x]foo", "/n/node_modules/kibi-cli/dist/a.js:1:1"),
+        at("foo[x]", "/n/node_modules/kibi-cli/dist/a.js:1:1"),
+        "    at /n/node_modules/kibi-cli/dist/u.js:1:1",
+      ),
+    ).toEqual([
+      "kibi-cli/dist/a#anonymous",
+      "kibi-cli/dist/a#anonymous",
+      "kibi-cli/dist/u#anonymous",
+    ]);
+  });
+
+  test("a crash fingerprint hashes the class and the frames", () => {
+    const error = {
+      stack: "Error\n    at f (/n/node_modules/kibi-cli/dist/a.js:1:1)",
+    };
+    expect(telemetryCrash(error, "TypeError")).toEqual({
+      frame: "kibi-cli/dist/a#f",
+      fingerprint: "63760572989c2bc1",
+    });
+    expect(telemetryCrash(error, null).fingerprint).toBe("ebe6974ba747576a");
+    expect(
+      telemetryCrash(
+        {
+          stack: `${error.stack}\n    at g (/n/node_modules/kibi-cli/dist/b.js:1:1)`,
+        },
+        null,
+      ).fingerprint,
+    ).toBe("d224cfc4c333b5a0");
+    expect(telemetryCrash(null, null)).toEqual({
+      frame: null,
+      fingerprint: null,
+    });
+    expect(telemetryCrash(undefined, null).frame).toBeNull();
+  });
+
+  test("skill tools and SKILL.md paths are matched exactly", () => {
+    expect(kibiSkillLoad(" Skill ", { skill: "kibi-usage" })).toBe(
+      "kibi-usage",
+    );
+    expect(kibiSkillLoad("Skill", { command: "kibi-usage" })).toBe(
+      "kibi-usage",
+    );
+    expect(kibiSkillLoad("Skill", { skill: " Kibi-Usage " })).toBe(
+      "kibi-usage",
+    );
+    expect(kibiSkillLoad("SkillX", { skill: "kibi-usage" })).toBeUndefined();
+    expect(kibiSkillLoad("MySkill", { skill: "kibi-usage" })).toBeUndefined();
+    expect(kibiSkillLoad("Read", { skill: "kibi-usage" })).toBeUndefined();
+    expect(kibiSkillLoad("Skill", ["kibi-usage"])).toBeUndefined();
+    expect(kibiSkillLoad("Skill", undefined)).toBeUndefined();
+    expect(kibiSkillLoad("Skill", { skill: "xkibi-usage" })).toBeUndefined();
+    expect(kibiSkillLoad("Skill", { skill: "kibi-usage!" })).toBeUndefined();
+    expect(kibiSkillLoad("Read", "kibi-usage/SKILL.md")).toBe("kibi-usage");
+    expect(kibiSkillLoad("Read", "kibi-usage/SKILL.mdx")).toBeUndefined();
+    expect(
+      kibiSkillLoad("Read", { a: { b: { c: "kibi-usage/SKILL.md" } } }),
+    ).toBe("kibi-usage");
+    expect(
+      kibiSkillLoad("Read", { a: { b: { c: { d: "kibi-usage/SKILL.md" } } } }),
+    ).toBeUndefined();
+    expect(kibiSkillLoad("Read", { a: 5, b: null, c: true })).toBeUndefined();
+    const many = Array.from({ length: 60 }, (_, index) =>
+      index === 55 ? "kibi-usage/SKILL.md" : "x",
+    );
+    expect(kibiSkillLoad("Read", many)).toBeUndefined();
+    expect(kibiSkillLoad("Read", many.slice(10))).toBe("kibi-usage");
+  });
+
+  test("stored entries outside their shape or window are dropped", () => {
+    const directory = tempDir("kibi-recall-");
+    const file = path.join(directory, "telemetry-recent.json");
+    const now = 50 * RETRY_WINDOW_MS;
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        calls: [
+          null,
+          { k: "h", t: String(now), o: "rejected" },
+          { k: "h", t: now },
+          { k: "h", t: now - RETRY_WINDOW_MS - 1, o: "rejected" },
+          { k: "h", t: now - RETRY_WINDOW_MS, o: "rejected" },
+        ],
+        skills: [
+          null,
+          { w: "w", t: String(now) },
+          { w: "w", t: now - SKILL_WINDOW_MS },
+        ],
+      }),
+    );
+    expect(
+      recallOperation(
+        directory,
+        { retryHash: "h", workspaceHashes: ["w"], outcome: "rejected" },
+        now,
+      ),
+    ).toEqual({
+      attempt: 2,
+      priorOutcome: "rejected",
+      searchRepeat: null,
+      skillLoadedBefore: true,
+    });
+    fs.writeFileSync(file, "null");
+    expect(
+      recallOperation(directory, { workspaceHashes: [], outcome: "success" }),
+    ).toMatchObject({ attempt: null, skillLoadedBefore: false });
+  });
+
+  test("the store keeps the newest 200 entries of each list", () => {
+    const directory = tempDir("kibi-recall-");
+    for (let index = 0; index < 205; index += 1) {
+      rememberSkillLoad(directory, `w${index}`, 1000);
+      recallOperation(
+        directory,
+        { retryHash: `h${index}`, workspaceHashes: [], outcome: "success" },
+        1000,
+      );
+    }
+    const stored = JSON.parse(
+      fs.readFileSync(path.join(directory, "telemetry-recent.json"), "utf8"),
+    );
+    expect(stored.calls).toHaveLength(200);
+    expect(stored.calls[0].k).toBe("h5");
+    expect(stored.skills).toHaveLength(200);
+    expect(stored.skills.at(-1).w).toBe("w204");
+  });
+
+  test("search repeats count from the earlier search's time", () => {
+    const directory = tempDir("kibi-recall-");
+    const search = (now: number) =>
+      recallOperation(
+        directory,
+        { searchHash: "s", workspaceHashes: [], outcome: "success" },
+        now,
+      ).searchRepeat;
+    const start = 10 * SEARCH_REPEAT_WINDOW_MS;
+    expect(search(start)).toBe(false);
+    expect(search(start + SEARCH_REPEAT_WINDOW_MS)).toBe(true);
+  });
+});
+
+describe("signal scope", () => {
+  const source = { packageName: "kibi-cli", packageVersion: "1.0.0" };
+  const call = (
+    env: NodeJS.ProcessEnv,
+    workspaceRoot: string,
+    signals: Record<string, unknown>,
+  ) =>
+    recordOperationTelemetry(
+      { ...source, workspaceRoot },
+      {
+        interface: "cli",
+        operation: "upsert",
+        status: "error",
+        durationMs: 1,
+        errorCategory: "entity_validation_failed",
+        signals,
+      },
+      env,
+    );
+
+  test("retries and repeated searches count per workspace", async () => {
+    const env = enabledEnv();
+    const first = tempDir("kibi-ws-a-");
+    const second = tempDir("kibi-ws-b-");
+    call(env, first, { retryKey: "req\0REQ-1" });
+    call(env, second, { retryKey: "req\0REQ-1" });
+    call(env, first, { search: true });
+    call(env, second, { search: true });
+    const events = await sent(env);
+    expect(events.map((event) => event.attempt)).toEqual([
+      "1",
+      "1",
+      null,
+      null,
+    ]);
+    expect(events.map((event) => event.search_repeat)).toEqual([
+      null,
+      null,
+      false,
+      false,
+    ]);
+  });
+
+  test("skill markers are only kept while telemetry is on, and only for skill loads", async () => {
+    const off = {
+      KIBI_TELEMETRY_DIR: tempDir("kibi-off-"),
+      KIBI_TELEMETRY: "0",
+    };
+    rememberTelemetrySkillLoad(tempDir("kibi-ws-"), off);
+    expect(fs.readdirSync(off.KIBI_TELEMETRY_DIR)).toEqual([]);
+    const env = enabledEnv();
+    const workspace = tempDir("kibi-ws-");
+    appendHookUsage(
+      {
+        host: "claude-code",
+        workspaceRoot: workspace,
+        event: "PreToolUse",
+        sessionId: undefined,
+        hostTool: "Read",
+        trace: { action: "read_silent" },
+        startedAt: new Date(),
+      },
+      env,
+    );
+    call(env, workspace, {});
+    const events = await sent(env);
+    expect(events.at(-1)?.skill_loaded_before).toBe(false);
   });
 });

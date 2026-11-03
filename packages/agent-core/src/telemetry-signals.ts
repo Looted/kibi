@@ -77,11 +77,11 @@ export const KIBI_SKILL_NAMES: ReadonlySet<string> = new Set([
 // implements REQ-kibi-telemetry-agent-signals
 /** A count as one of a few fixed ranges, never the exact number. */
 export function countBucket(
-  value: number | undefined,
+  value: number | null | undefined,
   ranges: readonly (readonly [number, number, string])[],
 ): string | null {
-  if (value === undefined || !Number.isFinite(value) || value < 0) return null;
-  const whole = Math.floor(value);
+  // A missing count is NaN here, and NaN or a negative count is in no range.
+  const whole = Math.floor(value ?? Number.NaN);
   for (const [low, high, label] of ranges) {
     if (whole >= low && whole <= high) return label;
   }
@@ -145,25 +145,25 @@ export function telemetryField(value: string | undefined): string | null {
 
 const KIBI_SOURCE_PACKAGES =
   "agent-core|cli|mcp|core|runtime|claude|codex|cursor|opencode|zcode|vscode|plugin-[a-z0-9-]+|lang-[a-z0-9-]+";
-const INSTALLED_FRAME = /(?:^|\/)node_modules\/(kibi-[a-z0-9-]+)\/(.+)$/;
+const INSTALLED_FRAME = /(?:^|\/)node_modules\/(kibi-[a-z0-9-]+)\/(.+)/;
 const SOURCE_FRAME = new RegExp(
   `(?:^|/)packages/(${KIBI_SOURCE_PACKAGES})/((?:src|dist|bin)/.+)$`,
 );
 
-function frameLocation(raw: string): string | null {
-  const location = raw
-    .replace(/^file:\/\//, "")
-    .replaceAll("\\", "/")
-    .replace(/:\d+(?::\d+)?$/, "");
+/** The Kibi package and the file inside it, or null outside Kibi. */
+function framePackage(location: string): [string, string] | null {
   const installed = INSTALLED_FRAME.exec(location);
-  const source = installed ? null : SOURCE_FRAME.exec(location);
-  const pkg = installed
-    ? installed[1]
-    : source
-      ? `kibi-${source[1]}`
-      : undefined;
-  const rest = installed ? installed[2] : source?.[2];
-  if (pkg === undefined || rest === undefined) return null;
+  if (installed) return [installed[1] as string, installed[2] as string];
+  const source = SOURCE_FRAME.exec(location);
+  return source ? [`kibi-${source[1]}`, source[2] as string] : null;
+}
+
+function frameLocation(raw: string): string | null {
+  // A `file://` prefix needs no stripping: both patterns match after a `/`.
+  const location = raw.replaceAll("\\", "/").replace(/:\d+(?::\d+)?$/, "");
+  const found = framePackage(location);
+  if (found === null) return null;
+  const [pkg, rest] = found;
   const module = rest.replace(/\.(?:[cm]?js|[cm]?ts|tsx)$/, "");
   return /^[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+){0,7}$/.test(module) &&
     !module.split("/").includes("..")
@@ -184,8 +184,11 @@ export function kibiStackFrames(stack: unknown): string[] {
     if (!match) continue;
     const location = frameLocation(match[2] as string);
     if (location === null) continue;
-    const name = (match[1] ?? "").replace(/^async /, "").trim();
-    const fn = /^[A-Za-z0-9_$.<>]{1,80}$/.test(name) ? name : "anonymous";
+    const name = match[1]?.replace(/^async /, "").trim();
+    const fn =
+      name !== undefined && /^[A-Za-z0-9_$.<>]{1,80}$/.test(name)
+        ? name
+        : "anonymous";
     frames.push(`${location}#${fn}`);
     if (frames.length === 3) break;
   }
@@ -202,11 +205,9 @@ export function telemetryCrash(
   error: unknown,
   errorClass: string | null,
 ): { frame: string | null; fingerprint: string | null } {
-  const stack =
-    error !== null && typeof error === "object"
-      ? (error as { stack?: unknown }).stack
-      : undefined;
-  const frames = kibiStackFrames(stack);
+  const frames = kibiStackFrames(
+    (error as { stack?: unknown } | null | undefined)?.stack,
+  );
   if (frames.length === 0) return { frame: null, fingerprint: null };
   const fingerprint = createHash("sha256")
     .update("kibi-crash\0")
@@ -218,8 +219,9 @@ export function telemetryCrash(
   return { frame: frames[0] as string, fingerprint };
 }
 
+/** An object to read fields from; a list's named fields are all missing. */
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === "object" && value !== null;
 }
 
 const SKILL_FILE = /(?:^|[\\/])(kibi-[a-z0-9-]+)[\\/]SKILL\.md\b/i;
@@ -234,12 +236,8 @@ function skillInStrings(value: unknown, depth: number): string | undefined {
     return match ? skillName((match[1] as string).toLowerCase()) : undefined;
   }
   if (depth <= 0) return undefined;
-  const children = Array.isArray(value)
-    ? value
-    : isRecord(value)
-      ? Object.values(value)
-      : [];
-  for (const child of children.slice(0, 50)) {
+  // Object.values lists an array's items and nothing for other primitives.
+  for (const child of Object.values(value ?? {}).slice(0, 50)) {
     const found = skillInStrings(child, depth - 1);
     if (found) return found;
   }
@@ -261,7 +259,7 @@ export function kibiSkillLoad(
     for (const key of ["skill", "name", "command"]) {
       const value = toolInput[key];
       if (typeof value !== "string") continue;
-      const bare = value.trim().split(":").at(-1)?.toLowerCase() ?? "";
+      const bare = (value.trim().split(":").at(-1) as string).toLowerCase();
       if (/^kibi-[a-z0-9-]+$/.test(bare)) return skillName(bare);
     }
   }
@@ -276,35 +274,42 @@ function recentPath(directory: string): string {
   return path.join(directory, RECENT_FILE);
 }
 
+/** A stored list, or none. */
+function entries(value: unknown): unknown[] {
+  // rationale: a placeholder item in place of the empty list is not an
+  // object, so the entry filters below drop it.
+  // Stryker disable next-line ArrayDeclaration
+  return Array.isArray(value) ? value : [];
+}
+
+function fresh(entry: unknown, now: number, windowMs: number): boolean {
+  return (
+    isRecord(entry) && typeof entry.t === "number" && now - entry.t <= windowMs
+  );
+}
+
+/**
+ * The recent calls and skill loads still inside their windows. A key that is
+ * not a string never equals a hash, so only the time and outcome are checked.
+ */
 function readRecent(directory: string, now: number): RecentFile {
+  let parsed: { calls?: unknown; skills?: unknown } = {};
   try {
-    const parsed: unknown = JSON.parse(
-      String(fs.readFileSync(recentPath(directory))),
-    );
-    if (!isRecord(parsed)) return { calls: [], skills: [] };
-    const calls = Array.isArray(parsed.calls)
-      ? parsed.calls.filter(
-          (entry): entry is RecentCall =>
-            isRecord(entry) &&
-            typeof entry.k === "string" &&
-            typeof entry.t === "number" &&
-            typeof entry.o === "string" &&
-            now - entry.t <= RETRY_WINDOW_MS,
-        )
-      : [];
-    const skills = Array.isArray(parsed.skills)
-      ? parsed.skills.filter(
-          (entry): entry is RecentSkill =>
-            isRecord(entry) &&
-            typeof entry.w === "string" &&
-            typeof entry.t === "number" &&
-            now - entry.t <= SKILL_WINDOW_MS,
-        )
-      : [];
-    return { calls, skills };
+    parsed =
+      JSON.parse(String(fs.readFileSync(recentPath(directory)))) ?? parsed;
   } catch {
-    return { calls: [], skills: [] };
+    // A missing or broken file starts empty.
   }
+  return {
+    calls: entries(parsed.calls).filter(
+      (entry): entry is RecentCall =>
+        fresh(entry, now, RETRY_WINDOW_MS) &&
+        typeof (entry as RecentCall).o === "string",
+    ),
+    skills: entries(parsed.skills).filter((entry): entry is RecentSkill =>
+      fresh(entry, now, SKILL_WINDOW_MS),
+    ),
+  };
 }
 
 function writeRecent(directory: string, recent: RecentFile): void {

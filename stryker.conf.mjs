@@ -71,6 +71,9 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/plugins/compose-search-hints.ts": [
     "packages/cli/tests/search-hints.test.ts",
   ],
+  "packages/cli/src/telemetry-details.ts": [
+    "packages/cli/tests/telemetry-details.test.ts",
+  ],
   "packages/cli/src/plugins/generated-sources.ts": [
     "packages/cli/tests/plugins/generated-sources-mutation.test.ts",
     "packages/cli/tests/plugins/language-pack-relevance.test.ts",
