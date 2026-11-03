@@ -74,7 +74,7 @@ describe("relationship shards remaining atomic write and parse failures", () => 
     ).toThrow("rename denied");
   });
 
-  test("removeRelationshipsFromShards rejects a matching shard whose YAML sequence is missing", () => {
+  test("removeRelationshipsFromShards rejects a shard whose YAML sequence is missing", () => {
     restores.push(isolateKibiEnv());
     const kb = tempRoot();
     const created = appendRelationship(kb, { ...base, to: "REQ-003" });
@@ -86,18 +86,18 @@ describe("relationship shards remaining atomic write and parse failures", () => 
     ) => {
       if (String(target) === created.shardPath) {
         reads += 1;
-        if (reads === 1) {
-          return originalRead(target, encoding as BufferEncoding);
-        }
         return "notes: true\n";
       }
       return originalRead(target, encoding as BufferEncoding);
     }) as typeof fs.readFileSync);
     spies.push(read);
+    expect(reads).toBe(0);
     expect(() =>
       removeRelationshipsFromShards(kb, [
         { type: "implements", from: "SYM-001", to: "REQ-003" },
       ]),
     ).toThrow(/missing 'relationships' array/);
+    // The shard is read once, so the removal and its plan see the same text.
+    expect(reads).toBe(1);
   });
 });
