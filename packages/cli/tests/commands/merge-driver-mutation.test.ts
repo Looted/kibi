@@ -1,12 +1,16 @@
 // implements REQ-cli-kb-merge-driver
 import { describe, expect, test } from "bun:test";
 import {
+  type KbManifestMergeResult,
   canonical,
   mergeKbManifests,
 } from "../../src/commands/merge-driver.js";
 
-const merged = (content: string) => ({ status: "merged", content });
-const conflict = (...conflicts: string[]) => ({
+const merged = (content: string): KbManifestMergeResult => ({
+  status: "merged",
+  content,
+});
+const conflict = (...conflicts: string[]): KbManifestMergeResult => ({
   status: "conflict",
   conflicts,
 });
@@ -65,7 +69,7 @@ describe("parsing each side", () => {
   test("names the first YAML error", () => {
     const result = mergeKbManifests("a: [", "{}\n", "{}\n");
     expect(result.status).toBe("conflict");
-    const [message] = (result as { conflicts: string[] }).conflicts;
+    const [message] = (result as unknown as { conflicts: string[] }).conflicts;
     expect(message?.startsWith("base: not valid YAML (")).toBe(true);
     expect(message?.endsWith(")")).toBe(true);
     expect(message?.length).toBeGreaterThan("base: not valid YAML ()".length);

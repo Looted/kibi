@@ -9,3 +9,5 @@ Drop redundant guards in the sync extraction step, the printed migration plan re
 Remove an unused attach flag and an unreachable process factory from the shared discovery engine helper.
 
 Simplify the manifest merge driver's record bookkeeping and the untracked-document lookup used by `kibi sync` warnings; behaviour is unchanged.
+
+`kibi gc` and the engine maintenance commands drop redundant guards (unused legacy flags, default stdio options, duplicate workspace resolution); behaviour is unchanged.
