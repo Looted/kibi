@@ -278,6 +278,77 @@ describe("real SkillOpt workflow", () => {
     }
   });
 
+  test("Given an incomplete one-shot body When optimization continues Then it keeps the rejected body and trains from baseline", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-real-one-shot-bad-"));
+    try {
+      const result = await runRealOptimization(
+        {
+          runId: RUN_ID,
+          artifactRoot: root,
+          sourceWorktree: process.cwd(),
+          skills: ["kibi-usage"],
+          maxSteps: 1,
+        },
+        {
+          sourceClean: async () => true,
+          oneShot: async (input) =>
+            freezeCandidateVariant({
+              skill: input.skill,
+              variant: "one-shot",
+              body: "Too short to be a complete skill body.",
+              frontmatterHash: input.baseline.frontmatterHash,
+              resourcesHash: input.baseline.resourcesHash,
+              provenance: "codex-one-shot",
+            }),
+          evaluateDevelopment: async () => ({
+            mean: 0.4,
+            hardPasses: 1,
+            worstFamilyMean: 0.25,
+          }),
+          train: async (input) => {
+            expect(input.initialVariant?.variant).toBe("baseline");
+            return {
+              status: "frozen",
+              candidateBody: completeBody(
+                "Use the Kibi MCP workflow and preserve approval boundaries.",
+              ),
+              trainerCheckpointHash: "a".repeat(64),
+              trajectoryHashes: ["b".repeat(64)],
+              development: { mean: 0.4, hardPasses: 1, worstFamilyMean: 0.25 },
+            };
+          },
+          evaluateHeldOut: async () => ({
+            eligibility: "HELD_OUT_MATRIX_INELIGIBLE",
+            cellCount: 36,
+          }),
+        },
+      );
+
+      expect(result.status).toBe("blocked");
+      const skillRoot = join(root, "skills", "kibi-usage");
+      expect(
+        await readFile(
+          join(skillRoot, "rejected-one-shot-candidate_skill.md"),
+          "utf8",
+        ),
+      ).toBe("Too short to be a complete skill body.");
+      const rejected = JSON.parse(
+        await readFile(
+          join(skillRoot, "rejected-one-shot-candidate.json"),
+          "utf8",
+        ),
+      ) as { source?: string };
+      expect(rejected.source).toBe("one-shot");
+      const failure = JSON.parse(
+        await readFile(join(skillRoot, "one-shot-failure.json"), "utf8"),
+      ) as { error?: string; artifactType?: string };
+      expect(failure.artifactType).toBe("skillopt-one-shot-failure");
+      expect(failure.error).toBeString();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   test("Given persisted predicate roots drift When a workflow resumes Then training is rejected before any candidate evaluation", async () => {
     // Given
     const root = await mkdtemp(join(tmpdir(), "skillopt-real-root-drift-"));
