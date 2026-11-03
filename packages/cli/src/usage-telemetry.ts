@@ -46,13 +46,14 @@ export function noteCliErrorCategory(category: string | undefined): void {
 // implements REQ-kibi-anonymous-usage-telemetry
 /** The error code of a failed JSON result printed by a command, if any. */
 export function noteCliResultError(stdout: string | undefined): void {
-  if (!stdout) return;
+  // No output, `null` and a result without `error` all throw here and are
+  // ignored like any other text that is not a JSON result.
   try {
-    const parsed = JSON.parse(stdout) as {
+    const parsed = JSON.parse(stdout as string) as {
       status?: unknown;
-      error?: { code?: unknown };
+      error: { code?: unknown };
     };
-    if (parsed.status === "error" && typeof parsed.error?.code === "string") {
+    if (parsed.status === "error" && typeof parsed.error.code === "string") {
       noteCliErrorCategory(parsed.error.code);
     }
   } catch {
@@ -79,12 +80,10 @@ export function trackCommandPath(program: Command): () => string | undefined {
   let commandPath: string | undefined;
   program.hook("preAction", (_root, actionCommand) => {
     const names: string[] = [];
-    for (
-      let current: Command | null = actionCommand;
-      current?.parent;
-      current = current.parent
-    ) {
+    let current = actionCommand;
+    while (current.parent) {
       names.unshift(current.name());
+      current = current.parent;
     }
     commandPath = names.join(" ");
   });
@@ -105,7 +104,7 @@ export async function finishCliTelemetry(input: {
   const command = input.commandPath;
   const noted = notedErrorCategory;
   notedErrorCategory = undefined;
-  if (!command || UNRECORDED_COMMANDS.has(command.split(" ")[0] ?? "")) {
+  if (!command || UNRECORDED_COMMANDS.has(command.split(" ")[0] as string)) {
     return;
   }
   const notice = takeTelemetryNotice(env);
