@@ -36,7 +36,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  swipl-bundle:
+    uses: ./.github/workflows/swipl-ci-bundle.yml
+
   mutation-editors:
+    # The opencode end-to-end tests run kibi sync, which needs SWI-Prolog.
+    needs: [swipl-bundle]
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -59,6 +64,9 @@ jobs:
       - name: Install JS deps
         run: |
           bun install --frozen-lockfile
+
+      - name: Use the pipeline-built SWI-Prolog
+        uses: ./.github/actions/use-bundled-swipl
 
       # The host tests import the workspace packages' dist.
       - name: Build packages
