@@ -64,11 +64,13 @@ markdown_entity_type(fact).
 % units stay distinct.
 % implements REQ-kibi-unit-canonicalization, REQ-kibi-domain-redundancy
 logical_ground_signature(FactId, predicate(Namespace, Name, Args, Polarity)) :-
+    % mutalog-disable-next-line cut_insert: the clauses read distinct fact kinds
     kb:predicate_fact(FactId, Namespace, Name, Args, Polarity).
 logical_ground_signature(
     FactId,
     property(Subject, Property, Operator, ValueType, Value, Unit, Scope, Polarity)
 ) :-
+    % mutalog-disable-next-line cut_insert: the clauses read distinct fact kinds
     kb:canonical_property_tuple(
         FactId,
         Subject,
@@ -190,8 +192,7 @@ requirements_linked(ReqA, ReqB) :-
     member(LinkType, [supersedes, restates]),
     (   kb_relationship(LinkType, ReqA, ReqB)
     ;   kb_relationship(LinkType, ReqB, ReqA)
-    ),
-    !.
+    ).
 
 redundancy_witness(dup(ReqA, ReqB, FactA, FactB), Witness) :-
     (   FactA == FactB
@@ -278,38 +279,37 @@ check_domain_implication_witnesses(Witnesses) :-
             requirements_unrelated(ReqA, ReqB),
             implication_witness(Key, ReqA, FactA, OpA, ValA, ReqB, FactB, OpB, ValB, Witness)
         ),
-        Witnesses0
-    ),
-    sort(Witnesses0, Witnesses).
+        Witnesses
+    ).
 
 implication_bound(ReqId, FactId, key(Subject, Property, Scope, Unit), Operator, Value) :-
     kb:current_req(ReqId),
     kb_relationship(requires_property, ReqId, FactId),
     kb:canonical_property_tuple(FactId, Subject, Property, Operator, ValueType, Value, Unit, Scope, require),
     memberchk(ValueType, [int, number]),
-    memberchk(Operator, [eq, lt, lte, gt, gte]),
     kb_relationship(constrains, ReqId, SubjectFactId),
     kb:fact_subject_key(SubjectFactId, Subject).
 
 %% bound_implies(+OpA, +ValA, +OpB, +ValB)
 % Every value allowed by (OpA ValA) is allowed by (OpB ValB), and the two
-% bounds are not identical.
+% bounds are not identical: same-operator bounds compare strictly.  Other
+% operators (neq) imply nothing.
 bound_implies(OpA, ValA, OpB, ValB) :-
-    \+ (OpA == OpB, ValA =:= ValB),
-    implies_bound(OpA, ValA, OpB, ValB).
+    implication_compare(OpA, OpB, Compare),
+    call(Compare, ValA, ValB).
 
-implies_bound(lte, A, lte, B) :- A < B.
-implies_bound(lte, A, lt, B) :- A < B.
-implies_bound(lt, A, lt, B) :- A < B.
-implies_bound(lt, A, lte, B) :- A =< B.
-implies_bound(gte, A, gte, B) :- A > B.
-implies_bound(gte, A, gt, B) :- A > B.
-implies_bound(gt, A, gt, B) :- A > B.
-implies_bound(gt, A, gte, B) :- A >= B.
-implies_bound(eq, A, lte, B) :- A =< B.
-implies_bound(eq, A, lt, B) :- A < B.
-implies_bound(eq, A, gte, B) :- A >= B.
-implies_bound(eq, A, gt, B) :- A > B.
+implication_compare(lte, lte, <).
+implication_compare(lte, lt, <).
+implication_compare(lt, lt, <).
+implication_compare(lt, lte, =<).
+implication_compare(gte, gte, >).
+implication_compare(gte, gt, >).
+implication_compare(gt, gt, >).
+implication_compare(gt, gte, >=).
+implication_compare(eq, lte, =<).
+implication_compare(eq, lt, <).
+implication_compare(eq, gte, >=).
+implication_compare(eq, gt, >).
 
 implication_witness(key(Subject, Property, Scope, Unit), ReqA, FactA, OpA, ValA, ReqB, FactB, OpB, ValB, Witness) :-
     redundancy_side(ReqA, FactA, Left),
@@ -523,14 +523,7 @@ signature_value(Raw, Raw).
 % A fact whose status does not retire it.
 active_fact(FactId) :-
     entity_text(FactId, fact, status, Status),
-    retired_fact_status(Status, Retired),
-    Retired == false.
-
-retired_fact_status(Status, Retired) :-
-    (   memberchk(Status, ["superseded", "deprecated", "closed", "removed", "retired", "inactive", "archived"])
-    ->  Retired = true
-    ;   Retired = false
-    ).
+    \+ memberchk(Status, ["superseded", "deprecated", "closed", "removed", "retired", "inactive", "archived"]).
 
 subject_key_identity_violation(Segments, SubjectKeys, violation(
     'subject-key-identity',
@@ -559,47 +552,34 @@ req_derived_subject(SubjectKey, Segments, ReqId) :-
 requirement_subject_segment(ReqId, Segment) :-
     kb_entity(ReqId, req, _),
     normalized_identifier(ReqId, Normalized),
+    % Normalized never ends in an underscore, so the stripped segment is never empty.
     (   Segment = Normalized
-    ;   atom_concat(req_, Stripped, Normalized),
-        Stripped \== '',
-        Segment = Stripped
+    ;   atom_concat(req_, Segment, Normalized)
     ).
 
+% The words of the lowercased ID, runs of [a-z0-9], joined by single
+% underscores.
 normalized_identifier(Raw, Normalized) :-
     normalize_term_atom(Raw, Atom),
     downcase_atom(Atom, Lower),
     atom_codes(Lower, Codes),
-    normalize_identifier_codes(Codes, NormalizedCodes0),
-    trim_underscores(NormalizedCodes0, NormalizedCodes),
-    atom_codes(Normalized, NormalizedCodes).
+    maplist(separator_as_space, Codes, Spaced),
+    split_string(Spaced, " ", "", Parts0),
+    exclude(==(""), Parts0, Parts),
+    atomic_list_concat(Parts, '_', Normalized).
 
-normalize_identifier_codes([], []).
-normalize_identifier_codes([Code|Rest], Normalized) :-
+separator_as_space(Code, Spaced) :-
     (   identifier_code(Code)
-    ->  Normalized = [Code|Tail],
-        normalize_identifier_codes(Rest, Tail)
-    ;   skip_separator_run(Rest, AfterRun),
-        Normalized = [0'_|Tail],
-        normalize_identifier_codes(AfterRun, Tail)
+    ->  Spaced = Code
+    ;   Spaced = 0'\s
     ).
 
-skip_separator_run([Code|Rest], AfterRun) :-
-    \+ identifier_code(Code),
-    !,
-    skip_separator_run(Rest, AfterRun).
-skip_separator_run(Codes, Codes).
-
-identifier_code(Code) :- code_type(Code, digit), !.
-identifier_code(Code) :- Code >= 0'a, Code =< 0'z.
-
-trim_underscores(Codes0, Codes) :-
-    exclude_leading_underscores(Codes0, Codes1),
-    reverse(Codes1, Reversed0),
-    exclude_leading_underscores(Reversed0, Reversed),
-    reverse(Reversed, Codes).
-
-exclude_leading_underscores([0'_|Rest], Codes) :- !, exclude_leading_underscores(Rest, Codes).
-exclude_leading_underscores(Codes, Codes).
+% An ASCII digit or lowercase letter, as the host's [a-z0-9] spells it.
+identifier_code(Code) :-
+    (   Code >= 0'0, Code =< 0'9
+    ->  true
+    ;   Code >= 0'a, Code =< 0'z
+    ).
 
 % Group Segment-ReqId pairs (already keysorted) into Segment-[ReqIds].
 group_segment_requirements(SegmentPairs, Grouped) :-
@@ -672,7 +652,8 @@ valid_subject_segment(Segment) :-
     atomic_list_concat(Words, '_', Segment),
     Words = [First|_],
     atom_codes(First, [Initial|_]),
-    Initial >= 0'a, Initial =< 0'z,
+    % Every word is [a-z0-9], so an initial from a up is a letter.
+    Initial >= 0'a,
     maplist(valid_subject_word, Words).
 
 valid_subject_word(Word) :-
@@ -719,18 +700,19 @@ ontology_quality_settings(Threshold, MinFacts) :-
 :- dynamic ontology_quality_override/2.
 
 %% set_ontology_quality_overrides(+Ratio, +MinFacts)
-% Replace the per-call overrides. Pass the atom default to clear one.
+% Replace the per-call overrides. Pass the atom default to clear one: like
+% any value its validator refuses, it leaves the setting to the environment.
 set_ontology_quality_overrides(Ratio, MinFacts) :-
     retractall(ontology_quality_override(_, _)),
-    (Ratio == default -> true ; assertz(ontology_quality_override(ratio, Ratio))),
-    (MinFacts == default -> true ; assertz(ontology_quality_override(min_facts, MinFacts))).
+    assertz(ontology_quality_override(ratio, Ratio)),
+    assertz(ontology_quality_override(min_facts, MinFacts)).
 
 setting_value(Key, EnvName, Validator, Default, Value) :-
     (   ontology_quality_override(Key, Override),
         call(Validator, Override)
     ->  Value = Override
     ;   getenv(EnvName, Raw),
-        catch(atom_number(Raw, Parsed), _, fail),
+        atom_number(Raw, Parsed),
         call(Validator, Parsed)
     ->  Value = Parsed
     ;   Value = Default
@@ -739,10 +721,10 @@ setting_value(Key, EnvName, Validator, Default, Value) :-
 valid_ratio(Value) :- number(Value), Value >= 0, Value =< 1.
 valid_min_facts(Value) :- integer(Value), Value >= 1.
 
+% A nullary predicate has no argument positions, so it is never reported.
 ontology_predicate_args(Namespace, Name, Arity, Args) :-
     kb:predicate_fact(_FactId, Namespace, Name, Args, _Polarity),
-    length(Args, Arity),
-    Arity > 0.
+    length(Args, Arity).
 
 ontology_quality_violation(key(Namespace, Name, Arity), ArgLists, Threshold, MinFacts, violation(
     'ontology-quality',
@@ -797,8 +779,8 @@ position_singletons(ArgLists, Position, stats(Position, Distinct, Singletons)) :
 singleton_count(_-1).
 
 % Arguments whose own singleton share reaches the threshold, as
-% "name (singletons/facts)"; the whole predicate is listed when no single
-% argument crosses it on its own.
+% "name (singletons/facts)".  The predicate's ratio is the mean of these
+% shares, so when it reaches the threshold at least one argument does.
 prose_arguments(ArgumentNames, PositionStats, FactCount, Threshold, Text) :-
     findall(
         Label,
@@ -809,10 +791,7 @@ prose_arguments(ArgumentNames, PositionStats, FactCount, Threshold, Text) :-
         ),
         Labels
     ),
-    (   Labels == []
-    ->  Text = "spread across all arguments"
-    ;   atomic_list_concat(Labels, ', ', Text)
-    ).
+    atomic_list_concat(Labels, ', ', Text).
 
 sum_singletons(stats(_, _, Singletons), Acc0, Acc) :-
     Acc is Acc0 + Singletons.
@@ -896,7 +875,6 @@ subject_claim_entry(SubjectKeys, _{
     requirements: Requirements
 }) :-
     member(SubjectKey, SubjectKeys),
-    fact_subject_key_of_kind(FactId, property_value, SubjectKey),
     kb:fact_property_tuple(FactId, SubjectKey, PropertyKey, _, _, _, _, _, _),
     logical_ground_signature(FactId, Signature),
     term_string(Signature, SignatureText, [quoted(true), max_depth(0)]),
