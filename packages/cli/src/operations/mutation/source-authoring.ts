@@ -488,15 +488,15 @@ function patchFrontmatter(
     const keyRange = isScalar(pair.key) ? pair.key.range : undefined;
     if (!keyRange) return undefined;
     const start = keyRange[0];
+    // An explicit `? key` entry cannot be rewritten as `key: value` in place.
+    const lineStart = raw.lastIndexOf("\n", start - 1) + 1;
+    if (raw.slice(lineStart, start).trim() !== "") return undefined;
     let end =
       isNode(valueNode) && valueNode.range ? valueNode.range[1] : keyRange[2];
-    // `key:` with no value: replace through the end of the key's line.
-    if (end <= keyRange[1]) {
-      const lineEnd = raw.indexOf("\n", keyRange[1]);
-      end = lineEnd < 0 ? raw.length : lineEnd;
-    }
     while (end > start && /[\r\n]/.test(raw[end - 1] ?? "")) end -= 1;
-    edits.push({ start, end, text });
+    // `key: # note` has an empty value right before its comment: keep the
+    // comment a comment instead of gluing it onto the new value.
+    edits.push({ start, end, text: raw[end] === "#" ? `${text} ` : text });
   }
   let patched = raw;
   for (const edit of edits.sort((left, right) => right.start - left.start)) {
@@ -588,9 +588,8 @@ export const GENERATED_SYMBOL_FIELDS = [
 
 function symbolManifestRecord(
   entity: Readonly<Record<string, unknown>>,
-  relationships: readonly Readonly<{ type: string; target: string }>[] = [],
 ): Record<string, unknown> {
-  const record = Object.fromEntries(
+  return Object.fromEntries(
     Object.entries(entity).filter(
       ([key]) =>
         ![
@@ -605,13 +604,6 @@ function symbolManifestRecord(
         ].includes(key),
     ),
   );
-  if (relationships.length > 0) {
-    record.relationships = relationships.map(({ type, target }) => ({
-      type,
-      target,
-    }));
-  }
-  return record;
 }
 
 export function manifestRelationships(
@@ -652,19 +644,10 @@ export function manifestRelationships(
 }
 
 // implements REQ-source-analysis-v2
+// A matching entry that is not a mapping (a list whose missing `id` reads as
+// "undefined") cannot be merged.
 function manifestRecord(item: unknown): Record<string, unknown> | undefined {
-  if (
-    item === null ||
-    typeof item !== "object" ||
-    !("toJSON" in item) ||
-    typeof (item as { toJSON?: unknown }).toJSON !== "function"
-  ) {
-    return undefined;
-  }
-  const value = (item as { toJSON(): unknown }).toJSON();
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : undefined;
+  return isMap(item) ? (item.toJSON() as Record<string, unknown>) : undefined;
 }
 
 // implements REQ-source-analysis-v2
