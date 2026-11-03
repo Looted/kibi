@@ -710,6 +710,9 @@ const kibiOpencodePlugin: Plugin = async (
               // Hard mode needs available maintenance, so a checkpoint only
               // needs where to run and what guidance it answers.
               const checkpointRunner =
+                // rationale: only hard mode reads checkpoint evidence, so a
+                // runner looked up in other modes changes nothing.
+                // Stryker disable next-line ConditionalExpression
                 effectiveMode === "hard"
                   ? getCheckpointRunnerForContext(promptWorkContext)
                   : undefined;
