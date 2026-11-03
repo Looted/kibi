@@ -83,8 +83,8 @@ export class BuiltinOntologyPack implements OntologyPackV1 {
   }
 
   match(input: OntologyMatchContext): readonly OntologyMatchCandidate[] {
+    // A blank statement needs no shortcut: no rule matches an empty string.
     const statement = input.statement.trim();
-    if (!statement) return [];
     for (const rules of BUILTIN_PREDICATE_RULE_SETS) {
       const hits = detectPredicateRules(statement, rules);
       if (hits.length > 0) return hits;
