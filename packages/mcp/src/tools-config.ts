@@ -291,8 +291,14 @@ export function withDiagnosticTelemetrySchema(
  * Active tools list.
  * In diagnostic mode, all tools include the _diagnostic_telemetry parameter.
  */
-export const TOOLS: ToolConfig[] = withWorkspaceRootSchema(
-  DIAGNOSTIC_MODE_ENABLED
-    ? withDiagnosticTelemetrySchema(BASE_TOOLS)
-    : [...BASE_TOOLS],
-);
+export function activeTools(
+  diagnosticMode: boolean = DIAGNOSTIC_MODE_ENABLED,
+): ToolConfig[] {
+  return withWorkspaceRootSchema(
+    diagnosticMode
+      ? withDiagnosticTelemetrySchema(BASE_TOOLS)
+      : [...BASE_TOOLS],
+  );
+}
+
+export const TOOLS: ToolConfig[] = activeTools();

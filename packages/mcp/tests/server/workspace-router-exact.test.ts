@@ -3,6 +3,7 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
   type RoutingDecision,
@@ -497,6 +498,37 @@ describe("children", () => {
       await r.route("kb_status", { [WORKSPACE_ROOT_ARGUMENT]: other }),
     );
     expect(fresh.pid).not.toBe(busy.pid);
+  });
+
+  test("a child whose client fails to close is still retired", async () => {
+    const attached = kibiWorkspace("kibi-rx-main-");
+    const other = kibiWorkspace("kibi-rx-other-");
+    const { router: r } = router(attached);
+    remote(await r.route("kb_status", { [WORKSPACE_ROOT_ARGUMENT]: other }));
+    const original = Client.prototype.close;
+    const close = spyOn(Client.prototype, "close").mockImplementation(
+      async function (this: Client) {
+        await original.call(this);
+        throw new Error("already closed");
+      },
+    );
+    try {
+      await r.shutdown();
+      expect(close).toHaveBeenCalledTimes(1);
+    } finally {
+      close.mockRestore();
+    }
+  });
+
+  test("a workspace path that does not exist is compared as written", async () => {
+    const missing = path.join(os.tmpdir(), "kibi-rx-missing-root", "ws");
+    const { router: r } = router(`${missing}/.`, {
+      resolveWorkspace: () => missing,
+      env: { PATH: process.env.PATH ?? "", KIBI_WORKSPACE: missing },
+    });
+    expect(
+      await r.route("kb_status", { [WORKSPACE_ROOT_ARGUMENT]: "/elsewhere" }),
+    ).toStrictEqual({ kind: "local", args: {} });
   });
 
   test("a full pool of busy children is not evicted", async () => {

@@ -259,10 +259,8 @@ async function refreshCoordinatesForSymbolIdUnlocked(
   const original = symbols[index] ?? {};
   const singleEntry: CliManifestSymbolEntry = {
     ...(original as ManifestSymbolEntry),
-    id:
-      typeof (original as ManifestSymbolEntry).id === "string"
-        ? ((original as ManifestSymbolEntry).id as string)
-        : "",
+    // The entry was found by this id, so it is the entry's id.
+    id: symbolId,
     title:
       typeof (original as ManifestSymbolEntry).title === "string"
         ? ((original as ManifestSymbolEntry).title as string)
