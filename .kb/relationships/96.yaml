@@ -552,3 +552,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0ef27d5f817
+  - type: assumes
+    from: SCEN-NEG-sync-relationship-retry-NO-RETRY
+    to: FACT-NEG-sync-relationship-retry-NO-RETRY
+    created_at: 2026-11-03T11:22:50.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32714e831c5d
+  - type: verified_by
+    from: SCEN-NEG-sync-relationship-retry-NO-RETRY
+    to: TEST-sync-relationship-retry
+    created_at: 2026-11-03T11:22:50.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0793980fed8e

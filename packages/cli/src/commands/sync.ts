@@ -1519,13 +1519,19 @@ export async function syncCommand(
             shardDeltaByKey.set(relationshipKey(relationship), relationship);
           }
         }
-        const { relationshipCount, kbModified: relationshipsModified } =
-          await persistRelationships(
-            engineProlog,
-            results,
-            [...shardDeltaByKey.values()],
-            { workspaceRoot },
-          );
+        const {
+          relationshipCount,
+          kbModified: relationshipsModified,
+          retrySources,
+        } = await persistRelationships(
+          engineProlog,
+          results,
+          [...shardDeltaByKey.values()],
+          { workspaceRoot },
+        );
+        const relationshipRetryKeys = new Set(
+          retrySources.map((source) => toCacheKey(workspaceRoot, source)),
+        );
 
         const storeTotals = await queryStoreTotals(engineProlog);
         const kbModified =
@@ -1549,7 +1555,8 @@ export async function syncCommand(
         const evictedSemanticHashes: Record<string, string> = {};
         const evictedSemanticContracts: Record<string, boolean> = {};
         for (const [key, hash] of Object.entries(nextHashes)) {
-          if (failedCacheKeys.has(key)) continue;
+          if (failedCacheKeys.has(key) || relationshipRetryKeys.has(key))
+            continue;
           evictedHashes[key] = hash;
           evictedSeenAt[key] = nextSeenAt[key] ?? nowIso;
           if (nextSemanticHashes[key] !== undefined) {
@@ -1690,10 +1697,16 @@ export async function syncCommand(
       );
 
       // Persist relationships
-      const { relationshipCount, kbModified: relationshipsModified } =
-        await persistRelationships(prolog, results, validRelationships, {
-          workspaceRoot,
-        });
+      const {
+        relationshipCount,
+        kbModified: relationshipsModified,
+        retrySources,
+      } = await persistRelationships(prolog, results, validRelationships, {
+        workspaceRoot,
+      });
+      const relationshipRetryKeys = new Set(
+        retrySources.map((source) => toCacheKey(workspaceRoot, source)),
+      );
 
       const kbModified = entitiesModified || relationshipsModified;
 
@@ -1808,7 +1821,7 @@ export async function syncCommand(
       const evictedSemanticContracts: Record<string, boolean> = {};
 
       for (const [key, hash] of Object.entries(nextHashes)) {
-        if (failedCacheKeys.has(key)) {
+        if (failedCacheKeys.has(key) || relationshipRetryKeys.has(key)) {
           continue;
         }
         evictedHashes[key] = hash;
