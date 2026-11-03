@@ -2913,3 +2913,184 @@ test(what_if_entry_ids, Ids == [a, b, c, d, e]) :-
         Ids).
 
 :- end_tests(checks_contradictions).
+
+% --- strict pairing, readiness, predicate verifiability -----------------------
+
+:- begin_tests(checks_strict_lanes).
+
+chk_pred(Id, Name, Args, Extra) :-
+    format(string(Key), "~w(~w)", [Name, Args]),
+    append([fact_kind=predicate, predicate_name=Name, predicate_args=Args, canonical_key=Key], Extra, Props),
+    chk_ent(fact, Id, Props).
+
+chk_pairing(Req, D, S, violation('strict-req-fact-pairing', Req, D, S, Source)) :-
+    format(atom(Source), '~w.md', [Req]).
+
+chk_pairing_fixture :-
+    chk_subject('FACT-CART', cart),
+    chk_subject('FACT-BAG', bag),
+    chk_total('FACT-TOTAL', gt, 0),
+    chk_prop('FACT-BAG-SIZE', bag, size, gt, int, 0, []),
+    chk_raw_entity(fact, 'FACT-LEGACY', [title="Legacy"]),
+    chk_ent(fact, 'FACT-OBS', [fact_kind=observation]),
+    % matched pair
+    chk_req('REQ-OK'),
+    chk_strict('REQ-OK', 'FACT-CART', 'FACT-TOTAL'),
+    % subject without a property
+    chk_req('REQ-SUBJ'),
+    chk_rel(constrains, 'REQ-SUBJ', 'FACT-CART'),
+    % property without its subject
+    chk_req('REQ-PROP'),
+    chk_rel(constrains, 'REQ-PROP', 'FACT-CART'),
+    chk_rel(requires_property, 'REQ-PROP', 'FACT-TOTAL'),
+    chk_rel(requires_property, 'REQ-PROP', 'FACT-BAG-SIZE'),
+    % wrong-lane targets
+    chk_req('REQ-LANE'),
+    chk_rel(constrains, 'REQ-LANE', 'FACT-TOTAL'),
+    chk_raw_rel(constrains, 'REQ-LANE', 'FACT-LEGACY'),
+    chk_rel(requires_property, 'REQ-LANE', 'FACT-OBS'),
+    chk_raw_rel(requires_property, 'REQ-LANE', 'FACT-LEGACY'),
+    % subject grounded through predicates instead
+    chk_pred('FACT-P-KEY', "owns", ["x"], [subject_key="cart"]),
+    chk_req('REQ-PRED-KEY'),
+    chk_rel(constrains, 'REQ-PRED-KEY', 'FACT-CART'),
+    chk_rel(requires_predicate, 'REQ-PRED-KEY', 'FACT-P-KEY'),
+    chk_pred('FACT-P-FIRST', "holds", ["cart", "x"], []),
+    chk_req('REQ-PRED-FIRST'),
+    chk_rel(constrains, 'REQ-PRED-FIRST', 'FACT-CART'),
+    chk_rel(requires_predicate, 'REQ-PRED-FIRST', 'FACT-P-FIRST'),
+    chk_ent(fact, 'FACT-SCHEMA', [fact_kind=predicate_schema, predicate_name="stores", predicate_arity=2,
+                                  argument_names=["item", "subject"], argument_types=["t", "t"]]),
+    chk_pred('FACT-P-SCHEMA', "stores", ["x", "cart"], []),
+    chk_req('REQ-PRED-SCHEMA'),
+    chk_rel(constrains, 'REQ-PRED-SCHEMA', 'FACT-CART'),
+    chk_rel(requires_predicate, 'REQ-PRED-SCHEMA', 'FACT-P-SCHEMA'),
+    chk_pred('FACT-P-WRONG', "stores", ["cart", "x"], []),
+    chk_req('REQ-PRED-WRONG'),
+    chk_rel(constrains, 'REQ-PRED-WRONG', 'FACT-CART'),
+    chk_rel(requires_predicate, 'REQ-PRED-WRONG', 'FACT-P-WRONG'),
+    % retired requirements are not checked
+    chk_req('REQ-OLD', [status=deprecated]),
+    chk_rel(constrains, 'REQ-OLD', 'FACT-BAG').
+
+test(strict_req_fact_pairing, Violations == [V1, V2, V3, V4, V5, V6, V7]) :-
+    chk_kb((chk_pairing_fixture, check_strict_req_fact_pairing(Violations))),
+    S1 = "Use a subject fact with constrains for contradiction-safe semantics; keep non-subject facts out of strict pairing",
+    S2 = "Use a property_value fact with requires_property for contradiction-safe semantics; keep non-property facts out of strict pairing",
+    chk_pairing('REQ-LANE', "Requirement links FACT-LEGACY via constrains using a legacy fact without fact_kind; contradiction-safe constrains links must target subject facts", S1, V1),
+    chk_pairing('REQ-LANE', "Requirement links FACT-LEGACY via requires_property using a legacy fact without fact_kind; contradiction-safe requires_property links must target property_value facts", S2, V2),
+    chk_pairing('REQ-LANE', "Requirement links FACT-OBS via requires_property using a fact_kind=observation fact; contradiction-safe requires_property links must target property_value facts", S2, V3),
+    chk_pairing('REQ-LANE', "Requirement links FACT-TOTAL via constrains using a fact_kind=property_value fact; contradiction-safe constrains links must target subject facts", S1, V4),
+    chk_pairing('REQ-PRED-WRONG', "Requirement constrains FACT-CART (cart) but has no matching strict requires_property fact and no requires_predicate fact about that subject",
+                "Add a property_value fact via requires_property for the same subject_key, or link requires_predicate to a fact_kind: predicate fact about that subject_key (its subject argument or its subject_key)", V5),
+    chk_pairing('REQ-PROP', "Requirement requires_property FACT-BAG-SIZE (bag) but has no matching strict subject fact via constrains",
+                "Add a subject fact via constrains for the same subject_key or remove the mismatched requires_property link", V6),
+    chk_pairing('REQ-SUBJ', "Requirement constrains FACT-CART (cart) but has no matching strict requires_property fact and no requires_predicate fact about that subject",
+                "Add a property_value fact via requires_property for the same subject_key, or link requires_predicate to a fact_kind: predicate fact about that subject_key (its subject argument or its subject_key)", V7).
+
+test(predicate_fact_subject_keys, Keys == [[cart], [cart], [cart], [x]]) :-
+    chk_kb((
+        chk_pairing_fixture,
+        findall(Ks,
+            (   member(F, ['FACT-P-KEY', 'FACT-P-FIRST', 'FACT-P-SCHEMA', 'FACT-P-WRONG']),
+                kb:predicate_fact(F, Ns, N, Args, _),
+                findall(K, checks:predicate_fact_subject_key(F, Ns, N, Args, K), Ks)
+            ),
+            Keys),
+        deterministic(checks:strict_req_predicate_grounds_subject('REQ-PRED-KEY', cart))
+    )).
+
+test(kind_labels, Labels == ["a legacy fact without fact_kind", "a fact_kind=meta fact"]) :-
+    findall(L, checks:strict_req_fact_pairing_kind_label(legacy, L), [L1]),
+    checks:strict_req_fact_pairing_kind_label(meta, L2),
+    Labels = [L1, L2],
+    findall(L, checks:predicate_verifiability_kind_label(legacy, L), [P1]),
+    P1 == "a legacy fact without fact_kind",
+    checks:predicate_verifiability_kind_label(meta, P2),
+    P2 == "fact_kind=meta".
+
+chk_readiness(Req, D, S, violation('strict-readiness', Req, D, S, Source)) :-
+    format(atom(Source), '~w.md', [Req]).
+
+test(strict_readiness, Violations == [V1, V2, V3, V4, V5]) :-
+    chk_kb((
+        chk_pairing_fixture,
+        chk_req('REQ-PROSE'),
+        chk_req('REQ-TRACE'),
+        chk_raw_rel(constrains, 'REQ-TRACE', 'FACT-LEGACY'),
+        chk_req('REQ-TRACE2'),
+        chk_rel(requires_property, 'REQ-TRACE2', 'FACT-OBS'),
+        chk_req('REQ-RETIRED', [status=deprecated]),
+        chk_strict('REQ-RETIRED', 'FACT-CART', 'FACT-TOTAL'),
+        check_strict_readiness(Violations0),
+        % the fixture's other requirements, by level
+        findall(V, (member(V, Violations0), V = violation(_, Id, _, _, _),
+                    memberchk(Id, ['REQ-PROSE', 'REQ-TRACE', 'REQ-TRACE2', 'REQ-RETIRED', 'REQ-SUBJ'])), Violations),
+        findall(Id, member(violation(_, Id, _, _, _), Violations0), Ids),
+        Ids == ['REQ-LANE', 'REQ-OLD', 'REQ-PRED-WRONG', 'REQ-PROSE', 'REQ-RETIRED', 'REQ-SUBJ', 'REQ-TRACE', 'REQ-TRACE2']
+    )),
+    chk_readiness('REQ-PROSE', "Strict readiness: not-ready (prose-only). Requirement has no fact links, so contradiction checks skip it.",
+                  "Add a subject fact via constrains and a property_value fact via requires_property to model contradiction-safe semantics", V1),
+    chk_readiness('REQ-RETIRED', "Strict readiness: not-ready (strict-ready). Requirement has strict subject and property facts but no contradiction-ready matched pair, so contradiction checks still skip it.",
+                  "Ensure constrains and requires_property use the same subject_key, and keep the requirement current if it should participate in contradiction checks", V2),
+    chk_readiness('REQ-SUBJ', "Strict readiness: not-ready (has-subject). Requirement constrains FACT-CART (cart) but has no matching strict requires_property fact and no requires_predicate fact about that subject, so contradiction checks skip it.",
+                  "Add a matching property_value fact via requires_property for the same subject_key, or link requires_predicate to a predicate fact about that subject_key (its subject argument or its subject_key)", V3),
+    T = "Strict readiness: not-ready (traceable). Requirement is linked to facts only through legacy or non-strict links, so contradiction checks skip it.",
+    TS = "Replace prose or legacy fact links with a subject fact via constrains and a property_value fact via requires_property",
+    chk_readiness('REQ-TRACE', T, TS, V4),
+    chk_readiness('REQ-TRACE2', T, TS, V5).
+
+test(readiness_levels, Levels == [contradiction_ready, contradiction_ready, strict_ready, has_subject, traceable, prose_only]) :-
+    chk_kb((
+        chk_pairing_fixture,
+        chk_req('REQ-PROSE'),
+        chk_req('REQ-TRACE'),
+        chk_raw_rel(constrains, 'REQ-TRACE', 'FACT-LEGACY'),
+        chk_req('REQ-STRICT'),
+        chk_rel(constrains, 'REQ-STRICT', 'FACT-BAG'),
+        chk_rel(requires_property, 'REQ-STRICT', 'FACT-TOTAL'),
+        chk_rel(requires_property, 'REQ-STRICT', 'FACT-OBS'),
+        findall(L,
+            (   member(R, ['REQ-OK', 'REQ-PRED-KEY', 'REQ-STRICT', 'REQ-SUBJ', 'REQ-TRACE', 'REQ-PROSE']),
+                findall(L0, checks:strict_readiness_level(R, L0), [L])
+            ),
+            Levels),
+        chk_rel(constrains, 'REQ-TRACE', 'FACT-OBS'),
+        chk_rel(requires_property, 'REQ-TRACE', 'FACT-OBS'),
+        deterministic(checks:strict_readiness_has_fact_link('REQ-TRACE'))
+    )).
+
+test(readiness_helpers_are_deterministic) :-
+    chk_kb((
+        chk_pairing_fixture,
+        chk_rel(constrains, 'REQ-SUBJ', 'FACT-BAG'),
+        deterministic(checks:strict_readiness_has_strict_subject('REQ-SUBJ')),
+        chk_rel(requires_property, 'REQ-SUBJ', 'FACT-BAG-SIZE'),
+        chk_rel(requires_property, 'REQ-SUBJ', 'FACT-TOTAL'),
+        deterministic(checks:strict_readiness_has_strict_property('REQ-SUBJ')),
+        chk_req('REQ-T'),
+        chk_rel(requires_property, 'REQ-T', 'FACT-OBS'),
+        chk_rel(requires_property, 'REQ-T', 'FACT-TOTAL'),
+        deterministic(checks:strict_readiness_has_fact_link('REQ-T')),
+        \+ checks:strict_readiness_has_fact_link('REQ-NONE')
+    )).
+
+test(predicate_verifiability, Violations == [V1, V2]) :-
+    S = "Apply kb_suggest_predicates and link requires_predicate to a fact_kind: predicate fact, or record a review:ontology-gap observation when no predicate fits",
+    V1 = violation('predicate-verifiability', 'REQ-A', "Requirement uses requires_predicate FACT-LEGACY but target is a legacy fact without fact_kind, not fact_kind=predicate", S, 'REQ-A.md'),
+    V2 = violation('predicate-verifiability', 'REQ-A', "Requirement uses requires_predicate FACT-TOTAL but target is fact_kind=property_value, not fact_kind=predicate", S, 'REQ-A.md'),
+    chk_kb((
+        chk_req('REQ-A'),
+        chk_total('FACT-TOTAL', gt, 0),
+        chk_raw_entity(fact, 'FACT-LEGACY', [title="Legacy"]),
+        chk_pred('FACT-P', "owns", ["x"], []),
+        chk_rel(requires_predicate, 'REQ-A', 'FACT-TOTAL'),
+        chk_raw_rel(requires_predicate, 'REQ-A', 'FACT-LEGACY'),
+        chk_rel(requires_predicate, 'REQ-A', 'FACT-P'),
+        chk_req('REQ-OLD', [status=deprecated]),
+        chk_rel(requires_predicate, 'REQ-OLD', 'FACT-TOTAL'),
+        chk_raw_rel(requires_predicate, 'REQ-A', 'REQ-OLD'),
+        check_predicate_verifiability(Violations)
+    )).
+
+:- end_tests(checks_strict_lanes).

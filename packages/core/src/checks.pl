@@ -3263,6 +3263,7 @@ predicate_fact_subject_key(_FactId, _Namespace, _Name, [SubjectKey|_], SubjectKe
 
 strict_req_fact_pairing_kind_label(legacy, "a legacy fact without fact_kind").
 strict_req_fact_pairing_kind_label(Kind, Label) :-
+    Kind \== legacy,
     format(string(Label), "a fact_kind=~w fact", [Kind]).
 
 %% check_strict_readiness(-Violations)
@@ -3405,6 +3406,7 @@ predicate_verifiability_fact_kind(Props, Kind) :-
 
 predicate_verifiability_kind_label(legacy, "a legacy fact without fact_kind").
 predicate_verifiability_kind_label(Kind, Label) :-
+    Kind \== legacy,
     format(string(Label), "fact_kind=~w", [Kind]).
 
 %% check_logic_coverage(-Violations)
