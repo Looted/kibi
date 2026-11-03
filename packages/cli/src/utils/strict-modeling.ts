@@ -17,7 +17,6 @@
  */
 
 import { createHash } from "node:crypto";
-import * as path from "node:path";
 import type { BaseEntity, FactFields } from "../types/entities.js";
 import type { BaseRelationship } from "../types/relationships.js";
 import { CANONICAL_ENTITY_PATHS } from "./kb-paths.js";
@@ -111,13 +110,14 @@ interface ObservationWriteSet {
 
 export type StrictWriteSet = StrictRequirementWriteSet | ObservationWriteSet;
 
+// The normalizers below need no trim: edge whitespace turns into a separator,
+// which the last replace strips. A run of characters outside the kept class
+// (the separator itself included) collapses to one separator.
 export function normalizeSubjectKey(value: string): string {
   const normalized = value
-    .trim()
     .toLowerCase()
-    .replace(/[\\/]+/g, ".")
+    .replace(/[\\/]/g, ".")
     .replace(/[^a-z0-9.]+/g, "_")
-    .replace(/_+/g, "_")
     .replace(/\.+/g, ".")
     .replace(/(^[._]+|[._]+$)/g, "");
 
@@ -146,11 +146,9 @@ export function isConventionalSubjectKey(value: string): boolean {
 
 export function normalizePropertyKey(value: string): string {
   const normalized = value
-    .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_+|_+$/g, "");
+    .replace(/^_|_$/g, "");
 
   if (!normalized) {
     throw new Error(
@@ -284,7 +282,8 @@ export function buildStrictWriteSet(input: StrictModelInput): StrictWriteSet {
     },
   };
 
-  const relationships = dedupeRelationships([
+  // The two relationships differ by type, so there is nothing to dedupe.
+  const relationships: RelationshipSpec[] = [
     {
       type: "constrains",
       from: req.id,
@@ -299,7 +298,7 @@ export function buildStrictWriteSet(input: StrictModelInput): StrictWriteSet {
       source: input.claim.source,
       confidence,
     },
-  ]);
+  ];
 
   return {
     req,
@@ -341,10 +340,8 @@ function buildEntityId(prefix: string, value: string): string {
 
 export function normalizeSourceKey(value: string): string {
   const normalized = value
-    .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/-+/g, "-")
     .replace(/(^-|-$)/g, "");
 
   if (!normalized) {
@@ -364,13 +361,12 @@ function normalizeStableValue(
       [...new Set(value as readonly string[])].sort().join("|"),
     );
   if (typeof value === "string") {
+    // "_" is kept by the class, so runs of it collapse in a separate step.
     const normalized = value
-      .trim()
       .toLowerCase()
-      .replace(/\s+/g, "_")
-      .replace(/[^a-z0-9._-]+/g, "_")
+      .replace(/[^a-z0-9._-]/g, "_")
       .replace(/_+/g, "_")
-      .replace(/^_+|_+$/g, "");
+      .replace(/^_|_$/g, "");
 
     return normalized || "empty";
   }
@@ -480,12 +476,7 @@ function buildPropertyFactFields(claim: SemanticClaim): Partial<FactFields> {
       value_type: "set",
       value_set: [...new Set(claim.value as readonly string[])].sort(),
     } as Partial<FactFields>;
-  if (claim.operator === "matches")
-    return {
-      operator: "matches",
-      value_type: "string",
-      value_string: String(claim.value),
-    } as Partial<FactFields>;
+  // A "matches" pattern is a string value, typed by the last branch below.
   if (claim.operator === "polarity") {
     return {
       operator: "eq",
@@ -516,10 +507,10 @@ const ORDERING_OPERATORS = new Set(["gt", "gte", "lt", "lte"]);
 // ("0", "2.5") is stored as int/number. Stored as a string it would be
 // invisible to numeric contradiction checks.
 function numericClaimValue(claim: SemanticClaim): string | number | boolean {
+  // A number value passes the test as itself; a boolean never does.
   if (
-    typeof claim.value === "string" &&
     ORDERING_OPERATORS.has(claim.operator) &&
-    /^\s*-?\d+(?:\.\d+)?\s*$/.test(claim.value)
+    /^\s*-?\d+(?:\.\d+)?\s*$/.test(String(claim.value))
   ) {
     return Number(claim.value);
   }
@@ -593,43 +584,21 @@ function normalizeBooleanValue(value: string | number | boolean): boolean {
 
 function humanizeKey(value: string): string {
   return value
-    .split(/[._-]+/)
+    .split(/[._-]/)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
-}
-
-function dedupeRelationships(
-  relationships: RelationshipSpec[],
-): RelationshipSpec[] {
-  const seen = new Set<string>();
-  const deduped: RelationshipSpec[] = [];
-
-  for (const relationship of relationships) {
-    const key = `${relationship.type}:${relationship.from}:${relationship.to}`;
-    if (seen.has(key)) {
-      continue;
-    }
-
-    seen.add(key);
-    deduped.push(relationship);
-  }
-
-  return deduped;
 }
 
 function resolveEntitySourcePaths(): {
   requirements: string;
   facts: string;
 } {
+  // The canonical lanes are POSIX paths without a trailing slash.
   return {
-    requirements: normalizeEntityDirectory(CANONICAL_ENTITY_PATHS.requirements),
-    facts: normalizeEntityDirectory(CANONICAL_ENTITY_PATHS.facts),
+    requirements: CANONICAL_ENTITY_PATHS.requirements,
+    facts: CANONICAL_ENTITY_PATHS.facts,
   };
-}
-
-function normalizeEntityDirectory(directory: string): string {
-  return directory.split(path.sep).join("/").replace(/\/+$/g, "");
 }
 
 function buildEntitySourcePath(directory: string, entityId: string): string {
