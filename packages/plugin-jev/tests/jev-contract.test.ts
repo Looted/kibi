@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import * as realSdk from "@typesafe-ai/sdk";
 import {
   JEV_MAX_TIMEOUT_MS,
   JEV_SUBJECT_TOP_K,
@@ -10,15 +11,14 @@ import {
   resolveJevTimeoutMs,
 } from "../src/index.js";
 import {
+  type JevClient,
+  type JevSystemOneRequest,
+  type JevSystemOneResult,
   asChoice,
   asNoul,
   choiceConfidence,
   clamp01,
-  type JevClient,
-  type JevSystemOneRequest,
-  type JevSystemOneResult,
 } from "../src/jev-client.js";
-import * as realSdk from "@typesafe-ai/sdk";
 import { choice, noul } from "../src/typesafe-client.js";
 
 const savedEnv = {
@@ -212,10 +212,12 @@ describe("model and timeout resolution", () => {
 
   test("timeouts at their bounds", () => {
     expect(resolveJevTimeoutMs(1, {})).toBe(1);
-    expect(resolveJevTimeoutMs(JEV_MAX_TIMEOUT_MS, {})).toBe(JEV_MAX_TIMEOUT_MS);
-    expect(resolveJevTimeoutMs(undefined, { KIBI_JEV_TIMEOUT_MS: " 250 " })).toBe(
-      250,
+    expect(resolveJevTimeoutMs(JEV_MAX_TIMEOUT_MS, {})).toBe(
+      JEV_MAX_TIMEOUT_MS,
     );
+    expect(
+      resolveJevTimeoutMs(undefined, { KIBI_JEV_TIMEOUT_MS: " 250 " }),
+    ).toBe(250);
     expect(resolveJevTimeoutMs(undefined, { KIBI_JEV_TIMEOUT_MS: " " })).toBe(
       undefined,
     );
@@ -245,8 +247,9 @@ describe("model and timeout resolution", () => {
       ).message,
     ).toEndWith(`received ${JSON.stringify(`${fortyChars}…`)}`);
     expect(
-      thrown(() => resolveJevTimeoutMs(undefined, { KIBI_JEV_TIMEOUT_MS: "05" }))
-        .message,
+      thrown(() =>
+        resolveJevTimeoutMs(undefined, { KIBI_JEV_TIMEOUT_MS: "05" }),
+      ).message,
     ).toBe(
       `KIBI_JEV_TIMEOUT_MS must be a positive integer of at most ${JEV_MAX_TIMEOUT_MS} milliseconds; received "05"`,
     );
@@ -354,7 +357,13 @@ describe("semantic classifier requests", () => {
         normative: true,
         signals: [{ kind: "permission" }, { kind: "conditional" }],
       },
-      { claimKey: "c2", statement: "s2", role: null, normative: null, signals: [] },
+      {
+        claimKey: "c2",
+        statement: "s2",
+        role: null,
+        normative: null,
+        signals: [],
+      },
     ]);
     expect(Object.keys(state.laneDefinitions)).toEqual([
       "strict_property",
@@ -366,7 +375,9 @@ describe("semantic classifier requests", () => {
     for (const text of Object.values(state.laneDefinitions)) {
       expect(text.length).toBeGreaterThan(20);
     }
-    expect(JSON.stringify(lane)).toContain(state.laneDefinitions.rule as string);
+    expect(JSON.stringify(lane)).toContain(
+      state.laneDefinitions.rule as string,
+    );
   });
 
   test("the factory gets no options when none are configured", async () => {
@@ -380,7 +391,9 @@ describe("semantic classifier requests", () => {
         }).client;
       },
     });
-    await classifier.classify({ propositions: [{ claimKey: "c", statement: "s" }] });
+    await classifier.classify({
+      propositions: [{ claimKey: "c", statement: "s" }],
+    });
     expect(factoryOptions).toStrictEqual([{}]);
   });
 
@@ -451,7 +464,10 @@ describe("vocabulary alignment requests", () => {
     const factoryOptions: unknown[] = [];
     const { client, requests } = recordingClient({
       "subject:c1": { choice: "s1", confidence: 0.9 },
-      "subject:c2": { choice: "new_subject", probabilities: { new_subject: 0.6 } },
+      "subject:c2": {
+        choice: "new_subject",
+        probabilities: { new_subject: 0.6 },
+      },
     });
     const alignment = createJevVocabularyAlignment({
       model: "m",
@@ -461,12 +477,15 @@ describe("vocabulary alignment requests", () => {
         return client;
       },
     });
-    const candidates = Array.from({ length: JEV_SUBJECT_TOP_K + 1 }, (_, i) => ({
-      subjectKey: `s${i}`,
-      ...(i === 1
-        ? { title: "One", requirementTitles: ["r1", "r2", "r3", "r4"] }
-        : {}),
-    }));
+    const candidates = Array.from(
+      { length: JEV_SUBJECT_TOP_K + 1 },
+      (_, i) => ({
+        subjectKey: `s${i}`,
+        ...(i === 1
+          ? { title: "One", requirementTitles: ["r1", "r2", "r3", "r4"] }
+          : {}),
+      }),
+    );
     const result = await alignment.rankSubjects({
       clauses: [
         { claimKey: "c1", text: "t1", proposedSubjectKey: "s1", candidates },

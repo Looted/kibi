@@ -97,7 +97,11 @@ function sink(): { stream: Writable; text: () => string } {
 describe("silent server edges", () => {
   test("tools/call falls back to the missing-server instructions", () => {
     expect(
-      launcher.silentServerResponse({ jsonrpc: "2.0", id: 4, method: "tools/call" }),
+      launcher.silentServerResponse({
+        jsonrpc: "2.0",
+        id: 4,
+        method: "tools/call",
+      }),
     ).toEqual({
       jsonrpc: "2.0",
       id: 4,
@@ -152,7 +156,13 @@ describe("resolution edges", () => {
   test("Windows PATH lookup prefers shims and skips unresolvable ones", () => {
     const binDir = tempRoot("kibi-zcode-edges-winpath-");
     const emptyDir = tempRoot("kibi-zcode-edges-winempty-");
-    const entry = path.join(binDir, "node_modules", "kibi-mcp", "bin", "kibi-mcp.js");
+    const entry = path.join(
+      binDir,
+      "node_modules",
+      "kibi-mcp",
+      "bin",
+      "kibi-mcp.js",
+    );
     fs.mkdirSync(path.dirname(entry), { recursive: true });
     fs.writeFileSync(entry, "// entry\n");
     fs.writeFileSync(

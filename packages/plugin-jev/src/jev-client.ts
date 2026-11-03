@@ -145,7 +145,9 @@ export function asChoice(answer: unknown): JevChoiceAnswer {
 /** A Noul answer must carry a finite number; NaN is not a probability. */
 // implements REQ-capability-plugin-jev-fallback-v1
 export function asNoul(answer: unknown): JevNoulAnswer {
-  if (!Number.isFinite((answer as { noul?: unknown } | null | undefined)?.noul)) {
+  if (
+    !Number.isFinite((answer as { noul?: unknown } | null | undefined)?.noul)
+  ) {
     throw new JevProviderError(
       "malformed",
       "Jev Noul answer is missing a finite numeric noul field",

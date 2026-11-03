@@ -70,14 +70,24 @@ describe("validateSourceAnalysisResultV2 accepts", () => {
               nativeKind: "method_definition",
               signature: "f()",
               directiveText: "d",
-              nameRange: { startLine: 1, startColumn: 0, endLine: 3, endColumn: 4 },
+              nameRange: {
+                startLine: 1,
+                startColumn: 0,
+                endLine: 3,
+                endColumn: 4,
+              },
             }),
             symbol({
               startLine: 3,
               startColumn: 4,
               endLine: 3,
               endColumn: 4,
-              nameRange: { startLine: 3, startColumn: 4, endLine: 3, endColumn: 4 },
+              nameRange: {
+                startLine: 3,
+                startColumn: 4,
+                endLine: 3,
+                endColumn: 4,
+              },
             }),
             symbol({ startLine: 2, startColumn: 0, endLine: 2, endColumn: 0 }),
           ],
@@ -180,7 +190,10 @@ describe("validateSourceAnalysisResultV2 accepts", () => {
         result({
           status: "failed",
           symbols: [],
-          diagnostics: [{ code: "too_large", message: "skip" }, "x"].slice(0, 1),
+          diagnostics: [{ code: "too_large", message: "skip" }, "x"].slice(
+            0,
+            1,
+          ),
         }),
         input,
         { maxInputSize: content.length - 1 },
@@ -191,7 +204,8 @@ describe("validateSourceAnalysisResultV2 accepts", () => {
   test("the default input limit", () => {
     const big = "x".repeat(SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS + 1);
     expectFailure(
-      () => validate(result({ symbols: [] }), { path: "src/a.ts", content: big }),
+      () =>
+        validate(result({ symbols: [] }), { path: "src/a.ts", content: big }),
       `input.content exceeds the ${SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS} UTF-16 code unit limit; oversized input requires a failed result`,
     );
     const exact = "x".repeat(SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS);
@@ -310,7 +324,9 @@ describe("validateSourceAnalysisResultV2 rejects", () => {
     expectFailure(
       () =>
         validate(
-          result({ module: { title: "a", language: "js", analysisMode: "parser" } }),
+          result({
+            module: { title: "a", language: "js", analysisMode: "parser" },
+          }),
         ),
       "module.language must match result.language",
     );
@@ -342,7 +358,13 @@ describe("validateSourceAnalysisResultV2 rejects", () => {
         validate(
           failed({
             uncoveredRanges: [
-              { startLine: 1, startColumn: 0, endLine: 1, endColumn: 0, reason: "r" },
+              {
+                startLine: 1,
+                startColumn: 0,
+                endLine: 1,
+                endColumn: 0,
+                reason: "r",
+              },
             ],
           }),
           input,
@@ -359,7 +381,12 @@ describe("validateSourceAnalysisResultV2 rejects", () => {
               {
                 code: "c",
                 message: "m",
-                range: { startLine: 1, startColumn: 0, endLine: 1, endColumn: 0 },
+                range: {
+                  startLine: 1,
+                  startColumn: 0,
+                  endLine: 1,
+                  endColumn: 0,
+                },
               },
             ],
           }),
@@ -370,8 +397,7 @@ describe("validateSourceAnalysisResultV2 rejects", () => {
     );
     // Non-record diagnostics are not treated as ranged here; they fail later.
     expectFailure(
-      () =>
-        validate(failed({ diagnostics: ["x"] }), input, small),
+      () => validate(failed({ diagnostics: ["x"] }), input, small),
       "diagnostics[0] must be an object",
     );
   });
@@ -386,7 +412,10 @@ describe("validateSourceAnalysisResultV2 rejects", () => {
       );
     }
     expectFailure(
-      run({ startLine: Number.MAX_SAFE_INTEGER + 1, endLine: Number.MAX_SAFE_INTEGER + 1 }),
+      run({
+        startLine: Number.MAX_SAFE_INTEGER + 1,
+        endLine: Number.MAX_SAFE_INTEGER + 1,
+      }),
       "symbols[1].startLine must be a positive safe integer",
     );
     expectFailure(
@@ -431,7 +460,12 @@ describe("validateSourceAnalysisResultV2 rejects", () => {
   test("symbol fields and name ranges", () => {
     const run = (overrides: Record<string, unknown>) => () =>
       validate(result({ symbols: [symbol(), symbol(overrides)] }));
-    for (const key of ["qualifiedName", "containerName", "nativeKind", "signature"]) {
+    for (const key of [
+      "qualifiedName",
+      "containerName",
+      "nativeKind",
+      "signature",
+    ]) {
       expectFailure(
         run({ [key]: " " }),
         `symbols[1].${key} must be a non-empty string`,
@@ -450,48 +484,83 @@ describe("validateSourceAnalysisResultV2 rejects", () => {
       "symbols[1].nameRange.endColumn must be a finite number",
     );
     expectFailure(
-      run({ nameRange: { startLine: "1", startColumn: 0, endLine: 1, endColumn: 0 } }),
+      run({
+        nameRange: { startLine: "1", startColumn: 0, endLine: 1, endColumn: 0 },
+      }),
       "symbols[1].nameRange.startLine must be a finite number",
     );
     expectFailure(
-      run({ nameRange: { startLine: 1, startColumn: null, endLine: 1, endColumn: 0 } }),
+      run({
+        nameRange: {
+          startLine: 1,
+          startColumn: null,
+          endLine: 1,
+          endColumn: 0,
+        },
+      }),
       "symbols[1].nameRange.startColumn must be a finite number",
     );
     expectFailure(
-      run({ nameRange: { startLine: 1, startColumn: 0, endLine: Number.NaN, endColumn: 0 } }),
+      run({
+        nameRange: {
+          startLine: 1,
+          startColumn: 0,
+          endLine: Number.NaN,
+          endColumn: 0,
+        },
+      }),
       "symbols[1].nameRange.endLine must be a finite number",
     );
     expectFailure(
-      run({ nameRange: { startLine: 0, startColumn: 0, endLine: 1, endColumn: 0 } }),
+      run({
+        nameRange: { startLine: 0, startColumn: 0, endLine: 1, endColumn: 0 },
+      }),
       "symbols[1].nameRange.startLine must be a positive safe integer",
     );
     expectFailure(
-      run({ nameRange: { startLine: 1, startColumn: 0, endLine: 0, endColumn: 0 } }),
+      run({
+        nameRange: { startLine: 1, startColumn: 0, endLine: 0, endColumn: 0 },
+      }),
       "symbols[1].nameRange.endLine must be a positive safe integer",
     );
     expectFailure(
-      run({ nameRange: { startLine: 1, startColumn: -1, endLine: 1, endColumn: 0 } }),
+      run({
+        nameRange: { startLine: 1, startColumn: -1, endLine: 1, endColumn: 0 },
+      }),
       "symbols[1].nameRange.startColumn must be a non-negative safe integer",
     );
     expectFailure(
-      run({ nameRange: { startLine: 1, startColumn: 0, endLine: 1, endColumn: 0.5 } }),
+      run({
+        nameRange: { startLine: 1, startColumn: 0, endLine: 1, endColumn: 0.5 },
+      }),
       "symbols[1].nameRange.endColumn must be a non-negative safe integer",
     );
     expectFailure(
-      run({ nameRange: { startLine: 9, startColumn: 0, endLine: 1, endColumn: 0 } }),
+      run({
+        nameRange: { startLine: 9, startColumn: 0, endLine: 1, endColumn: 0 },
+      }),
       "symbols[1].nameRange line is outside the supplied source content",
     );
     expectFailure(
-      run({ nameRange: { startLine: 2, startColumn: 0, endLine: 1, endColumn: 0 } }),
+      run({
+        nameRange: { startLine: 2, startColumn: 0, endLine: 1, endColumn: 0 },
+      }),
       "symbols[1].nameRange end position must not precede start position",
     );
     expectFailure(
-      run({ nameRange: { startLine: 1, startColumn: 5, endLine: 1, endColumn: 4 } }),
+      run({
+        nameRange: { startLine: 1, startColumn: 5, endLine: 1, endColumn: 4 },
+      }),
       "symbols[1].nameRange end position must not precede start position",
     );
     // Name ranges must sit inside the symbol range on both ends.
     const inner = { startLine: 1, startColumn: 5, endLine: 3, endColumn: 2 };
-    const symbolRange = { startLine: 1, startColumn: 5, endLine: 3, endColumn: 2 };
+    const symbolRange = {
+      startLine: 1,
+      startColumn: 5,
+      endLine: 3,
+      endColumn: 2,
+    };
     expect(
       validate(
         result({ symbols: [symbol({ ...symbolRange, nameRange: inner })] }),
@@ -520,7 +589,10 @@ describe("validateSourceAnalysisResultV2 rejects", () => {
       "diagnostics[1] must be an object",
     );
     expectFailure(
-      () => validate(result({ diagnostics: [{ code: "c", message: "m", range: "r" }] })),
+      () =>
+        validate(
+          result({ diagnostics: [{ code: "c", message: "m", range: "r" }] }),
+        ),
       "diagnostics[0].range must be a source range object",
     );
     expectFailure(
@@ -548,7 +620,9 @@ describe("validateSourceAnalysisResultV2 rejects", () => {
           result({
             status: "partial",
             diagnostics: [{ code: "c", message: "m" }],
-            uncoveredRanges: [{ ...range, startLine: 9, endLine: 9, reason: "r" }],
+            uncoveredRanges: [
+              { ...range, startLine: 9, endLine: 9, reason: "r" },
+            ],
           }),
         ),
       "uncoveredRanges[0] line is outside the supplied source content",
@@ -577,7 +651,10 @@ describe("validateSourceAnalysisResultV2 rejects", () => {
     };
     for (const status of ["partial", "unsupported", "failed"]) {
       expectFailure(
-        () => validate(result({ status, symbols: [], uncoveredRanges: [uncovered] })),
+        () =>
+          validate(
+            result({ status, symbols: [], uncoveredRanges: [uncovered] }),
+          ),
         `status '${status}' requires at least one diagnostic`,
       );
     }

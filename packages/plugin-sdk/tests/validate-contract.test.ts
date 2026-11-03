@@ -10,8 +10,10 @@ import {
   SYMBOL_EXTRACTOR_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
   VOCABULARY_ALIGNMENT_CAPABILITY_ID,
+  createSymbolExtractorV2Adapter,
   isCapabilityId,
   isPluginMode,
+  toSourceAnalysisProvider,
   validateCheckPolicyDocument,
   validateCompareClaimsResult,
   validateKibiPlugin,
@@ -20,13 +22,11 @@ import {
   validatePredicateSchema,
   validateProjectKibiConfig,
   validateRankSubjectsResult,
-  validateSemanticClassifierResult,
-  validateSourceAnalysisResult,
   validateReferenceExtractionResult,
   validateReferenceExtractor,
+  validateSemanticClassifierResult,
+  validateSourceAnalysisResult,
   validateSourceAnalysisResultForPath,
-  createSymbolExtractorV2Adapter,
-  toSourceAnalysisProvider,
 } from "../src/index.js";
 
 // Exact code + message assertions: every validator branch is part of the
@@ -54,7 +54,10 @@ function expectFailure(
 const noop = () => undefined;
 const permissions = { network: false, metered: false, secrets: [] };
 
-function plugin(capabilities: unknown, overrides: Record<string, unknown> = {}) {
+function plugin(
+  capabilities: unknown,
+  overrides: Record<string, unknown> = {},
+) {
   return {
     apiVersion: KIBI_PLUGIN_API_VERSION,
     id: "example",
@@ -129,7 +132,8 @@ describe("validatePermissions", () => {
       );
     }
     expectFailure(
-      () => validatePermissions({ network: "yes", metered: false, secrets: [] }),
+      () =>
+        validatePermissions({ network: "yes", metered: false, secrets: [] }),
       "INVALID_PERMISSIONS",
       "permissions.network must be a boolean",
     );
@@ -145,7 +149,11 @@ describe("validatePermissions", () => {
     );
     expectFailure(
       () =>
-        validatePermissions({ network: false, metered: false, secrets: ["a", " "] }),
+        validatePermissions({
+          network: false,
+          metered: false,
+          secrets: ["a", " "],
+        }),
       "INVALID_PERMISSIONS",
       "permissions.secrets[1] must be a non-empty string",
     );
@@ -322,32 +330,68 @@ describe("validateKibiPlugin", () => {
 
   test("rejects malformed capabilities", () => {
     const cases: [string, unknown, string][] = [
-      ["semanticClassifier", { id: "x" }, "semanticClassifier must expose classify()"],
+      [
+        "semanticClassifier",
+        { id: "x" },
+        "semanticClassifier must expose classify()",
+      ],
       ["semanticClassifier", null, "semanticClassifier must expose classify()"],
       [
         "semanticClassifier",
         { id: " ", classify: noop },
         "semanticClassifier.id must be a non-empty string",
       ],
-      ["ontologyPack", { id: "x", schemas: noop }, "ontologyPack must expose schemas() and match()"],
-      ["ontologyPack", { id: "x", match: noop }, "ontologyPack must expose schemas() and match()"],
+      [
+        "ontologyPack",
+        { id: "x", schemas: noop },
+        "ontologyPack must expose schemas() and match()",
+      ],
+      [
+        "ontologyPack",
+        { id: "x", match: noop },
+        "ontologyPack must expose schemas() and match()",
+      ],
       ["ontologyPack", "x", "ontologyPack must expose schemas() and match()"],
       [
         "ontologyPack",
         { schemas: noop, match: noop },
         "ontologyPack.id must be a non-empty string",
       ],
-      ["symbolExtractor", { id: "x", supports: noop }, "symbolExtractor must expose supports() and analyze()"],
-      ["symbolExtractor", { id: "x", analyze: noop }, "symbolExtractor must expose supports() and analyze()"],
-      ["symbolExtractor", 1, "symbolExtractor must expose supports() and analyze()"],
+      [
+        "symbolExtractor",
+        { id: "x", supports: noop },
+        "symbolExtractor must expose supports() and analyze()",
+      ],
+      [
+        "symbolExtractor",
+        { id: "x", analyze: noop },
+        "symbolExtractor must expose supports() and analyze()",
+      ],
+      [
+        "symbolExtractor",
+        1,
+        "symbolExtractor must expose supports() and analyze()",
+      ],
       [
         "symbolExtractor",
         { supports: noop, analyze: noop },
         "symbolExtractor.id must be a non-empty string",
       ],
-      ["symbolExtractorV2", { id: "x", supports: noop }, "symbolExtractorV2 must expose supports() and analyze()"],
-      ["symbolExtractorV2", { id: "x", analyze: noop }, "symbolExtractorV2 must expose supports() and analyze()"],
-      ["symbolExtractorV2", [], "symbolExtractorV2 must expose supports() and analyze()"],
+      [
+        "symbolExtractorV2",
+        { id: "x", supports: noop },
+        "symbolExtractorV2 must expose supports() and analyze()",
+      ],
+      [
+        "symbolExtractorV2",
+        { id: "x", analyze: noop },
+        "symbolExtractorV2 must expose supports() and analyze()",
+      ],
+      [
+        "symbolExtractorV2",
+        [],
+        "symbolExtractorV2 must expose supports() and analyze()",
+      ],
       [
         "symbolExtractorV2",
         { supports: noop, analyze: noop },
@@ -390,7 +434,9 @@ describe("validateKibiPlugin", () => {
     expectFailure(
       () =>
         validateKibiPlugin(
-          plugin({ checkPolicy: { id: "cp", document: { contractVersion: "x" } } }),
+          plugin({
+            checkPolicy: { id: "cp", document: { contractVersion: "x" } },
+          }),
         ),
       "INVALID_CHECK_POLICY",
       "check policy contractVersion must be 'kibi.check-policy.v1'",
@@ -408,7 +454,9 @@ describe("validateKibiPlugin", () => {
   });
 
   test("provider ids must be unique within a plugin", () => {
-    const names = Object.keys(capabilityFixtures) as (keyof typeof capabilityFixtures)[];
+    const names = Object.keys(
+      capabilityFixtures,
+    ) as (keyof typeof capabilityFixtures)[];
     for (const left of names) {
       for (const right of names) {
         if (left >= right) continue;
@@ -451,7 +499,9 @@ describe("validateProjectKibiConfig", () => {
     expect(
       validateProjectKibiConfig({ declinedPlugins: ["a"], plugins: [] }),
     ).toStrictEqual({ plugins: [], declinedPlugins: ["a"] });
-    expect(validateProjectKibiConfig({ declinedLanguagePacks: [] })).toStrictEqual({
+    expect(
+      validateProjectKibiConfig({ declinedLanguagePacks: [] }),
+    ).toStrictEqual({
       declinedLanguagePacks: [],
     });
     expect(validateProjectKibiConfig({ generatedPaths: [] })).toStrictEqual({
@@ -507,7 +557,8 @@ describe("validateProjectKibiConfig", () => {
       );
     }
     expect(
-      validateProjectKibiConfig({ generatedPaths: ["a/!b", "x/"] }).generatedPaths,
+      validateProjectKibiConfig({ generatedPaths: ["a/!b", "x/"] })
+        .generatedPaths,
     ).toStrictEqual(["a/!b", "x/"]);
     expectFailure(
       () => validateProjectKibiConfig({ declinedLanguagePacks: {} }),
@@ -515,7 +566,10 @@ describe("validateProjectKibiConfig", () => {
       "kibi.declinedLanguagePacks must be an array of kibi-lang-* package names",
     );
     expectFailure(
-      () => validateProjectKibiConfig({ declinedLanguagePacks: ["kibi-lang-c", null] }),
+      () =>
+        validateProjectKibiConfig({
+          declinedLanguagePacks: ["kibi-lang-c", null],
+        }),
       "INVALID_PROJECT_CONFIG",
       "kibi.declinedLanguagePacks[1] must be a non-empty string",
     );
@@ -617,7 +671,10 @@ describe("validateProjectKibiConfig", () => {
       );
     }
     expectFailure(
-      run([ok, entry("b", { [ONTOLOGY_PACK_CAPABILITY_ID]: { mode: "merge" } })]),
+      run([
+        ok,
+        entry("b", { [ONTOLOGY_PACK_CAPABILITY_ID]: { mode: "merge" } }),
+      ]),
       "INVALID_MODE",
       `Unsupported mode 'merge' for ${ONTOLOGY_PACK_CAPABILITY_ID}`,
     );
@@ -792,7 +849,9 @@ describe("validateSemanticClassifierResult", () => {
       );
     }
     expect(
-      failure(run([decision({ ambiguity: { ambiguous: "yes", confidence: 0.5 } })])),
+      failure(
+        run([decision({ ambiguity: { ambiguous: "yes", confidence: 0.5 } })]),
+      ),
     ).toStrictEqual({
       code: "INVALID_PERMISSIONS",
       message: "decisions[0].ambiguity.ambiguous must be a boolean",
@@ -842,7 +901,9 @@ describe("validatePredicateSchema", () => {
       aliases: ["x"],
     });
     expect(
-      validatePredicateSchema(schema({ title: 1, description: 2, aliases: "a" })),
+      validatePredicateSchema(
+        schema({ title: 1, description: 2, aliases: "a" }),
+      ),
     ).toStrictEqual({
       schemaId: "s",
       predicateName: "p",
@@ -977,7 +1038,11 @@ describe("validateOntologyMatchCandidate", () => {
         "ontology match candidate must be an object",
       );
     }
-    expectFailure(run({ schemaId: "" }), code, "schemaId must be a non-empty string");
+    expectFailure(
+      run({ schemaId: "" }),
+      code,
+      "schemaId must be a non-empty string",
+    );
     expectFailure(
       run({ schemaId: "missing" }),
       code,
@@ -993,27 +1058,47 @@ describe("validateOntologyMatchCandidate", () => {
       code,
       "Candidate predicateName 'q' does not match schema 'p'",
     );
-    expectFailure(run({ arguments: "x" }), code, "arguments must be a string array");
+    expectFailure(
+      run({ arguments: "x" }),
+      code,
+      "arguments must be a string array",
+    );
     expectFailure(
       run({ arguments: ["x"] }),
       code,
       "Candidate arity 1 does not match schema arity 2",
     );
-    expectFailure(run({ polarity: "" }), code, "polarity must be a non-empty string");
-    expectFailure(run({ polarity: "maybe" }), code, "Unsupported polarity 'maybe'");
+    expectFailure(
+      run({ polarity: "" }),
+      code,
+      "polarity must be a non-empty string",
+    );
+    expectFailure(
+      run({ polarity: "maybe" }),
+      code,
+      "Unsupported polarity 'maybe'",
+    );
     expect(failure(run({ confidence: "1" }))).toStrictEqual({
       code: "INVALID_CAPABILITY_RESULT",
       message: "confidence must be a finite number",
     });
     for (const confidence of [-0.01, 1.01]) {
-      expectFailure(run({ confidence }), code, "confidence must be between 0 and 1");
+      expectFailure(
+        run({ confidence }),
+        code,
+        "confidence must be between 0 and 1",
+      );
     }
     expectFailure(
       run({ arguments: ["x", ""] }),
       code,
       "arguments[1] must be a non-empty string",
     );
-    expectFailure(run({ evidence: "" }), code, "evidence must be a non-empty string");
+    expectFailure(
+      run({ evidence: "" }),
+      code,
+      "evidence must be a non-empty string",
+    );
   });
 });
 
@@ -1035,7 +1120,9 @@ describe("validateSourceAnalysisResult", () => {
     ...overrides,
   });
   const runSymbol = (overrides: Record<string, unknown>) => () =>
-    validateSourceAnalysisResult(result({ symbols: [symbol(), symbol(overrides)] }));
+    validateSourceAnalysisResult(
+      result({ symbols: [symbol(), symbol(overrides)] }),
+    );
 
   test("accepts results", () => {
     expect(
@@ -1147,7 +1234,9 @@ describe("validateSourceAnalysisResult", () => {
     expectFailure(
       () =>
         validateSourceAnalysisResult(
-          result({ module: { title: "a", language: "ts", analysisMode: "ai" } }),
+          result({
+            module: { title: "a", language: "ts", analysisMode: "ai" },
+          }),
         ),
       code,
       "Unsupported analysisMode 'ai'",
@@ -1183,7 +1272,11 @@ describe("validateSourceAnalysisResult", () => {
       code,
       "symbols[1] must be an object",
     );
-    expectFailure(runSymbol({ kind: "" }), code, "symbols[1].kind must be a non-empty string");
+    expectFailure(
+      runSymbol({ kind: "" }),
+      code,
+      "symbols[1].kind must be a non-empty string",
+    );
     expectFailure(
       runSymbol({ kind: "macro" }),
       code,
@@ -1234,7 +1327,11 @@ describe("validateSourceAnalysisResult", () => {
         "symbols[1] end position must not precede start position",
       );
     }
-    expectFailure(runSymbol({ name: "" }), code, "symbols[1].name must be a non-empty string");
+    expectFailure(
+      runSymbol({ name: "" }),
+      code,
+      "symbols[1].name must be a non-empty string",
+    );
   });
 
   test("ForPath checks the path and language", () => {
@@ -1263,7 +1360,10 @@ describe("validateSourceAnalysisResult", () => {
 describe("vocabulary alignment results", () => {
   const clauses = [
     { claimKey: "c0", candidates: [] },
-    { claimKey: "c1", candidates: [{ subjectKey: "s1" }, { subjectKey: "s2" }] },
+    {
+      claimKey: "c1",
+      candidates: [{ subjectKey: "s1" }, { subjectKey: "s2" }],
+    },
   ];
   const code = "INVALID_CAPABILITY_RESULT";
 
@@ -1308,11 +1408,7 @@ describe("vocabulary alignment results", () => {
       code,
       "foreign claimKey 'c9' is not in the supplied rankSubjects input",
     );
-    expectFailure(
-      run([ok, ok]),
-      code,
-      "duplicate decision for claimKey 'c0'",
-    );
+    expectFailure(run([ok, ok]), code, "duplicate decision for claimKey 'c0'");
     expectFailure(
       run([ok, { claimKey: "c1", confidence: 1 }]),
       code,
@@ -1418,9 +1514,13 @@ describe("validateCheckPolicyDocument", () => {
   });
 
   test("accepts documents", () => {
-    expect(validateCheckPolicyDocument(doc({ id: " a-b1-c ", title: " T " }))).toStrictEqual(
-      { contractVersion: "kibi.check-policy.v1", id: "a-b1-c", title: "T" },
-    );
+    expect(
+      validateCheckPolicyDocument(doc({ id: " a-b1-c ", title: " T " })),
+    ).toStrictEqual({
+      contractVersion: "kibi.check-policy.v1",
+      id: "a-b1-c",
+      title: "T",
+    });
     expect(
       validateCheckPolicyDocument(
         doc({
@@ -1548,7 +1648,10 @@ describe("validateCheckPolicyDocument", () => {
     expectFailure(
       () =>
         validateCheckPolicyDocument(
-          doc({ ownership: [ownership({ id: "dup" })], markers: [marker({ id: "dup" })] }),
+          doc({
+            ownership: [ownership({ id: "dup" })],
+            markers: [marker({ id: "dup" })],
+          }),
         ),
       code,
       "check policy repeats rule id 'dup'",
@@ -1638,7 +1741,11 @@ describe("validateCheckPolicyDocument", () => {
         "markers[1].siblingExtensions[1] must look like '.html'",
       );
     }
-    expectFailure(run(marker({ id: "M" })), code, "markers[1].id must be kebab-case");
+    expectFailure(
+      run(marker({ id: "M" })),
+      code,
+      "markers[1].id must be kebab-case",
+    );
     expectFailure(
       run(marker({ id: "m2", description: null })),
       code,
@@ -1654,7 +1761,11 @@ describe("validateCheckPolicyDocument", () => {
       code,
       "markers[1].markerPredicate[0] must be a non-empty string",
     );
-    for (const field of ["patternArgument", "markerPatternArgument", "markerArgument"]) {
+    for (const field of [
+      "patternArgument",
+      "markerPatternArgument",
+      "markerArgument",
+    ]) {
       for (const value of [-1, 1.5, "1"]) {
         expectFailure(
           run(marker({ id: "m2", [field]: value })),
@@ -1797,31 +1908,65 @@ describe("reference extractor contract", () => {
       [null, "reference extraction must be an object"],
       [[], "reference extraction must be an object"],
       ["x", "reference extraction must be an object"],
-      [ok({ contractVersion: "v0" }), "contractVersion must be kibi.reference-extractor.v1"],
+      [
+        ok({ contractVersion: "v0" }),
+        "contractVersion must be kibi.reference-extractor.v1",
+      ],
       [ok({ language: 1 }), "language must be a non-empty string"],
       [ok({ language: "" }), "language must be a non-empty string"],
-      [ok({ members: "a" }), "members must be an array of at most 100000 strings"],
+      [
+        ok({ members: "a" }),
+        "members must be an array of at most 100000 strings",
+      ],
       [
         ok({ members: Array.from({ length: 100_001 }, () => "m") }),
         "members must be an array of at most 100000 strings",
       ],
       [ok({ members: ["a", 1] }), "members must be strings"],
       [ok({ unresolved: {} }), "unresolved must be an array"],
-      [ok({ unresolved: [null] }), "unresolved rows must carry a positive line and its text"],
-      [ok({ unresolved: [[]] }), "unresolved rows must carry a positive line and its text"],
-      [ok({ unresolved: [{ line: "1", text: "t" }] }), "unresolved rows must carry a positive line and its text"],
-      [ok({ unresolved: [{ line: 1.5, text: "t" }] }), "unresolved rows must carry a positive line and its text"],
-      [ok({ unresolved: [{ line: 0, text: "t" }] }), "unresolved rows must carry a positive line and its text"],
-      [ok({ unresolved: [{ line: 1 }] }), "unresolved rows must carry a positive line and its text"],
-      [refusal({ status: "skipped" }), "status must be ok, unsupported or failed"],
-      [refusal({ status: undefined }), "status must be ok, unsupported or failed"],
+      [
+        ok({ unresolved: [null] }),
+        "unresolved rows must carry a positive line and its text",
+      ],
+      [
+        ok({ unresolved: [[]] }),
+        "unresolved rows must carry a positive line and its text",
+      ],
+      [
+        ok({ unresolved: [{ line: "1", text: "t" }] }),
+        "unresolved rows must carry a positive line and its text",
+      ],
+      [
+        ok({ unresolved: [{ line: 1.5, text: "t" }] }),
+        "unresolved rows must carry a positive line and its text",
+      ],
+      [
+        ok({ unresolved: [{ line: 0, text: "t" }] }),
+        "unresolved rows must carry a positive line and its text",
+      ],
+      [
+        ok({ unresolved: [{ line: 1 }] }),
+        "unresolved rows must carry a positive line and its text",
+      ],
+      [
+        refusal({ status: "skipped" }),
+        "status must be ok, unsupported or failed",
+      ],
+      [
+        refusal({ status: undefined }),
+        "status must be ok, unsupported or failed",
+      ],
       [refusal({ code: 1 }), "a refused extraction must name a code"],
       [refusal({ code: "" }), "a refused extraction must name a code"],
       [refusal({ message: null }), "a refused extraction must carry a message"],
       [refusal({ message: "" }), "a refused extraction must carry a message"],
     ];
     for (const [value, message] of cases) {
-      expectFailure(() => validateReferenceExtractionResult(value), code, message);
+      expectFailure(
+        () => validateReferenceExtractionResult(value),
+        code,
+        message,
+      );
     }
   });
 });
@@ -1871,8 +2016,13 @@ describe("symbol extractor adapters", () => {
       },
     });
     expect(adapter.id).toBe("legacy.v2");
-    expect(adapter.supports({ path: "a.ts", content: "x" } as never)).toBe(true);
+    expect(adapter.supports({ path: "a.ts", content: "x" } as never)).toBe(
+      true,
+    );
     await adapter.analyze({ path: "a.ts", content: "code", language: "ts" });
-    expect(calls).toStrictEqual([{ path: "a.ts" }, { path: "a.ts", content: "code" }]);
+    expect(calls).toStrictEqual([
+      { path: "a.ts" },
+      { path: "a.ts", content: "code" },
+    ]);
   });
 });
