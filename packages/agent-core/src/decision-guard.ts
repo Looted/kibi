@@ -172,11 +172,12 @@ export type DecisionFlag =
   | "requirement-recorded"
   | "signoff-asked";
 
-function sessionPath(
-  session: DecisionSession,
-  name: string,
-): string | undefined {
-  if (!session.stateDir) return undefined;
+/**
+ * The marker file `name` of the session. Throws without a state directory,
+ * so every caller's best-effort `catch` also covers "nothing to remember".
+ */
+function sessionPath(session: DecisionSession, name: string): string {
+  if (!session.stateDir) throw new Error();
   const key = createHash("sha256")
     .update(session.sessionId?.trim() || "unattributed")
     .digest("hex")
@@ -184,9 +185,25 @@ function sessionPath(
   return path.join(session.stateDir, "decision-guard", key, name);
 }
 
-function writeMarker(file: string, content: string, flag: "w" | "wx" | "a") {
+function writeMarker(file: string, content: string) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, content, { flag });
+  fs.writeFileSync(file, content);
+}
+
+/** Create an empty marker; `wx` fails when it already exists. */
+function touchMarker(file: string, flag: "w" | "wx") {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.closeSync(fs.openSync(file, flag));
+}
+
+function readMarker(session: DecisionSession, name: string): unknown {
+  return JSON.parse(String(fs.readFileSync(sessionPath(session, name))));
+}
+
+function stringList(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 // implements REQ-agent-hosts-decision-guard
@@ -195,10 +212,8 @@ export function markDecisionFlag(
   session: DecisionSession,
   flag: DecisionFlag,
 ): void {
-  const file = sessionPath(session, flag);
-  if (!file) return;
   try {
-    writeMarker(file, "", "w");
+    touchMarker(sessionPath(session, flag), "w");
   } catch {
     // Markers are best effort; a lost one means a note may repeat or skip.
   }
@@ -209,8 +224,11 @@ export function hasDecisionFlag(
   session: DecisionSession,
   flag: DecisionFlag,
 ): boolean {
-  const file = sessionPath(session, flag);
-  return file !== undefined && fs.existsSync(file);
+  try {
+    return fs.existsSync(sessionPath(session, flag));
+  } catch {
+    return false;
+  }
 }
 
 // implements REQ-agent-hosts-decision-guard
@@ -222,10 +240,8 @@ export function claimDecisionFlag(
   session: DecisionSession,
   flag: DecisionFlag,
 ): boolean {
-  const file = sessionPath(session, flag);
-  if (!file) return false;
   try {
-    writeMarker(file, "", "wx");
+    touchMarker(sessionPath(session, flag), "wx");
     return true;
   } catch {
     return false;
@@ -242,13 +258,13 @@ export function recordRequest(
   prompt: string,
 ): string | undefined {
   const rule = statedRule(prompt);
-  const file = sessionPath(session, "request-words.json");
-  if (file) {
-    try {
-      writeMarker(file, JSON.stringify(requestTopicWords(prompt)), "w");
-    } catch {
-      // Best effort.
-    }
+  try {
+    writeMarker(
+      sessionPath(session, "request-words.json"),
+      JSON.stringify(requestTopicWords(prompt)),
+    );
+  } catch {
+    // Best effort.
   }
   if (rule !== undefined) markDecisionFlag(session, "rule-prompt");
   return rule;
@@ -257,13 +273,8 @@ export function recordRequest(
 // implements REQ-agent-hosts-decision-guard
 /** Topic words of the session's latest prompt, or none. */
 export function requestWords(session: DecisionSession): string[] {
-  const file = sessionPath(session, "request-words.json");
-  if (!file) return [];
   try {
-    const parsed: unknown = JSON.parse(fs.readFileSync(file, "utf8"));
-    return Array.isArray(parsed)
-      ? parsed.filter((word): word is string => typeof word === "string")
-      : [];
+    return stringList(readMarker(session, "request-words.json"));
   } catch {
     return [];
   }
@@ -292,9 +303,10 @@ export const SIGNOFF_LATEST_JSON = path.join(
   "latest.json",
 );
 
-function record(value: unknown): Record<string, unknown> | undefined {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+/** `value` as an object of named fields; `null` stays `null`, so `??` skips it. */
+function record(value: unknown): Record<string, unknown> | null | undefined {
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
     : undefined;
 }
 
@@ -309,13 +321,15 @@ export function isRequirementUpsert(toolInput: unknown): boolean {
   return args?.type === "req" && args.dryRun !== true;
 }
 
-function mtimeMs(file: string | undefined): number | undefined {
-  if (!file) return undefined;
+/** Modification time of `file`, or NaN when it cannot be read. */
+function mtimeMs(file: () => string): number {
+  let time = Number.NaN;
   try {
-    return fs.statSync(file).mtimeMs;
+    time = fs.statSync(file()).mtimeMs;
   } catch {
-    return undefined;
+    // Missing: NaN compares false with everything.
   }
+  return time;
 }
 
 // implements REQ-kibi-signoff-views
@@ -328,10 +342,10 @@ export function claimSignoffReminder(
   session: DecisionSession,
   workspaceRoot: string,
 ): boolean {
-  const recorded = mtimeMs(sessionPath(session, "requirement-recorded"));
-  if (recorded === undefined) return false;
-  const shown = mtimeMs(path.join(workspaceRoot, SIGNOFF_LATEST_JSON));
-  if (shown !== undefined && shown >= recorded) return false;
+  const recorded = mtimeMs(() => sessionPath(session, "requirement-recorded"));
+  if (Number.isNaN(recorded)) return false;
+  const shown = mtimeMs(() => path.join(workspaceRoot, SIGNOFF_LATEST_JSON));
+  if (shown >= recorded) return false;
   return claimDecisionFlag(session, "signoff-asked");
 }
 
@@ -344,13 +358,9 @@ export function signoffReminder(): string {
   ].join("\n");
 }
 
-function readSettled(file: string | undefined): string[] {
-  if (!file) return [];
+function readSettled(session: DecisionSession): string[] {
   try {
-    const parsed: unknown = JSON.parse(fs.readFileSync(file, "utf8"));
-    return Array.isArray(parsed)
-      ? parsed.filter((id): id is string => typeof id === "string")
-      : [];
+    return stringList(readMarker(session, "firm-settled.json"));
   } catch {
     return [];
   }
@@ -359,7 +369,7 @@ function readSettled(file: string | undefined): string[] {
 // implements REQ-agent-hosts-decision-guard
 /** Firm requirements the agent was already told about this session. */
 export function settledFirmRequirements(session: DecisionSession): Set<string> {
-  return new Set(readSettled(sessionPath(session, "firm-settled.json")));
+  return new Set(readSettled(session));
 }
 
 // implements REQ-agent-hosts-decision-guard
@@ -368,13 +378,10 @@ export function settleFirmRequirements(
   session: DecisionSession,
   ids: readonly string[],
 ): void {
-  const file = sessionPath(session, "firm-settled.json");
-  if (!file) return;
   try {
     writeMarker(
-      file,
-      JSON.stringify([...new Set([...readSettled(file), ...ids])]),
-      "w",
+      sessionPath(session, "firm-settled.json"),
+      JSON.stringify([...new Set([...readSettled(session), ...ids])]),
     );
   } catch {
     // Best effort: a lost write means the notice may repeat.
@@ -387,10 +394,8 @@ export function settleFirmRequirements(
  * so the next hook that can speak to the agent delivers it.
  */
 export function holdRuleNote(session: DecisionSession, phrase: string): void {
-  const file = sessionPath(session, "rule-note");
-  if (!file) return;
   try {
-    writeMarker(file, rulePromptNote(phrase), "w");
+    writeMarker(sessionPath(session, "rule-note"), rulePromptNote(phrase));
   } catch {
     // Best effort.
   }
@@ -399,13 +404,13 @@ export function holdRuleNote(session: DecisionSession, phrase: string): void {
 // implements REQ-agent-hosts-decision-guard
 /** The held rule note, removed so it is delivered once; or undefined. */
 export function takeRuleNote(session: DecisionSession): string | undefined {
-  const file = sessionPath(session, "rule-note");
-  if (!file) return undefined;
+  let note = "";
   try {
-    const note = fs.readFileSync(file, "utf8");
-    fs.rmSync(file, { force: true });
-    return note || undefined;
+    const file = sessionPath(session, "rule-note");
+    note = String(fs.readFileSync(file));
+    fs.rmSync(file);
   } catch {
-    return undefined;
+    // No note held, or no state directory.
   }
+  return note || undefined;
 }
