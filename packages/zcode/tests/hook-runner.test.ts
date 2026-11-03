@@ -11,6 +11,7 @@ import {
 
 import {
   type HookResult,
+  type ZcodeHookEvent,
   canonicalizeCheckSourceFiles,
   extractMutatedWorkspacePaths,
   isInvokedAsCli,
@@ -1908,7 +1909,7 @@ describe("ZCode hook runner exact decisions", () => {
     ) as string;
   }
 
-  const context = (event: string, message: string) => ({
+  const context = (event: ZcodeHookEvent, message: string): HookResult => ({
     continue: true,
     hookSpecificOutput: { hookEventName: event, additionalContext: message },
   });
