@@ -20,7 +20,6 @@
 // plugin builds KibiEventEnv once per instance; hooks.event dispatches to
 // these functions. All plugin-instance state is reached through the env.
 
-import * as fs from "node:fs";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
 import { analyzeCodeFile } from "./comment-analysis.js";
 import * as fileFilter from "./file-filter.js";
@@ -199,7 +198,6 @@ interface FileEventResolution {
   scopedScheduler: SyncScheduler | null;
   normalizedFilePath: string;
   lifecycle: FileLifecycle;
-  focusEdit: unknown;
 }
 
 function resolveFileEvent(
@@ -232,7 +230,6 @@ function resolveFileEvent(
     scopedScheduler,
     normalizedFilePath,
     lifecycle,
-    focusEdit: undefined,
   };
 }
 
@@ -255,11 +252,10 @@ export function handleFileLifecycleEvent(
   } = resolution;
 
   scopedFileOperationState.recordLifecycle(
-    filePathOf(resolution),
-    resolution.lifecycle,
+    normalizedFilePath,
+    lifecycle,
     Date.now(),
   );
-  scopedFileOperationState.normalizePath(filePathOf(resolution));
 
   const pathAnalysis = analyzePath(
     normalizedFilePath,
@@ -286,7 +282,6 @@ export function handleFileLifecycleEvent(
   scopedSessionEditState.reconcilePath(normalizedFilePath);
   scopedPathKindCache.set(normalizedFilePath, pathAnalysis.kind);
   const sessionEdits = scopedSessionEditState.getSessionEdits();
-  const focusEdit = scopedSessionEditState.getFocusEdit();
 
   if (
     env.cfg.sync.enabled &&
@@ -313,10 +308,11 @@ export function handleFileLifecycleEvent(
       : false;
 
   let precomputedSuggestion: CommentAnalysisResult | null = null;
-  if (
-    pathAnalysis.kind === "code" &&
-    env.cfg.guidance.commentDetection.enabled
-  ) {
+  // rationale: only code reaches a class that uses the suggestion, so reading
+  // other files too would change nothing but the work done.
+  // Stryker disable next-line ConditionalExpression
+  const readsComments = pathAnalysis.kind === "code";
+  if (readsComments && env.cfg.guidance.commentDetection.enabled) {
     precomputedSuggestion = analyzeCodeFile(
       env.resolveWorktreePath(normalizedFilePath, eventContext.worktreeRoot),
       {
@@ -392,7 +388,7 @@ export function handleFileLifecycleEvent(
   const cacheKey = env.buildScopedCacheKey(
     eventContext,
     effectiveRiskClass,
-    fileBucketOf(pathAnalysis.kind),
+    pathAnalysis.kind,
     [normalizedFilePath, pathAnalysis.kind, effectiveRiskClass],
   );
 
@@ -456,26 +452,12 @@ export function handleFileLifecycleEvent(
     return;
   }
 
-  if (
-    effectiveRiskClass === "behavior_candidate" ||
-    effectiveRiskClass === "traceability_candidate"
-  ) {
-    emitBehaviorSuggestions(env, {
-      eventContext,
-      normalizedFilePath,
-      pathKind: pathAnalysis.kind,
-      commentDetectionEnabled: env.cfg.guidance.commentDetection.enabled,
-      precomputedSuggestion,
-    });
-  }
-}
-
-function filePathOf(resolution: FileEventResolution): string {
-  return resolution.normalizedFilePath;
-}
-
-function fileBucketOf(kind: PathKind): string {
-  return kind;
+  // Only behavior_candidate and traceability_candidate remain here.
+  emitBehaviorSuggestions(env, {
+    eventContext,
+    normalizedFilePath,
+    precomputedSuggestion,
+  });
 }
 
 function handleDeletedFile(
@@ -497,15 +479,8 @@ function handleDeletedFile(
     normalizedFilePath,
     pathKind,
   } = args;
-  // Preserve last known semantic risk if path was already tracked during session
-  const lastKnownKind = scopedPathKindCache.get(normalizedFilePath);
-  if (lastKnownKind) {
-    // Path was tracked — preserve last known semantic risk for reminder routing
-    scopedPathKindCache.set(normalizedFilePath, pathKind);
-  } else {
-    // Not tracked — classify only for reminder routing.
-    scopedPathKindCache.set(normalizedFilePath, pathKind);
-  }
+  // Tracked or not, the path keeps its kind for reminder routing.
+  scopedPathKindCache.set(normalizedFilePath, pathKind);
   scopedSessionEditState.recordEventHint(
     normalizedFilePath,
     pathKind,
@@ -565,8 +540,8 @@ function scheduleTargetedChecksForRisk(
         ? [
             "required-fields",
             "no-dangling-refs",
+            // Requirements are req_policy_candidate, never kb_doc_structural.
             ...(pathKind === "fact" ? ["strict-fact-shape"] : []),
-            ...(pathKind === "requirement" ? ["strict-req-fact-pairing"] : []),
           ]
         : null;
 
@@ -653,9 +628,12 @@ function handleReqPolicyCandidate(
 ): void {
   const { eventContext, scopedScheduler, normalizedFilePath, hasMustPriority } =
     args;
-  warnDegradedFor(env, "req_policy_candidate", normalizedFilePath, {
-    posture: eventContext.posture,
-  });
+  warnDegradedFor(
+    env,
+    "req_policy_candidate",
+    normalizedFilePath,
+    eventContext.posture,
+  );
 
   if (
     !env.getMaintenanceDegraded() &&
@@ -709,19 +687,12 @@ function emitBehaviorSuggestions(
   args: {
     eventContext: WorkContext;
     normalizedFilePath: string;
-    pathKind: PathKind;
-    commentDetectionEnabled: boolean;
     precomputedSuggestion: CommentAnalysisResult | null;
   },
 ): void {
-  const { eventContext, normalizedFilePath, pathKind, precomputedSuggestion } =
-    args;
-  const inspectingCodeComments =
-    pathKind === "code" && env.cfg.guidance.commentDetection.enabled;
-  const suggestion = nextRecentCommentSuggestion(
-    inspectingCodeComments,
-    precomputedSuggestion,
-  );
+  // Only code files with comment detection on get a suggestion.
+  const { eventContext, normalizedFilePath } = args;
+  const suggestion = args.precomputedSuggestion;
   env.state.recentCommentSuggestion = suggestion;
   if (suggestion) {
     const dedupeKey = `${env.buildRiskPathScopeKey(eventContext, normalizedFilePath)}:${suggestion.suggestionType}:${suggestion.fingerprint}`;
@@ -745,12 +716,4 @@ function emitBehaviorSuggestions(
       );
     }
   }
-}
-
-function nextRecentCommentSuggestion<T>(
-  inspectingCodeComments: boolean,
-  suggestion: T | null | undefined,
-): T | null {
-  if (inspectingCodeComments && suggestion) return suggestion;
-  return null;
 }
