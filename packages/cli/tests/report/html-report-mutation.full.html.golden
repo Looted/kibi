@@ -1,0 +1,2200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#111318">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20308%20309%22%3E%3Cpath%20d%3D%22M59.403564453125%2C0.548828125C67.20257568359375%2C-0.47119140625%2C80.16162109375%2C0.2437744140625%2C88.4605712890625%2C0.24078369140625L146.50048828125%2C0.227783203125L214.8255615234375%2C0.23577880859375C240.16748046875%2C0.2437744140625%2C262.236572265625%2C-2.67620849609375%2C283.3775634765625%2C14.2947998046875C311.0205078125%2C36.48480224609375%2C307.6495361328125%2C66.8988037109375%2C307.671630859375%2C98.5548095703125L307.6895751953125%2C162.74783325195312L307.66552734375%2C217.54684448242188C307.6585693359375%2C226.07479858398438%2C307.653564453125%2C234.5628662109375%2C307.504638671875%2C243.0877685546875C306.8895263671875%2C278.2227783203125%2C283.66259765625%2C304.5137939453125%2C248.32958984375%2C308.1297607421875C240.6875%2C308.9278564453125%2C226.1695556640625%2C308.5008544921875%2C217.8525390625%2C308.4927978515625L161.468505859375%2C308.4508056640625L93.9794921875%2C308.5028076171875C68.57257080078125%2C308.5147705078125%2C46.83258056640625%2C311.5418701171875%2C25.39654541015625%2C295.0338134765625C-2.66644287109375%2C273.423828125%2C0.13555908203125%2C245.0108642578125%2C0.10955810546875%2C213.40182495117188L0.0855712890625%2C154.30581665039062L0.10357666015625%2C95.5968017578125C0.112548828125%2C81.48980712890625%2C-0.62841796875%2C66.85577392578125%2C1.7275390625%2C52.96478271484375C6.78955078125%2C23.11376953125%2C30.14154052734375%2C3.88580322265625%2C59.403564453125%2C0.548828125Z%22%20fill%3D%22%231d1e23%22%2F%3E%3Cellipse%20cx%3D%22113.3257670641164%22%20cy%3D%22150.86303791579667%22%20rx%3D%2251.325767064116405%22%20ry%3D%2251.52454059083652%22%20fill%3D%22%23a2d3f4%22%2F%3E%3Cpath%20d%3D%22M228.05255126953125%2C197.78256225585938L227.611572265625%2C165.51681518554688L156.5028076171875%2C165.69512939453125L95.43316650390625%2C165.28231811523438L95.4334716796875%2C135.09622192382812L156.503173828125%2C135.26748657226562L227.535888671875%2C135.08938598632812L227.53631591796875%2C101.200927734375L252.20697021484375%2C101.20071411132812L252.20599365234375%2C197.78225708007812%22%20fill%3D%22%23a2d3f4%22%2F%3E%3C%2Fsvg%3E">
+  <title>Kibi Requirement Health · acme/app · main</title>
+  <style>
+:root {
+  color-scheme: dark;
+  --bg: #090d18;
+  --surface: rgba(20, 27, 45, 0.86);
+  --surface-strong: #151d30;
+  --line: rgba(157, 171, 206, 0.16);
+  --text: #f4f7ff;
+  --muted: #9ba7c3;
+  --violet: #9d84ff;
+  --cyan: #5ce1e6;
+  --green: #62e6a7;
+  --amber: #ffc96b;
+  --red: #ff7d90;
+  --shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  color: var(--text);
+  background: radial-gradient(
+      circle at 12% -10%,
+      rgba(93, 74, 190, 0.32),
+      transparent 34rem
+    ),
+    radial-gradient(
+      circle at 88% 8%,
+      rgba(33, 153, 166, 0.19),
+      transparent 30rem
+    ), var(--bg);
+}
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  opacity: 0.18;
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px
+    ), linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+}
+.shell {
+  width: min(1160px, calc(100% - 40px));
+  margin: 0 auto;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 34px 0 16px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 900;
+  letter-spacing: .3em;
+}
+.brand__mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(157, 132, 255, 0.55);
+  border-radius: 11px;
+  color: var(--violet);
+  background: rgba(157, 132, 255, 0.12);
+  box-shadow: inset 0 0 18px rgba(157, 132, 255, 0.12);
+}
+.snapshot {
+  color: var(--muted);
+  font: 500 12px / 1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.hero {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 30px;
+  align-items: stretch;
+  padding: 42px 0 26px;
+}
+.hero__copy,
+.score-card {
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: linear-gradient(
+    145deg,
+    rgba(25, 33, 54, 0.92),
+    rgba(13, 18, 31, 0.82)
+  );
+  box-shadow: var(--shadow);
+}
+.hero__copy {
+  padding: clamp(30px, 5vw, 62px);
+}
+.eyebrow {
+  margin: 0 0 17px;
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+h1 {
+  max-width: 720px;
+  margin: 0;
+  font-size: clamp(42px, 7vw, 76px);
+  font-weight: 760;
+  letter-spacing: -.055em;
+  line-height: 0.98;
+}
+h1 span {
+  display: block;
+  color: var(--muted);
+  font-size: .42em;
+  font-weight: 620;
+  letter-spacing: -.025em;
+  line-height: 1.4;
+}
+.hero__lede {
+  max-width: 620px;
+  margin: 25px 0 0;
+  color: #bdc6dc;
+  font-size: 17px;
+  line-height: 1.65;
+}
+.score-card {
+  display: grid;
+  min-height: 340px;
+  padding: 38px;
+  place-items: center;
+  text-align: center;
+}
+.score-ring {
+  --score: 0%;
+  position: relative;
+  display: grid;
+  width: 220px;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--green) var(--score),
+    rgba(255, 255, 255, 0.08) 0
+  );
+  box-shadow: 0 0 60px rgba(98, 230, 167, 0.12);
+}
+.score-ring::before {
+  position: absolute;
+  width: 178px;
+  aspect-ratio: 1;
+  content: "";
+  border: 1px solid var(--line);
+  border-radius: inherit;
+  background: #111827;
+}
+.score-ring__value {
+  position: relative;
+  font-size: 52px;
+  font-weight: 820;
+  letter-spacing: -.06em;
+}
+.score-ring__value span {
+  margin-left: 2px;
+  color: var(--muted);
+  font-size: 22px;
+}
+.score-card p {
+  position: relative;
+  margin: 13px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.snapshot-notice {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin: 3px 0 23px;
+  padding: 15px 18px;
+  border: 1px solid rgba(255, 201, 107, 0.3);
+  border-radius: 15px;
+  color: #f8dfb2;
+  background: rgba(255, 201, 107, 0.08);
+}
+.snapshot-notice strong {
+  flex: none;
+  color: var(--amber);
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  overflow: hidden;
+  margin: 0 0 62px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(18, 25, 42, 0.74);
+  box-shadow: var(--shadow);
+}
+.metric {
+  min-width: 0;
+  padding: 22px 20px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+/* Twelve tiles: two full rows of six, four of three, or six of two. */
+.metric:nth-child(6n) {
+  border-right: 0;
+}
+.metric:nth-last-child(-n + 6) {
+  border-bottom: 0;
+}
+.metric span {
+  display: block;
+  min-height: 32px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+.metric strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 30px;
+  letter-spacing: -.035em;
+}
+.metric--good strong {
+  color: var(--green);
+}
+.metric--warn strong {
+  color: var(--amber);
+}
+.metric--bad strong {
+  color: var(--red);
+}
+.section-header {
+  display: flex;
+  gap: 24px;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.section-header h2 {
+  margin: 0;
+  font-size: clamp(29px, 4vw, 42px);
+  letter-spacing: -.04em;
+}
+.section-header p {
+  max-width: 590px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.controls {
+  position: sticky;
+  top: 12px;
+  z-index: 4;
+  display: flex;
+  gap: 12px;
+  margin: 0 0 24px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(9, 13, 24, 0.86);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(18px);
+}
+.search {
+  min-width: 180px;
+  flex: 1;
+  padding: 12px 15px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  outline: none;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.045);
+  font: inherit;
+}
+.search:focus {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px rgba(157, 132, 255, 0.12);
+}
+.filters {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+}
+.filter {
+  padding: 10px 13px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.filter:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+}
+.filter[aria-pressed="true"] {
+  border-color: rgba(157, 132, 255, 0.38);
+  color: #ddd5ff;
+  background: rgba(157, 132, 255, 0.14);
+}
+.requirements {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding-bottom: 80px;
+}
+.requirement {
+  position: relative;
+  overflow: hidden;
+  padding: 25px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(
+    145deg,
+    rgba(22, 30, 50, 0.94),
+    rgba(15, 21, 36, 0.9)
+  );
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.2);
+}
+.requirement::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  content: "";
+  background: var(--amber);
+}
+.requirement--tested::before {
+  background: var(--green);
+}
+.requirement--unresolved::before {
+  background: var(--red);
+}
+.requirement[hidden] {
+  display: none;
+}
+.requirement__header {
+  display: flex;
+  gap: 18px;
+  align-items: start;
+  justify-content: space-between;
+}
+.evidence-level {
+  margin-left: 6px;
+  opacity: 0.75;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.claims-proved {
+  margin-left: 6px;
+  opacity: 0.75;
+  font-weight: 400;
+}
+.evidence-floor {
+  margin-left: 6px;
+  font-weight: 400;
+  opacity: 0.75;
+}
+.evidence-floor--below {
+  color: var(--red);
+  opacity: 1;
+}
+.evidence-floor--pending_reproof {
+  color: var(--amber);
+  opacity: 1;
+}
+.requirement__id {
+  margin-bottom: 7px;
+  color: var(--muted);
+  font: 700 11px / 1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .05em;
+}
+.requirement h3 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+}
+.proof-badge {
+  flex: none;
+  padding: 7px 9px;
+  border: 1px solid rgba(255, 201, 107, 0.25);
+  border-radius: 999px;
+  color: var(--amber);
+  background: rgba(255, 201, 107, 0.08);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.proof-badge--tested {
+  border-color: rgba(98, 230, 167, 0.25);
+  color: var(--green);
+  background: rgba(98, 230, 167, 0.08);
+}
+.proof-badge--proved {
+  border-color: rgba(98, 230, 167, 0.45);
+  color: var(--green);
+  background: rgba(98, 230, 167, 0.16);
+}
+.proof-badge--unresolved {
+  border-color: rgba(255, 125, 144, 0.25);
+  color: var(--red);
+  background: rgba(255, 125, 144, 0.08);
+}
+.stages {
+  display: grid;
+  gap: 9px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.stage {
+  display: grid;
+  grid-template-columns: 20px minmax(100px, .7fr) 1.3fr;
+  gap: 8px;
+  align-items: baseline;
+}
+.stage__icon {
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  border-radius: 50%;
+  color: #08130e;
+  background: var(--green);
+  font-size: 11px;
+  font-weight: 900;
+}
+.stage--warning .stage__icon {
+  color: #241602;
+  background: var(--amber);
+}
+.stage--failed .stage__icon {
+  color: #24080c;
+  background: var(--red);
+}
+.stage--muted .stage__icon {
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.08);
+}
+.stage__label {
+  font-size: 13px;
+  font-weight: 720;
+}
+.stage__detail {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.contradiction {
+  margin-top: 21px;
+  padding: 16px;
+  border: 1px solid rgba(255, 125, 144, 0.24);
+  border-radius: 14px;
+  background: rgba(255, 125, 144, 0.07);
+}
+.contradiction__eyebrow {
+  color: var(--red);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.contradiction__values {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  margin-top: 9px;
+  font: 750 15px / 1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.contradiction__values b {
+  color: var(--red);
+}
+.contradiction p {
+  margin: 8px 0 0;
+  color: #d9a9b1;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.proof-gaps {
+  margin-top: 18px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+.proof-advisories {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+.proof-gaps summary,
+.proof-advisories summary {
+  padding-top: 14px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.proof-gaps ul,
+.proof-advisories ul {
+  columns: 2;
+  margin: 11px 0 0;
+  padding-left: 18px;
+}
+.proof-gaps li,
+.proof-advisories li {
+  margin-bottom: 7px;
+  break-inside: avoid;
+}
+.empty {
+  display: none;
+  padding: 70px 20px;
+  border: 1px dashed var(--line);
+  border-radius: 20px;
+  color: var(--muted);
+  text-align: center;
+}
+.empty[data-visible="true"] {
+  display: block;
+}
+footer {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  padding: 30px 0 48px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+@media (max-width: 960px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  .score-card {
+    min-height: 290px;
+  }
+  .metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .metric {
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .metric:nth-child(3n) {
+    border-right: 0;
+  }
+  .metric:nth-last-child(-n + 3) {
+    border-bottom: 0;
+  }
+}
+@media (max-width: 760px) {
+  .shell {
+    width: min(100% - 24px, 1160px);
+  }
+  .topbar {
+    padding-top: 22px;
+  }
+  .hero {
+    padding-top: 20px;
+  }
+  .hero__copy,
+  .score-card {
+    border-radius: 22px;
+  }
+  .requirements {
+    grid-template-columns: 1fr;
+  }
+  .section-header {
+    align-items: start;
+    flex-direction: column;
+  }
+  .controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .filters {
+    padding-bottom: 2px;
+  }
+  footer {
+    flex-direction: column;
+  }
+}
+@media (max-width: 520px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .metric {
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .metric:nth-child(2n) {
+    border-right: 0;
+  }
+  .metric:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+  .stage {
+    grid-template-columns: 20px 1fr;
+  }
+  .stage__detail {
+    grid-column: 2;
+  }
+  .proof-gaps ul {
+    columns: 1;
+  }
+}
+@media print {
+  body {
+    background: #fff;
+    color: #111827;
+  }
+  body::before,
+  .controls {
+    display: none;
+  }
+  .hero__copy,
+  .score-card,
+  .metrics,
+  .requirement {
+    border-color: #d9deea;
+    color: #111827;
+    background: #fff;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  .requirements {
+    display: block;
+  }
+  .requirement {
+    margin-bottom: 14px;
+  }
+  .hero__lede,
+  .metric span,
+  .stage__detail,
+  .section-header p,
+  footer {
+    color: #59647a;
+  }
+}
+
+/* Kibi proof-rail identity. Tokens mirror assets/logo.svg and assets/wordmark.svg. */
+:root {
+  --carbon: #1d1e23;
+  --deep-carbon: #111318;
+  --panel: #191c22;
+  --ice: #a2d3f4;
+  --signal: #3e8ed6;
+  --snow: #f4f8fb;
+  --mist: #aab8c2;
+  --rail: #34434f;
+  --success: #63c99a;
+  --warning: #f2b84b;
+  --danger: #f07178;
+  --line: rgba(162, 211, 244, 0.16);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+body {
+  color: var(--snow);
+  background: var(--deep-carbon);
+}
+body::before {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: 4px;
+  content: "";
+  opacity: 1;
+  background: linear-gradient(90deg, var(--ice) 0 17%, var(--signal) 17% 100%);
+  mask-image: none;
+}
+.shell {
+  width: min(1180px, calc(100% - 40px));
+}
+.topbar {
+  padding: 30px 0 20px;
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  gap: 13px;
+  letter-spacing: normal;
+}
+.brand__logo {
+  width: 42px;
+  height: 42px;
+  flex: none;
+}
+.brand__wordmark {
+  width: 86px;
+  height: auto;
+}
+.brand__product {
+  padding-left: 14px;
+  border-left: 1px solid var(--rail);
+  color: var(--mist);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.snapshot {
+  max-width: min(52vw, 420px);
+  overflow: hidden;
+  color: var(--mist);
+  font: 500 11px / 1.4 var(--mono);
+  text-align: right;
+  text-overflow: ellipsis;
+}
+.snapshot a,
+.source-link,
+.cta {
+  color: var(--ice);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.snapshot a:hover,
+.source-link:hover,
+.cta:hover {
+  color: var(--snow);
+}
+.relative-age::before {
+  content: " · ";
+}
+.relative-age:empty::before {
+  content: none;
+}
+.overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 36px;
+  align-items: end;
+  padding: clamp(38px, 7vw, 76px) 0 32px;
+}
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--ice);
+  font: 750 11px / 1.4 var(--mono);
+  letter-spacing: .12em;
+}
+h1 {
+  margin: 0;
+  font-size: clamp(38px, 6vw, 68px);
+  font-weight: 720;
+  letter-spacing: -.052em;
+  line-height: 1;
+}
+.overview__copy {
+  max-width: 700px;
+}
+.overview__copy p:last-child {
+  max-width: 660px;
+  margin: 19px 0 0;
+  color: var(--mist);
+  font-size: 16px;
+  line-height: 1.65;
+}
+.score {
+  min-width: 220px;
+  padding-left: 30px;
+  border-left: 2px solid var(--signal);
+  text-align: right;
+}
+.score__value {
+  color: var(--snow);
+  font: 760 clamp(62px, 9vw, 104px) / 0.84 var(--mono);
+  letter-spacing: -.09em;
+}
+.score__value span {
+  color: var(--ice);
+  font-size: .38em;
+  letter-spacing: -.04em;
+}
+.score__label {
+  margin-top: 17px;
+  color: var(--ice);
+  font-size: 12px;
+  font-weight: 760;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.score__ratio {
+  margin-top: 6px;
+  color: var(--mist);
+  font: 500 12px / 1.4 var(--mono);
+}
+.score__note {
+  max-width: 260px;
+  margin: 10px 0 0 auto;
+  color: var(--mist);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.45;
+  text-transform: none;
+}
+.snapshot-notice {
+  margin: 0 0 22px;
+  padding: 14px 16px;
+  border-color: rgba(242, 184, 75, 0.4);
+  border-radius: 9px;
+  color: var(--snow);
+  background: rgba(242, 184, 75, 0.08);
+}
+.snapshot-notice strong {
+  color: var(--warning);
+  font: 750 11px / 1.4 var(--mono);
+}
+.proof-path {
+  margin-bottom: 20px;
+  padding: 24px 26px 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--carbon);
+}
+.proof-path__header {
+  display: flex;
+  gap: 24px;
+  align-items: start;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+.proof-path__header h2 {
+  margin: 0;
+  font-size: 19px;
+  letter-spacing: -.02em;
+}
+.proof-path__header p {
+  max-width: 510px;
+  margin: 0;
+  color: var(--mist);
+  font-size: 12px;
+  line-height: 1.55;
+  text-align: right;
+}
+.proof-rail {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.proof-rail > li {
+  min-width: 0;
+}
+.proof-gate {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 25px 18px 0 0;
+  border: 0;
+  border-top: 2px solid var(--signal);
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.proof-rail > li:last-child .proof-gate {
+  padding-right: 0;
+}
+.proof-gate:focus-visible {
+  outline: 2px solid var(--ice);
+  outline-offset: 4px;
+}
+.proof-gate[aria-pressed="true"] {
+  background: rgba(62, 142, 214, 0.1);
+}
+.proof-gate__node {
+  position: absolute;
+  top: -10px;
+  left: 0;
+  display: grid;
+  width: 19px;
+  height: 19px;
+  place-items: center;
+  border: 2px solid var(--ice);
+  border-radius: 50%;
+  color: var(--deep-carbon);
+  background: var(--ice);
+  font: 800 9px / 1 var(--mono);
+}
+.proof-gate--blocked {
+  border-top-color: var(--rail);
+}
+.proof-gate--blocked .proof-gate__node {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--carbon);
+}
+.proof-gate:disabled {
+  cursor: default;
+}
+.gate-status {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 0 0 14px;
+  color: var(--mist);
+  font-size: 13px;
+  scroll-margin-top: 110px;
+}
+.gate-status[hidden] {
+  display: none;
+}
+.gate-status__clear {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ice);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+.proof-gate--optional {
+  border-top-style: dashed;
+}
+.proof-gate__count {
+  font: 750 28px / 1 var(--mono);
+  letter-spacing: -.05em;
+}
+.proof-gate__label {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 720;
+}
+.proof-gate__drop {
+  min-height: 17px;
+  margin-top: 5px;
+  color: var(--warning);
+  font: 650 10px / 1.4 var(--mono);
+}
+.proof-gate p {
+  margin: 7px 0 0;
+  color: var(--mist);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.metrics {
+  margin: 0 0 62px;
+  border-color: var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: none;
+}
+.metric {
+  position: relative;
+  padding: 18px 17px;
+  border-color: var(--line);
+}
+.metric::before {
+  position: absolute;
+  top: 0;
+  left: 17px;
+  width: 28px;
+  height: 2px;
+  content: "";
+  background: var(--signal);
+}
+.metric span {
+  min-height: 31px;
+  color: var(--mist);
+  font-size: 11px;
+}
+.metric strong {
+  margin-top: 4px;
+  font: 720 26px / 1 var(--mono);
+  letter-spacing: -.04em;
+}
+.metric--good strong {
+  color: var(--success);
+}
+.metric--warn strong {
+  color: var(--warning);
+}
+.metric--bad strong {
+  color: var(--danger);
+}
+.section-header p {
+  color: var(--mist);
+}
+.controls {
+  margin-bottom: 18px;
+  padding: 10px;
+  border-color: var(--line);
+  border-radius: 12px;
+  background: rgba(17, 19, 24, 0.94);
+  box-shadow: none;
+  backdrop-filter: blur(14px);
+}
+.search {
+  padding: 11px 13px;
+  border-color: var(--rail);
+  border-radius: 8px;
+  color: var(--snow);
+  background: var(--carbon);
+}
+.search:focus {
+  border-color: var(--ice);
+  box-shadow: 0 0 0 3px rgba(162, 211, 244, 0.1);
+}
+.filters {
+  gap: 6px;
+}
+.filter {
+  padding: 9px 11px;
+  border-radius: 7px;
+  color: var(--mist);
+  font: 650 11px / 1.4 var(--mono);
+}
+.filter:hover {
+  color: var(--snow);
+  background: rgba(162, 211, 244, 0.06);
+}
+.filter[aria-pressed="true"] {
+  border-color: rgba(162, 211, 244, 0.35);
+  color: var(--ice);
+  background: rgba(62, 142, 214, 0.13);
+}
+.filter:focus-visible {
+  outline: 2px solid var(--ice);
+  outline-offset: 2px;
+}
+.cta:focus-visible,
+.source-link:focus-visible,
+.snapshot a:focus-visible {
+  outline: 2px solid var(--ice);
+  outline-offset: 2px;
+}
+.requirements {
+  grid-template-columns: 1fr;
+  gap: 13px;
+}
+.requirement {
+  padding: 22px 24px 20px;
+  border-color: var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: none;
+}
+.requirement::before {
+  background: var(--warning);
+}
+.requirement--tested::before {
+  background: var(--success);
+}
+.requirement--unresolved::before {
+  background: var(--danger);
+}
+.requirement__id {
+  color: var(--ice);
+  font: 700 10px / 1.2 var(--mono);
+  letter-spacing: .07em;
+}
+.requirement h3 {
+  font-size: 18px;
+  line-height: 1.3;
+}
+.proof-badge {
+  padding: 6px 8px;
+  border-color: rgba(242, 184, 75, 0.3);
+  border-radius: 6px;
+  color: var(--warning);
+  background: rgba(242, 184, 75, 0.07);
+  font: 800 9px / 1.2 var(--mono);
+}
+.proof-badge--tested {
+  border-color: rgba(99, 201, 154, 0.3);
+  color: var(--success);
+  background: rgba(99, 201, 154, 0.07);
+}
+.proof-badge--proved {
+  border-color: rgba(99, 201, 154, 0.55);
+  color: var(--success);
+  background: rgba(99, 201, 154, 0.16);
+}
+.proof-badge--unresolved {
+  border-color: rgba(240, 113, 120, 0.3);
+  color: var(--danger);
+  background: rgba(240, 113, 120, 0.07);
+}
+.stages {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.stages:has(> :nth-child(6)) {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0;
+}
+.stage {
+  position: relative;
+  display: block;
+  min-width: 0;
+  padding: 20px 13px 0 0;
+  border-top: 1px solid var(--rail);
+}
+.stage:last-child {
+  padding-right: 0;
+}
+.stage__icon {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--success);
+  color: var(--deep-carbon);
+  background: var(--success);
+  font: 900 10px / 1 var(--mono);
+}
+.stage--warning .stage__icon {
+  border-color: var(--warning);
+  color: var(--warning);
+  background: var(--panel);
+}
+.stage--failed .stage__icon {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--panel);
+}
+.stage--muted .stage__icon {
+  border-color: var(--rail);
+  color: var(--mist);
+  background: var(--panel);
+}
+.stage__label {
+  display: block;
+  font-size: 12px;
+}
+.stage__detail {
+  display: block;
+  margin-top: 5px;
+  color: var(--mist);
+  font-size: 11px;
+}
+.contradiction {
+  border-color: rgba(240, 113, 120, 0.32);
+  border-radius: 9px;
+  background: rgba(240, 113, 120, 0.07);
+}
+.contradiction__eyebrow,
+.contradiction__values b {
+  color: var(--danger);
+}
+.contradiction p,
+.proof-gaps,
+.proof-advisories {
+  color: var(--mist);
+}
+.proof-gaps,
+.proof-advisories {
+  border-color: var(--line);
+}
+.proof-gaps ul,
+.proof-advisories ul {
+  columns: 3;
+}
+.empty {
+  border-color: var(--rail);
+  border-radius: 12px;
+  color: var(--mist);
+}
+footer {
+  border-color: var(--line);
+  color: var(--mist);
+  font: 500 11px / 1.5 var(--mono);
+}
+.filter__count {
+  margin-left: 6px;
+  color: var(--ice);
+}
+.requirement h3 .source-link {
+  color: inherit;
+}
+@media (max-width: 960px) {
+  .proof-rail {
+    grid-template-columns: repeat(6, 180px);
+    overflow-x: auto;
+    padding-top: 8px;
+  }
+  .snapshot {
+    max-width: 100%;
+  }
+}
+@media (max-width: 760px) {
+  .shell {
+    width: min(100% - 24px, 1180px);
+  }
+  .topbar {
+    align-items: start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .snapshot {
+    max-width: 100%;
+    text-align: left;
+  }
+  .overview {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-top: 38px;
+  }
+  .score {
+    min-width: 0;
+    padding: 20px 0 0;
+    border-top: 2px solid var(--signal);
+    border-left: 0;
+    text-align: left;
+  }
+  .score__value {
+    font-size: 66px;
+  }
+  .score__note {
+    margin-left: 0;
+  }
+  .proof-path__header {
+    align-items: start;
+    flex-direction: column;
+  }
+  .proof-path__header p {
+    text-align: left;
+  }
+  .stages,
+  .stages:has(> :nth-child(6)) {
+    grid-template-columns: 1fr;
+  }
+  .stage {
+    min-height: 66px;
+    margin-left: 8px;
+    padding: 0 0 18px 30px;
+    border-top: 0;
+    border-left: 1px solid var(--rail);
+  }
+  .stage__icon {
+    top: 0;
+    left: -8px;
+  }
+  .proof-gaps ul,
+  .proof-advisories ul {
+    columns: 2;
+  }
+}
+@media (max-width: 520px) {
+  .brand__product {
+    display: none;
+  }
+  .proof-path {
+    padding-inline: 18px;
+  }
+  .proof-gaps ul,
+  .proof-advisories ul {
+    columns: 1;
+  }
+}
+@media print {
+  :root {
+    color-scheme: light;
+  }
+  body {
+    color: #17202a;
+    background: #fff;
+  }
+  .topbar,
+  .proof-path,
+  .metrics,
+  .requirement {
+    border-color: #cbd5dc;
+    color: #17202a;
+    background: #fff;
+  }
+  .proof-gate,
+  .stage {
+    border-color: #7b8b96;
+    background: transparent;
+  }
+  .proof-gate p,
+  .proof-path__header p,
+  .metric span,
+  .stage__detail,
+  .section-header p,
+  footer,
+  .score__note {
+    color: #4e606c;
+  }
+  .source-link,
+  .cta,
+  .snapshot a {
+    color: inherit;
+  }
+}
+.kb-certificates {
+  margin: 14px 0 28px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand__logo" viewBox="0 0 308 309" role="img" aria-label="Kibi logo"><path d="M59.403564453125,0.548828125C67.20257568359375,-0.47119140625,80.16162109375,0.2437744140625,88.4605712890625,0.24078369140625L146.50048828125,0.227783203125L214.8255615234375,0.23577880859375C240.16748046875,0.2437744140625,262.236572265625,-2.67620849609375,283.3775634765625,14.2947998046875C311.0205078125,36.48480224609375,307.6495361328125,66.8988037109375,307.671630859375,98.5548095703125L307.6895751953125,162.74783325195312L307.66552734375,217.54684448242188C307.6585693359375,226.07479858398438,307.653564453125,234.5628662109375,307.504638671875,243.0877685546875C306.8895263671875,278.2227783203125,283.66259765625,304.5137939453125,248.32958984375,308.1297607421875C240.6875,308.9278564453125,226.1695556640625,308.5008544921875,217.8525390625,308.4927978515625L161.468505859375,308.4508056640625L93.9794921875,308.5028076171875C68.57257080078125,308.5147705078125,46.83258056640625,311.5418701171875,25.39654541015625,295.0338134765625C-2.66644287109375,273.423828125,0.13555908203125,245.0108642578125,0.10955810546875,213.40182495117188L0.0855712890625,154.30581665039062L0.10357666015625,95.5968017578125C0.112548828125,81.48980712890625,-0.62841796875,66.85577392578125,1.7275390625,52.96478271484375C6.78955078125,23.11376953125,30.14154052734375,3.88580322265625,59.403564453125,0.548828125Z" fill="#1d1e23"/><ellipse cx="113.3257670641164" cy="150.86303791579667" rx="51.325767064116405" ry="51.52454059083652" fill="#a2d3f4"/><path d="M228.05255126953125,197.78256225585938L227.611572265625,165.51681518554688L156.5028076171875,165.69512939453125L95.43316650390625,165.28231811523438L95.4334716796875,135.09622192382812L156.503173828125,135.26748657226562L227.535888671875,135.08938598632812L227.53631591796875,101.200927734375L252.20697021484375,101.20071411132812L252.20599365234375,197.78225708007812" fill="#a2d3f4"/></svg>
+        <svg class="brand__wordmark" viewBox="-2 10 395 148" role="img" aria-label="Kibi"><ellipse cx="337.16000366210943" cy="30.99999999999997" rx="20.000000000000057" ry="19.99999999999997" fill="#3e8ed6"/><path d="M381.8653869628906,49.212493896484375L381.6935119628906,36.688079833984375L353.9847106933594,36.757293701171875L330.1878356933594,36.5970458984375L330.1879577636719,24.8798828125L353.9848327636719,24.94635009765625L381.6640319824219,24.877227783203125L381.6641540527344,11.722930908203125L391.2775573730469,11.72283935546875L391.2771301269531,49.212371826171875" fill="#3e8ed6"/><path d="M0,155.33001708984375L0,22.1300048828125L19.6199951171875,22.1300048828125L19.6199951171875,102.58999633789062L20.519989013671875,102.58999633789062L35.100006103515625,87.6500244140625L61.20001220703125,62.45001220703125L84.42001342773438,62.45001220703125L46.800018310546875,98.989990234375L88.55999755859375,155.33001708984375L64.98001098632812,155.33001708984375L32.579986572265625,110.1500244140625L19.6199951171875,122.21002197265625L19.6199951171875,155.33001708984375L0,155.33001708984375L0,155.33001708984375M110.33999633789062,155.33001708984375L110.33999633789062,139.49002075195312L132.01998901367188,139.49002075195312L132.01998901367188,78.28997802734375L100.33999633789062,78.28997802734375L100.33999633789062,62.45001220703125L151.63998413085938,62.45001220703125L151.63998413085938,139.49002075195312L171.33999633789062,139.49002075195312L171.33999633789062,155.33001708984375L110.33999633789062,155.33001708984375L110.33999633789062,155.33001708984375M194.3800048828125,155.33001708984375L194.3800048828125,22.1300048828125L214,22.1300048828125L214.08001708984375,70L215.16000366210938,70C221.16000366210938,65,220.16000366210938,66,224.16000366210938,64C229.1324462890625,61.513824462890625,236.32000732421875,60.28997802734375,243.16000366210938,60.28997802734375L243.16000366210938,60.28997802734375C254.08004760742188,60.28997802734375,262.7799987792969,64.3699951171875,269.2599792480469,72.52999877929688C275.7399597167969,80.69000244140625,278.9800109863281,92.80999755859375,278.9800109863281,108.8900146484375L278.9800109863281,108.8900146484375C278.9800109863281,124.97000122070312,275.7399597167969,137.08999633789062,269.2599792480469,145.25C262.7799987792969,153.41000366210938,254.08004760742188,157.49002075195312,243.16000366210938,157.49002075195312L243.16000366210938,157.49002075195312C236.32000732421875,157.49002075195312,227.92709350585938,156.8602294921875,223.16000366210938,154C218.16000366210938,151,219.16000366210938,152,215.16000366210938,147L215.16000366210938,147L214.08001708984375,147L214,155.33001708984375L194.3800048828125,155.33001708984375L194.3800048828125,155.33001708984375M235.05999755859375,141.47000122070312L235.05999755859375,141.47000122070312C242.5,141.47000122070312,248.23001098632812,139.19000244140625,252.24996948242188,134.6300048828125C256.2699890136719,130.07000732421875,258.2799987792969,124.010009765625,258.2799987792969,116.45001220703125L258.2799987792969,116.45001220703125L258.2799987792969,101.33001708984375C258.2799987792969,93.77001953125,256.2699890136719,87.71002197265625,252.24996948242188,83.1500244140625C248.23001098632812,78.59002685546875,242.5,76.30999755859375,235.05999755859375,76.30999755859375L235.05999755859375,76.30999755859375C232.18002319335938,76.30999755859375,229.48001098632812,76.66998291015625,226.95999145507812,77.3900146484375C224.44000244140625,78.1099853515625,222.22000122070312,79.19000244140625,220.30001831054688,80.6300048828125C218.3800048828125,82.07000732421875,216.85000610351562,83.84002685546875,215.70999145507812,85.94000244140625C214.57000732421875,88.03997802734375,214,90.52999877929688,214,93.41000366210938L214,93.41000366210938L214,124.3699951171875C214,127.25,214.57000732421875,129.74002075195312,215.70999145507812,131.83999633789062C216.85000610351562,133.94000244140625,218.3800048828125,135.70999145507812,220.30001831054688,137.14999389648438C222.22000122070312,138.58999633789062,224.44000244140625,139.67001342773438,226.95999145507812,140.3900146484375C229.48001098632812,141.11001586914062,232.18002319335938,141.47000122070312,235.05999755859375,141.47000122070312L235.05999755859375,141.47000122070312M306.3399963378906,155.33001708984375L306.3399963378906,139.49002075195312L328.0199890136719,139.49002075195312L328.0199890136719,78.28997802734375L296.3399963378906,78.28997802734375L296.3399963378906,62.45001220703125L347.6399841308594,62.45001220703125L347.6399841308594,139.49002075195312L367.3399963378906,139.49002075195312L367.3399963378906,155.33001708984375L306.3399963378906,155.33001708984375L306.3399963378906,155.33001708984375" fill="#a2d3f4"/><ellipse cx="141.66000366210938" cy="31.5" rx="12.5" ry="12.5" fill="#a2d3f4"/></svg>
+        <span class="brand__product">Requirement health</span>
+      </div>
+      <div class="snapshot"><a class="source-link" href="https://github.com/acme/app/" target="_blank" rel="noopener noreferrer">acme/app</a> <span aria-hidden="true">/</span> main <span aria-hidden="true">/</span> <a class="source-link" href="https://github.com/acme/app/commit/0123456789abcdef0123" target="_blank" rel="noopener noreferrer">0123456789ab</a></div>
+    </header>
+    <main>
+      <section class="overview">
+        <div class="overview__copy">
+          <p class="eyebrow">Requirement health · main</p>
+          <h1>Intent to proof,<br>without the gaps.</h1>
+          <p>Kibi compiles product intent into an inspectable chain of semantics, scenarios, implementation ownership, end-to-end tests, and fresh evidence.</p>
+        </div>
+        <div class="score" aria-label="32% tested end to end, 6 of 19 current requirements fully tested end-to-end">
+          <div class="score__value">32<span>%</span></div>
+          <div class="score__label">Tested end to end</div>
+          <div class="score__ratio">6 of 19 current requirements fully tested end-to-end</div>
+          <p class="score__note">Kibi only counts a requirement when every required proof gate passes.</p>
+        </div>
+      </section>
+      <aside class="snapshot-notice"><strong>Snapshot warning</strong><span>The Kibi knowledge snapshot is stale. Proof was evaluated against a dirty workspace.</span></aside>
+      <section class="proof-path" aria-labelledby="proof-path-title">
+        <div class="proof-path__header">
+          <div><p class="eyebrow">Intent → proof</p><h2 id="proof-path-title">Where proof stops</h2></div>
+          <p>Counts are sequential. Each drop is the earliest unmet gate, so a strict score never looks like a broken report. Select a gate to inspect those requirements.</p>
+        </div>
+        <ol class="proof-rail" aria-label="Filter requirements by earliest unmet proof gate"><li>
+    <button type="button" class="proof-gate proof-gate--active" data-gate="semantic" data-label="Semantic model" aria-pressed="false" aria-controls="requirements" aria-label="Semantic model. 7 blocked here. Filter requirements whose earliest unmet proof gate is Semantic model.">
+      <div class="proof-gate__node"><span>1</span></div>
+      <div class="proof-gate__count">11</div>
+      <div class="proof-gate__label">Semantic model</div>
+      <div class="proof-gate__drop">−7 blocked here</div>
+      <p>Intent is complete, grounded, and coherent</p>
+    </button>
+  </li><li>
+    <button type="button" class="proof-gate proof-gate--active" data-gate="scenario" data-label="Scenario" aria-pressed="false" aria-controls="requirements" aria-label="Scenario. No requirement stops here." disabled>
+      <div class="proof-gate__node"><span>2</span></div>
+      <div class="proof-gate__count">11</div>
+      <div class="proof-gate__label">Scenario</div>
+      <div class="proof-gate__drop">No drop</div>
+      <p>Behavior is specified</p>
+    </button>
+  </li><li>
+    <button type="button" class="proof-gate proof-gate--active" data-gate="implementation" data-label="Implementation" aria-pressed="false" aria-controls="requirements" aria-label="Implementation. 1 blocked here. Filter requirements whose earliest unmet proof gate is Implementation.">
+      <div class="proof-gate__node"><span>3</span></div>
+      <div class="proof-gate__count">10</div>
+      <div class="proof-gate__label">Implementation</div>
+      <div class="proof-gate__drop">−1 blocked here</div>
+      <p>Production ownership is source-bound</p>
+    </button>
+  </li><li>
+    <button type="button" class="proof-gate proof-gate--active" data-gate="e2e" data-label="E2E" aria-pressed="false" aria-controls="requirements" aria-label="E2E. 1 blocked here. Filter requirements whose earliest unmet proof gate is E2E.">
+      <div class="proof-gate__node"><span>4</span></div>
+      <div class="proof-gate__count">9</div>
+      <div class="proof-gate__label">E2E</div>
+      <div class="proof-gate__drop">−1 blocked here</div>
+      <p>A scenario-backed end-to-end test exists</p>
+    </button>
+  </li><li>
+    <button type="button" class="proof-gate proof-gate--active" data-gate="evidence" data-label="Tested" aria-pressed="false" aria-controls="requirements" aria-label="Tested. 3 blocked here. Filter requirements whose earliest unmet proof gate is Tested.">
+      <div class="proof-gate__node"><span>5</span></div>
+      <div class="proof-gate__count">6</div>
+      <div class="proof-gate__label">Tested</div>
+      <div class="proof-gate__drop">−3 blocked here</div>
+      <p>Fresh passing receipts cover every scenario</p>
+    </button>
+  </li><li>
+    <button type="button" class="proof-gate proof-gate--optional" data-gate="proved" data-label="Proved" aria-pressed="false" aria-controls="requirements" aria-label="Proved. 5 tested, not proved. Filter requirements whose earliest unmet proof gate is Proved.">
+      <div class="proof-gate__node"><span>6</span></div>
+      <div class="proof-gate__count">1</div>
+      <div class="proof-gate__label">Proved</div>
+      <div class="proof-gate__drop">5 tested, not proved</div>
+      <p>Every claim has a re-checked certificate · 22 of 26 claims proved</p>
+    </button>
+  </li></ol>
+      </section>
+      <section class="metrics" aria-label="Requirement health summary">
+        <div class="metric"><span>Requirements</span><strong>19</strong></div>
+        <div class="metric metric--good"><span>Proved by certificate</span><strong>1</strong></div>
+        <div class="metric metric--good"><span>Tested end to end</span><strong>6</strong></div>
+        <div class="metric metric--warn"><span>Asserted, no current test</span><strong>9</strong></div>
+        <div class="metric metric--warn"><span>Unverified</span><strong>3</strong></div>
+        <div class="metric metric--bad"><span>Below evidence floor</span><strong>1</strong></div>
+        <div class="metric metric--warn"><span>Pending re-proof</span><strong>1</strong></div>
+        <div class="metric metric--warn"><span>Stale E2E evidence</span><strong>2</strong></div>
+        <div class="metric metric--warn"><span>Missing scenarios</span><strong>1</strong></div>
+        <div class="metric metric--warn"><span>Requirements without implementation</span><strong>1</strong></div>
+        <div class="metric metric--bad"><span>Unmapped production symbols</span><strong>5</strong></div>
+        <div class="metric metric--bad"><span>Contradictions</span><strong>3</strong></div>
+      </section>
+      <p class="kb-certificates">KB consistency: 3 certificates (1 arithmetic, 2 set closure) · <a href="certificates/kb.json">certificates/kb.json</a> · re-check with <code>kibi check --certificates certificates/kb.json</code></p>
+      <section>
+        <div class="section-header">
+          <div><p class="eyebrow">Proof ledger</p><h2>Requirements</h2></div>
+          <p>Each row shows independent proof stages. Missing knowledge remains visible instead of being inferred as success.</p>
+        </div>
+        <div class="controls">
+          <input class="search" id="search" type="search" placeholder="Search requirements" aria-label="Search requirements">
+          <div class="filters" role="group" aria-label="Filter requirements">
+            <button class="filter" type="button" data-filter="all" aria-pressed="true">All <span class="filter__count">18</span></button><button class="filter" type="button" data-filter="proved" aria-pressed="false">Proved <span class="filter__count">1</span></button><button class="filter" type="button" data-filter="tested" aria-pressed="false">Tested <span class="filter__count">6</span></button><button class="filter" type="button" data-filter="attention" aria-pressed="false">Needs attention <span class="filter__count">12</span></button><button class="filter" type="button" data-filter="below_floor" aria-pressed="false">Below floor <span class="filter__count">1</span></button><button class="filter" type="button" data-filter="pending_reproof" aria-pressed="false">Pending re-proof <span class="filter__count">1</span></button><button class="filter" type="button" data-filter="stale" aria-pressed="false">Stale evidence <span class="filter__count">2</span></button><button class="filter" type="button" data-filter="contradiction" aria-pressed="false">Contradictions <span class="filter__count">1</span></button>
+          </div>
+        </div>
+        <p class="gate-status" id="gate-status" aria-live="polite" hidden><span></span> <button type="button" class="gate-status__clear">Show all</button></p>
+        <div class="requirements" id="requirements"><article class="requirement requirement--missing" data-state="attention contradiction" data-gate="semantic">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-CONTRA.md" target="_blank" rel="noopener noreferrer">REQ-CONTRA</a> <span class="evidence-level evidence-level--asserted" title="Evidence level">asserted</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">1.7/2 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-CONTRA.md" target="_blank" rel="noopener noreferrer">Title of REQ-CONTRA</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--missing">Needs attention</span>
+    </header>
+    <ul class="stages"><li class="stage stage--warning">
+    <span class="stage__icon" aria-hidden="true">!</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail">Grounded with unresolved coherence</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/src/a.ts#L3" target="_blank" rel="noopener noreferrer">src/a.ts:3</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4-L9" target="_blank" rel="noopener noreferrer">tests/e2e/a.spec.ts:4-9</a>, <a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">tests/e2e/b.spec.ts:2</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">Passed</a> <time datetime="2026-05-01T10:00:00.000Z">2026-05-01 10:00 UTC</time><span class="relative-age" data-relative-from="2026-05-01T10:00:00.000Z"></span></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">exhaustive · 1 test · 1/2 claims proved</span>
+  </li></ul>
+    <div class="contradiction">
+    <div class="contradiction__eyebrow">Contradiction · Max Login Attempts</div>
+    <div class="contradiction__values"><span>3 tries</span><b>↔</b><span>4, 5</span></div>
+    <p>Limits disagree</p>
+  </div><div class="contradiction">
+    <div class="contradiction__eyebrow">Contradiction · Allows Guest</div>
+    <div class="contradiction__values"><span>allow</span><b>↔</b><span>Guests are denied</span></div>
+    <p>Two current requirements encode incompatible claims.</p>
+  </div><div class="contradiction">
+    <div class="contradiction__eyebrow">Contradiction</div>
+    <div class="contradiction__values"><span>FACT-L</span><b>↔</b><span>conflicting claim</span></div>
+    <p>Two current requirements encode incompatible claims.</p>
+  </div>
+    <details class="proof-gaps"><summary>1 proof gap</summary><ul><li>Blocking Contradiction</li></ul></details>
+    
+    
+  </article><article class="requirement requirement--missing" data-state="attention below_floor" data-gate="semantic">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-BELOW.md" target="_blank" rel="noopener noreferrer">REQ-BELOW</a> <span class="evidence-level evidence-level--asserted" title="Evidence level">asserted</span> <span class="evidence-floor evidence-floor--below" title="Evidence floor: proved, set by required_evidence">floor proved* · below</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">2/2 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-BELOW.md" target="_blank" rel="noopener noreferrer">Title of REQ-BELOW</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--missing">Needs attention</span>
+    </header>
+    <ul class="stages"><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail">Incomplete proposition grounding</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail">Missing requirement scenario</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail">No production symbol ownership</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4-L9" target="_blank" rel="noopener noreferrer">tests/e2e/a.spec.ts:4-9</a>, <a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">tests/e2e/b.spec.ts:2</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">Passed</a> <time datetime="2026-05-01T10:00:00.000Z">2026-05-01 10:00 UTC</time><span class="relative-age" data-relative-from="2026-05-01T10:00:00.000Z"></span></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">exhaustive · 1 test · 2/2 claims proved</span>
+  </li></ul>
+    
+    <details class="proof-gaps"><summary>2 proof gaps</summary><ul><li>Missing Scenario</li><li>Missing Production Symbol</li></ul></details>
+    
+    
+  </article><article class="requirement requirement--missing" data-state="attention pending_reproof stale" data-gate="semantic">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-PENDING.md" target="_blank" rel="noopener noreferrer">REQ-PENDING</a> <span class="evidence-level evidence-level--unverified" title="Evidence level">unverified</span> <span class="evidence-floor evidence-floor--pending_reproof" title="Evidence floor: tested, set by required_evidence">floor tested* · pending re-proof</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">2/2 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-PENDING.md" target="_blank" rel="noopener noreferrer">Title of REQ-PENDING</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--missing">Needs attention</span>
+    </header>
+    <ul class="stages"><li class="stage stage--warning">
+    <span class="stage__icon" aria-hidden="true">!</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail">Incomplete proposition grounding</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail">Scenario has no linked test</span>
+  </li><li class="stage stage--warning">
+    <span class="stage__icon" aria-hidden="true">!</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail">1 symbol needs current coordinates</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4" target="_blank" rel="noopener noreferrer">tests/e2e/a.spec.ts:4</a></span>
+  </li><li class="stage stage--warning">
+    <span class="stage__icon" aria-hidden="true">!</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail">E2E receipt stale for this code snapshot</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">exhaustive · 1 test · 2/2 claims proved</span>
+  </li></ul>
+    
+    <details class="proof-gaps"><summary>1 proof gap</summary><ul><li>Stale Proof Receipt</li></ul></details>
+    
+    
+  </article><article class="requirement requirement--tested" data-state="tested stale" data-gate="proved">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-TESTED.md" target="_blank" rel="noopener noreferrer">REQ-TESTED</a> <span class="evidence-level evidence-level--tested" title="Evidence level">tested</span> <span class="evidence-floor evidence-floor--met" title="Evidence floor: tested, the default floor for a firm requirement">floor tested · met</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">1/3 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-TESTED.md" target="_blank" rel="noopener noreferrer">Title of REQ-TESTED</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--tested">Tested</span>
+    </header>
+    <ul class="stages"><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/facts/FACT-A.md" target="_blank" rel="noopener noreferrer">.kb/facts/FACT-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/src/a.ts#L3" target="_blank" rel="noopener noreferrer">src/a.ts:3</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4-L9" target="_blank" rel="noopener noreferrer">tests/e2e/a.spec.ts:4-9</a>, <a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">tests/e2e/b.spec.ts:2</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">Passed</a> <time datetime="2026-05-01T10:00:00.000Z">2026-05-01 10:00 UTC</time><span class="relative-age" data-relative-from="2026-05-01T10:00:00.000Z"></span></span>
+  </li><li class="stage stage--warning">
+    <span class="stage__icon" aria-hidden="true">!</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">certificate · 2 tests · 1/3 claims proved</span>
+  </li></ul>
+    
+    
+    <details class="proof-advisories"><summary>2 advisories</summary><ul><li>Weak Claim</li><li>Stale Proof Receipt</li></ul></details>
+    <details class="proof-gaps certificate-rejections"><summary>2 certificate rejections</summary><ul><li>TEST-X: certificate rejected, drifted</li><li>test: certificate rejected, no reason given</li></ul></details>
+  </article><article class="requirement requirement--missing" data-state="attention" data-gate="semantic">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id">REQ-UNKNOWN <span class="evidence-level evidence-level--unverified" title="Evidence level">unverified</span></div>
+        <h3>Untitled requirement</h3>
+      </div>
+      <span class="proof-badge proof-badge--missing">Needs attention</span>
+    </header>
+    <ul class="stages"><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail">Incomplete proposition grounding</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail">Missing requirement scenario</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail">No production symbol ownership</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail">No scenario-backed end-to-end test</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail">No fresh passing E2E receipt</span>
+  </li></ul>
+    
+    
+    
+    
+  </article><article class="requirement requirement--missing" data-state="attention" data-gate="semantic">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id">REQ-BARE <span class="evidence-level evidence-level--unverified" title="Evidence level">unverified</span></div>
+        <h3>Untitled requirement</h3>
+      </div>
+      <span class="proof-badge proof-badge--missing">Needs attention</span>
+    </header>
+    <ul class="stages"><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail">Incomplete proposition grounding</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail">Missing requirement scenario</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail">No production symbol ownership</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail">No scenario-backed end-to-end test</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail">No fresh passing E2E receipt</span>
+  </li></ul>
+    
+    
+    
+    
+  </article><article class="requirement requirement--missing" data-state="attention" data-gate="evidence">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-COMPONENT.md" target="_blank" rel="noopener noreferrer">REQ-COMPONENT</a> <span class="evidence-level evidence-level--asserted" title="Evidence level">asserted</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">2/2 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-COMPONENT.md" target="_blank" rel="noopener noreferrer">Title of REQ-COMPONENT</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--missing">Needs attention</span>
+    </header>
+    <ul class="stages"><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/facts/FACT-A.md" target="_blank" rel="noopener noreferrer">.kb/facts/FACT-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/src/a.ts#L3" target="_blank" rel="noopener noreferrer">src/a.ts:3</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4-L9" target="_blank" rel="noopener noreferrer">tests/e2e/a.spec.ts:4-9</a>, <a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">tests/e2e/b.spec.ts:2</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4-L9" target="_blank" rel="noopener noreferrer">Passed</a> timestamp unavailable</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">exhaustive · 1 test · 2/2 claims proved</span>
+  </li></ul>
+    
+    
+    
+    
+  </article><article class="requirement requirement--missing" data-state="attention" data-gate="semantic">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-CONTRA-DUP.md" target="_blank" rel="noopener noreferrer">REQ-CONTRA-DUP</a> <span class="evidence-level evidence-level--asserted" title="Evidence level">asserted</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">2/2 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-CONTRA-DUP.md" target="_blank" rel="noopener noreferrer">Title of REQ-CONTRA-DUP</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--missing">Needs attention</span>
+    </header>
+    <ul class="stages"><li class="stage stage--warning">
+    <span class="stage__icon" aria-hidden="true">!</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail">Grounded with unresolved coherence</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/src/a.ts#L3" target="_blank" rel="noopener noreferrer">src/a.ts:3</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4-L9" target="_blank" rel="noopener noreferrer">tests/e2e/a.spec.ts:4-9</a>, <a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">tests/e2e/b.spec.ts:2</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">Passed</a> <time datetime="2026-05-01T10:00:00.000Z">2026-05-01 10:00 UTC</time><span class="relative-age" data-relative-from="2026-05-01T10:00:00.000Z"></span></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">exhaustive · 1 test · 2/2 claims proved</span>
+  </li></ul>
+    <div class="contradiction">
+    <div class="contradiction__eyebrow">Contradiction</div>
+    <div class="contradiction__values"><span>conflicting claim</span><b>↔</b><span>conflicting claim</span></div>
+    <p>Limits disagree</p>
+  </div>
+    
+    
+    
+  </article><article class="requirement requirement--missing" data-state="attention" data-gate="evidence">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-FAILED-RECEIPT.md" target="_blank" rel="noopener noreferrer">REQ-FAILED-RECEIPT</a> <span class="evidence-level evidence-level--asserted" title="Evidence level">asserted</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">2/2 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-FAILED-RECEIPT.md" target="_blank" rel="noopener noreferrer">Title of REQ-FAILED-RECEIPT</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--missing">Needs attention</span>
+    </header>
+    <ul class="stages"><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/facts/FACT-A.md" target="_blank" rel="noopener noreferrer">.kb/facts/FACT-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail">2 owned and E2E-covered symbols</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/x.spec.ts" target="_blank" rel="noopener noreferrer">tests/x.spec.ts</a></span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail">Failed E2E receipt</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">exhaustive · 1 test · 2/2 claims proved</span>
+  </li></ul>
+    
+    
+    
+    
+  </article><article class="requirement requirement--missing" data-state="attention" data-gate="evidence">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-INVALID-RECEIPT.md" target="_blank" rel="noopener noreferrer">REQ-INVALID-RECEIPT</a> <span class="evidence-level evidence-level--asserted" title="Evidence level">asserted</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">2/2 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-INVALID-RECEIPT.md" target="_blank" rel="noopener noreferrer">Title of REQ-INVALID-RECEIPT</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--missing">Needs attention</span>
+    </header>
+    <ul class="stages"><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/facts/FACT-A.md" target="_blank" rel="noopener noreferrer">.kb/facts/FACT-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail">1 owned and E2E-covered symbol</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail">Scenario-backed executable test</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail">Invalid E2E receipt</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">exhaustive · 1 test · 2/2 claims proved</span>
+  </li></ul>
+    
+    
+    
+    
+  </article><article class="requirement requirement--missing" data-state="attention" data-gate="e2e">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-NO-RECEIPT.md" target="_blank" rel="noopener noreferrer">REQ-NO-RECEIPT</a> <span class="evidence-level evidence-level--asserted" title="Evidence level">asserted</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">2/2 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-NO-RECEIPT.md" target="_blank" rel="noopener noreferrer">Title of REQ-NO-RECEIPT</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--missing">Needs attention</span>
+    </header>
+    <ul class="stages"><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/facts/FACT-A.md" target="_blank" rel="noopener noreferrer">.kb/facts/FACT-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/src/a.ts#L3" target="_blank" rel="noopener noreferrer">src/a.ts:3</a></span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail">No scenario-backed end-to-end test</span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail">No fresh passing E2E receipt</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">exhaustive · 1 test · 2/2 claims proved</span>
+  </li></ul>
+    
+    
+    
+    
+  </article><article class="requirement requirement--missing" data-state="attention" data-gate="implementation">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-OWNED.md" target="_blank" rel="noopener noreferrer">REQ-OWNED</a> <span class="evidence-level evidence-level--asserted" title="Evidence level">asserted</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">2/2 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-OWNED.md" target="_blank" rel="noopener noreferrer">Title of REQ-OWNED</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--missing">Needs attention</span>
+    </header>
+    <ul class="stages"><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/facts/FACT-A.md" target="_blank" rel="noopener noreferrer">.kb/facts/FACT-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--warning">
+    <span class="stage__icon" aria-hidden="true">!</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail">Ownership present; proof coverage is incomplete</span>
+  </li><li class="stage stage--warning">
+    <span class="stage__icon" aria-hidden="true">!</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail">Test exists; executable symbol is missing</span>
+  </li><li class="stage stage--warning">
+    <span class="stage__icon" aria-hidden="true">!</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail">Code snapshot unavailable</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">exhaustive · 1 test · 2/2 claims proved</span>
+  </li></ul>
+    
+    
+    
+    
+  </article><article class="requirement requirement--missing" data-state="attention" data-gate="semantic">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-WEIRD-FLOOR.md" target="_blank" rel="noopener noreferrer">REQ-WEIRD-FLOOR</a> <span class="evidence-level evidence-level--asserted" title="Evidence level">asserted</span> <span class="evidence-floor evidence-floor--odd_state" title="Evidence floor: tested, set by required_evidence">floor tested* · Odd State</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">2/2 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-WEIRD-FLOOR.md" target="_blank" rel="noopener noreferrer">Title of REQ-WEIRD-FLOOR</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--missing">Needs attention</span>
+    </header>
+    <ul class="stages"><li class="stage stage--muted">
+    <span class="stage__icon" aria-hidden="true">—</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail">Grounded with unresolved coherence</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--warning">
+    <span class="stage__icon" aria-hidden="true">!</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail">2 symbols need current coordinates</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4-L9" target="_blank" rel="noopener noreferrer">tests/e2e/a.spec.ts:4-9</a>, <a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">tests/e2e/b.spec.ts:2</a></span>
+  </li><li class="stage stage--warning">
+    <span class="stage__icon" aria-hidden="true">!</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail">Receipt uses an older verification contract</span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">exhaustive · 1 test · 2/2 claims proved</span>
+  </li></ul>
+    
+    
+    
+    
+  </article><article class="requirement requirement--tested" data-state="tested" data-gate="proved">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-ATTESTED.md" target="_blank" rel="noopener noreferrer">REQ-ATTESTED</a> <span class="evidence-level evidence-level--tested" title="Evidence level">tested</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">0/1 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-ATTESTED.md" target="_blank" rel="noopener noreferrer">Title of REQ-ATTESTED</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--tested">Tested</span>
+    </header>
+    <ul class="stages"><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/facts/FACT-A.md" target="_blank" rel="noopener noreferrer">.kb/facts/FACT-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/src/a.ts#L3" target="_blank" rel="noopener noreferrer">src/a.ts:3</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4-L9" target="_blank" rel="noopener noreferrer">tests/e2e/a.spec.ts:4-9</a>, <a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">tests/e2e/b.spec.ts:2</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">Passed</a> <time datetime="2026-05-01T10:00:00.000Z">2026-05-01 10:00 UTC</time><span class="relative-age" data-relative-from="2026-05-01T10:00:00.000Z"></span></span>
+  </li><li class="stage stage--warning">
+    <span class="stage__icon" aria-hidden="true">!</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">0/1 claims proved</span>
+  </li></ul>
+    
+    
+    <details class="proof-advisories"><summary>1 advisory</summary><ul><li>One Advisory</li></ul></details>
+    
+  </article><article class="requirement requirement--tested" data-state="tested" data-gate="proved">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-PLAIN.md" target="_blank" rel="noopener noreferrer">REQ-PLAIN</a> <span class="evidence-level evidence-level--tested" title="Evidence level">tested</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-PLAIN.md" target="_blank" rel="noopener noreferrer">Title of REQ-PLAIN</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--tested">Tested</span>
+    </header>
+    <ul class="stages"><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/facts/FACT-A.md" target="_blank" rel="noopener noreferrer">.kb/facts/FACT-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/src/a.ts#L3" target="_blank" rel="noopener noreferrer">src/a.ts:3</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4-L9" target="_blank" rel="noopener noreferrer">tests/e2e/a.spec.ts:4-9</a>, <a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">tests/e2e/b.spec.ts:2</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">Passed</a> <time datetime="2026-05-01T10:00:00.000Z">2026-05-01 10:00 UTC</time><span class="relative-age" data-relative-from="2026-05-01T10:00:00.000Z"></span></span>
+  </li></ul>
+    
+    
+    
+    
+  </article><article class="requirement requirement--tested" data-state="tested proved" data-gate="tested">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/proved.md" target="_blank" rel="noopener noreferrer">REQ-PROVED</a> <span class="evidence-level evidence-level--proved" title="Evidence level">proved</span> <span class="evidence-floor evidence-floor--met" title="Evidence floor: proved, set by required_evidence">floor proved* · met</span> <span class="claims-proved" title="Requirement claims a re-checked certificate derives">2/2 claims proved</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/proved.md" target="_blank" rel="noopener noreferrer">Proved &lt;login&gt; &amp; &#39;quotes&#39;</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--proved">Proved</span>
+    </header>
+    <ul class="stages"><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/facts/FACT-A.md" target="_blank" rel="noopener noreferrer">.kb/facts/FACT-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/src/a.ts#L3" target="_blank" rel="noopener noreferrer">src/a.ts:3</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4-L9" target="_blank" rel="noopener noreferrer">tests/e2e/a.spec.ts:4-9</a>, <a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">tests/e2e/b.spec.ts:2</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">Passed</a> <time datetime="2026-05-01T10:00:00.000Z">2026-05-01 10:00 UTC</time><span class="relative-age" data-relative-from="2026-05-01T10:00:00.000Z"></span></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">exhaustive, regex · 1 test · 2/2 claims proved</span>
+  </li></ul>
+    
+    
+    
+    
+  </article><article class="requirement requirement--tested" data-state="tested" data-gate="proved">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-REJECTED.md" target="_blank" rel="noopener noreferrer">REQ-REJECTED</a> <span class="evidence-level evidence-level--tested" title="Evidence level">tested</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-REJECTED.md" target="_blank" rel="noopener noreferrer">Title of REQ-REJECTED</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--tested">Tested</span>
+    </header>
+    <ul class="stages"><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/facts/FACT-A.md" target="_blank" rel="noopener noreferrer">.kb/facts/FACT-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/src/a.ts#L3" target="_blank" rel="noopener noreferrer">src/a.ts:3</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4-L9" target="_blank" rel="noopener noreferrer">tests/e2e/a.spec.ts:4-9</a>, <a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">tests/e2e/b.spec.ts:2</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">Passed</a> <time datetime="2026-05-01T10:00:00.000Z">2026-05-01 10:00 UTC</time><span class="relative-age" data-relative-from="2026-05-01T10:00:00.000Z"></span></span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">1 certificate does not re-check</span>
+  </li></ul>
+    
+    
+    
+    <details class="proof-gaps certificate-rejections"><summary>1 certificate rejection</summary><ul><li>TEST-Y: binding for CLAIM-1 rejected, moved</li></ul></details>
+  </article><article class="requirement requirement--tested" data-state="tested" data-gate="proved">
+    <header class="requirement__header">
+      <div>
+        <div class="requirement__id"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-REJECTED-TWO.md" target="_blank" rel="noopener noreferrer">REQ-REJECTED-TWO</a> <span class="evidence-level evidence-level--tested" title="Evidence level">tested</span></div>
+        <h3><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/requirements/REQ-REJECTED-TWO.md" target="_blank" rel="noopener noreferrer">Title of REQ-REJECTED-TWO</a></h3>
+      </div>
+      <span class="proof-badge proof-badge--tested">Tested</span>
+    </header>
+    <ul class="stages"><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Semantic model</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/facts/FACT-A.md" target="_blank" rel="noopener noreferrer">.kb/facts/FACT-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Scenario</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/.kb/scenarios/SCEN-A.md" target="_blank" rel="noopener noreferrer">.kb/scenarios/SCEN-A.md</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Implementation</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/src/a.ts#L3" target="_blank" rel="noopener noreferrer">src/a.ts:3</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">E2E test</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/a.spec.ts#L4-L9" target="_blank" rel="noopener noreferrer">tests/e2e/a.spec.ts:4-9</a>, <a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">tests/e2e/b.spec.ts:2</a></span>
+  </li><li class="stage stage--passed">
+    <span class="stage__icon" aria-hidden="true">✓</span>
+    <span class="stage__label">Evidence</span>
+    <span class="stage__detail"><a class="source-link" href="https://github.com/acme/app/blob/0123456789abcdef0123/tests/e2e/b.spec.ts#L2" target="_blank" rel="noopener noreferrer">Passed</a> <time datetime="2026-05-01T10:00:00.000Z">2026-05-01 10:00 UTC</time><span class="relative-age" data-relative-from="2026-05-01T10:00:00.000Z"></span></span>
+  </li><li class="stage stage--failed">
+    <span class="stage__icon" aria-hidden="true">×</span>
+    <span class="stage__label">Certificate</span>
+    <span class="stage__detail">2 certificates do not re-check</span>
+  </li></ul>
+    
+    
+    
+    <details class="proof-gaps certificate-rejections"><summary>2 certificate rejections</summary><ul><li>test: certificate rejected, no reason given</li><li>test: binding for claim rejected, no reason given</li></ul></details>
+  </article></div>
+        <div class="empty" id="empty" aria-live="polite">No requirements match this view.</div>
+      </section>
+    </main>
+    <footer>
+      <span>Generated <time datetime="2026-05-02T03:04:05.000Z">2026-05-02 03:04 UTC</time><span class="relative-age" data-relative-from="2026-05-02T03:04:05.000Z"></span> · snapshot abcdef012345 · 1 non-current requirement excluded</span>
+      <span>Generated by Kibi · <a class="cta" href="https://github.com/Looted/kibi/blob/develop/docs/install.md">Add requirement proof to your repo →</a></span>
+    </footer>
+  </div>
+  <script>
+    (() => {
+      const search = document.querySelector("#search");
+      const cards = [...document.querySelectorAll(".requirement")];
+      const filters = [...document.querySelectorAll(".filter")];
+      const gates = [...document.querySelectorAll(".proof-gate")];
+      const empty = document.querySelector("#empty");
+      const gateStatus = document.querySelector("#gate-status");
+      const gateStatusText = gateStatus.querySelector("span");
+      let activeFilter = "all";
+      let activeGate = "all";
+      const formatRelativeAge = (fromMs, nowMs) => {
+        if (!Number.isFinite(fromMs) || !Number.isFinite(nowMs)) return "timestamp unavailable";
+        const deltaSeconds = Math.floor((nowMs - fromMs) / 1000);
+        if (deltaSeconds < 0) return "in the future";
+        if (deltaSeconds < 60) return "just now";
+        const minutes = Math.floor(deltaSeconds / 60);
+        if (minutes < 60) return minutes + "m ago";
+        const hours = Math.floor(deltaSeconds / 3600);
+        const remainingMinutes = minutes % 60;
+        if (hours < 24) return remainingMinutes === 0 ? hours + "h ago" : hours + "h " + remainingMinutes + "m ago";
+        const days = Math.floor(deltaSeconds / 86400);
+        const remainingHours = hours % 24;
+        if (days < 7 && remainingHours > 0) return days + "d " + remainingHours + "h ago";
+        return days + "d ago";
+      };
+      const refreshAges = (now = Date.now()) => {
+        for (const node of document.querySelectorAll("[data-relative-from]")) {
+          const from = Date.parse(node.getAttribute("data-relative-from") || "");
+          node.textContent = formatRelativeAge(from, now);
+        }
+      };
+      const apply = () => {
+        const query = (search.value || "").trim().toLocaleLowerCase();
+        let visible = 0;
+        for (const card of cards) {
+          const states = (card.dataset.state || "").split(" ").filter(Boolean);
+          const gate = card.dataset.gate || "";
+          const matchesState = activeFilter === "all" || states.includes(activeFilter);
+          const matchesGate = activeGate === "all" || gate === activeGate;
+          const matchesQuery = !query || (card.textContent || "").toLocaleLowerCase().includes(query);
+          card.hidden = !(matchesState && matchesGate && matchesQuery);
+          if (!card.hidden) visible += 1;
+        }
+        empty.dataset.visible = String(visible === 0);
+        const selectedGate = gates.find((candidate) => candidate.dataset.gate === activeGate);
+        gateStatus.hidden = selectedGate === undefined;
+        if (selectedGate) {
+          gateStatusText.textContent = visible + (visible === 1 ? " requirement stops" : " requirements stop") + " at " + (selectedGate.dataset.label || activeGate) + ".";
+        }
+      };
+      const selectGate = (selected) => {
+        activeGate = selected;
+        for (const candidate of gates) {
+          candidate.setAttribute("aria-pressed", String(candidate.dataset.gate === activeGate));
+        }
+        apply();
+      };
+      gateStatus.querySelector("button").addEventListener("click", () => selectGate("all"));
+      search.addEventListener("input", apply);
+      for (const filter of filters) {
+        filter.addEventListener("click", () => {
+          activeFilter = filter.dataset.filter || "all";
+          for (const candidate of filters) candidate.setAttribute("aria-pressed", String(candidate === filter));
+          apply();
+        });
+      }
+      for (const gate of gates) {
+        gate.addEventListener("click", () => {
+          const selected = gate.dataset.gate || "all";
+          selectGate(activeGate === selected ? "all" : selected);
+          // The ledger sits below the fold; bring the filtered rows into view.
+          if (activeGate !== "all") gateStatus.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+      refreshAges();
+      setInterval(refreshAges, 30000);
+    })();
+  </script>
+</body>
+</html>

@@ -112,9 +112,8 @@ function text(value: unknown, fallback = ""): string {
 }
 
 function count(value: unknown): number {
-  return typeof value === "number" && Number.isFinite(value)
-    ? Math.max(0, Math.trunc(value))
-    : 0;
+  // Number.isFinite is false for every non-number.
+  return Number.isFinite(value) ? Math.max(0, Math.trunc(value as number)) : 0;
 }
 
 function escapeHtml(value: unknown): string {
@@ -136,14 +135,14 @@ function sourceCoordinate(value: unknown): SourceCoordinate | undefined {
   const item = record(value);
   const path = text(item.path);
   if (!path) return undefined;
-  const line = Number(item.line);
-  const endLine = Number(item.endLine);
   const id = text(item.id);
+  // formatSourceCoordinate and sourceWebUrl ignore a line that is not a whole
+  // number above zero.
   return {
     path,
     ...(id ? { id } : {}),
-    ...(Number.isInteger(line) && line >= 1 ? { line } : {}),
-    ...(Number.isInteger(endLine) && endLine >= 1 ? { endLine } : {}),
+    line: Number(item.line),
+    endLine: Number(item.endLine),
   };
 }
 
@@ -162,12 +161,12 @@ function linkedLabel(label: string, href: string | undefined): string {
   return `<a class="source-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${safe}</a>`;
 }
 
+/** A coordinate with a path, linked to its source when the host is known. */
 function linkedCoordinate(
-  coordinate: SourceCoordinate | undefined,
+  coordinate: SourceCoordinate,
   repository: ReportRepository | undefined,
-  fallback: string,
 ): string {
-  const label = formatSourceCoordinate(coordinate) ?? fallback;
+  const label = formatSourceCoordinate(coordinate) as string;
   return linkedLabel(label, sourceWebUrl(repository, coordinate));
 }
 
@@ -248,7 +247,8 @@ function passesProofGate(row: UnknownRecord, gate: string): boolean {
   if (gate === "e2e") {
     return stagePassed(stages, "scenarioTests") && hasEndToEndTest(stages);
   }
-  return row.proofStatus === "tested";
+  // evidence: only a tested requirement has fresh passing receipts.
+  return false;
 }
 
 function proofGates(rows: readonly UnknownRecord[]): readonly ProofGate[] {
@@ -305,7 +305,7 @@ export function firstFailingProofGate(
 // implements REQ-kibi-html-health-report
 // covered_by TEST-kibi-html-health-report
 export function earliestUnmetGate(row: UnknownRecord): ProofGateKey | "tested" {
-  if (row.proofStatus === "tested") return "tested";
+  // A tested requirement passes every gate before proved.
   return firstFailingProofGate(
     ["semantic", "scenario", "implementation", "e2e", "evidence"],
     (gate) => passesProofGate(row, gate),
@@ -398,13 +398,7 @@ function linkedSourceList(
   if (coordinates.length === 0) return escapeHtml(fallback);
   const visible = coordinates
     .slice(0, 2)
-    .map((coordinate) =>
-      linkedCoordinate(
-        coordinate,
-        repository,
-        formatSourceCoordinate(coordinate) ?? text(coordinate.id, fallback),
-      ),
-    );
+    .map((coordinate) => linkedCoordinate(coordinate, repository));
   const extra = coordinates.length - visible.length;
   return extra > 0
     ? `${visible.join(", ")} +${extra.toLocaleString("en-US")} more`
@@ -550,7 +544,7 @@ function formatTermValue(side: UnknownRecord): string {
 }
 
 function conflictKey(conflict: UnknownRecord): string {
-  const requirements = strings(conflict.requirements).slice().sort().join("/");
+  const requirements = strings(conflict.requirements).toSorted().join("/");
   return `${requirements}:${text(conflict.kind)}:${text(conflict.reason)}`;
 }
 
@@ -757,13 +751,12 @@ function renderRequirement(
   const floor = evidenceFloor(row);
   const rejections = certificateRejectionLines(row);
   const claims = claimsProvedLabel(row);
-  const requirementSource =
-    sourceCoordinate({
-      path: text(
-        record(record(row.proofStages).sourceCoordinates).requirementPath,
-        text(row.source),
-      ),
-    }) ?? sourceCoordinate({ path: text(row.source) });
+  const requirementSource = sourceCoordinate({
+    path: text(
+      record(record(row.proofStages).sourceCoordinates).requirementPath,
+      text(row.source),
+    ),
+  });
   const gate = reportGate(row);
 
   return `<article class="requirement requirement--${escapeHtml(proofStatus)}" data-state="${rowStates(row)}" data-gate="${escapeHtml(gate)}">
@@ -862,25 +855,24 @@ function reportNotice(input: HtmlReportInput): string {
   return `<aside class="snapshot-notice"><strong>Snapshot warning</strong><span>${escapeHtml(notices.join(" "))}</span></aside>`;
 }
 
-function reportIdentity(input: HtmlReportInput): {
+function reportIdentity(
+  branch: string,
+  repository: ReportRepository,
+): {
   title: string;
   snapshotHtml: string;
 } {
-  const branch = text(input.branch, "unknown");
-  const repository = input.repository;
-  const identity = text(repository?.identity);
-  const shortSha = shortCommitSha(repository?.commitSha);
-  const repoHref = repository?.webUrl;
+  const identity = text(repository.identity);
+  const shortSha = shortCommitSha(repository.commitSha);
   const commitHref = commitWebUrl(repository);
-  const parts = [
-    identity ? linkedLabel(identity, repoHref) : "",
+  // The branch is never empty, so the snapshot always names it.
+  const snapshotHtml = [
+    identity ? linkedLabel(identity, repository.webUrl) : "",
     escapeHtml(branch),
     shortSha ? linkedLabel(shortSha, commitHref) : "",
-  ].filter(Boolean);
-  const snapshotHtml =
-    parts.length > 0
-      ? parts.join(' <span aria-hidden="true">/</span> ')
-      : "local workspace";
+  ]
+    .filter(Boolean)
+    .join(' <span aria-hidden="true">/</span> ');
   const titleParts = ["Kibi Requirement Health", identity, branch].filter(
     Boolean,
   );
@@ -915,7 +907,6 @@ export function renderHtmlReport(input: HtmlReportInput): string {
   const symbolSummary = input.symbols.summary;
   const currentRows = input.requirements.rows
     .filter((row) => row.proofStatus !== "not_applicable")
-    .slice()
     .sort((left, right) => {
       const severity = rowSeverity(left) - rowSeverity(right);
       return severity || text(left.id).localeCompare(text(right.id));
@@ -957,13 +948,9 @@ export function renderHtmlReport(input: HtmlReportInput): string {
   };
   const gates = proofGates(currentRows);
   const filterCounts = reportFilterCounts(
-    currentRows.map((row) => ({
-      text: `${text(row.id)} ${text(row.title)}`,
-      states: rowStates(row).split(" ").filter(Boolean),
-      earliestGate: reportGate(row),
-    })),
+    currentRows.map((row) => ({ states: rowStates(row).split(" ") })),
   );
-  const identity = reportIdentity({ ...input, repository });
+  const identity = reportIdentity(branch, repository);
   const faviconHref = renderKibiFaviconDataUri();
   const scoreLabel =
     currentRequirements === 0 ? "No current requirements" : "Tested end to end";
