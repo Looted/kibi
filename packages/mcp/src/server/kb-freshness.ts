@@ -112,6 +112,8 @@ function emptyStamp(branchPath: string): BranchKbStamp {
 }
 
 function formatStatError(statPath: string, error: unknown): string {
-  // fs.stat rejects with an Error (ENOENT, EACCES, ...).
-  return `${statPath}: ${(error as Error).message}`;
+  if (error instanceof Error) {
+    return `${statPath}: ${error.message}`;
+  }
+  return `${statPath}: ${String(error)}`;
 }
