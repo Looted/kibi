@@ -147,21 +147,19 @@ export function createMcpRuntime<TProlog = PrologPort>(
         // session to initialise a store merely to report its condition.
         const providedProlog = options.prolog;
         let lazyProlog: TProlog | undefined;
-        const lazyContext: { current?: OperationContext } = {};
-        const ensureProlog = async (): Promise<PrologPort> => {
-          if (providedProlog !== undefined) return providedProlog;
-          if (lazyProlog !== undefined) return session.adaptProlog(lazyProlog);
-          lazyProlog = await session.ensureProlog();
-          if (lazyContext.current !== undefined)
-            sessionPrologs.set(lazyContext.current, lazyProlog);
-          return session.adaptProlog(lazyProlog);
-        };
         const operationContext: OperationContext = {
           ...withAttachment,
           ...(options.prolog ? { prolog: options.prolog } : {}),
-          ensureProlog,
+          // Only callable once the context exists, so it can record itself.
+          ensureProlog: async (): Promise<PrologPort> => {
+            if (providedProlog !== undefined) return providedProlog;
+            if (lazyProlog !== undefined)
+              return session.adaptProlog(lazyProlog);
+            lazyProlog = await session.ensureProlog();
+            sessionPrologs.set(operationContext, lazyProlog);
+            return session.adaptProlog(lazyProlog);
+          },
         };
-        lazyContext.current = operationContext;
         return operationContext;
       }
       if (!("error" in attachment) && attachment.migrationRequired) {

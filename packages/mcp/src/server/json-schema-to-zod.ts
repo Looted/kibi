@@ -34,9 +34,9 @@ function matchesJsonType(value: unknown, type: string): boolean {
     case "string":
       return typeof value === "string";
     case "number":
-      return typeof value === "number" && Number.isFinite(value);
+      return Number.isFinite(value);
     case "integer":
-      return typeof value === "number" && Number.isInteger(value);
+      return Number.isInteger(value);
     case "boolean":
       return typeof value === "boolean";
     case "null":
@@ -62,17 +62,13 @@ export function matchesJsonSchemaCondition(
   value: unknown,
   schema: unknown,
 ): boolean {
-  if (schema === true || schema === undefined) return true;
   if (schema === false) return false;
+  // `true`, a missing schema and any other non-object accept everything.
   if (schema === null || typeof schema !== "object") return true;
   const condition = schema as JsonRecord;
-  const types = Array.isArray(condition.type)
-    ? condition.type.filter(
-        (entry): entry is string => typeof entry === "string",
-      )
-    : typeof condition.type === "string"
-      ? [condition.type]
-      : [];
+  const types = [condition.type]
+    .flat()
+    .filter((entry): entry is string => typeof entry === "string");
   if (types.length > 0 && !types.some((type) => matchesJsonType(value, type))) {
     return false;
   }
@@ -93,21 +89,19 @@ export function matchesJsonSchemaCondition(
   if (isObject) {
     const record = value as JsonRecord;
     const required = Array.isArray(condition.required)
-      ? condition.required.filter(
-          (key): key is string => typeof key === "string" && key.length > 0,
-        )
+      ? condition.required.filter(isRequiredKey)
       : [];
     if (!required.every((key) => Object.hasOwn(record, key))) return false;
-    if (condition.properties && typeof condition.properties === "object") {
-      for (const [key, propertySchema] of Object.entries(
-        condition.properties as JsonRecord,
-      )) {
-        if (
-          Object.hasOwn(record, key) &&
-          !matchesJsonSchemaCondition(record[key], propertySchema)
-        ) {
-          return false;
-        }
+    // Entries of a non-object `properties` are non-object schemas, which
+    // accept everything.
+    for (const [key, propertySchema] of Object.entries(
+      (condition.properties ?? {}) as JsonRecord,
+    )) {
+      if (
+        Object.hasOwn(record, key) &&
+        !matchesJsonSchemaCondition(record[key], propertySchema)
+      ) {
+        return false;
       }
     }
   }
@@ -136,6 +130,11 @@ export function matchesJsonSchemaCondition(
   return true;
 }
 
+/** A usable `required` entry: a non-empty key name. */
+function isRequiredKey(key: unknown): key is string {
+  return typeof key === "string" && key !== "";
+}
+
 function conditionalRequiredKeys(
   value: JsonRecord,
   condition: unknown,
@@ -144,13 +143,9 @@ function conditionalRequiredKeys(
   const rule = condition as JsonRecord;
   if (!("if" in rule) || !("then" in rule)) return [];
   if (!matchesJsonSchemaCondition(value, rule.if)) return [];
-  if (rule.then === null || typeof rule.then !== "object") return [];
-  const required = (rule.then as JsonRecord).required;
-  return Array.isArray(required)
-    ? required.filter(
-        (key): key is string => typeof key === "string" && key.length > 0,
-      )
-    : [];
+  // A non-object `then` has no `required` list.
+  const required = (rule.then as JsonRecord | null | undefined)?.required;
+  return Array.isArray(required) ? required.filter(isRequiredKey) : [];
 }
 
 const GUARD_KEYWORDS = new Set([
@@ -166,28 +161,35 @@ const GUARD_KEYWORDS = new Set([
 // schemas, so enforcing a oneOf of guard branches can only tighten
 // validation, never loosen it.
 function isGuardBranch(branch: unknown): boolean {
-  if (branch === null || typeof branch !== "object" || Array.isArray(branch))
-    return false;
-  const record = branch as JsonRecord;
+  // A primitive or a list has no guard keywords among its keys, so only a
+  // non-empty record of guard keywords qualifies.
+  const record = (branch ?? {}) as JsonRecord;
   const keys = Object.keys(record);
-  if (keys.length === 0) return false;
-  return keys.every((key) => {
-    if (!GUARD_KEYWORDS.has(key)) return false;
-    const entry = record[key];
-    if (key === "required")
-      return (
-        Array.isArray(entry) && entry.every((item) => typeof item === "string")
-      );
-    if (key === "not") return isGuardBranch(entry);
-    if (key === "anyOf" || key === "allOf")
-      return Array.isArray(entry) && entry.every(isGuardBranch);
-    return true;
-  });
+  return (
+    keys.length > 0 &&
+    keys.every((key) => {
+      if (!GUARD_KEYWORDS.has(key)) return false;
+      const entry = record[key];
+      if (key === "required")
+        return (
+          Array.isArray(entry) &&
+          entry.every((item) => typeof item === "string")
+        );
+      if (key === "not") return isGuardBranch(entry);
+      if (key === "anyOf" || key === "allOf")
+        return Array.isArray(entry) && entry.every(isGuardBranch);
+      return true;
+    })
+  );
 }
 
-function guardOneOfBranches(obj: JsonRecord): readonly JsonRecord[] {
-  if (!Array.isArray(obj.oneOf) || obj.oneOf.length < 2) return [];
-  return obj.oneOf.every(isGuardBranch) ? (obj.oneOf as JsonRecord[]) : [];
+function guardOneOfBranches(obj: JsonRecord): readonly JsonRecord[] | null {
+  const branches = obj.oneOf;
+  return Array.isArray(branches) &&
+    branches.length >= 2 &&
+    branches.every(isGuardBranch)
+    ? (branches as JsonRecord[])
+    : null;
 }
 
 function describeGuardBranch(branch: JsonRecord): string {
@@ -195,9 +197,9 @@ function describeGuardBranch(branch: JsonRecord): string {
     ? (branch.required as string[])
     : [];
   const forbidden = new Set<string>();
+  // Only guard branches get here, so `not` and its parts are records or absent.
   const collect = (entry: unknown) => {
-    if (entry === null || typeof entry !== "object") return;
-    const record = entry as JsonRecord;
+    const record = (entry ?? {}) as JsonRecord;
     if (Array.isArray(record.required))
       for (const key of record.required as string[]) forbidden.add(key);
     if (Array.isArray(record.anyOf))
@@ -213,11 +215,9 @@ function describeGuardBranch(branch: JsonRecord): string {
 
 // implements REQ-002, REQ-mcp-oneof-guard-input-validation
 export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
-  if (!schema || typeof schema !== "object") {
-    return z.any();
-  }
-
-  const obj = schema as Record<string, unknown>;
+  // A missing or primitive schema has none of the keywords below, so it
+  // becomes an undescribed z.any().
+  const obj = (schema ?? {}) as Record<string, unknown>;
 
   if (Object.hasOwn(obj, "const")) {
     const description =
@@ -261,11 +261,9 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
     return description ? union.describe(description) : union;
   }
 
-  const schemaTypes = Array.isArray(obj.type)
-    ? obj.type.filter((value): value is string => typeof value === "string")
-    : typeof obj.type === "string"
-      ? [obj.type]
-      : [];
+  const schemaTypes = [obj.type]
+    .flat()
+    .filter((value): value is string => typeof value === "string");
 
   // JSON Schema anyOf unions become real Zod unions so MCP output
   // validation enforces the declared alternatives instead of silently
@@ -303,12 +301,11 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
         obj.properties && typeof obj.properties === "object"
           ? (obj.properties as Record<string, unknown>)
           : {};
-      const required = new Set(
+      // Property names are text, so a non-text entry never matches one.
+      const required = new Set<unknown>(
         Array.isArray(obj.required)
-          ? obj.required.filter(
-              (k): k is string => typeof k === "string" && k.length > 0,
-            )
-          : [],
+          ? obj.required.filter((key) => key !== "")
+          : undefined,
       );
 
       const shape: Record<string, z.ZodTypeAny> = {};
@@ -329,13 +326,11 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       if (Array.isArray(obj.allOf)) {
         result = result
           .superRefine((value, context) => {
-            if (value === null || typeof value !== "object") return;
+            // Refinements run only on a value that parsed as an object.
+            const record = value as JsonRecord;
             for (const condition of obj.allOf as readonly unknown[]) {
-              for (const key of conditionalRequiredKeys(
-                value as JsonRecord,
-                condition,
-              )) {
-                if (!Object.hasOwn(value, key)) {
+              for (const key of conditionalRequiredKeys(record, condition)) {
+                if (!Object.hasOwn(record, key)) {
                   context.addIssue({
                     code: "custom",
                     path: [key],
@@ -354,9 +349,8 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       // a top-level oneOf in a tool input schema; the CLI enforces the same
       // rule with ajv.
       const guardBranches = guardOneOfBranches(obj);
-      if (guardBranches.length > 0) {
+      if (guardBranches) {
         result = result.superRefine((value, context) => {
-          if (value === null || typeof value !== "object") return;
           const matches = guardBranches.filter((branch) =>
             matchesJsonSchemaCondition(value, branch),
           ).length;

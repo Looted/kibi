@@ -5,7 +5,9 @@ import {
   flushTelemetry,
   recordOperationTelemetry,
   takeTelemetryNotice,
+  telemetryErrorClass,
 } from "kibi-agent-core/usage-telemetry";
+import { operationTelemetrySignals } from "kibi-cli/telemetry-details";
 
 import { classifyDiagnosticError } from "./diagnostics-helpers.js";
 import { readMcpPackageVersion } from "./diagnostics.js";
@@ -41,11 +43,28 @@ function telemetrySource(clientName: string | undefined): TelemetrySource {
 
 /** A failed result's error code, e.g. `UPSERT_DRY_RUN_INVALID`. */
 function resultErrorCode(result: unknown): string | undefined {
-  if (result === null || typeof result !== "object") return undefined;
-  const error = (result as { error?: unknown }).error;
-  if (error === null || typeof error !== "object") return undefined;
-  const code = (error as { code?: unknown }).code;
+  // A primitive result or error has no code property to read.
+  const code = (
+    result as { error?: { code?: unknown } | null } | null | undefined
+  )?.error?.code;
   return typeof code === "string" ? code : undefined;
+}
+
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * The category of a thrown error: the diagnostic classification, unless it
+ * found nothing more specific than `handler_error` and the error carries its
+ * own code (a coded rejection such as ENTITY_VALIDATION_FAILED, or a system
+ * error such as ENOENT).
+ */
+function thrownErrorCategory(error: unknown): string {
+  const classified = classifyDiagnosticError(error).error_category;
+  if (classified !== "handler_error") return classified;
+  const code =
+    error !== null && typeof error === "object"
+      ? (error as { code?: unknown }).code
+      : undefined;
+  return typeof code === "string" && code !== "" ? code : classified;
 }
 
 // implements REQ-kibi-anonymous-usage-telemetry
@@ -59,6 +78,8 @@ export function recordMcpToolTelemetry(input: {
   readonly result?: unknown;
   /** The client name the host sent on initialize. */
   readonly clientName?: string | undefined;
+  /** The tool's business arguments; only fixed signals are derived. */
+  readonly args?: unknown;
 }): void {
   recordOperationTelemetry(telemetrySource(input.clientName), {
     interface: "mcp",
@@ -67,10 +88,21 @@ export function recordMcpToolTelemetry(input: {
     durationMs: Date.now() - input.startedAt.getTime(),
     errorCategory:
       input.error !== undefined
-        ? classifyDiagnosticError(input.error).error_category
+        ? thrownErrorCategory(input.error)
         : input.status === "error"
           ? resultErrorCode(input.result)
           : undefined,
+    errorClass:
+      input.error !== undefined
+        ? (telemetryErrorClass(input.error) ?? undefined)
+        : undefined,
+    // implements REQ-kibi-telemetry-agent-signals
+    signals: operationTelemetrySignals({
+      operation: input.operation,
+      args: input.args,
+      result: input.result,
+      ...(input.error !== undefined ? { error: input.error } : {}),
+    }),
   });
 }
 

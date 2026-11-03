@@ -105,6 +105,23 @@ step; the contract test checks that they differ only by that preload.
 `packages/opencode/src/tui.tsx` is not mutated (Stryker's `*.ts` glob), but its
 lines are covered by the unit suite.
 
+## kibi-mcp
+
+`bun run test:mutation:mcp` runs a fourth Stryker gate, `stryker.mcp.conf.mjs`,
+over every `src/**/*.ts` file of kibi-mcp (type declarations aside), tested
+by every `*.test.ts` under `packages/mcp/tests`. The suite starts real Kibi
+engines, so `.github/workflows/mutation-mcp.yml` installs the pipeline-built
+SWI-Prolog, and one `bun test` run may take up to five minutes (the whole
+suite takes about two and a half). A whole run takes about two and a half
+hours on one runner, so CI splits it into five parallel jobs:
+`MCP_MUTATION_SHARDS` lists four groups of costly modules, and the fifth job
+takes every other file. `MCP_MUTATION_SHARD=<n>` selects a job's files
+locally; without it one run mutates the whole package. A new source file
+lands in the fifth job. Tests that change `process.env` must set
+and delete keys in place and restore them (`tests/helpers/process-env.ts`):
+replacing the object detaches `os.tmpdir()` from `TMPDIR` for the rest of the
+run.
+
 ## TypeScript gate scope
 
 `stryker.conf.mjs` mutates these whole packages (`MUTATION_PACKAGES`), each
@@ -174,6 +191,7 @@ production runtime; the remaining excluded mutants fall into these groups:
 | `packages/cursor/src/hook-state-storage.ts` | `sleepSync`/retry pacing is outcome-neutral; lock-outcome booleans converge; coercion tolerates primitives; Bun empty-encoding equivalents. |
 | `packages/cursor/src/hook-runner.ts`, `packages/cursor/src/hook-state-storage.ts` (type-narrowing guards) | `toolName !== undefined` and `lane === undefined` checks narrow types for `Set<string>.has`; at runtime `Set.has(undefined)` is false, so the outcome is identical with or without them. |
 | `packages/cli/src/engine-limits.ts` (`boundedInteger`) | The `typeof value === "number"` check narrows the type for the comparisons; `Number.isSafeInteger` already rejects every non-number. |
+| `packages/agent-core/src/telemetry-signals.ts`, `packages/agent-core/src/usage-telemetry.ts` (struggle signals) | A placeholder item in place of an empty stored list is not an object, so the entry filters drop it; a placeholder workspace hash matches no skill marker, which only holds workspace keys; without a workspace every call hashes the same fallback, so which string it is cannot change a retry or repeat match. |
 | `packages/cli/src/entity-body-context.ts` (`classifyLines`) | A prose row's `heading: ""` is never read, and `match[1]?.length` only satisfies the indexed-access type (the pattern always captures the hashes). |
 | `packages/cli/src/logic/ir.ts` | `renameTerm`'s variable guard and the declared-name guard only narrow types (a missing name is never looked up), and the `?? []` fallback over declared variables yields entries without a name, which rename nothing. |
 | `packages/cli` check speedups (`source-analysis-cache.ts`, `symbol-coordinates.ts`, `shards.ts`, `symbol-granularity-check.ts`, `requirement-quality.ts`, `aggregated-checks.ts`) and `packages/mcp/src/tools/check-prolog.ts` | These modules are not in the gated set; their speedup lines were mutated by line range. A pure-function memo skipped or recomputed gives the same answer; the builtin analyzer always resolves where tests run; `force` on removing a directory that exists changes nothing; Windows separator normalization cannot show on a POSIX runner; an incomplete analysis carries no symbols; every requirement asked for is in the fanout index. |

@@ -66,6 +66,8 @@ on:
       - 'packages/cli/tests/search-hints.test.ts'
       - 'packages/cli/src/plugins/generated-sources.ts'
       - 'packages/cli/tests/plugins/generated-sources-mutation.test.ts'
+      - 'packages/cli/src/telemetry-details.ts'
+      - 'packages/cli/tests/telemetry-details.test.ts'
       - 'packages/cli/tests/plugins/language-pack-relevance.test.ts'
       - 'packages/plugin-search-hints/src/**'
       - 'packages/plugin-search-hints/tests/**'

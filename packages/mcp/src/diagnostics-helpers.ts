@@ -183,7 +183,8 @@ function semanticContradictionIds(message: string): {
   );
   const conflicts = [
     ...message.matchAll(/Conflicts with\s+([^:\s]+)/gi),
-  ].flatMap((match) => (match[1] ? [match[1]] : []));
+    // The group is not optional, so every match captures it.
+  ].map((match) => match[1] as string);
   return {
     ...(checked?.[1] ? { semantic_checked_req_id: checked[1] } : {}),
     ...(conflicts.length > 0

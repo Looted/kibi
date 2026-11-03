@@ -78,12 +78,8 @@ export type OptionalToolName = (typeof OPTIONAL_TOOL_NAMES)[number];
 export function enabledOptionalTools(
   value: string | undefined = process.env.KIBI_MCP_OPTIONAL_TOOLS,
 ): ReadonlySet<OptionalToolName> {
-  const requested = new Set(
-    (value ?? "")
-      .split(",")
-      .map((entry) => entry.trim())
-      .filter(Boolean),
-  );
+  // An empty entry names no tool, so it needs no filtering.
+  const requested = new Set(value?.split(",").map((entry) => entry.trim()));
   return new Set(
     OPTIONAL_TOOL_NAMES.filter(
       (name) => requested.has("all") || requested.has(name),
@@ -92,132 +88,35 @@ export function enabledOptionalTools(
 }
 
 // implements REQ-002
-const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
-  kb_query: {
-    title: "Query Kibi entities",
-  },
-  kb_search: {
-    title: "Search Kibi knowledge base",
-  },
-  kb_status: {
-    title: "Inspect Kibi branch status",
-    readOnlyHint: true,
-    destructiveHint: false,
-    idempotentHint: true,
-    openWorldHint: false,
-  },
-  kb_skills: {
-    title: "Read bundled Kibi skills",
-    readOnlyHint: true,
-    destructiveHint: false,
-    idempotentHint: true,
-    openWorldHint: false,
-  },
-  kb_model: {
-    title: "Model Kibi requirement prose",
-    readOnlyHint: true,
-    destructiveHint: false,
-    idempotentHint: true,
-    openWorldHint: false,
-  },
-  kb_skills_list: {
-    title: "List bundled Kibi skills",
-    readOnlyHint: true,
-    destructiveHint: false,
-    idempotentHint: true,
-    openWorldHint: false,
-  },
-  kb_skills_load: {
-    title: "Load a bundled Kibi skill",
-    readOnlyHint: true,
-    destructiveHint: false,
-    idempotentHint: true,
-    openWorldHint: false,
-  },
-  kb_skills_read: {
-    title: "Read a bundled Kibi skill resource",
-    readOnlyHint: true,
-    destructiveHint: false,
-    idempotentHint: true,
-    openWorldHint: false,
-  },
-  kb_find_gaps: {
-    title: "Find missing Kibi relationships",
-  },
-  kb_coverage: {
-    title: "Report Kibi coverage and proofs",
-  },
-  kb_graph: {
-    title: "Traverse Kibi graph",
-  },
-  kb_sparql_remote: {
-    title: "Run a remote SPARQL query",
-  },
-  kb_semantic_advisor: {
-    title: "Advise on Kibi requirement modeling",
-    readOnlyHint: true,
-    destructiveHint: false,
-    idempotentHint: true,
-    openWorldHint: false,
-  },
-  kb_suggest_predicates: {
-    title: "Suggest Kibi ontology predicates",
-    readOnlyHint: true,
-    destructiveHint: false,
-    idempotentHint: true,
-    openWorldHint: false,
-  },
-  kb_upsert: {
-    title: "Create or update Kibi entities",
-  },
-  kb_validate_upsert: {
-    title: "Validate a Kibi upsert payload",
-  },
-  kb_delete: {
-    title: "Delete a Kibi entity",
-  },
-  kb_check: {
-    title: "Validate Kibi knowledge base",
-  },
-  kb_prepare_impact_review: {
-    title: "Prepare an impact review",
-    readOnlyHint: true,
-    destructiveHint: false,
-    idempotentHint: true,
-    openWorldHint: false,
-  },
-  kb_model_requirement: {
-    title: "Model a Kibi requirement",
-  },
-  kb_compile_intent: {
-    title: "Compile Kibi change intent",
-    readOnlyHint: true,
-    destructiveHint: false,
-    idempotentHint: true,
-    openWorldHint: false,
-  },
-  kb_plan_bootstrap: {
-    title: "Plan Kibi bootstrap",
-  },
-  kb_apply_plan: {
-    title: "Apply an approved Kibi plan",
-    readOnlyHint: false,
-    destructiveHint: false,
-    idempotentHint: false,
-    openWorldHint: false,
-  },
-  kb_ingest_proof: {
-    title: "Ingest proof-run evidence",
-    readOnlyHint: false,
-    destructiveHint: false,
-    idempotentHint: false,
-    openWorldHint: false,
-  },
+/**
+ * Presentation titles. The behaviour hints come from the operation effects
+ * (see toolConfig), so only the tools MCP exposes need an entry here.
+ */
+const TOOL_TITLES: Readonly<
+  Record<(typeof MCP_TOOL_ORDER)[number] | "kb_sparql_remote", string>
+> = {
+  kb_query: "Query Kibi entities",
+  kb_search: "Search Kibi knowledge base",
+  kb_status: "Inspect Kibi branch status",
+  kb_skills: "Read bundled Kibi skills",
+  kb_model: "Model Kibi requirement prose",
+  kb_find_gaps: "Find missing Kibi relationships",
+  kb_coverage: "Report Kibi coverage and proofs",
+  kb_graph: "Traverse Kibi graph",
+  kb_sparql_remote: "Run a remote SPARQL query",
+  kb_upsert: "Create or update Kibi entities",
+  kb_delete: "Delete a Kibi entity",
+  kb_check: "Validate Kibi knowledge base",
+  kb_prepare_impact_review: "Prepare an impact review",
+  kb_compile_intent: "Compile Kibi change intent",
+  kb_plan_bootstrap: "Plan Kibi bootstrap",
+  kb_apply_plan: "Apply an approved Kibi plan",
+  kb_ingest_proof: "Ingest proof-run evidence",
 };
 
 function exposedToolNames(
   optional: ReadonlySet<OptionalToolName>,
-): readonly OperationName[] {
+): readonly (keyof typeof TOOL_TITLES)[] {
   return [
     ...MCP_TOOL_ORDER,
     ...(optional.has("kb_sparql_remote")
@@ -226,7 +125,7 @@ function exposedToolNames(
   ];
 }
 
-function toolConfig(name: OperationName): ToolConfig {
+function toolConfig(name: keyof typeof TOOL_TITLES): ToolConfig {
   const spec = getSpec(name);
   const effects = spec.declaredEffects;
   const derived: ToolAnnotations = {
@@ -241,10 +140,9 @@ function toolConfig(name: OperationName): ToolConfig {
     inputSchema: spec.businessInputSchema,
     ...(spec.outputSchema ? { outputSchema: spec.outputSchema } : {}),
     annotations: {
-      ...(TOOL_ANNOTATIONS[name] ?? {}),
       // Mutability and world-model hints are generated from the authoritative
-      // operation effects. Hand-authored entries may supply presentation-only
-      // metadata such as a title, but cannot contradict the catalog contract.
+      // operation effects; only the title is hand-authored.
+      title: TOOL_TITLES[name],
       ...derived,
     },
   };
@@ -291,8 +189,14 @@ export function withDiagnosticTelemetrySchema(
  * Active tools list.
  * In diagnostic mode, all tools include the _diagnostic_telemetry parameter.
  */
-export const TOOLS: ToolConfig[] = withWorkspaceRootSchema(
-  DIAGNOSTIC_MODE_ENABLED
-    ? withDiagnosticTelemetrySchema(BASE_TOOLS)
-    : [...BASE_TOOLS],
-);
+export function activeTools(
+  diagnosticMode: boolean = DIAGNOSTIC_MODE_ENABLED,
+): ToolConfig[] {
+  return withWorkspaceRootSchema(
+    diagnosticMode
+      ? withDiagnosticTelemetrySchema(BASE_TOOLS)
+      : [...BASE_TOOLS],
+  );
+}
+
+export const TOOLS: ToolConfig[] = activeTools();

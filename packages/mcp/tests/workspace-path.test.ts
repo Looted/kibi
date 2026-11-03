@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
-  mkdtempSync,
   mkdirSync,
+  mkdtempSync,
   realpathSync,
   rmSync,
   writeFileSync,
@@ -31,7 +31,7 @@ describe("mcp workspace-path confinement", () => {
       expect(resolveWorkspaceSourceAbsolute(root, secret)).toBeNull();
       expect(resolveWorkspaceSourceAbsolute(root, "/etc/passwd")).toBeNull();
       expect(
-        resolveWorkspaceSourceAbsolute(root, "../" + path.basename(outside)),
+        resolveWorkspaceSourceAbsolute(root, `../${path.basename(outside)}`),
       ).toBeNull();
     } finally {
       rmSync(root, { recursive: true, force: true });

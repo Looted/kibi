@@ -22,6 +22,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import process from "node:process";
 import * as coveredSession from "../../src/server/session.js";
+import { restoreProcessEnv } from "../helpers/process-env.js";
 
 // ============================================================================
 // MOCKED DEPENDENCIES
@@ -170,13 +171,13 @@ describe.serial("session module", () => {
   beforeEach(() => {
     resetMocks();
     // Reset environment
-    process.env = { ...originalEnv };
+    restoreProcessEnv(originalEnv);
     Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     Reflect.deleteProperty(process.env, "KIBI_MCP_DEBUG");
   });
 
   afterEach(async () => {
-    process.env = { ...originalEnv };
+    restoreProcessEnv(originalEnv);
     mock.restore();
   });
 

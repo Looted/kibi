@@ -4,8 +4,9 @@
 // are fast enough for per-mutant `bun test` runs, plus kibi-cli modules added
 // one at a time (CLI_MUTATION_MODULES). The gate is absolute: any surviving
 // mutant fails the run. Before extending scope, read
-// docs/mutation-testing.md — the rest of cli, mcp and core stay out of scope
-// (engine-heavy tests, Prolog sources).
+// docs/mutation-testing.md. kibi-mcp, the editor hosts and the tree-sitter
+// readers have lanes of their own (stryker.*.conf.mjs), and the Prolog core
+// is gated by Mutalog (mutalog.config.pl).
 //
 // The test runner is @hughescr/stryker-bun-runner: it spawns a fresh
 // `bun test` child per run and correlates tests to mutants via Bun's
@@ -70,6 +71,9 @@ export const CLI_MUTATION_MODULES = {
   ],
   "packages/cli/src/plugins/compose-search-hints.ts": [
     "packages/cli/tests/search-hints.test.ts",
+  ],
+  "packages/cli/src/telemetry-details.ts": [
+    "packages/cli/tests/telemetry-details.test.ts",
   ],
   "packages/cli/src/plugins/generated-sources.ts": [
     "packages/cli/tests/plugins/generated-sources-mutation.test.ts",

@@ -71,7 +71,8 @@ const defaultSessionDeps: SessionDeps = {
   resolveWorkspaceRoot,
 };
 
-let sessionDeps: SessionDeps = { ...defaultSessionDeps };
+// Overrides always build a new object, so the defaults are never changed.
+let sessionDeps: SessionDeps = defaultSessionDeps;
 
 /**
  * Mutable per-process session state.
@@ -86,24 +87,29 @@ interface McpSessionState {
   isInitialized: boolean;
   activeBranchName: string;
   ensurePrologTail: Promise<void>;
-  prologResetGeneration: number;
+  /** Replaced on every reset; an initialization compares it by identity. */
+  prologResetGeneration: object;
   attachedBranchKbPath: string | null;
   attachedBranchStamp: BranchKbStamp | null;
   isShuttingDown: boolean;
   shutdownTimeout: NodeJS.Timeout | null;
 }
 
-const state: McpSessionState = {
-  prologProcess: null,
-  isInitialized: false,
-  activeBranchName: "develop",
-  ensurePrologTail: Promise.resolve(),
-  prologResetGeneration: 0,
-  attachedBranchKbPath: null,
-  attachedBranchStamp: null,
-  isShuttingDown: false,
-  shutdownTimeout: null,
-};
+function initialState(): McpSessionState {
+  return {
+    prologProcess: null,
+    isInitialized: false,
+    activeBranchName: "develop",
+    ensurePrologTail: Promise.resolve(),
+    prologResetGeneration: {},
+    attachedBranchKbPath: null,
+    attachedBranchStamp: null,
+    isShuttingDown: false,
+    shutdownTimeout: null,
+  };
+}
+
+const state: McpSessionState = initialState();
 
 // implements REQ-core-prolog-process-management
 export function getPrologProcess(): PrologProcess | null {
@@ -135,19 +141,10 @@ export function updateAttachedBranchStamp(stamp: BranchKbStamp): void {
 
 // implements REQ-core-prolog-process-management
 export function resetSessionStateForTests(): void {
-  state.prologProcess = null;
-  state.isInitialized = false;
-  state.activeBranchName = "develop";
-  state.ensurePrologTail = Promise.resolve();
-  state.prologResetGeneration = 0;
-  state.attachedBranchKbPath = null;
-  state.attachedBranchStamp = null;
-  state.isShuttingDown = false;
+  // Clearing no timer (null) is harmless.
+  clearTimeout(state.shutdownTimeout as NodeJS.Timeout);
+  Object.assign(state, initialState());
   inFlightRequests.clear();
-  if (state.shutdownTimeout) {
-    clearTimeout(state.shutdownTimeout);
-    state.shutdownTimeout = null;
-  }
 }
 
 export function _setSessionDepsForTests(
@@ -159,7 +156,7 @@ export function _setSessionDepsForTests(
 
 export function _resetSessionDepsForTests(): void {
   // implements REQ-core-prolog-process-management
-  sessionDeps = { ...defaultSessionDeps };
+  sessionDeps = defaultSessionDeps;
 }
 
 // implements REQ-core-prolog-process-management
@@ -229,10 +226,9 @@ export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
       `[KIBI-MCP] Waiting for ${inFlightRequests.size} in-flight requests to complete...`,
     );
 
+    // The rejection only ends the wait, so it carries no reason.
     const timeoutPromise = new Promise((_, reject) => {
-      state.shutdownTimeout = setTimeout(() => {
-        reject(new Error("Shutdown timeout"));
-      }, 10000); // 10 second timeout
+      state.shutdownTimeout = setTimeout(reject, 10000); // 10 second timeout
     });
 
     try {
@@ -244,10 +240,9 @@ export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
     } catch (_error) {
       console.error("[KIBI-MCP] Shutdown timeout reached, forcing exit");
     } finally {
-      if (state.shutdownTimeout) {
-        clearTimeout(state.shutdownTimeout);
-        state.shutdownTimeout = null;
-      }
+      // Still set unless a test reset cleared it; clearing null is harmless.
+      clearTimeout(state.shutdownTimeout as NodeJS.Timeout);
+      state.shutdownTimeout = null;
     }
   }
 
@@ -260,7 +255,7 @@ export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
 // implements REQ-core-prolog-process-management
 export async function resetProlog(reason: string): Promise<void> {
   debugLog(`[KIBI-MCP] Resetting Prolog worker: ${reason}`);
-  state.prologResetGeneration += 1;
+  state.prologResetGeneration = {};
   const current = state.prologProcess;
   state.prologProcess = null;
   state.isInitialized = false;
@@ -346,9 +341,10 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
   const assertGeneration = async (): Promise<void> => {
     if (generationAtStart !== state.prologResetGeneration) {
+      // The reset already cleared isInitialized; only a process installed
+      // since then remains to stop.
       const current = state.prologProcess;
       state.prologProcess = null;
-      state.isInitialized = false;
       if (current) {
         await current.terminate().catch((error) => {
           console.error(
@@ -391,112 +387,103 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   }
 
   // Check if we need to switch branches
-  if (state.isInitialized && useEngine && state.prologProcess?.isRunning()) {
-    const kbPath = sessionDeps.resolveKbPath(workspaceRoot, targetBranch);
-    if (targetBranch === state.activeBranchName) {
-      state.attachedBranchKbPath = kbPath;
-      state.attachedBranchStamp = await readBranchKbStamp(kbPath);
-      return state.prologProcess;
-    }
-    await state.prologProcess.terminate();
-    state.prologProcess = null;
-    state.isInitialized = false;
-    state.attachedBranchKbPath = null;
-    state.attachedBranchStamp = null;
-  }
-
   if (state.isInitialized && state.prologProcess?.isRunning()) {
     const kbPath = sessionDeps.resolveKbPath(workspaceRoot, targetBranch);
-
-    if (targetBranch === state.activeBranchName) {
-      const currentStamp = await readBranchKbStamp(kbPath);
-      if (
-        usesBranchKbPath(kbPath) &&
-        (currentStamp.rdfMissing ||
-          currentStamp.dirMissing ||
-          currentStamp.errorMessage !== null)
-      ) {
-        throw new KbRefreshError(
-          `KB refresh failed: branch KB snapshot is unstable: ${describeBranchKbStamp(currentStamp)}`,
-        );
-      }
-      const shouldRefresh =
-        state.attachedBranchKbPath === kbPath &&
-        state.attachedBranchStamp !== null &&
-        usesBranchKbPath(kbPath) &&
-        !sameBranchKbStamp(currentStamp, state.attachedBranchStamp);
-
-      if (shouldRefresh) {
-        state.attachedBranchStamp = await refreshAttachedBranchKbWithRetry(
-          state.prologProcess,
-          kbPath,
-          currentStamp,
-          assertGeneration,
-        );
-      } else {
+    if (useEngine) {
+      if (targetBranch === state.activeBranchName) {
         state.attachedBranchKbPath = kbPath;
-        state.attachedBranchStamp = currentStamp;
+        state.attachedBranchStamp = await readBranchKbStamp(kbPath);
+        return state.prologProcess;
       }
+      await state.prologProcess.terminate();
+      state.prologProcess = null;
+      state.isInitialized = false;
+      state.attachedBranchKbPath = null;
+      state.attachedBranchStamp = null;
+    } else {
+      if (targetBranch === state.activeBranchName) {
+        const currentStamp = await readBranchKbStamp(kbPath);
+        // A missing kb.rdf or directory always records its stat error.
+        if (usesBranchKbPath(kbPath) && currentStamp.errorMessage !== null) {
+          throw new KbRefreshError(
+            `KB refresh failed: branch KB snapshot is unstable: ${describeBranchKbStamp(currentStamp)}`,
+          );
+        }
+        const shouldRefresh =
+          state.attachedBranchKbPath === kbPath &&
+          state.attachedBranchStamp !== null &&
+          usesBranchKbPath(kbPath) &&
+          !sameBranchKbStamp(currentStamp, state.attachedBranchStamp);
+
+        state.attachedBranchStamp = shouldRefresh
+          ? await refreshAttachedBranchKbWithRetry(
+              state.prologProcess,
+              kbPath,
+              currentStamp,
+              assertGeneration,
+            )
+          : currentStamp;
+        state.attachedBranchKbPath = kbPath;
+        return state.prologProcess;
+      }
+
+      // Branch changed - need to detach and re-attach
+      debugLog(
+        `[KIBI-MCP] Branch changed: ${state.activeBranchName} -> ${targetBranch}`,
+      );
+
+      // Persist and detach from old KB
+      const saveResult = await state.prologProcess.query("kb_save");
+      await assertGeneration();
+      if (!saveResult.success) {
+        throw new Error(
+          `Failed to save old KB before detach: ${saveResult.error || "Unknown error"}`,
+        );
+      }
+
+      const detachResult = await state.prologProcess.query("kb_detach");
+      await assertGeneration();
+      if (!detachResult.success) {
+        debugLog(
+          `[KIBI-MCP] Warning: failed to detach from old KB: ${detachResult.error || "Unknown error"}`,
+        );
+        // Continue anyway - we'll try to attach to the new KB
+      }
+
+      // Ensure new branch KB exists
+      const createdEmptyBranch = ensureBranchKbExists(
+        workspaceRoot,
+        targetBranch,
+      );
+
+      // Attach to new branch KB
+      const attachResult = await state.prologProcess.query(
+        `kb_attach('${kbPath}')`,
+      );
+      await assertGeneration();
+      if (!attachResult.success) {
+        throw new Error(
+          `Failed to attach to new branch KB: ${attachResult.error || "Unknown error"}`,
+        );
+      }
+      if (createdEmptyBranch) {
+        const initialSaveResult = await state.prologProcess.query("kb_save");
+        await assertGeneration();
+        if (!initialSaveResult.success) {
+          throw new Error(
+            `Failed to initialize empty branch KB: ${initialSaveResult.error || "Unknown error"}`,
+          );
+        }
+      }
+
+      state.activeBranchName = targetBranch;
       state.attachedBranchKbPath = kbPath;
+      state.attachedBranchStamp = await readBranchKbStamp(kbPath);
+      debugLog(`[KIBI-MCP] Re-attached to branch: ${targetBranch}`);
+      debugLog(`[KIBI-MCP] KB path: ${kbPath}`);
+
       return state.prologProcess;
     }
-
-    // Branch changed - need to detach and re-attach
-    debugLog(
-      `[KIBI-MCP] Branch changed: ${state.activeBranchName} -> ${targetBranch}`,
-    );
-
-    // Persist and detach from old KB
-    const saveResult = await state.prologProcess.query("kb_save");
-    await assertGeneration();
-    if (!saveResult.success) {
-      throw new Error(
-        `Failed to save old KB before detach: ${saveResult.error || "Unknown error"}`,
-      );
-    }
-
-    const detachResult = await state.prologProcess.query("kb_detach");
-    await assertGeneration();
-    if (!detachResult.success) {
-      debugLog(
-        `[KIBI-MCP] Warning: failed to detach from old KB: ${detachResult.error || "Unknown error"}`,
-      );
-      // Continue anyway - we'll try to attach to the new KB
-    }
-
-    // Ensure new branch KB exists
-    const createdEmptyBranch = ensureBranchKbExists(
-      workspaceRoot,
-      targetBranch,
-    );
-
-    // Attach to new branch KB
-    const attachResult = await state.prologProcess.query(
-      `kb_attach('${kbPath}')`,
-    );
-    await assertGeneration();
-    if (!attachResult.success) {
-      throw new Error(
-        `Failed to attach to new branch KB: ${attachResult.error || "Unknown error"}`,
-      );
-    }
-    if (createdEmptyBranch) {
-      const initialSaveResult = await state.prologProcess.query("kb_save");
-      await assertGeneration();
-      if (!initialSaveResult.success) {
-        throw new Error(
-          `Failed to initialize empty branch KB: ${initialSaveResult.error || "Unknown error"}`,
-        );
-      }
-    }
-
-    state.activeBranchName = targetBranch;
-    state.attachedBranchKbPath = kbPath;
-    state.attachedBranchStamp = await readBranchKbStamp(kbPath);
-    debugLog(`[KIBI-MCP] Re-attached to branch: ${targetBranch}`);
-    debugLog(`[KIBI-MCP] KB path: ${kbPath}`);
-
-    return state.prologProcess;
   }
 
   // First initialization
@@ -515,8 +502,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   // Adapters report the package that owns runtime execution. Do not resolve
   // CLI implementation paths from the MCP process; the runtime package is
   // the sole first-party execution boundary.
-  if (isMcpDebugEnabled())
-    debugLog("[KIBI-MCP] Runtime boundary: kibi-runtime");
+  debugLog("[KIBI-MCP] Runtime boundary: kibi-runtime");
 
   debugLog("[KIBI-MCP] Branch selection:");
   debugLog(`[KIBI-MCP]   KIBI_BRANCH env: ${envBranch || "not set"}`);

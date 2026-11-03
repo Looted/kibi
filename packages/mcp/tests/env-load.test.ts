@@ -20,6 +20,7 @@ import {
   loadDefaultEnvFile,
   loadEnvFile,
 } from "../src/env.js";
+import { restoreProcessEnv } from "./helpers/process-env.js";
 
 const originalCwd = process.cwd();
 const originalEnv = { ...process.env };
@@ -28,12 +29,12 @@ let tmpDir = "";
 
 beforeEach(() => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-env-"));
-  process.env = { ...originalEnv };
+  restoreProcessEnv(originalEnv);
 });
 
 afterEach(() => {
   process.chdir(originalCwd);
-  process.env = { ...originalEnv };
+  restoreProcessEnv(originalEnv);
   if (tmpDir && fs.existsSync(tmpDir)) {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }

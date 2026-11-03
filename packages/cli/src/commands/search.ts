@@ -2,6 +2,7 @@ import { VALID_ENTITY_TYPES } from "../public/operations/discovery-entities.js";
 import { executeOperation } from "../public/operations/runtime-types.js";
 import { searchSpec } from "../public/operations/specs/discovery.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
+import { noteCliOperationCall } from "../usage-telemetry.js";
 import { printDiscoveryResult } from "./discovery-shared.js";
 
 interface SearchOptions {
@@ -43,6 +44,8 @@ export async function searchCommand(
     },
     { workspaceRoot: process.cwd() },
   );
+  // implements REQ-kibi-telemetry-agent-signals
+  noteCliOperationCall({ operation: "kb_search", result });
   const structured = result.structuredContent ?? { results: [], count: 0 };
   printDiscoveryResult(
     options.format,

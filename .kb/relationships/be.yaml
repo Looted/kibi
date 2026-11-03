@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bbf093d2f33c
+  - type: covered_by
+    from: SYM-cli-errors-kbrejection
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T13:39:29.504Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95c77179056a
+  - type: implements
+    from: SYM-cli-errors-kbrejection
+    to: REQ-kibi-telemetry-expected-outcomes
+    created_at: 2026-11-03T13:39:29.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51061725c12c

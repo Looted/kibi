@@ -33,6 +33,7 @@ import {
 } from "kibi-agent-core/snippets";
 
 export { CONFIRM_FIRM_EDITS_ENV };
+import { skillLoadTrace } from "kibi-agent-core/hook-usage-log";
 import {
   type KbUsage,
   extractCliKbUsage,
@@ -952,8 +953,15 @@ function dispatchHook(
       );
     case "UserPromptSubmit":
       return userPromptSubmit(input, workspace, trace);
-    case "PreToolUse":
-      return preToolUse(input, workspace, trace);
+    case "PreToolUse": {
+      const output = preToolUse(input, workspace, trace);
+      // implements REQ-kibi-telemetry-agent-signals
+      // A Kibi skill loaded through the Skill tool or a read of its SKILL.md.
+      if (trace.action === undefined) {
+        Object.assign(trace, skillLoadTrace(input.toolName, input.toolInput));
+      }
+      return output;
+    }
     case "PostToolUse":
       return postToolUse(input, workspace, trace);
     case "Stop":

@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { KbRejection } from "../../cli-errors.js";
 import {
   parseEntityFromList,
   parseListOfLists,
@@ -104,7 +105,8 @@ export async function assertPredicateArgumentVocabulary(
     }
   }
   if (problems.length > 0) {
-    throw new Error(
+    throw new KbRejection(
+      "ENTITY_VALIDATION_FAILED",
       `Entity validation failed: ${problems.join("; ")}. Use a declared constant, or extend the schema's argument_constants when the value is genuinely new.`,
     );
   }

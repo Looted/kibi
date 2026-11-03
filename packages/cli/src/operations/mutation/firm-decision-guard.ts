@@ -18,6 +18,7 @@
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { KbRejection } from "../../cli-errors.js";
 import { carriesFirmness } from "../../decision-firmness.js";
 import {
   type DecisionDocument,
@@ -88,7 +89,8 @@ export async function assertFirmDecisionUnchanged(
   };
   const changed = unapprovedFirmEdit(before, after);
   if (changed.length === 0) return;
-  throw new Error(
+  throw new KbRejection(
+    "FIRM_DECISION_LOCKED",
     `Entity validation failed: ${input.id} is a firm decision, so kb_upsert does not change its ${changed.join(", ")} in place. ${firmEditGuidance(input.type)}.`,
   );
 }

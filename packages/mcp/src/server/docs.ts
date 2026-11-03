@@ -47,9 +47,10 @@ function renderToolsDoc(): string {
   ];
 
   for (const tool of ACTIVE_TOOLS) {
-    const required = Array.isArray(tool.inputSchema?.required)
+    // No required list and an empty one both read "none".
+    const required = Array.isArray(tool.inputSchema.required)
       ? tool.inputSchema.required.join(", ")
-      : "none";
+      : "";
     lines.push(
       `| \`${tool.name}\` | ${tool.description} | ${required || "none"} |`,
     );

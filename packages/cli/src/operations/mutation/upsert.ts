@@ -1,7 +1,12 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { InputError, OperationError } from "../../cli-errors.js";
+import {
+  InputError,
+  KbRejection,
+  OperationError,
+  prefixedFailure,
+} from "../../cli-errors.js";
 import {
   DEFAULT_FIRMNESS,
   carriesFirmness,
@@ -31,7 +36,7 @@ import {
 } from "../semantic-advisor/ingestion-boundary.js";
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import { entityContextWarnings } from "./context-warning.js";
-import { buildUpsertCommitGoal, formatUpsertError } from "./contradictions.js";
+import { buildUpsertCommitGoal, upsertFailure } from "./contradictions.js";
 import { assertFirmDecisionUnchanged } from "./firm-decision-guard.js";
 import { withStoredOmittedProperties } from "./omitted-properties.js";
 import { resolveUpsertOrigin } from "./origin.js";
@@ -264,7 +269,10 @@ export async function validateAppendOnlyProofReceipts(
   const next = receiptRecords(entity.proof_receipts);
   const errors = appendOnlyProofReceiptHistoryErrors(previous, next);
   if (errors.length > 0) {
-    throw new Error(`Entity validation failed: ${errors.join("; ")}`);
+    throw new KbRejection(
+      "ENTITY_VALIDATION_FAILED",
+      `Entity validation failed: ${errors.join("; ")}`,
+    );
   }
   return undefined;
 }
@@ -578,7 +586,8 @@ async function resolveUpsertFirmness(
       approval_ref: properties.approval_ref ?? stored?.approval_ref,
     }) === undefined
   ) {
-    throw new Error(
+    throw new KbRejection(
+      "ENTITY_VALIDATION_FAILED",
       `Entity validation failed: firmness: firm needs origin.ref${input.type === "req" ? " (or approval_ref)" : ""} pointing at the human words that state the rule; use firmness: default for a delegated or agent choice`,
     );
   }
@@ -684,7 +693,8 @@ export async function executeUpsert(
   if (input.dryRun === true) return dryRunUpsert(input, context);
   // implements REQ-model-what-if-planned-facts
   if (input.plannedFacts !== undefined)
-    throw new Error(
+    throw new KbRejection(
+      "VALIDATION_FAILED",
       `Upsert of ${input.id} rejected: plannedFacts is a dryRun-only input. Write the planned facts first (kb_upsert each, or kb_apply_plan with the kb_model plan), then upsert ${input.id} without plannedFacts.`,
     );
   const branchAttachment =
@@ -696,7 +706,8 @@ export async function executeUpsert(
     branchAttachment.migrationRequired &&
     (context.branchAttachment !== undefined || context.fs !== undefined)
   ) {
-    throw new Error(
+    throw new KbRejection(
+      "LEGACY_BRANCH_STORAGE",
       `Upsert blocked: KB is attached through legacy branch storage (${branchAttachment.gitBranch} -> ${branchAttachment.kbBranch}). Run 'kibi branch migrate --from ${branchAttachment.kbBranch} --to ${branchAttachment.gitBranch} --apply' first.`,
     );
   }
@@ -960,9 +971,7 @@ export async function executeUpsert(
     });
     const written = await prolog.query(transaction);
     if (!written.success) {
-      throw new Error(
-        formatUpsertError(input.id, written.error, written.errorRecord),
-      );
+      throw upsertFailure(input.id, written.error, written.errorRecord);
     }
     saga.markCommitted();
     // The combined commit is the sole mutation boundary. Invalidate reads only
@@ -1195,9 +1204,8 @@ export async function executeUpsert(
       operationFailure = { error: failure };
       throw failure;
     }
-    const message = error instanceof Error ? error.message : String(error);
     const failure = withPlanRecoveryNotes(
-      new Error(`Upsert execution failed: ${message}`),
+      prefixedFailure("Upsert execution failed: ", error),
       planRecoveryWarnings,
     );
     operationFailure = { error: failure };
