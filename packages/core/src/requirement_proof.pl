@@ -951,7 +951,7 @@ dimension_stage(ReqId, ScenarioTestStage, Context, Stage) :-
 % A claim whose text quantifies and whose every grounding fact is a boolean
 % property value or a ground predicate.
 unrepresented_quantified_claim(Key, FactIds, Claim) :-
-    FactIds = [_|_],
+    % FactIds is never empty: claim_text_of/2 needs a fact.
     forall(member(FactId, FactIds), dimensionless_fact(FactId)),
     claim_text_of(FactIds, Text),
     claim_quantifier(Text, Quantifier),

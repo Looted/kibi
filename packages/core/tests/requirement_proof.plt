@@ -3304,3 +3304,89 @@ rqp_test_or_kind(test-_).
 rqp_test_or_kind(kind-_).
 
 :- end_tests(requirement_proof_open_queries).
+
+%% rqp_bare_receipt(+Version, -Receipt)
+% A receipt dict holding the fields receipt_evidence_dict/6 copies.
+rqp_bare_receipt(Version, _{version: Version, receipt_id: "PR-00000001", outcome: "passed",
+                            code_snapshot: "c", environment_hash: "e", started_at: "s",
+                            finished_at: "f", artifact_digest: "d"}).
+
+%% rqp_evidence_extras(+Receipt, +State, -Extras)
+% The keys of Receipt's only evidence beyond the ones every receipt gets,
+% with their values.
+rqp_evidence_extras(Receipt, State, Extras) :-
+    findall(E, requirement_proof:receipt_evidence_dict('T-1', unit, Receipt, State, 0, E), [Evidence]),
+    dict_pairs(Evidence, _, Pairs),
+    exclude(rqp_common_evidence_pair, Pairs, Extras).
+
+rqp_common_evidence_pair(Key-_) :-
+    memberchk(Key, [testId, state, scope, receiptId, outcome, codeSnapshot, environmentHash,
+                    startedAt, finishedAt, artifactDigest, ageSeconds]).
+
+:- begin_tests(requirement_proof_receipt_fields).
+
+test(only_v2_receipts_carry_a_kind) :-
+    rqp_bare_receipt("kibi.proof-receipt.v1", V1),
+    rqp_evidence_extras(V1.put(kind, "typecheck"), passed, E1),
+    E1 == [],
+    rqp_bare_receipt("kibi.proof-receipt.v2", V2),
+    rqp_evidence_extras(V2.put(kind, "typecheck"), passed, E2),
+    E2 == [evidenceLevel-tested, kind-typecheck],
+    rqp_evidence_extras(V2, passed, E3),
+    E3 == [].
+
+% Only a passed receipt that claims proved has its certificate rechecked;
+% without a certificate the recheck rejects it.
+test(only_passed_proved_receipts_are_rechecked) :-
+    rqp_bare_receipt("kibi.proof-receipt.v2", V2),
+    Proved = V2.put(_{kind: "typecheck", evidence_level: "proved"}),
+    rqp_evidence_extras(Proved, failed, E1),
+    E1 == [evidenceLevel-tested, kind-typecheck],
+    rqp_evidence_extras(V2.put(_{kind: "typecheck", evidence_level: "tested"}), passed, E2),
+    E2 == [evidenceLevel-tested, kind-typecheck],
+    rqp_evidence_extras(Proved, passed, E3),
+    E3 = [certificateRejection-Reason, evidenceLevel-tested, kind-typecheck],
+    Reason == "the receipt has no certificate".
+
+test(claim_fields_need_bindings_and_a_certificate_dict) :-
+    findall(E, requirement_proof:receipt_claim_fields(_{claim_bindings: [], certificate: "c"}, _{a: 1}, E),
+            [E1]),
+    same(E1, _{a: 1}),
+    Binding = _{claim_key: "K"},
+    Cert = _{kind: "typecheck"},
+    once(requirement_proof:receipt_claim_fields(_{claim_bindings: [Binding], certificate: Cert}, _{a: 1}, E2)),
+    same(E2, _{a: 1, claimBindings: [Binding], certificate: Cert}).
+
+% A property link grounds a claim only through a property fact with a
+% claim text.
+test(linked_ground_keys_need_the_link_kind_and_a_claim_text) :-
+    rqp_kb((
+        pf_entity(req, 'REQ-G', [status=open]),
+        pf_entity(fact, 'F-PRED', [fact_kind=predicate, subject_key="svc", property_key="p",
+            claim_key="K-PRED", claim_text="Is a predicate"]),
+        pf_entity(fact, 'F-NOTEXT', [fact_kind=property_value, subject_key="svc", property_key="p",
+            claim_key="K-NOTEXT"]),
+        pf_entity(fact, 'F-EMPTY', [fact_kind=property_value, subject_key="svc", property_key="p",
+            claim_key="K-EMPTY", claim_text=""]),
+        pf_entity(fact, 'F-OK', [fact_kind=property_value, subject_key="svc", property_key="p",
+            claim_key="K-OK", claim_text="Has both"]),
+        forall(member(F, ['F-PRED', 'F-NOTEXT', 'F-EMPTY', 'F-OK']), pf_raw_rel(requires_property, 'REQ-G', F)),
+        requirement_proof:linked_ground_keys('REQ-G', Keys),
+        Keys == ['K-OK']
+    )).
+
+test(cases_report_a_fact_over_the_case_limit) :-
+    rqp_kb((
+        pf_entity(req, 'REQ-L', [status=open]),
+        findall(M, (between(1, 12, N), format(string(M), "m~|~`0t~d~2+", [N])), Members),
+        pf_entity(fact, 'F-L12', [fact_kind=property_value, subject_key="svc", property_key="modes",
+            operator=eq, value_type=set, value_set=Members, claim_key="K-L", claim_text="Modes are m01 to m12"]),
+        pf_raw_rel(requires_property, 'REQ-L', 'F-L12'),
+        rqp_stage_context(C),
+        once(requirement_proof:cases_stage('REQ-L', _{scenarios: []}, _{tests: []}, C, Stage)),
+        get_dict(limitReached, Stage, Limit),
+        Limit == true,
+        length(Stage.cases, 12)
+    )).
+
+:- end_tests(requirement_proof_receipt_fields).
