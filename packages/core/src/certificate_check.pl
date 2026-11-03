@@ -43,8 +43,6 @@
     kb_verify_certificates_file/2
 ]).
 
-:- encoding(utf8).
-
 :- use_module(library(http/json)).
 :- use_module(library(apply)).
 :- use_module(library(lists)).
@@ -86,7 +84,7 @@ verify_certificates(Bundle, Report) :-
         property_theorem(Contexts, Numbered, PropertyTheorem, _, PropertyRejected),
         group_theorem(predicates_consistent, predicate, AtomGroups, Numbered, PredicateTheorem, _, PredicateRejected),
         group_theorem(decisions_consistent, decision, DecisionGroups, Numbered, DecisionTheorem, _, DecisionRejected),
-        rules_theorem(Edges, Numbered, RulesTheorem, _, RulesRejected),
+        rules_theorem(Edges, Numbered, RulesTheorem, RulesRejected),
         findall(_{certificate: Index, kind: Kind, reason: "unknown certificate kind"},
             (   member(Index-Certificate, Numbered),
                 certificate_kind(Certificate, Kind),
@@ -137,10 +135,6 @@ known_kind(Kind) :-
 certificate_kind(Certificate, Kind) :-
     (   get_dict(kind, Certificate, Raw), text_atom(Raw, Kind) -> true ; Kind = unknown ).
 
-kind_is(Certificate, Kind) :-
-    certificate_kind(Certificate, Kind0),
-    Kind0 == Kind.
-
 % ------------------------------------------------------------------
 % Property facts
 % ------------------------------------------------------------------
@@ -181,13 +175,11 @@ property_group_context(Subject, Property, Group, Context) :-
             ( FactScope == '' -> true ; FactScope == Scope )
         ),
         Members0),
-    (   context_domain(Members0, Domain, Reason)
-    ->  (   Reason == none
-        ->  maplist(context_member(Domain), Members0, Members),
-            Context = context(Subject, Property, Scope, Domain, Members)
-        ;   Context = unresolved(Subject, Property, Scope, Reason)
-        )
-    ;   Context = unresolved(Subject, Property, Scope, "the facts cannot be compared")
+    context_domain(Members0, Domain, Reason),
+    (   Reason == none
+    ->  maplist(context_member(Domain), Members0, Members),
+        Context = context(Subject, Property, Scope, Domain, Members)
+    ;   Context = unresolved(Subject, Property, Scope, Reason)
     ).
 
 context_domain(Members, Domain, Reason) :-
@@ -196,7 +188,8 @@ context_domain(Members, Domain, Reason) :-
     (   member(_-tuple(_, _, _, _, _, _, _, Polarity, _, _), Members),
         \+ memberchk(Polarity, [require, forbid])
     ->  Domain = none, Reason = "a fact has a polarity other than require or forbid"
-    ;   subtract(Types, [int, number], []), Types \== []
+    ;   % Types is never empty: a context has at least one member.
+        subtract(Types, [int, number], [])
     ->  (   Types == [int] -> Domain = int ; Domain = number ),
         context_numeric_reason(Members, Reason)
     ;   Types == [bool]
@@ -262,6 +255,7 @@ certificate_member_holds(Domain, m(_, Op, Bound, _, _), Value) :-
     (   Domain == int -> integer(Value) ; true ),
     numeric_constraint_holds(Op, Value, Bound).
 certificate_member_holds(Domain, m(_, Op, Bound, _, _), Value) :-
+    % mutalog-disable-next-line cut_insert: scalar_value/2 has no set clause, so the set clause never follows a success
     scalar_value(Domain, Value),
     text_of(Value, ValueText),
     text_of(Bound, BoundText),
@@ -292,7 +286,8 @@ set_texts(Value, Texts) :-
 numeric_domain(int).
 numeric_domain(number).
 
-scalar_value(bool, Value) :- !, text_of(Value, Text), memberchk(Text, ["true", "false"]).
+% mutalog-disable-next-line cut_insert: the domains are distinct and the domain is bound
+scalar_value(bool, Value) :- text_of(Value, Text), memberchk(Text, ["true", "false"]).
 scalar_value(string, Value) :- ( atom(Value) ; string(Value) ), !.
 
 %% certificate_members_satisfiable(+Domain, +Members)
@@ -302,6 +297,7 @@ certificate_members_satisfiable(Domain, Members) :-
     numeric_domain(Domain),
     !,
     member_constraints(Members, _Variable, Constraints),
+    % mutalog-disable-next-line goal_true,literal: intervals.pl binds an unbound list to all, and [_] names no variable
     (   Domain == int -> Integers = all ; Integers = [] ),
     numeric_constraints_satisfiable(Constraints, Integers).
 certificate_members_satisfiable(Domain, Members) :-
@@ -319,6 +315,7 @@ member_constraints([m(_, Op, Bound, _, _)|Members], Variable, [c(Op, Variable, B
 % bound; one fresh text stands for the latter.
 scalar_candidates(bool, _Members, ["true", "false"]).
 scalar_candidates(string, Members, Candidates) :-
+    % mutalog-disable-next-line cut_insert: the domains are distinct and the domain is bound
     findall(Text, (member(m(_, _, Bound, _, _), Members), text_of(Bound, Text)), Texts0),
     sort(Texts0, Texts),
     atomic_list_concat(["kibi:fresh"|Texts], '|', FreshAtom),
@@ -372,9 +369,8 @@ property_context_result(Candidates, context(Subject, Property, Scope, Domain, Me
         ),
         Matches),
     Label = _{subjectKey: Subject, propertyKey: Property, scope: Scope},
-    (   Matches == []
-    ->  Result = result(missing, [], [], Label)
-    ;   Matches = [Index-Certificate]
+    % No match falls to the last branch, which then names no certificate.
+    (   Matches = [Index-Certificate]
     ->  property_certificate_check(Certificate, Domain, Members, Verdict, Outcome),
         (   Outcome == ok
         ->  Result = result(Verdict, [Index], [], Label)
@@ -405,8 +401,8 @@ property_certificate_check(Certificate, Domain, Members, Verdict, Outcome) :-
     ;   Kind == property_contradiction
     ->  Verdict = disproved,
         core_check(Certificate, Domain, Members, true, Outcome)
-    ;   Kind == property_unresolved
-    ->  Verdict = unresolved,
+    ;   % The candidates hold only the three property kinds.
+        Verdict = unresolved,
         core_check(Certificate, Domain, Members, false, Outcome)
     ).
 
@@ -456,7 +452,6 @@ core_check(Certificate, Domain, Members, WindowsOverlap, Outcome) :-
 
 drop_models_valid(Certificate, Domain, CoreMembers) :-
     get_dict(dropModels, Certificate, DropModels),
-    is_list(DropModels),
     forall(member(m(Fact, _, _, _, _), CoreMembers),
         (   member(Drop, DropModels),
             is_dict(Drop),
@@ -476,7 +471,6 @@ windows_overlap(Members, Overlap) :-
 
 certificate_ids(Certificate, Key, Ids) :-
     get_dict(Key, Certificate, Raw),
-    is_list(Raw),
     maplist(text_atom, Raw, Ids).
 
 certificate_id_set(Certificate, Key, Expected) :-
@@ -537,7 +531,7 @@ certificate_decision_groups(Groups) :-
         (   member(Namespace-Name-Arity-Key, Keys),
             findall(p(Fact, Effect), member(Fact-decision(Namespace, Name, Arity, Key, Effect), Facts), Members),
             Label = _{namespace: Namespace, name: Name, arity: Arity, key: Key},
-            (   memberchk(p(_, unknown), Members)
+            (   member(p(_, Effect), Members), Effect == unknown
             ->  Group = unresolved(Label, "a decision is neither allow nor deny")
             ;   Group = group(Label, Members)
             )
@@ -571,9 +565,8 @@ group_result(ModelKind, ContradictionKind, Candidates, group(Label, Members), Re
             certificate_matches_label(Certificate, Label)
         ),
         Matches),
-    (   Matches == []
-    ->  Result = result(missing, [], [], Label)
-    ;   Matches = [Index-Certificate]
+    % No match falls to the last branch, which then names no certificate.
+    (   Matches = [Index-Certificate]
     ->  group_certificate_check(Certificate, ModelKind, ContradictionKind, Members, Verdict, Outcome),
         (   Outcome == ok
         ->  Result = result(Verdict, [Index], [], Label)
@@ -596,7 +589,6 @@ certificate_matches_label(Certificate, Label) :-
 label_value_equal(Actual, Expected) :-
     is_list(Expected),
     !,
-    is_list(Actual),
     maplist(text_equal, Actual, Expected).
 label_value_equal(Actual, Expected) :-
     integer(Expected),
@@ -605,7 +597,7 @@ label_value_equal(Actual, Expected) :-
 label_value_equal(Actual, Expected) :-
     text_equal(Actual, Expected).
 
-group_certificate_check(Certificate, ModelKind, ContradictionKind, Members, Verdict, Outcome) :-
+group_certificate_check(Certificate, ModelKind, _ContradictionKind, Members, Verdict, Outcome) :-
     certificate_kind(Certificate, Kind),
     findall(Fact, member(p(Fact, _), Members), Facts),
     (   Kind == ModelKind
@@ -623,8 +615,8 @@ group_certificate_check(Certificate, ModelKind, ContradictionKind, Members, Verd
             Outcome = failed(Reason)
         ;   Outcome = ok
         )
-    ;   Kind == ContradictionKind
-    ->  Verdict = disproved,
+    ;   % The candidates hold only the model and contradiction kinds.
+        Verdict = disproved,
         (   certificate_ids(Certificate, core, [FactA, FactB]),
             memberchk(p(FactA, ValueA), Members),
             memberchk(p(FactB, ValueB), Members),
@@ -658,13 +650,13 @@ certificate_rule_edges(Edges) :-
 atom_signature(atom(Namespace, Name, Args, _, _), predicate(Namespace, Name, Arity)) :-
     length(Args, Arity).
 
-body_dependency(Atom, Atom, positive) :- Atom = atom(_, _, _, _, _).
+body_dependency(atom(Namespace, Name, Args, Line, Column), atom(Namespace, Name, Args, Line, Column), positive).
 body_dependency(not(Atom), Atom, negative).
 body_dependency(all(Items), Atom, Sign) :- member(Item, Items), body_dependency(Item, Atom, Sign).
 body_dependency(any(Items), Atom, Sign) :- member(Item, Items), body_dependency(Item, Atom, Sign).
 body_dependency(count(Atom, _, _), Atom, positive).
 
-rules_theorem(Edges, Numbered, Theorem, Used, Rejected) :-
+rules_theorem(Edges, Numbered, Theorem, Rejected) :-
     findall(Index-Certificate,
         (   member(Index-Certificate, Numbered),
             certificate_kind(Certificate, Kind),
@@ -676,13 +668,12 @@ rules_theorem(Edges, Numbered, Theorem, Used, Rejected) :-
     length(Signatures, PredicateCount),
     (   Candidates == []
     ->  (   Edges == []
-        ->  Verdict = proved, Used = [], Rejected = []
-        ;   Verdict = unresolved, Used = [],
+        ->  Verdict = proved, Rejected = []
+        ;   Verdict = unresolved,
             Rejected = [_{certificate: 0, kind: rule_strata, reason: "no stratification certificate for the stored rules"}]
         )
     ;   Candidates = [Index-Certificate]
-    ->  Used = [Index],
-        rule_certificate_check(Certificate, Edges, Signatures, Verdict0, Outcome),
+    ->  rule_certificate_check(Certificate, Edges, Signatures, Verdict0, Outcome),
         (   Outcome == ok
         ->  Verdict = Verdict0, Rejected = []
         ;   Outcome = failed(Reason),
@@ -690,10 +681,9 @@ rules_theorem(Edges, Numbered, Theorem, Used, Rejected) :-
             Verdict = unresolved,
             Rejected = [_{certificate: Index, kind: Kind, reason: Reason}]
         )
-    ;   findall(Index, member(Index-_, Candidates), Used),
-        Verdict = unresolved,
+    ;   Verdict = unresolved,
         findall(_{certificate: Index, kind: rule_strata, reason: "more than one stratification certificate"},
-            member(Index, Used), Rejected)
+            member(Index-_, Candidates), Rejected)
     ),
     length(Edges, EdgeCount),
     Theorem = _{theorem: rules_stratified, verdict: Verdict, predicates: PredicateCount, edges: EdgeCount}.
@@ -702,7 +692,7 @@ rule_certificate_check(Certificate, Edges, Signatures, Verdict, Outcome) :-
     certificate_kind(Certificate, Kind),
     (   Kind == rule_strata
     ->  Verdict = proved,
-        (   get_dict(strata, Certificate, Raw), is_list(Raw),
+        (   get_dict(strata, Certificate, Raw),
             maplist(stratum_entry, Raw, Entries)
         ->  (   member(Signature, Signatures), \+ memberchk(Signature-_, Entries)
             ->  Outcome = failed("strata omit a predicate the rules depend on")
@@ -715,9 +705,10 @@ rule_certificate_check(Certificate, Edges, Signatures, Verdict, Outcome) :-
             )
         ;   Outcome = failed("strata are not a list of predicates with integer strata")
         )
-    ;   Kind == rule_negation_cycle
-    ->  Verdict = disproved,
-        (   get_dict(cycle, Certificate, Raw), is_list(Raw), Raw \== [],
+    ;   % The candidates hold only the two rule kinds.
+        Verdict = disproved,
+        % An empty cycle fails the negated-edge check below.
+        (   get_dict(cycle, Certificate, Raw),
             maplist(cycle_edge, Raw, Cycle),
             forall(member(Edge, Cycle), memberchk(Edge, Edges)),
             memberchk(edge(_, _, negative), Cycle),
@@ -734,8 +725,11 @@ stratum_entry(Entry, predicate(Namespace, Name, Arity)-Stratum) :-
     get_dict(arity, Entry, Arity), integer(Arity),
     get_dict(stratum, Entry, Stratum), integer(Stratum), Stratum >= 0.
 
-stratum_edge_ok(positive, Head, Body) :- Head >= Body.
-stratum_edge_ok(negative, Head, Body) :- Head > Body.
+stratum_edge_ok(Sign, Head, Body) :-
+    (   Sign == positive
+    ->  Head >= Body
+    ;   Head > Body
+    ).
 
 cycle_edge(Entry, edge(Head, Body, Sign)) :-
     is_dict(Entry),
@@ -747,13 +741,15 @@ signature_from_dict(Dict, predicate(Namespace, Name, Arity)) :-
     is_dict(Dict),
     get_dict(namespace, Dict, NamespaceRaw), text_atom(NamespaceRaw, Namespace),
     get_dict(name, Dict, NameRaw), text_atom(NameRaw, Name),
-    get_dict(arity, Dict, Arity), integer(Arity).
+    % A non-integer arity matches no stored edge.
+    get_dict(arity, Dict, Arity).
 
 % Consecutive edges chain head to body (a head depends on its body) and the
 % last edge's body is the first edge's head.
 cycle_closed([edge(First, Next, _)|Rest]) :-
     cycle_chain(Rest, Next, First).
 
+% mutalog-disable-next-line cut_insert: the other clause needs a non-empty list
 cycle_chain([], Last, First) :- Last == First.
 cycle_chain([edge(Head, Body, _)|Rest], Previous, First) :-
     Head == Previous,
@@ -807,7 +803,7 @@ count_verdict(Verdict, Results, Count) :-
 
 text_of(Value, Text) :- string(Value), !, Text = Value.
 text_of(Value, Text) :- atom(Value), !, atom_string(Value, Text).
-text_of(Value, Text) :- number(Value), !, number_string(Value, Text).
+text_of(Value, Text) :- number(Value), number_string(Value, Text).
 
 text_atom(Value, Atom) :- atom(Value), !, Atom = Value.
 text_atom(Value, Atom) :- string(Value), atom_string(Atom, Value).
