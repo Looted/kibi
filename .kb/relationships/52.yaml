@@ -566,3 +566,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-182034bbc720
+  - type: specified_by
+    from: REQ-kibi-fresh-clone-setup
+    to: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    created_at: 2026-11-03T16:09:09.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e824a9ff3f25

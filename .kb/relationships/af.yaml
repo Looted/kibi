@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a34837f50e4b
+  - type: validates
+    from: TEST-kibi-fresh-clone-setup
+    to: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    created_at: 2026-11-03T16:09:08.207Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-292f7680f983

@@ -10,13 +10,13 @@ tags:
   - harness
 origin:
   kind: agent
-  ref: 'Maintainer request, 2026-10-30: "I assumed that once initialized, kibi does work everywhere?"; decision 2026-11-03: "making kibi as automated as possible, but I don''t want to break peoples flow (or break their CI)".'
+  ref: 'Maintainer decision, 2026-11-03: "I''m generally for making kibi as automated as possible, but I don''t want to break peoples flow (or break their CI). Agent could ask the questions during onboarding (or migrating) and let the user choose." then "Go ahead." (request of 2026-10-30: "I assumed that once initialized, kibi does work everywhere?")'
   approved_by: maintainer
-  recorded_at: '2026-11-03T15:26:28.248Z'
-semantic_text: The `kibi init` command must record four setup choices (autoSync, prepareHooks, agentInstructions, ciGate) in the repository. The `kibi init` command must write a marker-delimited Kibi section into AGENTS.md when agentInstructions is on. The `kibi init` command must add a package.json prepare step that installs Kibi's Git hooks when prepareHooks is on, unless a hook manager owns the hooks. Kibi must compile a never-compiled branch store on first use without writing any file Git tracks, unless auto-sync is turned off. Every supported harness must tell the agent at session start when Kibi's Git hooks are missing from the checkout.
+  recorded_at: '2026-11-03T16:08:42.879Z'
+semantic_text: The `kibi init` command must record four setup choices (autoSync, prepareHooks, agentInstructions, ciGate) in the repository. The `kibi init` command must write a marker-delimited Kibi section into AGENTS.md when agentInstructions is on. The `kibi init` command must add a package.json prepare step that installs Kibi's Git hooks when prepareHooks is on, unless a hook manager owns the hooks. Kibi must compile a never-compiled branch store on first use without writing any file Git tracks, unless auto-sync is turned off. Kibi's harness plugins must tell the agent at session start when Kibi's Git hooks are missing from the checkout.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 51e134a6901eb91b29b05dfa097f173947cc58a68f074be202534cbb2837fa6b
+semantic_source_hash: 1ff12c74dae75213953d2a052aba289e218d9d6ae11a86f2719ea97fefcb4888
 semantic_inventory:
   - claim_key: CLAIM-4B22B74393700AB6
     claim_text: The `kibi init` command must record four setup choices (autoSync, prepareHooks, agentInstructions, ciGate) in the repository
@@ -46,23 +46,23 @@ semantic_inventory:
     span:
       start: 393
       end: 521
-  - claim_key: CLAIM-8305FD6DAE83107E
-    claim_text: Every supported harness must tell the agent at session start when Kibi's Git hooks are missing from the checkout
+  - claim_key: CLAIM-4DDE018E0A6BF11D
+    claim_text: Kibi's harness plugins must tell the agent at session start when Kibi's Git hooks are missing from the checkout
     role: normative
     status: modeled
     span:
       start: 523
-      end: 635
+      end: 634
 logic_claims:
   - CLAIM-4B22B74393700AB6
   - CLAIM-3D7E7357520EB243
   - CLAIM-BC78880CDC1510BE
   - CLAIM-9257D259BEE7DE86
-  - CLAIM-8305FD6DAE83107E
+  - CLAIM-4DDE018E0A6BF11D
 id: REQ-kibi-fresh-clone-setup
 type: req
 ---
-The `kibi init` command must record four setup choices (autoSync, prepareHooks, agentInstructions, ciGate) in the repository. The `kibi init` command must write a marker-delimited Kibi section into AGENTS.md when agentInstructions is on. The `kibi init` command must add a package.json prepare step that installs Kibi's Git hooks when prepareHooks is on, unless a hook manager owns the hooks. Kibi must compile a never-compiled branch store on first use without writing any file Git tracks, unless auto-sync is turned off. Every supported harness must tell the agent at session start when Kibi's Git hooks are missing from the checkout.
+The `kibi init` command must record four setup choices (autoSync, prepareHooks, agentInstructions, ciGate) in the repository. The `kibi init` command must write a marker-delimited Kibi section into AGENTS.md when agentInstructions is on. The `kibi init` command must add a package.json prepare step that installs Kibi's Git hooks when prepareHooks is on, unless a hook manager owns the hooks. Kibi must compile a never-compiled branch store on first use without writing any file Git tracks, unless auto-sync is turned off. Kibi's harness plugins must tell the agent at session start when Kibi's Git hooks are missing from the checkout.
 
 ## Context
 
