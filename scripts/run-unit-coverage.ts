@@ -152,13 +152,22 @@ const CLI_SUPPORT_TESTS = CLI_SUPPORT_TEST_DIRECTORIES.flatMap((directory) =>
     .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
     .map((entry) => `${directory}/${entry}`),
 ).sort();
-const CLI_OPERATIONS_DIR = "./packages/cli/tests/operations";
-const CLI_OPERATIONS_TESTS = readdirSync(CLI_OPERATIONS_DIR, {
+const CLI_OPERATIONS_DIRS = [
+  "./packages/cli/tests/operations",
+  "./packages/cli/tests/operations-coverage",
+];
+const CLI_OPERATIONS_TESTS = CLI_OPERATIONS_DIRS.flatMap((directory) =>
+  readdirSync(directory, { recursive: true, encoding: "utf8" })
+    .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
+    .map((entry) => `${directory}/${entry}`),
+).sort();
+const CLI_COMMANDS_COVERAGE_DIR = "./packages/cli/tests/commands-coverage";
+const CLI_COMMANDS_COVERAGE_TESTS = readdirSync(CLI_COMMANDS_COVERAGE_DIR, {
   recursive: true,
   encoding: "utf8",
 })
   .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
-  .map((entry) => `${CLI_OPERATIONS_DIR}/${entry}`)
+  .map((entry) => `${CLI_COMMANDS_COVERAGE_DIR}/${entry}`)
   .sort();
 const CLI_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
   .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
@@ -255,8 +264,19 @@ export const COVERAGE_SHARDS: readonly {
     isolation: "process-per-file",
   },
   {
+    // Engine and Git fixtures per file, like cli.commands.
+    label: "cli.commands-coverage",
+    costSeconds: 60,
+    paths: CLI_COMMANDS_COVERAGE_TESTS,
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    isolation: "process-per-file",
+  },
+  {
     label: "cli.public",
-    paths: ["./packages/cli/tests/public"],
+    paths: [
+      "./packages/cli/tests/public",
+      "./packages/cli/tests/public-coverage",
+    ],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   {
