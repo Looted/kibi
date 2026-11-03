@@ -1,7 +1,7 @@
 import path from "node:path";
-import { PrologProcess, resolveKbPlPath } from "kibi-runtime";
+import { type PrologProcess, resolveKbPlPath } from "kibi-runtime";
 import { escapeAtomContent } from "kibi-runtime";
-import { getCoreModulePathOverride, getKbPlPathOverride } from "../env.js";
+import { getCoreModulePathOverride } from "../env.js";
 
 type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
 
@@ -17,14 +17,15 @@ export function parseMaybeDoubleEncodedJson(rawJson: string): unknown {
   return parsed;
 }
 
-function isPrologProcess(value: unknown): value is PrologProcess {
+// A session engine (a PrologProcess or a stand-in with its cache control);
+// both kinds of engine answer `query`, so only the cache control tells them
+// apart.
+function isPrologProcess(
+  value: PrologProcess | PrologQueryLike,
+): value is PrologProcess {
   return (
-    value instanceof PrologProcess ||
-    (value !== null &&
-      typeof value === "object" &&
-      typeof (value as { query?: unknown }).query === "function" &&
-      typeof (value as { invalidateCache?: unknown }).invalidateCache ===
-        "function")
+    typeof (value as { invalidateCache?: unknown }).invalidateCache ===
+    "function"
   );
 }
 
@@ -35,13 +36,8 @@ export function resolveCorePlPath(fileName: string): string {
     return override;
   }
 
-  // Fall back to the generic KB_PL override so test fixtures
-  // (which set only KIBI_KB_PL_PATH) can still resolve sibling modules.
-  const genericOverride = getKbPlPathOverride();
-  if (genericOverride) {
-    return path.join(path.dirname(genericOverride), fileName);
-  }
-
+  // resolveKbPlPath honours KIBI_KB_PL_PATH, so test fixtures that set only
+  // that override still resolve sibling modules next to it.
   const kbPlPath = resolveKbPlPath();
   return path.join(path.dirname(kbPlPath), fileName);
 }
@@ -129,8 +125,5 @@ export function toPrologAtom(value?: string): string {
 
 // implements REQ-002, REQ-013
 export function toPrologList(values?: string[]): string {
-  if (!values || values.length === 0) {
-    return "[]";
-  }
-  return `[${values.map((value) => `'${escapeAtomContent(value)}'`).join(",")}]`;
+  return `[${(values ?? []).map((value) => `'${escapeAtomContent(value)}'`).join(",")}]`;
 }
