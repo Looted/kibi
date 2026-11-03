@@ -17,6 +17,7 @@ import {
   embedsStructuredText,
   registerAllTools,
 } from "../../src/server/tools.js";
+import { setWorkspaceRouter } from "../../src/server/workspace-router.js";
 import {
   TOOLS,
   withDiagnosticTelemetrySchema,
@@ -672,6 +673,9 @@ describe.serial("server tools coverage", () => {
   let consoleErrorSpy: ReturnType<typeof mock>;
 
   beforeEach(() => {
+    // An in-process server started by an earlier test file installs a
+    // workspace router; these tests count the microtasks of a router-less call.
+    setWorkspaceRouter(undefined);
     originalDebug = process.env.KIBI_MCP_DEBUG;
     originalConsoleError = console.error;
     consoleErrorSpy = mock((..._args: unknown[]) => {});

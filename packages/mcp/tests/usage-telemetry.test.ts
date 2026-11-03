@@ -5,12 +5,13 @@ import os from "node:os";
 import path from "node:path";
 
 import { recordMcpToolTelemetry } from "../src/usage-telemetry";
+import { restoreProcessEnv } from "./helpers/process-env.js";
 
 const savedEnv = { ...process.env };
 const temporaryRoots: string[] = [];
 
 afterEach(() => {
-  process.env = { ...savedEnv };
+  restoreProcessEnv(savedEnv);
   for (const root of temporaryRoots.splice(0)) {
     fs.rmSync(root, { recursive: true, force: true });
   }

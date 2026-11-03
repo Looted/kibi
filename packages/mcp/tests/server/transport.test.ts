@@ -27,6 +27,7 @@ import {
 } from "bun:test";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { setProcessEnv } from "../helpers/process-env.js";
 
 const TRANSPORT_MODULE_URL = new URL(
   "../../src/server/transport.js",
@@ -129,7 +130,7 @@ describe("setupTransportHandlers", () => {
   afterEach(async () => {
     console.error = originalConsoleError;
     process.on = originalProcessOn;
-    process.env = { ...process.env, KIBI_MCP_DEBUG: originalDebug };
+    setProcessEnv({ KIBI_MCP_DEBUG: originalDebug });
     // Restore all module mocks to prevent pollution of other test files
     await restoreRealModules();
   });
@@ -221,7 +222,7 @@ describe("setupTransportHandlers", () => {
     });
 
     test("does not log debug message when KIBI_MCP_DEBUG is unset", () => {
-      process.env = { ...process.env, KIBI_MCP_DEBUG: undefined };
+      setProcessEnv({ KIBI_MCP_DEBUG: undefined });
 
       const { transport } = createMockTransport();
       const server = createMockServer();
@@ -395,7 +396,7 @@ describe("setupTransportHandlers", () => {
     });
 
     test("does not log debug when KIBI_MCP_DEBUG is unset", () => {
-      process.env = { ...process.env, KIBI_MCP_DEBUG: undefined };
+      setProcessEnv({ KIBI_MCP_DEBUG: undefined });
 
       const { transport } = createMockTransport();
       const server = createMockServer();

@@ -36,7 +36,8 @@ export function createMutationContext(
 
 const filesystem: FilesystemPort = {
   readFile: (filePath) => fs.readFile(filePath, "utf8"),
-  writeFile: (filePath, data) => fs.writeFile(filePath, data, "utf8"),
+  // Text data is written as UTF-8 by default.
+  writeFile: (filePath, data) => fs.writeFile(filePath, data),
   mkdir: async (directoryPath) => {
     await fs.mkdir(directoryPath, { recursive: true });
   },

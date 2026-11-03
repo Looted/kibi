@@ -29,10 +29,8 @@ export async function handleKbValidateUpsert(
   if (args === null) {
     throw new Error("kb_validate_upsert requires an upsert payload");
   }
-  const prolog =
-    maybeArgs === undefined || isUpsertArgs(prologOrArgs)
-      ? undefined
-      : prologOrArgs;
+  // Without a second argument the first one is the payload (checked above).
+  const prolog = isUpsertArgs(prologOrArgs) ? undefined : prologOrArgs;
   const result = await validateUpsertSpec.execute(
     args,
     createMutationContext(prolog),

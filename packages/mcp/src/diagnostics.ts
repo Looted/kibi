@@ -112,9 +112,8 @@ export function appendUsageLogLine(entry: Record<string, unknown>): void {
   if (!diagnosticUsageLogPath) return;
   fs.mkdirSync(path.dirname(diagnosticUsageLogPath), { recursive: true });
   const row = { ...diagnosticOriginFields, ...entry };
-  fs.appendFileSync(diagnosticUsageLogPath, `${JSON.stringify(row)}\n`, {
-    encoding: "utf8",
-  });
+  // A string is appended as UTF-8.
+  fs.appendFileSync(diagnosticUsageLogPath, `${JSON.stringify(row)}\n`);
 }
 
 export const DIAGNOSTIC_TELEMETRY_SCHEMA = {
@@ -409,17 +408,18 @@ function appendContradictionCheckFields(
   }
 }
 
-const MODEL_MODE_OPERATIONS: Readonly<Record<string, string>> = {
-  analyze: "kb_semantic_advisor",
-  requirement: "kb_model_requirement",
-  predicates: "kb_suggest_predicates",
-};
+// Maps, so a selector such as "constructor" never reads an inherited member.
+const MODEL_MODE_OPERATIONS: ReadonlyMap<unknown, string> = new Map([
+  ["analyze", "kb_semantic_advisor"],
+  ["requirement", "kb_model_requirement"],
+  ["predicates", "kb_suggest_predicates"],
+]);
 
-const SKILL_ACTION_OPERATIONS: Readonly<Record<string, string>> = {
-  list: "kb_skills_list",
-  load: "kb_skills_load",
-  read: "kb_skills_read",
-};
+const SKILL_ACTION_OPERATIONS: ReadonlyMap<unknown, string> = new Map([
+  ["list", "kb_skills_list"],
+  ["load", "kb_skills_load"],
+  ["read", "kb_skills_read"],
+]);
 
 /** Composite tools report diagnostics under the operation they routed to. */
 // implements REQ-kibi-mcp-tool-consolidation
@@ -427,10 +427,10 @@ export function routedOperationName(
   toolName: string,
   args: Record<string, unknown>,
 ): string {
-  if (toolName === "kb_model" && typeof args.mode === "string")
-    return MODEL_MODE_OPERATIONS[args.mode] ?? toolName;
-  if (toolName === "kb_skills" && typeof args.action === "string")
-    return SKILL_ACTION_OPERATIONS[args.action] ?? toolName;
+  if (toolName === "kb_model")
+    return MODEL_MODE_OPERATIONS.get(args.mode) ?? toolName;
+  if (toolName === "kb_skills")
+    return SKILL_ACTION_OPERATIONS.get(args.action) ?? toolName;
   if (toolName === "kb_upsert" && args.dryRun === true)
     return "kb_validate_upsert";
   return toolName;
@@ -486,11 +486,10 @@ export function deriveDiagnosticFields(
     fields.result_status = envelope.status ?? null;
     fields.effect_failures = Array.isArray(envelope.effects)
       ? envelope.effects.filter(
+          // A primitive or a list has no status of its own.
           (effect) =>
-            effect !== null &&
-            typeof effect === "object" &&
-            !Array.isArray(effect) &&
-            (effect as Record<string, unknown>).status === "failed",
+            (effect as { status?: unknown } | null | undefined)?.status ===
+            "failed",
         )
       : [];
     fields.followed_next_actions = Array.isArray(

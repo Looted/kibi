@@ -18,6 +18,7 @@ import {
   extractToolCallPayload,
   initializeDiagnosticMode,
 } from "../src/diagnostics.js";
+import { restoreProcessEnv, setProcessEnv } from "./helpers/process-env.js";
 
 describe("extractToolCallPayload", () => {
   test("extracts business args and null telemetry when not present", () => {
@@ -98,18 +99,18 @@ describe.serial("diagnostic mode lifecycle", () => {
       path.join(tmpdir(), "kibi-mcp-diagnostics-test-"),
     );
     process.argv = [...originalArgv];
-    process.env = {
-      ...originalEnv,
+    restoreProcessEnv(originalEnv);
+    setProcessEnv({
       KIBI_WORKSPACE: workspaceRoot,
       KIBI_MCP_DIAGNOSTIC_MODE: undefined,
-    };
+    });
     initializeDiagnosticMode(false);
   });
 
   afterEach(() => {
     initializeDiagnosticMode(false);
     process.argv = [...originalArgv];
-    process.env = { ...originalEnv };
+    restoreProcessEnv(originalEnv);
     if (workspaceRoot) {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
