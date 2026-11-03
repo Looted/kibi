@@ -107,7 +107,7 @@ export function classifyKibiImpactEvidence(
     return "audited_no_impact";
   }
 
-  const filePath = input.filePath ?? "";
+  const filePath = input.filePath;
   if (!filePath) {
     return null;
   }
@@ -116,10 +116,7 @@ export function classifyKibiImpactEvidence(
     return "entity_markdown";
   }
 
-  if (
-    isSymbolsManifest(filePath, input.symbolsManifestPath) &&
-    input.extractionOutputChanged
-  ) {
+  if (isSymbolsManifest(filePath) && input.extractionOutputChanged) {
     return "symbols_manifest";
   }
 
@@ -130,13 +127,8 @@ export function parseKibiImpactOverride(
   text: string,
 ): ParsedKibiImpactOverride {
   const declared = /^Kibi-Impact:\s*none\s*$/im.test(text);
-  const rationaleMatch = text.match(/^Rationale:\s*(.+)\s*$/im);
-  return {
-    declared,
-    rationale: hasText(rationaleMatch?.[1])
-      ? (rationaleMatch?.[1]?.trim() ?? null)
-      : null,
-  };
+  const rationale = (text.match(/^Rationale:\s*(.+)/im)?.[1] ?? "").trim();
+  return { declared, rationale: rationale || null };
 }
 
 export function isAuditedNoImpactOverrideAllowed(
@@ -158,11 +150,8 @@ export function isBehaviorSourceEdit(input: BehaviorSourceEditInput): boolean {
     return false;
   }
 
+  // No changed lines at all are trivially all ignorable.
   const changes = extractChangedLines(input.diffText);
-  if (changes.length === 0) {
-    return false;
-  }
-
   if (changes.every((line) => isIgnorableChangeLine(line))) {
     return false;
   }
@@ -174,7 +163,9 @@ export function isBehaviorSourceEdit(input: BehaviorSourceEditInput): boolean {
     changes.filter((line) => line.kind === "add"),
   );
 
-  if (removed.length > 0 && removed.join("\n") === added.join("\n")) {
+  // Some line is neither blank nor a comment, so the two sides cannot both
+  // normalize to nothing: an edit that only adds lines never matches.
+  if (removed.join("\n") === added.join("\n")) {
     return false;
   }
 
@@ -193,10 +184,7 @@ function isEntityEvidenceMarkdown(filePath: string): boolean {
   return isEntityLanePath(filePath);
 }
 
-function isSymbolsManifest(
-  filePath: string,
-  _symbolsManifestPath?: string,
-): boolean {
+function isSymbolsManifest(filePath: string): boolean {
   const posix = filePath.replaceAll("\\", "/");
   return isSymbolsManifestPath(posix) || posix === ".kb/symbols.yml";
 }
@@ -214,8 +202,8 @@ function extractChangedLines(diffText: string): ChangedLine[] {
   for (const line of lines) {
     if (
       line.startsWith("+++") ||
-      line.startsWith("---") ||
-      line.startsWith("@@")
+      // A hunk header starts with "@@", neither "+" nor "-".
+      line.startsWith("---")
     ) {
       continue;
     }
@@ -242,13 +230,13 @@ function isIgnorableChangeLine(line: ChangedLine): boolean {
   return (
     trimmed.startsWith("//") ||
     trimmed.startsWith("/*") ||
-    trimmed.startsWith("*/") ||
+    // Also covers a closing */.
     trimmed.startsWith("*")
   );
 }
 
 function normalizeChangedLines(lines: ChangedLine[]): string[] {
   return lines
-    .map((line) => line.text.replace(/\s+/g, ""))
+    .map((line) => line.text.replace(/\s/g, ""))
     .filter((line) => line.length > 0);
 }
