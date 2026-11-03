@@ -25,7 +25,7 @@ export function zcodeCommandsCertificate(): CodeCertificate {
   return sourceCertificate({ testId: "TEST-proof-zcode-commands" });
 }
 
-/** The kibi-zcode plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills. */
+/** The kibi-zcode plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others. */
 export function zcodeSkillsCertificate(): CodeCertificate {
   return sourceCertificate({ testId: "TEST-proof-zcode-skills" });
 }
@@ -82,7 +82,7 @@ describe("The kibi-zcode package parts, proved against the files the package shi
       ["kibi-bootstrap"],
     );
   });
-  test("The kibi-zcode plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills", async () => {
+  test("The kibi-zcode plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others", async () => {
     writeCodeCertificate(zcodeSkillsCertificate());
     await expectSource(
       {
@@ -90,12 +90,13 @@ describe("The kibi-zcode package parts, proved against the files the package shi
         pattern: "packages/zcode/skills/*/SKILL.md",
         capture: true,
       },
-      "includes",
+      "eq",
       [
         "kibi-bootstrap",
         "kibi-commit-review",
         "kibi-decisions",
         "kibi-freshness",
+        "kibi-provable-code",
         "kibi-traceability",
         "kibi-usage",
       ],

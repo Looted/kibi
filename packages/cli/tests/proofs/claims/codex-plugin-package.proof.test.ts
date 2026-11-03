@@ -25,7 +25,7 @@ export function codexManifestFieldsCertificate(): CodeCertificate {
   return sourceCertificate({ testId: "TEST-proof-codex-manifest-fields" });
 }
 
-/** The kibi-codex plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills. */
+/** The kibi-codex plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others. */
 export function codexSkillsCertificate(): CodeCertificate {
   return sourceCertificate({ testId: "TEST-proof-codex-skills" });
 }
@@ -83,7 +83,7 @@ describe("What the published kibi-codex package contains", () => {
       ["hooks", "mcpServers", "skills"],
     );
   });
-  test("The kibi-codex plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills", async () => {
+  test("The kibi-codex plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others", async () => {
     writeCodeCertificate(codexSkillsCertificate());
     await expectSource(
       {
@@ -91,12 +91,13 @@ describe("What the published kibi-codex package contains", () => {
         pattern: "packages/codex/skills/*/SKILL.md",
         capture: true,
       },
-      "includes",
+      "eq",
       [
         "kibi-bootstrap",
         "kibi-commit-review",
         "kibi-decisions",
         "kibi-freshness",
+        "kibi-provable-code",
         "kibi-traceability",
         "kibi-usage",
       ],

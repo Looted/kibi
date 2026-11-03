@@ -25,23 +25,23 @@ proof_contract:
     pattern: packages/codex/skills/*/SKILL.md
     capture: true
   proves:
-    - CLAIM-D7E2340FFABCF26E
+    - CLAIM-3C03F93E59BE963F
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-c569bc3d8bbf0e8e29afd313
+    receipt_id: PR-1dd0ec39b31f6ce20349acd5
     test_id: TEST-proof-codex-skills
     scope: unit
     outcome: passed
-    code_snapshot: 328fc65d0a8f68d784d40380e03d82ed697fd6e20aa7eac41f724a6c4fd7718a
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:49:54.798Z'
-    finished_at: '2026-10-27T07:49:54.960Z'
-    artifact_digest: f0f8478a46a78fbc9741381d80168562b785399b8f1d4059213e487fdae3bdc5
-    contract_hash: 789c4b08854a64e5fddfb82d69aa916ac06b11d3c72df9d2a6223190a04b1107
-    binding_hash: 7257f82d08d40d5250ef5a381a045d7045d9a20449ec2f5e98339dbcadaccba1
-    fingerprint: 51e64f63d35e1aa5db201c8bc943d80b259291a194893694f7fc552275ac79ae
+    code_snapshot: 88c2873a38c9e4ea633f3ff0eacfb92e6e29c64fa0f3cc023471f8c6fc0964af
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-03T10:50:50.125Z'
+    finished_at: '2026-11-03T10:50:50.346Z'
+    artifact_digest: 2f1fad614724a700336e9aa118ccd7a1fa5f2c5c2103beac5e4f8dc654d5b1ee
+    contract_hash: 12d8554dc021d85eae53c2b7bb5c82e94024a60f425408ab61d248b65dbbfd91
+    binding_hash: 2b1d61fd91861328ed10660603d630277636facf9ff4d35a14eedaba0a30c61f
+    fingerprint: 46f041ca04a8be8226856a0dbfb0b541d9dab4b372eea5e46bfa723e42058cea
     fingerprint_components:
-      contract: 789c4b08854a64e5fddfb82d69aa916ac06b11d3c72df9d2a6223190a04b1107
+      contract: 12d8554dc021d85eae53c2b7bb5c82e94024a60f425408ab61d248b65dbbfd91
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -76,15 +76,16 @@ proof_receipts:
           - kibi-commit-review
           - kibi-decisions
           - kibi-freshness
+          - kibi-provable-code
           - kibi-traceability
           - kibi-usage
-    certificate_digest: 22d6c848a61019be127b2ee8355ef75cf0fb5495ba8013aa3596489402084f5e
+    certificate_digest: 5ed5b843dbf09b970e99deb2d135de4aba9e04165e7ce46c146c6b119213cde1
     claim_bindings:
-      - claim_key: CLAIM-D7E2340FFABCF26E
+      - claim_key: CLAIM-3C03F93E59BE963F
         requirement_id: REQ-codex-plugin-package
         fact_id: FACT-codex-bundled-skills
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:
@@ -92,8 +93,9 @@ proof_receipts:
             - kibi-commit-review
             - kibi-decisions
             - kibi-freshness
+            - kibi-provable-code
             - kibi-traceability
             - kibi-usage
-          operator: includes
+          operator: eq
 ---
 Globs packages/codex/skills/*/SKILL.md and checks the six skill names are present.
