@@ -55,6 +55,14 @@ const INTERACTIVE_QUERY_FRAME_END = "__KIBI_QUERY_FRAME_END__";
  * never read the Prolog child again.
  */
 const INTERACTIVE_QUERY_FRAME_TERMINATOR = `${INTERACTIVE_QUERY_FRAME_END}\ntrue.\n\n`;
+/**
+ * Written to stderr by the frame goal just before the stdout marker. SWI
+ * writes a query's diagnostics before the frame goal runs, so once this line
+ * has been read the query's stderr is complete. Waiting for it makes the
+ * answer independent of which pipe the event loop happens to read first.
+ */
+const INTERACTIVE_QUERY_STDERR_END = "__KIBI_QUERY_STDERR_END__";
+const INTERACTIVE_QUERY_STDERR_TERMINATOR = `${INTERACTIVE_QUERY_STDERR_END}\n`;
 
 const require = createRequire(import.meta.url);
 
@@ -469,7 +477,7 @@ export class PrologProcess {
       }
 
       this.process?.stdin?.write(
-        `${wrappedGoal}.\nwriteln('${INTERACTIVE_QUERY_FRAME_END}').\n`,
+        `${wrappedGoal}.\nwriteln(user_error, '${INTERACTIVE_QUERY_STDERR_END}'), writeln('${INTERACTIVE_QUERY_FRAME_END}').\n`,
       );
 
       return new Promise((resolve, reject) => {
@@ -526,24 +534,25 @@ export class PrologProcess {
             });
             return;
           }
-          if (
-            this.errorBuffer.length > 0 &&
-            this.errorBuffer.includes("ERROR")
-          ) {
+          const diagnostics = this.errorBuffer.replace(
+            INTERACTIVE_QUERY_STDERR_TERMINATOR,
+            "",
+          );
+          if (diagnostics.length > 0 && diagnostics.includes("ERROR")) {
             settle();
             if (debug) {
               console.error(
-                `[prolog debug] query error: ${goalLabel} error=${this.errorBuffer.split("\n")[0]}`,
+                `[prolog debug] query error: ${goalLabel} error=${diagnostics.split("\n")[0]}`,
               );
             }
-            const classified = this.classifyErrorOutput(this.errorBuffer);
+            const classified = this.classifyErrorOutput(diagnostics);
             resolve({
               success: false,
               bindings: {},
               error: this.addDiagnosticStage(
                 classified.message,
                 normalizedGoal,
-                this.errorBuffer,
+                diagnostics,
               ),
               ...(classified.record ? { errorRecord: classified.record } : {}),
             });
@@ -553,7 +562,10 @@ export class PrologProcess {
           const frameEnd = this.outputBuffer.indexOf(
             INTERACTIVE_QUERY_FRAME_TERMINATOR,
           );
-          if (frameEnd >= 0) {
+          if (
+            frameEnd >= 0 &&
+            this.errorBuffer.includes(INTERACTIVE_QUERY_STDERR_TERMINATOR)
+          ) {
             settle();
             const framedOutput = this.outputBuffer.slice(0, frameEnd).trimEnd();
             if (/(?:^|\n)(?:false|fail)\.\s*$/.test(framedOutput)) {
@@ -599,25 +611,44 @@ export class PrologProcess {
           }
         };
 
-        // Output wakes act only once the answer frame (or an overflow) has
-        // arrived. SWI writes a query's stderr report before its stdout
-        // frame, so the frame proves both buffers are complete; anything
-        // earlier is left to the poll, keeping classification unchanged
-        // while a finished query no longer waits out a 50 ms poll interval.
+        // Output wakes act only once both frame ends (or an overflow) have
+        // arrived: the stderr marker proves the diagnostics are complete and
+        // the stdout terminator proves the answer is. Anything earlier is
+        // left to the poll, keeping classification unchanged while a
+        // finished query no longer waits out a 50 ms poll interval.
+        let frameFound = false;
         let frameScanFrom = 0;
+        let stderrEndFound = false;
+        let stderrScanFrom = 0;
         const wake = (): void => {
           if (settled) return;
-          const found =
-            this.outputBuffer.indexOf(
-              INTERACTIVE_QUERY_FRAME_TERMINATOR,
-              frameScanFrom,
-            ) >= 0;
-          frameScanFrom = Math.max(
-            0,
-            this.outputBuffer.length -
-              INTERACTIVE_QUERY_FRAME_TERMINATOR.length,
-          );
-          if (found || this.outputOverflowed) checkResult();
+          if (!frameFound) {
+            frameFound =
+              this.outputBuffer.indexOf(
+                INTERACTIVE_QUERY_FRAME_TERMINATOR,
+                frameScanFrom,
+              ) >= 0;
+            frameScanFrom = Math.max(
+              0,
+              this.outputBuffer.length -
+                INTERACTIVE_QUERY_FRAME_TERMINATOR.length,
+            );
+          }
+          if (!stderrEndFound) {
+            stderrEndFound =
+              this.errorBuffer.indexOf(
+                INTERACTIVE_QUERY_STDERR_TERMINATOR,
+                stderrScanFrom,
+              ) >= 0;
+            stderrScanFrom = Math.max(
+              0,
+              this.errorBuffer.length -
+                INTERACTIVE_QUERY_STDERR_TERMINATOR.length,
+            );
+          }
+          if ((frameFound && stderrEndFound) || this.outputOverflowed) {
+            checkResult();
+          }
         };
         this.outputWaiter = wake;
         checkResult();
@@ -1010,14 +1041,18 @@ export class PrologProcess {
   }
 
   /**
-   * Notify the in-flight query that output arrived. Deferred to the event
-   * loop's check phase so every pipe that became readable in this turn
-   * (stderr diagnostics precede the stdout answer frame) is drained first.
+   * Notify the in-flight query that output arrived. The waiter runs as a
+   * microtask of the pipe callback, never from setImmediate: when Bun drives
+   * the loop from a nested promise wait (as bun:test's expect().resolves and
+   * expect().rejects do), microtasks queued by an immediate callback are not
+   * drained until some unrelated timer fires, so the query's caller would
+   * resume up to a second late. Ordering against stderr needs no deferral,
+   * since the waiter acts only once both pipes carried their frame ends.
    */
   private wakeOutputWaiter(): void {
     if (this.outputWaiter === null || this.outputWakeScheduled) return;
     this.outputWakeScheduled = true;
-    setImmediate(() => {
+    queueMicrotask(() => {
       this.outputWakeScheduled = false;
       this.outputWaiter?.();
     });

@@ -220,6 +220,30 @@ describe("PrologProcess", () => {
     expect(performance.now() - startedAt).toBeLessThan(queries * 50);
   });
 
+  test("resumes the caller promptly while Bun waits on the query from a nested promise wait", async () => {
+    // expect().resolves drives the event loop from inside the matcher. In
+    // that loop Bun leaves microtasks queued by setImmediate callbacks
+    // undrained until a timer fires, so an answer delivered from an
+    // immediate resumed its caller up to a second late.
+    const queries = 10;
+    const run = async (): Promise<number> => {
+      const startedAt = performance.now();
+      for (let index = 0; index < queries; index += 1) {
+        const result = await sharedProlog.query(`(X = nested_${index})`);
+        expect(result.bindings.X).toBe(`nested_${index}`);
+      }
+      return performance.now() - startedAt;
+    };
+    let elapsed = Number.POSITIVE_INFINITY;
+    await expect(
+      run().then((ms) => {
+        elapsed = ms;
+        return ms;
+      }),
+    ).resolves.toBeGreaterThanOrEqual(0);
+    expect(elapsed).toBeLessThan(queries * 50);
+  });
+
   test("still classifies an error reported before its answer frame", async () => {
     const result = await sharedProlog.query("(atom_length(X, _))");
     expect(result.success).toBe(false);
