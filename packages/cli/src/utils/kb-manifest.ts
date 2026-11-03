@@ -92,8 +92,9 @@ function manifestPathFor(workspaceRoot: string): string {
   return path.join(workspaceRoot, KB_PATHS.manifest);
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
+/** Number.isInteger is false for every non-number, so it doubles as the type check. */
+function isInteger(value: unknown): value is number {
+  return Number.isInteger(value);
 }
 
 /**
@@ -101,23 +102,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * Kibi versions can add metadata without breaking older readers, but the
  * declared manifestVersion must not exceed what this build understands.
  */
-function validateManifest(parsed: unknown): KbManifest | null {
-  if (!isRecord(parsed)) return null;
-  const rawVersion = parsed.manifestVersion;
-  const manifestVersion =
-    typeof rawVersion === "number" && Number.isInteger(rawVersion)
-      ? rawVersion
-      : null;
-  if (manifestVersion === null) return null;
+function validateManifest(document: unknown): KbManifest | null {
+  // Reading a field of any non-null JSON value is safe; a primitive or an
+  // array simply has none of the fields below.
+  const parsed = (document ?? {}) as Record<string, unknown>;
+  const manifestVersion = parsed.manifestVersion;
+  if (!isInteger(manifestVersion)) return null;
   if (manifestVersion > KB_MANIFEST_VERSION) return null;
   const schemaVersion = parsed.schemaVersion;
-  if (
-    typeof schemaVersion !== "number" ||
-    !Number.isInteger(schemaVersion) ||
-    schemaVersion < 1
-  ) {
-    return null;
-  }
+  if (!isInteger(schemaVersion) || schemaVersion < 1) return null;
   const backfill = parsed.semanticAdvisorBackfill;
   if (
     backfill !== "pending" &&
@@ -170,7 +163,7 @@ export function readKbManifestStatus(workspaceRoot: string): KbManifestStatus {
   }
   let contents: string;
   try {
-    contents = readFileSync(manifestPath, "utf8");
+    contents = readFileSync(manifestPath).toString();
   } catch {
     return {
       state: "invalid",
@@ -193,12 +186,9 @@ export function readKbManifestStatus(workspaceRoot: string): KbManifestStatus {
   }
   const manifest = validateManifest(parsed);
   if (manifest === null) {
-    const rawVersion = isRecord(parsed) ? parsed.manifestVersion : undefined;
-    if (
-      typeof rawVersion === "number" &&
-      Number.isInteger(rawVersion) &&
-      rawVersion > KB_MANIFEST_VERSION
-    ) {
+    const rawVersion = (parsed as { manifestVersion?: unknown } | null)
+      ?.manifestVersion;
+    if (isInteger(rawVersion) && rawVersion > KB_MANIFEST_VERSION) {
       return {
         state: "future",
         manifest: null,
@@ -217,8 +207,8 @@ export function readKbManifestStatus(workspaceRoot: string): KbManifestStatus {
 }
 
 export function readKbManifest(workspaceRoot: string): KbManifest | null {
-  const status = readKbManifestStatus(workspaceRoot);
-  return status.state === "ok" ? status.manifest : null;
+  // Only an "ok" status carries a manifest.
+  return readKbManifestStatus(workspaceRoot).manifest;
 }
 
 /** Read the manifest, tolerating missing/corrupt state with Kibi defaults. */
@@ -229,7 +219,7 @@ export function readKbManifestOrDefault(workspaceRoot: string): KbManifest {
 function writeAtomically(filePath: string, content: string): void {
   mkdirSync(path.dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.tmp-${process.pid}-${Date.now()}`;
-  writeFileSync(tempPath, content, "utf8");
+  writeFileSync(tempPath, content);
   renameSync(tempPath, filePath);
 }
 
