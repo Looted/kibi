@@ -449,56 +449,36 @@ function unquote3(raw) {
   if (value.startsWith("'") && value.endsWith("'") && value.length >= 2) {
     return value.slice(1, -1).replaceAll("''", "'");
   }
-  const comment = value.search(/\s#/);
-  return comment >= 0 ? value.slice(0, comment).trimEnd() : value;
+  return value.replace(/\s#[\s\S]*/, "").trimEnd();
 }
+var FLOW_BLANK = /(?:[ \t\n\r]|#[^\n]*)*/y;
+var DOUBLE_QUOTED = /"(?:[^"\\]|\\[\s\S])*"/y;
+var SINGLE_QUOTED = /'(?:[^']|'')*'/y;
 function parseFlow(text, start = 0) {
   let pos = start;
   const skip = () => {
-    while (pos < text.length) {
-      const char = text[pos];
-      if (char === "#") {
-        while (pos < text.length && text[pos] !== `
-`)
-          pos += 1;
-      } else if (char === " " || char === "\t" || char === `
-` || char === "\r") {
-        pos += 1;
-      } else {
-        break;
-      }
-    }
+    FLOW_BLANK.lastIndex = pos;
+    FLOW_BLANK.test(text);
+    pos = FLOW_BLANK.lastIndex;
   };
   const scalar = (stops) => {
-    const quote = text[pos];
+    const quote = text.charAt(pos);
     if (quote === '"' || quote === "'") {
-      let cursor = pos + 1;
-      while (cursor < text.length) {
-        if (quote === '"' && text[cursor] === "\\")
-          cursor += 2;
-        else if (text[cursor] === quote) {
-          if (quote === "'" && text[cursor + 1] === "'")
-            cursor += 2;
-          else
-            break;
-        } else
-          cursor += 1;
-      }
-      if (cursor >= text.length)
-        return;
-      const raw = text.slice(pos, cursor + 1);
-      pos = cursor + 1;
+      const pattern = quote === '"' ? DOUBLE_QUOTED : SINGLE_QUOTED;
+      pattern.lastIndex = pos;
+      const raw = pattern.exec(text)[0];
+      pos = pattern.lastIndex;
       return unquote3(raw);
     }
     let cursor = pos;
-    while (cursor < text.length) {
-      const char = text[cursor] ?? "";
+    for (;; ) {
+      const char = text.charAt(cursor);
       if (stops.includes(char) && char !== ":" || char === `
 ` || char === "\r")
         break;
-      if (stops.includes(":") && char === ":" && (cursor + 1 >= text.length || /[\s,\]}]/.test(text[cursor + 1] ?? "")))
+      if (stops.includes(":") && char === ":" && /[\s,\]}]/.test(text.charAt(cursor + 1)))
         break;
-      if (char === "#" && /\s/.test(text[cursor - 1] ?? ""))
+      if (char === "#" && /\s/.test(text.charAt(cursor - 1)))
         break;
       cursor += 1;
     }
@@ -507,27 +487,22 @@ function parseFlow(text, start = 0) {
     return raw;
   };
   const value = () => {
-    skip();
-    const open = text[pos];
+    const open = text.charAt(pos);
     if (open === "[") {
       pos += 1;
       const items = [];
       for (;; ) {
         skip();
-        if (text[pos] === "]") {
+        if (text.charAt(pos) === "]") {
           pos += 1;
           return items;
         }
-        if (pos >= text.length)
-          throw new SyntaxError("unterminated flow sequence");
-        const item = value();
-        if (item !== undefined)
-          items.push(item);
+        items.push(value());
         skip();
-        if (text[pos] === ",")
+        if (text.charAt(pos) === ",")
           pos += 1;
-        else if (text[pos] !== "]")
-          throw new SyntaxError("expected , or ]");
+        else if (text.charAt(pos) !== "]")
+          throw new SyntaxError;
       }
     }
     if (open === "{") {
@@ -535,46 +510,37 @@ function parseFlow(text, start = 0) {
       const record = {};
       for (;; ) {
         skip();
-        if (text[pos] === "}") {
+        if (text.charAt(pos) === "}") {
           pos += 1;
           return record;
         }
-        if (pos >= text.length)
-          throw new SyntaxError("unterminated flow mapping");
         const key = scalar(":,}");
-        if (key === undefined)
-          throw new SyntaxError("unterminated key");
         skip();
         let entry;
-        if (text[pos] === ":") {
+        if (text.charAt(pos) === ":") {
           pos += 1;
           skip();
-          entry = text[pos] === "," || text[pos] === "}" ? undefined : value();
+          entry = text.charAt(pos) === "," || text.charAt(pos) === "}" ? undefined : value();
         }
         if (key.length > 0)
           record[key] = entry;
         skip();
-        if (text[pos] === ",")
+        if (text.charAt(pos) === ",")
           pos += 1;
-        else if (text[pos] !== "}")
-          throw new SyntaxError("expected , or }");
+        else if (text.charAt(pos) !== "}")
+          throw new SyntaxError;
       }
     }
-    const raw = scalar(",]}");
-    if (raw === undefined)
-      throw new SyntaxError("unterminated scalar");
-    return raw;
+    return scalar(",]}");
   };
   try {
     const parsed = value();
     return { value: parsed, end: pos };
-  } catch {
-    return;
-  }
+  } catch {}
+  return;
 }
 function opensFlow(raw) {
-  const value = raw.trim();
-  return value.startsWith("[") || value.startsWith("{");
+  return raw.startsWith("[") || raw.startsWith("{");
 }
 var keyValue = /^([A-Za-z0-9_"'-][^:]*?):(?:\s+(.*))?$/;
 function completeFlowValue(raw) {
@@ -587,7 +553,7 @@ function completeFlowValue(raw) {
   return rest.length === 0 || rest.startsWith("#") ? parsed : undefined;
 }
 function parseScalarOrFlow(raw) {
-  if (raw === undefined || raw.trim().length === 0)
+  if (!raw)
     return;
   return completeFlowValue(raw)?.value ?? unquote3(raw);
 }
@@ -601,32 +567,27 @@ function flowRecords(text, start) {
   const parsed = parseFlow(text, start);
   if (!Array.isArray(parsed?.value))
     return;
-  return parsed.value.filter((item) => item !== null && typeof item === "object" && !Array.isArray(item));
+  return parsed.value.filter((item) => typeof item === "object" && !Array.isArray(item));
 }
 function scanFlowSection(text, sectionKey) {
-  const escapedKey = sectionKey.replaceAll(/[.*+?^$(){}|[\]\\]/g, "\\$&");
-  const header = new RegExp(`^${escapedKey}:[ \\t]*(\\[)?`);
+  const header = new RegExp(`^${sectionKey}:[ \\t]*(\\[)?`);
   let offset = 0;
   let first = true;
   let afterHeader = false;
   for (const piece of text.split(/(\r?\n)/)) {
     const content = piece.trim();
-    const indent = piece.length - piece.trimStart().length;
     if (content.length > 0 && !content.startsWith("#")) {
-      if (afterHeader) {
-        return content.startsWith("[") ? flowRecords(text, offset + piece.indexOf("[")) : undefined;
-      }
-      if (first && content.startsWith("[")) {
-        return flowRecords(text, offset + piece.indexOf("["));
-      }
+      const bracket = offset + piece.indexOf("[");
+      if ((first || afterHeader) && content.startsWith("["))
+        return flowRecords(text, bracket);
+      if (afterHeader)
+        return;
       first = false;
-      if (indent === 0) {
-        const match = header.exec(piece);
-        if (match) {
-          if (match[1] !== undefined)
-            return flowRecords(text, offset + piece.indexOf("["));
-          afterHeader = true;
-        }
+      const match = header.exec(piece);
+      if (match) {
+        if (match[1] !== undefined)
+          return flowRecords(text, bracket);
+        afterHeader = true;
       }
     }
     offset += piece.length;
@@ -638,123 +599,96 @@ function scanRecordSequence(text, sectionKey) {
   if (flowSection !== undefined)
     return flowSection;
   const records = [];
-  let itemIndent;
-  let keyIndent = 0;
-  let current;
+  let item;
   let listKey;
   let listItem;
-  let section = "root";
+  let otherSection = false;
   let pendingFlow;
+  const assign = (target, key, raw, recordIndent) => {
+    if (raw !== undefined && unbalancedFlow(raw)) {
+      pendingFlow = { target, key, first: raw, text: raw, recordIndent };
+      return false;
+    }
+    const value = parseScalarOrFlow(raw);
+    if (value === undefined)
+      return true;
+    target[key] = value;
+    return false;
+  };
   for (const rawLine of text.split(/\r?\n/)) {
     const content = rawLine.trim();
     if (content.length === 0 || content.startsWith("#"))
       continue;
     const indent = rawLine.length - rawLine.trimStart().length;
     const dash = /^(\s*)-(\s+)(.*)$/.exec(rawLine);
-    if (pendingFlow !== undefined && current !== undefined) {
-      const target = pendingFlow.onListItem && listItem !== undefined ? listItem : current;
-      if (indent > (itemIndent ?? 0) && !(dash && indent === itemIndent)) {
+    if (pendingFlow !== undefined) {
+      if (indent > pendingFlow.recordIndent) {
         pendingFlow.text += `
 ${content}`;
         const parsed = parseFlow(pendingFlow.text);
         if (parsed === undefined)
           continue;
-        target[pendingFlow.key] = parsed.value;
+        pendingFlow.target[pendingFlow.key] = parsed.value;
         pendingFlow = undefined;
         continue;
       }
-      target[pendingFlow.key] = unquote3(pendingFlow.first);
+      pendingFlow.target[pendingFlow.key] = unquote3(pendingFlow.first);
       pendingFlow = undefined;
     }
     if (indent === 0 && !dash) {
       const pair = keyValue.exec(content);
-      section = pair?.[1] !== undefined && unquote3(pair[1]) === sectionKey ? "records" : "other";
-      current = undefined;
-      itemIndent = undefined;
+      otherSection = pair === null || unquote3(pair[1]) !== sectionKey;
+      item = undefined;
       continue;
     }
-    if (section === "other")
+    if (otherSection)
       continue;
-    if (dash && (itemIndent === undefined || indent === itemIndent)) {
-      itemIndent = indent;
-      keyIndent = (dash[1]?.length ?? 0) + 1 + (dash[2]?.length ?? 1);
-      current = {};
-      records.push(current);
+    if (dash && (item === undefined || indent === item.indent)) {
+      const rest = dash[3];
+      item = { record: {}, indent, keyIndent: rawLine.length - rest.length };
+      records.push(item.record);
       listKey = undefined;
       listItem = undefined;
-      const pair = keyValue.exec(dash[3] ?? "");
-      if (pair?.[1] !== undefined) {
+      const pair = keyValue.exec(rest);
+      if (pair !== null) {
         const key = unquote3(pair[1]);
-        if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
-          pendingFlow = {
-            key,
-            first: pair[2],
-            text: pair[2],
-            onListItem: false
-          };
-          continue;
-        }
-        const value = parseScalarOrFlow(pair[2]);
-        if (value !== undefined)
-          current[key] = value;
-        else
+        if (assign(item.record, key, pair[2], indent))
           listKey = key;
       }
       continue;
     }
-    if (current === undefined || itemIndent === undefined)
-      continue;
-    if (indent <= itemIndent)
+    if (item === undefined || indent <= item.indent)
       continue;
     if (dash) {
       if (listKey === undefined)
         continue;
-      const list = Array.isArray(current[listKey]) ? current[listKey] : [];
-      current[listKey] = list;
-      const item = dash[3] ?? "";
-      const flowItem = completeFlowValue(item);
-      const pair = flowItem === undefined ? keyValue.exec(item) : null;
+      const list = Array.isArray(item.record[listKey]) ? item.record[listKey] : [];
+      item.record[listKey] = list;
+      const rest = dash[3];
+      const flowItem = completeFlowValue(rest);
+      listItem = undefined;
       if (flowItem !== undefined) {
-        listItem = undefined;
         list.push(flowItem.value);
-      } else if (pair?.[1] !== undefined && pair[2] !== undefined) {
+        continue;
+      }
+      const pair = keyValue.exec(rest);
+      if (pair?.[2] !== undefined) {
         listItem = { [unquote3(pair[1])]: parseScalarOrFlow(pair[2]) };
         list.push(listItem);
       } else {
-        listItem = undefined;
-        list.push(unquote3(item));
+        list.push(unquote3(rest));
       }
       continue;
     }
     const pair = keyValue.exec(content);
-    if (pair?.[1] === undefined)
+    if (pair === null)
       continue;
     const key = unquote3(pair[1]);
-    if (indent === keyIndent) {
+    if (indent === item.keyIndent) {
       listItem = undefined;
-      if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
-        pendingFlow = {
-          key,
-          first: pair[2],
-          text: pair[2],
-          onListItem: false
-        };
-        listKey = undefined;
-        continue;
-      }
-      const value = parseScalarOrFlow(pair[2]);
-      if (value === undefined) {
-        listKey = key;
-      } else {
-        current[key] = value;
-        listKey = undefined;
-      }
-    } else if (listItem !== undefined && pair[2] !== undefined) {
-      if (unbalancedFlow(pair[2])) {
-        pendingFlow = { key, first: pair[2], text: pair[2], onListItem: true };
-        continue;
-      }
-      listItem[key] = parseScalarOrFlow(pair[2]);
+      listKey = assign(item.record, key, pair[2], item.indent) ? key : undefined;
+    } else if (listItem !== undefined) {
+      assign(listItem, key, pair[2], item.indent);
     }
   }
   return records;
@@ -762,49 +696,43 @@ ${content}`;
 function scanSymbolCoordinates(text) {
   const coordinates = {};
   let inCoordinates = false;
-  let idIndent;
-  let currentId;
+  let current;
   for (const rawLine of text.split(/\r?\n/)) {
-    const content = rawLine.trim();
-    if (content.length === 0 || content.startsWith("#"))
+    const pair = keyValue.exec(rawLine.trim());
+    if (pair === null)
       continue;
     const indent = rawLine.length - rawLine.trimStart().length;
-    const pair = keyValue.exec(content);
-    if (pair?.[1] === undefined)
-      continue;
     const key = unquote3(pair[1]);
     if (indent === 0) {
       inCoordinates = key === "coordinates";
-      idIndent = undefined;
-      currentId = undefined;
+      current = undefined;
       continue;
     }
     if (!inCoordinates)
       continue;
-    if (idIndent === undefined || indent === idIndent) {
-      idIndent = indent;
-      currentId = key;
-      coordinates[currentId] ??= {};
+    if (current !== undefined && indent < current.indent)
+      continue;
+    if (current === undefined || indent === current.indent) {
+      coordinates[key] ??= {};
+      current = { indent, entry: coordinates[key] };
       continue;
     }
-    if (currentId === undefined || indent < idIndent)
+    if (pair[2] === undefined)
       continue;
-    const entry = coordinates[currentId] ?? {};
+    const value = unquote3(pair[2]);
     if (key === "sourceFile") {
-      const sourceFile = normalizeSourceFile(unquote3(pair[2] ?? ""));
+      const sourceFile = normalizeSourceFile(value);
       if (sourceFile.length > 0)
-        entry.sourceFile = sourceFile;
-      coordinates[currentId] = entry;
+        current.entry.sourceFile = sourceFile;
       continue;
     }
-    const numeric = Number.parseInt(unquote3(pair[2] ?? ""), 10);
+    const numeric = Number.parseInt(value, 10);
     if (!Number.isFinite(numeric))
       continue;
     if (key === "sourceLine")
-      entry.line = numeric;
+      current.entry.line = numeric;
     if (key === "sourceEndLine")
-      entry.endLine = numeric;
-    coordinates[currentId] = entry;
+      current.entry.endLine = numeric;
   }
   return coordinates;
 }
@@ -851,7 +779,19 @@ function buildKnowledgeIndex(records, coordinates = {}, options = {}, manifest =
       coveredBy: [],
       executableFor: []
     };
-    const relationships = [];
+    const relate = (type, target) => {
+      if (type === "implements")
+        pushUnique(symbol.implements, target);
+      else if (type === "covered_by")
+        pushUnique(symbol.coveredBy, target);
+      else if (type === "executable_for")
+        pushUnique(symbol.executableFor, target);
+    };
+    const relateTyped = (relation) => {
+      const typed = relation ?? {};
+      if (typeof typed.target === "string")
+        relate(typed.type, typed.target);
+    };
     if (options.legacyLinksAsImplements !== false) {
       let links = [];
       if (typeof record.links === "string")
@@ -859,31 +799,15 @@ function buildKnowledgeIndex(records, coordinates = {}, options = {}, manifest =
       else if (Array.isArray(record.links))
         links = record.links;
       for (const link of links) {
-        if (typeof link === "string") {
-          relationships.push({ type: "implements", target: link });
-        } else if (link !== null && typeof link === "object") {
-          const typed = link;
-          if (typeof typed.type === "string" && typeof typed.target === "string") {
-            relationships.push({ type: typed.type, target: typed.target });
-          }
-        }
+        if (typeof link === "string")
+          relate("implements", link);
+        else
+          relateTyped(link);
       }
     }
-    for (const relation of Array.isArray(record.relationships) ? record.relationships : []) {
-      if (relation === null || typeof relation !== "object")
-        continue;
-      const typed = relation;
-      if (typeof typed.type === "string" && typeof typed.target === "string")
-        relationships.push({ type: typed.type, target: typed.target });
-    }
-    for (const { type, target } of relationships) {
-      if (type === "implements")
-        pushUnique(symbol.implements, target);
-      else if (type === "covered_by")
-        pushUnique(symbol.coveredBy, target);
-      else if (type === "executable_for")
-        pushUnique(symbol.executableFor, target);
-    }
+    if (Array.isArray(record.relationships))
+      for (const relation of record.relationships)
+        relateTyped(relation);
     if (symbol.implements.length + symbol.coveredBy.length + symbol.executableFor.length === 0) {
       continue;
     }
@@ -911,9 +835,8 @@ function fileSignature(filePath) {
 function readText(filePath) {
   try {
     return fs3.readFileSync(filePath, "utf8");
-  } catch {
-    return;
-  }
+  } catch {}
+  return;
 }
 function writeCacheAtomically(cachePath, payload) {
   try {
@@ -923,28 +846,33 @@ function writeCacheAtomically(cachePath, payload) {
     fs3.renameSync(temporary, cachePath);
   } catch {}
 }
+function readCachedIndex(cachePath, signature) {
+  try {
+    const parsed = JSON.parse(String(fs3.readFileSync(cachePath)));
+    if (parsed.signature === signature && parsed.index)
+      return parsed.index;
+  } catch {}
+  return;
+}
+function scanKnowledgeIndex(symbolsPath, coordinatesPath, options) {
+  const symbolsText = readText(symbolsPath);
+  const coordinatesText = readText(coordinatesPath);
+  const records = symbolsText === undefined ? [] : scanSymbolsManifest(symbolsText);
+  return buildKnowledgeIndex(records, coordinatesText === undefined ? {} : scanSymbolCoordinates(coordinatesText), options, manifestStateOf(symbolsText, records.length));
+}
 function loadKnowledgeIndex(workspaceRoot, cacheDir, options = {}) {
   const symbolsPath = path3.join(workspaceRoot, SYMBOLS_MANIFEST);
   const coordinatesPath = path3.join(workspaceRoot, SYMBOL_COORDINATES);
+  if (!cacheDir)
+    return scanKnowledgeIndex(symbolsPath, coordinatesPath, options);
   const legacyMode = options.legacyLinksAsImplements === false ? "typed" : "legacy";
   const signature = `${INDEX_FORMAT}|${legacyMode}|${fileSignature(symbolsPath)}|${fileSignature(coordinatesPath)}`;
-  const cachePath = cacheDir ? path3.join(cacheDir, options.cacheFileName ?? CACHE_FILE) : undefined;
-  if (cachePath) {
-    const cached = readText(cachePath);
-    if (cached !== undefined) {
-      try {
-        const parsed = JSON.parse(cached);
-        if (parsed.signature === signature && parsed.index)
-          return parsed.index;
-      } catch {}
-    }
-  }
-  const symbolsText = readText(symbolsPath);
-  const records = symbolsText === undefined ? [] : scanSymbolsManifest(symbolsText);
-  const index = buildKnowledgeIndex(records, scanSymbolCoordinates(readText(coordinatesPath) ?? ""), options, manifestStateOf(symbolsText, records.length));
-  if (cachePath) {
-    writeCacheAtomically(cachePath, JSON.stringify({ signature, index }));
-  }
+  const cachePath = path3.join(cacheDir, options.cacheFileName ?? CACHE_FILE);
+  const cached = readCachedIndex(cachePath, signature);
+  if (cached !== undefined)
+    return cached;
+  const index = scanKnowledgeIndex(symbolsPath, coordinatesPath, options);
+  writeCacheAtomically(cachePath, JSON.stringify({ signature, index }));
   return index;
 }
 var ENTITY_LANES = [
@@ -976,8 +904,7 @@ function readScalar(lines, index, raw) {
   const block = /^[>|][+-]?$/.test(raw.trim());
   const parts = block ? [] : [raw.trim()];
   let last = index;
-  while (last + 1 < lines.length) {
-    const next = lines[last + 1] ?? "";
+  for (const next of lines.slice(index + 1)) {
     if (next.trim() === "---" || !/^\s+\S/.test(next))
       break;
     if (!block && /^\s+-\s/.test(next))
@@ -985,7 +912,7 @@ function readScalar(lines, index, raw) {
     parts.push(next.trim());
     last += 1;
   }
-  const joined = parts.join(" ").trim();
+  const joined = parts.join(" ");
   return { value: block ? joined : unquote3(joined), last };
 }
 function firstParagraph(lines) {
@@ -1004,7 +931,7 @@ function firstParagraph(lines) {
     }
     paragraph.push(text);
   }
-  return paragraph.length > 0 ? paragraph.join(" ") : undefined;
+  return paragraph.join(" ");
 }
 var MAX_SUMMARY_LINKS = 24;
 var RELATIONSHIPS_DIR = ".kb/relationships";
@@ -1016,21 +943,18 @@ function shardPathFor(workspaceRoot, entityId) {
 function shardLinksFrom(workspaceRoot, entityId) {
   const shardPath = shardPathFor(workspaceRoot, entityId);
   const signature = fileSignature(shardPath);
-  if (signature === "missing") {
-    shardCache.delete(shardPath);
-    return [];
-  }
   let cached = shardCache.get(shardPath);
   if (cached?.signature !== signature) {
     const byFrom = new Map;
-    const records = scanRecordSequence(readText(shardPath) ?? "", "relationships");
-    for (const { type, from, to } of records) {
-      if (typeof type !== "string" || typeof from !== "string" || typeof to !== "string") {
-        continue;
+    const text = readText(shardPath);
+    if (text !== undefined) {
+      for (const { type, from, to } of scanRecordSequence(text, "relationships")) {
+        if (typeof type !== "string" || typeof to !== "string")
+          continue;
+        const list = byFrom.get(from) ?? [];
+        list.push({ type, target: to });
+        byFrom.set(from, list);
       }
-      const list = byFrom.get(from) ?? [];
-      list.push({ type, target: to });
-      byFrom.set(from, list);
     }
     cached = { signature, byFrom };
     shardCache.set(shardPath, cached);
@@ -1062,7 +986,7 @@ function readEntitySummary(workspaceRoot, entityId) {
     return { id: entityId };
   }
   const lines = head.split(/\r?\n/);
-  if (lines[0]?.trim() !== "---")
+  if (lines[0].trim() !== "---")
     return { id: entityId };
   const summary = { id: entityId };
   const authored = [];
@@ -1076,20 +1000,20 @@ function readEntitySummary(workspaceRoot, entityId) {
   let bodyStart = lines.length;
   let pending;
   for (let index = 1;index < lines.length; index += 1) {
-    const line = lines[index] ?? "";
+    const line = lines[index];
     if (line.trim() === "---") {
       closed = true;
       bodyStart = index + 1;
       break;
     }
-    const scalar = /^([a-z_]+):\s*(.*)$/.exec(line);
-    const scalarField = scalar ? SUMMARY_SCALARS[scalar[1] ?? ""] : undefined;
+    const scalar = /^([a-z_]+):\s*(.*)/.exec(line);
+    const scalarField = scalar ? SUMMARY_SCALARS[scalar[1]] : undefined;
     if (scalar && scalarField && scalar[2]) {
       const { value, last } = readScalar(lines, index, scalar[2]);
       if (value !== "") {
         if (scalarField === "statement")
           summary.statement = value;
-        else if (scalarField !== "values")
+        else
           claim[scalarField] = value;
       }
       index = last;
@@ -1099,19 +1023,19 @@ function readEntitySummary(workspaceRoot, entityId) {
       inValueSet = false;
       continue;
     }
-    if (scalar && SCALAR_VALUE_FIELDS.has(scalar[1] ?? "") && scalar[2]) {
+    if (scalar && SCALAR_VALUE_FIELDS.has(scalar[1]) && scalar[2]) {
       values.push(unquote3(scalar[2]));
     }
     const flowSet = /^value_set:\s*\[(.*)\]\s*$/.exec(line);
-    if (flowSet?.[1]?.trim()) {
+    if (flowSet !== null && flowSet[1].trim()) {
       values.push(...flowSet[1].split(",").map((member) => unquote3(member)));
     }
     if (/^\S/.test(line))
       inValueSet = /^value_set:\s*$/.test(line);
     else if (inValueSet) {
-      const member = /^\s*-\s*(.+)$/.exec(line);
+      const member = /^\s*-\s*(.+)/.exec(line);
       if (member)
-        values.push(unquote3(member[1] ?? ""));
+        values.push(unquote3(member[1]));
     }
     const flowOrigin = /^origin:\s*\{.*\bkind:\s*["']?([a-z]+)/.exec(line);
     if (flowOrigin)
@@ -1121,7 +1045,7 @@ function readEntitySummary(workspaceRoot, entityId) {
       originKind = nestedKind[1];
     if (/^\S/.test(line))
       inOrigin = /^origin:\s*$/.test(line);
-    const match = /^(title|status|firmness):\s*(.*)$/.exec(line);
+    const match = /^(title|status|firmness):\s*(.*)/.exec(line);
     if (match?.[1] === "title" && match[2])
       summary.title = unquote3(match[2]);
     if (match?.[1] === "status" && match[2])
@@ -1136,19 +1060,19 @@ function readEntitySummary(workspaceRoot, entityId) {
     }
     if (!inLinks)
       continue;
-    const entry = /^\s*-\s*(.*)$/.exec(line);
+    const entry = /^\s*-\s*(.*)/.exec(line);
     if (entry) {
       flushLink(authored, pending);
       pending = {};
     }
     if (!pending)
       continue;
-    const body = (entry ? entry[1] ?? "" : line).trim();
-    const field = /^(type|target):\s*(.+)$/.exec(body);
+    const body = (entry ? entry[1] : line).trim();
+    const field = /^(type|target):\s*(.+)/.exec(body);
     if (field?.[1] === "type")
-      pending.type = unquote3(field[2] ?? "");
+      pending.type = unquote3(field[2]);
     else if (field?.[1] === "target")
-      pending.target = unquote3(field[2] ?? "");
+      pending.target = unquote3(field[2]);
     else if (entry && SAFE_ENTITY_ID.test(unquote3(body)))
       pending.bare = unquote3(body);
   }
@@ -2050,9 +1974,7 @@ var MAX_EVENT_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 var MAX_QUEUE_BYTES = 1024 * 1024;
 var DEFAULT_FLUSH_TIMEOUT_MS = 1500;
 function flagValue(value) {
-  const normalized = value?.trim().toLowerCase();
-  if (normalized === undefined || normalized === "")
-    return;
+  const normalized = String(value).trim().toLowerCase();
   if (["1", "true", "yes", "on"].includes(normalized))
     return true;
   if (["0", "false", "no", "off"].includes(normalized))
@@ -2116,7 +2038,7 @@ var SESSION_ENV_KEYS = [
   "CODEX_THREAD_ID"
 ];
 function hostKey(name) {
-  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 function detectTelemetryHost(env = process.env) {
   const explicit = env.KIBI_HOST?.trim() || env.KIBI_MCP_HOST?.trim();
@@ -2153,16 +2075,17 @@ function sandboxedHome(env) {
     return false;
   const temp = realDirectory(os.tmpdir());
   const resolved = realDirectory(home);
-  return resolved !== temp && resolved.startsWith(`${temp}${path7.sep}`);
+  return resolved.startsWith(`${temp}${path7.sep}`);
 }
 var KIBI_REPOSITORY_PACKAGE = "kibi";
 function moduleFileFromUrl(readUrl) {
+  let file;
   try {
     const url = readUrl();
-    return typeof url === "string" && url !== "" ? fileURLToPath(url) : undefined;
-  } catch {
-    return;
-  }
+    if (typeof url === "string")
+      file = fileURLToPath(url);
+  } catch {}
+  return file;
 }
 function thisModuleFile() {
   return moduleFileFromUrl(() => import.meta.url);
@@ -2193,7 +2116,7 @@ function telemetryChannel(env = process.env, moduleFile = thisModuleFile() ?? nu
   const explicit = env.KIBI_TELEMETRY_CHANNEL?.trim();
   if (explicit)
     return {
-      channel: telemetryCategory(explicit) ?? "release",
+      channel: telemetryCategory(explicit),
       source: "KIBI_TELEMETRY_CHANNEL"
     };
   if (!moduleFile)
@@ -2217,7 +2140,7 @@ function telemetryDirectory(env = process.env) {
 }
 function readTelemetryConfig(env = process.env) {
   try {
-    const parsed = JSON.parse(fs7.readFileSync(path7.join(telemetryDirectory(env), CONFIG_FILE), "utf8"));
+    const parsed = JSON.parse(String(fs7.readFileSync(path7.join(telemetryDirectory(env), CONFIG_FILE))));
     return typeof parsed === "object" && parsed !== null ? parsed : {};
   } catch {
     return {};
@@ -2227,7 +2150,7 @@ function writeTelemetryConfig(config, env) {
   const directory = telemetryDirectory(env);
   fs7.mkdirSync(directory, { recursive: true });
   fs7.writeFileSync(path7.join(directory, CONFIG_FILE), `${JSON.stringify(config, null, 2)}
-`, "utf8");
+`);
 }
 function telemetryStatus(env = process.env) {
   const directory = telemetryDirectory(env);
@@ -2300,8 +2223,8 @@ function sessionMarkersPath(env) {
 }
 function readSessionMarkers(env) {
   try {
-    const parsed = JSON.parse(fs7.readFileSync(sessionMarkersPath(env), "utf8"));
-    return parsed !== null && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    const parsed = JSON.parse(String(fs7.readFileSync(sessionMarkersPath(env))));
+    return typeof parsed === "object" && parsed !== null ? parsed : {};
   } catch {
     return {};
   }
@@ -2356,14 +2279,14 @@ function baseProperties(source, env) {
     $lib: "kibi",
     package: source.packageName,
     package_version: source.packageVersion ?? null,
-    host: source.host?.trim() && hostKey(source.host) || detectTelemetryHost(env) || "unknown",
+    host: source.host && hostKey(source.host) || detectTelemetryHost(env) || "unknown",
     remote: remoteEnvironment(env),
     channel: detectTelemetryChannel(env),
     session: sessionProperty(source, env),
     os: process.platform,
     arch: process.arch,
     runtime: runtimeName(),
-    runtime_version: process.versions.node.split(".")[0] ?? null
+    runtime_version: process.versions.node.split(".")[0]
   };
 }
 function queuePath(env) {
@@ -2378,7 +2301,7 @@ function appendEvent(event, env) {
         return;
     } catch {}
     fs7.appendFileSync(file, `${JSON.stringify(event)}
-`, "utf8");
+`);
   } catch {}
 }
 function telemetryCategory(value) {
@@ -2408,8 +2331,6 @@ function parseQueued(text, now) {
   const events = [];
   for (const line of text.split(`
 `)) {
-    if (line.trim() === "")
-      continue;
     try {
       const event = JSON.parse(line);
       const age = now - Date.parse(event.timestamp);
@@ -2433,7 +2354,7 @@ function flushDue(file, now) {
   if (lines.length >= FLUSH_BATCH_EVENTS)
     return true;
   try {
-    const first = JSON.parse(lines[0] ?? "");
+    const first = JSON.parse(lines[0]);
     return now - Date.parse(first.timestamp) >= FLUSH_MAX_AGE_MS;
   } catch {
     return true;
@@ -2475,8 +2396,6 @@ async function flushTelemetry(options = {}, env = process.env) {
   if (!options.force && !flushDue(queuePath(env), now))
     return 0;
   const claimed = claimBatches(directory, now);
-  if (claimed.length === 0)
-    return 0;
   const events = [];
   for (const file of claimed) {
     try {
@@ -2494,7 +2413,7 @@ async function flushTelemetry(options = {}, env = process.env) {
   const fetchImpl = options.fetchImpl ?? globalThis.fetch;
   const controller = new AbortController;
   const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_FLUSH_TIMEOUT_MS);
-  timer.unref?.();
+  timer.unref();
   try {
     const response = await fetchImpl(`${telemetryHost(env)}/batch/`, {
       method: "POST",
@@ -2507,7 +2426,7 @@ async function flushTelemetry(options = {}, env = process.env) {
       signal: controller.signal
     });
     if (!response.ok && response.status >= 500)
-      throw new Error("retry");
+      throw new Error;
     release();
     return response.ok ? events.length : 0;
   } catch {
