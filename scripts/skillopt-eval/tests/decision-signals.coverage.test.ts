@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { ruleQuoteKey } from "../fixtures/task-definitions-decisions";
 import type {
   BrokerCallEvidence,
   CaseSignalContext,
@@ -83,4 +84,8 @@ describe("decision signals over brokered calls", () => {
       ),
     ).toBe(true);
   });
+});
+
+test("a task outside the decision cases has no quote key", () => {
+  expect(ruleQuoteKey("kibi-usage-not-a-decision-train-1")).toBeUndefined();
 });

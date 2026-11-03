@@ -221,3 +221,12 @@ describe("optimizer bridge result contract", () => {
     ).rejects.toThrow("optimizer_exit:1");
   });
 });
+
+test("the bridge names a missing or empty path argument", async () => {
+  await expect(optimizerBridgeMain(["--result", "out.json"])).rejects.toThrow(
+    "missing_request",
+  );
+  await expect(
+    optimizerBridgeMain(["--request", "in.json", "--result", ""]),
+  ).rejects.toThrow("missing_result");
+});

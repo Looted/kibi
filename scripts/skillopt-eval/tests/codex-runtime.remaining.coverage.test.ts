@@ -44,11 +44,18 @@ describe("codex-runtime remaining executable and lease cleanup", () => {
     const codex = join(installed, "bin/codex");
     await writeFile(codex, "#!/bin/sh\nexit 0\n", { mode: 0o700 });
     await chmod(codex, 0o500);
+    await writeFile(
+      join(installed, "bin/codex-code-mode-host"),
+      "#!/bin/sh\n",
+      {
+        mode: 0o500,
+      },
+    );
     await expect(
       createCodexRuntimeLease(
         { artifactRoot: join(root, "artifacts") },
         { codexExecutable: codex, systemBwrapExecutable: null },
       ),
-    ).rejects.toBeInstanceOf(RuntimePrerequisiteError);
+    ).rejects.toThrow(new RuntimePrerequisiteError("missing_bwrap"));
   });
 });
