@@ -85,31 +85,29 @@ export type ProofIntegrationPlanResult = Readonly<{
   reason: string;
 }>;
 
-function readPackageJson(root: string): Record<string, unknown> | null {
+/**
+ * The parsed package.json, or null when it is missing or not JSON. It may be
+ * any JSON value: callers only read optional properties through `?.`, and a
+ * primitive or array has no string `scripts.test`.
+ */
+// rationale: an emptied catch returns undefined, which the `?.` reads in
+// packageTestCommand treat exactly like null.
+// Stryker disable BlockStatement
+function readPackageJson(
+  root: string,
+): { scripts?: { test?: unknown } | null } | null {
   try {
-    const parsed: unknown = JSON.parse(
-      readFileSync(path.join(root, "package.json"), "utf8"),
-    );
-    return parsed !== null &&
-      typeof parsed === "object" &&
-      !Array.isArray(parsed)
-      ? (parsed as Record<string, unknown>)
-      : null;
+    return JSON.parse(
+      readFileSync(path.join(root, "package.json")).toString(),
+    ) as { scripts?: { test?: unknown } | null } | null;
   } catch {
     return null;
   }
 }
+// Stryker restore BlockStatement
 
 function packageTestCommand(root: string): readonly string[] | null {
-  const pkg = readPackageJson(root);
-  const scripts =
-    pkg !== null &&
-    pkg.scripts !== null &&
-    typeof pkg.scripts === "object" &&
-    !Array.isArray(pkg.scripts)
-      ? (pkg.scripts as Record<string, unknown>)
-      : {};
-  const test = scripts.test;
+  const test = readPackageJson(root)?.scripts?.test;
   if (typeof test !== "string" || test.trim() === "") return null;
   if (NPM_PLACEHOLDER_TEST.test(test)) return null;
   const has = (file: string) => existsSync(path.join(root, file));
@@ -348,7 +346,8 @@ export function buildProofIntegrationPlan(
       integration: proposal.integration,
       runner: proposal.runner,
       contractDefaults: proposal.contractDefaults,
-      previousFileHash: update === undefined ? null : fileHash(filePath),
+      // A create plan exists only while the file does not, so its hash is null.
+      previousFileHash: fileHash(filePath),
       sourceHashes: sourceHashes(root),
     },
     postconditions: [
@@ -436,6 +435,6 @@ export function applyProofIntegrationAction(
     );
   mkdirSync(path.dirname(filePath), { recursive: true });
   const temporary = `${filePath}.${process.pid}.tmp`;
-  writeFileSync(temporary, `${JSON.stringify(file, null, 2)}\n`, "utf8");
+  writeFileSync(temporary, `${JSON.stringify(file, null, 2)}\n`);
   renameSync(temporary, filePath);
 }

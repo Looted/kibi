@@ -106,8 +106,9 @@ export function proofTestReportPath(artifactPath: string): string {
 }
 
 function record(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+  // `typeof null` is "object", and null passes through as the null result.
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
     : null;
 }
 

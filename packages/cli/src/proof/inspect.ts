@@ -50,8 +50,6 @@ type Detector = Readonly<{
   language: string;
   runner: string;
   files: readonly string[];
-  command: readonly string[];
-  producer: string;
 }>;
 
 /**
@@ -67,103 +65,51 @@ const DETECTORS: readonly Detector[] = [
       "playwright.config.mjs",
       "playwright.config.js",
     ],
-    command: ["npx", "playwright", "test"],
-    producer: "playwright",
   },
   {
     language: "typescript",
     runner: "vitest",
     files: ["vitest.config.ts", "vitest.config.mjs", "vitest.config.js"],
-    command: [
-      "npx",
-      "vitest",
-      "run",
-      "--reporter=junit",
-      "--outputFile=.kb/proof/runs/vitest-junit.xml",
-    ],
-    producer: "junit",
   },
   {
     language: "typescript",
     runner: "jest",
     files: ["jest.config.ts", "jest.config.mjs", "jest.config.js"],
-    command: [
-      "npx",
-      "jest",
-      "--ci",
-      "--reporters=default",
-      "--reporters=jest-junit",
-    ],
-    producer: "junit",
   },
   {
     language: "python",
     runner: "pytest",
     files: ["pytest.ini", "pyproject.toml", "setup.cfg", "tox.ini"],
-    command: ["pytest", "--junitxml=.kb/proof/runs/pytest-junit.xml"],
-    producer: "junit",
   },
   {
     language: "go",
     runner: "go test",
     files: ["go.mod"],
-    command: ["go", "test", "./...", "-json"],
-    producer: "tap",
   },
   {
     language: "rust",
     runner: "cargo test",
     files: ["Cargo.toml"],
-    command: ["cargo", "test"],
-    producer: "tap",
   },
   {
     language: "java",
     runner: "maven",
     files: ["pom.xml"],
-    command: ["mvn", "test"],
-    producer: "junit",
   },
   {
     language: "java",
     runner: "gradle",
     files: ["build.gradle", "build.gradle.kts"],
-    command: ["gradle", "test"],
-    producer: "junit",
   },
   {
     language: "csharp",
     runner: "dotnet test",
     files: ["*.csproj", "*.sln"],
-    command: ["dotnet", "test", "--logger", "junit"],
-    producer: "junit",
   },
   {
     language: "ruby",
     runner: "rake test",
     files: ["Rakefile", "Gemfile"],
-    command: ["bundle", "exec", "rake", "test"],
-    producer: "junit",
-  },
-];
-
-const PACKAGE_RUNNERS: readonly {
-  runner: string;
-  script: string;
-  command: readonly string[];
-  producer: string;
-}[] = [
-  {
-    runner: "npm test",
-    script: "test",
-    command: ["npm", "test"],
-    producer: "command",
-  },
-  {
-    runner: "cargo test",
-    script: "",
-    command: ["cargo", "test"],
-    producer: "command",
   },
 ];
 
@@ -179,56 +125,63 @@ const SCRIPT_RUNNERS: readonly { runner: string; pattern: RegExp }[] = [
   { runner: "playwright", pattern: /\bplaywright\s+test\b/ },
 ];
 
-/** package.json script bodies of the root and its declared workspaces. */
-function workspaceScripts(
+/**
+ * The SCRIPT_RUNNERS that match a package.json script body of the root or of
+ * one of its declared workspaces.
+ */
+function workspaceScriptRunners(
   root: string,
   pkg: Record<string, unknown> | null,
-): string[] {
-  const bodies: string[] = [];
+): Set<string> {
+  const matched = new Set<string>();
   const collect = (manifest: Record<string, unknown> | null) => {
     const scripts = manifest?.scripts;
     if (scripts === null || typeof scripts !== "object") return;
-    for (const body of Object.values(scripts as Record<string, unknown>))
-      if (typeof body === "string") bodies.push(body);
+    for (const body of Object.values(scripts as Record<string, unknown>)) {
+      if (typeof body !== "string") continue;
+      for (const entry of SCRIPT_RUNNERS)
+        if (entry.pattern.test(body)) matched.add(entry.runner);
+    }
   };
   collect(pkg);
-  const declared = Array.isArray(pkg?.workspaces)
-    ? pkg.workspaces
-    : Array.isArray((pkg?.workspaces as { packages?: unknown })?.packages)
-      ? (pkg?.workspaces as { packages: unknown[] }).packages
-      : [];
+  const workspaces = pkg?.workspaces;
+  const declared: unknown = Array.isArray(workspaces)
+    ? workspaces
+    : (workspaces as { packages?: unknown } | undefined)?.packages;
+  if (!Array.isArray(declared)) return matched;
   for (const pattern of declared) {
     if (typeof pattern !== "string" || pattern.startsWith("!")) continue;
     // Only `dir` and `dir/*` workspace globs are expanded.
-    const directories = pattern.endsWith("/*")
-      ? (() => {
-          const parent = path.join(root, pattern.slice(0, -2));
-          try {
-            return readdirSync(parent).map((entry) => path.join(parent, entry));
-          } catch {
-            return [];
-          }
-        })()
-      : pattern.includes("*")
-        ? []
-        : [path.join(root, pattern)];
-    for (const directory of directories) collect(packageJson(directory));
+    if (pattern.endsWith("/*")) {
+      const parent = path.join(root, pattern.slice(0, -2));
+      let entries: string[];
+      try {
+        entries = readdirSync(parent);
+      } catch {
+        continue;
+      }
+      for (const entry of entries)
+        collect(packageJson(path.join(parent, entry)));
+    } else if (!pattern.includes("*")) {
+      collect(packageJson(path.join(root, pattern)));
+    }
   }
-  return bodies;
+  return matched;
 }
 
+// rationale: an emptied catch returns undefined, which every caller reads
+// through `?.` exactly like null.
+// Stryker disable BlockStatement
 function packageJson(root: string): Record<string, unknown> | null {
-  const filePath = path.join(root, "package.json");
-  if (!existsSync(filePath)) return null;
   try {
-    return JSON.parse(readFileSync(filePath, "utf8")) as Record<
-      string,
-      unknown
-    >;
+    return JSON.parse(
+      readFileSync(path.join(root, "package.json")).toString(),
+    ) as Record<string, unknown>;
   } catch {
     return null;
   }
 }
+// Stryker restore BlockStatement
 
 export function directoryEntriesMatch(
   directory: string,
@@ -242,27 +195,10 @@ export function directoryEntriesMatch(
 }
 
 function globExists(root: string, pattern: string): boolean {
-  if (pattern.includes("*")) {
-    const directory = path.dirname(path.join(root, pattern));
-    if (!existsSync(directory)) return false;
-    const base = path.basename(pattern);
-    const regex = new RegExp(
-      `^${base
-        .split("*")
-        .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-        .join(".*")}$`,
-    );
-    return directoryEntriesMatch(directory, regex);
-  }
-  return existsSync(path.join(root, pattern));
-}
-
-function directoryExists(root: string, relative: string): boolean {
-  try {
-    return existsSync(path.join(root, relative));
-  } catch {
-    return false;
-  }
+  if (!pattern.startsWith("*")) return existsSync(path.join(root, pattern));
+  // DETECTORS globs are `*<extension>` names in the repository root.
+  const extension = pattern.slice(1).replaceAll(".", "\\.");
+  return directoryEntriesMatch(root, new RegExp(`${extension}$`));
 }
 
 // implements REQ-kibi-verification-evidence-contract
@@ -278,38 +214,26 @@ export function inspectProofEnvironment(
   for (const detector of DETECTORS) {
     if (!detector.files.some((pattern) => globExists(root, pattern))) continue;
     languages.add(detector.language);
-    if (!runners.includes(detector.runner)) runners.push(detector.runner);
+    // Runner names are unique among DETECTORS.
+    runners.push(detector.runner);
   }
   if (existsSync(path.join(root, "package.json"))) {
     languages.add("javascript/typescript");
     const pkg = packageJson(root);
-    const scripts =
-      pkg?.scripts !== null &&
-      typeof pkg?.scripts === "object" &&
-      pkg?.scripts !== undefined
-        ? (pkg.scripts as Record<string, unknown>)
-        : {};
-    if (
-      scripts.dependencies !== undefined ||
-      pkg?.devDependencies !== undefined
-    )
+    // A non-object scripts value has no string `test` property either.
+    const scripts = (pkg?.scripts ?? {}) as Record<string, unknown>;
+    if (pkg?.dependencies !== undefined || pkg?.devDependencies !== undefined)
       buildSystems.add("npm");
     if (
       existsSync(path.join(root, "bun.lockb")) ||
       existsSync(path.join(root, "bun.lock"))
     )
       buildSystems.add("bun");
-    for (const entry of PACKAGE_RUNNERS) {
-      if (entry.script !== "" && typeof scripts[entry.script] === "string") {
-        if (!runners.includes(entry.runner)) runners.push(entry.runner);
-      }
-    }
-    const bodies = workspaceScripts(root, pkg);
+    // No detector is named "npm test", so it cannot be listed yet.
+    if (typeof scripts.test === "string") runners.push("npm test");
+    const matched = workspaceScriptRunners(root, pkg);
     for (const entry of SCRIPT_RUNNERS) {
-      if (
-        bodies.some((body) => entry.pattern.test(body)) &&
-        !runners.includes(entry.runner)
-      )
+      if (matched.has(entry.runner) && !runners.includes(entry.runner))
         runners.push(entry.runner);
     }
     if (existsSync(path.join(root, "bunfig.toml"))) buildSystems.add("bun");
@@ -320,16 +244,13 @@ export function inspectProofEnvironment(
   if (existsSync(path.join(root, "Makefile"))) buildSystems.add("make");
 
   const ciWorkflows: string[] = [];
-  const workflowsDir = path.join(root, ".github", "workflows");
-  if (directoryExists(root, path.join(".github", "workflows"))) {
-    try {
-      for (const file of readdirSync(workflowsDir)) {
-        if (file.endsWith(".yml") || file.endsWith(".yaml"))
-          ciWorkflows.push(file);
-      }
-    } catch {
-      // unreadable workflow directory is not fatal for inspection
+  try {
+    for (const file of readdirSync(path.join(root, ".github", "workflows"))) {
+      if (file.endsWith(".yml") || file.endsWith(".yaml"))
+        ciWorkflows.push(file);
     }
+  } catch {
+    // a missing or unreadable workflow directory is not fatal for inspection
   }
 
   const integrations = loadProofIntegrations(root);
