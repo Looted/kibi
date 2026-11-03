@@ -25,7 +25,10 @@ import {
   runOperationJsonQuery,
   toPrologAtom,
 } from "../../public/operations/prolog-json.js";
-import type { OperationContext } from "../../public/operations/runtime-types.js";
+import type {
+  OperationContext,
+  PrologPort,
+} from "../../public/operations/runtime-types.js";
 import {
   canonicalCertificateJson,
   certificateDigest,
@@ -735,7 +738,7 @@ export type FactConstraint = Readonly<{ operator: string; value: number }>;
  * numeric property, or why they cannot ground a certificate.
  */
 async function factConstraints(
-  context: OperationContext,
+  prolog: PrologPort,
   factIds: readonly string[],
 ): Promise<
   | {
@@ -746,13 +749,11 @@ async function factConstraints(
     }
   | { ok: false; reason: string }
 > {
-  if (context.prolog === undefined)
-    return { ok: false, reason: "no Prolog runtime is attached to read the facts" };
   const constraints: FactConstraint[] = [];
   const subjects = new Set<string>();
   const valueTypes = new Set<string>();
   for (const id of factIds) {
-    const [fact] = await loadEntities(context.prolog, { id, type: "fact" });
+    const [fact] = await loadEntities(prolog, { id, type: "fact" });
     if (!fact) return { ok: false, reason: `constraint_source fact ${id} does not exist` };
     if (text(fact.status) !== "active")
       return { ok: false, reason: `constraint_source fact ${id} is not active` };
@@ -888,6 +889,7 @@ export async function valueSourceValues(
  */
 async function constraintSourceProblem(
   context: OperationContext,
+  prolog: PrologPort,
   contract: ProofContract,
   certificate: Record<string, unknown>,
 ): Promise<string | null> {
@@ -897,7 +899,7 @@ async function constraintSourceProblem(
   const facts =
     factIds.length === 0
       ? null
-      : await factConstraints(context, factIds);
+      : await factConstraints(prolog, factIds);
   if (facts !== null && !facts.ok) return facts.reason;
   const sources = await valueSourceValues(context, contract);
   if (!sources.ok) return sources.reason;
@@ -978,6 +980,8 @@ export function rerunSmtQuery(
 
 async function workspaceProblem(
   context: OperationContext,
+  // checkCodeCertificate refuses a context without Prolog before this runs.
+  prolog: PrologPort,
   contract: ProofContract,
   certificate: Record<string, unknown>,
 ): Promise<string | null> {
@@ -1046,8 +1050,8 @@ async function workspaceProblem(
       const witnessPath = contract.witness?.path ?? "";
       if (text(witness?.path) !== witnessPath)
         return `the certificate's witness is not the contract's witness ${witnessPath}`;
-      const content = readWorkspaceFile(context.workspaceRoot, witnessPath);
-      if (content === null) return `the witness ${witnessPath} does not exist`;
+      // The import check above read this same file, so it exists.
+      const content = readWorkspaceFile(context.workspaceRoot, witnessPath) ?? "";
       const sha = createHash("sha256").update(content).digest("hex");
       if (text(witness?.sha256) !== sha)
         return `the witness sha256 does not match ${witnessPath} in the workspace`;
@@ -1062,7 +1066,12 @@ async function workspaceProblem(
     }
   }
   if (kind === "arithmetic" || kind === "smt") {
-    const problem = await constraintSourceProblem(context, contract, certificate);
+    const problem = await constraintSourceProblem(
+      context,
+      prolog,
+      contract,
+      certificate,
+    );
     if (problem !== null) return problem;
   }
   if (kind === "smt") {
@@ -1251,7 +1260,12 @@ export async function checkCodeCertificate(
     return rejected(
       "the certificate does not hash the same in the CLI and in code_certificates.pl (write non-integer numbers as strings)",
     );
-  const problem = await workspaceProblem(context, input.contract, certificate);
+  const problem = await workspaceProblem(
+    context,
+    context.prolog,
+    input.contract,
+    certificate,
+  );
   if (problem !== null) return rejected(problem);
   return {
     kind,
