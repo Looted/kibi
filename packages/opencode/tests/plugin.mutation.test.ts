@@ -18,7 +18,10 @@ import {
   buildEnforcementScopeKey,
 } from "../src/enforcement-scope.js";
 import { getGuidanceCache, resetGuidanceCache } from "../src/guidance-cache.js";
-import { getKibiBootstrapCommandCapability } from "../src/kibi-bootstrap-capability.js";
+import {
+  _resetKibiBootstrapCapabilityCacheForTests,
+  getKibiBootstrapCommandCapability,
+} from "../src/kibi-bootstrap-capability.js";
 import kibiOpencodePlugin, {
   type Hooks,
   lintRequirementDoc,
@@ -224,6 +227,7 @@ describe("lintRequirementDoc", () => {
     ["we verify this"],
     ["is expected  to work"],
     ["should\treturn ok"],
+    ["it should  return ok"],
     ["ASSERT"],
   ])("flags embedded test wording in %p", (text) => {
     expect(lint(text)).toStrictEqual([
@@ -312,6 +316,47 @@ describe("plugin hook registration", () => {
       expect(Object.keys(configInput.command as object)).toContain(
         "kibi-bootstrap",
       );
+    }
+  });
+
+  test("registers no config hook when the host lacks the command", async () => {
+    const host = tempDir("kibi-plugin-host-");
+    for (const name of ["plugin", "sdk"]) {
+      write(
+        host,
+        `.opencode/node_modules/@opencode-ai/${name}/package.json`,
+        JSON.stringify({ name: `@opencode-ai/${name}`, version: "0.0.0" }),
+      );
+    }
+    // Type files without the config hook's command field.
+    write(
+      host,
+      ".opencode/node_modules/@opencode-ai/plugin/dist/index.d.ts",
+      "export interface Hooks {}\n",
+    );
+    write(
+      host,
+      ".opencode/node_modules/@opencode-ai/sdk/dist/v2/gen/types.gen.d.ts",
+      "export type Config = {};\n",
+    );
+    const cwd = process.cwd();
+    const pwd = process.env.PWD;
+    const workspaceEnv = process.env.GITHUB_WORKSPACE;
+    try {
+      _resetKibiBootstrapCapabilityCacheForTests();
+      process.chdir(host);
+      process.env.PWD = host;
+      Reflect.deleteProperty(process.env, "GITHUB_WORKSPACE");
+      expect(getKibiBootstrapCommandCapability().supported).toBe(false);
+      const run = await start(workspace());
+      expect("config" in run.hooks).toBe(false);
+    } finally {
+      process.chdir(cwd);
+      if (pwd === undefined) Reflect.deleteProperty(process.env, "PWD");
+      else process.env.PWD = pwd;
+      if (workspaceEnv !== undefined)
+        process.env.GITHUB_WORKSPACE = workspaceEnv;
+      _resetKibiBootstrapCapabilityCacheForTests();
     }
   });
 
@@ -696,6 +741,21 @@ describe("plugin degraded advisory", () => {
     expect(first).not.toContain("Maintenance degraded");
   });
 
+  test("a workspace degraded after a healthy prompt still gets the advisory once", async () => {
+    const run = await start(workspace());
+    const [healthy] = await run.transform();
+    expect(healthy).not.toContain("Maintenance degraded");
+    schedulers.options[0]?.onRunComplete?.({
+      reason: "file.edited",
+      exitCode: 1,
+      durationMs: 0,
+    } as SyncRunMetadata);
+    const [degraded] = await run.transform();
+    const [later] = await run.transform();
+    expect(degraded).toContain("Maintenance degraded");
+    expect(later).not.toContain("Maintenance degraded");
+  });
+
   test("a healthy workspace shows no maintenance advisory", async () => {
     const run = await start(workspace());
     const [first] = await run.transform();
@@ -778,7 +838,10 @@ describe("plugin startup notification", () => {
     expect((toasts[0] as { message: string }).message).toMatch(
       /^kibi-opencode started \(opencode v/,
     );
-    expect(inputs).toEqual([{ directory: dir, enabled: true }]);
+    // Timers left by other suites' plugins may run this stub too.
+    expect(inputs.filter((input) => input.directory === dir)).toEqual([
+      { directory: dir, enabled: true },
+    ]);
   });
 
   test("a disabled startup toast and a degraded workspace both stay quiet", async () => {
@@ -805,8 +868,13 @@ describe("plugin startup notification", () => {
     [new Error("boom"), "boom"],
     ["plain", "plain"],
   ])("logs a rejected update check (%p)", async (reason, message) => {
-    globals.__kibi_test_auto_update_runner = () => Promise.reject(reason);
-    const run = await start(workspace({ ux: { toastStartup: false } }));
+    const dir = workspace({ ux: { toastStartup: false } });
+    // Timers left by other suites' plugins may run this stub too.
+    globals.__kibi_test_auto_update_runner = (input) =>
+      input.directory === dir
+        ? Promise.reject(reason)
+        : Promise.resolve({ status: "disabled" });
+    const run = await start(dir);
     await runStartup();
     expect(run.of("auto-update: background update check failed")).toStrictEqual(
       [
@@ -1020,6 +1088,28 @@ describe("plugin hard mode", () => {
     expect(after).not.toContain("hard gate blocked");
     expect(run.of("smart-enforcement.hard-gate-consumed")).toHaveLength(1);
     expect(run.of("smart-enforcement.degraded")).toHaveLength(0);
+  });
+
+  test("runs the checkpoint sync with the plugin config", async () => {
+    const dir = workspace({
+      sync: { debounceMs: 37 },
+      guidance: { smartEnforcement: { mode: "hard" } },
+    });
+    const run = await start(dir);
+    write(dir, "src/a.ts", "export const a = 1;\n");
+    await run.emit("file.edited", "src/a.ts");
+    write(dir, "src/a.ts", "export const a = 2;\n");
+    await run.transform();
+    await until(() => run.of("smart-enforcement.checkpoint").length > 0);
+    const started = run.logs
+      .map((b) => String(b.message))
+      .filter(
+        (m) =>
+          m.startsWith("sync.started") &&
+          m.includes("smart-enforcement.checkpoint"),
+      );
+    expect(started).toHaveLength(1);
+    expect(started[0]).toContain('"debounceWindowMs":37');
   });
 
   test("a failed checkpoint run latches nothing for its sync", async () => {

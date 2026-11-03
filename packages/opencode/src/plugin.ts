@@ -304,10 +304,10 @@ const kibiOpencodePlugin: Plugin = async (
     lastRiskFilePath: null,
     lastRiskScopeKey: null,
   };
-  const schedulerRegistry = new Map<string, SyncScheduler>();
-  if (startupScheduler) {
-    schedulerRegistry.set(path.resolve(input.worktree), startupScheduler);
-  }
+  // A startup scheduler that could not be created is retried on first use.
+  const schedulerRegistry = new Map<string, SyncScheduler | null>([
+    [path.resolve(input.worktree), startupScheduler],
+  ]);
   const schedulerFactoryGlobals = globalThis as typeof globalThis & {
     __kibi_test_scheduler_factory_by_worktree?: Map<
       string,
@@ -366,13 +366,9 @@ const kibiOpencodePlugin: Plugin = async (
     context: WorkContext,
   ): KibiCheckpointRunner {
     const state = scopedState(context);
-    state.checkpointRunner ??= new KibiCheckpointRunner({
-      config: cfg,
-      // Checkpoint runs are smart-enforcement syncs, whose sync failures
-      // never latch the degraded state; failed checks do.
-      onRunComplete: (meta) =>
-        latchSchedulerRunFailures(meta, latchRuntimeDegraded),
-    });
+    // Checkpoint runs are smart-enforcement syncs without check rules, so
+    // their results never latch the degraded state.
+    state.checkpointRunner ??= new KibiCheckpointRunner({ config: cfg });
     return state.checkpointRunner;
   }
 
@@ -598,10 +594,9 @@ const kibiOpencodePlugin: Plugin = async (
         }
 
         const maintenanceDegraded = getMaintenanceDegraded();
-        const showDegradedAdvisory =
-          maintenanceDegraded &&
-          cfg.guidance.smartEnforcement.degradedMode === "warn-once" &&
-          !degradedWarnedOnce;
+        // The prompt shows the advisory only in warn-once mode, which a
+        // structured-only instance never switches to.
+        const showDegradedAdvisory = maintenanceDegraded && !degradedWarnedOnce;
         const transformFocusFilePath =
           getTransformFocusFilePath(transformInput);
         const promptWorkContext = resolveScopedWorkContext(
@@ -660,7 +655,7 @@ const kibiOpencodePlugin: Plugin = async (
               e2eReminder: string | null;
             }
           | undefined;
-        let reminderLifecycle: FileLifecycle = "edited";
+        let reminderLifecycle: FileLifecycle | undefined;
         let hardGate:
           | {
               block: {
@@ -789,9 +784,10 @@ const kibiOpencodePlugin: Plugin = async (
             promptFileOperationState.normalizePath(transformFocusFilePath);
           const meaningfulChange = classifyMeaningfulChange({
             normalizedPath: normalizedFocusPathForFreshness,
-            pathKind:
-              promptPathKindCache.get(normalizedFocusPathForFreshness) ??
-              "unknown",
+            // Classifying the focus file or its edit event recorded the kind.
+            pathKind: promptPathKindCache.get(
+              normalizedFocusPathForFreshness,
+            ) as PathKind,
             // A focus file always has a class by now.
             riskClass: effectiveRiskClass as RiskClass,
           });
