@@ -9680,3 +9680,21 @@ test(other_readers_include_only_exact_spellings) :-
     assertion(Json = problem(_)).
 
 :- end_tests(reference_member_matching).
+
+:- begin_tests(validity_window_overlap).
+
+test(an_open_end_overlaps_every_later_start) :-
+    assertion(kb:intervals_overlap('2026-01-01', '', '2026-01-01', '')),
+    assertion(kb:intervals_overlap('2026-01-01', '', '2027-06-01', '2027-12-31')),
+    assertion(kb:intervals_overlap('2027-06-01', '2027-12-31', '2026-01-01', '')).
+
+test(an_open_start_overlaps_every_earlier_end) :-
+    assertion(kb:intervals_overlap('', '2026-01-01', '2025-01-01', '2025-02-01')),
+    assertion(kb:intervals_overlap('', '', '2025-01-01', '2025-02-01')).
+
+test(closed_windows_overlap_only_when_they_meet) :-
+    assertion(kb:intervals_overlap('2026-01-01', '2026-06-30', '2026-06-30', '2026-12-31')),
+    assertion(\+ kb:intervals_overlap('2026-01-01', '2026-06-30', '2026-07-01', '2026-12-31')),
+    assertion(\+ kb:intervals_overlap('2026-07-01', '', '2026-01-01', '2026-06-30')).
+
+:- end_tests(validity_window_overlap).
