@@ -35,7 +35,7 @@
 :- use_module(library(semweb/rdf_db), [rdf_generation/1]).
 :- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4, test_receipt_evidence/4]).
 :- use_module('checks.pl', [scenario_feasibility_outcome/2, infeasible_scenario/5]).
-:- use_module('logic_ir.pl', [logic_rule_conflict/3, logic_rule_conflict/4]).
+:- use_module('logic_ir.pl', [logic_rule_conflict/4]).
 :- use_module('status.pl', [status_meta_dict/1, status_scope_dict/1]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
 
@@ -100,11 +100,12 @@ test_receipt_states_json(BindingMode, TestBindings, VerificationSnapshot, Checke
 symbol_proof_json(SymbolId, BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
     requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Context),
     kb_entity(SymbolId, symbol, _),
-    findall(ReqId,
-        (kb_relationship(implements, SymbolId, ReqId), kb_entity(ReqId, req, _)),
-        ReqIds0),
-    sort(ReqIds0, ReqIds),
-    maplist(requirement_proof_with_id(Context), ReqIds, Proofs),
+    findall(ReqId-Props,
+        (kb_relationship(implements, SymbolId, ReqId), kb_entity(ReqId, req, Props)),
+        Reqs0),
+    sort(Reqs0, Reqs),
+    pairs_keys(Reqs, ReqIds),
+    maplist(requirement_proof_with_id(Context), Reqs, Proofs),
     symbol_explain_role(SymbolId, Role),
     (kb:executable_test_symbol(SymbolId) -> ExecutableTest = true ; ExecutableTest = false),
     findall(TestId, kb_relationship(executable_for, SymbolId, TestId), ExecutableFor0),
@@ -123,8 +124,7 @@ symbol_proof_json(SymbolId, BindingMode, TestBindings, VerificationSnapshot, Che
     },
     dict_json_string(Response, JsonString).
 
-requirement_proof_with_id(Context, ReqId, ProofWithId) :-
-    kb_entity(ReqId, req, Props),
+requirement_proof_with_id(Context, ReqId-Props, ProofWithId) :-
     requirement_proof(ReqId, Props, Context, Proof),
     put_dict(id, Proof, ReqId, ProofWithId).
 
@@ -161,18 +161,13 @@ symbol_explain_role(_SymbolId, unknown).
 % error reports that error instead of failing the answer. Scope names the
 % snapshot the verdicts were computed from.
 search_answer_verdicts_json(ReqIds, JsonString) :-
-    search_answer_functional(Functional),
+    % The declarations logic_rule_conflict/3 would read for every pair. The
+    % reader catches its own errors, so it always answers a list.
+    logic_ir:functional_predicate_declarations(Functional),
     search_answer_infeasible(Infeasible),
     maplist(search_answer_verdict(Functional, Infeasible), ReqIds, Verdicts),
     status_scope_dict(Scope),
     dict_json_string(_{requirements: Verdicts, scope: Scope}, JsonString).
-
-% The declarations logic_rule_conflict/3 would read for every pair; when they
-% cannot be read here, each comparison reads them itself.
-search_answer_functional(some(Functional)) :-
-    catch(logic_ir:functional_predicate_declarations(Functional), _, fail),
-    !.
-search_answer_functional(none).
 
 % Every infeasible success scenario, analysed once per call: the analysis
 % walks every success scenario, so running it per requirement multiplied a
@@ -186,12 +181,6 @@ search_answer_infeasible(some(Infeasible)) :-
           _, fail),
     !.
 search_answer_infeasible(none).
-
-search_answer_rule_status(some(Functional), RuleA, RuleB, Status) :-
-    !,
-    logic_rule_conflict(RuleA, RuleB, Functional, Status).
-search_answer_rule_status(none, RuleA, RuleB, Status) :-
-    logic_rule_conflict(RuleA, RuleB, Status).
 
 search_answer_verdict(Functional, Infeasible, ReqId, Verdict) :-
     catch(search_answer_verdict_(Functional, Infeasible, ReqId, Verdict0), Error, true),
@@ -251,7 +240,7 @@ search_answer_contradiction(Functional, ReqId, _{
     ;   checks:opposing_rule_requirement_facts(Other, ReqId, FactB, FactA, RuleLeft, RuleRight),
         LeftReq = Other, RightReq = ReqId
     ),
-    search_answer_rule_status(Functional, RuleLeft, RuleRight, Status),
+    logic_rule_conflict(RuleLeft, RuleRight, Functional, Status),
     Status \== disjoint,
     format(string(Reason), "Rule conflict (~w) between ~w and ~w", [Status, LeftReq, RightReq]).
 
@@ -286,7 +275,8 @@ search_answer_outcome(ScenarioId, unknown(Compound), _{
     reason: Reason,
     facts: Ids
 }) :-
-    compound(Compound),
+    % An atomic reason never unpacks to [Reason, Ids]; the atom clause above
+    % takes it.
     Compound =.. [Reason, Ids0],
     is_list(Ids0),
     !,
@@ -297,7 +287,6 @@ search_answer_outcome(ScenarioId, not_applicable(Compound), _{
     reason: Reason,
     facts: Ids
 }) :-
-    compound(Compound),
     Compound =.. [Reason, Ids],
     is_list(Ids),
     !.
@@ -350,17 +339,11 @@ search_answer_inventory(ReqId, _{
         Unresolved).
 search_answer_inventory(_ReqId, _{status: unknown, propositionCount: 0, unresolved: []}).
 
+% ~w writes a string or an atom as its text, so they need no clause of
+% their own.
 search_answer_text(^^(Value, _Type), Text) :-
     !,
     search_answer_text(Value, Text).
-search_answer_text(Value, Text) :-
-    string(Value),
-    !,
-    Text = Value.
-search_answer_text(Value, Text) :-
-    atom(Value),
-    !,
-    atom_string(Value, Text).
 search_answer_text(Value, Text) :-
     format(string(Text), "~w", [Value]).
 
@@ -505,10 +488,7 @@ coverage_evidence_row(Id, Proof, Evidence) :-
     }.
 
 coverage_evidence_receipt_gap(Gap) :-
-    (   atom(Gap)
-    ->  Atom = Gap
-    ;   format(atom(Atom), "~w", [Gap])
-    ),
+    format(atom(Atom), "~w", [Gap]),
     (   sub_atom(Atom, _, _, _, 'proof_receipt')
     ;   sub_atom(Atom, _, _, _, 'proof_contract')
     ;   sub_atom(Atom, _, _, _, 'proof_snapshot')
@@ -618,7 +598,7 @@ req_row_proof_status_in(StatusFilter, Row) :-
 
 graph_expand_json(SeedIds, Relationships, Direction, Depth, EntityTypes, MaxNodes, MaxEdges, JsonString) :-
     sort(SeedIds, SeedSet),
-    bfs_layers(SeedSet, SeedSet, [], Relationships, Direction, Depth, MaxNodes, MaxEdges, SeenNodes0, SeenEdges0, Truncated0),
+    bfs_layers(SeedSet, SeedSet, [], Relationships, Direction, Depth, MaxNodes, MaxEdges, SeenNodes0, SeenEdges0, Truncated),
     append(SeedSet, SeenNodes0, SeededNodes0),
     sort(SeededNodes0, SeenNodes),
     include(keep_entity_type(EntityTypes), SeenNodes, FilteredNodes0),
@@ -627,10 +607,6 @@ graph_expand_json(SeedIds, Relationships, Direction, Depth, EntityTypes, MaxNode
     sort(FilteredEdges0, FilteredEdges),
     maplist(node_dict, FilteredNodes, Nodes),
     maplist(edge_dict, FilteredEdges, Edges),
-    (   Truncated0
-    ->  Truncated = true
-    ;   Truncated = false
-    ),
     status_meta_dict(Meta),
     Response = _{nodes: Nodes, edges: Edges, truncated: Truncated, meta: Meta},
     dict_json_string(Response, JsonString).
@@ -654,12 +630,12 @@ ask_predicate_json(Namespace, Name, ArgSpec, PolarityFilter, Scope, DistinctArg,
     copy_term(NamespaceMatch, SchemaNamespace),
     ask_schema_dict(SchemaNamespace, Name, SchemaDict, ArgumentNames),
     ask_arg_pattern(ArgSpec, ArgumentNames, ArgPattern, PatternWarnings),
-    (   PatternWarnings == []
-    ->  findall(Row,
-                ask_predicate_row(NamespaceMatch, Name, ArgPattern, PolarityFilter, Scope, ArgumentNames, Row),
-                Rows0)
-    ;   Rows0 = []
-    ),
+    % A pattern with warnings names an argument that does not exist: no rows.
+    findall(Row,
+            (   PatternWarnings == [],
+                ask_predicate_row(NamespaceMatch, Name, ArgPattern, PolarityFilter, Scope, ArgumentNames, Row)
+            ),
+            Rows0),
     sort_dict_rows(Rows0, SortedRows),
     length(SortedRows, Count),
     paginate_rows(SortedRows, Offset, Limit, Rows),
@@ -732,9 +708,8 @@ ask_spec_json(_ArgSpec, ArgPattern, Json) :-
 % When nothing matched a where(...) spec, list for each bound argument the
 % values that do exist for this predicate so the caller can correct the
 % question instead of reading "no results".
+% Without a schema (ArgumentNames none) or bound arguments no entry is found.
 ask_suggestions(0, Namespace, Name, where(Pairs), ArgumentNames, Suggestions) :-
-    is_list(ArgumentNames),
-    Pairs \== [],
     findall(Key-Values,
             (   member(Key=_, Pairs),
                 nth1(Position, ArgumentNames, Key),
@@ -757,7 +732,6 @@ ask_namespace(Namespace, Namespace).
 ask_optional_atom(none, null) :- !.
 ask_optional_atom(Atom, Atom).
 
-ask_pattern_json([], []) :- !.
 ask_pattern_json(Pattern, Json) :-
     maplist(ask_pattern_entry_json, Pattern, Json).
 
@@ -836,7 +810,6 @@ ask_fact_text(FactId, Title, Status, ClaimText, CanonicalKey) :-
 % Named arguments follow the schema when it exists and has the same arity;
 % otherwise the row carries only the positional list.
 ask_named_arguments(ArgumentNames, Args, Named) :-
-    is_list(ArgumentNames),
     same_length(ArgumentNames, Args),
     !,
     pairs_keys_values(Pairs, ArgumentNames, Args),
@@ -932,14 +905,13 @@ ask_schema_row(SchemaId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes, R
 ask_json_value(^^(Value, _Type), Parsed) :- !, ask_json_value(Value, Parsed).
 ask_json_value(literal(Value), Parsed) :- !, ask_json_value(Value, Parsed).
 ask_json_value(Dict, Dict) :- is_dict(Dict), !.
+% Text that is no JSON, and any other value, raises and is no value.
 ask_json_value(Raw, Parsed) :-
-    (atom(Raw) ; string(Raw)),
     catch(atom_json_dict(Raw, Parsed, [value_string_as(string)]), _, fail).
 
 %% ask_distinct(+DistinctArg, +ArgumentNames, +Rows, -Distinct, -Warnings)
 ask_distinct(none, _ArgumentNames, _Rows, null, []) :- !.
 ask_distinct(DistinctArg, ArgumentNames, Rows, Distinct, []) :-
-    is_list(ArgumentNames),
     nth1(Position, ArgumentNames, DistinctArg),
     !,
     findall(Value, (member(Row, Rows), nth1(Position, Row.args, Value)), Values0),
@@ -1081,10 +1053,6 @@ ask_typed_value(Raw, Value) :-
 ask_typed_value(Raw, Value) :-
     source_value_atom(Raw, Value).
 
-matching_gap_row(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Row) :-
-    matching_gap_candidate(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Row, Stub),
-    gap_row_visible(Tags, Stub).
-
 % implements REQ-bootstrap-provenance-stubs
 matching_gap_candidate(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Row, Stub) :-
     kb_entity(Id, Type, Props),
@@ -1114,14 +1082,9 @@ matching_gap_candidate(TypeFilter, MissingRelationships, PresentRelationships, T
 % implements REQ-bootstrap-provenance-stubs
 provenance_stub_props(fact, Props) :-
     memberchk(tags=Tags, Props),
-    is_list(Tags),
     member(Tag, Tags),
     kb:normalize_term_atom(Tag, 'bootstrap:provenance-stub'),
     !.
-
-hidden_provenance_stub(RequestedTags, Type, Props) :-
-    \+ memberchk('bootstrap:provenance-stub', RequestedTags),
-    provenance_stub_props(Type, Props).
 
 % A requested missing/present relationship is satisfied by its documented
 % inverse as well (docs/entity-schema.md: `validates` is the inverse edge of
@@ -1163,15 +1126,15 @@ relationship_count(Id, Relationship, Count) :-
         Count).
 
 coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Rows, Summary) :-
-    !,
     requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, ProofContext),
     findall(Row,
         requirement_coverage_row(Tags, IncludeTransitive, ProofContext, Row),
         AllRows),
     filter_req_coverage_rows(IncludePassing, AllRows, Rows),
     coverage_summary(AllRows, Summary).
+% The kinds are distinct and always bound, so the clauses need no cuts.
 coverage_rows(symbol, Tags, IncludePassing, _IncludeTransitive, _VerificationSnapshot, _CheckedAt, _MaxAgeSeconds, Rows, Summary) :-
-    !,
+    % mutalog-disable-next-line cut_insert: the kinds are distinct and the kind is bound
     findall(Row,
         symbol_coverage_row(Tags, Row),
         AllRows),
@@ -1195,6 +1158,7 @@ coverage_rows(symbol, Tags, IncludePassing, _IncludeTransitive, _VerificationSna
         mixedRole: MixedRole
     }.
 coverage_rows(type, _Tags, _IncludePassing, _IncludeTransitive, _VerificationSnapshot, _CheckedAt, _MaxAgeSeconds, Rows, Summary) :-
+    % mutalog-disable-next-line cut_insert: the kinds are distinct and the kind is bound
     findall(Type-Count,
         type_entity_count(Type, Count),
         Pairs),
@@ -1204,7 +1168,6 @@ coverage_rows(type, _Tags, _IncludePassing, _IncludeTransitive, _VerificationSna
     Summary = _{total: Total, provenanceStubs: StubCount}.
 
 coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
-    !,
     coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, strict_snapshot, _{}, Rows, Summary).
 
 requirement_coverage_row(Tags, IncludeTransitive, ProofContext, Row) :-
@@ -1401,8 +1364,8 @@ req_row_proof_not_applicable(Row) :-
     Row.proofStatus == not_applicable.
 
 symbol_row_fully_covered(Row) :-
-    CoverageStatus = Row.get(coverageStatus),
-    CoverageStatus = fully_covered.
+    get_dict(coverageStatus, Row, CoverageStatus),
+    CoverageStatus == fully_covered.
 symbol_row_uncovered(Row) :-
     Row.coverageStatus == uncovered.
 symbol_row_not_applicable(Row) :-
@@ -1411,7 +1374,6 @@ symbol_row_mixed_role(Row) :-
     Row.traceabilityRole == mixed.
 
 count_distinct_targets(Relationship, Id, source, Count) :-
-    !,
     findall(Target, kb_relationship(Relationship, Id, Target), Targets0),
     sort(Targets0, Targets),
     length(Targets, Count).
@@ -1640,7 +1602,7 @@ bfs_layers(Frontier, SeenNodes, SeenEdges, Relationships, Direction, Depth, MaxN
         collect_pairs(Pairs, SeenNodes, SeenEdges, MaxNodes, MaxEdges, NextFrontier, NextNodes, NextEdges, HitLimit),
         Depth1 is Depth - 1,
         bfs_layers(NextFrontier, NextNodes, NextEdges, Relationships, Direction, Depth1, MaxNodes, MaxEdges, FinalNodes, FinalEdges, Truncated1),
-        (   HitLimit
+        (   HitLimit == true
         ->  Truncated = true
         ;   Truncated = Truncated1
         )
@@ -1697,7 +1659,11 @@ relationship_allowed([], Type) :-
 relationship_allowed(Relationships, Type) :-
     member(Type, Relationships).
 
-keep_entity_type([], _Id).
+% A seed or edge end that is no entity (a mistyped seed, a dangling link) is
+% left out rather than failing the whole traversal.
+keep_entity_type([], Id) :-
+    % mutalog-disable-next-line cut_insert: the other clause finds no type in an empty list
+    \+ \+ kb_entity(Id, _, _).
 keep_entity_type(EntityTypes, Id) :-
     kb_entity(Id, Type, _),
     memberchk(Type, EntityTypes).
@@ -1713,9 +1679,8 @@ node_dict(Id, _{id: Id, type: Type, title: Title, status: Status}) :-
 edge_dict(edge(Type, From, To), _{type: Type, from: From, to: To}).
 
 matches_type(none, _Type).
-matches_type(TypeFilter, Type) :-
-    TypeFilter \= none,
-    Type = TypeFilter.
+% No entity has type none, so the second clause never matches it.
+matches_type(Type, Type).
 
 matches_tags([], _Props).
 matches_tags(Tags, Props) :-
@@ -1740,10 +1705,7 @@ entity_title_status_source(Props, Title, Status, Source) :-
     source_value_atom(TitleValue, Title),
     source_value_atom(StatusValue, Status).
 
-source_value_atom(Val, Atom) :-
-    nonvar(Val),
-    compound(Val),
-    Val =.. ['^^', Inner, _Type],
+source_value_atom('^^'(Inner, _Type), Atom) :-
     !,
     source_value_atom(Inner, Atom).
 source_value_atom(literal(type(_, Val)), Atom) :-
