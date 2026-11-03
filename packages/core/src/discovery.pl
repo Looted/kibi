@@ -1510,15 +1510,10 @@ count_direct_symbols(Id, Count) :-
     sort(Symbols0, Symbols),
     length(Symbols, Count).
 
-% An if-then-else rather than clauses with a cut: whether the cut is
-% observable depends on the SWI-Prolog release's clause indexing.
-count_transitive_symbols(Id, Transitive, Count) :-
-    (   Transitive == true
-    ->  findall(SymbolId, transitively_implements(SymbolId, Id), Symbols0),
-        sort(Symbols0, Symbols),
-        length(Symbols, Count)
-    ;   count_direct_symbols(Id, Count)
-    ).
+% kb:transitively_implements/2 counts direct ownership only, so the
+% include-transitive flag cannot change the count.
+count_transitive_symbols(Id, _IncludeTransitive, Count) :-
+    count_direct_symbols(Id, Count).
 
 count_direct_requirements(Id, Count) :-
     findall(ReqId, kb_relationship(implements, Id, ReqId), ReqIds0),
