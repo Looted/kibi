@@ -442,6 +442,42 @@ describe("syncPluginManifestVersions", () => {
     );
   });
 
+  test("syncs the MCP Registry entry and refuses an ambiguous one", async () => {
+    await withTempWorkspace(
+      "kibi-plugin-manifest-registry-",
+      async (workspaceRoot) => {
+        const mcpDir = join(workspaceRoot, "packages/mcp");
+        await writeJson(join(mcpDir, "package.json"), {
+          name: "kibi-mcp",
+          version: "2.0.0",
+        });
+        const registryPath = join(mcpDir, "server.json");
+        await writeJson(registryPath, {
+          name: "io.github.Looted/kibi-mcp",
+          version: "1.0.0",
+          packages: [
+            "not an entry",
+            { registryType: "oci", identifier: "kibi-mcp", version: "1.0.0" },
+            { registryType: "npm", identifier: "kibi-mcp", version: "1.0.0" },
+          ],
+        });
+        await syncPluginManifestVersions(workspaceRoot);
+        const synced = readJson(registryPath);
+        expect(synced.version).toBe("2.0.0");
+        expect(synced.packages).toEqual([
+          "not an entry",
+          { registryType: "oci", identifier: "kibi-mcp", version: "1.0.0" },
+          { registryType: "npm", identifier: "kibi-mcp", version: "2.0.0" },
+        ]);
+
+        await writeJson(registryPath, { version: "1.0.0", packages: {} });
+        await expect(syncPluginManifestVersions(workspaceRoot)).rejects.toThrow(
+          "Expected exactly one Registry npm entry for kibi-mcp",
+        );
+      },
+    );
+  });
+
   test("rejects analyzer identity mismatches before changing earlier package metadata", async () => {
     await withTempWorkspace(
       "kibi-plugin-catalog-identity-",
