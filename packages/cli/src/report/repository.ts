@@ -22,8 +22,9 @@ export type SourceCoordinate = Readonly<{
   endColumn?: number;
 }>;
 
-function firstCapture(match: RegExpMatchArray | null, index: number): string {
-  return match?.[index]?.trim() ?? "";
+/** A capture group of a successful match; every group below is mandatory. */
+function firstCapture(match: RegExpMatchArray, index: number): string {
+  return (match[index] as string).trim();
 }
 
 function stripGitSuffix(value: string): string {
@@ -38,8 +39,8 @@ export function parseGitRemote(url: string):
       provider: ReportRepositoryProvider;
     }>
   | undefined {
+  // An empty url matches none of the patterns below.
   const trimmed = url.trim();
-  if (trimmed.length === 0) return undefined;
 
   const github = trimmed.match(
     /^(?:https?:\/\/(?:www\.)?|git@|ssh:\/\/(?:git@)?|git:\/\/)github\.com[:/]([^/]+)\/([^/]+?)(?:\.git)?\/?$/i,
@@ -123,8 +124,8 @@ export function resolveReportRepository(input: {
     );
   const origin = parsed.find((entry) => entry.remote.name === "origin");
   const selected = origin?.repo ?? parsed[0]?.repo;
-  const commitSha = input.commitSha?.trim() || undefined;
-  const branch = input.branch?.trim() || undefined;
+  const commitSha = input.commitSha?.trim();
+  const branch = input.branch?.trim();
   return {
     ...(selected ?? {}),
     ...(commitSha ? { commitSha } : {}),
@@ -136,7 +137,7 @@ export function resolveReportRepository(input: {
 export function shortCommitSha(sha: string | undefined): string | undefined {
   const value = sha?.trim();
   if (!value) return undefined;
-  return value.length > 12 ? value.slice(0, 12) : value;
+  return value.slice(0, 12);
 }
 
 function encodePath(path: string): string {
@@ -147,25 +148,26 @@ function encodePath(path: string): string {
     .join("/");
 }
 
+/** A whole line number; Number.isInteger is false for every non-number. */
+function isLine(value: unknown, after: number): value is number {
+  return Number.isInteger(value) && (value as number) > after;
+}
+
 function lineFragment(coordinate: SourceCoordinate): string {
   const start = coordinate.line;
-  if (typeof start !== "number" || !Number.isInteger(start) || start < 1) {
-    return "";
-  }
+  if (!isLine(start, 0)) return "";
   const end = coordinate.endLine;
-  if (typeof end === "number" && Number.isInteger(end) && end > start) {
-    return `#L${start}-L${end}`;
-  }
-  return `#L${start}`;
+  return isLine(end, start) ? `#L${start}-L${end}` : `#L${start}`;
 }
 
 // implements REQ-kibi-html-health-report
 export function commitWebUrl(
   repository: ReportRepository | undefined,
 ): string | undefined {
-  const webUrl = repository?.webUrl?.replace(/\/+$/, "");
-  const sha = repository?.commitSha?.trim();
-  if (!repository || !webUrl || !sha) return undefined;
+  if (repository === undefined) return undefined;
+  const webUrl = repository.webUrl?.replace(/\/+$/, "");
+  const sha = repository.commitSha?.trim();
+  if (!webUrl || !sha) return undefined;
   if (repository.provider === "github")
     return `${webUrl}/commit/${encodeURIComponent(sha)}`;
   if (repository.provider === "gitlab")
@@ -178,11 +180,10 @@ export function sourceWebUrl(
   repository: ReportRepository | undefined,
   coordinate: SourceCoordinate | undefined,
 ): string | undefined {
-  const path = coordinate?.path?.trim();
-  const webUrl = repository?.webUrl?.replace(/\/+$/, "");
-  if (!repository || !coordinate || !path || !webUrl || path.includes("://")) {
-    return undefined;
-  }
+  if (repository === undefined || coordinate === undefined) return undefined;
+  const path = coordinate.path?.trim();
+  const webUrl = repository.webUrl?.replace(/\/+$/, "");
+  if (!path || !webUrl || path.includes("://")) return undefined;
   const revision = repository.commitSha?.trim() || repository.branch?.trim();
   if (!revision) return undefined;
   const encodedPath = encodePath(path);
@@ -201,15 +202,11 @@ export function sourceWebUrl(
 export function formatSourceCoordinate(
   coordinate: SourceCoordinate | undefined,
 ): string | undefined {
-  const path = coordinate?.path?.trim();
+  if (coordinate === undefined) return undefined;
+  const path = coordinate.path?.trim();
   if (!path) return undefined;
-  const start = coordinate?.line;
-  if (typeof start === "number" && Number.isInteger(start) && start >= 1) {
-    const end = coordinate?.endLine;
-    if (typeof end === "number" && Number.isInteger(end) && end > start) {
-      return `${path}:${start}-${end}`;
-    }
-    return `${path}:${start}`;
-  }
-  return path;
+  const start = coordinate.line;
+  if (!isLine(start, 0)) return path;
+  const end = coordinate.endLine;
+  return isLine(end, start) ? `${path}:${start}-${end}` : `${path}:${start}`;
 }
