@@ -87,60 +87,50 @@ function unquote(raw: string): string {
     return value.slice(1, -1).replaceAll("''", "'");
   }
   // Plain scalars may carry a trailing comment.
-  const comment = value.search(/\s#/);
-  return comment >= 0 ? value.slice(0, comment).trimEnd() : value;
+  return value.replace(/\s#[\s\S]*/, "").trimEnd();
 }
 
 /**
  * Minimal YAML flow-collection reader: `[a, "b", {k: v}]` and `{k: v}` with
  * nesting, quoted or plain scalars and `#` comments. It is only ever handed
- * text whose first non-blank character is `[` or `{`, and it reports where
- * the collection ended so a caller can tell a balanced value from one that
+ * text whose character at `start` is `[` or `{`, and it reports where the
+ * collection ended so a caller can tell a balanced value from one that
  * continues on later lines.
  */
 type FlowParse = { value: unknown; end: number } | undefined;
+
+/** Whitespace and `#` comments between flow tokens. */
+const FLOW_BLANK = /(?:[ \t\n\r]|#[^\n]*)*/y;
+/** A double-quoted scalar; a backslash escapes the next character. */
+const DOUBLE_QUOTED = /"(?:[^"\\]|\\[\s\S])*"/y;
+/** A single-quoted scalar; `''` is an escaped quote. */
+const SINGLE_QUOTED = /'(?:[^']|'')*'/y;
 
 // implements REQ-kibi-hooks-flow-manifest
 function parseFlow(text: string, start = 0): FlowParse {
   let pos = start;
 
   const skip = () => {
-    while (pos < text.length) {
-      const char = text[pos];
-      if (char === "#") {
-        while (pos < text.length && text[pos] !== "\n") pos += 1;
-      } else if (
-        char === " " ||
-        char === "\t" ||
-        char === "\n" ||
-        char === "\r"
-      ) {
-        pos += 1;
-      } else {
-        break;
-      }
-    }
+    FLOW_BLANK.lastIndex = pos;
+    FLOW_BLANK.test(text);
+    pos = FLOW_BLANK.lastIndex;
   };
 
-  const scalar = (stops: string): string | undefined => {
-    const quote = text[pos];
+  const scalar = (stops: string): string => {
+    const quote = text.charAt(pos);
     if (quote === '"' || quote === "'") {
-      let cursor = pos + 1;
-      while (cursor < text.length) {
-        if (quote === '"' && text[cursor] === "\\") cursor += 2;
-        else if (text[cursor] === quote) {
-          if (quote === "'" && text[cursor + 1] === "'") cursor += 2;
-          else break;
-        } else cursor += 1;
-      }
-      if (cursor >= text.length) return undefined;
-      const raw = text.slice(pos, cursor + 1);
-      pos = cursor + 1;
+      const pattern = quote === '"' ? DOUBLE_QUOTED : SINGLE_QUOTED;
+      pattern.lastIndex = pos;
+      // An unterminated quote has no match, and indexing null throws, which
+      // fails the whole parse.
+      const raw = (pattern.exec(text) as RegExpExecArray)[0];
+      pos = pattern.lastIndex;
       return unquote(raw);
     }
     let cursor = pos;
-    while (cursor < text.length) {
-      const char = text[cursor] ?? "";
+    for (;;) {
+      const char = text.charAt(cursor);
+      // `includes("")` holds, so the end of the text stops the scan too.
       if (
         (stops.includes(char) && char !== ":") ||
         char === "\n" ||
@@ -148,13 +138,15 @@ function parseFlow(text: string, start = 0): FlowParse {
       )
         break;
       // A plain mapping key ends at the first `: ` (or `:` before a stop).
+      // A key whose colon ends the text never parses, whichever way it ends.
       if (
         stops.includes(":") &&
         char === ":" &&
-        (cursor + 1 >= text.length || /[\s,\]}]/.test(text[cursor + 1] ?? ""))
+        /[\s,\]}]/.test(text.charAt(cursor + 1))
       )
         break;
-      if (char === "#" && /\s/.test(text[cursor - 1] ?? "")) break;
+      // `skip` consumed any comment before the scalar, so `#` is never first.
+      if (char === "#" && /\s/.test(text.charAt(cursor - 1))) break;
       cursor += 1;
     }
     const raw = text.slice(pos, cursor).trim();
@@ -162,25 +154,23 @@ function parseFlow(text: string, start = 0): FlowParse {
     return raw;
   };
 
+  // Every caller skips blanks first. At the end of the text an item or key
+  // reads as an empty scalar and the separator check after it fails.
   const value = (): unknown => {
-    skip();
-    const open = text[pos];
+    const open = text.charAt(pos);
     if (open === "[") {
       pos += 1;
       const items: unknown[] = [];
       for (;;) {
         skip();
-        if (text[pos] === "]") {
+        if (text.charAt(pos) === "]") {
           pos += 1;
           return items;
         }
-        if (pos >= text.length)
-          throw new SyntaxError("unterminated flow sequence");
-        const item = value();
-        if (item !== undefined) items.push(item);
+        items.push(value());
         skip();
-        if (text[pos] === ",") pos += 1;
-        else if (text[pos] !== "]") throw new SyntaxError("expected , or ]");
+        if (text.charAt(pos) === ",") pos += 1;
+        else if (text.charAt(pos) !== "]") throw new SyntaxError();
       }
     }
     if (open === "{") {
@@ -188,44 +178,43 @@ function parseFlow(text: string, start = 0): FlowParse {
       const record: RawRecord = {};
       for (;;) {
         skip();
-        if (text[pos] === "}") {
+        if (text.charAt(pos) === "}") {
           pos += 1;
           return record;
         }
-        if (pos >= text.length)
-          throw new SyntaxError("unterminated flow mapping");
         const key = scalar(":,}");
-        if (key === undefined) throw new SyntaxError("unterminated key");
         skip();
         let entry: unknown;
-        if (text[pos] === ":") {
+        if (text.charAt(pos) === ":") {
           pos += 1;
           skip();
-          entry = text[pos] === "," || text[pos] === "}" ? undefined : value();
+          entry =
+            text.charAt(pos) === "," || text.charAt(pos) === "}"
+              ? undefined
+              : value();
         }
         if (key.length > 0) record[key] = entry;
         skip();
-        if (text[pos] === ",") pos += 1;
-        else if (text[pos] !== "}") throw new SyntaxError("expected , or }");
+        if (text.charAt(pos) === ",") pos += 1;
+        else if (text.charAt(pos) !== "}") throw new SyntaxError();
       }
     }
-    const raw = scalar(",]}");
-    if (raw === undefined) throw new SyntaxError("unterminated scalar");
-    return raw;
+    return scalar(",]}");
   };
 
   try {
     const parsed = value();
     return { value: parsed, end: pos };
   } catch {
-    return undefined;
+    // Malformed or unterminated: not a flow value.
   }
+  return undefined;
 }
 
 /** True when `raw` opens a flow collection the rest of the line does not close. */
 function opensFlow(raw: string): boolean {
-  const value = raw.trim();
-  return value.startsWith("[") || value.startsWith("{");
+  // Callers pass regex captures that never start with whitespace.
+  return raw.startsWith("[") || raw.startsWith("{");
 }
 
 const keyValue = /^([A-Za-z0-9_"'-][^:]*?):(?:\s+(.*))?$/;
@@ -241,7 +230,8 @@ function completeFlowValue(raw: string): FlowParse {
 }
 
 function parseScalarOrFlow(raw: string | undefined): unknown {
-  if (raw === undefined || raw.trim().length === 0) return undefined;
+  // `raw` follows `:\s+`, so it is never whitespace alone.
+  if (!raw) return undefined;
   return completeFlowValue(raw)?.value ?? unquote(raw);
 }
 
@@ -263,7 +253,8 @@ function flowRecords(text: string, start: number): RawRecord[] | undefined {
   if (!Array.isArray(parsed?.value)) return undefined;
   return parsed.value.filter(
     (item): item is RawRecord =>
-      item !== null && typeof item === "object" && !Array.isArray(item),
+      // The flow reader yields strings, arrays and objects, never null.
+      typeof item === "object" && !Array.isArray(item),
   );
 }
 
@@ -277,34 +268,27 @@ function scanFlowSection(
   text: string,
   sectionKey: string,
 ): RawRecord[] | undefined {
-  const escapedKey = sectionKey.replaceAll(/[.*+?^$(){}|[\]\\]/g, "\\$&");
-  const header = new RegExp(`^${escapedKey}:[ \\t]*(\\[)?`);
+  // Section keys are fixed identifiers with no regex metacharacters. The
+  // pattern is anchored to the raw line, so an indented key never matches.
+  const header = new RegExp(`^${sectionKey}:[ \\t]*(\\[)?`);
   let offset = 0;
   let first = true;
   let afterHeader = false;
   // Keep the separators so offsets stay exact for CRLF files.
   for (const piece of text.split(/(\r?\n)/)) {
     const content = piece.trim();
-    const indent = piece.length - piece.trimStart().length;
     if (content.length > 0 && !content.startsWith("#")) {
-      if (afterHeader) {
-        // `symbols:` with its value on a later line: flow only when that
-        // line opens the sequence.
-        return content.startsWith("[")
-          ? flowRecords(text, offset + piece.indexOf("["))
-          : undefined;
-      }
-      if (first && content.startsWith("[")) {
-        return flowRecords(text, offset + piece.indexOf("["));
-      }
+      const bracket = offset + piece.indexOf("[");
+      // A root sequence opens on the first meaningful line; `symbols:` with
+      // its value on a later line is flow only when that line opens it.
+      if ((first || afterHeader) && content.startsWith("["))
+        return flowRecords(text, bracket);
+      if (afterHeader) return undefined;
       first = false;
-      if (indent === 0) {
-        const match = header.exec(piece);
-        if (match) {
-          if (match[1] !== undefined)
-            return flowRecords(text, offset + piece.indexOf("["));
-          afterHeader = true;
-        }
+      const match = header.exec(piece);
+      if (match) {
+        if (match[1] !== undefined) return flowRecords(text, bracket);
+        afterHeader = true;
       }
     }
     offset += piece.length;
@@ -320,135 +304,126 @@ function scanRecordSequence(text: string, sectionKey: string): RawRecord[] {
   const flowSection = scanFlowSection(text, sectionKey);
   if (flowSection !== undefined) return flowSection;
   const records: RawRecord[] = [];
-  let itemIndent: number | undefined;
-  let keyIndent = 0;
-  let current: RawRecord | undefined;
+  // The open record, the indent of its dash and the indent of its own keys.
+  let item:
+    | { record: RawRecord; indent: number; keyIndent: number }
+    | undefined;
   let listKey: string | undefined;
   let listItem: RawRecord | undefined;
-  // Top-level section: records are the `<sectionKey>:` sequence or a bare
-  // root sequence; sequences under any other top-level key are ignored.
-  let section: "root" | "records" | "other" = "root";
+  // Records are the `<sectionKey>:` sequence or a bare root sequence;
+  // sequences under any other top-level key are ignored.
+  let otherSection = false;
 
   // A flow value (`relationships: [` …) that the writer wrapped over several
   // lines is collected until its brackets balance, then parsed as one value.
   let pendingFlow:
-    | { key: string; first: string; text: string; onListItem: boolean }
+    | {
+        target: RawRecord;
+        key: string;
+        first: string;
+        text: string;
+        recordIndent: number;
+      }
     | undefined;
+
+  /**
+   * Set `target[key]` from the scalar or flow text `raw`, or start collecting
+   * a wrapped flow value. True when there is no value, so a list may follow.
+   */
+  const assign = (
+    target: RawRecord,
+    key: string,
+    raw: string | undefined,
+    recordIndent: number,
+  ): boolean => {
+    if (raw !== undefined && unbalancedFlow(raw)) {
+      pendingFlow = { target, key, first: raw, text: raw, recordIndent };
+      return false;
+    }
+    const value = parseScalarOrFlow(raw);
+    if (value === undefined) return true;
+    target[key] = value;
+    return false;
+  };
 
   for (const rawLine of text.split(/\r?\n/)) {
     const content = rawLine.trim();
     if (content.length === 0 || content.startsWith("#")) continue;
     const indent = rawLine.length - rawLine.trimStart().length;
     const dash = /^(\s*)-(\s+)(.*)$/.exec(rawLine);
-    if (pendingFlow !== undefined && current !== undefined) {
-      const target =
-        pendingFlow.onListItem && listItem !== undefined ? listItem : current;
-      if (indent > (itemIndent ?? 0) && !(dash && indent === itemIndent)) {
+    if (pendingFlow !== undefined) {
+      if (indent > pendingFlow.recordIndent) {
         pendingFlow.text += `\n${content}`;
         const parsed = parseFlow(pendingFlow.text);
         if (parsed === undefined) continue;
-        target[pendingFlow.key] = parsed.value;
+        pendingFlow.target[pendingFlow.key] = parsed.value;
         pendingFlow = undefined;
         continue;
       }
       // The next record or section started before the brackets balanced:
       // keep the opening line as a plain scalar and read on.
-      target[pendingFlow.key] = unquote(pendingFlow.first);
+      pendingFlow.target[pendingFlow.key] = unquote(pendingFlow.first);
       pendingFlow = undefined;
     }
 
     if (indent === 0 && !dash) {
       const pair = keyValue.exec(content);
-      section =
-        pair?.[1] !== undefined && unquote(pair[1]) === sectionKey
-          ? "records"
-          : "other";
-      current = undefined;
-      itemIndent = undefined;
+      otherSection = pair === null || unquote(pair[1] as string) !== sectionKey;
+      item = undefined;
       continue;
     }
-    if (section === "other") continue;
+    if (otherSection) continue;
 
-    if (dash && (itemIndent === undefined || indent === itemIndent)) {
-      itemIndent = indent;
-      keyIndent = (dash[1]?.length ?? 0) + 1 + (dash[2]?.length ?? 1);
-      current = {};
-      records.push(current);
+    if (dash && (item === undefined || indent === item.indent)) {
+      const rest = dash[3] as string;
+      item = { record: {}, indent, keyIndent: rawLine.length - rest.length };
+      records.push(item.record);
       listKey = undefined;
       listItem = undefined;
-      const pair = keyValue.exec(dash[3] ?? "");
-      if (pair?.[1] !== undefined) {
-        const key = unquote(pair[1]);
-        if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
-          pendingFlow = {
-            key,
-            first: pair[2],
-            text: pair[2],
-            onListItem: false,
-          };
-          continue;
-        }
-        const value = parseScalarOrFlow(pair[2]);
-        if (value !== undefined) current[key] = value;
-        else listKey = key;
+      const pair = keyValue.exec(rest);
+      if (pair !== null) {
+        const key = unquote(pair[1] as string);
+        if (assign(item.record, key, pair[2], indent)) listKey = key;
       }
       continue;
     }
 
-    if (current === undefined || itemIndent === undefined) continue;
-    if (indent <= itemIndent) continue;
+    if (item === undefined || indent <= item.indent) continue;
 
     if (dash) {
       if (listKey === undefined) continue;
-      const list = Array.isArray(current[listKey])
-        ? (current[listKey] as unknown[])
+      const list = Array.isArray(item.record[listKey])
+        ? (item.record[listKey] as unknown[])
         : [];
-      current[listKey] = list;
-      const item = dash[3] ?? "";
-      const flowItem = completeFlowValue(item);
-      const pair = flowItem === undefined ? keyValue.exec(item) : null;
+      item.record[listKey] = list;
+      const rest = dash[3] as string;
+      const flowItem = completeFlowValue(rest);
+      listItem = undefined;
       if (flowItem !== undefined) {
         // `- { type: implements, target: REQ-1 }`
-        listItem = undefined;
         list.push(flowItem.value);
-      } else if (pair?.[1] !== undefined && pair[2] !== undefined) {
-        listItem = { [unquote(pair[1])]: parseScalarOrFlow(pair[2]) };
+        continue;
+      }
+      const pair = keyValue.exec(rest);
+      if (pair?.[2] !== undefined) {
+        listItem = { [unquote(pair[1] as string)]: parseScalarOrFlow(pair[2]) };
         list.push(listItem);
       } else {
-        listItem = undefined;
-        list.push(unquote(item));
+        list.push(unquote(rest));
       }
       continue;
     }
 
     const pair = keyValue.exec(content);
-    if (pair?.[1] === undefined) continue;
-    const key = unquote(pair[1]);
-    if (indent === keyIndent) {
+    if (pair === null) continue;
+    const key = unquote(pair[1] as string);
+    if (indent === item.keyIndent) {
       listItem = undefined;
-      if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
-        pendingFlow = {
-          key,
-          first: pair[2],
-          text: pair[2],
-          onListItem: false,
-        };
-        listKey = undefined;
-        continue;
-      }
-      const value = parseScalarOrFlow(pair[2]);
-      if (value === undefined) {
-        listKey = key;
-      } else {
-        current[key] = value;
-        listKey = undefined;
-      }
-    } else if (listItem !== undefined && pair[2] !== undefined) {
-      if (unbalancedFlow(pair[2])) {
-        pendingFlow = { key, first: pair[2], text: pair[2], onListItem: true };
-        continue;
-      }
-      listItem[key] = parseScalarOrFlow(pair[2]);
+      listKey = assign(item.record, key, pair[2], item.indent)
+        ? key
+        : undefined;
+    } else if (listItem !== undefined) {
+      assign(listItem, key, pair[2], item.indent);
     }
   }
 
@@ -464,45 +439,42 @@ export type Coordinates = Record<
 export function scanSymbolCoordinates(text: string): Coordinates {
   const coordinates: Coordinates = {};
   let inCoordinates = false;
-  let idIndent: number | undefined;
-  let currentId: string | undefined;
+  // The open symbol id's indent and the entry its fields fill.
+  let current: { indent: number; entry: Coordinates[string] } | undefined;
 
   for (const rawLine of text.split(/\r?\n/)) {
-    const content = rawLine.trim();
-    if (content.length === 0 || content.startsWith("#")) continue;
+    // Blank and comment lines hold no `key:` pair.
+    const pair = keyValue.exec(rawLine.trim());
+    if (pair === null) continue;
     const indent = rawLine.length - rawLine.trimStart().length;
-    const pair = keyValue.exec(content);
-    if (pair?.[1] === undefined) continue;
-    const key = unquote(pair[1]);
+    const key = unquote(pair[1] as string);
 
     if (indent === 0) {
       inCoordinates = key === "coordinates";
-      idIndent = undefined;
-      currentId = undefined;
+      current = undefined;
       continue;
     }
     if (!inCoordinates) continue;
 
-    if (idIndent === undefined || indent === idIndent) {
-      idIndent = indent;
-      currentId = key;
-      coordinates[currentId] ??= {};
+    // Lines shallower than the open id are neither ids nor its fields.
+    if (current !== undefined && indent < current.indent) continue;
+    if (current === undefined || indent === current.indent) {
+      coordinates[key] ??= {};
+      current = { indent, entry: coordinates[key] };
       continue;
     }
-    if (currentId === undefined || indent < idIndent) continue;
+    if (pair[2] === undefined) continue;
 
-    const entry = coordinates[currentId] ?? {};
+    const value = unquote(pair[2]);
     if (key === "sourceFile") {
-      const sourceFile = normalizeSourceFile(unquote(pair[2] ?? ""));
-      if (sourceFile.length > 0) entry.sourceFile = sourceFile;
-      coordinates[currentId] = entry;
+      const sourceFile = normalizeSourceFile(value);
+      if (sourceFile.length > 0) current.entry.sourceFile = sourceFile;
       continue;
     }
-    const numeric = Number.parseInt(unquote(pair[2] ?? ""), 10);
+    const numeric = Number.parseInt(value, 10);
     if (!Number.isFinite(numeric)) continue;
-    if (key === "sourceLine") entry.line = numeric;
-    if (key === "sourceEndLine") entry.endLine = numeric;
-    coordinates[currentId] = entry;
+    if (key === "sourceLine") current.entry.line = numeric;
+    if (key === "sourceEndLine") current.entry.endLine = numeric;
   }
 
   return coordinates;
@@ -579,40 +551,32 @@ export function buildKnowledgeIndex(
       executableFor: [],
     };
 
-    const relationships: { type: string; target: string }[] = [];
+    // Any other type, string or not, relates nothing.
+    const relate = (type: unknown, target: string) => {
+      if (type === "implements") pushUnique(symbol.implements, target);
+      else if (type === "covered_by") pushUnique(symbol.coveredBy, target);
+      else if (type === "executable_for")
+        pushUnique(symbol.executableFor, target);
+    };
+    // Reading a field of a primitive yields undefined; only null and
+    // undefined need replacing before fields are read.
+    const relateTyped = (relation: unknown) => {
+      const typed = (relation ?? {}) as RawRecord;
+      if (typeof typed.target === "string") relate(typed.type, typed.target);
+    };
+
     if (options.legacyLinksAsImplements !== false) {
       let links: unknown[] = [];
       if (typeof record.links === "string") links = [record.links];
       else if (Array.isArray(record.links)) links = record.links;
       for (const link of links) {
-        if (typeof link === "string") {
-          relationships.push({ type: "implements", target: link });
-        } else if (link !== null && typeof link === "object") {
-          const typed = link as RawRecord;
-          if (
-            typeof typed.type === "string" &&
-            typeof typed.target === "string"
-          ) {
-            relationships.push({ type: typed.type, target: typed.target });
-          }
-        }
+        if (typeof link === "string") relate("implements", link);
+        else relateTyped(link);
       }
     }
-    for (const relation of Array.isArray(record.relationships)
-      ? record.relationships
-      : []) {
-      if (relation === null || typeof relation !== "object") continue;
-      const typed = relation as RawRecord;
-      if (typeof typed.type === "string" && typeof typed.target === "string")
-        relationships.push({ type: typed.type, target: typed.target });
-    }
+    if (Array.isArray(record.relationships))
+      for (const relation of record.relationships) relateTyped(relation);
 
-    for (const { type, target } of relationships) {
-      if (type === "implements") pushUnique(symbol.implements, target);
-      else if (type === "covered_by") pushUnique(symbol.coveredBy, target);
-      else if (type === "executable_for")
-        pushUnique(symbol.executableFor, target);
-    }
     if (
       symbol.implements.length +
         symbol.coveredBy.length +
@@ -655,8 +619,9 @@ function readText(filePath: string): string | undefined {
   try {
     return fs.readFileSync(filePath, "utf8");
   } catch {
-    return undefined;
+    // Missing or unreadable.
   }
+  return undefined;
 }
 
 function writeCacheAtomically(cachePath: string, payload: string): void {
@@ -670,6 +635,44 @@ function writeCacheAtomically(cachePath: string, payload: string): void {
   }
 }
 
+function readCachedIndex(
+  cachePath: string,
+  signature: string,
+): KnowledgeIndex | undefined {
+  try {
+    // A missing cache throws here as a corrupt one throws in the parse.
+    const parsed = JSON.parse(String(fs.readFileSync(cachePath))) as {
+      signature?: string;
+      index?: KnowledgeIndex;
+    };
+    if (parsed.signature === signature && parsed.index) return parsed.index;
+  } catch {
+    // Missing or corrupt cache: rebuild.
+  }
+  return undefined;
+}
+
+function scanKnowledgeIndex(
+  symbolsPath: string,
+  coordinatesPath: string,
+  options: KnowledgeIndexOptions,
+): KnowledgeIndex {
+  const symbolsText = readText(symbolsPath);
+  const coordinatesText = readText(coordinatesPath);
+  // rationale: without a manifest the state is `missing` whatever the record
+  // count, and a placeholder record that is not an object is skipped.
+  // Stryker disable ArrayDeclaration
+  const records =
+    symbolsText === undefined ? [] : scanSymbolsManifest(symbolsText);
+  // Stryker restore ArrayDeclaration
+  return buildKnowledgeIndex(
+    records,
+    coordinatesText === undefined ? {} : scanSymbolCoordinates(coordinatesText),
+    options,
+    manifestStateOf(symbolsText, records.length),
+  );
+}
+
 /**
  * Load the index for a workspace, reusing the cache in `cacheDir` while both
  * manifests keep their size and mtime.
@@ -681,41 +684,18 @@ export function loadKnowledgeIndex(
 ): KnowledgeIndex {
   const symbolsPath = path.join(workspaceRoot, SYMBOLS_MANIFEST);
   const coordinatesPath = path.join(workspaceRoot, SYMBOL_COORDINATES);
+  if (!cacheDir)
+    return scanKnowledgeIndex(symbolsPath, coordinatesPath, options);
+
   const legacyMode =
     options.legacyLinksAsImplements === false ? "typed" : "legacy";
   const signature = `${INDEX_FORMAT}|${legacyMode}|${fileSignature(symbolsPath)}|${fileSignature(coordinatesPath)}`;
-  const cachePath = cacheDir
-    ? path.join(cacheDir, options.cacheFileName ?? CACHE_FILE)
-    : undefined;
+  const cachePath = path.join(cacheDir, options.cacheFileName ?? CACHE_FILE);
+  const cached = readCachedIndex(cachePath, signature);
+  if (cached !== undefined) return cached;
 
-  if (cachePath) {
-    const cached = readText(cachePath);
-    if (cached !== undefined) {
-      try {
-        const parsed = JSON.parse(cached) as {
-          signature?: string;
-          index?: KnowledgeIndex;
-        };
-        if (parsed.signature === signature && parsed.index) return parsed.index;
-      } catch {
-        // Corrupt cache: rebuild below.
-      }
-    }
-  }
-
-  const symbolsText = readText(symbolsPath);
-  const records =
-    symbolsText === undefined ? [] : scanSymbolsManifest(symbolsText);
-  const index = buildKnowledgeIndex(
-    records,
-    scanSymbolCoordinates(readText(coordinatesPath) ?? ""),
-    options,
-    manifestStateOf(symbolsText, records.length),
-  );
-
-  if (cachePath) {
-    writeCacheAtomically(cachePath, JSON.stringify({ signature, index }));
-  }
+  const index = scanKnowledgeIndex(symbolsPath, coordinatesPath, options);
+  writeCacheAtomically(cachePath, JSON.stringify({ signature, index }));
   return index;
 }
 
@@ -769,16 +749,17 @@ export type FactClaim = {
 };
 
 /** Front matter scalars a summary keeps, by field name. */
-const SUMMARY_SCALARS: Readonly<Record<string, keyof FactClaim | "statement">> =
-  {
-    semantic_text: "statement",
-    fact_kind: "factKind",
-    subject_key: "subjectKey",
-    property_key: "propertyKey",
-    operator: "operator",
-    unit: "unit",
-    claim_text: "claimText",
-  };
+const SUMMARY_SCALARS: Readonly<
+  Record<string, Exclude<keyof FactClaim, "values"> | "statement">
+> = {
+  semantic_text: "statement",
+  fact_kind: "factKind",
+  subject_key: "subjectKey",
+  property_key: "propertyKey",
+  operator: "operator",
+  unit: "unit",
+  claim_text: "claimText",
+};
 
 const SCALAR_VALUE_FIELDS = new Set([
   "value_string",
@@ -800,19 +781,19 @@ function readScalar(
   const block = /^[>|][+-]?$/.test(raw.trim());
   const parts: string[] = block ? [] : [raw.trim()];
   let last = index;
-  while (last + 1 < lines.length) {
-    const next = lines[last + 1] ?? "";
+  for (const next of lines.slice(index + 1)) {
     if (next.trim() === "---" || !/^\s+\S/.test(next)) break;
     if (!block && /^\s+-\s/.test(next)) break;
     parts.push(next.trim());
     last += 1;
   }
-  const joined = parts.join(" ").trim();
+  // Every part is trimmed and non-empty, so the join needs no trim.
+  const joined = parts.join(" ");
   return { value: block ? joined : unquote(joined), last };
 }
 
-/** The first prose paragraph of a Markdown body, headings skipped. */
-function firstParagraph(lines: readonly string[]): string | undefined {
+/** The first prose paragraph of a Markdown body, headings skipped; "" if none. */
+function firstParagraph(lines: readonly string[]): string {
   const paragraph: string[] = [];
   for (const line of lines) {
     const text = line.trim();
@@ -826,13 +807,13 @@ function firstParagraph(lines: readonly string[]): string | undefined {
     }
     paragraph.push(text);
   }
-  return paragraph.length > 0 ? paragraph.join(" ") : undefined;
+  return paragraph.join(" ");
 }
 
 const MAX_SUMMARY_LINKS = 24;
 const RELATIONSHIPS_DIR = ".kb/relationships";
 
-type ShardLinks = { signature: string; byFrom: Map<string, EntityLink[]> };
+type ShardLinks = { signature: string; byFrom: Map<unknown, EntityLink[]> };
 
 /**
  * Parsed relationship shards keyed by absolute path and revalidated by size
@@ -853,29 +834,23 @@ function shardPathFor(workspaceRoot: string, entityId: string): string {
 
 function shardLinksFrom(workspaceRoot: string, entityId: string): EntityLink[] {
   const shardPath = shardPathFor(workspaceRoot, entityId);
+  // A missing shard has the signature `missing` and reads as no records.
   const signature = fileSignature(shardPath);
-  if (signature === "missing") {
-    shardCache.delete(shardPath);
-    return [];
-  }
   let cached = shardCache.get(shardPath);
   if (cached?.signature !== signature) {
-    const byFrom = new Map<string, EntityLink[]>();
-    const records = scanRecordSequence(
-      readText(shardPath) ?? "",
-      "relationships",
-    );
-    for (const { type, from, to } of records) {
-      if (
-        typeof type !== "string" ||
-        typeof from !== "string" ||
-        typeof to !== "string"
-      ) {
-        continue;
+    // Keyed by whatever `from` holds: only a string can equal an entity id.
+    const byFrom = new Map<unknown, EntityLink[]>();
+    const text = readText(shardPath);
+    if (text !== undefined) {
+      for (const { type, from, to } of scanRecordSequence(
+        text,
+        "relationships",
+      )) {
+        if (typeof type !== "string" || typeof to !== "string") continue;
+        const list = byFrom.get(from) ?? [];
+        list.push({ type, target: to });
+        byFrom.set(from, list);
       }
-      const list = byFrom.get(from) ?? [];
-      list.push({ type, target: to });
-      byFrom.set(from, list);
     }
     cached = { signature, byFrom };
     shardCache.set(shardPath, cached);
@@ -925,7 +900,7 @@ export function readEntitySummary(
   }
 
   const lines = head.split(/\r?\n/);
-  if (lines[0]?.trim() !== "---") return { id: entityId };
+  if ((lines[0] as string).trim() !== "---") return { id: entityId };
   const summary: EntitySummary = { id: entityId };
   const authored: EntityLink[] = [];
   const claim: FactClaim = {};
@@ -938,19 +913,22 @@ export function readEntitySummary(
   let bodyStart = lines.length;
   let pending: PendingLink | undefined;
   for (let index = 1; index < lines.length; index += 1) {
-    const line = lines[index] ?? "";
+    const line = lines[index] as string;
     if (line.trim() === "---") {
       closed = true;
       bodyStart = index + 1;
       break;
     }
-    const scalar = /^([a-z_]+):\s*(.*)$/.exec(line);
-    const scalarField = scalar ? SUMMARY_SCALARS[scalar[1] ?? ""] : undefined;
+    // Patterns ending in a greedy `.*` take the rest of the line.
+    const scalar = /^([a-z_]+):\s*(.*)/.exec(line);
+    const scalarField = scalar
+      ? SUMMARY_SCALARS[scalar[1] as string]
+      : undefined;
     if (scalar && scalarField && scalar[2]) {
       const { value, last } = readScalar(lines, index, scalar[2]);
       if (value !== "") {
         if (scalarField === "statement") summary.statement = value;
-        else if (scalarField !== "values") claim[scalarField] = value;
+        else claim[scalarField] = value;
       }
       index = last;
       flushLink(authored, pending);
@@ -959,17 +937,19 @@ export function readEntitySummary(
       inValueSet = false;
       continue;
     }
-    if (scalar && SCALAR_VALUE_FIELDS.has(scalar[1] ?? "") && scalar[2]) {
+    if (scalar && SCALAR_VALUE_FIELDS.has(scalar[1] as string) && scalar[2]) {
       values.push(unquote(scalar[2]));
     }
     const flowSet = /^value_set:\s*\[(.*)\]\s*$/.exec(line);
-    if (flowSet?.[1]?.trim()) {
-      values.push(...flowSet[1].split(",").map((member) => unquote(member)));
+    if (flowSet !== null && (flowSet[1] as string).trim()) {
+      values.push(
+        ...(flowSet[1] as string).split(",").map((member) => unquote(member)),
+      );
     }
     if (/^\S/.test(line)) inValueSet = /^value_set:\s*$/.test(line);
     else if (inValueSet) {
-      const member = /^\s*-\s*(.+)$/.exec(line);
-      if (member) values.push(unquote(member[1] ?? ""));
+      const member = /^\s*-\s*(.+)/.exec(line);
+      if (member) values.push(unquote(member[1] as string));
     }
     // implements REQ-kb-decision-firmness-from-origin
     const flowOrigin = /^origin:\s*\{.*\bkind:\s*["']?([a-z]+)/.exec(line);
@@ -977,7 +957,7 @@ export function readEntitySummary(
     const nestedKind = inOrigin ? /^\s+kind:\s*["']?([a-z]+)/.exec(line) : null;
     if (nestedKind) originKind = nestedKind[1];
     if (/^\S/.test(line)) inOrigin = /^origin:\s*$/.test(line);
-    const match = /^(title|status|firmness):\s*(.*)$/.exec(line);
+    const match = /^(title|status|firmness):\s*(.*)/.exec(line);
     if (match?.[1] === "title" && match[2]) summary.title = unquote(match[2]);
     if (match?.[1] === "status" && match[2]) summary.status = unquote(match[2]);
     // implements REQ-kb-decision-firmness
@@ -993,16 +973,17 @@ export function readEntitySummary(
     // Typed entries carry `type: X` and `target: Y` in either order, so an
     // entry is pushed only when the next entry or section starts; a bare
     // `- ID` entry is a generic relates_to link.
-    const entry = /^\s*-\s*(.*)$/.exec(line);
+    const entry = /^\s*-\s*(.*)/.exec(line);
     if (entry) {
       flushLink(authored, pending);
       pending = {};
     }
     if (!pending) continue;
-    const body = (entry ? (entry[1] ?? "") : line).trim();
-    const field = /^(type|target):\s*(.+)$/.exec(body);
-    if (field?.[1] === "type") pending.type = unquote(field[2] ?? "");
-    else if (field?.[1] === "target") pending.target = unquote(field[2] ?? "");
+    const body = (entry ? (entry[1] as string) : line).trim();
+    const field = /^(type|target):\s*(.+)/.exec(body);
+    if (field?.[1] === "type") pending.type = unquote(field[2] as string);
+    else if (field?.[1] === "target")
+      pending.target = unquote(field[2] as string);
     else if (entry && SAFE_ENTITY_ID.test(unquote(body)))
       pending.bare = unquote(body);
   }
