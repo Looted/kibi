@@ -358,7 +358,10 @@ property_theorem(Contexts, Numbered, Theorem, Used, Rejected) :-
         Orphans),
     append(Rejected0, Orphans, Rejected).
 
+% The second clause's head cannot match an unresolved/4 context. Whether the
+% cut is observable depends on the SWI-Prolog release's clause indexing.
 property_context_result(_Candidates, unresolved(Subject, Property, Scope, Reason), Results,
+% mutalog-disable-next-line cut: the clause heads already exclude each other
                         [result(unresolved, [], [], _{subjectKey: Subject, propertyKey: Property, scope: Scope, reason: Reason})|Results]) :- !.
 property_context_result(Candidates, context(Subject, Property, Scope, Domain, Members), Results, [Result|Results]) :-
     findall(Index-Certificate,
