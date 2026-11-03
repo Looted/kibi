@@ -16,7 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeAll, describe, expect, test } from "bun:test";
 import {
   existsSync,
   mkdirSync,
@@ -41,6 +41,9 @@ import {
   resolveKibiWorkspaceRoot,
   secretSourceFromBootstrap,
 } from "../../src/env/bootstrap.js";
+
+// Another file in the same process may have bootstrapped process.env first.
+beforeAll(() => resetKibiEnvironmentBootstrapStateForTests());
 
 const cleanups: Array<() => void> = [];
 afterEach(() => {
