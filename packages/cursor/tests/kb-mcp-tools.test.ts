@@ -42,46 +42,16 @@ describe("extractKbMcpToolName", () => {
     expect(extractKbMcpToolName(undefined, undefined)).toBeUndefined();
   });
 
-  test("falls back through legacy direct and nested tool-name paths", () => {
-    const originalStartsWith = String.prototype.startsWith;
-    const withKbPrefixResults = (
-      kbPrefixResults: boolean[],
-      callback: () => string | undefined,
-    ): string | undefined => {
-      String.prototype.startsWith = function startsWithForFallback(
-        searchString: string,
-        position?: number,
-      ): boolean {
-        if (searchString === "kb_") {
-          return kbPrefixResults.shift() ?? true;
-        }
-        return originalStartsWith.call(this, searchString, position);
-      };
-
-      return callback();
-    };
-
-    try {
-      expect(
-        withKbPrefixResults([false, true], () =>
-          extractKbMcpToolName("kb_query", undefined),
-        ),
-      ).toBe("kb_query");
-      expect(
-        withKbPrefixResults([false, false, true], () =>
-          extractKbMcpToolName(undefined, { name: "kb_search" }),
-        ),
-      ).toBe("kb_search");
-      expect(
-        withKbPrefixResults([false, true], () =>
-          extractKbMcpToolName(undefined, {
-            args: { tool_name: "kb_status" },
-          }),
-        ),
-      ).toBe("kb_status");
-    } finally {
-      String.prototype.startsWith = originalStartsWith;
-    }
+  test("reads direct, name-keyed and nested tool-name paths", () => {
+    // The shared extractor derives each name in one pass; there is no second
+    // fallback lookup to reach.
+    expect(extractKbMcpToolName("kb_query", undefined)).toBe("kb_query");
+    expect(extractKbMcpToolName(undefined, { name: "kb_search" })).toBe(
+      "kb_search",
+    );
+    expect(
+      extractKbMcpToolName(undefined, { args: { tool_name: "kb_status" } }),
+    ).toBe("kb_status");
   });
 });
 

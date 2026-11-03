@@ -82,7 +82,9 @@ export function locatePlatformPackage(
 }
 
 function safeRelativePath(value) {
-  if (typeof value !== "string" || value.length === 0) return false;
+  // An empty string needs no own check: it normalizes to ".", which differs
+  // from the value and is rejected below.
+  if (typeof value !== "string") return false;
   if (value.includes("\\") || value.includes("\0")) return false;
   if (path.posix.isAbsolute(value)) return false;
   const normalized = path.posix.normalize(value);
