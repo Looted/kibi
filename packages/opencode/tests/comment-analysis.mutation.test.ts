@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
+  type CommentAnalysisResult,
   analyzeCodeFile,
   createFingerprint,
   extractJsTsComments,
@@ -34,11 +35,11 @@ function referenceFingerprint(text: string): string {
 }
 
 function block(text: string) {
-  return { text, kind: "block-comment" };
+  return { text, kind: "block-comment" as const };
 }
 
 function docstring(text: string) {
-  return { text, kind: "docstring" };
+  return { text, kind: "docstring" as const };
 }
 
 let fileCount = 0;
@@ -248,7 +249,8 @@ describe("analyzeCodeFile", () => {
       reasoning: suggestion?.reasoning,
       fingerprint: referenceFingerprint(text),
       sourceKind: kind,
-    };
+      // The texts used here all classify, so every field is set.
+    } as CommentAnalysisResult;
   }
 
   test.each(["js", "jsx", "ts", "tsx", "JS", "Tsx"])(

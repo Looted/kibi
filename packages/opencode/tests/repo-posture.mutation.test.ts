@@ -37,14 +37,14 @@ const LANES = [
 ];
 
 const UNINITIALIZED = {
-  state: "root_uninitialized",
+  state: "root_uninitialized" as const,
   needsBootstrap: true,
   reason: "No Kibi presence detected in workspace",
   maintenanceDegraded: false,
 };
 
 const INTENT = {
-  state: "root_uninitialized",
+  state: "root_uninitialized" as const,
   needsBootstrap: true,
   reason:
     "No root .kb and no vendored trees, but Kibi plugin intent detected at root",

@@ -56,7 +56,7 @@ function signal(root: string, rel: string) {
   return getE2eCoverageSignal(root, path.join(root, rel));
 }
 
-const NONE = { level: "none", evidence: [], reminderText: null };
+const NONE = { level: "none" as const, evidence: [], reminderText: null };
 
 describe("e2e evidence from TEST docs", () => {
   test("an e2e tag is exact evidence", () => {

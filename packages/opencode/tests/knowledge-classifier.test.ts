@@ -152,7 +152,8 @@ describe("knowledge-classifier classifyKnowledge", () => {
       const result = classifyKnowledge(text);
       assert.ok(result);
       assert.ok(
-        result?.confidence === "medium" || result?.confidence === "low",
+        (result?.confidence as string) === "medium" ||
+          (result?.confidence as string) === "low",
       );
     });
 

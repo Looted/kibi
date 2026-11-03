@@ -715,7 +715,7 @@ describe("comment suggestions", () => {
     ["src/fact.ts", "fact", "long-comment-missed-fact"],
     ["src/adr.ts", "adr", "long-comment-missed-adr"],
     ["src/req.ts", "req", "missing-traceability"],
-  ])("%s suggests %s once", (file, type, category) => {
+  ] as const)("%s suggests %s once", (file, type, category) => {
     const { env, calls, warn, state } = fakeEnv();
     edit(env, file);
     edit(env, file);

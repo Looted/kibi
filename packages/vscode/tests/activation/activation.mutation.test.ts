@@ -114,7 +114,9 @@ function configuration(values: Record<string, unknown>) {
 describe("findKibiMcpInPath", () => {
   test("asks `which` on POSIX and returns the first existing listed path", () => {
     Object.defineProperty(process, "platform", { value: "linux" });
-    const execSync = mock(() => "\n  /opt/a/kibi-mcp  \r\n/opt/b/kibi-mcp\n");
+    const execSync = mock(
+      (..._args: unknown[]) => "\n  /opt/a/kibi-mcp  \r\n/opt/b/kibi-mcp\n",
+    );
     const existsSync = mock((p: string) => p === "/opt/a/kibi-mcp");
     expect(
       findKibiMcpInPath({ execSync: execSync as never, existsSync } as never),
@@ -130,7 +132,7 @@ describe("findKibiMcpInPath", () => {
 
   test("asks `where` on Windows", () => {
     Object.defineProperty(process, "platform", { value: "win32" });
-    const execSync = mock(() => "C:\\kibi-mcp.cmd\n");
+    const execSync = mock((..._args: unknown[]) => "C:\\kibi-mcp.cmd\n");
     findKibiMcpInPath({
       execSync: execSync as never,
       existsSync: () => true,
@@ -178,9 +180,9 @@ describe("findKibiMcpInPath", () => {
 describe("validateMcpServerPath", () => {
   function setup(values: Record<string, unknown>, selection?: string) {
     const config = configuration(values);
-    const showWarningMessage = mock(async () => selection);
-    const showErrorMessage = mock(async () => selection);
-    const executeCommand = mock(async () => undefined);
+    const showWarningMessage = mock(async (..._args: unknown[]) => selection);
+    const showErrorMessage = mock(async (..._args: unknown[]) => selection);
+    const executeCommand = mock(async (..._args: unknown[]) => undefined);
     resetVscodeMock({
       workspace: { getConfiguration: config.getConfiguration },
       window: { showWarningMessage, showErrorMessage },
@@ -391,11 +393,11 @@ describe("signoffAnnouncement", () => {
 describe("registerSignoff", () => {
   function setup(choice?: string) {
     const panels: Array<{ webview: { html: string } }> = [];
-    const showInformationMessage = mock(async () => choice);
+    const showInformationMessage = mock(async (..._args: unknown[]) => choice);
     resetVscodeMock({
       window: {
         showInformationMessage,
-        createWebviewPanel: mock(() => {
+        createWebviewPanel: mock((..._args: unknown[]) => {
           const panel = {
             webview: { html: "" },
             reveal() {},
@@ -476,9 +478,11 @@ describe("registerTraceability", () => {
   const selector = [{ language: "typescript" }, { language: "javascript" }];
 
   function setup(overrides: Record<string, unknown> = {}) {
-    const showWarningMessage = mock(() => undefined);
-    const showQuickPick = mock(async () => undefined);
-    const showInformationMessage = mock(async () => undefined);
+    const showWarningMessage = mock((..._args: unknown[]) => undefined);
+    const showQuickPick = mock(async (..._args: unknown[]) => undefined);
+    const showInformationMessage = mock(
+      async (..._args: unknown[]) => undefined,
+    );
     resetVscodeMock({
       window: { showWarningMessage, showQuickPick, showInformationMessage },
       languages: overrides,
@@ -582,11 +586,13 @@ describe("registerContextOnOpen", () => {
     const config = configuration(
       enabled === undefined ? {} : { contextOnOpen: enabled },
     );
-    const executeCommand = mock(async () => {
+    const executeCommand = mock(async (..._args: unknown[]) => {
       if (result instanceof Error) throw result;
       return result;
     });
-    const showInformationMessage = mock(async () => undefined);
+    const showInformationMessage = mock(
+      async (..._args: unknown[]) => undefined,
+    );
     resetVscodeMock({
       workspace: { getConfiguration: config.getConfiguration },
       commands: { executeCommand },

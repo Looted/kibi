@@ -817,7 +817,8 @@ describe("plugin startup notification", () => {
       expect(timers.mock.calls.some(([, delay]) => delay === 2000)).toBe(true);
       const call = timers.mock.calls.find(([, delay]) => delay === 2000);
       clearTimeout(
-        timers.mock.results[timers.mock.calls.indexOf(call as never)]?.value,
+        timers.mock.results[timers.mock.calls.indexOf(call as never)]
+          ?.value as ReturnType<typeof setTimeout>,
       );
     } finally {
       timers.mockRestore();

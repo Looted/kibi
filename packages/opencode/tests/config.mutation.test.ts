@@ -2,7 +2,12 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { DEFAULTS, loadConfig, validateAndMerge } from "../src/config";
+import {
+  DEFAULTS,
+  type KibiConfig,
+  loadConfig,
+  validateAndMerge,
+} from "../src/config";
 import { resetClient, setClient } from "../src/logger";
 
 let warnings: string[] = [];
@@ -23,7 +28,7 @@ afterEach(() => {
   resetClient();
 });
 
-const EXPECTED_DEFAULTS = {
+const EXPECTED_DEFAULTS: KibiConfig = {
   enabled: true,
   autoUpdate: true,
   prompt: { enabled: true, hookMode: "auto" },
@@ -93,10 +98,12 @@ describe("validateAndMerge", () => {
   });
 
   test("every valid setting overrides its default", () => {
+    // The overrides hold a non-string ignore entry, which the merge turns
+    // into a string.
     expect(validateAndMerge(OVERRIDES)).toStrictEqual({
       ...OVERRIDES,
       sync: { ...OVERRIDES.sync, ignore: ["a", "1"] },
-    });
+    } as KibiConfig);
   });
 
   test("other strict values are accepted", () => {
