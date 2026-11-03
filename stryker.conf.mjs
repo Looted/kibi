@@ -28,6 +28,7 @@ export const MUTATION_PACKAGES = [
   "packages/claude",
   "packages/plugin-ui",
   "packages/plugin-search-hints",
+  "packages/plugin-builtin",
 ];
 
 /**
@@ -130,6 +131,7 @@ const config = {
     "packages/claude/src/**/*.ts",
     "packages/plugin-ui/src/**/*.ts",
     "packages/plugin-search-hints/src/**/*.ts",
+    "packages/plugin-builtin/src/**/*.ts",
     ...Object.keys(CLI_MUTATION_MODULES),
     ...Object.keys(PLUGIN_MUTATION_MODULES),
   ],

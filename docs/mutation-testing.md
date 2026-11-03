@@ -92,7 +92,7 @@ listed in `TREESITTER_MUTATION_TESTS`; the contract test checks both.
 `stryker.conf.mjs` mutates these whole packages (`MUTATION_PACKAGES`), each
 tested by every `*.test.ts` under its own `tests/` directory: `runtime`,
 `codex`, `cursor`, `plugin-sdk`, `plugin-jev`, `agent-core`, `zcode`,
-`claude`, `plugin-ui` and `plugin-search-hints`. `CLI_MUTATION_MODULES` adds
+`claude`, `plugin-ui`, `plugin-search-hints` and `plugin-builtin`. `CLI_MUTATION_MODULES` adds
 single kibi-cli modules and `PLUGIN_MUTATION_MODULES` single files outside a
 `src/` tree (`packages/swipl/index.js`), each with the tests named for it.
 

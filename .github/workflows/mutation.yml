@@ -40,6 +40,8 @@ on:
       - 'packages/claude/tests/**'
       - 'packages/plugin-ui/src/**'
       - 'packages/plugin-ui/tests/**'
+      - 'packages/plugin-builtin/src/**'
+      - 'packages/plugin-builtin/tests/**'
       - 'packages/swipl/index.js'
       - 'packages/swipl/tests/index.test.ts'
       # kibi-cli modules in scope (CLI_MUTATION_MODULES in stryker.conf.mjs)
