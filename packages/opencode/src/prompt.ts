@@ -113,7 +113,7 @@ export interface PromptContext {
   /** Posture detected by repo-posture detection */
   posture?: RepoPosture;
   /** Risk class from risk-classifier */
-  riskClass?: RiskClass;
+  riskClass?: RiskClass | null | undefined;
   /** Cache instance for skip-repeated-guidance */
   cache?: GuidanceCache;
   /** Workspace root for cache key */
@@ -129,19 +129,23 @@ export interface PromptContext {
   /** Whether to show the degraded advisory block this invocation */
   showDegradedAdvisory?: boolean;
   /** File-operation reminder from lifecycle and e2e coverage signals */
-  fileOperationReminder?: {
-    path: string;
-    lifecycleReminder: string | null;
-    e2eReminder: string | null;
-  };
+  fileOperationReminder?:
+    | {
+        path: string;
+        lifecycleReminder: string | null;
+        e2eReminder: string | null;
+      }
+    | undefined;
   /** Hard-mode checkpoint block that must take prompt priority over advisory guidance. */
-  hardGateBlock?: {
-    shownPaths: string[];
-    remainingCount: number;
-    reason?: string;
-  };
+  hardGateBlock?:
+    | {
+        shownPaths: string[];
+        remainingCount: number;
+        reason?: string;
+      }
+    | undefined;
   /** KB freshness evaluation from evidence store */
-  kbFreshness?: KbFreshnessEvaluation;
+  kbFreshness?: KbFreshnessEvaluation | undefined;
   /** Paths changed for freshness evaluation (capped at 5) */
   freshnessChangedPaths?: string[];
 }

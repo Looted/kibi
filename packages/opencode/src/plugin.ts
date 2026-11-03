@@ -445,7 +445,9 @@ const kibiOpencodePlugin: Plugin = async (
       const relativePath = path.relative(worktree, filePath);
       return relativePath.startsWith("..") ? filePath : relativePath;
     }
-    return filePath;
+    // Spelled like the file-operation state spells it, so "./src/a.ts"
+    // finds the kind recorded for "src/a.ts".
+    return path.normalize(filePath);
   }
 
   function resolveWorktreePath(
@@ -621,7 +623,26 @@ const kibiOpencodePlugin: Plugin = async (
 
         const transformSessionEdits = promptSessionEditState.getSessionEdits();
         const transformFocusEdit = promptSessionEditState.getFocusEdit();
-        // A missing kind reaches the prompt's cache bucket as "unknown".
+        const promptFocusFilePath: string | undefined =
+          transformFocusEdit?.filePath ?? transformFocusFilePath;
+        // The last classified file's class stands unless the focus file is
+        // another one. Nothing classified yet leaves no scope key, which no
+        // file matches.
+        let effectiveRiskClass: RiskClass | null =
+          enforcementState.lastRiskClass;
+        if (
+          promptFocusFilePath &&
+          enforcementState.lastRiskScopeKey !==
+            buildRiskPathScopeKey(promptWorkContext, promptFocusFilePath)
+        ) {
+          effectiveRiskClass = deriveRiskContext(
+            promptWorkContext,
+            promptFocusFilePath,
+            promptPathKindCache,
+          );
+        }
+        // Read after classifying, which records an eventless focus file's
+        // kind; a missing kind reaches the prompt's cache bucket as "unknown".
         const transformPromptFocusEdit = transformFocusEdit
           ? {
               path: transformFocusEdit.filePath,
@@ -630,27 +651,6 @@ const kibiOpencodePlugin: Plugin = async (
               ) as PathKind,
             }
           : null;
-        const riskContextFilePath =
-          transformFocusEdit?.filePath ?? transformFocusFilePath;
-        // The last classified file's class stands unless the focus file is
-        // another one (or nothing was classified yet).
-        let effectiveRiskClass: RiskClass | null =
-          enforcementState.lastRiskClass;
-        if (
-          riskContextFilePath &&
-          (effectiveRiskClass === null ||
-            enforcementState.lastRiskScopeKey !==
-              buildRiskPathScopeKey(promptWorkContext, riskContextFilePath))
-        ) {
-          effectiveRiskClass = deriveRiskContext(
-            promptWorkContext,
-            riskContextFilePath,
-            promptPathKindCache,
-          );
-        }
-
-        const promptFocusFilePath: string | undefined =
-          transformFocusEdit?.filePath ?? transformFocusFilePath;
 
         // Steps 3-4: File-operation reminder selection with suppression // implements REQ-opencode-file-context-guidance-v1
         let fileOperationReminder:
@@ -660,16 +660,19 @@ const kibiOpencodePlugin: Plugin = async (
               e2eReminder: string | null;
             }
           | undefined;
-        let hardGateBlock:
+        let reminderLifecycle: FileLifecycle = "edited";
+        let hardGate:
           | {
-              shownPaths: string[];
-              remainingCount: number;
-              reason?: string;
+              block: {
+                shownPaths: string[];
+                remainingCount: number;
+                reason: string;
+              };
+              path: string;
+              fingerprint: string;
+              reminderKindsToMark: ReminderKind[];
             }
           | undefined;
-        let hardGateConsumedPath: string | undefined;
-        let hardGateFingerprint: string | undefined;
-        let hardGateReminderKindsToMark: ReminderKind[] = [];
         const focusPathForReminder =
           transformFocusFilePath ?? promptFocusFilePath;
         if (focusPathForReminder) {
@@ -697,51 +700,35 @@ const kibiOpencodePlugin: Plugin = async (
                 promptWorkContext.worktreeRoot,
                 focusPathForReminder,
               );
-              const focusPathKind =
-                promptPathKindCache.get(normalizedFocusPath) ?? "unknown";
+              // The event that left the pending lifecycle recorded the kind.
+              const focusPathKind = promptPathKindCache.get(
+                normalizedFocusPath,
+              ) as PathKind;
               const effectiveMode = getEffectiveMode();
-              let checkpointEvidence = false;
-              let checkpointRunner: KibiCheckpointRunner | null = null;
-              let checkpointContext: KibiCheckpointContext | null = null;
               const checkpointFingerprint = buildDirtyRelevantFingerprint([
                 normalizedFocusPath,
                 pendingLifecycle.lifecycle,
                 focusPathKind,
-                effectiveRiskClass ?? "safe_docs_only",
+                // A focus file always has a class by now.
+                effectiveRiskClass as RiskClass,
               ]);
-              if (
-                effectiveMode === "hard" &&
-                promptWorkContext.isAuthoritative
-              ) {
-                checkpointRunner =
-                  getCheckpointRunnerForContext(promptWorkContext);
-                checkpointContext = {
+              // Hard mode needs available maintenance, so a checkpoint only
+              // needs where to run and what guidance it answers.
+              const checkpointRunner =
+                effectiveMode === "hard"
+                  ? getCheckpointRunnerForContext(promptWorkContext)
+                  : undefined;
+              const checkpointEvidence =
+                checkpointRunner?.isCheckpointPassed(checkpointFingerprint, {
                   workContext: promptWorkContext,
-                  config: cfg,
-                  filePath: normalizedFocusPath,
-                  maintenanceDegraded,
-                  lifecycleEvents: [
-                    {
-                      normalizedPath: normalizedFocusPath,
-                      lifecycle: pendingLifecycle.lifecycle,
-                    },
-                  ],
-                  pathKinds: [focusPathKind],
-                  linkedEntityResults: [linkedEntityResult],
-                  e2eSignals: [e2eSignal],
-                };
-                checkpointEvidence = checkpointRunner.isCheckpointPassed(
-                  checkpointFingerprint,
-                  checkpointContext,
-                );
-              }
+                }) === true;
               const reminderResult = deriveFileOperationReminder({
                 normalizedPath: normalizedFocusPath,
                 lifecycle: pendingLifecycle.lifecycle,
                 pathKind: focusPathKind,
                 linkedEntityResult,
                 e2eSignal,
-                currentSemanticRisk: effectiveRiskClass ?? "safe_docs_only",
+                currentSemanticRisk: effectiveRiskClass as RiskClass,
                 posture: promptWorkContext.posture,
                 effectiveMode,
                 resolvedContext: promptWorkContext,
@@ -749,42 +736,42 @@ const kibiOpencodePlugin: Plugin = async (
               });
               const policyResult = reminderResult.policyResult;
               if (policyResult.kind === "hard_block") {
-                hardGateBlock = {
-                  shownPaths: policyResult.shownPaths,
-                  remainingCount: policyResult.remainingCount,
-                  reason: "checkpoint_required",
+                hardGate = {
+                  block: {
+                    shownPaths: policyResult.shownPaths,
+                    remainingCount: policyResult.remainingCount,
+                    reason: "checkpoint_required",
+                  },
+                  path: normalizedFocusPath,
+                  fingerprint: checkpointFingerprint,
+                  reminderKindsToMark: reminderResult.reminderKindsToMark,
                 };
-                hardGateConsumedPath = normalizedFocusPath;
-                hardGateFingerprint = checkpointFingerprint;
-                hardGateReminderKindsToMark =
-                  reminderResult.reminderKindsToMark;
-                if (checkpointRunner && checkpointContext) {
-                  const checkpointContextWithGuidance = {
-                    ...checkpointContext,
-                    hardGuidanceText: reminderResult.lifecycleReminder,
-                  } satisfies KibiCheckpointContext;
-                  const request = checkpointRunner.requestCheckpoint(
-                    checkpointContextWithGuidance,
-                    checkpointFingerprint,
-                  );
-                  if (request.kind === "requested") {
-                    void checkpointRunner
-                      .runCheckpoint(
-                        checkpointContextWithGuidance,
-                        checkpointFingerprint,
-                      )
-                      .then((result) => {
-                        logger.info("smart-enforcement.checkpoint", {
-                          event: "smart_enforcement_checkpoint",
-                          fingerprint: checkpointFingerprint,
-                          result: result.kind,
-                          reason: result.metadata.reason,
-                        });
-                      })
-                      .catch(logCheckpointFailure(checkpointFingerprint));
-                  }
-                }
+                // Only an authoritative hard-mode context blocks.
+                const runner = checkpointRunner as KibiCheckpointRunner;
+                const checkpointContext: KibiCheckpointContext = {
+                  workContext: promptWorkContext,
+                  filePath: normalizedFocusPath,
+                  hardGuidanceText: reminderResult.lifecycleReminder,
+                };
+                // A hard block always carries its guidance text, so an
+                // authoritative request is always accepted.
+                runner.requestCheckpoint(
+                  checkpointContext,
+                  checkpointFingerprint,
+                );
+                void runner
+                  .runCheckpoint(checkpointContext, checkpointFingerprint)
+                  .then((result) => {
+                    logger.info("smart-enforcement.checkpoint", {
+                      event: "smart_enforcement_checkpoint",
+                      fingerprint: checkpointFingerprint,
+                      result: result.kind,
+                      reason: result.metadata.reason,
+                    });
+                  })
+                  .catch(logCheckpointFailure(checkpointFingerprint));
               } else {
+                reminderLifecycle = pendingLifecycle.lifecycle;
                 fileOperationReminder = {
                   path: normalizedFocusPath,
                   lifecycleReminder: reminderResult.lifecycleReminder,
@@ -797,46 +784,40 @@ const kibiOpencodePlugin: Plugin = async (
 
         // Build freshness evidence for the current dirty fingerprint
         let freshnessEval: ReturnType<typeof evaluateKbFreshness> | undefined;
-        const freshnessFingerprint = `${promptWorkContext.sessionId ?? ""}-${promptWorkContext.branch}`;
-        const freshnessScope: KbFreshnessScope = {
-          ...(promptWorkContext.sessionId !== undefined
-            ? { sessionId: promptWorkContext.sessionId }
-            : {}),
-          agentIdentity: promptWorkContext.agentIdentity,
-          worktree: promptWorkContext.worktreeRoot,
-          branch: promptWorkContext.branch,
-          fingerprint: freshnessFingerprint,
-        };
         if (transformFocusFilePath) {
           const normalizedFocusPathForFreshness =
             promptFileOperationState.normalizePath(transformFocusFilePath);
-          const focusPathKindForFreshness =
-            promptPathKindCache.get(normalizedFocusPathForFreshness) ??
-            "unknown";
-          const pendingLifecycleForFreshness =
-            promptFileOperationState.peekPending(
-              normalizedFocusPathForFreshness,
-            );
-          const effectiveRiskClassForFreshness =
-            effectiveRiskClass ?? "safe_docs_only";
           const meaningfulChange = classifyMeaningfulChange({
             normalizedPath: normalizedFocusPathForFreshness,
-            pathKind: focusPathKindForFreshness,
-            lifecycle: pendingLifecycleForFreshness?.lifecycle ?? "edited",
-            riskClass: effectiveRiskClassForFreshness,
+            pathKind:
+              promptPathKindCache.get(normalizedFocusPathForFreshness) ??
+              "unknown",
+            // A focus file always has a class by now.
+            riskClass: effectiveRiskClass as RiskClass,
           });
           if (meaningfulChange === "requires-kb-evidence") {
-            const freshnessEvidence = freshnessStore.getEvidence(
-              freshnessScope,
-              [normalizedFocusPathForFreshness],
+            // A missing session id joins the scope key as an empty part.
+            const freshnessScope: KbFreshnessScope = {
+              sessionId: promptWorkContext.sessionId as string,
+              agentIdentity: promptWorkContext.agentIdentity,
+              worktree: promptWorkContext.worktreeRoot,
+              branch: promptWorkContext.branch,
+              fingerprint: `${promptWorkContext.sessionId ?? ""}-${promptWorkContext.branch}`,
+            };
+            freshnessEval = evaluateKbFreshness(
+              freshnessStore.getEvidence(freshnessScope, [
+                normalizedFocusPathForFreshness,
+              ]),
             );
-            freshnessEval = evaluateKbFreshness(freshnessEvidence);
           }
         }
         const guidance = buildPrompt({
           // Session edits always leave a focus edit, which the prompt
           // reads first, and a risk class, so the legacy edit list that only
           // serves classless prompts stays empty.
+          // rationale: with no focus edit and no risk class the prompt finds
+          // no code, requirement or KB entry in any list contents.
+          // Stryker disable next-line ArrayDeclaration
           recentEdits: [],
           focusEdit: transformPromptFocusEdit,
           workspaceHealth,
@@ -850,31 +831,19 @@ const kibiOpencodePlugin: Plugin = async (
           maintenanceDegraded,
           degradedMode: cfg.guidance.smartEnforcement.degradedMode,
           showDegradedAdvisory,
-          ...(effectiveRiskClass != null
-            ? { riskClass: effectiveRiskClass }
-            : {}),
-          ...(fileOperationReminder !== undefined
-            ? { fileOperationReminder }
-            : {}),
-          ...(hardGateBlock !== undefined ? { hardGateBlock } : {}),
-          ...(freshnessEval ? { kbFreshness: freshnessEval } : {}),
-          ...(freshnessEval && transformSessionEdits.length > 0
-            ? {
-                freshnessChangedPaths: [
-                  ...new Set(transformSessionEdits.map((e) => e.filePath)),
-                ].slice(0, 5),
-              }
-            : {}),
+          riskClass: effectiveRiskClass,
+          fileOperationReminder,
+          hardGateBlock: hardGate?.block,
+          kbFreshness: freshnessEval,
+          // Session edits hold one entry per path; the prompt lists five.
+          freshnessChangedPaths: transformSessionEdits.map((e) => e.filePath),
         });
         logger.info("smart-enforcement.guidance", {
           event: "smart_enforcement_guidance",
-          emitted: guidance.trim() !== "" && guidance.trim() !== SENTINEL,
+          emitted: guidance !== SENTINEL,
           posture: promptWorkContext.posture,
           posture_state: promptWorkContext.posture,
-          guidance_action:
-            guidance.trim() !== "" && guidance.trim() !== SENTINEL
-              ? "emit"
-              : "skip",
+          guidance_action: guidance !== SENTINEL ? "emit" : "skip",
           risk_class: enforcementState.lastRiskClass,
           recent_edits: enforcementState.recentEditCount,
           static_degraded: posture.maintenanceDegraded,
@@ -883,14 +852,12 @@ const kibiOpencodePlugin: Plugin = async (
           overlay_cause: runtimeOverlay.primaryCause ?? null,
         });
 
-        // Emit completion-reminder log only when prompt-visible reminder text is present
+        // Emit completion-reminder log only when prompt-visible reminder text
+        // is present; the prompt adds it only when the reminder is enabled and
+        // maintenance is available.
         const REMINDER_TEXT =
           "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.";
-        if (
-          cfg.guidance.smartEnforcement.completionReminder &&
-          !maintenanceDegraded &&
-          guidance.includes(REMINDER_TEXT)
-        ) {
+        if (guidance.includes(REMINDER_TEXT)) {
           logger.info("smart-enforcement.completion-reminder", {
             event: "smart_enforcement_completion_reminder",
             risk_class: enforcementState.lastRiskClass,
@@ -910,110 +877,82 @@ const kibiOpencodePlugin: Plugin = async (
           const lifecycleReminderText = fileOperationReminder.lifecycleReminder;
           const e2eReminderText = fileOperationReminder.e2eReminder;
           const focusPathForConsume = fileOperationReminder.path;
+          const [lifecycleKind, e2eKind]: [ReminderKind, ReminderKind] =
+            reminderLifecycle === "deleted"
+              ? ["kibi_delete", "e2e_delete"]
+              : ["kibi_write", "e2e_write"];
 
-          // Determine which reminders were actually emitted in guidance
           // The word budget can keep only a reminder's first line, which
           // still shows it.
           const emitted = (text: string | null): boolean =>
-            text !== null && guidance.includes(text.split("\n")[0] ?? text);
+            text !== null && guidance.includes(text.split("\n")[0] as string);
           const lifecycleEmitted = emitted(lifecycleReminderText);
           const e2eEmitted = emitted(e2eReminderText);
 
           // Once guidance for the path was shown, a reminder kind that had no
           // text this time has nothing left to show for it; otherwise a later
           // event for the same path would look unshown and repeat the guidance.
+          // A lifecycle reminder the prompt folded into its source links stays
+          // unshown. The e2e reminder is never cut: the prompt puts it above
+          // the lifecycle one in a semantic block and a compact block stays
+          // within budget.
           if (lifecycleEmitted || e2eEmitted) {
-            const kinds =
-              promptFileOperationState.peekPending(focusPathForConsume)
-                ?.lifecycle === "deleted"
-                ? (["kibi_delete", "e2e_delete"] as const)
-                : (["kibi_write", "e2e_write"] as const);
-            if (lifecycleReminderText === null) {
-              promptFileOperationState.markShown(focusPathForConsume, kinds[0]);
+            if (lifecycleEmitted || lifecycleReminderText === null) {
+              promptFileOperationState.markShown(
+                focusPathForConsume,
+                lifecycleKind,
+              );
             }
-            if (e2eReminderText === null) {
-              promptFileOperationState.markShown(focusPathForConsume, kinds[1]);
+            promptFileOperationState.markShown(focusPathForConsume, e2eKind);
+            if (lifecycleEmitted) {
+              logger.info("smart-enforcement.file-operation-reminder", {
+                event: "smart_enforcement_file_operation_reminder",
+                file: focusPathForConsume,
+                lifecycle: reminderLifecycle,
+                posture_state: promptWorkContext.posture,
+                risk_class: effectiveRiskClass,
+              });
             }
-          }
-
-          // Mark shown and log only for reminders that were actually emitted
-          if (lifecycleEmitted) {
-            const kind: import("./file-operation-state.js").ReminderKind =
-              promptFileOperationState.peekPending(focusPathForConsume)
-                ?.lifecycle === "deleted"
-                ? "kibi_delete"
-                : "kibi_write";
-            promptFileOperationState.markShown(focusPathForConsume, kind);
-            logger.info("smart-enforcement.file-operation-reminder", {
-              event: "smart_enforcement_file_operation_reminder",
-              file: focusPathForConsume,
-              lifecycle:
-                promptFileOperationState.peekPending(focusPathForConsume)
-                  ?.lifecycle ?? null,
-              posture_state: promptWorkContext.posture,
-              risk_class: effectiveRiskClass,
-            });
-          }
-
-          if (e2eEmitted) {
-            const kind: import("./file-operation-state.js").ReminderKind =
-              promptFileOperationState.peekPending(focusPathForConsume)
-                ?.lifecycle === "deleted"
-                ? "e2e_delete"
-                : "e2e_write";
-            promptFileOperationState.markShown(focusPathForConsume, kind);
-            const e2eSignalForLog = getE2eCoverageSignal(
-              promptWorkContext.worktreeRoot,
-              focusPathForConsume,
-            );
-            logger.info("smart-enforcement.e2e-reminder", {
-              event: "smart_enforcement_e2e_reminder",
-              file: focusPathForConsume,
-              lifecycle:
-                promptFileOperationState.peekPending(focusPathForConsume)
-                  ?.lifecycle ?? null,
-              signal_level: e2eSignalForLog.level,
-              posture_state: promptWorkContext.posture,
-              risk_class: effectiveRiskClass,
-            });
-          }
-
-          // Consume pending only if at least one reminder was emitted
-          if (lifecycleEmitted || e2eEmitted) {
+            if (e2eEmitted) {
+              logger.info("smart-enforcement.e2e-reminder", {
+                event: "smart_enforcement_e2e_reminder",
+                file: focusPathForConsume,
+                lifecycle: reminderLifecycle,
+                signal_level: getE2eCoverageSignal(
+                  promptWorkContext.worktreeRoot,
+                  focusPathForConsume,
+                ).level,
+                posture_state: promptWorkContext.posture,
+                risk_class: effectiveRiskClass,
+              });
+            }
             promptFileOperationState.consumePending(focusPathForConsume);
           }
         }
 
-        if (
-          hardGateBlock &&
-          hardGateConsumedPath &&
-          guidance.includes("🛑 Kibi hard gate blocked")
-        ) {
-          for (const kind of hardGateReminderKindsToMark) {
-            promptFileOperationState.markShown(hardGateConsumedPath, kind);
+        // A hard gate block always renders as the whole guidance.
+        if (hardGate) {
+          for (const kind of hardGate.reminderKindsToMark) {
+            promptFileOperationState.markShown(hardGate.path, kind);
           }
-          promptFileOperationState.consumePending(hardGateConsumedPath);
+          promptFileOperationState.consumePending(hardGate.path);
           logger.info("smart-enforcement.hard-gate-consumed", {
             event: "smart_enforcement_hard_gate_consumed",
-            file: hardGateConsumedPath,
-            fingerprint: hardGateFingerprint ?? null,
+            file: hardGate.path,
+            fingerprint: hardGate.fingerprint,
             posture_state: promptWorkContext.posture,
             risk_class: effectiveRiskClass,
           });
         }
 
-        // Latch degraded advisory warning-once state
-        if (showDegradedAdvisory && guidance.includes("Maintenance degraded")) {
+        // Latch degraded advisory warning-once state; the prompt always
+        // shows the advisory it was asked for.
+        if (showDegradedAdvisory) {
           degradedWarnedOnce = true;
         }
 
-        const last =
-          output.system.length > 0
-            ? output.system[output.system.length - 1]
-            : undefined;
-        if (last !== guidance) {
-          output.system.push(guidance);
-        }
+        // No entry carries the sentinel, so the guidance is never a repeat.
+        output.system.push(guidance);
       };
     }
 

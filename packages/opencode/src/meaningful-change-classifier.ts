@@ -117,7 +117,7 @@ function getFilename(normalizedPath: string): string {
 export function classifyMeaningfulChange(params: {
   normalizedPath: string;
   pathKind: PathKind;
-  lifecycle: FileLifecycle;
+  lifecycle?: FileLifecycle;
   riskClass?: RiskClass;
 }): MeaningfulChangeClass {
   const { normalizedPath, pathKind, lifecycle: _lifecycle, riskClass } = params;
