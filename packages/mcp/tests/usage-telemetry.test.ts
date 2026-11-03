@@ -176,6 +176,45 @@ describe("MCP anonymous usage telemetry", () => {
     expect(text).not.toContain("REQ-secret");
   });
 
+  // implements REQ-kibi-telemetry-expected-outcomes
+  test("a thrown error's own code counts only when the classifier names nothing and it is a non-empty string on an object", () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
+    temporaryRoots.push(directory);
+    process.env.KIBI_TELEMETRY = "1";
+    process.env.KIBI_TELEMETRY_DIR = directory;
+    const call = (error: unknown) =>
+      recordMcpToolTelemetry({
+        operation: "kb_upsert",
+        startedAt: new Date(),
+        status: "error",
+        error,
+      });
+
+    // The classifier's name wins over the error's own code.
+    call(
+      Object.assign(new Error("Entity validation failed: REQ-secret"), {
+        code: "OTHER_CODE",
+      }),
+    );
+    // A thrown null, a function carrying a code and an empty code have no
+    // usable code of their own.
+    call(null);
+    call(Object.assign(() => undefined, { code: "FUNCTION_CODE" }));
+    call(Object.assign(new Error("something broke"), { code: "" }));
+
+    const categories = fs
+      .readFileSync(path.join(directory, "telemetry-queue.jsonl"), "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line).properties.error_category);
+    expect(categories).toEqual([
+      "entity_validation_failed",
+      "handler_error",
+      "handler_error",
+      "handler_error",
+    ]);
+  });
+
   // implements REQ-kibi-telemetry-agent-signals
   test("derives struggle signals from the tool's arguments and result", () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
