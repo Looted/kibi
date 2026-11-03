@@ -62,6 +62,7 @@ test(inventory_entry_field_on_dicts_and_lists) :-
     once(requirement_proof:inventory_entry_field(_{a: 1}, a, V1)), V1 == 1,
     once(requirement_proof:inventory_entry_field([a=2], a, V2)), V2 == 2,
     \+ requirement_proof:inventory_entry_field(_{a: 1}, b, _),
+    \+ requirement_proof:inventory_entry_field([a=1|tail], a, _),
     \+ requirement_proof:inventory_entry_field(atom, a, _).
 
 test(inventory_entries_parse_every_shape) :-
@@ -559,7 +560,19 @@ test(valid_rule_fact_needs_a_safe_rule_and_its_schema) :-
         requirement_proof:valid_rule_fact('FACT-RULE-ALLOW'),
         \+ requirement_proof:valid_rule_fact('FACT-NONE'),
         pf_entity(fact, 'FACT-NO-SCHEMA', [fact_kind=rule, rule_ir="{}"]),
-        \+ requirement_proof:valid_rule_fact('FACT-NO-SCHEMA')
+        \+ requirement_proof:valid_rule_fact('FACT-NO-SCHEMA'),
+        % The same safe rule naming a schema that is missing, or a fact that
+        % is not a rule schema.
+        rqp_json(_{version: 'kibi.logic.v1', kind: rule, modality: oblige,
+                   head: _{kind: atom, name: governed_action, args: []},
+                   body: _{kind: atom, name: customer, args: []}, variables: []}, Rule),
+        forall(member(Id-SchemaId, ['FACT-RULE-OK'-"FACT-RULE-SCHEMA-TEST", 'FACT-RULE-GONE'-"FACT-SCHEMA-GONE",
+                                    'FACT-RULE-NOTSCHEMA'-"FACT-NOT-SCHEMA"]),
+               pf_entity(fact, Id, [fact_kind=rule, rule_ir=Rule, rule_schema_id=SchemaId])),
+        pf_entity(fact, 'FACT-NOT-SCHEMA', [fact_kind=subject, subject_key="x"]),
+        requirement_proof:valid_rule_fact('FACT-RULE-OK'),
+        \+ requirement_proof:valid_rule_fact('FACT-RULE-GONE'),
+        \+ requirement_proof:valid_rule_fact('FACT-RULE-NOTSCHEMA')
     )).
 
 test(contradiction_witnesses_for_a_requirement) :-
@@ -571,7 +584,7 @@ test(rule_facts_named_by_safety_findings) :-
     requirement_proof:violation_for_entity([violation(c, "F-1", d, s, x)], 'F-1'),
     \+ requirement_proof:violation_for_entity([violation(c, "F-1", d, s, x)], 'F-2'),
     once(requirement_proof:invalid_rule_fact_ids(['F-1', 'F-2', 'F-3'],
-        _{unsafeRules: [violation(c, 'F-3', d, s, x), violation(c, 'F-1', d, s, x)],
+        _{unsafeRules: [violation(c, 'F-3', d, s, x), violation(c, 'F-1', d, s, x), violation(c, 'F-9', d, s, x)],
           unverifiableRules: [violation(c, 'F-1', d, s, x)]}, Invalid)),
     Invalid == ['F-1', 'F-3'].
 
@@ -601,6 +614,7 @@ test(scenario_tests_must_exist) :-
     rqp_kb((
         pf_entity(scenario, 'SCN-1', []),
         pf_entity(test, 'TEST-1', []),
+        pf_entity(test, 'TEST-UNLINKED', []),
         pf_raw_rel(validates, 'TEST-1', 'SCN-1'),
         pf_raw_rel(validates, 'TEST-GONE', 'SCN-1'),
         findall(T, requirement_proof:scenario_test('SCN-1', T), Tests),
@@ -1056,6 +1070,9 @@ rqp_items(States, Items) :-
 
 test(obligation_gaps_per_receipt_state) :-
     once(requirement_proof:scenario_obligation_gaps(_{status: missing}, [], G1)), G1 == [missing_scenario_test],
+    rqp_items([missing], OneMissing),
+    once(requirement_proof:scenario_obligation_gaps(_{status: missing}, OneMissing, G1b)),
+    G1b == [missing_proof_receipt, missing_scenario_test],
     once(requirement_proof:scenario_obligation_gaps(_{status: passed}, [], G2)), G2 == [missing_passing_e2e],
     once(requirement_proof:scenario_obligation_gaps(_{status: blocked}, [], G3)), G3 == [],
     rqp_items([snapshot_unavailable, contract_mismatch, invalid, failed, stale, missing, passed, stale], Items),
@@ -1387,10 +1404,14 @@ test(exempt_and_not_current_requirements_skip_the_ladder) :-
     rqp_kb((
         pf_entity(req, 'REQ-EX', [status=open, proof_exempt=true, proof_exempt_reason="Outside scope"]),
         pf_entity(req, 'REQ-OLD', [status=deprecated]),
+        % A requirement that is not current is out of scope for that reason,
+        % whatever exemption it also carries.
+        pf_entity(req, 'REQ-OLD-EX', [status=deprecated, proof_exempt=true, proof_exempt_reason="Old scope"]),
         pf_entity(req, 'REQ-OPEN', [status=open]),
         requirement_proof_context(abc, '2026-05-02T00:00:00Z', 100, C),
         forall(member(Id-Reason, ['REQ-EX'-'Outside scope',
-                                  'REQ-OLD'-'status \'deprecated\' is not a current requirement status']),
+                                  'REQ-OLD'-'status \'deprecated\' is not a current requirement status',
+                                  'REQ-OLD-EX'-'status \'deprecated\' is not a current requirement status']),
                (   kb_entity(Id, req, Props),
                    once(requirement_proof:compute_requirement_proof(Id, Props, C, Proof)),
                    get_dict(proofStatus, Proof, not_applicable),
@@ -2554,7 +2575,12 @@ test(in_chain_receipt_rejections) :-
     rqp_kb((
         pf_entity(test, 'T-NONE', [status=passing, verification_scope=end_to_end]),
         rqp_hash(0'a, Snap),
+        pf_receipt([test_id='T-OK', code_snapshot=Snap], Passed), pf_receipts_json([Passed], PassedJson),
+        pf_entity(test, 'T-OK', [status=passing, verification_scope=end_to_end, proof_receipts=PassedJson]),
         requirement_proof_context(Snap, '2026-05-01T00:05:00Z', 100000, C),
+        % A passed receipt the passing E2E stage did not count rejects nothing.
+        findall(P0-S0, requirement_proof:receipt_reject_for_in_chain([], C, 'T-OK', P0, S0), Ok),
+        Ok == [no_qualifying_e2e_coverage-[]],
         forall(member(Evidence-Ctx-Expected, [
                    [_{testId: 'T-NONE', state: passed}]-C-no_qualifying_e2e_coverage,
                    [_{testId: 'T-NONE', state: failed}]-C-failed_proof_receipt,
@@ -2613,3 +2639,668 @@ test(stages_without_tests_or_obligations_give_no_claim_evidence) :-
     )).
 
 :- end_tests(requirement_proof_explanations).
+
+%% rqp_stale_proves_test(+TestId, +Proves, +Snapshot)
+% A unit test whose contract proves the claim keys Proves, with one passed
+% receipt on Snapshot.
+rqp_stale_proves_test(TestId, Proves, Snapshot) :-
+    rqp_json(_{kind: "exhaustive", proves: Proves}, ContractJson),
+    once(requirement_proof:proof_contract_hash(ContractJson, ContractHash)),
+    pf_receipt([test_id=TestId, scope=unit, code_snapshot=Snapshot, contract_hash=ContractHash], Receipt),
+    pf_receipts_json([Receipt], ReceiptsJson),
+    pf_entity(test, TestId, [status=passing, verification_scope=unit, proof_contract=ContractJson,
+                             proof_receipts=ReceiptsJson]).
+
+%% rqp_stage_context(-Context)
+% Checked on snapshot e; rqp_stale_proves_test/3 on snapshot f is stale.
+rqp_stage_context(Context) :-
+    rqp_hash(0'e, Current),
+    requirement_proof_context(Current, '2026-05-02T00:00:00Z', 100000000, strict_snapshot, _{}, Context).
+
+% REQ-U bounds an upload batch at 5 files (CLAIM-U); S-SIX, linked only
+% where a test links it, expects six files to be rejected.  T-STALE is a
+% stale certificate test whose contract proves CLAIM-U and CLAIM-OTHER.
+rqp_upload_fixture :-
+    pf_entity(req, 'REQ-U', [status=open]),
+    pf_entity(fact, 'F-U', [fact_kind=property_value, subject_key="upload.batch", property_key="files",
+        operator=lte, value_type=int, value_int=5, claim_key="CLAIM-U",
+        claim_text="A batch holds at most 5 files"]),
+    pf_raw_rel(requires_property, 'REQ-U', 'F-U'),
+    pf_entity(scenario, 'S-SIX', [expects=rejection]),
+    pf_entity(fact, 'F-SIX', [fact_kind=property_value, subject_key="upload.batch", property_key="files",
+        operator=eq, value_type=int, value_int=6]),
+    pf_raw_rel(assumes, 'S-SIX', 'F-SIX'),
+    rqp_hash(0'f, Old),
+    rqp_stale_proves_test('T-STALE', ["CLAIM-U", "CLAIM-OTHER"], Old).
+
+%% rqp_case_view(+Stage, -View)
+% Stage with each case as Constraint-Predicted-Coverage-Scenarios-Waiver,
+% Waiver none when the row carries no waiver.
+rqp_case_view(Stage, view(Status, Rows, Uncovered, Waived, Summary, Limit, Pending)) :-
+    get_dict(status, Stage, Status),
+    maplist(rqp_case_row, Stage.cases, Rows),
+    maplist(rqp_case_row, Stage.uncoveredCases, Uncovered),
+    maplist(rqp_case_row, Stage.waivedCases, Waived),
+    rqp_canon(Stage.summary, Summary),
+    get_dict(limitReached, Stage, Limit),
+    get_dict(pendingReproofClaims, Stage, Pending).
+
+rqp_case_row(Row, Constraint-Predicted-Coverage-Scenarios-Waiver) :-
+    get_dict(constraint, Row, Constraint),
+    get_dict(predicted, Row, Predicted),
+    get_dict(coverage, Row, Coverage),
+    get_dict(scenarios, Row, Scenarios),
+    (   get_dict(waiver, Row, W) -> rqp_canon(W, Waiver) ; Waiver = none ).
+
+:- begin_tests(requirement_proof_case_stage).
+
+test(cases_list_each_row_and_summarize_the_coverage) :-
+    rqp_kb((
+        rqp_upload_fixture,
+        % F-I holds csv among its formats: no rejection case, and an
+        % approved waiver marks its uncovered success case waived.
+        pf_entity(fact, 'F-I', [fact_kind=property_value, subject_key="upload.batch", property_key="formats",
+            operator=includes, value_type=set, value_set=["csv"], claim_key="CLAIM-I",
+            claim_text="Uploads accept csv", case_waiver="Formats are checked by the client",
+            case_waiver_approved_by="Ann"]),
+        pf_raw_rel(requires_property, 'REQ-U', 'F-I'),
+        rqp_stage_context(C),
+        once(requirement_proof:cases_stage('REQ-U', _{scenarios: ['S-SIX']}, _{tests: ['T-STALE']}, C, Stage)),
+        rqp_case_view(Stage, View),
+        Waiver = dict([approvedBy-"Ann", reason-"Formats are checked by the client"]),
+        View == view(passed,
+                     ["includes csv"-success-waived-[]-Waiver,
+                      "includes a value outside [csv]"-unspecified-unspecified-[]-Waiver,
+                      "eq 5"-success-uncovered-[]-none,
+                      "gt 5"-rejection-covered-['S-SIX']-none,
+                      "eq 0"-success-uncovered-[]-none,
+                      "eq 1"-success-uncovered-[]-none],
+                     [], [],
+                     dict([covered-1, generated-6, uncovered-3, unspecified-1, waived-1]),
+                     false, [])
+    )).
+
+test(uncovered_rejection_cases_wait_on_stale_certificates) :-
+    rqp_kb((
+        rqp_upload_fixture,
+        rqp_stage_context(C),
+        % Without a scenario stage no scenario covers a case, not even S-SIX.
+        once(requirement_proof:cases_stage('REQ-U', _{}, _{tests: ['T-STALE']}, C, Stage)),
+        rqp_case_view(Stage, View),
+        View == view(missing,
+                     ["eq 5"-success-uncovered-[]-none, "gt 5"-rejection-uncovered-[]-none,
+                      "eq 0"-success-uncovered-[]-none, "eq 1"-success-uncovered-[]-none],
+                     ["gt 5"-rejection-uncovered-[]-none], [],
+                     dict([covered-0, generated-4, uncovered-4, unspecified-0, waived-0]),
+                     false, ['CLAIM-U'])
+    )).
+
+test(cases_without_a_rejection_case_are_not_required) :-
+    rqp_kb((
+        pf_entity(req, 'REQ-I', [status=open]),
+        pf_entity(fact, 'F-I', [fact_kind=property_value, subject_key="upload.batch", property_key="formats",
+            operator=includes, value_type=set, value_set=["csv"], claim_key="CLAIM-I",
+            claim_text="Uploads accept csv"]),
+        pf_raw_rel(requires_property, 'REQ-I', 'F-I'),
+        rqp_stage_context(C),
+        once(requirement_proof:cases_stage('REQ-I', _{scenarios: []}, _{tests: []}, C, Stage)),
+        rqp_case_view(Stage, View),
+        View == view(not_required,
+                     ["includes csv"-success-uncovered-[]-none,
+                      "includes a value outside [csv]"-unspecified-unspecified-[]-none],
+                     [], [], dict([covered-0, generated-2, uncovered-1, unspecified-1, waived-0]),
+                     false, [])
+    )).
+
+test(a_certified_claim_drops_only_its_own_cases) :-
+    rqp_kb((
+        rqp_derived_binding(B), rqp_cert_fixture([B]),
+        pf_entity(fact, 'F-U', [fact_kind=property_value, subject_key="upload.batch", property_key="files",
+            operator=lte, value_type=int, value_int=5, claim_key="CLAIM-U",
+            claim_text="A batch holds at most 5 files"]),
+        pf_raw_rel(requires_property, 'REQ-C', 'F-U'),
+        rqp_cert_context(C),
+        once(requirement_proof:cases_stage('REQ-C', _{scenarios: []}, _{tests: ['T-CERT']}, C, Stage)),
+        findall(K-Constraint, (member(Row, Stage.cases), get_dict(claimKey, Row, K),
+                               get_dict(constraint, Row, Constraint)), Rows),
+        Rows == ['CLAIM-U'-"eq 5", 'CLAIM-U'-"gt 5", 'CLAIM-U'-"eq 0", 'CLAIM-U'-"eq 1"]
+    )).
+
+:- end_tests(requirement_proof_case_stage).
+
+% REQ-Q claims K-Q, "Every coach is staff", grounded only on the ground
+% predicate F-Q; T-RULE holds a fresh rule certificate whose table decides
+% staff(coach), bound to K-Q with a derived obligation.
+rqp_rule_cert_fixture :-
+    pf_entity(fact, 'F-Q', [fact_kind=predicate, predicate_name="staff", predicate_args=["coach"],
+        claim_key="K-Q", claim_text="Every coach is staff"]),
+    rqp_json([_{claim_key: "K-Q", claim_text: "Every coach is staff", role: normative, status: modeled,
+                span: _{start: 0, end: 20}}], Inv),
+    pf_entity(req, 'REQ-Q', [status=open, semantic_inventory=Inv]),
+    pf_raw_rel(requires_predicate, 'REQ-Q', 'F-Q'),
+    Cert = _{version: "kibi.code-certificate.v1", kind: "rule", test_id: "T-RULE",
+             domains: _{role: _{members: ["coach"]}},
+             predicates: _{staff: _{symbol_id: "SYM-STAFF", arg_types: ["role"],
+                                    rows: [_{args: ["coach"], value: true}]}}},
+    code_certificates:code_certificate_digest(Cert, Digest),
+    rqp_hash(0'e, Snap),
+    pf_receipt([test_id='T-RULE', scope=unit, code_snapshot=Snap, version='kibi.proof-receipt.v2',
+                kind=rule, evidence_level=proved, certificate=Cert, certificate_digest=Digest,
+                claim_bindings=[_{claim_key: "K-Q", requirement_id: "REQ-Q", fact_id: "F-Q",
+                                  binding: "derived", scope: "code",
+                                  obligation: _{kind: "predicate_holds", predicate: "staff",
+                                                args: ["coach"], value: true}}]], R),
+    pf_receipts_json([R], RJ),
+    pf_entity(test, 'T-RULE', [status=passing, verification_scope=unit, proof_receipts=RJ]).
+
+:- begin_tests(requirement_proof_dimension_stage).
+
+test(a_quantified_ground_predicate_claim_lacks_its_dimension) :-
+    rqp_kb((
+        pf_entity(fact, 'F-UNLINKED', [fact_kind=predicate, claim_text="An unlinked fact"]),
+        rqp_rule_cert_fixture,
+        rqp_hash(0'f, Old),
+        rqp_stale_proves_test('T-STALE', ["K-Q", "K-OTHER"], Old),
+        rqp_stage_context(C),
+        once(requirement_proof:dimension_stage('REQ-Q', _{tests: ['T-STALE']}, C, Stage)),
+        rqp_canon(Stage, Canon),
+        Canon == dict([claims-[dict([claimKey-'K-Q', claimText-"Every coach is staff", factIds-['F-Q'],
+                                     quantifier-"every", rewrites-["rule", "count", "set"], waiver-dict([])])],
+                       pendingReproofClaims-['K-Q'], status-missing, waivedClaims-[]])
+    )).
+
+test(a_certified_claim_needs_no_dimension) :-
+    rqp_kb((
+        rqp_rule_cert_fixture,
+        rqp_stage_context(C),
+        once(requirement_proof:certified_claim_keys('REQ-Q', _{tests: ['T-RULE']}, C, Keys)),
+        Keys == ['K-Q'],
+        once(requirement_proof:dimension_stage('REQ-Q', _{tests: ['T-RULE']}, C, Stage)),
+        rqp_canon(Stage, Canon),
+        Canon == dict([claims-[], pendingReproofClaims-[], status-not_required, waivedClaims-[]])
+    )).
+
+test(only_the_requirement_s_own_facts_are_read) :-
+    rqp_kb((
+        rqp_rule_cert_fixture,
+        pf_entity(req, 'REQ-NONE', [status=open]),
+        rqp_stage_context(C),
+        once(requirement_proof:dimension_stage('REQ-NONE', _{tests: []}, C, Stage)),
+        rqp_canon(Stage, Canon),
+        Canon == dict([claims-[], pendingReproofClaims-[], status-not_required, waivedClaims-[]])
+    )).
+
+test(dimension_waivers_need_a_reason_and_prefer_an_approved_one) :-
+    rqp_kb((
+        pf_entity(fact, 'F-W0', [dimension_waiver=""]),
+        pf_entity(fact, 'F-W1', [dimension_waiver="r1"]),
+        pf_entity(fact, 'F-W2', [dimension_waiver="r2", dimension_waiver_approved_by="Ann"]),
+        pf_entity(fact, 'F-W3', [dimension_waiver="r3", dimension_waiver_approved_by=""]),
+        pf_entity(fact, 'F-N', []),
+        \+ requirement_proof:fact_dimension_waiver('F-W0', _),
+        \+ requirement_proof:fact_dimension_waiver('F-N', _),
+        forall(member(Ids-Expected, [['F-W3']-dict([reason-"r3"]),
+                                     ['F-W1', 'F-W2']-dict([approvedBy-"Ann", reason-"r2"]),
+                                     ['F-W1', 'F-W3']-dict([reason-"r1"]),
+                                     ['F-N', 'F-W0']-dict([])]),
+               (   once(requirement_proof:dimension_waiver(Ids, W)),
+                   rqp_canon(W, Got),
+                   (   Got == Expected -> true
+                   ;   format(user_error, "~q gave ~q~n", [Ids, Got]), fail
+                   )
+               ))
+    )).
+
+:- end_tests(requirement_proof_dimension_stage).
+
+rqp_claim_entries(ReqId, Status, Stage, Context, Entries, Proved) :-
+    kb_entity(ReqId, req, Props),
+    once(requirement_proof:semantic_inventory_stage(Props, _, Inventory)),
+    once(requirement_proof:claim_evidence(ReqId, Props, Inventory, Status, Stage, Context,
+                                          Entries0, Proved, _)),
+    rqp_canon(Entries0, Entries).
+
+:- begin_tests(requirement_proof_claim_evidence).
+
+test(a_stale_certificate_binds_nothing) :-
+    rqp_kb((
+        rqp_derived_binding(B), rqp_cert_fixture([B]),
+        % The receipt is four minutes old, past a ten second maximum age.
+        rqp_hash(0'a, Snapshot),
+        requirement_proof_context(Snapshot, '2026-05-01T00:05:00Z', 10, C),
+        rqp_claim_entries('REQ-C', tested, _{tests: ['T-CERT']}, C, Entries, Proved),
+        Entries == [dict([applicable-true, bindings-[], claimKey-'K-SET', level-tested, role-normative,
+                          status-modeled])],
+        Proved == []
+    )).
+
+test(without_scenario_tests_no_binding_is_read) :-
+    rqp_kb((
+        rqp_derived_binding(B), rqp_cert_fixture([B]),
+        rqp_cert_context(C),
+        rqp_claim_entries('REQ-C', tested, _{}, C, Entries, Proved),
+        Entries == [dict([applicable-true, bindings-[], claimKey-'K-SET', level-tested, role-normative,
+                          status-modeled])],
+        Proved == []
+    )).
+
+test(an_untested_requirement_keeps_the_intent_level) :-
+    rqp_kb((
+        rqp_derived_binding(B), rqp_cert_fixture([B]),
+        rqp_cert_context(C),
+        rqp_claim_entries('REQ-C', missing, _{tests: ['T-CERT']}, C, Entries, Proved),
+        Entries == [dict([applicable-true,
+                          bindings-[dict([binding-derived, kind-exhaustive, scope-code, test-'T-CERT'])],
+                          claimKey-'K-SET', level-asserted, notProved-requirement_not_tested,
+                          role-normative, status-modeled])],
+        Proved == []
+    )).
+
+test(only_derived_bindings_name_the_proving_tests) :-
+    rqp_kb((
+        rqp_derived_binding(B), rqp_cert_fixture([B]),
+        % T-ATT holds T-CERT's receipt with the binding only attested.
+        kb_entity('T-CERT', test, CertProps),
+        memberchk(proof_receipts=Raw, CertProps),
+        once(requirement_proof:inventory_entries(Raw, [Receipt0])),
+        put_dict(binding, B, "attested", Attested),
+        put_dict(_{test_id: "T-ATT", claim_bindings: [Attested]}, Receipt0, Receipt),
+        pf_receipts_json([Receipt], AttJson),
+        pf_entity(test, 'T-ATT', [status=passing, verification_scope=unit, proof_receipts=AttJson]),
+        rqp_cert_context(C),
+        rqp_claim_entries('REQ-C', tested, _{tests: ['T-ATT', 'T-CERT']}, C, Entries, Proved),
+        Entries = [dict(Entry)],
+        memberchk(level-Level, Entry), Level == proved,
+        Proved == ['T-CERT'-exhaustive]
+    )).
+
+test(an_entry_without_a_role_has_an_empty_role) :-
+    once(requirement_proof:claim_entry('REQ-X', tested, asserted, [], _{claim_key: "K", status: nonlogical}, E)),
+    rqp_canon(E, Canon),
+    Canon == dict([applicable-false, bindings-[], claimKey-'K', level-null, role-'', status-nonlogical]).
+
+test(a_binding_is_judged_under_the_receipt_s_kind) :-
+    rqp_kb((
+        rqp_derived_binding(B), rqp_cert_fixture([B]),
+        Evidence = _{kind: typecheck, evidenceLevel: tested, claimBindings: [B]},
+        once(requirement_proof:test_claim_binding('REQ-C', 'K-SET', ['T-CERT'-Evidence], Binding)),
+        rqp_canon(Binding, Canon),
+        Canon == dict([binding-rejected, kind-typecheck, reason-'the certificate does not re-check',
+                       scope-code, test-'T-CERT'])
+    )).
+
+test(an_untested_requirement_without_a_derived_binding_names_no_reason) :-
+    rqp_kb((
+        rqp_derived_binding(B0), put_dict(binding, B0, "attested", B), rqp_cert_fixture([B]),
+        rqp_cert_context(C),
+        rqp_claim_entries('REQ-C', missing, _{tests: ['T-CERT']}, C, [dict(Entry)], _),
+        \+ memberchk(notProved-_, Entry),
+        memberchk(level-Level, Entry), Level == asserted
+    )).
+
+:- end_tests(requirement_proof_claim_evidence).
+
+% REQ-QC requires a call quota above zero; SCN-QZERO assumes it is zero.
+rqp_quota_fixture(Expects) :-
+    pf_entity(fact, 'F-QS', [fact_kind=subject, subject_key="client.call_quota"]),
+    pf_entity(fact, 'F-QPOS', [fact_kind=property_value, subject_key="client.call_quota",
+        property_key="remaining", operator=gt, value_type=int, value_int=0]),
+    pf_entity(fact, 'F-QZERO', [fact_kind=property_value, subject_key="client.call_quota",
+        property_key="remaining", operator=eq, value_type=int, value_int=0]),
+    pf_entity(req, 'REQ-QC', [status=open]),
+    pf_raw_rel(constrains, 'REQ-QC', 'F-QS'),
+    pf_raw_rel(requires_property, 'REQ-QC', 'F-QPOS'),
+    pf_entity(scenario, 'SCN-QZERO', [expects=Expects]),
+    pf_raw_rel(assumes, 'SCN-QZERO', 'F-QZERO').
+
+:- begin_tests(requirement_proof_linked_entities).
+
+test(only_linked_scenarios_are_infeasible_or_negative) :-
+    forall(member(Expects-Key, [success-infeasibleScenarios, rejection-negativeScenarios]),
+           rqp_kb((
+               rqp_quota_fixture(Expects),
+               % SCN-FREE assumes nothing, so its feasibility is unknown.
+               pf_entity(scenario, 'SCN-FREE', [expects=success]),
+               once(requirement_proof:scenario_stage('REQ-QC', Unlinked, _)),
+               get_dict(Key, Unlinked, None), None == [],
+               get_dict(unknownFeasibility, Unlinked, NoneUnknown), NoneUnknown == [],
+               pf_raw_rel(specified_by, 'REQ-QC', 'SCN-QZERO'),
+               once(requirement_proof:scenario_stage('REQ-QC', Linked, _)),
+               get_dict(Key, Linked, Some), Some == ['SCN-QZERO'],
+               get_dict(unknownFeasibility, Linked, LinkedUnknown), LinkedUnknown == []
+           ))).
+
+test(linked_rule_fact_ids_follow_requires_rule) :-
+    rqp_kb((
+        pf_entity(req, 'REQ-N', []),
+        pf_entity(req, 'REQ-R', []),
+        pf_raw_rel(requires_rule, 'REQ-R', 'F-R2'),
+        pf_raw_rel(requires_rule, 'REQ-R', 'F-R1'),
+        once(requirement_proof:linked_rule_fact_ids('REQ-N', None)), None == [],
+        once(requirement_proof:linked_rule_fact_ids('REQ-R', Ids)), Ids == ['F-R1', 'F-R2']
+    )).
+
+test(coverage_candidates_know_the_requirement_s_scenario_chain) :-
+    rqp_kb((
+        pf_entity(req, 'REQ-PS', [status=open]),
+        pf_entity(req, 'REQ-PO', [status=open]),
+        pf_entity(scenario, 'SCN-PS', []),
+        pf_entity(scenario, 'SCN-PO', []),
+        pf_entity(test, 'T-IN', [status=passing, verification_scope=end_to_end]),
+        pf_entity(test, 'T-OUT', [status=passing, verification_scope=end_to_end]),
+        pf_entity(symbol, 'SYM-PS', []),
+        pf_raw_rel(specified_by, 'REQ-PS', 'SCN-PS'),
+        pf_raw_rel(specified_by, 'REQ-PO', 'SCN-PO'),
+        pf_raw_rel(validates, 'T-IN', 'SCN-PS'),
+        pf_raw_rel(validates, 'T-OUT', 'SCN-PO'),
+        pf_raw_rel(implements, 'SYM-PS', 'REQ-PS'),
+        pf_raw_rel(covered_by, 'SYM-PS', 'T-IN'),
+        pf_raw_rel(covered_by, 'SYM-PS', 'T-OUT'),
+        once(requirement_proof:production_symbol_stage('REQ-PS', [], Stage, _)),
+        get_dict(explanations, Stage, [Explanation]),
+        findall(T-R, (member(Cand, Explanation.coverageCandidates), get_dict(testId, Cand, T),
+                      get_dict(reason, Cand, R)), Reasons),
+        % The default context has no snapshot to check a receipt against.
+        Reasons == ['T-IN'-proof_snapshot_unavailable, 'T-OUT'-test_not_in_requirement_scenario_chain]
+    )).
+
+test(a_failing_unit_test_gives_no_structural_contract) :-
+    rqp_kb((
+        pf_entity(req, 'REQ-SH', [status=open]),
+        pf_entity(symbol, 'SYM-SH', [symbol_role="type-shape"]),
+        pf_entity(test, 'T-UF', [verification_scope=unit, status=failing]),
+        pf_raw_rel(implements, 'SYM-SH', 'REQ-SH'),
+        pf_raw_rel(covered_by, 'SYM-SH', 'T-UF'),
+        once(requirement_proof:production_symbol_sets('REQ-SH', symbol_sets(Structural, Production, _))),
+        Structural == [], Production == ['SYM-SH']
+    )).
+
+:- end_tests(requirement_proof_linked_entities).
+
+:- begin_tests(requirement_proof_open_queries).
+
+test(inventory_text_is_parsed_once_through_the_memo) :-
+    retractall(requirement_proof:pure_memo(_, _, _)),
+    retractall(requirement_proof:pure_memo_size(_)),
+    once(requirement_proof:inventory_entries([x], _)),
+    \+ requirement_proof:pure_memo(_, inventory_entries, _),
+    once(requirement_proof:inventory_entries("[1]", _)),
+    findall(V, requirement_proof:pure_memo(_, inventory_entries, V), AfterString), AfterString == [[1]],
+    once(requirement_proof:inventory_entries('[2]', _)),
+    findall(V, requirement_proof:pure_memo(_, inventory_entries, V), AfterAtom), AfterAtom == [[1], [2]],
+    retractall(requirement_proof:pure_memo(_, _, _)),
+    retractall(requirement_proof:pure_memo_size(_)).
+
+test(every_kind_s_certificate_check_can_be_asked) :-
+    Cert = _{domain: _{members: ["a", "b"]}},
+    Obligation = _{kind: "set_equals", members: ["a", "b"]},
+    findall(K-P, requirement_proof:certificate_obligation_problem(K, _{certificate: Cert}, Obligation, P), Problems),
+    Problems == [arithmetic-'the certificate\'s claim is not the fact\'s constraint',
+                 rule-'the certificate has no domains'].
+
+test(every_present_gap_can_be_asked) :-
+    rqp_full_stages([passingE2e-status-missing], Stages),
+    findall(G, requirement_proof:proof_gap_present(G, Stages), Gaps),
+    Gaps == [missing_passing_e2e].
+
+
+%% rqp_receipt_state(+Receipts, -State)
+% The receipt state of TEST-E2E, an end-to-end test holding Receipts.
+rqp_receipt_state(Receipts, State) :-
+    rqp_kb((
+        pf_receipts_json(Receipts, Json),
+        pf_entity(test, 'TEST-E2E', [status=passing, verification_scope=end_to_end, proof_receipts=Json]),
+        rqp_hash(0'a, Snap),
+        requirement_proof_context(Snap, '2026-05-01T00:05:00Z', 100000, C),
+        once(test_receipt_evidence(C, [end_to_end], 'TEST-E2E', Evidence)),
+        get_dict(state, Evidence, State)
+    )).
+
+test(receipt_shape_and_history_decide_the_state) :-
+    pf_receipt([], Good),
+    Good.proof_results = [Result],
+    rqp_hash(0'g, NotHex),
+    V2 = Good.put(_{version: 'kibi.proof-receipt.v2', kind: e2e, evidence_level: tested}),
+    pf_receipt([receipt_id='PR-FIXTURE00002', started_at='2026-05-01T00:00:00Z',
+                finished_at='2026-05-01T00:00:30Z'], Earlier),
+    forall(member(Receipts-Expected, [
+               [Good]-passed,
+               [Good, Earlier]-invalid,
+               [Good.put(version, 'kibi.proof-receipt.v9')]-invalid,
+               [Good.put(version, 'kibi.proof-receipt.v2')]-invalid,
+               [Good.put(scope, bogus)]-invalid,
+               [Good.put(outcome, bogus)]-invalid,
+               [Good.put(code_snapshot, abc)]-invalid,
+               [Good.put(environment_hash, abc)]-invalid,
+               [Good.put(environment_hash, NotHex)]-invalid,
+               [Good.put(receipt_id, 'PR-short')]-invalid,
+               [Good.put(test_id, 'TEST-OTHER')]-invalid,
+               [Good.put(artifact_digest, abc)]-invalid,
+               [Good.put(contract_hash, abc)]-invalid,
+               [Good.put(fingerprint, abc)]-invalid,
+               [Good.put(fingerprint_components, Good.fingerprint_components.put(producer, abc))]-invalid,
+               [Good.put(integration_id, '')]-invalid,
+               [Good.put(producer, _{name: ''})]-invalid,
+               [Good.put(command_argv, [])]-invalid,
+               [Good.put(command_argv, kibi)]-invalid,
+               [Good.put(command_argv, [kibi, ''])]-invalid,
+               [Good.put(binding_hash, abc)]-invalid,
+               [Good.put(run_outcome, bogus)]-invalid,
+               [Good.put(proof_results, none)]-invalid,
+               [Good.put(proof_results, [Result.put(symbol_id, '')])]-invalid,
+               [Good.put(proof_results, [Result.put(target, '')])]-invalid,
+               [Good.put(proof_results, [Result.put(outcome, bogus)])]-invalid,
+               [Good.put(proof_results, [Result.put(binding, bogus)])]-invalid,
+               [Good.put(proof_results, [Result.put(attempts, _{status: bogus})])]-invalid,
+               [Good.put(proof_results, [Result.put(attempts, _{status: complete, entries: [_{outcome: bogus}]})])]-invalid,
+               [Good.put(proof_results, [Result.put(attempts, _{status: complete, entries: [_{outcome: failed}]})])]-passed,
+               [Good.put(started_at, '2026-05-01T00:01:00Z')]-passed,
+               [Good.put(started_at, '2026-05-01T00:02:00Z')]-invalid,
+               [Good.put(started_at, 'May first')]-invalid,
+               [V2]-passed,
+               [V2.put(kind, bogus)]-invalid,
+               [V2.put(evidence_level, bogus)]-invalid,
+               [V2.put(certificate_digest, abc)]-invalid,
+               [V2.put(evidence_level, proved)]-invalid,
+               [Good.put(scope, unit)]-contract_mismatch
+           ]),
+           (   rqp_receipt_state(Receipts, State),
+               (   State == Expected -> true
+               ;   format(user_error, "~q gave ~q~n", [Receipts, State]), fail
+               )
+           )).
+test(receipt_age_bounds) :-
+    C = _{proofCheckedAtStamp: 1000, proofMaxAgeSeconds: 60},
+    forall(member(Outcome-Finished-Expected, [passed-1300-[passed-(-300)], passed-1301-[invalid-(-301)],
+                                              passed-940-[passed-60], passed-939-[stale-61],
+                                              failed-1000-[failed-0]]),
+           (   findall(S-A, requirement_proof:receipt_runtime_state(_{outcome: Outcome}, Finished, C, S, A), Got),
+               (   Got == Expected -> true
+               ;   format(user_error, "~q gave ~q~n", [Finished, Got]), fail
+               )
+           )).
+
+test(claim_text_falls_back_to_the_first_titled_fact) :-
+    rqp_kb((
+        pf_entity(fact, 'F-T1', [title="First title"]),
+        pf_entity(fact, 'F-T2', [title="Second title"]),
+        pf_entity(fact, 'F-E', [title="Empty claim", claim_text=""]),
+        pf_entity(fact, 'F-C', [title="Claimed", claim_text="The claim"]),
+        forall(member(Ids-Expected, [['F-E', 'F-C']-["The claim"], ['F-T2']-["Second title"],
+                                     ['F-T1', 'F-T2']-["First title"], ['F-GONE']-[]]),
+               (   findall(T, requirement_proof:claim_text_of(Ids, T), Ts),
+                   (   Ts == Expected -> true
+                   ;   format(user_error, "~q gave ~q~n", [Ids, Ts]), fail
+                   )
+               ))
+    )).
+
+test(canonical_claim_text_has_one_answer) :-
+    findall(C, requirement_proof:canonical_claim_text('a b; ', C), Cs),
+    Cs == ['a b'].
+
+test(proof_contracts_are_unwrapped_and_parsed) :-
+    Json = "{\"a\":1}",
+    forall(member(Raw, [Json, '{"a":1}', ^^(Json, t), literal(type(t, Json)), literal(Json), _{a: 1}]),
+           (   findall(A, (requirement_proof:proof_contract_dict(Raw, C), get_dict(a, C, A)), As),
+               (   As == [1] -> true
+               ;   format(user_error, "~q gave ~q~n", [Raw, As]), fail
+               )
+           )),
+    forall(member(Raw, ["not json", "[1]", 42, f(x), literal(type(t, "[1]"))]),
+           \+ requirement_proof:proof_contract_dict(Raw, _)).
+
+test(structural_coverage_has_one_answer) :-
+    rqp_kb((
+        pf_entity(symbol, 'SYM-T', [symbol_role="type-shape"]),
+        pf_raw_rel(covered_by, 'SYM-T', 'T-U'),
+        pf_raw_rel(covered_by, 'SYM-T', 'T-U2'),
+        findall(x, requirement_proof:structural_symbol_covered([], ['T-U'-passed, 'T-U2'-passed], 'SYM-T'), Xs),
+        Xs == [x]
+    )).
+
+test(structural_symbols_are_explained) :-
+    rqp_kb((
+        pf_entity(req, 'REQ-SX', [status=open]),
+        pf_entity(symbol, 'SYM-SX', [symbol_role="type-shape"]),
+        pf_entity(test, 'T-SX', [verification_scope=unit, status=passing]),
+        pf_raw_rel(implements, 'SYM-SX', 'REQ-SX'),
+        pf_raw_rel(covered_by, 'SYM-SX', 'T-SX'),
+        once(requirement_proof:production_symbol_stage('REQ-SX', [], Stage, _)),
+        get_dict(explanations, Stage, [Explanation]),
+        del_dict(coverageCandidates, Explanation, _, Rest),
+        rqp_canon(Rest, Canon),
+        Canon == dict([classification-'type-shape', reason-structural_unit_receipt_not_current,
+                       reasonText-"type-shape symbol needs a covered_by unit test with a current passing receipt; run kibi prove on that unit test",
+                       requirementId-'REQ-SX', status-uncovered, symbolId-'SYM-SX'])
+    )).
+
+test(each_explanation_helper_has_one_answer) :-
+    rqp_kb((
+        pf_entity(test, 'T-E', [status=passing, verification_scope=end_to_end]),
+        pf_entity(test, 'T-U', [status=passing, verification_scope=unit]),
+        requirement_proof_context(C),
+        findall(S-R, requirement_proof:production_symbol_rollup(['S'], ['T'], 'S', [], S, R), Rollup),
+        Rollup == [uncovered-covered_by_missing],
+        forall(member(Mode-T-Expected, [behavioral-'T-GONE'-[false-missing_test_entity-[]],
+                                        structural([])-'T-GONE'-[false-missing_test_entity-[]],
+                                        structural([])-'T-U'-[false-structural_unit_receipt_not_current-[]],
+                                        structural([])-'T-E'-[false-test_not_in_requirement_scenario_chain-[]]]),
+               (   findall(Q-P-Ss, requirement_proof:coverage_candidate_qualification(Mode, [], [], [], C, T, Q, P, Ss),
+                           Got),
+                   (   Got == Expected -> true
+                   ;   format(user_error, "~q ~q gave ~q~n", [Mode, T, Got]), fail
+                   )
+               )),
+        findall(I, requirement_proof:reused_receipt_item([_{testId: 'T-1', state: a}, _{testId: 'T-1', state: b}],
+                                                         'T-1', I), Items),
+        length(Items, 1),
+        findall(R, requirement_proof:receipt_item_reject_reason(_{state: stale}, R), Mismatch),
+        Mismatch == [receipt_snapshot_mismatch],
+        findall(R, requirement_proof:receipt_item_reject_reason(_{state: stale, codeSnapshot: s}, R), Stale),
+        Stale == [stale_proof_receipt],
+        findall(L, requirement_proof:contract_required_symbol_ids(_{required_proofs: []}, L), Ls1), Ls1 == [[]],
+        findall(L, requirement_proof:contract_required_symbol_ids(_{}, L), Ls2), Ls2 == [[]],
+        findall(St, requirement_proof:coordinate_stage_status([s], [], St), Sts), Sts == [passed]
+    )).
+
+test(symbol_coordinates_must_be_a_real_range) :-
+    Base = [sourceFile="src/a.ts", sourceLine=1, sourceColumn=0, sourceEndLine=1, sourceEndColumn=0],
+    requirement_proof:valid_symbol_coordinates(Base),
+    forall(member(Key=Value, [sourceFile="", sourceLine=0, sourceColumn= -1, sourceEndLine=0, sourceEndColumn= -1]),
+           (   selectchk(Key=_, Base, Rest),
+               (   \+ requirement_proof:valid_symbol_coordinates([Key=Value|Rest]) -> true
+               ;   format(user_error, "~q passed~n", [Key=Value]), fail
+               )
+           )).
+
+test(claim_entries_without_a_key_or_with_unproving_bindings) :-
+    once(requirement_proof:claim_entry('REQ-X', tested, asserted, [], _{status: modeled}, None)), None == none,
+    Attested = _{test: 'T-1', kind: e2e, binding: attested, scope: code},
+    requirement_proof:claim_attested_only(_{level: tested, bindings: [Attested]}),
+    findall(x, requirement_proof:claim_attested_only(_{level: tested, bindings: [Attested, Attested]}), Xs),
+    Xs == [x],
+    \+ requirement_proof:claim_attested_only(_{level: proved, bindings: [Attested]}),
+    \+ requirement_proof:claim_attested_only(_{level: tested, bindings: []}).
+
+test(a_certificate_rechecks_only_when_it_is_whole_and_its_own) :-
+    rqp_kb((
+        rqp_derived_binding(B), rqp_cert_fixture([B]),
+        kb_entity('T-CERT', test, Props),
+        memberchk(proof_receipts=Raw, Props),
+        once(requirement_proof:inventory_entries(Raw, [R])),
+        once(requirement_proof:receipt_certificate_recheck(R, Ok)), Ok == ok,
+        del_dict(certificate, R, _, NoCert),
+        del_dict(certificate_digest, R, _, NoDigest),
+        get_dict(certificate, R, Cert),
+        put_dict(results, Cert, [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "failed"}], Failing),
+        code_certificates:code_certificate_digest(Failing, FailingDigest),
+        code_certificates:code_certificate_check(Failing, rejected(FailingReason)),
+        rqp_hash(0'a, OtherDigest),
+        forall(member(Receipt-Expected, [
+                   NoCert-"the receipt has no certificate",
+                   R.put(certificate, "text")-"the receipt has no certificate",
+                   NoDigest-"the receipt has no certificate_digest",
+                   R.put(test_id, 'T-OTHER')-"the certificate is for another test",
+                   R.put(kind, arithmetic)-"the certificate kind is not the receipt kind",
+                   R.put(certificate_digest, OtherDigest)-"the certificate no longer matches its certificate_digest",
+                   R.put(_{certificate: Failing, certificate_digest: FailingDigest})-FailingReason
+               ]),
+               (   findall(Res, requirement_proof:receipt_certificate_recheck(Receipt, Res), Got),
+                   (   Got == [rejected(Expected)] -> true
+                   ;   format(user_error, "~q gave ~q~n", [Expected, Got]), fail
+                   )
+               ))
+    )).
+
+%% rqp_judged(+ReqId, +Key, +Kind, +Recorded, -Canon)
+rqp_judged(ReqId, Key, Kind, Recorded, Canon) :-
+    once(requirement_proof:test_claim_binding(ReqId, Key,
+        ['T-J'-_{kind: Kind, evidenceLevel: proved, claimBindings: [Recorded]}], Binding)),
+    rqp_canon(Binding, Canon).
+
+test(recorded_bindings_are_judged_against_the_current_kb) :-
+    rqp_kb((
+        rqp_derived_binding(B), rqp_cert_fixture([B]),
+        rqp_rule_cert_fixture,
+        del_dict(scope, B, _, NoScope),
+        Rejected = B.put(_{binding: "rejected", reason: "bad", scope: "intent"}),
+        del_dict(reason, Rejected, _, RejectedNoReason),
+        forall(member(ReqId-Key-Kind-Recorded-Expected, [
+                   'REQ-C'-'K-SET'-exhaustive-Rejected-[binding-rejected, reason-bad, scope-intent],
+                   'REQ-C'-'K-SET'-exhaustive-RejectedNoReason-[binding-rejected, reason-'rejected at ingest',
+                                                                 scope-intent],
+                   'REQ-C'-'K-OTHER'-exhaustive-B.put(_{claim_key: "K-OTHER", scope: "intent"})-
+                       [binding-rejected, reason-'K-OTHER is not a claim of REQ-C', scope-intent],
+                   'REQ-C'-'K-SET'-arithmetic-B.put(scope, "intent")-
+                       [binding-rejected,
+                        reason-'F-SET is a set fact, which an arithmetic certificate cannot express (use exhaustive, typecheck, rule or state_machine)',
+                        scope-intent],
+                   'REQ-C'-'K-SET'-exhaustive-B.put(fact_id, "F-OLD")-
+                       [binding-rejected,
+                        reason-'K-SET is now grounded by F-SET, not the fact the receipt was ingested against',
+                        scope-code],
+                   'REQ-C'-'K-SET'-exhaustive-NoScope.put(binding, "bogus")-
+                       [binding-rejected, reason-'the claim has no derivable obligation; re-prove the test',
+                        scope-code],
+                   'REQ-C'-'K-SET'-exhaustive-NoScope-[binding-derived, scope-code],
+                   'REQ-Q'-'K-Q'-exhaustive-_{claim_key: "K-Q", requirement_id: "REQ-Q", binding: "attested",
+                                               scope: "intent"}-[binding-attested, scope-intent],
+                   'REQ-Q'-'K-Q'-exhaustive-_{claim_key: "K-Q", requirement_id: "REQ-Q", binding: "derived",
+                                               scope: "intent"}-
+                       [binding-rejected, reason-'the claim has no derivable obligation; re-prove the test',
+                        scope-intent]
+               ]),
+               (   rqp_judged(ReqId, Key, Kind, Recorded, Canon),
+                   Canon = dict(Pairs),
+                   exclude(rqp_test_or_kind, Pairs, Got),
+                   (   Got == Expected -> true
+                   ;   format(user_error, "~q gave ~q~n", [Recorded, Got]), fail
+                   )
+               ))
+    )).
+
+rqp_test_or_kind(test-_).
+rqp_test_or_kind(kind-_).
+
+:- end_tests(requirement_proof_open_queries).
