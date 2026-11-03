@@ -1251,12 +1251,17 @@ scenario_feasibility_outcome(ScenarioId, Outcome) :-
     analysis_outcome(Analysis, Outcome0),
     Outcome = Outcome0.
 
-analysis_outcome(analysis([infeasibility(ReqIds, AssumedFacts, ReqFacts, Reason)|_], _, _, _),
-                 infeasible(witness(ReqIds, AssumedFacts, ReqFacts, Reason))).
-analysis_outcome(analysis([], [Reason|_], _, _), unknown(Reason)) :- !.
-analysis_outcome(analysis([], [], true, _), feasible_by_exception) :- !.
-analysis_outcome(analysis([], [], false, [Reason|_]), not_applicable(Reason)) :- !.
-analysis_outcome(analysis([], [], false, []), feasible).
+analysis_outcome(analysis(Witnesses, Unknowns, ByException, NotApplicable), Outcome) :-
+    (   Witnesses = [infeasibility(ReqIds, AssumedFacts, ReqFacts, Reason)|_]
+    ->  Outcome = infeasible(witness(ReqIds, AssumedFacts, ReqFacts, Reason))
+    ;   Unknowns = [Unknown|_]
+    ->  Outcome = unknown(Unknown)
+    ;   ByException == true
+    ->  Outcome = feasible_by_exception
+    ;   NotApplicable = [Inapplicable|_]
+    ->  Outcome = not_applicable(Inapplicable)
+    ;   Outcome = feasible
+    ).
 
 %% scenario_feasibility_analysis(+ScenarioId, -analysis(Witnesses, Unknowns, ByException, NotApplicable))
 % implements REQ-kibi-scenario-feasibility-v2
@@ -1405,8 +1410,7 @@ assumption_member(FactId, Member) :-
 
 property_member(Role, Owner, FactId,
                 m(Role, Owner, FactId, Subject-Property, Scope, Type, Unit, Op, Value, Text)) :-
-    kb:fact_property_tuple(FactId, Subject, Property, AuthoredOp, ValueType, AuthoredValue, AuthoredUnit, Scope, Polarity),
-    !,
+    once(kb:fact_property_tuple(FactId, Subject, Property, AuthoredOp, ValueType, AuthoredValue, AuthoredUnit, Scope, Polarity)),
     kb:comparison_quantity(ValueType, AuthoredValue, AuthoredUnit, Type, Value, Unit),
     (   polarity_operator(Polarity, AuthoredOp, Op0)
     ->  Op = Op0
@@ -2216,8 +2220,11 @@ opposing_value(Type, Op, Value, Op1, Value1) :-
 opposing_value(set, Op, Members, Op1, Value1) :-
     !,
     opposing_set(Op, Members, Op1, Value1).
-opposing_value(_, eq, Value, neq, Value) :- !.
-opposing_value(_, neq, Value, eq, Value).
+opposing_value(_, Op, Value, Opposite, Value) :-
+    opposite_operator(Op, Opposite).
+
+opposite_operator(eq, neq).
+opposite_operator(neq, eq).
 
 opposing_number(_, gt, Bound, eq, Bound).
 opposing_number(_, lt, Bound, eq, Bound).

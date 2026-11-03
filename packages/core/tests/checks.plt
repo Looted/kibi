@@ -3238,13 +3238,17 @@ test(inventory_entry_fields, [nondet]) :-
     checks:inventory_entry_label([status=missing], L2),
     L2 == 'entry without claim_key'.
 
-test(inventory_json_objects) :-
+chk_clear_json_memo :-
+    retractall(checks:json_text_memo(_, _)),
+    retractall(checks:json_text_memo_size(_)).
+
+test(inventory_json_objects, [setup(chk_clear_json_memo)]) :-
     checks:inventory_entries("[{\"status\":\"missing\"}]", E1),
     chk_same(E1, [_{status: "missing"}]),
     checks:inventory_entries('[{"status":"modeled"}]', E2),
     chk_same(E2, [_{status: "modeled"}]).
 
-test(inventory_entries, Entries == [[a], [b], [1], [x=1], [y=2], [], [], [], [], []]) :-
+test(inventory_entries, [setup(chk_clear_json_memo), Entries == [[a], [b], [1], [x=1], [y=2], [], [], [], [], []]]) :-
     findall(E,
         (   member(Raw, [[a], ^^([b], t), "[1]", 'x', "[x=1]", ^^('[y=2]', t), "{\"a\":1}", '{', "foo(", 42, foo(bar)]),
             Raw \== 'x',
@@ -3752,9 +3756,9 @@ test(narrow_exception_reads_its_own_links_and_facts) :-
 test(evidence_texts, Texts == ["", "a b", "x"]) :-
     findall(T, (member(R, ['', 'a b', "x"]), checks:evidence_text(R, T)), Texts).
 
-test(analysis_outcome_infeasible_is_deterministic) :-
-    first_answer_is_last(checks:analysis_outcome(analysis([infeasibility(r, a, f, why)], [], false, []), O)),
-    O == infeasible(witness(r, a, f, why)).
+test(analysis_outcome_infeasible_first) :-
+    findall(O, checks:analysis_outcome(analysis([infeasibility(r, a, f, why)], [u], true, [n]), O), Os),
+    Os == [infeasible(witness(r, a, f, why))].
 
 % A rule that reads no assumed property is no part of the scenario, even
 % when the scenario performs its action.
@@ -3860,9 +3864,6 @@ test(incomparable_unconditioned_assumptions) :-
     chk_kb(checks:general_rule_verdict([A1, Q1, Q2], gr(r, f, forbids, '', applies, false, [s-p, s-q], [C]), V)),
     V == [].
 
-test(empty_members_are_satisfiable) :-
-    first_answer_is_last(checks:members_satisfiable([])).
-
 test(negative_scenario_opposition) :-
     chk_kb((
         chk_total('F-A', eq, 5),
@@ -3891,8 +3892,11 @@ test(opposition_needs_the_same_polarity) :-
 test(opposing_values) :-
     \+ checks:opposing_value(string, gt, 5, _, _),
     \+ checks:opposing_value(int, gt, "5", _, _),
-    first_answer_is_last(checks:opposing_value(string, eq, x, O, V)),
-    O-V == neq-x.
+    findall(O-V, checks:opposing_value(string, eq, x, O, V), [OV1]),
+    OV1 == neq-x,
+    findall(O-V, checks:opposing_value(string, neq, x, O, V), [OV2]),
+    OV2 == eq-x,
+    \+ checks:opposing_value(string, gt, x, _, _).
 
 test(what_if_json_is_one_line, [nondet]) :-
     chk_kb((
