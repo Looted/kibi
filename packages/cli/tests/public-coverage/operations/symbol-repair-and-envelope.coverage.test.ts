@@ -81,7 +81,8 @@ describe("toKibiResult", () => {
       },
     ]);
     expect(
-      toKibiResult(spec, { branchStore: { state: "not_compiled" } }).diagnostics,
+      toKibiResult(spec, { branchStore: { state: "not_compiled" } })
+        .diagnostics,
     ).toStrictEqual([
       {
         severity: "warning",

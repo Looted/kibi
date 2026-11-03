@@ -94,7 +94,10 @@ describe("collectEvidenceFloorViolations with fresh evidence", () => {
     ]);
     const missing = await collectEvidenceFloorViolations(context(), rules, {
       freshEvidence: true,
-      snapshotEvidence: { available: false, error: "not a git checkout" } as never,
+      snapshotEvidence: {
+        available: false,
+        error: "not a git checkout",
+      } as never,
     });
     expect(missing[0]?.description).toBe(
       "--fresh-evidence needs a proof snapshot, but none is available: not a git checkout",

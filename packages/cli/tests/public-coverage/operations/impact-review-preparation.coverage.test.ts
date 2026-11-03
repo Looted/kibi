@@ -96,7 +96,7 @@ function withPartialAnalysis(
             },
           },
         })),
-      } as Prepared;
+      } as unknown as Prepared;
     },
   );
   spies.push(spy);

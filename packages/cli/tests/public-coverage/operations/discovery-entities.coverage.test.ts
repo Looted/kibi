@@ -35,19 +35,20 @@ describe("loadEntitiesPaged", () => {
 
 describe("loadCurrentRequirementTexts", () => {
   test("reads current requirements sorted by id", async () => {
-    const prolog = port((goal) =>
-      goal.startsWith("findall(R, kb:current_req(R)")
-        ? {
-            success: true,
-            bindings: { Ids: "['REQ-b','REQ-a','REQ-c','TEST-x']" },
-          }
-        : {
-            success: true,
-            bindings: {
-              Results:
-                "[['REQ-b',req,[title='B',semantic_text='b text']],['REQ-a',req,[title='A',semantic_text='a text']],['REQ-c',req,[]],['TEST-x',test,[title='T']]]",
+    const prolog = port(
+      (goal): Answer =>
+        goal.startsWith("findall(R, kb:current_req(R)")
+          ? {
+              success: true,
+              bindings: { Ids: "['REQ-b','REQ-a','REQ-c','TEST-x']" },
+            }
+          : {
+              success: true,
+              bindings: {
+                Results:
+                  "[['REQ-b',req,[title='B',semantic_text='b text']],['REQ-a',req,[title='A',semantic_text='a text']],['REQ-c',req,[]],['TEST-x',test,[title='T']]]",
+              },
             },
-          },
     );
     expect(await loadCurrentRequirementTexts(prolog)).toStrictEqual([
       { id: "REQ-a", title: "A", semanticText: "a text" },

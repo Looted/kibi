@@ -58,7 +58,11 @@ describe("collectDecisionFirmnessViolations", () => {
 describe("collectOriginReviewViolations", () => {
   function port(rows: { success: boolean; Rows?: string; error?: string }) {
     return {
-      async query(goal: string) {
+      async query(goal: string): Promise<{
+        success: boolean;
+        bindings: Record<string, string>;
+        error?: string;
+      }> {
         if (goal.startsWith("kb_query_entities"))
           return { success: true, bindings: { Results: "[]" } };
         return {
@@ -82,7 +86,10 @@ describe("collectOriginReviewViolations", () => {
 
   test("a failed relationship read throws", async () => {
     await expect(
-      collectOriginReviewViolations(port({ success: false, error: "x" }), rules),
+      collectOriginReviewViolations(
+        port({ success: false, error: "x" }),
+        rules,
+      ),
     ).rejects.toThrow(
       "Unable to read exempts, supersedes and ADR relationships: x",
     );

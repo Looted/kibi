@@ -29,7 +29,9 @@ describe("buildActionsFromStatus", () => {
       staleReasons: [{ code: "compiler_changed", path: "a.md" }],
       configStatus: current,
     });
-    const resync = plan.actions.find((action) => action.id === "freshness-resync");
+    const resync = plan.actions.find(
+      (action) => action.id === "freshness-resync",
+    );
     expect(resync?.dependsOn).toStrictEqual(["branch-store-ensure"]);
     expect(resync?.affectedFiles).toStrictEqual(["a.md"]);
   });

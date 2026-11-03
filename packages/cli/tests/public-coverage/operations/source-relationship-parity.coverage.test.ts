@@ -3,8 +3,8 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import * as discovery from "../../../src/commands/sync/discovery.js";
 import * as extraction from "../../../src/commands/sync/extraction.js";
-import { collectSourceRelationshipParityViolations } from "../../../src/public/operations/source-relationship-parity.js";
 import type { PrologPort } from "../../../src/public/operations/runtime-types.js";
+import { collectSourceRelationshipParityViolations } from "../../../src/public/operations/source-relationship-parity.js";
 import {
   createGitWorkspace,
   isolateKibiEnv,
