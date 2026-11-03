@@ -164,7 +164,10 @@ export function readLegacyKbConfig(
       },
     };
   } catch (error) {
-    return { kind: "malformed", error: (error as Error).message };
+    return {
+      kind: "malformed",
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }
 

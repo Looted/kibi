@@ -1,5 +1,6 @@
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, spyOn, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import * as fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -78,7 +79,22 @@ describe("legacy config recognition", () => {
       kind: "malformed",
       error: (result as { error: string }).error,
     });
-    expect((result as { error: string }).error).toContain("EISDIR");
+    expect((result as { error: string }).error).toStartWith("EISDIR");
+  });
+
+  test("a non-Error read failure is malformed with its string form", () => {
+    const dir = workspace("{}");
+    const read = spyOn(fs, "readFileSync").mockImplementation(() => {
+      throw "read-failed";
+    });
+    try {
+      expect(readLegacyKbConfig(dir)).toStrictEqual({
+        kind: "malformed",
+        error: "read-failed",
+      });
+    } finally {
+      read.mockRestore();
+    }
   });
 
   test("an empty object yields an empty config", () => {
