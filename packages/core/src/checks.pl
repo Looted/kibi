@@ -59,7 +59,6 @@
     check_ontology_quality/1,
     check_kb_consistency/1,
     check_kb_consistency_unresolved/1,
-    run_checks_json/0,              % Entry point for JSON output
     violation_id_text/2             % Extract text from entity ID term (exported for testing)
 ]).
 
@@ -2781,10 +2780,7 @@ what_if_contradiction_witnesses(Entries, Witnesses) :-
 
 what_if_contradiction_witnesses_json(Entries, JsonString) :-
     what_if_contradiction_witnesses(Entries, Witnesses),
-    with_output_to_string(
-        json_write_dict(current_output, Witnesses, [width(0)]),
-        JsonString
-    ).
+    with_output_to(string(JsonString), json_write_dict(current_output, Witnesses, [width(0)])).
 
 %% what_if_analysis(+Entries, -Analysis)
 % implements REQ-kibi-truthful-consistency
@@ -2837,10 +2833,7 @@ what_if_analysis(Entries, Analysis) :-
 
 what_if_analysis_json(Entries, JsonString) :-
     what_if_analysis(Entries, Analysis),
-    with_output_to_string(
-        json_write_dict(current_output, Analysis, [width(0)]),
-        JsonString
-    ).
+    with_output_to(string(JsonString), json_write_dict(current_output, Analysis, [width(0)])).
 
 what_if_witnesses(Contradictions, Infeasible) :-
     check_domain_contradiction_witnesses(Contradictions),
@@ -3597,7 +3590,6 @@ rule_safety_violation(violation(
     Source
 )) :-
     findall(Rule, stored_rule_term(Rule), Rules),
-    Rules \= [],
     \+ logic_rules_stratified(Rules),
     stored_rule_fact(FactId, _Props, Rule),
     rule_contains_negation(Rule),
@@ -3624,7 +3616,6 @@ rule_contains_negation(rule(_, _, _Head, Body, Exceptions, _Scope, _From, _To, _
 expression_contains_negation(not(_)).
 expression_contains_negation(all(Items)) :- member(Item, Items), expression_contains_negation(Item).
 expression_contains_negation(any(Items)) :- member(Item, Items), expression_contains_negation(Item).
-expression_contains_negation(count(Atom, _Operator, _Value)) :- expression_contains_negation(Atom).
 
 %% check_rule_verifiability(-Violations)
 % A requires_rule edge is meaningful only when it reaches a rule fact whose
@@ -3715,9 +3706,9 @@ semantic_completeness_violation(violation(
     memberchk(semantic_inventory=RawInventory, Props),
     inventory_entries(RawInventory, Entries),
     member(Entry, Entries),
-    inventory_entry_status(Entry, Status),
-    memberchk(Status, [missing]),
-    format(string(Description), "Requirement proposition ledger contains an unclassified assertive span (~w)", [Entry]),
+    inventory_entry_status(Entry, missing),
+    inventory_entry_label(Entry, Label),
+    format(string(Description), "Requirement proposition ledger contains an unclassified assertive span (~w)", [Label]),
     violation_source(ReqId, req, Source).
 
 inventory_entries(Raw, Entries) :-
@@ -3732,6 +3723,14 @@ inventory_entries(Raw, Entries) :-
         is_list(PrologEntries)
     ->  Entries = PrologEntries
     ;   Entries = []
+    ).
+
+% An entry is named by its claim_key: printing the entry itself would show a
+% dict's unbound tag, whose text changes from run to run.
+inventory_entry_label(Entry, Label) :-
+    (   checks_inventory_entry_field(Entry, claim_key, Raw)
+    ->  normalize_term_atom(Raw, Label)
+    ;   Label = 'entry without claim_key'
     ).
 
 inventory_entry_status(Entry, Status) :-
@@ -3845,40 +3844,18 @@ strict_readiness_has_strict_property(ReqId) :-
     strict_req_fact_pairing_fact_kind(FactId, property_value),
     !.
 
-%% run_checks_json
-% Entry point for JSON output. Prints all violations as JSON to stdout.
-run_checks_json :-
-    catch(
-        (   check_all(ViolationsDict),
-            json_write_dict(current_output, ViolationsDict, [width(0)]),
-            nl,
-            halt(0)
-        ),
-        Error,
-        (   format(user_error, '{"error": "~q"}~n', [Error]),
-            halt(1)
-        )
-    ).
-
-% Alternative: return JSON as a string binding instead of writing to stdout
+%% check_all_json(-JsonString)
+% All violations as a JSON string.
 check_all_json(JsonString) :-
     check_all(ViolationsDict),
-    violations_dict_to_json(ViolationsDict, JsonDict),
-    with_output_to_string(
-        json_write_dict(current_output, JsonDict, [width(0)]),
-        JsonString
-    ).
+    violations_json_string(ViolationsDict, JsonString).
 
 %% check_selected_json(+Rules, -JsonString)
 % Run only the named aggregated checks. This is intentionally separate from
 % check_all/1 so focused diagnostics cannot evaluate unrelated rule queries.
 check_selected_json(Rules, JsonString) :-
     check_selected(Rules, ViolationsDict),
-    violations_dict_to_json(ViolationsDict, JsonDict),
-    with_output_to_string(
-        json_write_dict(current_output, JsonDict, [width(0)]),
-        JsonString
-    ).
+    violations_json_string(ViolationsDict, JsonString).
 
 %% check_selected(+Rules, -ViolationsDict)
 % Run only the named aggregated checks. This is intentionally separate from
@@ -3917,11 +3894,7 @@ require_known_rules(Rules) :-
 % RequireAdr: if true, symbol-traceability also requires ADR constraints.
 check_all_json_with_options(JsonString, RequireAdr) :-
     check_all_with_options(ViolationsDict, RequireAdr),
-    violations_dict_to_json(ViolationsDict, JsonDict),
-    with_output_to_string(
-        json_write_dict(current_output, JsonDict, [width(0)]),
-        JsonString
-    ).
+    violations_json_string(ViolationsDict, JsonString).
 
 %% check_all_json_file(+Path, +RequireAdr)
 % Writes the JSON check_all_json_with_options/2 would answer to Path.
@@ -3963,17 +3936,17 @@ violations_json_transport(ViolationsDict, Path, Transport, JsonString) :-
     ->  Transport = file,
         JsonString = ''
     ;   Transport = answer,
-        violations_dict_to_json(ViolationsDict, JsonDict),
-        with_output_to_string(
-            json_write_dict(current_output, JsonDict, [width(0)]),
-            JsonString
-        )
+        violations_json_string(ViolationsDict, JsonString)
     ).
 
 file_transport_error(error(permission_error(_, _, _), _)).
 file_transport_error(error(existence_error(_, _), _)).
 file_transport_error(error(resource_error(_), _)).
 file_transport_error(error(io_error(_, _), _)).
+
+violations_json_string(ViolationsDict, JsonString) :-
+    violations_dict_to_json(ViolationsDict, JsonDict),
+    with_output_to(string(JsonString), json_write_dict(current_output, JsonDict, [width(0)])).
 
 violations_json_to_file(ViolationsDict, Path) :-
     violations_dict_to_json(ViolationsDict, JsonDict),
@@ -4045,41 +4018,23 @@ violation_term_to_dict(violation(Rule, EntityId, Description, Suggestion, Source
     JsonDict = _{rule: RuleText, entityId: EntityIdText, description: DescriptionText,
                  suggestion: SuggestionText, source: SourceText}.
 
+%% violation_text(+Value, -Text)
+% A violation field as a string: RDF literals unwrapped, strings and atoms
+% as their text, any other term written out.
 violation_text(Val, Text) :-
-    nonvar(Val),
-    Val =.. ['^^', Inner, _Type],
-    !,
-    violation_text(Inner, Text).
-violation_text(literal(type(_, Val)), Text) :-
-    !,
-    violation_text(Val, Text).
-violation_text(Val, Val) :-
-    string(Val),
-    !.
-violation_text(Val, Text) :-
-    atom(Val),
-    !,
-    atom_string(Val, Text).
-violation_text(Val, Text) :-
-    term_string(Val, Text).
+    (   var(Val)
+    ->  term_string(Val, Text)
+    ;   Val = ^^(Inner, _Type)
+    ->  violation_text(Inner, Text)
+    ;   Val = literal(type(_, Inner))
+    ->  violation_text(Inner, Text)
+    ;   ( string(Val) ; atom(Val) )
+    ->  atom_string(Val, Text)
+    ;   term_string(Val, Text)
+    ).
 
 violation_id_text(Val, Text) :-
-    nonvar(Val),
-    Val =.. ['^^', Inner, _Type],
-    !,
-    violation_id_text(Inner, Text).
-violation_id_text(literal(type(_, Val)), Text) :-
-    !,
-    violation_id_text(Val, Text).
-violation_id_text(Val, Val) :-
-    string(Val),
-    !.
-violation_id_text(Val, Text) :-
-    atom(Val),
-    !,
-    atom_string(Val, Text).
-violation_id_text(Val, Text) :-
-    term_string(Val, Text).
+    violation_text(Val, Text).
 
 violation_source(EntityId, Type, Source) :-
     (   kb_entity(EntityId, Type, Props),
@@ -4087,8 +4042,3 @@ violation_source(EntityId, Type, Source) :-
     ->  normalize_term_atom(Source0, Source)
     ;   Source = ""
     ).
-
-% Helper: capture output to string
-with_output_to_string(Goal, String) :-
-    with_output_to(codes(Codes), Goal),
-    string_codes(String, Codes).

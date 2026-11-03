@@ -971,7 +971,7 @@ test(numeric_satisfiable) :-
     checks:members_satisfiable([A4, m(assumption, b, b, s-p, '', number, '', gt, 0, t)]),
     \+ checks:members_satisfiable([m(assumption, c, c, s-p, '', int, '', eq, 1.5, t)]).
 
-test(symbolic_satisfiable) :-
+test(symbolic_satisfiable, [nondet]) :-
     S = m(assumption, f, f, s-p, '', string, '', _, _, t),
     chk_sym(S, eq, a, Ea), chk_sym(S, eq, "b", Eb), chk_sym(S, neq, "a", Na), chk_sym(S, neq, b, Nb),
     checks:members_satisfiable([Ea]),
@@ -1227,7 +1227,7 @@ test(rule_restrictions, Restrictions == [forbids, forbids, requires, requires]) 
                 checks:rule_restriction(K, M, R)),
             Restrictions).
 
-test(rule_condition_members) :-
+test(rule_condition_members, [nondet]) :-
     C1 = cond(s-p, gt, number(0, none), int),
     C2 = cond(s-q, lt, number(9, none), int),
     checks:rule_condition_members(r, f, forbids, none, '', [s-p], [C1], M1),
@@ -2916,12 +2916,14 @@ test(what_if_entry_ids, Ids == [a, b, c, d, e]) :-
 
 % --- strict pairing, readiness, predicate verifiability -----------------------
 
-:- begin_tests(checks_strict_lanes).
-
+%% chk_pred(+Id, +Name, +Args, +Extra)
+% A predicate fact whose canonical key is Name(Args).
 chk_pred(Id, Name, Args, Extra) :-
     format(string(Key), "~w(~w)", [Name, Args]),
     append([fact_kind=predicate, predicate_name=Name, predicate_args=Args, canonical_key=Key], Extra, Props),
     chk_ent(fact, Id, Props).
+
+:- begin_tests(checks_strict_lanes).
 
 chk_pairing(Req, D, S, violation('strict-req-fact-pairing', Req, D, S, Source)) :-
     format(atom(Source), '~w.md', [Req]).
@@ -3094,3 +3096,591 @@ test(predicate_verifiability, Violations == [V1, V2]) :-
     )).
 
 :- end_tests(checks_strict_lanes).
+
+% --- logic coverage and the proposition ledger --------------------------------
+
+%% chk_lreq(+Id, +Status, +Props)
+% A requirement stored raw, so logic_claims and semantic_inventory are kept
+% exactly as given.
+chk_lreq(Id, Status, Props) :-
+    format(string(Source), "kb/~w.md", [Id]),
+    chk_raw_entity(req, Id, [id=Id, title="Logic", status=Status, source=Source|Props]).
+
+%% chk_gfact(+Id, +Kind, +Claim, +Text, +Extra)
+% A ground fact of fact_kind Kind for claim_key Claim.
+chk_gfact(Id, Kind, Claim, Text, Extra) :-
+    chk_raw_entity(fact, Id, [id=Id, title="Ground", status=active, fact_kind=Kind,
+                              claim_key=Claim, claim_text=Text|Extra]).
+
+%% chk_inv(+Entries, -Json)
+% A semantic_inventory JSON text with one Key-Status entry per element.
+chk_inv(Entries, Json) :-
+    findall(_{claim_key: K, status: S}, member(K-S, Entries), Dicts),
+    with_output_to(string(Json), json_write_dict(current_output, Dicts, [width(0)])).
+
+chk_fid(Req, Suffix, Id) :-
+    atomic_list_concat([Req, '-', Suffix], Id).
+
+%% chk_logic_fixture(+Req, +Status)
+% One requirement that reaches every logic-coverage clause once.
+chk_logic_fixture(Req, Status) :-
+    chk_inv([c1-modeled, c2-ambiguous, c4-modeled], Inv),
+    chk_lreq(Req, Status, [logic_claims=[c1, c2, c3, c4, c5, c6], semantic_inventory=Inv]),
+    forall(member(S-Kind-Rel-Claim-Text-Extra,
+                  [ f1-property_value-requires_property-"c1"-"one"-[],
+                    f2-predicate-requires_predicate-"c2"-"two"-[],
+                    f4-rule-requires_rule-"c4"-""-[],
+                    f5a-property_value-requires_property-"c5"-"five"-[],
+                    f5b-property_value-requires_property-"c5"-"five again"-[],
+                    f6-rule-requires_rule-"c6"-"six"-[semantic_key="same"],
+                    f7-rule-requires_rule-"c7"-"seven"-[semantic_key="same"] ]),
+           (   chk_fid(Req, S, F),
+               chk_gfact(F, Kind, Claim, Text, Extra),
+               chk_raw_rel(Rel, Req, F)
+           )).
+
+chk_logic(Req, D, S, violation('logic-coverage', Req, D, S, Source)) :-
+    format(atom(Source), '~w.md', [Req]).
+
+:- begin_tests(checks_logic_coverage).
+
+test(every_clause, Violations == [V1, V2, V3, V4, V5, V6]) :-
+    chk_kb((
+        chk_logic_fixture('REQ-L', open),
+        chk_logic_fixture('REQ-OLD', deprecated),
+        check_logic_coverage(Violations)
+    )),
+    G = "Ground every declared claim with a property_value, predicate, or rule fact via its typed relationship, preserving the same claim_key",
+    chk_logic('REQ-L', "Requirement declares duplicate logical ground term rule(same) through claim keys c6 and c7",
+              "Remove punctuation or wording variants from the atomic inventory and keep one claim key for each distinct logical term", V1),
+    chk_logic('REQ-L', "Requirement declares logical claim c3 but has no matching ground fact", G, V2),
+    chk_logic('REQ-L', "Requirement declares logical claim c4 but has no matching ground fact", G, V3),
+    chk_logic('REQ-L', "Requirement grounds logical claim c5 more than once through REQ-L-f5a and REQ-L-f5b",
+              "Keep a one-to-one mapping between each atomic claim key and its linked ground fact; split compound clauses before grounding", V4),
+    chk_logic('REQ-L', "Requirement grounds unresolved ambiguous proposition c2",
+              "Keep ontology gaps, ambiguities, and missing interpretations unresolved; only modeled propositions may have logical ground facts", V5),
+    chk_logic('REQ-L', "Requirement links ground logical claim c7 but omits it from logic_claims",
+              "Append the linked fact claim_key to the requirement logic_claims manifest, or remove the stale logical link", V6).
+
+test(unresolved_list_entries, Descriptions == [
+        "Requirement grounds unresolved missing proposition m1",
+        "Requirement grounds unresolved ontology_gap proposition m2"
+    ]) :-
+    chk_kb((
+        chk_lreq('REQ-INV', open, [semantic_inventory="[[claim_key=m1,status=missing],[claim_key=m2,status=ontology_gap],[claim_key=m3,status=nonlogical]]"]),
+        chk_gfact('FACT-M1', predicate, "m1", "m one", []),
+        chk_raw_rel(requires_predicate, 'REQ-INV', 'FACT-M1'),
+        chk_gfact('FACT-M2', rule, "m2", "m two", []),
+        chk_raw_rel(requires_rule, 'REQ-INV', 'FACT-M2'),
+        chk_gfact('FACT-M3', property_value, "m3", "m three", []),
+        chk_raw_rel(requires_property, 'REQ-INV', 'FACT-M3'),
+        check_logic_coverage(Violations)
+    )),
+    findall(D, member(violation(_, _, D, _, _), Violations), Descriptions).
+
+test(grounding_needs_kind_and_text) :-
+    chk_kb((
+        chk_lreq('REQ-G', open, [logic_claims=[g1]]),
+        chk_gfact('FACT-G1', predicate, "g1", "text", []),
+        chk_raw_rel(requires_property, 'REQ-G', 'FACT-G1'),
+        \+ checks:grounded_requirement_claim('REQ-G', g1),
+        chk_raw_entity(fact, 'FACT-G2', [id='FACT-G2', fact_kind=property_value, claim_key="g1"]),
+        chk_raw_rel(requires_property, 'REQ-G', 'FACT-G2'),
+        \+ checks:grounded_requirement_claim('REQ-G', g1),
+        chk_raw_entity(fact, 'FACT-G3', [id='FACT-G3', claim_key="g1", claim_text="t"]),
+        chk_raw_rel(requires_property, 'REQ-G', 'FACT-G3'),
+        \+ checks:grounded_requirement_claim('REQ-G', g1),
+        chk_raw_entity(fact, 'FACT-G4', [id='FACT-G4', fact_kind=property_value, claim_text="t"]),
+        chk_raw_rel(requires_property, 'REQ-G', 'FACT-G4'),
+        \+ checks:grounded_requirement_claim('REQ-G', _),
+        chk_gfact('FACT-G5', property_value, "g1", "t", []),
+        chk_raw_rel(requires_property, 'REQ-G', 'FACT-G5'),
+        findall(F, checks:grounded_requirement_claim_fact('REQ-G', _, F), Facts),
+        Facts == ['FACT-G5']
+    )).
+
+test(claim_requires_grounding) :-
+    chk_kb((
+        chk_inv([a-modeled, b-ambiguous], Inv),
+        chk_lreq('REQ-C', open, [semantic_inventory=Inv]),
+        deterministic(checks:claim_requires_grounding('REQ-C', a)),
+        \+ checks:claim_requires_grounding('REQ-C', b),
+        deterministic(checks:claim_requires_grounding('REQ-C', z)),
+        findall(K-S, checks:requirement_inventory_status('REQ-C', K, S), Statuses),
+        Statuses == [a-modeled, b-ambiguous],
+        \+ checks:requirement_logic_claims('REQ-C', _),
+        \+ checks:requirement_inventory_status('REQ-NONE', _, _)
+    )).
+
+test(inventory_entry_fields, [nondet]) :-
+    checks:checks_inventory_entry_field(_{claim_key: "k"}, claim_key, V1),
+    V1 == "k",
+    checks:checks_inventory_entry_field([claim_key="l"], claim_key, V2),
+    V2 == "l",
+    \+ checks:checks_inventory_entry_field(claim_key="m", claim_key, _),
+    \+ checks:checks_inventory_entry_field(_{status: "x"}, claim_key, _),
+    checks:inventory_entry_status(_{status: "missing"}, S1),
+    S1 == missing,
+    checks:inventory_entry_status([status=modeled], S2),
+    S2 == modeled,
+    \+ checks:inventory_entry_status(status=modeled, _),
+    checks:inventory_entry_label(_{claim_key: "CLAIM-1"}, L1),
+    L1 == 'CLAIM-1',
+    checks:inventory_entry_label([status=missing], L2),
+    L2 == 'entry without claim_key'.
+
+test(inventory_entries, Entries == [[a], [b], [1], [x=1], [y=2], [], [], [], [], []]) :-
+    findall(E,
+        (   member(Raw, [[a], ^^([b], t), "[1]", 'x', "[x=1]", ^^('[y=2]', t), "{\"a\":1}", '{', "foo(", 42, foo(bar)]),
+            Raw \== 'x',
+            checks:inventory_entries(Raw, E)
+        ),
+        Entries).
+
+:- end_tests(checks_logic_coverage).
+
+% --- rule safety and rule verifiability ----------------------------------------
+
+%% chk_ir(+Expression, -Dict)
+% Logic IR for a propositional expression: a Name atom, not(Name),
+% all(List), any(List) or count(Name).
+chk_ir(not(Name), _{kind: not, item: _{kind: atom, name: Name, args: [], closedWorld: true}}) :- !.
+chk_ir(all(Items), _{kind: all, items: Dicts}) :- !, maplist(chk_ir, Items, Dicts).
+chk_ir(any(Items), _{kind: any, items: Dicts}) :- !, maplist(chk_ir, Items, Dicts).
+chk_ir(count(Name), _{kind: count, atom: _{kind: atom, name: Name, args: []}, operator: gte, value: 1}) :- !.
+chk_ir(Name, _{kind: atom, name: Name, args: []}).
+
+%% chk_prule(+Id, +Head, +Body, +Exceptions)
+% A stored propositional rule Head :- Body, unless any of Exceptions.
+chk_prule(Id, Head, Body, Exceptions) :-
+    chk_ir(Head, HeadDict),
+    chk_ir(Body, BodyDict),
+    maplist(chk_ir, Exceptions, ExceptionDicts),
+    Dict0 = _{version: 'kibi.logic.v1', kind: rule, modality: assert, head: HeadDict, body: BodyDict, variables: []},
+    (   ExceptionDicts == [] -> Dict = Dict0 ; Dict = Dict0.put(exceptions, ExceptionDicts) ),
+    atom_json_dict(Json, Dict, [width(0)]),
+    format(string(Source), "kb/~w.md", [Id]),
+    chk_raw_entity(fact, Id, [id=Id, title="Rule", status=active, source=Source, fact_kind=rule, rule_ir=Json]).
+
+chk_safety(Fact, D, S, violation('rule-safety', Fact, D, S, Source)) :-
+    format(atom(Source), '~w.md', [Fact]).
+
+chk_rule_schema(Id, Extra) :-
+    chk_raw_entity(fact, Id, [id=Id, title="Schema", status=active|Extra]).
+
+chk_verif(Req, D, violation('rule-verifiability', Req, D,
+          "Link requires_rule to fact_kind=rule with a valid rule_schema_id and safe kibi.logic.v1 IR", Source)) :-
+    format(atom(Source), '~w.md', [Req]).
+
+:- begin_tests(checks_rule_safety).
+
+test(local_errors, Violations == [V]) :-
+    chk_kb((
+        chk_raw_entity(fact, 'FACT-MAL', [id='FACT-MAL', source="kb/FACT-MAL.md", fact_kind=rule, rule_ir="not json"]),
+        chk_raw_entity(fact, 'FACT-PRED', [id='FACT-PRED', fact_kind=predicate, rule_ir="not json"]),
+        chk_raw_entity(fact, 'FACT-BARE', [id='FACT-BARE', rule_ir="not json"]),
+        chk_prule('FACT-OK', p, q, []),
+        check_rule_safety(Violations)
+    )),
+    chk_safety('FACT-MAL', "Rule fact FACT-MAL failed safety validation: [malformed_rule_ir]",
+               "Use kibi.logic.v1 typed IR; remove raw Prolog, unsafe variables, or unstratified negation", V).
+
+test(negation_cycle, Facts == ['FACT-ALL', 'FACT-ANY', 'FACT-EXC', 'FACT-NP']) :-
+    chk_kb((
+        chk_prule('FACT-NP', p, not(q), []),
+        chk_prule('FACT-NQ', q, any([p]), []),
+        chk_prule('FACT-ALL', r, all([s, not(t)]), []),
+        chk_prule('FACT-ANY', u, any([s, not(t)]), []),
+        chk_prule('FACT-EXC', v, s, [not(t)]),
+        chk_prule('FACT-CNT', w, count(p), []),
+        chk_prule('FACT-POS', x, all([s, any([t])]), [s]),
+        check_rule_safety(Violations),
+        Violations = [First|_]
+    )),
+    findall(F, member(violation(_, F, _, _, _), Violations), Facts),
+    chk_safety('FACT-ALL', "Stored rules contain an unstratified negation dependency cycle",
+               "Separate the negated dependency into strata or replace it with an explicit closed-world fact", First0),
+    First == First0.
+
+test(stratified_negation, Violations == []) :-
+    chk_kb((
+        chk_prule('FACT-NP', p, not(q), []),
+        chk_prule('FACT-NQ', q, s, []),
+        check_rule_safety(Violations)
+    )).
+
+test(rule_with_negation, [nondet]) :-
+    chk_kb((
+        chk_prule('FACT-A', p, all([q, not(r), not(s)]), [not(t)]),
+        checks:stored_rule_fact('FACT-A', _, Rule),
+        deterministic(checks:rule_contains_negation(Rule))
+    )).
+
+:- end_tests(checks_rule_safety).
+
+:- begin_tests(checks_rule_verifiability).
+
+test(each_description, Violations == [V1, V2, V3, V4, V5, V6]) :-
+    chk_kb((
+        chk_req('REQ-RV'),
+        chk_rule_schema('SCHEMA-OK', [fact_kind=rule_schema, rule_name="ok", argument_names=["a"], argument_types=["t"]]),
+        chk_rule_schema('SCHEMA-PRED', [fact_kind=predicate]),
+        chk_raw_entity(fact, 'FACT-LEG', [id='FACT-LEG']),
+        chk_raw_entity(fact, 'FACT-PRED', [id='FACT-PRED', fact_kind=predicate]),
+        chk_rule_fact('FACT-NOSCHEMA', assert, checkout, [total-gt-0], [], _),
+        chk_rule_fact('FACT-MISSING', rule, assert, checkout, [total-gt-0], [], [rule_schema_id="kb/SCHEMA-NONE"], _),
+        chk_rule_fact('FACT-BADSCHEMA', rule, assert, checkout, [total-gt-0], [], [rule_schema_id="SCHEMA-PRED"], _),
+        chk_raw_entity(fact, 'FACT-UNSAFE', [id='FACT-UNSAFE', fact_kind=rule, rule_schema_id="SCHEMA-OK", rule_ir="{"]),
+        chk_rule_fact('FACT-GOOD', rule, assert, checkout, [total-gt-0], [], [rule_schema_id="SCHEMA-OK"], _),
+        forall(member(F, ['FACT-LEG', 'FACT-PRED', 'FACT-NOSCHEMA', 'FACT-MISSING', 'FACT-BADSCHEMA', 'FACT-UNSAFE', 'FACT-GOOD']),
+               chk_raw_rel(requires_rule, 'REQ-RV', F)),
+        chk_raw_rel(requires_rule, 'REQ-RV', 'FACT-ABSENT'),
+        chk_req('REQ-OLD', [status=deprecated]),
+        chk_raw_rel(requires_rule, 'REQ-OLD', 'FACT-LEG'),
+        check_rule_verifiability(Violations)
+    )),
+    chk_verif('REQ-RV', "Requirement uses requires_rule FACT-LEG but target is fact_kind=legacy", V1),
+    chk_verif('REQ-RV', "Requirement uses requires_rule FACT-PRED but target is fact_kind=predicate", V2),
+    chk_verif('REQ-RV', "Rule fact FACT-BADSCHEMA references SCHEMA-PRED, which is not a rule_schema fact", V3),
+    chk_verif('REQ-RV', "Rule fact FACT-MISSING references missing rule schema SCHEMA-NONE", V4),
+    chk_verif('REQ-RV', "Rule fact FACT-NOSCHEMA has no rule_schema_id", V5),
+    chk_verif('REQ-RV', "Rule fact FACT-UNSAFE is not safe: [malformed_rule_ir]", V6).
+
+test(rule_schema_props, Valid == [true, false, false, false, false, false, false, false]) :-
+    findall(B,
+        (   member(Props, [
+                [fact_kind=rule_schema, rule_name="n", argument_names=[a, b], argument_types=["t", "u"]],
+                [fact_kind=rule_schema, rule_name="", argument_names=[a], argument_types=[t]],
+                [fact_kind=rule_schema, argument_names=[a], argument_types=[t]],
+                [fact_kind=rule_schema, rule_name="n", argument_names=[a, b], argument_types=[t]],
+                [fact_kind=rule_schema, rule_name="n", argument_types=[t]],
+                [fact_kind=rule_schema, rule_name="n", argument_names=[a]],
+                [fact_kind=predicate_schema, rule_name="n", argument_names=[a], argument_types=[t]],
+                [rule_name="n", argument_names=[a], argument_types=[t]]
+            ]),
+            (   checks:valid_rule_schema_props(Props) -> B = true ; B = false )
+        ),
+        Valid).
+
+test(nonempty_normalized) :-
+    checks:nonempty_normalized("x"),
+    \+ checks:nonempty_normalized(""),
+    \+ checks:nonempty_normalized('').
+
+:- end_tests(checks_rule_verifiability).
+
+% --- semantic completeness and related unmodeled requirements -----------------
+
+:- begin_tests(checks_semantic_ledger).
+
+test(semantic_completeness, Violations == [V1, V2]) :-
+    chk_kb((
+        Inv = "[{\"claim_key\":\"CLAIM-1\",\"status\":\"missing\"},{\"claim_key\":\"CLAIM-2\",\"status\":\"modeled\"},{\"status\":\"missing\"}]",
+        chk_lreq('REQ-S', open, [semantic_inventory=Inv]),
+        chk_lreq('REQ-SOLD', deprecated, [semantic_inventory=Inv]),
+        chk_lreq('REQ-NOINV', open, []),
+        check_semantic_completeness(Violations)
+    )),
+    S = "Run kb_semantic_advisor again, preserve every proposition span, and model or explicitly classify each assertive proposition",
+    V1 = violation('semantic-completeness', 'REQ-S', "Requirement proposition ledger contains an unclassified assertive span (CLAIM-1)", S, 'REQ-S.md'),
+    V2 = violation('semantic-completeness', 'REQ-S', "Requirement proposition ledger contains an unclassified assertive span (entry without claim_key)", S, 'REQ-S.md').
+
+chk_unmodeled_fixture :-
+    chk_subject('FACT-CART', cart),
+    chk_total('FACT-TOTAL', gt, 0),
+    chk_pred('FACT-HOLDS', "holds", ["cart"], []),
+    chk_raw_entity(fact, 'FACT-OWNS', [id='FACT-OWNS', fact_kind=predicate, predicate_name="owns", predicate_args=["x"]]),
+    chk_raw_entity(fact, 'FACT-NAMELESS', [id='FACT-NAMELESS', fact_kind=predicate, predicate_args=["x"]]),
+    chk_ent(fact, 'FACT-OBS', [fact_kind=observation, canonical_key="seen"]),
+    chk_inv([m1-missing, m2-missing, ok-modeled], Missing2),
+    chk_inv([m1-missing], Missing1),
+    chk_inv([ok-modeled], NoneMissing),
+    % modeled: a strict pair and a predicate with a canonical key
+    chk_req('REQ-M'),
+    chk_strict('REQ-M', 'FACT-CART', 'FACT-TOTAL'),
+    chk_rel(requires_predicate, 'REQ-M', 'FACT-HOLDS'),
+    % modeled through a predicate name only
+    chk_req('REQ-M2'),
+    chk_raw_rel(requires_predicate, 'REQ-M2', 'FACT-OWNS'),
+    chk_raw_rel(requires_predicate, 'REQ-M2', 'FACT-NAMELESS'),
+    % links that model nothing
+    chk_req('REQ-PLAIN'),
+    chk_raw_rel(requires_predicate, 'REQ-PLAIN', 'FACT-OBS'),
+    chk_raw_rel(requires_predicate, 'REQ-PLAIN', 'FACT-GONE'),
+    chk_req('REQ-OLDM', [status=deprecated]),
+    chk_strict('REQ-OLDM', 'FACT-CART', 'FACT-TOTAL'),
+    chk_lreq('REQ-U', open, [semantic_inventory=Missing2]),
+    forall(member(O, ['REQ-M', 'REQ-PLAIN', 'REQ-OLDM']), chk_raw_rel(relates_to, 'REQ-U', O)),
+    chk_lreq('REQ-N', open, [semantic_inventory=Missing1]),
+    chk_raw_rel(relates_to, 'REQ-M2', 'REQ-N'),
+    chk_lreq('REQ-Z', open, [semantic_inventory=NoneMissing]),
+    chk_raw_rel(relates_to, 'REQ-Z', 'REQ-M'),
+    chk_lreq('REQ-DEP', deprecated, [semantic_inventory=Missing1]),
+    chk_raw_rel(relates_to, 'REQ-DEP', 'REQ-M'),
+    chk_lreq('REQ-SELF', open, [semantic_inventory=Missing1]),
+    chk_strict('REQ-SELF', 'FACT-CART', 'FACT-TOTAL'),
+    chk_raw_rel(relates_to, 'REQ-SELF', 'REQ-SELF'),
+    chk_lreq('REQ-NOLEDGER', open, []),
+    chk_raw_rel(relates_to, 'REQ-NOLEDGER', 'REQ-M').
+
+test(related_requirement_unmodeled, Violations == [V1, V2]) :-
+    chk_kb((
+        chk_unmodeled_fixture,
+        check_related_requirement_unmodeled(Violations)
+    )),
+    V1 = violation('related-requirement-unmodeled', 'REQ-N',
+        "Requirement REQ-N leaves 1 proposition(s) unmodeled (status missing) while it relates_to REQ-M2, which models owns; domain-contradictions compares grounded facts only, so these claims are never checked against REQ-M2",
+        "Model the missing propositions of REQ-N against owns (a subject fact via constrains and property_value facts via requires_property on the same subject_key, or ground predicate facts via requires_predicate), or record that REQ-N supersedes REQ-M2 if it replaces that requirement",
+        'REQ-N.md'),
+    V2 = violation('related-requirement-unmodeled', 'REQ-U',
+        "Requirement REQ-U leaves 2 proposition(s) unmodeled (status missing) while it relates_to REQ-M, which models cart.total, holds([cart]); domain-contradictions compares grounded facts only, so these claims are never checked against REQ-M",
+        "Model the missing propositions of REQ-U against cart.total, holds([cart]) (a subject fact via constrains and property_value facts via requires_property on the same subject_key, or ground predicate facts via requires_predicate), or record that REQ-U supersedes REQ-M if it replaces that requirement",
+        'REQ-U.md').
+
+test(missing_counts, Counts == [2, 1, 0]) :-
+    chk_kb((
+        chk_unmodeled_fixture,
+        findall(C, (member(R, ['REQ-U', 'REQ-N', 'REQ-Z', 'REQ-NOLEDGER']),
+                    checks:requirement_missing_proposition_count(R, C)), Counts)
+    )).
+
+test(modeled_summaries, Summaries == ['cart.total, holds([cart])', owns]) :-
+    chk_kb((
+        chk_unmodeled_fixture,
+        findall(S, (member(R, ['REQ-M', 'REQ-M2', 'REQ-PLAIN', 'REQ-U']),
+                    checks:modeled_requirement_summary(R, S)), Summaries)
+    )).
+
+:- end_tests(checks_semantic_ledger).
+
+% --- the aggregated dict and its JSON transports ------------------------------
+
+chk_all_keys([adr_proposed, adr_unlinked, deprecated_adr_no_successor, domain_contradictions,
+              domain_implication, domain_redundancy, entity_id_style, exception_claim_keys,
+              kb_consistency, kb_consistency_unresolved, logic_coverage, must_priority_coverage,
+              no_cycles, no_dangling_refs, numeric_string_value, ontology_quality,
+              predicate_verifiability, proof_contract_symbols, related_requirement_unmodeled,
+              req_status_vocabulary, required_fields, rule_key_arguments_missing, rule_safety,
+              rule_verifiability, scenario_feasibility, scenario_feasibility_unknown,
+              scenario_outcome_mismatch, semantic_completeness, strict_fact_shape,
+              strict_readiness, strict_req_fact_pairing, subject_key_identity, subject_key_shape,
+              superseded_requirement_open, symbol_coverage, symbol_owner_superseded,
+              symbol_traceability]).
+
+%% chk_json(+Text, -Dict)
+% Text parsed as JSON, strings kept as strings.
+chk_json(Text, Dict) :-
+    atom_json_dict(Text, Dict, [value_string_as(string)]).
+
+%% chk_nonempty(+Dict, -Keys)
+% The keys of Dict whose value is not the empty list.
+chk_nonempty(Dict, Keys) :-
+    dict_pairs(Dict, _, Pairs),
+    findall(K, (member(K-V, Pairs), V \== []), Keys).
+
+chk_must_and_dangling :-
+    chk_req('REQ-M1', [priority=must]),
+    chk_raw_rel(relates_to, 'REQ-M1', 'REQ-GONE').
+
+%% chk_with_tmp(-Path, :Goal)
+:- meta_predicate chk_with_tmp(-, 0).
+chk_with_tmp(Path, Goal) :-
+    tmp_file(checks_json, Path),
+    setup_call_cleanup(true, once(Goal),
+                       (exists_file(Path) -> delete_file(Path) ; true)).
+
+chk_file_json(Path, Dict) :-
+    read_file_to_string(Path, Text, [encoding(utf8)]),
+    chk_json(Text, Dict).
+
+chk_must_json(_{rule: "must-priority-coverage", entityId: "REQ-M1",
+                description: "Must-priority requirement lacks scenario and test coverage",
+                suggestion: "Create scenario that specifies and test that validates this requirement",
+                source: "REQ-M1.md"}).
+
+:- begin_tests(checks_aggregate_json).
+
+test(check_all_keys, Keys == Expected) :-
+    chk_all_keys(Expected),
+    chk_kb((check_all(D), dict_keys(D, Keys))).
+
+test(check_all_finds, Nonempty == [must_priority_coverage, no_dangling_refs, strict_readiness]) :-
+    chk_kb((chk_must_and_dangling, check_all(D), chk_nonempty(D, Nonempty))).
+
+test(check_selected, Nonempty == [must_priority_coverage]) :-
+    chk_all_keys(Expected),
+    chk_kb((
+        chk_must_and_dangling,
+        checks:check_selected(['must-priority-coverage', 'symbol-granularity'], D),
+        dict_keys(D, Keys),
+        Keys == Expected,
+        chk_nonempty(D, Nonempty),
+        checks:check_selected(['symbol-granularity'], D2),
+        chk_nonempty(D2, [])
+    )).
+
+test(check_selected_traceability_without_adr) :-
+    chk_kb((
+        plunit_checks_symbol_traceability:chk_trace_fixture,
+        checks:check_selected(['symbol-traceability'], D),
+        check_symbol_traceability(false, Expected),
+        D.symbol_traceability == Expected,
+        checks:check_all_with_options(DA, true),
+        check_symbol_traceability(true, ExpectedAdr),
+        DA.symbol_traceability == ExpectedAdr,
+        ExpectedAdr \== Expected,
+        check_all(DF),
+        DF.symbol_traceability == Expected
+    )).
+
+test(unknown_rules, Unknown == [bogus, 'no-such-rule']) :-
+    catch(checks:check_selected(['must-priority-coverage', bogus, 'no-such-rule'], _), error(domain_error(check_rule, Unknown), _), true).
+
+test(require_known_rules) :-
+    deterministic(checks:require_known_rules(['must-priority-coverage'])),
+    deterministic(checks:require_known_rules([])).
+
+test(run_aggregated_check) :-
+    chk_kb((
+        deterministic(checks:run_aggregated_check(true, k-none, P1)),
+        P1 == k-[],
+        deterministic(checks:run_aggregated_check(true, symbol_traceability-check_symbol_traceability, P2)),
+        P2 == symbol_traceability-[],
+        checks:run_aggregated_check(true, adr_proposed-check_adr_proposed, P3),
+        P3 == adr_proposed-[]
+    )).
+
+test(check_all_json) :-
+    chk_kb((
+        chk_must_and_dangling,
+        check_all_json(J1),
+        checks:check_all_json_with_options(J2, false),
+        check_selected_json(['must-priority-coverage'], J3)
+    )),
+    string(J1), string(J2), string(J3),
+    chk_must_json(Must),
+    chk_json(J1, D1),
+    chk_same(D1.must_priority_coverage, [Must]),
+    [Dangling] = D1.no_dangling_refs,
+    Dangling.rule == "no-dangling-refs",
+    chk_json(J2, D2),
+    chk_same(D2, D1),
+    chk_json(J3, D3),
+    chk_same(D3.must_priority_coverage, [Must]),
+    D3.no_dangling_refs == [].
+
+test(json_with_adr_option) :-
+    chk_kb((
+        plunit_checks_symbol_traceability:chk_trace_fixture,
+        checks:check_all_json_with_options(J1, true),
+        checks:check_all_json_with_options(J2, false)
+    )),
+    chk_json(J1, D1),
+    chk_json(J2, D2),
+    length(D1.symbol_traceability, N1),
+    length(D2.symbol_traceability, N2),
+    N1 > N2.
+
+test(json_files) :-
+    chk_kb((
+        chk_must_and_dangling,
+        chk_with_tmp(P1, (check_all_json_file(P1, false), chk_file_json(P1, D1))),
+        chk_with_tmp(P2, (check_selected_json_file(['must-priority-coverage'], P2), chk_file_json(P2, D2)))
+    )),
+    chk_must_json(Must),
+    chk_same(D1.must_priority_coverage, [Must]),
+    length(D1.no_dangling_refs, 1),
+    chk_same(D2.must_priority_coverage, [Must]),
+    D2.no_dangling_refs == [].
+
+test(json_transports) :-
+    chk_kb((
+        chk_must_and_dangling,
+        chk_with_tmp(P1, (check_all_json_transport(P1, false, T1, J1), chk_file_json(P1, D1))),
+        check_all_json_transport(none, false, T2, J2),
+        check_all_json_transport('/nonexistent-dir/checks/x.json', false, T3, J3),
+        chk_with_tmp(P4, (check_selected_json_transport(['no-dangling-refs'], P4, T4, J4), chk_file_json(P4, D4))),
+        check_selected_json_transport(['no-dangling-refs'], none, T5, J5)
+    )),
+    T1 == file, J1 == '',
+    T2 == answer, chk_json(J2, D2), chk_same(D2, D1),
+    T3 == answer, J3 == J2,
+    T4 == file, J4 == '', D4.must_priority_coverage == [], length(D4.no_dangling_refs, 1),
+    T5 == answer, chk_json(J5, D5), chk_same(D5, D4).
+
+test(transport_rethrows_other_errors) :-
+    chk_kb(catch(check_all_json_transport(path(1), false, _, _), Error, true)),
+    nonvar(Error),
+    \+ checks:file_transport_error(Error).
+
+test(file_transport_errors, Kinds == [true, true, true, true, false, false]) :-
+    findall(B,
+        (   member(E, [error(permission_error(open, source_sink, x), c), error(existence_error(source_sink, x), c),
+                       error(resource_error(memory), c), error(io_error(write, s), c),
+                       error(type_error(text, x), c), oops]),
+            (checks:file_transport_error(E) -> B = true ; B = false)
+        ),
+        Kinds).
+
+:- end_tests(checks_aggregate_json).
+
+:- begin_tests(checks_violation_json).
+
+test(violation_with_evidence) :-
+    V = violation(r, 'E', "d", "s", "src", _{witnesses: []}),
+    deterministic(checks:violation_to_json(V, J)),
+    chk_same(J, _{rule: "r", entityId: "E", description: "d", suggestion: "s", source: "src", evidence: _{witnesses: []}}).
+
+test(plain_violation) :-
+    chk_kb(checks:violation_to_json(violation(r, 'E', d, s, ''), J)),
+    chk_same(J, _{rule: "r", entityId: "E", description: "d", suggestion: "s", source: ""}).
+
+test(contradiction_evidence) :-
+    chk_kb((
+        chk_cart_req('REQ-HI', 'FACT-HI', gt, 5),
+        chk_cart_req('REQ-LO', 'FACT-LO', lt, 3),
+        check_domain_contradiction_witnesses([W]),
+        check_domain_contradictions([V]),
+        checks:violation_to_json(V, J),
+        V = violation(Rule, Id, D, S, Src),
+        checks:violation_to_json(violation(Rule, "REQ-LO/REQ-HI", D, S, Src), Swapped),
+        checks:violation_to_json(violation(Rule, Id, "Other text", S, Src), Reworded),
+        checks:violation_to_json(violation('strict-readiness', Id, D, S, Src), OtherRule)
+    )),
+    chk_same(J.evidence, _{witnesses: [W]}),
+    J.rule == "domain-contradictions",
+    J.entityId == "REQ-HI/REQ-LO",
+    \+ get_dict(evidence, Swapped, _),
+    \+ get_dict(evidence, Reworded, _),
+    \+ get_dict(evidence, OtherRule, _).
+
+test(witness_matches_violation) :-
+    W = _{requirements: ['A', 'B'], reason: ^^("Rule x", t)},
+    checks:witness_matches_violation("A/B", "Rule x and more", W),
+    \+ checks:witness_matches_violation("B/A", "Rule x and more", W),
+    \+ checks:witness_matches_violation("A/B", "Other Rule x", W),
+    \+ checks:witness_matches_violation("A/B/C", "Rule x", W.put(requirements, ['A', 'B', 'C'])).
+
+test(violations_dict_to_json) :-
+    checks:violations_dict_to_json(t{a: [], b: [violation(r, e, d, s, src)]}, J),
+    is_dict(J, t),
+    chk_same(J, _{a: [], b: [_{rule: "r", entityId: "e", description: "d", suggestion: "s", source: "src"}]}).
+
+test(violation_text, Texts == ["plain", "atom", "inner", "typed", "5", "[]", "f(x,\"y\")"]) :-
+    findall(T,
+        (   member(V, ["plain", atom, ^^("inner", t), literal(type(t, typed)), 5, [], f(x, "y")]),
+            checks:violation_text(V, T)
+        ),
+        Texts).
+
+test(violation_text_deterministic) :-
+    forall(member(V, ["plain", atom, ^^(^^(inner, t), t), literal(type(t, literal(type(t, x)))), f(x)]),
+           (   deterministic(checks:violation_text(V, T)),
+               string(T)
+           )),
+    checks:violation_text(_, VarText),
+    sub_string(VarText, 0, 1, _, "_"),
+    checks:violation_id_text(^^('E', t), Id),
+    Id == "E".
+
+:- end_tests(checks_violation_json).
