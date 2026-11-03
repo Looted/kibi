@@ -64,13 +64,14 @@ function gitOutput(cwd: string, args: readonly string[]): string {
 }
 
 function hasSymbolRecords(cwd: string): boolean {
-  let manifest = "";
   try {
-    manifest = readFileSync(path.join(cwd, ".kb", "symbols.yaml")).toString();
+    return /^\s*-\s+id\s*:/m.test(
+      readFileSync(path.join(cwd, ".kb", "symbols.yaml")).toString(),
+    );
   } catch {
     // No manifest yet: nothing to merge.
   }
-  return /^\s*-\s+id\s*:/m.test(manifest);
+  return false;
 }
 
 /**
