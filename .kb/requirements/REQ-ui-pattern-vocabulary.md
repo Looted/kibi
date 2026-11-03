@@ -8,7 +8,7 @@ tags:
   - modeling
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:13:23.515Z'
 rationale: Agents need a shared vocabulary for which visual pattern a UI concept uses, so a rewrite to a different pattern becomes a checkable claim instead of prose.
 semantic_text: The built-in predicate catalog must offer the ui_pattern, same_pattern, pattern_marker and ui_container schemas. Predicate suggestions must route UI pattern prose to the UI predicates instead of coding standard rules.
@@ -53,4 +53,4 @@ In a test project an agent redid one role's view of a screen as cards while the 
 
 > Agent uses whole different pattern than the established, e.g. recent case when [in a test project] it used card design for the timeline, where the agreed upon was a line with dots for moments.
 
-Project owner, project thread on the UI design plugin, 2026-10-09.
+Project owner, UI design plugin discussion, 2026-10-09.

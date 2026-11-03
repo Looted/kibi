@@ -2,7 +2,7 @@
 title: Proof receipt versions and fingerprint parts
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The first proof receipt version shall be kibi.proof-receipt.v1. A readable proof receipt version shall be kibi.proof-receipt.v1 or kibi.proof-receipt.v2. An execution fingerprint part shall be contract, integration, command, bindings or producer. The prove progress file shall be prove-progress.json. The proof integration setup step shall be proof_integration_configure.
 semantic_clauses:
   - The first proof receipt version shall be kibi.proof-receipt.v1.
@@ -14,7 +14,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T21:18:59.847Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -64,6 +64,7 @@ logic_claims:
   - CLAIM-69759DA98345DD8E
 id: REQ-kibi-proof-receipt-format
 type: req
+required_evidence: tested
 ---
 The first proof receipt version shall be kibi.proof-receipt.v1. A readable proof receipt version shall be kibi.proof-receipt.v1 or kibi.proof-receipt.v2. An execution fingerprint part shall be contract, integration, command, bindings or producer. The prove progress file shall be prove-progress.json. The proof integration setup step shall be proof_integration_configure.
 

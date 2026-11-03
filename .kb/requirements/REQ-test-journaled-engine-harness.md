@@ -86,9 +86,11 @@ links:
     target: FACT-CLI-LAZY-OPERATION-LOAD
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 type: req
+firmness: default
+required_evidence: tested
 ---
 
 Test fixtures MUST isolate engine sockets and PID files in a private runtime

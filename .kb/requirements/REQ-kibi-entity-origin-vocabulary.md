@@ -2,7 +2,7 @@
 title: Entity origin kinds and review rules
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: An entity origin kind shall be human, agent, migration or import. The schema 6 migration origin reference shall be kibi migrate v5->v6. The origin review rules shall be exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved and requirement-rationale-missing.
 semantic_clauses:
   - An entity origin kind shall be human, agent, migration or import.
@@ -12,7 +12,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T11:00:38.524Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -46,6 +46,7 @@ logic_claims:
   - CLAIM-F224C3BF5AE9F4B9
 id: REQ-kibi-entity-origin-vocabulary
 type: req
+required_evidence: tested
 ---
 An entity origin kind shall be human, agent, migration or import. The schema 6 migration origin reference shall be kibi migrate v5->v6. The origin review rules shall be exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved and requirement-rationale-missing.
 

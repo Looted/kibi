@@ -17,7 +17,7 @@ claim_key: CLAIM-A988B560F7A5C46D
 claim_text: Project configuration validation must reject a kibi.declinedPlugins entry that is not a bare package name
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:14:05.263Z'
 id: FACT-bootstrap-plugin-offer-bare-declined-names
 type: fact

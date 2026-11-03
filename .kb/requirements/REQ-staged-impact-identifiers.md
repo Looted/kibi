@@ -2,7 +2,7 @@
 title: Staged impact diagnostics and paths
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: 'A staged impact diagnostic shall be kibi_impact_evidence_missing, symbols_manifest_stale or kibi_impact_override_missing_rationale. The no impact declaration shall be Kibi-Impact: none. The symbols manifest shall be .kb/symbols.yaml. The symbol coordinates file shall be .kb/symbol-coordinates.yaml. The entity schema guide shall be docs/entity-schema.md.'
 semantic_clauses:
   - A staged impact diagnostic shall be kibi_impact_evidence_missing, symbols_manifest_stale or kibi_impact_override_missing_rationale.
@@ -14,7 +14,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T18:56:42.464Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -64,6 +64,7 @@ logic_claims:
   - CLAIM-7CE10A9A659DEC27
 id: REQ-staged-impact-identifiers
 type: req
+required_evidence: tested
 ---
 A staged impact diagnostic shall be kibi_impact_evidence_missing, symbols_manifest_stale or kibi_impact_override_missing_rationale. The no impact declaration shall be Kibi-Impact: none. The symbols manifest shall be .kb/symbols.yaml. The symbol coordinates file shall be .kb/symbol-coordinates.yaml. The entity schema guide shall be docs/entity-schema.md.
 

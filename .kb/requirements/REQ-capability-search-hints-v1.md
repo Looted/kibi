@@ -73,4 +73,4 @@ kb_search ranks by shared words, so a question worded differently from the KB ge
 
 > Are there any risks realted to packaging the model in core? Plugin allows to opt-in/opt-out.
 
-Maintainer, project thread on semantic search, 2026-10-29.
+Maintainer, semantic search discussion, 2026-10-29.

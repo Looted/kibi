@@ -69,10 +69,10 @@ semantic_source_field: semantic_text
 semantic_source_hash: 7925c6c8a1f8ffd1154bdcad5dec2591f9b9648264a50f27ed50116187b09320
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
-  approved_by: Piotr
+  ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+  approved_by: maintainer
   recorded_at: '2026-10-06T00:22:44.016Z'
-rationale: Agents choose whether to load a skill from its frontmatter description. In the v6 evaluate kibi-bootstrap loaded in only 2 of 10 cells, so body-only candidates could not change onboarding, repair or apply behavior. Piotr chose to let SkillOpt optimize the description too.
+rationale: Agents choose whether to load a skill from its frontmatter description. In the v6 evaluate kibi-bootstrap loaded in only 2 of 10 cells, so body-only candidates could not change onboarding, repair or apply behavior. The maintainer chose to let SkillOpt optimize the description too.
 id: REQ-skillopt-description-candidates
 type: req
 ---

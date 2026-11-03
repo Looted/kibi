@@ -8,7 +8,7 @@ tags:
 priority: must
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: onboarding evaluation round 9 finding K20'
+  ref: 'Maintainer request, 2026-10-09: onboarding evaluation round 9 finding K20'
   recorded_at: '2026-10-09T07:21:50.285Z'
 verification_scope: end_to_end
 verification_perspective: internal

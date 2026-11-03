@@ -59,6 +59,6 @@ Thin entity bodies lost knowledge that front matter cannot hold, and past schema
 Meta facts carry prose that people read, so the check also runs on them. On 2026-10-30 the checked-types rule was reworded to list meta facts.
 
 ## Source
-> Piotr approved a strict rollout with a migration.
+> The maintainer approved a strict rollout with a migration.
 
 KB body depth assessment and implementation spec, 2026-10-06.

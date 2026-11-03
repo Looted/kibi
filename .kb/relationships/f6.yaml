@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-30883ee9ff90
+  - type: specified_by
+    from: REQ-cli-staged-impact-enforcement
+    to: SCEN-cli-staged-impact-enforcement
+    created_at: 2026-11-03T11:41:42.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc7a1508e620
+  - type: verified_by
+    from: REQ-cli-staged-impact-enforcement
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-11-03T11:41:42.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09a7af91ee52

@@ -1,18 +1,18 @@
 ---
-title: Consecutive refreshes over unchanged sources must be idempotent and must not alt
+title: kibi.sync.extractors clause 2
 status: active
 tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.sync.extractors
-property_key: clause_02_consecutive_refreshes_over_unchanged_sources_mus
+property_key: clause_02_the_symbol_extractor_must_import_code_symbol_definitions_fro
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_core_extractors.clause_02_consecutive_refreshes_over_unchanged_sources_mus.eq.true
-claim_key: CLAIM-973E5C6674238256
-claim_text: Consecutive refreshes over unchanged sources must be idempotent and must not alternate generated coordinate fields in the authored manifest
+canonical_key: req.req_core_extractors.clause_02_the_symbol_extractor_must_import_code_symbol_definitions_fro.eq.true
+claim_key: CLAIM-2B61831A52C4F752
+claim_text: The symbol extractor must import code symbol definitions from symbols.yaml into the KB
 id: FACT-PROP-REQ-CORE-EXTRACTORS-C02
 type: fact
 origin:

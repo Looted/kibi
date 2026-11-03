@@ -3,7 +3,7 @@ title: KB context is asked for in an editor file that has no registered symbols
 status: active
 fact_kind: property_value
 operator: eq
-property_key: clause_01_the_vs_code_extension_must_surface_kb_context_di
+property_key: clause_03_a_registered_symbol_must_show_a_code_lens_with_the_count_of_
 subject_key: vscode.kibi_extension
 value_type: bool
 value_bool: false

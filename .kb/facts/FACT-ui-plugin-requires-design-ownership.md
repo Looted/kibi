@@ -17,7 +17,7 @@ claim_key: CLAIM-9748D6FBAF594600
 claim_text: The kibi-plugin-ui policy must require React and Angular components to implement a requirement grounded in UI design predicates
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:13:44.371Z'
 id: FACT-ui-plugin-requires-design-ownership
 type: fact

@@ -58,7 +58,9 @@ id: REQ-kibi-domain-redundancy
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
+firmness: default
+required_evidence: tested
 ---
 Kibi check must report two distinct current requirements that ground the identical logical term as a domain-redundancy warning with exact witnesses. Requirement pairs linked by supersedes must be exempt from domain-redundancy. Requirement pairs linked by restates must be exempt from domain-redundancy. Kibi check must report a numeric bound that strictly implies another bound on the same subject and property as informational domain-implication.

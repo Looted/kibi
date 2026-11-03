@@ -143,9 +143,11 @@ links:
     target: REQ-skillopt-predicate-first-requirements
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 type: req
+firmness: default
+required_evidence: tested
 ---
 
 Every atomic normative clause in a requirement must have a stable claim key and a linked ground property or predicate fact.

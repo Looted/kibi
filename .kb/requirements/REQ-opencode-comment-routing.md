@@ -20,75 +20,127 @@ links:
     target: TEST-opencode-python-comment-routing
   - type: relates_to
     target: REQ-opencode-kibi-plugin-v1
-semantic_text: 'The OpenCode plugin should detect long explanatory comments in code files and provide specific guidance for routing durable knowledge to appropriate Kibi entity types (FACT, ADR, REQ, SCEN, TEST) instead of inline code comments.\n\n\n**Multi-language comment extraction**: Support JavaScript/TypeScript (`//`, `/* */`, `/** */`) and Python (`#` blocks, true docstrings).\n\n**Durable knowledge detection**: Extract comment blocks that cross `guidance.commentDetection.minLines` threshold and contain prose suitable for Kibi artifacts.\n\n**Smart filtering for Python**: Analyze contiguous `#` comment blocks and true docstrings (module, class, function level). Ignore arbitrary triple-quoted strings not in docstring position.\n\n**Classification**: Use `knowledge-classifier.ts` to categorize extracted comments as FACT (invariants/defaults/limits), ADR (decisions/tradeoffs), REQ (behavior/capabilities), SCEN (flows), or TEST (verification).\n\n**Specific routing guidance**: Inject targeted prompts based on classification:\nFACT: \"This looks like a domain invariant; route to a FACT via Kibi.\"\nADR: \"This looks like decision rationale; route to an ADR.\"\nREQ: \"This looks like behavior intent; route to a REQ.\"\n\n**Dedupe and noise control**: Track seen comments by fingerprint to avoid repeated guidance for the same content. Only medium/high-confidence suggestions trigger prompts.\n\n**Non-blocking behavior**: Analysis runs after `file.edited` events without blocking sync or other plugin operations.\n\n**Configurability**: Respect `guidance.commentDetection.enabled` and `guidance.commentDetection.minLines` settings.\n\n\nSaving a `.py` file with a long docstring triggers specific FACT/ADR/REQ routing guidance.\nSaving a `.ts` file with a long `//` comment block triggers appropriate guidance.\nShort/ordinary comments do not trigger guidance.\nRepeated saves of identical comments do not spam warnings.\nSync and targeted validation behavior remain unchanged.'
+semantic_text: The OpenCode plugin must detect long explanatory comments in code files and guide the agent to route durable knowledge to the matching Kibi entity type (FACT, ADR, REQ, SCEN or TEST) instead of an inline comment. The OpenCode plugin must extract JavaScript and TypeScript line, block and doc comments and Python comment blocks and true docstrings. The OpenCode plugin must only extract comment blocks that reach guidance.commentDetection.minLines lines and contain prose. The OpenCode plugin must ignore Python triple-quoted strings that are not in docstring position. The OpenCode plugin must classify an extracted comment as FACT, ADR, REQ, SCEN or TEST with knowledge-classifier.ts. The OpenCode plugin must inject routing guidance that names the classified entity type. The OpenCode plugin must fingerprint seen comments so that identical comments do not trigger repeated guidance. The OpenCode plugin must only prompt for medium-confidence and high-confidence suggestions. The OpenCode plugin must run comment analysis after file.edited events without blocking sync or other plugin operations. The OpenCode plugin must respect the guidance.commentDetection.enabled and guidance.commentDetection.minLines settings.
 logic_claims:
-  - CLAIM-B8B7611ACC73E37C
-  - CLAIM-8ED771213571A72A
+  - CLAIM-85B6728384E0847D
+  - CLAIM-B6150CD471FA4C84
+  - CLAIM-6CD99B815C1F0BEB
+  - CLAIM-E87D1912E1CCEC01
+  - CLAIM-203AE3C7BB8B3CD0
+  - CLAIM-F4A9E02A99F0CB62
+  - CLAIM-2BCFC01CFC2DDE58
+  - CLAIM-98A5AAEE1B539EAA
+  - CLAIM-B720EA9494541601
+  - CLAIM-0EFEC9D907D58B65
 semantic_clauses:
-  - 'The OpenCode plugin should detect long explanatory comments in code files and provide specific guidance for routing durable knowledge to appropriate Kibi entity types (FACT, ADR, REQ, SCEN, TEST) instead of inline code comments.\n\n\n**Multi-language comment extraction**: Support JavaScript/TypeScript (`//`, `/* */`, `/** */`) and Python (`#` blocks, true docstrings).\n\n**Durable knowledge detection**: Extract comment blocks that cross `guidance.commentDetection.minLines` threshold and contain prose suitable for Kibi artifacts.\n\n**Smart filtering for Python**: Analyze contiguous `#` comment blocks and true docstrings (module, class, function level)'
-  - 'Ignore arbitrary triple-quoted strings not in docstring position.\n\n**Classification**: Use `knowledge-classifier.ts` to categorize extracted comments as FACT (invariants/defaults/limits), ADR (decisions/tradeoffs), REQ (behavior/capabilities), SCEN (flows), or TEST (verification).\n\n**Specific routing guidance**: Inject targeted prompts based on classification:\nFACT: \"This looks like a domain invariant; route to a FACT via Kibi.\"\nADR: \"This looks like decision rationale; route to an ADR.\"\nREQ: \"This looks like behavior intent; route to a REQ.\"\n\n**Dedupe and noise control**: Track seen comments by fingerprint to avoid repeated guidance for the same content'
-  - 'Only medium/high-confidence suggestions trigger prompts.\n\n**Non-blocking behavior**: Analysis runs after `file.edited` events without blocking sync or other plugin operations.\n\n**Configurability**: Respect `guidance.commentDetection.enabled` and `guidance.commentDetection.minLines` settings.\n\n\nSaving a `.py` file with a long docstring triggers specific FACT/ADR/REQ routing guidance.\nSaving a `.ts` file with a long `//` comment block triggers appropriate guidance.\nShort/ordinary comments do not trigger guidance.\nRepeated saves of identical comments do not spam warnings.\nSync and targeted validation behavior remain unchanged'
+  - The OpenCode plugin must detect long explanatory comments in code files and guide the agent to route durable knowledge to the matching Kibi entity type (FACT, ADR, REQ, SCEN or TEST) instead of an inline comment.
+  - The OpenCode plugin must extract JavaScript and TypeScript line, block and doc comments and Python comment blocks and true docstrings.
+  - The OpenCode plugin must only extract comment blocks that reach guidance.commentDetection.minLines lines and contain prose.
+  - The OpenCode plugin must ignore Python triple-quoted strings that are not in docstring position.
+  - The OpenCode plugin must classify an extracted comment as FACT, ADR, REQ, SCEN or TEST with knowledge-classifier.ts.
+  - The OpenCode plugin must inject routing guidance that names the classified entity type.
+  - The OpenCode plugin must fingerprint seen comments so that identical comments do not trigger repeated guidance.
+  - The OpenCode plugin must only prompt for medium-confidence and high-confidence suggestions.
+  - The OpenCode plugin must run comment analysis after file.edited events without blocking sync or other plugin operations.
+  - The OpenCode plugin must respect the guidance.commentDetection.enabled and guidance.commentDetection.minLines settings.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: ed673072fa9e0bc73f06c200d5d55f3499a74db34834d518376c190a13e84644
+semantic_source_hash: 2ca8b750d19e2f634b576465dbd20e8dbdc40dcc857220b3be18a830a3ffba02
 semantic_inventory:
-  - claim_key: CLAIM-B8B7611ACC73E37C
-    claim_text: 'The OpenCode plugin should detect long explanatory comments in code files and provide specific guidance for routing durable knowledge to appropriate Kibi entity types (FACT, ADR, REQ, SCEN, TEST) instead of inline code comments.\n\n\n**Multi-language comment extraction**: Support JavaScript/TypeScript (`//`, `/* */`, `/** */`) and Python (`#` blocks, true docstrings).\n\n**Durable knowledge detection**: Extract comment blocks that cross `guidance.commentDetection.minLines` threshold and contain prose suitable for Kibi artifacts.\n\n**Smart filtering for Python**: Analyze contiguous `#` comment blocks and true docstrings (module, class, function level)'
+  - claim_key: CLAIM-85B6728384E0847D
+    claim_text: The OpenCode plugin must detect long explanatory comments in code files and guide the agent to route durable knowledge to the matching Kibi entity type (FACT, ADR, REQ, SCEN or TEST) instead of an inline comment
     role: normative
     status: modeled
     span:
       start: 0
-      end: 659
-  - claim_key: CLAIM-C9C15A701A09623F
-    claim_text: 'Ignore arbitrary triple-quoted strings not in docstring position.\n\n**Classification**: Use `knowledge-classifier.ts` to categorize extracted comments as FACT (invariants/defaults/limits), ADR (decisions/tradeoffs), REQ (behavior/capabilities), SCEN (flows), or TEST (verification).\n\n**Specific routing guidance**: Inject targeted prompts based on classification:\nFACT: \"This looks like a domain invariant; route to a FACT via Kibi.\"\nADR: \"This looks like decision rationale; route to an ADR.\"\nREQ: \"This looks like behavior intent; route to a REQ.\"\n\n**Dedupe and noise control**: Track seen comments by fingerprint to avoid repeated guidance for the same content'
-    role: rationale
-    status: nonlogical
-    span:
-      start: 661
-      end: 1338
-  - claim_key: CLAIM-8ED771213571A72A
-    claim_text: 'Only medium/high-confidence suggestions trigger prompts.\n\n**Non-blocking behavior**: Analysis runs after `file.edited` events without blocking sync or other plugin operations.\n\n**Configurability**: Respect `guidance.commentDetection.enabled` and `guidance.commentDetection.minLines` settings.\n\n\nSaving a `.py` file with a long docstring triggers specific FACT/ADR/REQ routing guidance.\nSaving a `.ts` file with a long `//` comment block triggers appropriate guidance.\nShort/ordinary comments do not trigger guidance.\nRepeated saves of identical comments do not spam warnings.\nSync and targeted validation behavior remain unchanged'
-    role: descriptive
+      end: 211
+  - claim_key: CLAIM-B6150CD471FA4C84
+    claim_text: The OpenCode plugin must extract JavaScript and TypeScript line, block and doc comments and Python comment blocks and true docstrings
+    role: normative
     status: modeled
     span:
-      start: 1340
-      end: 1981
+      start: 213
+      end: 346
+  - claim_key: CLAIM-6CD99B815C1F0BEB
+    claim_text: The OpenCode plugin must only extract comment blocks that reach guidance.commentDetection.minLines lines and contain prose
+    role: normative
+    status: modeled
+    span:
+      start: 348
+      end: 470
+  - claim_key: CLAIM-E87D1912E1CCEC01
+    claim_text: The OpenCode plugin must ignore Python triple-quoted strings that are not in docstring position
+    role: normative
+    status: modeled
+    span:
+      start: 472
+      end: 567
+  - claim_key: CLAIM-203AE3C7BB8B3CD0
+    claim_text: The OpenCode plugin must classify an extracted comment as FACT, ADR, REQ, SCEN or TEST with knowledge-classifier.ts
+    role: normative
+    status: modeled
+    span:
+      start: 569
+      end: 684
+  - claim_key: CLAIM-F4A9E02A99F0CB62
+    claim_text: The OpenCode plugin must inject routing guidance that names the classified entity type
+    role: normative
+    status: modeled
+    span:
+      start: 686
+      end: 772
+  - claim_key: CLAIM-2BCFC01CFC2DDE58
+    claim_text: The OpenCode plugin must fingerprint seen comments so that identical comments do not trigger repeated guidance
+    role: normative
+    status: modeled
+    span:
+      start: 774
+      end: 884
+  - claim_key: CLAIM-98A5AAEE1B539EAA
+    claim_text: The OpenCode plugin must only prompt for medium-confidence and high-confidence suggestions
+    role: normative
+    status: modeled
+    span:
+      start: 886
+      end: 976
+  - claim_key: CLAIM-B720EA9494541601
+    claim_text: The OpenCode plugin must run comment analysis after file.edited events without blocking sync or other plugin operations
+    role: normative
+    status: modeled
+    span:
+      start: 978
+      end: 1097
+  - claim_key: CLAIM-0EFEC9D907D58B65
+    claim_text: The OpenCode plugin must respect the guidance.commentDetection.enabled and guidance.commentDetection.minLines settings
+    role: normative
+    status: modeled
+    span:
+      start: 1099
+      end: 1217
 type: req
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T12:03:44.000Z'
+firmness: default
+required_evidence: tested
 ---
+- The OpenCode plugin must detect long explanatory comments in code files and guide the agent to route durable knowledge to the matching Kibi entity type (FACT, ADR, REQ, SCEN or TEST) instead of an inline comment.
+- The OpenCode plugin must extract JavaScript and TypeScript line, block and doc comments and Python comment blocks and true docstrings.
+- The OpenCode plugin must only extract comment blocks that reach guidance.commentDetection.minLines lines and contain prose.
+- The OpenCode plugin must ignore Python triple-quoted strings that are not in docstring position.
+- The OpenCode plugin must classify an extracted comment as FACT, ADR, REQ, SCEN or TEST with knowledge-classifier.ts.
+- The OpenCode plugin must inject routing guidance that names the classified entity type.
+- The OpenCode plugin must fingerprint seen comments so that identical comments do not trigger repeated guidance.
+- The OpenCode plugin must only prompt for medium-confidence and high-confidence suggestions.
+- The OpenCode plugin must run comment analysis after file.edited events without blocking sync or other plugin operations.
+- The OpenCode plugin must respect the guidance.commentDetection.enabled and guidance.commentDetection.minLines settings.
 
-## Overview
+Acceptance examples:
 
-The OpenCode plugin should detect long explanatory comments in code files and provide specific guidance for routing durable knowledge to appropriate Kibi entity types (FACT, ADR, REQ, SCEN, TEST) instead of inline code comments.
-
-## Requirements
-
-1. **Multi-language comment extraction**: Support JavaScript/TypeScript (`//`, `/* */`, `/** */`) and Python (`#` blocks, true docstrings).
-
-2. **Durable knowledge detection**: Extract comment blocks that cross `guidance.commentDetection.minLines` threshold and contain prose suitable for Kibi artifacts.
-
-3. **Smart filtering for Python**: Analyze contiguous `#` comment blocks and true docstrings (module, class, function level). Ignore arbitrary triple-quoted strings not in docstring position.
-
-4. **Classification**: Use `knowledge-classifier.ts` to categorize extracted comments as FACT (invariants/defaults/limits), ADR (decisions/tradeoffs), REQ (behavior/capabilities), SCEN (flows), or TEST (verification).
-
-5. **Specific routing guidance**: Inject targeted prompts based on classification:
-   - FACT: "This looks like a domain invariant; route to a FACT via Kibi."
-   - ADR: "This looks like decision rationale; route to an ADR."
-   - REQ: "This looks like behavior intent; route to a REQ."
-
-6. **Dedupe and noise control**: Track seen comments by fingerprint to avoid repeated guidance for the same content. Only medium/high-confidence suggestions trigger prompts.
-
-7. **Non-blocking behavior**: Analysis runs after `file.edited` events without blocking sync or other plugin operations.
-
-8. **Configurability**: Respect `guidance.commentDetection.enabled` and `guidance.commentDetection.minLines` settings.
-
-## Success Criteria
-
-- Saving a `.py` file with a long docstring triggers specific FACT/ADR/REQ routing guidance.
-- Saving a `.ts` file with a long `//` comment block triggers appropriate guidance.
-- Short/ordinary comments do not trigger guidance.
-- Repeated saves of identical comments do not spam warnings.
-- Sync and targeted validation behavior remain unchanged.
+- Saving a `.py` file with a long docstring triggers FACT, ADR or REQ routing guidance.
+- Saving a `.ts` file with a long `//` comment block triggers routing guidance.
+- Short or ordinary comments do not trigger guidance.
+- Repeated saves of identical comments do not repeat the warning.
+- Sync and targeted validation behavior stay unchanged.

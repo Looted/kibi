@@ -82,10 +82,11 @@ semantic_inventory:
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof."'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-27T07:51:58.946Z'
-firmness: firm
+firmness: default
+required_evidence: tested
 ---
 The kibi-cursor package must remain optional. When kibi-cursor is installed or enabled, it must not modify core Kibi runtime components. The kibi-cursor MCP launcher must start the project-local kibi-mcp binary. kibi-cursor hooks must only emit reminders and warnings. kibi-cursor hooks must not write to the .kb directory. The kibi-cursor documentation must describe a manual MCP configuration for teams that do not use the plugin installer.
 

@@ -3,7 +3,7 @@ title: kibi migrate --apply-safe is run with a plan hash that is not the current
 status: active
 fact_kind: property_value
 subject_key: kibi.migration.orchestration
-property_key: clause_01_kibi_must_expose_one_kibi_migration_plan_v2_cont
+property_key: clause_04_kb_apply_plan_and_kibi_migrate_apply_safe_must_require_the_e
 operator: eq
 value_type: bool
 value_bool: false

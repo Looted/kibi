@@ -8,7 +8,7 @@ tags:
 priority: must
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: onboarding evaluation round 9 finding K18'
+  ref: 'Maintainer request, 2026-10-09: onboarding evaluation round 9 finding K18'
   recorded_at: '2026-10-09T07:20:33.683Z'
 id: SCEN-bootstrap-provenance-stubs
 type: scenario

@@ -3,7 +3,7 @@ title: A kb_upsert write would add a requirement that contradicts an existing on
 status: active
 fact_kind: property_value
 subject_key: mcp.kb_upsert
-property_key: clause_01_the_kb_upsert_mcp_tool_must_n_nallow_agents_to_c
+property_key: clause_04_the_kb_upsert_mcp_tool_must_reject_a_write_that_contradicts_
 operator: eq
 value_type: bool
 value_bool: false

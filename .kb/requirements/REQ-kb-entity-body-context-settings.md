@@ -2,7 +2,7 @@
 title: Entity body context settings
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The entity types that must carry body context shall be req, scenario, test, adr and fact. The context section headings shall be context, rationale, why, background, source, notes and evidence. The minimum context section length shall be 12 words. The context restatement threshold shall be a Jaccard similarity of 0.8.
 semantic_clauses:
   - The entity types that must carry body context shall be req, scenario, test, adr and fact.
@@ -13,7 +13,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T10:38:06.174Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -55,6 +55,7 @@ logic_claims:
   - CLAIM-1D3F76DD5F69F22E
 id: REQ-kb-entity-body-context-settings
 type: req
+required_evidence: tested
 ---
 The entity types that must carry body context shall be req, scenario, test, adr and fact. The context section headings shall be context, rationale, why, background, source, notes and evidence. The minimum context section length shall be 12 words. The context restatement threshold shall be a Jaccard similarity of 0.8.
 

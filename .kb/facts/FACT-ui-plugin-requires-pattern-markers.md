@@ -17,7 +17,7 @@ claim_key: CLAIM-46DC37CA36AB76CF
 claim_text: The kibi-plugin-ui policy must require implementing component files and their html templates to contain every pattern marker of their requirement pattern
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:13:44.979Z'
 id: FACT-ui-plugin-requires-pattern-markers
 type: fact

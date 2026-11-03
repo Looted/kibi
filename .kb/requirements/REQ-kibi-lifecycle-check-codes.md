@@ -2,7 +2,7 @@
 title: KB lifecycle check codes
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The proposed ADR review code shall be review_adr_proposed. The unlinked ADR review code shall be review_adr_unlinked. The unapproved exception review code shall be review_exception_unapproved. The missing rationale review code shall be review_requirement_rationale_missing. The supersession cycle review code shall be review_supersession_cycle. The dangling source path review code shall be review_source_path_dangling. The dangling source path check rule shall be source-path-dangling. The source path rewrite action id shall be source-path-rewrite. The source path rewrite code shall be source_path_rewrite. The migration sync action id shall be migration-sync. The migration sync code shall be migration_sync. The superseded symbol owner review action id shall be review-symbol-owner-superseded. The superseded symbol owner review code shall be review_symbol_owner_superseded.
 semantic_clauses:
   - The proposed ADR review code shall be review_adr_proposed.
@@ -22,7 +22,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T17:25:33.923Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -136,6 +136,7 @@ logic_claims:
   - CLAIM-9646A15E0E142800
 id: REQ-kibi-lifecycle-check-codes
 type: req
+required_evidence: tested
 ---
 The proposed ADR review code shall be review_adr_proposed. The unlinked ADR review code shall be review_adr_unlinked. The unapproved exception review code shall be review_exception_unapproved. The missing rationale review code shall be review_requirement_rationale_missing. The supersession cycle review code shall be review_supersession_cycle. The dangling source path review code shall be review_source_path_dangling. The dangling source path check rule shall be source-path-dangling. The source path rewrite action id shall be source-path-rewrite. The source path rewrite code shall be source_path_rewrite. The migration sync action id shall be migration-sync. The migration sync code shall be migration_sync. The superseded symbol owner review action id shall be review-symbol-owner-superseded. The superseded symbol owner review code shall be review_symbol_owner_superseded.
 

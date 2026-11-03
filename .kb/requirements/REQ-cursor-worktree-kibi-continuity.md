@@ -20,33 +20,51 @@ links:
     target: SCEN-cursor-worktree-kibi-continuity
   - type: verified_by
     target: TEST-cursor-worktree-kibi-continuity
-semantic_text: Cursor worktree changes must preserve Kibi continuity across handoffs.\n\nA worktree switch must not change the public Kibi surface that the user sees.\nGuidance for the active worktree must remain consistent with the same public operation model.\nContinuity requirements must survive branch and worktree movement without rewriting history.
+semantic_text: A Cursor worktree switch must not change the public Kibi surface that the user sees. Guidance for the active Cursor worktree must remain consistent with the same public operation model. Kibi continuity must survive branch and worktree movement without rewriting history.
 logic_claims:
-  - CLAIM-BAE70AB81519036A
+  - CLAIM-236E73D543C01E6B
+  - CLAIM-61CDE81F638F30A0
+  - CLAIM-2E63BD0D258B13EB
 semantic_clauses:
-  - Cursor worktree changes must preserve Kibi continuity across handoffs.\n\nA worktree switch must not change the public Kibi surface that the user sees.\nGuidance for the active worktree must remain consistent with the same public operation model.\nContinuity requirements must survive branch and worktree movement without rewriting history
+  - A Cursor worktree switch must not change the public Kibi surface that the user sees.
+  - Guidance for the active Cursor worktree must remain consistent with the same public operation model.
+  - Kibi continuity must survive branch and worktree movement without rewriting history.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: bdb7ff25b733d37e0e5c738ef2245051dab8c0137997bc205fa434b65b596439
+semantic_source_hash: 0cb292f7300cdc5d8f32cdcd5d0783f93b25af14a0df5817ef94fe9ba2ab9f3a
 semantic_inventory:
-  - claim_key: CLAIM-BAE70AB81519036A
-    claim_text: Cursor worktree changes must preserve Kibi continuity across handoffs.\n\nA worktree switch must not change the public Kibi surface that the user sees.\nGuidance for the active worktree must remain consistent with the same public operation model.\nContinuity requirements must survive branch and worktree movement without rewriting history
+  - claim_key: CLAIM-236E73D543C01E6B
+    claim_text: A Cursor worktree switch must not change the public Kibi surface that the user sees
     role: normative
     status: modeled
     span:
       start: 0
-      end: 339
+      end: 83
+  - claim_key: CLAIM-61CDE81F638F30A0
+    claim_text: Guidance for the active Cursor worktree must remain consistent with the same public operation model
+    role: normative
+    status: modeled
+    span:
+      start: 85
+      end: 184
+  - claim_key: CLAIM-2E63BD0D258B13EB
+    claim_text: Kibi continuity must survive branch and worktree movement without rewriting history
+    role: normative
+    status: modeled
+    span:
+      start: 186
+      end: 269
 type: req
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T11:34:18.000Z'
 failure_side_waiver: "A continuity claim: a worktree switch keeps the same Kibi surface. Nothing is submitted for Kibi to refuse."
 failure_side_waiver_approved_by: Piotr Franczyk
+firmness: default
+required_evidence: tested
 ---
-
-Cursor worktree changes must preserve Kibi continuity across handoffs.
-
-1. A worktree switch must not change the public Kibi surface that the user sees.
-2. Guidance for the active worktree must remain consistent with the same public operation model.
-3. Continuity requirements must survive branch and worktree movement without rewriting history.
+- A Cursor worktree switch must not change the public Kibi surface that the user sees.
+- Guidance for the active Cursor worktree must remain consistent with the same public operation model.
+- Kibi continuity must survive branch and worktree movement without rewriting history.

@@ -265,3 +265,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7a027b06d1d
+  - type: depends_on
+    from: REQ-kibi-distribution-parity-matrix
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-11-03T11:43:24.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96f46863cc7f
+  - type: depends_on
+    from: REQ-kibi-distribution-parity-matrix
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-11-03T11:43:24.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22a5c5d89738
+  - type: specified_by
+    from: REQ-kibi-distribution-parity-matrix
+    to: SCEN-kibi-distribution-parity-matrix
+    created_at: 2026-11-03T11:43:24.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62f6a42cc972
+  - type: requires_property
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-PARITY-RUNTIME-SET
+    created_at: 2026-11-03T11:43:24.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee1822a92829
+  - type: requires_predicate
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-PARITY-FIXTURE-SET
+    created_at: 2026-11-03T11:43:24.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a6e91daad01
+  - type: requires_predicate
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-PARITY-PROVENANCE
+    created_at: 2026-11-03T11:43:24.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a583403f3b1
+  - type: requires_predicate
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-PARITY-NORMALIZATION
+    created_at: 2026-11-03T11:43:24.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4c530f7df3c
+  - type: requires_property
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-PARITY-CAPABILITY-STATE
+    created_at: 2026-11-03T11:43:24.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0831bbf71392
+  - type: requires_predicate
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-PARITY-UNSUPPORTED
+    created_at: 2026-11-03T11:43:24.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c859f2f8bd6
+  - type: requires_property
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-PARITY-SOURCE-PACKED
+    created_at: 2026-11-03T11:43:24.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a96b45ab9fa8
+  - type: requires_property
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-PARITY-ACTION
+    created_at: 2026-11-03T11:43:24.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09b8074180c1
+  - type: requires_predicate
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-PARITY-GATE
+    created_at: 2026-11-03T11:43:24.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b433e02c14ad
+  - type: requires_predicate
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-PARITY-ISOLATION
+    created_at: 2026-11-03T11:43:24.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-176a91f9e302
+  - type: requires_predicate
+    from: REQ-kibi-distribution-parity-matrix
+    to: FACT-PARITY-REPORT
+    created_at: 2026-11-03T11:43:24.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-230cd46332a7
