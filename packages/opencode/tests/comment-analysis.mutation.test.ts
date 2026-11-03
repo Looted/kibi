@@ -101,6 +101,10 @@ describe("extractJsTsComments", () => {
     ]);
   });
 
+  test("trailing spaces after the closing marker do not keep it", () => {
+    expect(extractJsTsComments("/* a */   ")).toStrictEqual([block("a")]);
+  });
+
   test("the closing marker is removed only at the very end", () => {
     expect(extractJsTsComments("/* a */ code();")).toStrictEqual([
       block("a */ code();"),

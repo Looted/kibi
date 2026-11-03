@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { DEFAULTS } from "../src/config";
+import { computeEnforcementPolicy } from "../src/enforcement-policy";
 import {
   type KibiCheckpointContext,
   KibiCheckpointRunner,
@@ -82,7 +83,9 @@ describe("requestCheckpoint", () => {
     expect(result.metadata.guidanceRendered).toBe(false);
     expect(result.metadata.reason).toBe("hard_guidance_not_rendered");
     const run = await runner.runCheckpoint(ctx, "fp");
+    expect(run.kind).toBe("hard_block");
     expect(run.metadata.reason).toBe("checkpoint_not_requested");
+    expect(run.metadata.guidanceRendered).toBe(false);
   });
 
   test("given guidance is kept verbatim", () => {
@@ -115,6 +118,42 @@ describe("requestCheckpoint", () => {
     );
     expect(result.kind).toBe("hard_block");
     expect(result.metadata.reason).toBe("hard_guidance_not_rendered");
+  });
+});
+
+describe("rendered hard guidance", () => {
+  function hardText(
+    work: KibiCheckpointContext["workContext"],
+    path: string,
+  ): string | null {
+    return computeEnforcementPolicy({
+      resolvedContext: work,
+      effectiveMode: "hard",
+      lifecycleEvents: [{ normalizedPath: path, lifecycle: "edited" }],
+      pathKinds: ["code"],
+      checkpointEvidence: false,
+      posture: work.posture,
+    }).text;
+  }
+
+  test("the edited file, or else the context path, is an edited code file", () => {
+    const runner = passingRunner();
+    const withFile = context({
+      hardGuidanceText: undefined,
+      filePath: "lib/x.ts",
+    });
+    const viaFile = runner.requestCheckpoint(withFile, "fp");
+    expect(viaFile.metadata.guidanceText).toBe(
+      hardText(withFile.workContext, "lib/x.ts") as string,
+    );
+    expect(viaFile.metadata.guidanceText).toContain("lib/x.ts");
+
+    const noFile = context({ hardGuidanceText: undefined });
+    const viaContext = runner.requestCheckpoint(noFile, "fp");
+    expect(viaContext.metadata.guidanceText).toBe(
+      hardText(noFile.workContext, "src/a.ts") as string,
+    );
+    expect(viaContext.metadata.guidanceText).toContain("src/a.ts");
   });
 });
 
@@ -181,6 +220,7 @@ describe("runCheckpoint", () => {
     expect(result.metadata.checkRules).toBeUndefined();
     expect(result.metadata.sync).toBe(seen[0] as SyncRunMetadata);
     expect(seen).toHaveLength(1);
+    expect(seen[0]?.reason).toBe("smart-enforcement.checkpoint");
     expect(checks).toBe(0);
     expect(result.metadata.reason).toBeUndefined();
   });
