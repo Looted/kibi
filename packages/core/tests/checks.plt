@@ -222,13 +222,13 @@ chk_generic_coverage(Id, violation('symbol-coverage', Id,
 
 test(uncovered_symbols_sorted, Violations == [V1, V2]) :-
     chk_kb((
-        deterministic(check_symbol_coverage([])),
+        first_answer_is_last(check_symbol_coverage([])),
         chk_ent(symbol, 'SYM-B', []),
         chk_ent(symbol, 'SYM-A', []),
         chk_ent(symbol, 'SYM-EXEC', []),
         chk_ent(test, 'TEST-X', []),
         chk_rel(executable_for, 'SYM-EXEC', 'TEST-X'),
-        deterministic(check_symbol_coverage(Violations))
+        first_answer_is_last(check_symbol_coverage(Violations))
     )),
     chk_generic_coverage('SYM-A', V1),
     chk_generic_coverage('SYM-B', V2).
@@ -246,7 +246,7 @@ test(covered_symbol_without_requirement, Violations == [violation('symbol-covera
         % implements a non-requirement: not an owner
         chk_ent(adr, 'ADR-E', []),
         chk_raw_rel(implements, 'SYM-E', 'ADR-E'),
-        deterministic(check_symbol_coverage(Violations))
+        first_answer_is_last(check_symbol_coverage(Violations))
     )).
 
 test(requirement_without_scenario, Violations == [violation('symbol-coverage', 'SYM-B',
@@ -492,12 +492,12 @@ chk_same_dict(Expected, Actual, Expected) :-
 
 test(parse_json_is_deterministic) :-
     Text = "{\"a\":1}",
-    deterministic(checks:parse_json_object(^^(Text, xsd), _)),
-    deterministic(checks:parse_json_object(literal(type(xsd, Text)), _)),
-    deterministic(checks:parse_json_object(literal(Text), _)),
-    deterministic(checks:parse_json_object(_{a:1}, _)),
-    deterministic(checks:parse_json_list([1], _)),
-    deterministic(checks:parse_json_list(^^("[1]", xsd), _)).
+    first_answer_is_last(checks:parse_json_object(^^(Text, xsd), _)),
+    first_answer_is_last(checks:parse_json_object(literal(type(xsd, Text)), _)),
+    first_answer_is_last(checks:parse_json_object(literal(Text), _)),
+    first_answer_is_last(checks:parse_json_object(_{a:1}, _)),
+    first_answer_is_last(checks:parse_json_list([1], _)),
+    first_answer_is_last(checks:parse_json_list(^^("[1]", xsd), _)).
 
 test(parse_json_object_rejects) :-
     \+ checks:parse_json_object("[1]", _),
@@ -622,7 +622,7 @@ test(cycles, Violations == [
         % REQ-G reaches the REQ-C loop but lies on no cycle itself
         chk_req('REQ-G'),
         chk_rel(depends_on, 'REQ-G', 'REQ-C'),
-        deterministic(check_no_cycles(Violations))
+        first_answer_is_last(check_no_cycles(Violations))
     )).
 
 test(cycle_names_without_source, Violations == [
@@ -754,7 +754,7 @@ test(superseded_requirements) :-
         chk_raw_rel(supersedes, 'REQ-Z', 'ADR-Z'),
         chk_ent(adr, 'ADR-Z', [status=accepted]),
         chk_raw_rel(supersedes, 'ADR-Z', 'REQ-Z'),
-        deterministic(check_superseded_requirement_open(Violations))
+        first_answer_is_last(check_superseded_requirement_open(Violations))
     )),
     chk_cycle(['REQ-C1', 'REQ-C2', 'REQ-C3'], [['REQ-C1', 'REQ-C2'], ['REQ-C2', 'REQ-C3'], ['REQ-C3', 'REQ-C1']], C1),
     chk_cycle(['REQ-D1', 'REQ-D2'], [['REQ-D1', 'REQ-D2'], ['REQ-D2', 'REQ-D1']], C2),
@@ -820,7 +820,7 @@ test(retired_owners) :-
         chk_raw_entity(symbol, 'SYM-8', [id='SYM-8']),
         chk_rel(implements, 'SYM-8', 'REQ-DEP'),
         chk_raw_rel(implements, 'TEST-NOT-SYMBOL', 'REQ-DEP'),
-        deterministic(check_symbol_owner_superseded(Violations))
+        first_answer_is_last(check_symbol_owner_superseded(Violations))
     )),
     chk_owner_violation('SYM-1', "One", ['REQ-OLD'], ['REQ-NEW', 'REQ-NEW2'], V1),
     chk_owner_violation('SYM-2', "Fixture entity", ['REQ-DEP', 'REQ-OLD'], ['REQ-NEW', 'REQ-NEW2'], V2),
@@ -891,7 +891,7 @@ test(adr_knowledge_link_once) :-
     chk_kb((
         chk_adr_fixture,
         chk_rel(relates_to, 'ADR-TO-REQ', 'ADR-LONE'),
-        deterministic(checks:adr_knowledge_link('ADR-TO-REQ'))
+        first_answer_is_last(checks:adr_knowledge_link('ADR-TO-REQ'))
     )).
 
 test(adr_proposed, Violations == [V1]) :-
@@ -923,10 +923,10 @@ test(analysis_outcomes, Outcomes == [
     Outcomes = [O1, O2, O3, O4, O5].
 
 test(analysis_outcome_is_deterministic) :-
-    deterministic(checks:analysis_outcome(analysis([infeasibility([r], [a], [f], why)], [x], true, [y]), _)),
-    deterministic(checks:analysis_outcome(analysis([], [x], true, [y]), _)),
-    deterministic(checks:analysis_outcome(analysis([], [], true, [y]), _)),
-    deterministic(checks:analysis_outcome(analysis([], [], false, [y]), _)).
+    first_answer_is_last(checks:analysis_outcome(analysis([infeasibility([r], [a], [f], why)], [x], true, [y]), _)),
+    first_answer_is_last(checks:analysis_outcome(analysis([], [x], true, [y]), _)),
+    first_answer_is_last(checks:analysis_outcome(analysis([], [], true, [y]), _)),
+    first_answer_is_last(checks:analysis_outcome(analysis([], [], false, [y]), _)).
 
 test(reason_and_status_ids) :-
     checks:nonempty_reason(unmatched_assumption([a])),
@@ -992,9 +992,10 @@ test(symbolic_satisfiable, [nondet]) :-
     checks:symbolic_value(f(x), Vf), Vf == 'f(x)',
     checks:symbolic_value("s", Vs), Vs == s,
     checks:symbolic_value(a, Va), Va == a,
+    checks:symbolic_value('a b', Vq), Vq == 'a b',
     \+ checks:value_excluded(a, [b, c]),
     checks:value_excluded(a, [b, a]),
-    deterministic(checks:value_excluded(a, [a, a])),
+    first_answer_is_last(checks:value_excluded(a, [a, a])),
     \+ checks:bool_domain_exhausted(bool, [true]),
     \+ checks:bool_domain_exhausted(bool, [false]),
     \+ checks:bool_domain_exhausted(string, [true, false]).
@@ -1027,7 +1028,7 @@ test(incomparable_facts) :-
     checks:incomparable_facts([D, A], [R], I3), I3 == [d],
     % the incompatibility lies between two requirements: every assumption
     checks:incomparable_facts([A], [R, m(requirement, r2, f2, s-p, '', int, s, eq, 1, t)], I4), I4 == [a],
-    deterministic(checks:assumption_incomparable([A, B, B], A)).
+    first_answer_is_last(checks:assumption_incomparable([A, B, B], A)).
 
 test(unsat_core, Core == [B, C]) :-
     chk_a(a, gt, 5, A), chk_r(r1, b, lt, 3, B), chk_r(r2, c, eq, 4, C),
@@ -1037,7 +1038,7 @@ test(member_in) :-
     chk_a(a, gt, 5, A), chk_a(b, gt, 6, B),
     checks:member_in([B, A], A),
     \+ checks:member_in([B], A),
-    deterministic(checks:member_in([A, A], A)).
+    first_answer_is_last(checks:member_in([A, A], A)).
 
 test(witness_reason, Reason == 'No value of s.p satisfies assumed a (eq 0), b (gt 1) together with required f (lt 0)') :-
     checks:witness_reason(s-p,
@@ -1201,8 +1202,12 @@ test(declared_numeric_type, Types == [int, number, number, int]) :-
     findall(T, checks:declared_numeric_type(3, integer, T), [T4]),
     Types = [T1, T2, T3, T4].
 
-test(ir_duration_units, Units == [[min], [wk], [h]]) :-
-    findall(Us, (member(U0, [m, w, h]), findall(U, checks:ir_duration_unit(U0, U), Us)), Units).
+test(duration_quantities, Quantities == [[number-120-s], [number-1209600-s], [number-7200-s], [int-7200-s]]) :-
+    findall(Qs,
+        (   member(D-VT, [duration(2, m)-number, duration(2, w)-number, duration(2, h)-number, duration(2, h)-int]),
+            findall(T-V-U, checks:condition_quantity(D, VT, T, V, U), Qs)
+        ),
+        Quantities).
 
 test(condition_term_texts, Texts == [[5], ['5 s'], ['2 m'], [x]]) :-
     findall(Ts, (member(T0, [number(5, none), number(5, s), duration(2, m), const(x, string)]),
@@ -1275,8 +1280,8 @@ test(later_and_earlier_times) :-
     Later == '2026-01-05',
     foldl(checks:earlier_time, ['2026-01-05', '2026-01-03', '2026-01-04'], '', Earlier),
     Earlier == '2026-01-03',
-    deterministic(checks:later_time(x, '', _)),
-    deterministic(checks:earlier_time(x, '', _)).
+    first_answer_is_last(checks:later_time(x, '', _)),
+    first_answer_is_last(checks:earlier_time(x, '', _)).
 
 test(validity_applicability, Answers == [applies, applies, undetermined, outside, outside, applies,
                                           undetermined, undetermined, applies, undetermined, applies,
@@ -1303,8 +1308,8 @@ test(validity_applicability, Answers == [applies, applies, undetermined, outside
         Answers).
 
 test(validity_applicability_is_deterministic) :-
-    deterministic(checks:validity_applicability(unspecified, '', '', _)),
-    deterministic(checks:validity_applicability(unspecified, a, '', _)).
+    first_answer_is_last(checks:validity_applicability(unspecified, '', '', _)),
+    first_answer_is_last(checks:validity_applicability(unspecified, a, '', _)).
 
 % --- general rule verdicts ---
 
@@ -1813,7 +1818,7 @@ test(constraint_exempt_once) :-
         chk_zero_fixture,
         chk_exception('REQ-EX', [approved_by="Owner"]),
         chk_exception('REQ-EX2', [approved_by="Owner"]),
-        deterministic(checks:constraint_exempt('SCEN-ZERO', 'REQ-POS', 'FACT-POS')),
+        first_answer_is_last(checks:constraint_exempt('SCEN-ZERO', 'REQ-POS', 'FACT-POS')),
         checks:exemption_flag('SCEN-ZERO', 'REQ-POS', 'FACT-POS', E1),
         E1 == true,
         checks:exemption_flag('SCEN-ZERO', 'REQ-OTHER', 'FACT-POS', E2),
@@ -2026,10 +2031,10 @@ test(rule_head_performed) :-
     chk_kb((
         chk_req('REQ-A'),
         chk_scenario('SCEN', success, []),
-        deterministic(checks:rule_head_performed('SCEN', 'REQ-A', none)),
+        first_answer_is_last(checks:rule_head_performed('SCEN', 'REQ-A', none)),
         \+ checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], positive, false)),
         chk_rel(specified_by, 'REQ-A', 'SCEN'),
-        deterministic(checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], positive, false)))
+        first_answer_is_last(checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], positive, false)))
     )),
     chk_kb((
         chk_req('REQ-A'),
@@ -2040,14 +2045,14 @@ test(rule_head_performed) :-
         chk_req('REQ-EX2'),
         chk_rel(exempts, 'REQ-EX2', 'REQ-A'),
         chk_rel(specified_by, 'REQ-EX2', 'SCEN'),
-        deterministic(checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], positive, false)))
+        first_answer_is_last(checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], positive, false)))
     )),
     chk_kb((
         chk_req('REQ-A'),
         chk_ent(fact, 'FACT-DO', [fact_kind=predicate, predicate_name="checkout", predicate_args=["cart"], canonical_key="checkout(cart)"]),
         chk_ent(fact, 'FACT-DO2', [fact_kind=predicate, predicate_name="checkout", predicate_args=["bag"], canonical_key="checkout(bag)"]),
         chk_scenario('SCEN', success, ['FACT-DO', 'FACT-DO2']),
-        deterministic(checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], positive, false))),
+        first_answer_is_last(checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], positive, false))),
         \+ checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], negative, false)),
         \+ checks:rule_head_performed('SCEN', 'REQ-A', atom(other, checkout, [], positive, false))
     )).
@@ -2143,9 +2148,9 @@ test(facts_oppose) :-
                     checks:facts_oppose('P-DENY', R)), POpposed),
         POpposed == ['P-ALLOW', 'P-ALLOW2', 'RULE-REFUND'],
         \+ checks:facts_oppose('P-ALLOW', 'P-ALLOW2'),
-        deterministic(checks:facts_oppose('A-EQ5', 'R-GT5')),
-        deterministic(checks:facts_oppose('P-DENY', 'P-ALLOW')),
-        deterministic(checks:facts_oppose('P-DENY', 'RULE-REFUND'))
+        first_answer_is_last(checks:facts_oppose('A-EQ5', 'R-GT5')),
+        first_answer_is_last(checks:facts_oppose('P-DENY', 'P-ALLOW')),
+        first_answer_is_last(checks:facts_oppose('P-DENY', 'RULE-REFUND'))
     )).
 
 chk_opposing(Id, Plain) :-
@@ -2188,8 +2193,8 @@ test(opposing_predicate_and_rule_assumptions, Assumptions == [
         chk_rule_fact('RULE-HEAD', forbid, checkout, [total-lte-0], [], _),
         chk_rule_fact('RULE-BODY', forbid, none, [total-lte-0], [], _),
         findall(P, (member(Id, ['P-ALLOW', 'RULE-HEAD', 'RULE-BODY', 'MISSING']), chk_opposing(Id, P)), Assumptions),
-        deterministic(checks:opposing_assumption('P-ALLOW', _)),
-        deterministic(checks:opposing_assumption('RULE-HEAD', _))
+        first_answer_is_last(checks:opposing_assumption('P-ALLOW', _)),
+        first_answer_is_last(checks:opposing_assumption('RULE-HEAD', _))
     )).
 
 test(opposing_values) :-
@@ -2331,9 +2336,9 @@ test(requirement_declares_claim_once) :-
         chk_cart_req('REQ-BASE', 'FACT-G', gt, 0, [claim_key="CLAIM-C", claim_text="Positive"]),
         chk_prop('FACT-G2', cart, total, gt, int, 1, [claim_key="CLAIM-C", claim_text="Positive"]),
         chk_rel(requires_property, 'REQ-BASE', 'FACT-G2'),
-        deterministic(checks:requirement_declares_claim('REQ-BASE', 'CLAIM-A')),
-        deterministic(checks:requirement_declares_claim('REQ-BASE', 'CLAIM-B')),
-        deterministic(checks:requirement_declares_claim('REQ-BASE', 'CLAIM-C')),
+        first_answer_is_last(checks:requirement_declares_claim('REQ-BASE', 'CLAIM-A')),
+        first_answer_is_last(checks:requirement_declares_claim('REQ-BASE', 'CLAIM-B')),
+        first_answer_is_last(checks:requirement_declares_claim('REQ-BASE', 'CLAIM-C')),
         \+ checks:requirement_declares_claim('REQ-BASE', 'CLAIM-D')
     )).
 
@@ -2371,7 +2376,7 @@ test(numeric_literals) :-
     \+ checks:numeric_literal("12a", _, _),
     \+ checks:numeric_literal("1.2.3", _, _),
     \+ checks:numeric_literal("--1", _, _),
-    deterministic(checks:numeric_literal("-12.5", _, _)).
+    first_answer_is_last(checks:numeric_literal("-12.5", _, _)).
 
 test(numeric_string_contexts) :-
     forall(member(Op, [lt, lte, gt, gte]),
@@ -2383,10 +2388,10 @@ test(numeric_string_contexts) :-
         chk_prop('F-S', cart, total, eq, string, "1", []),
         chk_prop('F-N', cart, total, eq, number, 1.5, []),
         chk_prop('F-N2', cart, total, eq, int, 1, []),
-        deterministic(checks:numeric_string_context('F-S', cart, total, eq, Why)),
+        first_answer_is_last(checks:numeric_string_context('F-S', cart, total, eq, Why)),
         Why == "F-N types the same property as number",
         \+ checks:numeric_string_context('F-N', cart, qty, eq, _),
-        deterministic(checks:numeric_string_context(f, s, p, lt, _))
+        first_answer_is_last(checks:numeric_string_context(f, s, p, lt, _))
     )).
 
 :- end_tests(checks_claims_and_values).
@@ -2486,20 +2491,19 @@ test(property_value_shapes, Answers == [
         Answers).
 
 test(property_value_shape_errors, Errors == [
-        "Property value fact has multiple value fields (should have exactly one)",
-        "Property value fact value_type does not match value field"
+        "Property value fact has multiple value fields (should have exactly one)"
     ]) :-
     findall(E, checks:property_value_shape_error([subject_key=s, property_key=p, operator=eq, value_type=int,
                                                   value_number=1, value_bool=true], E), Errors).
 
 test(value_fields) :-
-    forall(member(F, [value_string, value_int, value_number, value_bool, value_set]),
-           (   checks:is_value_field(F),
-               deterministic(checks:has_value_field([F=1, F=2])),
-               atom_concat(value_, T, F),
-               deterministic(checks:value_type_matches_field(T, [F=1, F=2]))
+    findall(T-F, checks:value_type_field(T, F), Fields),
+    Fields == [string-value_string, int-value_int, number-value_number, bool-value_bool, set-value_set],
+    forall(member(T-F, Fields),
+           (   first_answer_is_last(checks:has_value_field([F=1, F=2])),
+               first_answer_is_last(checks:value_type_matches_field(T, [F=1, F=2]))
            )),
-    \+ checks:is_value_field(value_other),
+    \+ checks:value_type_matches_field(int, [value_string=1]),
     \+ checks:has_value_field([value_other=1]).
 
 test(predicate_schema_shapes, Answers == [
@@ -2999,7 +3003,7 @@ test(predicate_fact_subject_keys, Keys == [[cart], [cart], [cart], [x]]) :-
                 findall(K, checks:predicate_fact_subject_key(F, Ns, N, Args, K), Ks)
             ),
             Keys),
-        deterministic(checks:strict_req_predicate_grounds_subject('REQ-PRED-KEY', cart))
+        first_answer_is_last(checks:strict_req_predicate_grounds_subject('REQ-PRED-KEY', cart))
     )).
 
 test(kind_labels, Labels == ["a legacy fact without fact_kind", "a fact_kind=meta fact"]) :-
@@ -3059,21 +3063,21 @@ test(readiness_levels, Levels == [contradiction_ready, contradiction_ready, stri
             Levels),
         chk_rel(constrains, 'REQ-TRACE', 'FACT-OBS'),
         chk_rel(requires_property, 'REQ-TRACE', 'FACT-OBS'),
-        deterministic(checks:strict_readiness_has_fact_link('REQ-TRACE'))
+        first_answer_is_last(checks:strict_readiness_has_fact_link('REQ-TRACE'))
     )).
 
 test(readiness_helpers_are_deterministic) :-
     chk_kb((
         chk_pairing_fixture,
         chk_rel(constrains, 'REQ-SUBJ', 'FACT-BAG'),
-        deterministic(checks:strict_readiness_has_strict_subject('REQ-SUBJ')),
+        first_answer_is_last(checks:strict_readiness_has_strict_subject('REQ-SUBJ')),
         chk_rel(requires_property, 'REQ-SUBJ', 'FACT-BAG-SIZE'),
         chk_rel(requires_property, 'REQ-SUBJ', 'FACT-TOTAL'),
-        deterministic(checks:strict_readiness_has_strict_property('REQ-SUBJ')),
+        first_answer_is_last(checks:strict_readiness_has_strict_property('REQ-SUBJ')),
         chk_req('REQ-T'),
         chk_rel(requires_property, 'REQ-T', 'FACT-OBS'),
         chk_rel(requires_property, 'REQ-T', 'FACT-TOTAL'),
-        deterministic(checks:strict_readiness_has_fact_link('REQ-T')),
+        first_answer_is_last(checks:strict_readiness_has_fact_link('REQ-T')),
         \+ checks:strict_readiness_has_fact_link('REQ-NONE')
     )).
 
@@ -3124,8 +3128,8 @@ chk_fid(Req, Suffix, Id) :-
 %% chk_logic_fixture(+Req, +Status)
 % One requirement that reaches every logic-coverage clause once.
 chk_logic_fixture(Req, Status) :-
-    chk_inv([c1-modeled, c2-ambiguous, c4-modeled], Inv),
-    chk_lreq(Req, Status, [logic_claims=[c1, c2, c3, c4, c5, c6], semantic_inventory=Inv]),
+    chk_inv([c1-modeled, c2-ambiguous, c4-modeled, c8-ambiguous], Inv),
+    chk_lreq(Req, Status, [logic_claims=[c1, c2, c3, c4, c5, c6, c8, c9, c10], semantic_inventory=Inv]),
     forall(member(S-Kind-Rel-Claim-Text-Extra,
                   [ f1-property_value-requires_property-"c1"-"one"-[],
                     f2-predicate-requires_predicate-"c2"-"two"-[],
@@ -3133,7 +3137,10 @@ chk_logic_fixture(Req, Status) :-
                     f5a-property_value-requires_property-"c5"-"five"-[],
                     f5b-property_value-requires_property-"c5"-"five again"-[],
                     f6-rule-requires_rule-"c6"-"six"-[semantic_key="same"],
-                    f7-rule-requires_rule-"c7"-"seven"-[semantic_key="same"] ]),
+                    f7-rule-requires_rule-"c7"-"seven"-[semantic_key="same"],
+                    f9a-rule-requires_rule-"c9"-"nine"-[semantic_key="nine"],
+                    f9b-rule-requires_rule-"c9"-"nine again"-[semantic_key="nine"],
+                    f10-rule-requires_rule-"c10"-"ten"-[semantic_key="other"] ]),
            (   chk_fid(Req, S, F),
                chk_gfact(F, Kind, Claim, Text, Extra),
                chk_raw_rel(Rel, Req, F)
@@ -3144,7 +3151,7 @@ chk_logic(Req, D, S, violation('logic-coverage', Req, D, S, Source)) :-
 
 :- begin_tests(checks_logic_coverage).
 
-test(every_clause, Violations == [V1, V2, V3, V4, V5, V6]) :-
+test(every_clause, Violations == [V1, V2, V3, V4, V9, V5, V6]) :-
     chk_kb((
         chk_logic_fixture('REQ-L', open),
         chk_logic_fixture('REQ-OLD', deprecated),
@@ -3157,6 +3164,8 @@ test(every_clause, Violations == [V1, V2, V3, V4, V5, V6]) :-
     chk_logic('REQ-L', "Requirement declares logical claim c4 but has no matching ground fact", G, V3),
     chk_logic('REQ-L', "Requirement grounds logical claim c5 more than once through REQ-L-f5a and REQ-L-f5b",
               "Keep a one-to-one mapping between each atomic claim key and its linked ground fact; split compound clauses before grounding", V4),
+    chk_logic('REQ-L', "Requirement grounds logical claim c9 more than once through REQ-L-f9a and REQ-L-f9b",
+              "Keep a one-to-one mapping between each atomic claim key and its linked ground fact; split compound clauses before grounding", V9),
     chk_logic('REQ-L', "Requirement grounds unresolved ambiguous proposition c2",
               "Keep ontology gaps, ambiguities, and missing interpretations unresolved; only modeled propositions may have logical ground facts", V5),
     chk_logic('REQ-L', "Requirement links ground logical claim c7 but omits it from logic_claims",
@@ -3203,9 +3212,9 @@ test(claim_requires_grounding) :-
     chk_kb((
         chk_inv([a-modeled, b-ambiguous], Inv),
         chk_lreq('REQ-C', open, [semantic_inventory=Inv]),
-        deterministic(checks:claim_requires_grounding('REQ-C', a)),
+        first_answer_is_last(checks:claim_requires_grounding('REQ-C', a)),
         \+ checks:claim_requires_grounding('REQ-C', b),
-        deterministic(checks:claim_requires_grounding('REQ-C', z)),
+        first_answer_is_last(checks:claim_requires_grounding('REQ-C', z)),
         findall(K-S, checks:requirement_inventory_status('REQ-C', K, S), Statuses),
         Statuses == [a-modeled, b-ambiguous],
         \+ checks:requirement_logic_claims('REQ-C', _),
@@ -3228,6 +3237,12 @@ test(inventory_entry_fields, [nondet]) :-
     L1 == 'CLAIM-1',
     checks:inventory_entry_label([status=missing], L2),
     L2 == 'entry without claim_key'.
+
+test(inventory_json_objects) :-
+    checks:inventory_entries("[{\"status\":\"missing\"}]", E1),
+    chk_same(E1, [_{status: "missing"}]),
+    checks:inventory_entries('[{"status":"modeled"}]', E2),
+    chk_same(E2, [_{status: "modeled"}]).
 
 test(inventory_entries, Entries == [[a], [b], [1], [x=1], [y=2], [], [], [], [], []]) :-
     findall(E,
@@ -3253,6 +3268,11 @@ chk_ir(Name, _{kind: atom, name: Name, args: []}).
 %% chk_prule(+Id, +Head, +Body, +Exceptions)
 % A stored propositional rule Head :- Body, unless any of Exceptions.
 chk_prule(Id, Head, Body, Exceptions) :-
+    chk_prule(Id, rule, Head, Body, Exceptions).
+
+%% chk_prule(+Id, +FactKind, +Head, +Body, +Exceptions)
+% As chk_prule/4 on a fact of FactKind.
+chk_prule(Id, FactKind, Head, Body, Exceptions) :-
     chk_ir(Head, HeadDict),
     chk_ir(Body, BodyDict),
     maplist(chk_ir, Exceptions, ExceptionDicts),
@@ -3260,7 +3280,7 @@ chk_prule(Id, Head, Body, Exceptions) :-
     (   ExceptionDicts == [] -> Dict = Dict0 ; Dict = Dict0.put(exceptions, ExceptionDicts) ),
     atom_json_dict(Json, Dict, [width(0)]),
     format(string(Source), "kb/~w.md", [Id]),
-    chk_raw_entity(fact, Id, [id=Id, title="Rule", status=active, source=Source, fact_kind=rule, rule_ir=Json]).
+    chk_raw_entity(fact, Id, [id=Id, title="Rule", status=active, source=Source, fact_kind=FactKind, rule_ir=Json]).
 
 chk_safety(Fact, D, S, violation('rule-safety', Fact, D, S, Source)) :-
     format(atom(Source), '~w.md', [Fact]).
@@ -3294,6 +3314,7 @@ test(negation_cycle, Facts == ['FACT-ALL', 'FACT-ANY', 'FACT-EXC', 'FACT-NP']) :
         chk_prule('FACT-EXC', v, s, [not(t)]),
         chk_prule('FACT-CNT', w, count(p), []),
         chk_prule('FACT-POS', x, all([s, any([t])]), [s]),
+        chk_prule('FACT-PRED-NEG', predicate, y, not(z), []),
         check_rule_safety(Violations),
         Violations = [First|_]
     )),
@@ -3306,6 +3327,8 @@ test(stratified_negation, Violations == []) :-
     chk_kb((
         chk_prule('FACT-NP', p, not(q), []),
         chk_prule('FACT-NQ', q, s, []),
+        % only rule facts take part in the dependency graph
+        chk_prule('FACT-PRED-IR', predicate, q, p, []),
         check_rule_safety(Violations)
     )).
 
@@ -3313,7 +3336,7 @@ test(rule_with_negation, [nondet]) :-
     chk_kb((
         chk_prule('FACT-A', p, all([q, not(r), not(s)]), [not(t)]),
         checks:stored_rule_fact('FACT-A', _, Rule),
-        deterministic(checks:rule_contains_negation(Rule))
+        first_answer_is_last(checks:rule_contains_negation(Rule))
     )).
 
 :- end_tests(checks_rule_safety).
@@ -3537,14 +3560,14 @@ test(unknown_rules, Unknown == [bogus, 'no-such-rule']) :-
     catch(checks:check_selected(['must-priority-coverage', bogus, 'no-such-rule'], _), error(domain_error(check_rule, Unknown), _), true).
 
 test(require_known_rules) :-
-    deterministic(checks:require_known_rules(['must-priority-coverage'])),
-    deterministic(checks:require_known_rules([])).
+    first_answer_is_last(checks:require_known_rules(['must-priority-coverage'])),
+    first_answer_is_last(checks:require_known_rules([])).
 
 test(run_aggregated_check) :-
     chk_kb((
-        deterministic(checks:run_aggregated_check(true, k-none, P1)),
+        first_answer_is_last(checks:run_aggregated_check(true, k-none, P1)),
         P1 == k-[],
-        deterministic(checks:run_aggregated_check(true, symbol_traceability-check_symbol_traceability, P2)),
+        first_answer_is_last(checks:run_aggregated_check(true, symbol_traceability-check_symbol_traceability, P2)),
         P2 == symbol_traceability-[],
         checks:run_aggregated_check(true, adr_proposed-check_adr_proposed, P3),
         P3 == adr_proposed-[]
@@ -3558,6 +3581,7 @@ test(check_all_json) :-
         check_selected_json(['must-priority-coverage'], J3)
     )),
     string(J1), string(J2), string(J3),
+    forall(member(J, [J1, J2, J3]), \+ sub_string(J, _, _, _, "\n")),
     chk_must_json(Must),
     chk_json(J1, D1),
     chk_same(D1.must_priority_coverage, [Must]),
@@ -3584,7 +3608,8 @@ test(json_with_adr_option) :-
 test(json_files) :-
     chk_kb((
         chk_must_and_dangling,
-        chk_with_tmp(P1, (check_all_json_file(P1, false), chk_file_json(P1, D1))),
+        chk_with_tmp(P1, (check_all_json_file(P1, false), chk_file_json(P1, D1),
+                          read_file_to_string(P1, T1, []), \+ sub_string(T1, _, _, _, "\n"))),
         chk_with_tmp(P2, (check_selected_json_file(['must-priority-coverage'], P2), chk_file_json(P2, D2)))
     )),
     chk_must_json(Must),
@@ -3628,7 +3653,7 @@ test(file_transport_errors, Kinds == [true, true, true, true, false, false]) :-
 
 test(violation_with_evidence) :-
     V = violation(r, 'E', "d", "s", "src", _{witnesses: []}),
-    deterministic(checks:violation_to_json(V, J)),
+    first_answer_is_last(checks:violation_to_json(V, J)),
     chk_same(J, _{rule: "r", entityId: "E", description: "d", suggestion: "s", source: "src", evidence: _{witnesses: []}}).
 
 test(plain_violation) :-
@@ -3675,7 +3700,7 @@ test(violation_text, Texts == ["plain", "atom", "inner", "typed", "5", "[]", "f(
 
 test(violation_text_deterministic) :-
     forall(member(V, ["plain", atom, ^^(^^(inner, t), t), literal(type(t, literal(type(t, x)))), f(x)]),
-           (   deterministic(checks:violation_text(V, T)),
+           (   first_answer_is_last(checks:violation_text(V, T)),
                string(T)
            )),
     checks:violation_text(_, VarText),
@@ -3684,3 +3709,269 @@ test(violation_text_deterministic) :-
     Id == "E".
 
 :- end_tests(checks_violation_json).
+
+% --- edge cases of the feasibility, opposition and strict-lane helpers --------
+
+chk_mt(Role, Id, Key, Scope, Type, Unit, Op, Value, m(Role, Id, Id, Key, Scope, Type, Unit, Op, Value, Id)).
+
+:- begin_tests(checks_edge_cases).
+
+test(narrow_exception_of_another_requirement, Violations == [violation('scenario-feasibility', 'SCEN-ZERO', D,
+        "Add the claim_key of FACT-POS to exempts_claims on REQ-EX if a human approves waiving that clause too, set expects: rejection on SCEN-ZERO, or correct the assumption",
+        Source)]) :-
+    plunit_checks_feasibility_kb:chk_zero_description(". Approved exception REQ-EX waives only the claims listed in its exempts_claims, and FACT-POS is not grounded by one of them", D),
+    chk_xsd("kb/SCEN-ZERO.md", Source),
+    chk_kb((
+        plunit_checks_feasibility_kb:chk_zero_fixture,
+        plunit_checks_feasibility_kb:chk_exception('REQ-EX', [approved_by="Owner", exempts_claims=["CLAIM-OTHER"]]),
+        chk_req('REQ-B'),
+        chk_req('REQ-EXB', [approved_by="Owner", exempts_claims=["CLAIM-OTHER"]]),
+        chk_rel(exempts, 'REQ-EXB', 'REQ-B'),
+        chk_rel(specified_by, 'REQ-EXB', 'SCEN-ZERO'),
+        check_scenario_feasibility(Violations)
+    )).
+
+test(narrow_exception_reads_its_own_links_and_facts) :-
+    chk_kb((
+        plunit_checks_feasibility_kb:chk_zero_fixture,
+        plunit_checks_feasibility_kb:chk_exception('REQ-NARROW', [approved_by="Owner", exempts_claims=["CLAIM-OTHER"]]),
+        chk_req('REQ-STRAY', [approved_by="Owner", exempts_claims=["CLAIM-OTHER"]]),
+        chk_total('FACT-OTHER', eq, 1, [claim_key="CLAIM-OTHER", claim_text="Other"]),
+        findall(E, checks:narrow_scenario_exception('SCEN-ZERO', 'REQ-POS', ['FACT-POS'], E), Es),
+        Es == ['REQ-NARROW']
+    )).
+
+test(evidence_texts, Texts == ["", "a b", "x"]) :-
+    findall(T, (member(R, ['', 'a b', "x"]), checks:evidence_text(R, T)), Texts).
+
+test(analysis_outcome_infeasible_is_deterministic) :-
+    first_answer_is_last(checks:analysis_outcome(analysis([infeasibility(r, a, f, why)], [], false, []), O)),
+    O == infeasible(witness(r, a, f, why)).
+
+% A rule that reads no assumed property is no part of the scenario, even
+% when the scenario performs its action.
+test(rule_reading_other_properties, Unknowns == [unmatched_assumption(['FACT-DO', 'FACT-TOT'])]) :-
+    chk_kb((
+        chk_subject('FACT-CART', cart),
+        chk_req('REQ-R'),
+        chk_rule_fact('FACT-R', forbid, checkout, [discount-gt-0], [], _),
+        chk_rel(requires_rule, 'REQ-R', 'FACT-R'),
+        chk_total('FACT-TOT', eq, 5),
+        chk_pred('FACT-DO', "checkout", ["c1"], []),
+        chk_scenario('SCEN-K', success, ['FACT-TOT', 'FACT-DO']),
+        chk_analysis('SCEN-K', analysis(_, Unknowns, _, _))
+    )).
+
+% The rule's action is performed only by an assumed predicate fact.
+test(unassumed_action_performs_nothing, Analysis == analysis([], [unmatched_assumption(['FACT-TOT'])], false, [])) :-
+    chk_kb((
+        chk_subject('FACT-CART', cart),
+        chk_req('REQ-R'),
+        chk_rule_fact('FACT-R', forbid, checkout, [total-gt-0], [], _),
+        chk_rel(requires_rule, 'REQ-R', 'FACT-R'),
+        chk_total('FACT-TOT', eq, 5),
+        chk_pred('FACT-DO', "checkout", ["c1"], []),
+        chk_scenario('SCEN-K', success, ['FACT-TOT']),
+        chk_analysis('SCEN-K', Analysis)
+    )).
+
+test(governed_assumption_makes_the_rest_applicable, NotApplicable == []) :-
+    chk_kb((
+        chk_cart_req('REQ-OLD', 'FACT-OLD', gt, 0, [valid_to="2020-01-01T00:00:00Z"]),
+        chk_req('REQ-Q'),
+        chk_prop('FACT-QREQ', cart, qty, gte, int, 0, []),
+        chk_strict('REQ-Q', 'FACT-CART', 'FACT-QREQ'),
+        chk_total('FACT-NOW', eq, 0, [valid_from="2026-01-01T00:00:00Z"]),
+        chk_prop('FACT-QTY', cart, qty, eq, int, 0, []),
+        chk_scenario('SCEN-NA', success, ['FACT-NOW', 'FACT-QTY']),
+        chk_analysis('SCEN-NA', analysis(_, _, _, NotApplicable))
+    )).
+
+% Contradictory scoped assumptions decide the scoped context; no separate
+% unscoped context is checked beside it.
+test(scoped_contexts_only, Analysis == analysis([], [contradictory_assumptions(['F-A2', 'F-A3'])], false, [])) :-
+    chk_kb((
+        chk_total('F-A1', gt, 5),
+        chk_total('F-A2', eq, 1, [scope="eu"]),
+        chk_total('F-A3', eq, 2, [scope="eu"]),
+        chk_cart_req('REQ-R1', 'F-R1', lt, 8),
+        chk_cart_req('REQ-R2', 'F-R2', neq, 6),
+        chk_cart_req('REQ-R3', 'F-R3', neq, 7),
+        chk_scenario('SCEN-S', success, ['F-A1', 'F-A2', 'F-A3']),
+        chk_analysis('SCEN-S', Analysis)
+    )).
+
+test(property_member_is_deterministic) :-
+    chk_kb((
+        chk_total('FACT-TOT', eq, 5),
+        first_answer_is_last(checks:assumption_member('FACT-TOT', M)),
+        M = m(assumption, 'FACT-TOT', 'FACT-TOT', cart-total, '', int, '', eq, 5, _)
+    )).
+
+test(time_helpers) :-
+    first_answer_is_last(checks:earlier_time(t, '', E1)), E1 == t,
+    first_answer_is_last(checks:later_time(t, '', L1)), L1 == t,
+    checks:validity_applicability(window('', '2026-06-01'), '', '2027-01-01', A1), A1 == applies,
+    checks:validity_applicability(window('2026-06-01', ''), '2026-01-01', '', A2), A2 == applies,
+    checks:time_before('2026-01-01', '2026-02-01'),
+    \+ checks:time_before('2026-02-01', '2026-01-01'),
+    checks:time_before('2026-01-01T10:00:00+02:00', '2026-01-01T09:00:00Z'),
+    \+ checks:time_before('2026-01-01T09:00:00Z', '2026-01-01T10:00:00+02:00'),
+    checks:time_before(a, b),
+    \+ checks:time_before(b, a),
+    \+ checks:time_before(x, x),
+    \+ checks:time_before('2026-01-01', ''),
+    \+ checks:time_before('', '2026-01-01').
+
+test(outside_general_rule_is_deterministic) :-
+    first_answer_is_last(checks:general_rule_verdict([], gr(r, f, forbids, '', outside, false, [s-p], []), V)),
+    V == [].
+
+test(general_rule_with_scoped_and_unscoped_assumptions) :-
+    chk_mt(assumption, a1, s-p, '', int, '', eq, 5, A1),
+    chk_mt(assumption, a2, s-p, eu, int, '', eq, 5, A2),
+    chk_mt(requirement, c, s-p, '', int, '', gt, 0, C),
+    chk_kb(checks:general_rule_verdict([A1, A2], gr(r, f, forbids, '', applies, false, [s-p], [C]), V)),
+    V = [witness(infeasibility([r], Facts, [f], _))],
+    Facts == [a2].
+
+test(untranslatable_rule_stays_undecided) :-
+    chk_mt(assumption, a1, s-p, '', int, '', eq, 1, A1),
+    chk_mt(assumption, a2, s-p, '', int, '', eq, 2, A2),
+    chk_kb(checks:general_rule_verdict([A1, A2], gr(r, f, forbids, '', applies, false, [s-p], untranslatable), V)),
+    V == [undecided_rule([f])].
+
+test(incomparable_unconditioned_assumptions) :-
+    chk_mt(assumption, a1, s-p, '', int, '', eq, 5, A1),
+    chk_mt(assumption, q1, s-q, '', int, kg, eq, 1, Q1),
+    chk_mt(assumption, q2, s-q, '', int, s, eq, 1, Q2),
+    chk_mt(requirement, c, s-p, '', int, '', gt, 0, C),
+    chk_kb(checks:general_rule_verdict([A1, Q1, Q2], gr(r, f, forbids, '', applies, false, [s-p, s-q], [C]), V)),
+    V == [].
+
+test(empty_members_are_satisfiable) :-
+    first_answer_is_last(checks:members_satisfiable([])).
+
+test(negative_scenario_opposition) :-
+    chk_kb((
+        chk_total('F-A', eq, 5),
+        chk_ent(scenario, 'SCEN-NEG', [expects=rejection]),
+        chk_rel(assumes, 'SCEN-NEG', 'F-A'),
+        chk_req('REQ-S'),
+        chk_rel(specified_by, 'REQ-S', 'SCEN-NEG'),
+        chk_total('F-S', eq, 7),
+        chk_rel(requires_property, 'REQ-S', 'F-S'),
+        chk_total('F-OK', eq, 5),
+        chk_rel(requires_property, 'REQ-S', 'F-OK'),
+        chk_req('REQ-O'),
+        chk_total('F-O', eq, 9),
+        chk_rel(requires_property, 'REQ-O', 'F-O'),
+        findall(R-W, (checks:negative_scenario_witness('SCEN-NEG', R, W), W = opposed(_, _)), Opposed),
+        Opposed == ['REQ-S'-opposed('F-A', 'F-S')]
+    )).
+
+test(opposition_needs_the_same_polarity) :-
+    chk_kb((
+        chk_total('F-A', eq, 5),
+        chk_total('F-B', eq, 3, [polarity=forbid]),
+        \+ checks:facts_oppose('F-A', 'F-B')
+    )).
+
+test(opposing_values) :-
+    \+ checks:opposing_value(string, gt, 5, _, _),
+    \+ checks:opposing_value(int, gt, "5", _, _),
+    first_answer_is_last(checks:opposing_value(string, eq, x, O, V)),
+    O-V == neq-x.
+
+test(what_if_json_is_one_line, [nondet]) :-
+    chk_kb((
+        chk_cart_req('REQ-HI', 'FACT-HI', gt, 5),
+        chk_cart_req('REQ-LO', 'FACT-LO', lt, 3),
+        checks:what_if_contradiction_witnesses_json([], J1),
+        checks:what_if_analysis_json([], J2)
+    )),
+    sub_string(J1, _, _, _, "REQ-HI"),
+    sub_string(J2, _, _, _, "REQ-HI"),
+    \+ sub_string(J1, _, _, _, "\n"),
+    \+ sub_string(J2, _, _, _, "\n").
+
+test(what_if_reindexes_staged_entities) :-
+    chk_kb((
+        chk_req('REQ-A'),
+        kb:kb_ensure_indexes,
+        plunit_checks_contradictions:chk_req_props('REQ-NEW', NewReq),
+        checks:what_if_analysis([upsert(req, NewReq, [])], _),
+        \+ kb:kb_index_entity('REQ-NEW', _),
+        kb:kb_index_entity('REQ-A', _)
+    )).
+
+test(what_if_witness_key_reads_sides_only, Facts == [fa]) :-
+    checks:what_if_witness_key(_{kind: rule, status: s, requirements: [], left: _{factId: fa},
+                                 extra: _{factId: fx}}, key(_, _, _, Facts, _)).
+
+test(key_set_names, Texts == ['[owner]', '[positions 1]']) :-
+    chk_kb((
+        chk_ent(fact, 'FACT-HS', [fact_kind=predicate_schema, predicate_name="holds", predicate_arity=2,
+                                  argument_names=["owner", "item"], argument_types=["t", "t"]]),
+        checks:key_set_text(default, holds, 2, [1], T1),
+        checks:key_set_text(default, owns, 2, [1], T2),
+        Texts = [T1, T2]
+    )).
+
+test(predicate_subject_needs_matching_arity, Keys == [x]) :-
+    chk_kb((
+        chk_ent(fact, 'FACT-SCHEMA', [fact_kind=predicate_schema, predicate_name="stores", predicate_arity=2,
+                                      argument_names=["item", "subject"], argument_types=["t", "t"]]),
+        findall(K, checks:predicate_fact_subject_key('F-NONE', default, stores, [x, y, cart], K), Keys)
+    )).
+
+test(strict_lanes_skip_retired_requirements, Ids == ['REQ-LIVE', 'REQ-LIVE']) :-
+    chk_kb((
+        chk_subject('FACT-CART', cart),
+        chk_total('FACT-TOTAL', gt, 0),
+        chk_ent(fact, 'FACT-OBS', [fact_kind=observation]),
+        forall(member(R-St, ['REQ-DEP'-deprecated, 'REQ-LIVE'-open]),
+               (   chk_req(R, [status=St]),
+                   chk_rel(constrains, R, 'FACT-TOTAL'),
+                   chk_rel(requires_property, R, 'FACT-OBS')
+               )),
+        chk_req('REQ-DEP2', [status=deprecated]),
+        chk_rel(requires_property, 'REQ-DEP2', 'FACT-TOTAL'),
+        check_strict_req_fact_pairing(Violations),
+        findall(Id, member(violation(_, Id, _, _, _), Violations), Ids)
+    )).
+
+test(readiness_levels_edge_cases, Levels == [has_subject, traceable, prose_only, has_subject]) :-
+    chk_kb((
+        chk_subject('FACT-CART', cart),
+        chk_total('FACT-TOTAL', gt, 0),
+        chk_ent(fact, 'FACT-OBS', [fact_kind=observation]),
+        chk_pred('FACT-P-KEY', "owns", ["x"], [subject_key="cart"]),
+        chk_req('REQ-DEPP', [status=deprecated]),
+        chk_rel(constrains, 'REQ-DEPP', 'FACT-CART'),
+        chk_rel(requires_predicate, 'REQ-DEPP', 'FACT-P-KEY'),
+        chk_req('REQ-PONLY'),
+        chk_rel(requires_property, 'REQ-PONLY', 'FACT-TOTAL'),
+        chk_req('REQ-GONE'),
+        chk_raw_rel(constrains, 'REQ-GONE', 'FACT-NOPE'),
+        chk_raw_rel(requires_property, 'REQ-GONE', 'FACT-NOPE2'),
+        chk_req('REQ-SOBS'),
+        chk_rel(constrains, 'REQ-SOBS', 'FACT-CART'),
+        chk_rel(requires_property, 'REQ-SOBS', 'FACT-OBS'),
+        findall(L, (member(R, ['REQ-DEPP', 'REQ-PONLY', 'REQ-GONE', 'REQ-SOBS']),
+                    once(checks:strict_readiness_level(R, L))), Levels)
+    )).
+
+test(predicate_verifiability_reads_links, Ids == ['REQ-PV']) :-
+    chk_kb((
+        chk_ent(fact, 'FACT-OBS', [fact_kind=observation]),
+        chk_ent(fact, 'FACT-OBS2', [fact_kind=observation]),
+        chk_req('REQ-PV'),
+        chk_rel(requires_predicate, 'REQ-PV', 'FACT-OBS'),
+        chk_req('REQ-NONE'),
+        check_predicate_verifiability(Violations),
+        findall(Id-F, (member(violation(_, Id, D, _, _), Violations), sub_atom(D, _, _, _, 'FACT-OBS2'), F = x), []),
+        findall(Id, member(violation(_, Id, _, _, _), Violations), Ids)
+    )).
+
+:- end_tests(checks_edge_cases).

@@ -68,7 +68,7 @@
 :- use_module(library(http/json)).
 :- use_module(library(http/json_convert)).
 :- use_module('kb.pl').
-:- use_module('intervals.pl', [numeric_constraints_satisfiable/2]).
+:- use_module('intervals.pl', [numeric_constraints_satisfiable/1, numeric_constraints_satisfiable/2]).
 :- use_module('../schema/entities.pl', [entity_type/1, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
 :- use_module('semantic_quality.pl', [
@@ -148,7 +148,8 @@ aggregated_check(kb_consistency_unresolved, 'kb-consistency-unresolved', check_k
 
 %% run_aggregated_check(+RequireAdr, +Key-Check, -Key-Violations)
 % Check none is a rule check_selected/2 leaves out.
-run_aggregated_check(_, Key-none, Key-[]) :-
+run_aggregated_check(_, Key-Check, Key-[]) :-
+    Check == none,
     !.
 run_aggregated_check(RequireAdr, Key-check_symbol_traceability, Key-Violations) :-
     !,
@@ -418,7 +419,6 @@ proof_contract_symbol_violation(violation(
     BindingSource \= '',
     (get_dict(symbol_id, Binding, RawSymbolId) ; get_dict(symbolId, Binding, RawSymbolId)),
     normalize_term_atom(RawSymbolId, SymbolId),
-    SymbolId \= '',
     kb_entity(SymbolId, symbol, SymbolProps),
     (   memberchk(sourceFile=RawSymbolSource, SymbolProps)
     ->  normalize_term_atom(RawSymbolSource, SymbolSource)
@@ -1115,6 +1115,7 @@ infeasible_scenario(ScenarioId, ReqIds, AssumedFacts, ReqFacts, Reason) :-
     member(infeasibility(ReqIds, AssumedFacts, ReqFacts, Reason), Witnesses).
 
 success_scenario(ScenarioId) :-
+    % mutalog-disable-next-line goal_true: a bound id has the same one answer either way; the branch only spares a scan of every scenario
     (   var(ScenarioId)
     ->  findall(Id, scenario_expects(Id, success), Ids0),
         sort(Ids0, Ids),
@@ -1173,7 +1174,6 @@ unapproved_scenario_exception(ScenarioId, ReqId, ExceptionId) :-
 narrow_scenario_exception(ScenarioId, ReqId, ReqFacts, ExceptionId) :-
     scenario_exception(ScenarioId, ReqId, ExceptionId),
     exception_approved(ExceptionId),
-    exception_claim_keys(ExceptionId, _),
     once((
         member(FactId, ReqFacts),
         \+ exception_covers(ExceptionId, FactId)
@@ -1383,7 +1383,6 @@ nonempty_reason(Reason) :-
 result_ids(Kind, Results, Ids) :-
     findall(Id,
         (   member(Result, Results),
-            compound(Result),
             Result =.. [Kind, ResultIds],
             member(Id, ResultIds)
         ),
@@ -1531,10 +1530,10 @@ rule_parts(srule(ReqId, FactId, Restriction, Head, Scope, Applicability, Exempt,
 % One forbid condition on the only property the rule reads is the negated
 % constraint; every condition of a necessary-condition rule is a constraint.
 rule_condition_members(ReqId, FactId, forbids, Head, Scope, [Key], [Condition], [Member]) :-
+    % mutalog-disable-next-line cut_insert: the other clause takes requires, never forbids
     Condition = cond(Key, _, _, _),
     condition_member(ReqId, FactId, forbids, Head, Scope, Condition, Member).
 rule_condition_members(ReqId, FactId, requires, Head, Scope, _ReadKeys, Conditions, Members) :-
-    is_list(Conditions),
     maplist(condition_member(ReqId, FactId, requires, Head, Scope), Conditions, Members).
 
 general_conditions(ReqId, FactId, Head, Scope, Conditions, GeneralConditions) :-
@@ -1569,7 +1568,11 @@ condition_quantity(number(Value, Unit0), VarType, Type, CanonValue, CanonUnit) :
     declared_numeric_type(Value, VarType, Type0),
     kb:comparison_quantity(Type0, Value, Unit, Type, CanonValue, CanonUnit).
 condition_quantity(duration(Value, Unit0), VarType, Type, CanonValue, CanonUnit) :-
-    ir_duration_unit(Unit0, Unit),
+    % Logic IR duration units m and w are minutes and weeks.
+    (   Unit0 == m -> Unit = min
+    ;   Unit0 == w -> Unit = wk
+    ;   Unit = Unit0
+    ),
     declared_numeric_type(Value, VarType, Type0),
     kb:comparison_quantity(Type0, Value, Unit, Type, CanonValue, CanonUnit).
 condition_quantity(const(Raw, ConstType), _VarType, Type, Value, '') :-
@@ -1590,16 +1593,12 @@ declared_numeric_type(Value, VarType, int) :-
     !.
 declared_numeric_type(_, _, number).
 
-ir_duration_unit(m, min) :- !.
-ir_duration_unit(w, wk) :- !.
-ir_duration_unit(Unit, Unit).
-
 condition_term_text(number(Value, none), Value) :- !.
-condition_term_text(number(Value, Unit), Text) :- !, format(atom(Text), '~w ~w', [Value, Unit]).
-condition_term_text(duration(Value, Unit), Text) :- !, format(atom(Text), '~w ~w', [Value, Unit]).
+condition_term_text(number(Value, Unit), Text) :- format(atom(Text), '~w ~w', [Value, Unit]).
+condition_term_text(duration(Value, Unit), Text) :- format(atom(Text), '~w ~w', [Value, Unit]).
 condition_term_text(const(Value, _), Value).
 
-head_text(none, 'the scenario') :- !.
+head_text(none, 'the scenario').
 head_text(atom(default, Name, _, _, _), Name) :- !.
 head_text(atom(Namespace, Name, _, _, _), Text) :- format(atom(Text), '~w:~w', [Namespace, Name]).
 
@@ -1633,7 +1632,7 @@ earlier_time(Time, Acc, Earlier) :-
 % constraint's, and is undetermined when they only partly overlap.  Bounds
 % are inclusive.
 validity_applicability(_, '', '', applies) :- !.
-validity_applicability(unspecified, _, _, undetermined) :- !.
+validity_applicability(unspecified, _, _, undetermined).
 validity_applicability(window(ScenarioFrom, ScenarioTo), From, To, Applicability) :-
     (   (   time_before(To, ScenarioFrom)
         ;   time_before(ScenarioTo, From)
@@ -1651,7 +1650,6 @@ validity_applicability(window(ScenarioFrom, ScenarioTo), From, To, Applicability
 
 time_before(Earlier, Later) :-
     Earlier \== '',
-    Later \== '',
     (   catch(parse_time(Earlier, iso_8601, EarlierStamp), _, fail),
         catch(parse_time(Later, iso_8601, LaterStamp), _, fail)
     ->  EarlierStamp < LaterStamp
@@ -1715,7 +1713,8 @@ context_results(ctx(Key, As, Governing, Exempt, Undetermined), Results0, Results
     findall(witness(Witness), pairwise_witness(Key, As, Governing, Witness), Pairwise),
     append(As, Governing, Constrained),
     (   \+ members_comparable(As)
-    ->  incomparable_facts(As, [], Ids),
+    ->  % mutalog-disable-next-line literal: an unbound extra member unifies with any type and unit, so it is compatible with every assumption
+        incomparable_facts(As, [], Ids),
         Joint = [incomparable(Ids)]
     ;   \+ members_satisfiable(As)
     ->  unsat_core(As, Core),
@@ -1747,10 +1746,10 @@ context_results(ctx(Key, As, Governing, Exempt, Undetermined), Results0, Results
 % cover the scenario make it undecided when adding them leaves no value;
 % waived constraints mark it feasible only by exception.
 waived_or_undetermined(As, Constrained, Exempt, Undetermined, Joint) :-
+    % Constrained is comparable and satisfiable, so with no undetermined
+    % constraint both tests below fail.
     append(Constrained, Undetermined, WithUndetermined),
-    (   Undetermined == []
-    ->  Joint0 = []
-    ;   \+ members_comparable(WithUndetermined)
+    (   \+ members_comparable(WithUndetermined)
     ->  incomparable_facts(As, Undetermined, Ids),
         Joint0 = [incomparable(Ids)]
     ;   \+ members_satisfiable(WithUndetermined)
@@ -1764,8 +1763,7 @@ waived_or_undetermined(As, Constrained, Exempt, Undetermined, Joint) :-
         Joint0 = [undetermined_validity(Ids)]
     ;   Joint0 = []
     ),
-    (   Exempt \== [],
-        append(Constrained, Exempt, WithExempt),
+    (   append(Constrained, Exempt, WithExempt),
         members_comparable(WithExempt),
         \+ members_satisfiable(WithExempt)
     ->  append(Joint0, [by_exception], Joint)
@@ -1773,9 +1771,7 @@ waived_or_undetermined(As, Constrained, Exempt, Undetermined, Joint) :-
     ).
 
 member_in(Members, Member) :-
-    member(Candidate, Members),
-    Candidate == Member,
-    !.
+    once(( member(Candidate, Members), Candidate == Member )).
 
 pairwise_witness(Key, As, Governing, infeasibility([ReqId], [AssumedFact], [ReqFact], Reason)) :-
     member(Assumption, As),
@@ -1866,7 +1862,6 @@ condition_verdict(Relevant, ReqId, FactId, Applicability, Exempt, ReadKeys, Cond
     ->  Verdict = [incomparable(Ids)]
     ;   member(Key, ReadKeys),
         include(member_key(Key), Relevant, KeyAssumptions),
-        KeyAssumptions \== [],
         \+ (   members_comparable(KeyAssumptions),
                members_satisfiable(KeyAssumptions)
            )
@@ -1875,7 +1870,6 @@ condition_verdict(Relevant, ReqId, FactId, Applicability, Exempt, ReadKeys, Cond
         Verdict = []
     ;   member(Condition, Conditions),
         condition_assumptions(Relevant, Condition, KeyAssumptions),
-        KeyAssumptions \== [],
         \+ members_satisfiable([Condition|KeyAssumptions])
     ->  Verdict = []
     ;   conditions_entailed(Relevant, ReadKeys, Conditions, Core)
@@ -1930,7 +1924,6 @@ unconditioned_key_assumption(Relevant, Conditions, Key, Assumption) :-
 
 condition_entailed(Relevant, Condition, Core0, Core) :-
     condition_assumptions(Relevant, Condition, KeyAssumptions),
-    KeyAssumptions \== [],
     negated_member(Condition, Negated),
     \+ members_satisfiable([Negated|KeyAssumptions]),
     unsat_core([Negated|KeyAssumptions], Unsat),
@@ -2048,7 +2041,6 @@ incomparable_facts(As, Others, Ids) :-
 
 assumption_incomparable(Members, Assumption) :-
     member(Other, Members),
-    Other \== Assumption,
     \+ members_compatible(Assumption, Other),
     !.
 assumption_incomparable(_, Assumption) :-
@@ -2062,12 +2054,11 @@ members_satisfiable([]) :- !.
 members_satisfiable(Members) :-
     Members = [m(_, _, _, _, _, Type, _, _, _, _)|_],
     (   kb:is_numeric_type(Type)
-    ->  maplist(member_constraint(Variable), Members, Constraints),
+    ->  maplist(member_constraint(_Variable), Members, Constraints),
         (   forall(member(m(_, _, _, _, _, MemberType, _, _, _, _), Members), MemberType == int)
-        ->  Integers = [Variable]
-        ;   Integers = []
-        ),
-        numeric_constraints_satisfiable(Constraints, Integers)
+        ->  numeric_constraints_satisfiable(Constraints, all)
+        ;   numeric_constraints_satisfiable(Constraints)
+        )
     ;   symbolic_members_satisfiable(Type, Members)
     ).
 
@@ -2099,10 +2090,12 @@ symbolic_value(Raw, Value) :-
 % At most one required value, not excluded; with none required, a bool
 % property still needs one of true and false left.  Two different required
 % values never hold together.
-symbolic_values_satisfiable(_, [Value], Different) :-
-    \+ value_excluded(Value, Different).
-symbolic_values_satisfiable(Type, [], Different) :-
-    \+ bool_domain_exhausted(Type, Different).
+symbolic_values_satisfiable(Type, Equal, Different) :-
+    (   Equal = [Value]
+    ->  \+ value_excluded(Value, Different)
+    ;   Equal == [],
+        \+ bool_domain_exhausted(Type, Different)
+    ).
 
 value_excluded(Value, Different) :-
     member(Excluded, Different),
@@ -2175,7 +2168,6 @@ facts_oppose(AssumedFact, ReqFact) :-
 % names.  Fails when no such fact can be derived (a matches pattern).
 opposing_assumption(FactId, Assumption) :-
     kb:fact_property_tuple(FactId, Subject, Property, Op, Type, Value, Unit, Scope, Polarity),
-    !,
     (   Polarity == forbid
     ->  Op1 = Op, Value1 = Value
     ;   opposing_value(Type, Op, Value, Op1, Value1)
@@ -2230,7 +2222,9 @@ opposing_number(_, lte, Bound, gt, Bound).
 opposing_number(_, eq, Value, neq, Value).
 opposing_number(_, neq, Value, eq, Value).
 
+% mutalog-disable-next-line cut_insert: the clauses take different operators
 opposing_set(eq, Members, eq, Fewer) :- members_but_last(Members, Fewer).
+% mutalog-disable-next-line cut_insert: the clauses take different operators
 opposing_set(includes, Members, eq, Fewer) :- members_but_last(Members, Fewer).
 opposing_set(subset_of, _, includes, [unlisted_member]).
 opposing_set(excludes, [First|_], includes, [First]).
@@ -2239,6 +2233,7 @@ members_but_last(Members, Fewer) :-
     (   append(Fewer, [_], Members) -> true ; Fewer = [] ).
 
 negative_scenario(ScenarioId) :-
+    % mutalog-disable-next-line goal_true: a bound id has the same one answer either way; the branch only spares a scan of every scenario
     (   var(ScenarioId)
     ->  findall(Id,
             (scenario_expects(Id, Outcome), memberchk(Outcome, [rejection, error])),
@@ -2310,36 +2305,42 @@ unknown_feasibility_text(no_assumptions,
     "Link the property values the scenario relies on with assumes facts so feasibility can be checked").
 unknown_feasibility_text(contradictory_assumptions(FactIds), Description,
     "Correct the assumed facts so they can hold together; a scenario whose assumptions contradict each other describes no situation") :-
+    % mutalog-disable-next-line cut_insert: each clause takes its own reason
     atomic_list_concat(FactIds, ', ', FactText),
     format(string(Description),
         "Scenario expects success but its feasibility is unknown: assumptions ~w cannot hold together",
         [FactText]).
 unknown_feasibility_text(unmatched_assumption(FactIds), Description,
     "Constrain the assumed subject and property with a current requirement, correct the assumed fact's subject_key/property_key, or, for a requirement whose rule restricts an action, link the scenario to that requirement with specified_by") :-
+    % mutalog-disable-next-line cut_insert: each clause takes its own reason
     atomic_list_concat(FactIds, ', ', FactText),
     format(string(Description),
         "Scenario expects success but its feasibility is unknown: assumption ~w is not constrained by any current requirement that governs this scenario",
         [FactText]).
 unknown_feasibility_text(incomparable_assumption(FactIds), Description,
     "Align the value_type and unit of the assumed fact with the requirement facts on that property (int and number compare; units must match or be convertible), and use eq or neq for non-numeric values") :-
+    % mutalog-disable-next-line cut_insert: each clause takes its own reason
     atomic_list_concat(FactIds, ', ', FactText),
     format(string(Description),
         "Scenario expects success but its feasibility is unknown: assumption ~w cannot be compared with the requirement constraints on its property (type, unit or operator mismatch)",
         [FactText]).
 unknown_feasibility_text(conflicting_requirements(ReqIds), Description,
     "Resolve the conflict between these requirements (see the contradiction checks) before judging the scenario") :-
+    % mutalog-disable-next-line cut_insert: each clause takes its own reason
     atomic_list_concat(ReqIds, ', ', ReqText),
     format(string(Description),
         "Scenario expects success but its feasibility is unknown: requirements ~w admit no common value for an assumed property",
         [ReqText]).
 unknown_feasibility_text(undecided_rule(FactIds), Description,
     "Assume values for every property the rule reads so its conditions are decided, or restate the rule with one comparison per property (forbid ... unless, or a permit-only-when constraint)") :-
+    % mutalog-disable-next-line cut_insert: each clause takes its own reason
     atomic_list_concat(FactIds, ', ', FactText),
     format(string(Description),
         "Scenario expects success but its feasibility is unknown: the assumptions neither satisfy nor refute the conditions of rule ~w",
         [FactText]).
 unknown_feasibility_text(undetermined_validity(FactIds), Description,
     "State when the scenario happens by setting valid_from/valid_to on its assumed facts, or bound the scenario inside or outside the requirement's validity window") :-
+    % mutalog-disable-next-line cut_insert: each clause takes its own reason
     atomic_list_concat(FactIds, ', ', FactText),
     format(string(Description),
         "Scenario expects success but its feasibility is unknown: it conflicts with ~w, whose validity window may or may not cover the scenario's time",
@@ -2364,7 +2365,6 @@ exception_claim_key_violation(violation(
     Suggestion,
     Source
 )) :-
-    kb_entity(ExceptionId, req, _),
     exception_claim_keys(ExceptionId, ClaimKeys),
     findall(BaseId, kb_relationship(exempts, ExceptionId, BaseId), Bases0),
     sort(Bases0, Bases),
@@ -2455,9 +2455,9 @@ numeric_string_context(_, _, _, Op, Why) :-
     memberchk(Op, [lt, lte, gt, gte]),
     !,
     format(string(Why), "its operator ~w orders values numerically", [Op]).
-numeric_string_context(FactId, Subject, Property, _, Why) :-
+numeric_string_context(_FactId, Subject, Property, _, Why) :-
+    % FactId itself is string-typed, so it is never its own numeric peer.
     kb:fact_property_tuple(PeerId, Subject, Property, _, PeerType, _, _, _, _),
-    PeerId \== FactId,
     kb:is_numeric_type(PeerType),
     !,
     format(string(Why), "~w types the same property as ~w", [PeerId, PeerType]).
@@ -2526,49 +2526,24 @@ strict_fact_shape_violation(violation(
             Suggestion = "Add subject_key to define the subject domain key"
         )
     ;   Kind = property_value
-    ->  findall(Msg, property_value_shape_error(Props, Msg), Errors),
-        (   Errors = []
-        ->  fail  % Well-formed, no violation
-        ;   Errors = [First|_],
-            Description = First,
-            Suggestion = "Ensure property_value facts have subject_key, property_key, operator, value_type, and exactly one value field"
-        )
+    ->  property_value_shape_error(Props, Description),
+        Suggestion = "Ensure property_value facts have subject_key, property_key, operator, value_type, and exactly one value field"
     ;   Kind = observation
     ->  fail  % Observation facts have no required fields beyond fact_kind
     ;   Kind = meta
     ->  fail  % Meta facts have no required fields beyond fact_kind
     ;   Kind = predicate_schema
-    ->  findall(Msg, predicate_schema_shape_error(Props, Msg), Errors),
-        (   Errors = []
-        ->  fail
-        ;   Errors = [First|_],
-            Description = First,
-            Suggestion = "Ensure predicate_schema facts have predicate_name, predicate_arity, argument_names, and argument_types with matching arity"
-        )
+    ->  predicate_schema_shape_error(Props, Description),
+        Suggestion = "Ensure predicate_schema facts have predicate_name, predicate_arity, argument_names, and argument_types with matching arity"
     ;   Kind = predicate
-    ->  findall(Msg, predicate_shape_error(Props, Msg), Errors),
-        (   Errors = []
-        ->  fail
-        ;   Errors = [First|_],
-            Description = First,
-            Suggestion = "Ensure predicate facts have predicate_name, non-empty predicate_args, canonical_key, and assert/deny polarity when present"
-        )
+    ->  predicate_shape_error(Props, Description),
+        Suggestion = "Ensure predicate facts have predicate_name, non-empty predicate_args, canonical_key, and assert/deny polarity when present"
     ;   Kind = rule_schema
-    ->  findall(Msg, rule_schema_shape_error(Props, Msg), Errors),
-        (   Errors = []
-        ->  fail
-        ;   Errors = [First|_],
-            Description = First,
-            Suggestion = "Ensure rule_schema facts declare rule_name plus same-length argument_names and argument_types"
-        )
+    ->  rule_schema_shape_error(Props, Description),
+        Suggestion = "Ensure rule_schema facts declare rule_name plus same-length argument_names and argument_types"
     ;   Kind = rule
-    ->  findall(Msg, rule_shape_error(Props, Msg), Errors),
-        (   Errors = []
-        ->  fail
-        ;   Errors = [First|_],
-            Description = First,
-            Suggestion = "Ensure rule facts contain a safe kibi.logic.v1 rule_ir, full rule_hash, rule_schema_id, rule_name, and semantic_key"
-        )
+    ->  rule_shape_error(Props, Description),
+        Suggestion = "Ensure rule facts contain a safe kibi.logic.v1 rule_ir, full rule_hash, rule_schema_id, rule_name, and semantic_key"
     ;   % Unknown fact_kind - report as malformed
         format(string(Description), "Unknown fact_kind: ~w", [Kind]),
         Suggestion = "Use one of: subject, property_value, observation, meta, predicate_schema, predicate, rule_schema, rule"
@@ -2579,129 +2554,111 @@ strict_fact_shape_violation(violation(
     ;   Source = ""
     ).
 
-% property_value_shape_error(+Props, -ErrorMsg)
-% Returns an error message if the property_value fact has a shape error.
-property_value_shape_error(Props, "Property value fact missing required field: subject_key") :-
-    \+ memberchk(subject_key=_, Props).
-property_value_shape_error(Props, "Property value fact missing required field: property_key") :-
-    memberchk(subject_key=_, Props),
-    \+ memberchk(property_key=_, Props).
-property_value_shape_error(Props, "Property value fact missing required field: operator") :-
-    memberchk(property_key=_, Props),
-    \+ memberchk(operator=_, Props).
-property_value_shape_error(Props, "Property value fact missing required field: value_type") :-
-    memberchk(operator=_, Props),
-    \+ memberchk(value_type=_, Props).
-property_value_shape_error(Props, "Property value fact missing value field (value_string, value_int, value_number, value_bool, or value_set)") :-
-    memberchk(value_type=_, Props),
-    \+ has_value_field(Props).
-property_value_shape_error(Props, "Property value fact has multiple value fields (should have exactly one)") :-
-    findall(F, (member(F=_, Props), is_value_field(F)), Fields),
-    length(Fields, Count),
-    Count > 1.
-property_value_shape_error(Props, "Property value fact value_type does not match value field") :-
-    memberchk(value_type=RawVT, Props),
-    normalize_term_atom(RawVT, VT),
-    \+ value_type_matches_field(VT, Props).
+% Each *_shape_error(+Props, -Message) gives the first problem of a fact of
+% that kind, checking its fields in the order the messages list them, and
+% fails when the fact is well formed.
+property_value_shape_error(Props, Message) :-
+    (   \+ memberchk(subject_key=_, Props)
+    ->  Message = "Property value fact missing required field: subject_key"
+    ;   \+ memberchk(property_key=_, Props)
+    ->  Message = "Property value fact missing required field: property_key"
+    ;   \+ memberchk(operator=_, Props)
+    ->  Message = "Property value fact missing required field: operator"
+    ;   \+ memberchk(value_type=_, Props)
+    ->  Message = "Property value fact missing required field: value_type"
+    ;   \+ has_value_field(Props)
+    ->  Message = "Property value fact missing value field (value_string, value_int, value_number, value_bool, or value_set)"
+    ;   findall(F, (member(F=_, Props), value_type_field(_, F)), [_, _|_])
+    ->  Message = "Property value fact has multiple value fields (should have exactly one)"
+    ;   memberchk(value_type=RawVT, Props),
+        normalize_term_atom(RawVT, VT),
+        \+ value_type_matches_field(VT, Props)
+    ->  Message = "Property value fact value_type does not match value field"
+    ).
 
-% is_value_field(+Field)
-is_value_field(value_string).
-is_value_field(value_int).
-is_value_field(value_number).
-is_value_field(value_bool).
-is_value_field(value_set).
+%% value_type_field(?ValueType, ?Field)
+% The value field a property_value fact of ValueType stores its value in.
+value_type_field(string, value_string).
+value_type_field(int, value_int).
+value_type_field(number, value_number).
+value_type_field(bool, value_bool).
+value_type_field(set, value_set).
 
-has_value_field(Props) :- memberchk(value_string=_, Props), !.
-has_value_field(Props) :- memberchk(value_int=_, Props), !.
-has_value_field(Props) :- memberchk(value_number=_, Props), !.
-has_value_field(Props) :- memberchk(value_bool=_, Props), !.
-has_value_field(Props) :- memberchk(value_set=_, Props), !.
+has_value_field(Props) :-
+    once(( value_type_field(_, Field), memberchk(Field=_, Props) )).
 
-% value_type_matches_field(+ValueType, +Props)
-value_type_matches_field(string, Props) :- memberchk(value_string=_, Props), !.
-value_type_matches_field(int, Props) :- memberchk(value_int=_, Props), !.
-value_type_matches_field(number, Props) :- memberchk(value_number=_, Props), !.
-value_type_matches_field(bool, Props) :- memberchk(value_bool=_, Props), !.
-value_type_matches_field(set, Props) :- memberchk(value_set=_, Props), !.
+value_type_matches_field(ValueType, Props) :-
+    value_type_field(ValueType, Field),
+    memberchk(Field=_, Props).
 
-predicate_schema_shape_error(Props, "Predicate schema fact missing required field: predicate_name") :-
-    \+ memberchk(predicate_name=_, Props).
-predicate_schema_shape_error(Props, "Predicate schema fact missing required field: predicate_arity") :-
-    memberchk(predicate_name=_, Props),
-    \+ memberchk(predicate_arity=_, Props).
-predicate_schema_shape_error(Props, "Predicate schema fact missing required field: argument_names") :-
-    memberchk(predicate_arity=_, Props),
-    \+ memberchk(argument_names=_, Props).
-predicate_schema_shape_error(Props, "Predicate schema fact missing required field: argument_types") :-
-    memberchk(argument_names=_, Props),
-    \+ memberchk(argument_types=_, Props).
-predicate_schema_shape_error(Props, "Predicate schema fact argument_names length must match predicate_arity") :-
+predicate_schema_shape_error(Props, Message) :-
+    (   \+ memberchk(predicate_name=_, Props)
+    ->  Message = "Predicate schema fact missing required field: predicate_name"
+    ;   \+ memberchk(predicate_arity=_, Props)
+    ->  Message = "Predicate schema fact missing required field: predicate_arity"
+    ;   \+ memberchk(argument_names=_, Props)
+    ->  Message = "Predicate schema fact missing required field: argument_names"
+    ;   \+ memberchk(argument_types=_, Props)
+    ->  Message = "Predicate schema fact missing required field: argument_types"
+    ;   schema_list_arity_mismatch(Props, argument_names)
+    ->  Message = "Predicate schema fact argument_names length must match predicate_arity"
+    ;   schema_list_arity_mismatch(Props, argument_types)
+    ->  Message = "Predicate schema fact argument_types length must match predicate_arity"
+    ).
+
+schema_list_arity_mismatch(Props, Key) :-
     memberchk(predicate_arity=RawArity, Props),
     checks_normalize_integer(RawArity, Arity),
-    memberchk(argument_names=RawNames, Props),
-    checks_normalize_atom_list(RawNames, Names),
-    length(Names, Count),
-    Count =\= Arity.
-predicate_schema_shape_error(Props, "Predicate schema fact argument_types length must match predicate_arity") :-
-    memberchk(predicate_arity=RawArity, Props),
-    checks_normalize_integer(RawArity, Arity),
-    memberchk(argument_types=RawTypes, Props),
-    checks_normalize_atom_list(RawTypes, Types),
-    length(Types, Count),
+    memberchk(Key=RawList, Props),
+    checks_normalize_atom_list(RawList, List),
+    length(List, Count),
     Count =\= Arity.
 
-predicate_shape_error(Props, "Predicate fact missing required field: predicate_name") :-
-    \+ memberchk(predicate_name=_, Props).
-predicate_shape_error(Props, "Predicate fact missing required field: predicate_args") :-
-    memberchk(predicate_name=_, Props),
-    \+ memberchk(predicate_args=_, Props).
-predicate_shape_error(Props, "Predicate fact predicate_args must be non-empty") :-
-    memberchk(predicate_args=RawArgs, Props),
-    checks_normalize_atom_list(RawArgs, Args),
-    Args = [].
-predicate_shape_error(Props, "Predicate fact missing required field: canonical_key") :-
-    memberchk(predicate_args=_, Props),
-    \+ memberchk(canonical_key=_, Props).
-predicate_shape_error(Props, "Predicate fact polarity must be assert or deny") :-
-    memberchk(polarity=RawPolarity, Props),
-    normalize_term_atom(RawPolarity, Polarity),
-    \+ memberchk(Polarity, [assert, deny]).
+predicate_shape_error(Props, Message) :-
+    (   \+ memberchk(predicate_name=_, Props)
+    ->  Message = "Predicate fact missing required field: predicate_name"
+    ;   \+ memberchk(predicate_args=_, Props)
+    ->  Message = "Predicate fact missing required field: predicate_args"
+    ;   memberchk(predicate_args=RawArgs, Props),
+        checks_normalize_atom_list(RawArgs, [])
+    ->  Message = "Predicate fact predicate_args must be non-empty"
+    ;   \+ memberchk(canonical_key=_, Props)
+    ->  Message = "Predicate fact missing required field: canonical_key"
+    ;   memberchk(polarity=RawPolarity, Props),
+        normalize_term_atom(RawPolarity, Polarity),
+        \+ memberchk(Polarity, [assert, deny])
+    ->  Message = "Predicate fact polarity must be assert or deny"
+    ).
 
-rule_schema_shape_error(Props, "Rule schema fact missing required field: rule_name") :-
-    \+ memberchk(rule_name=_, Props).
-rule_schema_shape_error(Props, "Rule schema fact missing required field: argument_names") :-
-    memberchk(rule_name=_, Props),
-    \+ memberchk(argument_names=_, Props).
-rule_schema_shape_error(Props, "Rule schema fact missing required field: argument_types") :-
-    memberchk(argument_names=_, Props),
-    \+ memberchk(argument_types=_, Props).
-rule_schema_shape_error(Props, "Rule schema fact argument_names and argument_types must have equal lengths") :-
-    memberchk(argument_names=RawNames, Props),
-    memberchk(argument_types=RawTypes, Props),
-    checks_normalize_atom_list(RawNames, Names),
-    checks_normalize_atom_list(RawTypes, Types),
-    length(Names, NameCount),
-    length(Types, TypeCount),
-    NameCount =\= TypeCount.
+rule_schema_shape_error(Props, Message) :-
+    (   \+ memberchk(rule_name=_, Props)
+    ->  Message = "Rule schema fact missing required field: rule_name"
+    ;   \+ memberchk(argument_names=_, Props)
+    ->  Message = "Rule schema fact missing required field: argument_names"
+    ;   \+ memberchk(argument_types=_, Props)
+    ->  Message = "Rule schema fact missing required field: argument_types"
+    ;   memberchk(argument_names=RawNames, Props),
+        memberchk(argument_types=RawTypes, Props),
+        checks_normalize_atom_list(RawNames, Names),
+        checks_normalize_atom_list(RawTypes, Types),
+        \+ same_length(Names, Types)
+    ->  Message = "Rule schema fact argument_names and argument_types must have equal lengths"
+    ).
 
-rule_shape_error(Props, "Rule fact missing required field: rule_ir") :-
-    \+ memberchk(rule_ir=_, Props).
-rule_shape_error(Props, "Rule fact missing required field: rule_hash") :-
-    memberchk(rule_ir=_, Props),
-    \+ memberchk(rule_hash=_, Props).
-rule_shape_error(Props, "Rule fact missing required field: rule_schema_id") :-
-    memberchk(rule_hash=_, Props),
-    \+ memberchk(rule_schema_id=_, Props).
-rule_shape_error(Props, "Rule fact missing required field: rule_name") :-
-    memberchk(rule_schema_id=_, Props),
-    \+ memberchk(rule_name=_, Props).
-rule_shape_error(Props, "Rule fact missing required field: semantic_key") :-
-    memberchk(rule_name=_, Props),
-    \+ memberchk(semantic_key=_, Props).
-rule_shape_error(Props, "Rule fact rule_ir failed kibi.logic.v1 safety validation") :-
-    memberchk(rule_ir=_, Props),
-    logic_rule_safety(Props, Errors),
-    Errors \= [].
+rule_shape_error(Props, Message) :-
+    (   \+ memberchk(rule_ir=_, Props)
+    ->  Message = "Rule fact missing required field: rule_ir"
+    ;   \+ memberchk(rule_hash=_, Props)
+    ->  Message = "Rule fact missing required field: rule_hash"
+    ;   \+ memberchk(rule_schema_id=_, Props)
+    ->  Message = "Rule fact missing required field: rule_schema_id"
+    ;   \+ memberchk(rule_name=_, Props)
+    ->  Message = "Rule fact missing required field: rule_name"
+    ;   \+ memberchk(semantic_key=_, Props)
+    ->  Message = "Rule fact missing required field: semantic_key"
+    ;   logic_rule_safety(Props, [_|_])
+    ->  Message = "Rule fact rule_ir failed kibi.logic.v1 safety validation"
+    ).
 
 checks_normalize_integer(Raw, Integer) :-
     (   Raw = ^^(Value, _Type)
@@ -2936,7 +2893,6 @@ opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB) :-
     ReqA \== ReqB,
     member(FactA-RuleA, RulesA),
     member(FactB-RuleB, RulesB),
-    FactA \== FactB,
     % mutalog-disable-next-line compare: equal endpoints need ReqA == ReqB, which is excluded above
     ReqA-FactA @< ReqB-FactB.
 
@@ -3080,7 +3036,7 @@ evidence_property_text(Props, Key, Text) :-
     (memberchk(Key=Raw, Props) -> evidence_term_text(Raw, Text) ; Text = '').
 
 evidence_property_integer(Props, Key, Integer) :-
-    (memberchk(Key=Raw, Props), catch(checks_normalize_integer(Raw, Integer), _, fail) -> true ; Integer = -1).
+    (memberchk(Key=Raw, Props), checks_normalize_integer(Raw, Integer) -> true ; Integer = -1).
 
 evidence_term_text(Raw, Text) :-
     (   Raw = ^^(Value, _Type)
@@ -3122,7 +3078,6 @@ strict_req_fact_pairing_issue(
 ) :-
     kb:current_req(ReqId),
     kb_relationship(constrains, ReqId, SubjectFactId),
-    strict_req_fact_pairing_fact_kind(SubjectFactId, subject),
     kb:fact_subject_key(SubjectFactId, SubjectKey),
     \+ kb:effective_req_property_fact(
         ReqId,
@@ -3152,7 +3107,6 @@ strict_req_fact_pairing_issue(
 ) :-
     kb:current_req(ReqId),
     kb_relationship(requires_property, ReqId, PropertyFactId),
-    strict_req_fact_pairing_fact_kind(PropertyFactId, property_value),
     kb:fact_property_tuple(
         PropertyFactId,
         SubjectKey,
@@ -3479,6 +3433,7 @@ logic_coverage_violation(violation(
     grounded_requirement_claim_fact(ReqId, ClaimA, FactA),
     grounded_requirement_claim_fact(ReqId, ClaimB, FactB),
     ClaimA \= ClaimB,
+    % mutalog-disable-next-line compare: one fact has one claim key, so FactA == FactB never passes ClaimA \= ClaimB
     FactA @< FactB,
     logical_ground_signature(FactA, Signature),
     logical_ground_signature(FactB, Signature),
@@ -3528,11 +3483,11 @@ requirement_inventory_status(ReqId, ClaimKey, Status) :-
     inventory_entry_status(Entry, Status).
 
 checks_inventory_entry_field(Entry, Key, Value) :-
-    is_dict(Entry),
-    get_dict(Key, Entry, Value).
-checks_inventory_entry_field(Entry, Key, Value) :-
-    is_list(Entry),
-    memberchk(Key=Value, Entry).
+    (   is_dict(Entry)
+    ->  get_dict(Key, Entry, Value)
+    ;   is_list(Entry),
+        memberchk(Key=Value, Entry)
+    ).
 
 grounded_requirement_claim(ReqId, ClaimKey) :-
     grounded_requirement_claim_fact(ReqId, ClaimKey, _FactId).
@@ -3718,7 +3673,7 @@ inventory_entries(Raw, Entries) :-
         json_text_term(Raw, JsonEntries),
         is_list(JsonEntries)
     ->  Entries = JsonEntries
-    ;   (atom(Raw) ; string(Raw)),
+    ;   % mutalog-disable-next-line goal_true: a failed parse leaves PrologEntries unbound, which is_list/1 rejects just as fail would
         catch(term_string(PrologEntries, Raw), _, fail),
         is_list(PrologEntries)
     ->  Entries = PrologEntries
@@ -3734,9 +3689,8 @@ inventory_entry_label(Entry, Label) :-
     ).
 
 inventory_entry_status(Entry, Status) :-
-    is_dict(Entry), get_dict(status, Entry, Raw), normalize_term_atom(Raw, Status).
-inventory_entry_status(Entry, Status) :-
-    is_list(Entry), memberchk(status=Raw, Entry), normalize_term_atom(Raw, Status).
+    checks_inventory_entry_field(Entry, status, Raw),
+    normalize_term_atom(Raw, Status).
 
 %% check_related_requirement_unmodeled(-Violations)
 % implements REQ-check-related-requirement-unmodeled
@@ -3836,7 +3790,6 @@ strict_readiness_has_strict_subject(ReqId) :-
 
 strict_readiness_primary_subject(ReqId, FactId, SubjectKey) :-
     kb_relationship(constrains, ReqId, FactId),
-    strict_req_fact_pairing_fact_kind(FactId, subject),
     kb:fact_subject_key(FactId, SubjectKey).
 
 strict_readiness_has_strict_property(ReqId) :-
