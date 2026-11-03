@@ -339,15 +339,17 @@ symbol_traceability_violation(RequireAdr, violation(
     ),
     % Check if symbol has constrained_by to ADR (only if required)
     (   RequireAdr == true,
-        \+ ( kb_relationship(constrained_by, SymbolId, AdrId),
-              kb_entity(AdrId, adr, _)
-            )
+        \+ symbol_constrained_by_adr(SymbolId)
     ->  HasAdr = false
     ;   HasAdr = true
     ),
     \+ executable_test_symbol(SymbolId),
     symbol_traceability_gap(HasReq, HasAdr, Description, Suggestion),
     violation_source(SymbolId, symbol, Source).
+
+symbol_constrained_by_adr(SymbolId) :-
+    kb_relationship(constrained_by, SymbolId, AdrId),
+    kb_entity(AdrId, adr, _).
 
 % What a symbol misses, by whether it has a requirement owner and (when the
 % ADR constraint is required) an ADR; a symbol with both has no gap.
@@ -2562,15 +2564,15 @@ strict_fact_shape_violation(violation(
 % that kind, checking its fields in the order the messages list them, and
 % fails when the fact is well formed.
 property_value_shape_error(Props, Message) :-
-    (   \+ memberchk(subject_key=_, Props)
+    (   missing_field(Props, subject_key)
     ->  Message = "Property value fact missing required field: subject_key"
-    ;   \+ memberchk(property_key=_, Props)
+    ;   missing_field(Props, property_key)
     ->  Message = "Property value fact missing required field: property_key"
-    ;   \+ memberchk(operator=_, Props)
+    ;   missing_field(Props, operator)
     ->  Message = "Property value fact missing required field: operator"
-    ;   \+ memberchk(value_type=_, Props)
+    ;   missing_field(Props, value_type)
     ->  Message = "Property value fact missing required field: value_type"
-    ;   \+ has_value_field(Props)
+    ;   missing_value_field(Props)
     ->  Message = "Property value fact missing value field (value_string, value_int, value_number, value_bool, or value_set)"
     ;   findall(F, (member(F=_, Props), value_type_field(_, F)), [_, _|_])
     ->  Message = "Property value fact has multiple value fields (should have exactly one)"
@@ -2579,6 +2581,10 @@ property_value_shape_error(Props, Message) :-
         \+ value_type_matches_field(VT, Props)
     ->  Message = "Property value fact value_type does not match value field"
     ).
+
+missing_field(Props, Key) :- \+ memberchk(Key=_, Props).
+
+missing_value_field(Props) :- \+ has_value_field(Props).
 
 %% value_type_field(?ValueType, ?Field)
 % The value field a property_value fact of ValueType stores its value in.
@@ -2596,13 +2602,13 @@ value_type_matches_field(ValueType, Props) :-
     memberchk(Field=_, Props).
 
 predicate_schema_shape_error(Props, Message) :-
-    (   \+ memberchk(predicate_name=_, Props)
+    (   missing_field(Props, predicate_name)
     ->  Message = "Predicate schema fact missing required field: predicate_name"
-    ;   \+ memberchk(predicate_arity=_, Props)
+    ;   missing_field(Props, predicate_arity)
     ->  Message = "Predicate schema fact missing required field: predicate_arity"
-    ;   \+ memberchk(argument_names=_, Props)
+    ;   missing_field(Props, argument_names)
     ->  Message = "Predicate schema fact missing required field: argument_names"
-    ;   \+ memberchk(argument_types=_, Props)
+    ;   missing_field(Props, argument_types)
     ->  Message = "Predicate schema fact missing required field: argument_types"
     ;   schema_list_arity_mismatch(Props, argument_names)
     ->  Message = "Predicate schema fact argument_names length must match predicate_arity"
@@ -2619,14 +2625,14 @@ schema_list_arity_mismatch(Props, Key) :-
     Count =\= Arity.
 
 predicate_shape_error(Props, Message) :-
-    (   \+ memberchk(predicate_name=_, Props)
+    (   missing_field(Props, predicate_name)
     ->  Message = "Predicate fact missing required field: predicate_name"
-    ;   \+ memberchk(predicate_args=_, Props)
+    ;   missing_field(Props, predicate_args)
     ->  Message = "Predicate fact missing required field: predicate_args"
     ;   memberchk(predicate_args=RawArgs, Props),
         checks_normalize_atom_list(RawArgs, [])
     ->  Message = "Predicate fact predicate_args must be non-empty"
-    ;   \+ memberchk(canonical_key=_, Props)
+    ;   missing_field(Props, canonical_key)
     ->  Message = "Predicate fact missing required field: canonical_key"
     ;   memberchk(polarity=RawPolarity, Props),
         normalize_term_atom(RawPolarity, Polarity),
@@ -2635,11 +2641,11 @@ predicate_shape_error(Props, Message) :-
     ).
 
 rule_schema_shape_error(Props, Message) :-
-    (   \+ memberchk(rule_name=_, Props)
+    (   missing_field(Props, rule_name)
     ->  Message = "Rule schema fact missing required field: rule_name"
-    ;   \+ memberchk(argument_names=_, Props)
+    ;   missing_field(Props, argument_names)
     ->  Message = "Rule schema fact missing required field: argument_names"
-    ;   \+ memberchk(argument_types=_, Props)
+    ;   missing_field(Props, argument_types)
     ->  Message = "Rule schema fact missing required field: argument_types"
     ;   memberchk(argument_names=RawNames, Props),
         memberchk(argument_types=RawTypes, Props),
@@ -2650,15 +2656,15 @@ rule_schema_shape_error(Props, Message) :-
     ).
 
 rule_shape_error(Props, Message) :-
-    (   \+ memberchk(rule_ir=_, Props)
+    (   missing_field(Props, rule_ir)
     ->  Message = "Rule fact missing required field: rule_ir"
-    ;   \+ memberchk(rule_hash=_, Props)
+    ;   missing_field(Props, rule_hash)
     ->  Message = "Rule fact missing required field: rule_hash"
-    ;   \+ memberchk(rule_schema_id=_, Props)
+    ;   missing_field(Props, rule_schema_id)
     ->  Message = "Rule fact missing required field: rule_schema_id"
-    ;   \+ memberchk(rule_name=_, Props)
+    ;   missing_field(Props, rule_name)
     ->  Message = "Rule fact missing required field: rule_name"
-    ;   \+ memberchk(semantic_key=_, Props)
+    ;   missing_field(Props, semantic_key)
     ->  Message = "Rule fact missing required field: semantic_key"
     ;   logic_rule_safety(Props, [_|_])
     ->  Message = "Rule fact rule_ir failed kibi.logic.v1 safety validation"
