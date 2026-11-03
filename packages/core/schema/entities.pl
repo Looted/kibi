@@ -173,7 +173,3 @@ optional_property(test, verification_perspective).
 optional_property(test, proof_contract).
 optional_property(test, proof_bindings).
 optional_property(test, proof_receipts).
-
-% Documentation helpers
-% list all entity types
-all_entity_types(Ts) :- findall(T, entity_type(T), Ts).

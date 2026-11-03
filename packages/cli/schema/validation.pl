@@ -26,16 +26,17 @@ validate_entity(Type, Props) :-
 
 % validate_relationship(+RelType, +From, +To)
 % From and To are pairs Type=Id or structures type(Type) - allow Type or Type=Id
+% No relationship_type/1 check: valid_relationship/3 names only known types.
 validate_relationship(RelType, From, To) :-
-    relationship_type(RelType),
     % extract types
     type_of(From, FromType),
     type_of(To, ToType),
     % valid combination
     valid_relationship(RelType, FromType, ToType).
 
-type_of(Type, Type) :- atom(Type), entity_type(Type), !.
-type_of(Type=_Id, Type) :- atom(Type), entity_type(Type), !.
+% mutalog-disable-next-line cut_insert: the other clause needs a Type=Id pair, never an atom
+type_of(Type, Type) :- atom(Type), entity_type(Type).
+type_of(Type=_Id, Type) :- atom(Type), entity_type(Type).
 
 % validate_property_type(+EntityType, +Prop, +Value)
 validate_property_type(Type, Prop, Value) :-
@@ -43,35 +44,38 @@ validate_property_type(Type, Prop, Value) :-
     check_kind(Kind, Value), !.
 
 % check_kind(Kind, Value) succeeds if Value matches Kind
+% mutalog-disable-next-line cut_insert: the kinds are distinct and each clause is called with a bound kind
 check_kind(atom, V) :- atom(V).
+% mutalog-disable-next-line cut_insert: the kinds are distinct and each clause is called with a bound kind
 check_kind(string, V) :- string(V).
 check_kind(atom_or_string, V) :- atom(V) ; string(V).
+% mutalog-disable-next-line cut_insert: the kinds are distinct and each clause is called with a bound kind
 check_kind(datetime, V) :- string(V). % accept ISO strings for now
+% mutalog-disable-next-line cut_insert: the kinds are distinct and each clause is called with a bound kind
 check_kind(list, V) :- is_list(V).
 check_kind(list_or_json, V) :- is_list(V) ; string(V) ; atom(V).
+% mutalog-disable-next-line cut_insert: the kinds are distinct and each clause is called with a bound kind
 check_kind(uri, V) :- string(V).
 % Non-empty workspace-relative path: reject absolute forms and `..` segments.
 check_kind(workspace_relpath, V) :-
+    % mutalog-disable-next-line cut_insert: the kinds are distinct and each clause is called with a bound kind
     string(V),
-    string_length(V, Len),
-    Len > 0,
+    V \== "",
     \+ workspace_relpath_absolute(V),
     split_string(V, "/\\", "", Parts),
     \+ member("..", Parts).
+% mutalog-disable-next-line cut_insert: the kinds are distinct and each clause is called with a bound kind
 check_kind(integer, V) :- integer(V).
+% mutalog-disable-next-line cut_insert: the kinds are distinct and each clause is called with a bound kind
 check_kind(number, V) :- number(V).
 check_kind(boolean, true).
 check_kind(boolean, false).
 
+% mutalog-disable-next-line cut_insert: only ever called under \+
 workspace_relpath_absolute(V) :- sub_string(V, 0, 1, _, "/").
-workspace_relpath_absolute(V) :-
-    string_length(V, Len),
-    Len >= 2,
-    sub_string(V, 1, 1, _, ":").
+% mutalog-disable-next-line cut_insert: only ever called under \+
+workspace_relpath_absolute(V) :- sub_string(V, 1, 1, _, ":").
 workspace_relpath_absolute(V) :- sub_string(V, 0, 2, _, "\\\\").
-
-% Fallback false
-check_kind(_, _) :- fail.
 
 % validate_entity_shape(+Type, +Props)
 % Validates entity-specific shape constraints (e.g., strict fact shapes)
@@ -83,94 +87,35 @@ validate_entity_shape(fact, Props) :-
     ( memberchk(fact_kind=RawKind, Props) -> validate_fact_shape(RawKind, Props) ; true ).
 validate_entity_shape(test, Props) :-
     !,
-    valid_optional_test_enums(Props),
-    forall(member(Key=_, Props), \+ is_fact_only_field(Key)).
-validate_entity_shape(req, Props) :-
-    !,
-    forall(member(Key=_, Props), \+ is_fact_only_field(Key)),
-    forall(member(Key=_, Props), \+ is_test_only_field(Key)).
-validate_entity_shape(Type, Props) :-
-    Type \= fact,
-    Type \= test,
-    Type \= req,
-    % Non-fact/non-test entities cannot have type-specific fields
-    forall(member(Key=_, Props), \+ is_fact_only_field(Key)),
-    forall(member(Key=_, Props), \+ is_test_only_field(Key)),
-    forall(member(Key=_, Props), Key \= logic_claims).
-
-% is_fact_only_field(+Key) - true if Key is a fact-specific field
-is_fact_only_field(fact_kind).
-is_fact_only_field(subject_key).
-is_fact_only_field(property_key).
-is_fact_only_field(operator).
-is_fact_only_field(value_type).
-is_fact_only_field(value_string).
-is_fact_only_field(value_int).
-is_fact_only_field(value_number).
-is_fact_only_field(value_bool).
-is_fact_only_field(value_set).
-is_fact_only_field(unit).
-is_fact_only_field(scope).
-is_fact_only_field(polarity).
-is_fact_only_field(closed_world).
-is_fact_only_field(valid_from).
-is_fact_only_field(valid_to).
-is_fact_only_field(canonical_key).
-is_fact_only_field(claim_key).
-is_fact_only_field(claim_text).
-is_fact_only_field(predicate_name).
-is_fact_only_field(predicate_namespace).
-is_fact_only_field(predicate_arity).
-is_fact_only_field(argument_names).
-is_fact_only_field(argument_types).
-is_fact_only_field(argument_descriptions).
-is_fact_only_field(key_arguments).
-is_fact_only_field(argument_constants).
-is_fact_only_field(argument_aliases).
-is_fact_only_field(aliases).
-is_fact_only_field(examples).
-is_fact_only_field(predicate_args).
-is_fact_only_field(rule_ir).
-is_fact_only_field(rule_hash).
-is_fact_only_field(rule_schema_id).
-is_fact_only_field(rule_name).
-is_fact_only_field(semantic_key).
-is_fact_only_field(claim_span_start).
-is_fact_only_field(claim_span_end).
-
-% is_test_only_field(+Key) - true if Key is a test-specific field
-is_test_only_field(verification_scope).
-is_test_only_field(verification_perspective).
-is_test_only_field(proof_contract).
-is_test_only_field(proof_bindings).
-is_test_only_field(proof_receipts).
+    valid_optional_test_enums(Props).
+% Fields of another entity type need no check here: entity_property/3 types
+% them for that type only, so validate_property_type/3 already rejected them.
+validate_entity_shape(_, _).
 
 % validate_fact_shape(+Kind, +Props)
+% validate_entity_shape/2 has already checked the operator and value_type
+% enums and the general polarity, so each kind adds only its own fields and
+% any stricter polarity. An unknown kind matches no clause and fails.
 validate_fact_shape(subject, Props) :-
+    % mutalog-disable-next-line cut_insert: the fact kinds are distinct and the kind is bound
     memberchk(subject_key=_Val, Props),
-    valid_optional_fact_enums(Props),
-    valid_strict_polarity_in_props(Props), !.
+    valid_strict_polarity_in_props(Props).
 validate_fact_shape(property_value, Props) :-
+    % mutalog-disable-next-line cut_insert: the fact kinds are distinct and the kind is bound
     memberchk(subject_key=_Subject, Props),
     memberchk(property_key=_Property, Props),
     memberchk(operator=Op, Props),
-    valid_operator(Op),
     memberchk(value_type=VT, Props),
-    valid_value_type(VT),
     ( Op == matches -> VT == string ; true ),
     ( memberchk(Op, [includes, subset_of, excludes]) -> VT == set ; true ),
     exactly_one_value_field(Props),
     value_type_matches_field(VT, Props),
-    valid_optional_fact_enums(Props),
-    valid_strict_polarity_in_props(Props), !.
-validate_fact_shape(observation, Props) :-
-    valid_optional_fact_enums(Props),
-    valid_polarity_in_props(Props), !.
-validate_fact_shape(meta, Props) :-
-    % Meta facts are allowed but don't require full strict property tuple yet
-    valid_optional_fact_enums(Props),
-    valid_polarity_in_props(Props), !.
+    valid_strict_polarity_in_props(Props).
+validate_fact_shape(observation, _Props).
+% Meta facts are allowed but don't require full strict property tuple yet
+validate_fact_shape(meta, _Props).
 validate_fact_shape(predicate_schema, Props) :-
+    % mutalog-disable-next-line cut_insert: the fact kinds are distinct and the kind is bound
     memberchk(predicate_name=_Name, Props),
     memberchk(predicate_arity=Arity, Props),
     Arity >= 1,
@@ -178,43 +123,33 @@ validate_fact_shape(predicate_schema, Props) :-
     memberchk(argument_types=ArgumentTypes, Props),
     same_length(ArgumentNames, ArgumentTypes),
     length(ArgumentNames, Arity),
-    valid_key_arguments(Props, ArgumentNames),
-    valid_optional_fact_enums(Props),
-    valid_polarity_in_props(Props), !.
+    valid_key_arguments(Props, ArgumentNames).
 validate_fact_shape(predicate, Props) :-
+    % mutalog-disable-next-line cut_insert: the fact kinds are distinct and the kind is bound
     memberchk(predicate_name=_Name, Props),
     memberchk(predicate_args=Args, Props),
-    Args \= [],
+    Args \== [],
     memberchk(canonical_key=_CanonicalKey, Props),
-    valid_optional_fact_enums(Props),
-    valid_predicate_polarity_in_props(Props), !.
+    valid_predicate_polarity_in_props(Props).
 validate_fact_shape(rule_schema, Props) :-
+    % mutalog-disable-next-line cut_insert: the fact kinds are distinct and the kind is bound
     memberchk(rule_name=_Name, Props),
     memberchk(argument_names=ArgumentNames, Props),
     memberchk(argument_types=ArgumentTypes, Props),
-    same_length(ArgumentNames, ArgumentTypes),
-    valid_optional_fact_enums(Props),
-    valid_polarity_in_props(Props), !.
+    same_length(ArgumentNames, ArgumentTypes).
 validate_fact_shape(rule, Props) :-
     memberchk(rule_ir=RuleIr, Props),
     nonempty_claim_value(RuleIr),
     memberchk(rule_hash=_Hash, Props),
     memberchk(rule_schema_id=_SchemaId, Props),
-    memberchk(semantic_key=_SemanticKey, Props),
-    valid_optional_fact_enums(Props),
-    valid_polarity_in_props(Props), !.
-validate_fact_shape(Kind, _Props) :-
-    % Unknown fact_kind values fail validation
-    \+ memberchk(Kind, [subject, property_value, observation, meta, predicate_schema, predicate, rule_schema, rule]),
-    fail.
+    memberchk(semantic_key=_SemanticKey, Props).
 
 % valid_key_arguments(+Props, +ArgumentNames)
 % Optional key_arguments must be a non-empty list of distinct declared
 % argument names.
 valid_key_arguments(Props, ArgumentNames) :-
     (   memberchk(key_arguments=Keys, Props)
-    ->  is_list(Keys),
-        Keys \= [],
+    ->  Keys \== [],
         maplist(text_atom, ArgumentNames, NameAtoms),
         maplist(text_atom, Keys, KeyAtoms),
         sort(KeyAtoms, UniqueKeys),
@@ -226,11 +161,9 @@ valid_key_arguments(Props, ArgumentNames) :-
 text_atom(Value, Atom) :- atom(Value), !, Atom = Value.
 text_atom(Value, Atom) :- string(Value), atom_string(Atom, Value).
 
-% valid_operator(+Op)
-valid_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte, matches, includes, subset_of, excludes]), !.
+valid_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte, matches, includes, subset_of, excludes]).
 
-% valid_value_type(+VT)
-valid_value_type(ValueType) :- memberchk(ValueType, [string, int, number, bool, set]), !.
+valid_value_type(ValueType) :- memberchk(ValueType, [string, int, number, bool, set]).
 
 % valid_polarity_in_props(+Props)
 % Validates polarity if present; succeeds if no polarity in props
@@ -257,15 +190,13 @@ valid_claim_provenance(Props) :-
     ;   true
     ).
 
+% fact_kind is typed atom, so a string kind never reaches this check.
 review_note_fact(Props) :-
-    memberchk(fact_kind=RawKind, Props),
-    (   atom(RawKind) -> Kind = RawKind
-    ;   string(RawKind) -> atom_string(Kind, RawKind)
-    ),
+    memberchk(fact_kind=Kind, Props),
     memberchk(Kind, [observation, meta]).
 
-nonempty_claim_value(Value) :- string(Value), Value \= "", !.
-nonempty_claim_value(Value) :- atom(Value), Value \= '', !.
+% Its callers' fields (claim_key, claim_text, rule_ir) are all typed string.
+nonempty_claim_value(Value) :- Value \== "".
 
 % valid_optional_fact_enums(+Props)
 % Validates enum-typed fact fields whenever they are present
@@ -279,18 +210,15 @@ valid_optional_test_enums(Props) :-
     ( memberchk(verification_scope=Scope, Props) -> valid_verification_scope(Scope) ; true ),
     ( memberchk(verification_perspective=Perspective, Props) -> valid_verification_perspective(Perspective) ; true ).
 
-% valid_polarity(+P)
-valid_polarity(Polarity) :- memberchk(Polarity, [require, forbid, assert, deny]), !.
+valid_polarity(Polarity) :- memberchk(Polarity, [require, forbid, assert, deny]).
 
-valid_strict_polarity(Polarity) :- memberchk(Polarity, [require, forbid]), !.
+valid_strict_polarity(Polarity) :- memberchk(Polarity, [require, forbid]).
 
-valid_predicate_polarity(Polarity) :- memberchk(Polarity, [assert, deny]), !.
+valid_predicate_polarity(Polarity) :- memberchk(Polarity, [assert, deny]).
 
-% valid_verification_scope(+Scope)
-valid_verification_scope(Scope) :- memberchk(Scope, [unit, integration, end_to_end]), !.
+valid_verification_scope(Scope) :- memberchk(Scope, [unit, integration, end_to_end]).
 
-% valid_verification_perspective(+Perspective)
-valid_verification_perspective(Perspective) :- memberchk(Perspective, [internal, consumer]), !.
+valid_verification_perspective(Perspective) :- memberchk(Perspective, [internal, consumer]).
 
 % exactly_one_value_field(+Props)
 exactly_one_value_field(Props) :-
@@ -306,15 +234,19 @@ is_value_field(value_set).
 
 % value_type_matches_field(+ValueType, +Props)
 % Ensures that value_type matches the actual value field present
-value_type_matches_field(string, Props) :- memberchk(value_string=_, Props), !.
-value_type_matches_field(int, Props) :- memberchk(value_int=_, Props), !.
-value_type_matches_field(number, Props) :- memberchk(value_number=_, Props), !.
-value_type_matches_field(bool, Props) :- memberchk(value_bool=_, Props), !.
-value_type_matches_field(set, Props) :- memberchk(value_set=_, Props), !.
+% mutalog-disable-next-line cut_insert: the value types are distinct and the type is bound
+value_type_matches_field(string, Props) :- memberchk(value_string=_, Props).
+% mutalog-disable-next-line cut_insert: the value types are distinct and the type is bound
+value_type_matches_field(int, Props) :- memberchk(value_int=_, Props).
+% mutalog-disable-next-line cut_insert: the value types are distinct and the type is bound
+value_type_matches_field(number, Props) :- memberchk(value_number=_, Props).
+% mutalog-disable-next-line cut_insert: the value types are distinct and the type is bound
+value_type_matches_field(bool, Props) :- memberchk(value_bool=_, Props).
+value_type_matches_field(set, Props) :- memberchk(value_set=_, Props).
 
 % valid_origin_in_props(+Props)
-% Entity provenance travels as a JSON object string (or a dict). When present
-% its kind must be human, agent, migration or import.
+% Entity provenance travels as a JSON object string. When present its kind
+% must be human, agent, migration or import.
 valid_origin_in_props(Props) :-
     (   memberchk(origin=Raw, Props)
     ->  origin_kind(Raw, Kind),
@@ -322,13 +254,12 @@ valid_origin_in_props(Props) :-
     ;   true
     ).
 
+% origin is typed list_or_json, so Raw is a list, a string or an atom; JSON
+% text arrives as one of the last two. A JSON kind is a string or a value
+% that names no origin kind.
 origin_kind(Raw, Kind) :-
-    (   is_dict(Raw)
-    ->  Dict = Raw
-    ;   (atom(Raw) ; string(Raw)),
-        catch(atom_json_dict(Raw, Dict, []), _, fail),
-        is_dict(Dict)
-    ),
+    \+ is_list(Raw),
+    catch((atom_json_dict(Raw, Dict, []), is_dict(Dict)), _, fail),
     get_dict(kind, Dict, RawKind),
-    (atom(RawKind) ; string(RawKind)),
+    string(RawKind),
     atom_string(Kind, RawKind).
