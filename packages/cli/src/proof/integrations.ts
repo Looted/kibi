@@ -84,7 +84,6 @@ export function proofIntegrationErrors(value: unknown): string[] {
     )
       errors.push(`${label}.command must be a non-empty argv array`);
     if (
-      nonEmpty(row.producer) &&
       (row.producer === "junit" || row.producer === "tap") &&
       !nonEmpty(row.artifact)
     )
@@ -123,7 +122,7 @@ export function loadProofIntegrations(
   }
   let parsed: unknown;
   try {
-    parsed = JSON.parse(readFileSync(filePath, "utf8"));
+    parsed = JSON.parse(readFileSync(filePath).toString());
   } catch (error) {
     return {
       available: false,
@@ -169,8 +168,9 @@ export function toExecution(
 }
 
 function record(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+  // `typeof null` is "object" and null is returned as is.
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
     : null;
 }
 

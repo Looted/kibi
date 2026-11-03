@@ -55,12 +55,7 @@ function failingMemberSummary(
     (result) => result.outcome !== "passed",
   );
   if (failing.length === 0) return "";
-  const ownOutcome =
-    observed === undefined
-      ? undefined
-      : observed.outcome === "passed"
-        ? "passed"
-        : observed.outcome;
+  const ownOutcome = observed?.outcome;
   const others = failing.filter((result) => result !== observed);
   const parts: string[] = [];
   if (ownOutcome !== undefined && ownOutcome !== "passed") {
@@ -78,7 +73,8 @@ function failingMemberSummary(
         : "";
     parts.push(`failing member result(s): ${listed.join(", ")}${overflow}`);
   }
-  return parts.length === 0 ? "" : `; ${parts.join("; ")}`;
+  // A failing result is either this obligation's own or another member's.
+  return `; ${parts.join("; ")}`;
 }
 
 /**
@@ -163,12 +159,12 @@ export function evaluateContractAgainstRun(
         });
         continue;
       }
-      const first = observed.attempts.entries[0];
-      if (!first || first.outcome !== "passed") {
+      const first = observed.attempts.entries[0]?.outcome;
+      if (first !== "passed") {
         gaps.push({
           symbol_id: obligation.symbol_id,
           target: obligation.target,
-          reason: `first attempt outcome is '${first?.outcome ?? "unknown"}'`,
+          reason: `first attempt outcome is '${first ?? "unknown"}'`,
         });
       }
       continue;
@@ -193,30 +189,13 @@ export function evaluateContractAgainstRun(
     };
   }
   if (gaps.length > 0) {
-    let outcome: ProofReceiptOutcome = "failed";
-    if (
-      projectedResults.some(
-        (result) =>
-          contract.required_proofs.some(
-            (obligation) =>
-              obligation.symbol_id === result.symbol_id &&
-              obligation.target === result.target,
-          ) && result.outcome === "interrupted",
-      )
-    ) {
-      outcome = "interrupted";
-    } else if (
-      projectedResults.some(
-        (result) =>
-          contract.required_proofs.some(
-            (obligation) =>
-              obligation.symbol_id === result.symbol_id &&
-              obligation.target === result.target,
-          ) && result.outcome === "timed_out",
-      )
-    ) {
-      outcome = "timed_out";
-    }
+    // Projected results are exactly the obligations' own results.
+    const outcomes = new Set(projectedResults.map((result) => result.outcome));
+    const outcome: ProofReceiptOutcome = outcomes.has("interrupted")
+      ? "interrupted"
+      : outcomes.has("timed_out")
+        ? "timed_out"
+        : "failed";
     return { satisfied: false, outcome, gaps, projectedResults };
   }
   return { satisfied: true, outcome: "passed", gaps: [], projectedResults };
