@@ -50,6 +50,9 @@ afterEach(() => {
   rmSync(runtime, { recursive: true, force: true });
 });
 
+const hashOf = (entry: unknown): string | undefined =>
+  (entry as { hash?: string } | undefined)?.hash;
+
 function expectedFile(workspace: string): string {
   const key = createHash("sha256")
     .update(path.resolve(workspace))
@@ -76,7 +79,9 @@ describe("search token cache file", () => {
       entries: { k: { hash: "h", ...TOKENS } },
     });
     expect(statSync(file).mode & 0o777).toBe(0o600);
-    expect(openSearchTokenCache("/work/a", "tok").get("k", "h")).toStrictEqual({
+    expect(
+      openSearchTokenCache("/work/a", "tok").get("k", "h") as unknown,
+    ).toStrictEqual({
       hash: "h",
       ...TOKENS,
     });
@@ -142,11 +147,11 @@ describe("search token cache file", () => {
     cache.set("last", "h", TOKENS);
     cache.save();
     const reopened = openSearchTokenCache("/work/a", "tok");
-    expect(reopened.get("first", "h2")?.hash).toBe("h2");
+    expect(hashOf(reopened.get("first", "h2"))).toBe("h2");
     expect(reopened.get("first", "h")).toBeUndefined();
     expect(reopened.get("e0", "h")).toBeUndefined();
-    expect(reopened.get("e1", "h")?.hash).toBe("h");
-    expect(reopened.get("last", "h")?.hash).toBe("h");
+    expect(hashOf(reopened.get("e1", "h"))).toBe("h");
+    expect(hashOf(reopened.get("last", "h"))).toBe("h");
     const saved = JSON.parse(readFileSync(expectedFile("/work/a"), "utf8"));
     expect(Object.keys(saved.entries).length).toBe(50_000);
   });

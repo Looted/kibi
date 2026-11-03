@@ -32,7 +32,8 @@ declare const __KIBI_CLI_VERSION__: string | undefined;
 const require = createRequire(import.meta.url);
 const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
 
-function manifestVersion(
+/** The version of the manifest at `manifestPath` when it names `expectedName`. */
+export function manifestVersion(
   manifestPath: string,
   expectedName: string,
 ): string | undefined {
@@ -46,25 +47,29 @@ function manifestVersion(
       ? manifest.version
       : undefined;
   } catch {
-    return undefined;
+    // An unreadable or malformed manifest has no version.
   }
+  return undefined;
 }
 
-function cliVersion(): string {
+/** The bundled kibi-cli version, else the one beside `directory` (src/ or dist/). */
+export function cliVersion(directory: string = moduleDirectory): string {
   if (typeof __KIBI_CLI_VERSION__ === "string") return __KIBI_CLI_VERSION__;
   // src/ and dist/ both sit directly under the package root.
   return (
-    manifestVersion(
-      path.join(moduleDirectory, "..", "package.json"),
-      "kibi-cli",
-    ) ?? "unknown"
+    manifestVersion(path.join(directory, "..", "package.json"), "kibi-cli") ??
+    "unknown"
   );
 }
 
-function coreVersion(): string {
+/** The installed kibi-core version, else the monorepo sibling's. */
+export function coreVersion(
+  resolveManifest: (id: string) => string = require.resolve,
+  directory: string = moduleDirectory,
+): string {
   try {
     const resolved = manifestVersion(
-      require.resolve("kibi-core/package.json"),
+      resolveManifest("kibi-core/package.json"),
       "kibi-core",
     );
     if (resolved) return resolved;
@@ -73,7 +78,7 @@ function coreVersion(): string {
   }
   return (
     manifestVersion(
-      path.join(moduleDirectory, "..", "..", "core", "package.json"),
+      path.join(directory, "..", "..", "core", "package.json"),
       "kibi-core",
     ) ?? "unknown"
   );
@@ -91,8 +96,5 @@ export const KIBI_BUILT_PACKAGE_VERSIONS = `kibi-cli@${cliVersion()},kibi-core@$
 /** KIBI_PACKAGE_VERSIONS when set (an explicit override), else the built versions. */
 // implements REQ-engine-daemon-package-versions
 export function kibiPackageVersions(): string {
-  const override = process.env.KIBI_PACKAGE_VERSIONS;
-  return override !== undefined && override.length > 0
-    ? override
-    : KIBI_BUILT_PACKAGE_VERSIONS;
+  return process.env.KIBI_PACKAGE_VERSIONS || KIBI_BUILT_PACKAGE_VERSIONS;
 }
