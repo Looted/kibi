@@ -272,7 +272,7 @@ describe("registerConfiguredTools, exact", () => {
     const { registered, calls } = setup();
     const required = (route: keyof typeof runtimeModule.MODEL_ROUTES) => {
       const schema = runtimeModule.MODEL_ROUTES[route].businessInputSchema as {
-        required?: string[];
+        required?: readonly string[];
       };
       return Object.fromEntries(
         (schema.required ?? []).map((field) => [field, `v-${field}`]),

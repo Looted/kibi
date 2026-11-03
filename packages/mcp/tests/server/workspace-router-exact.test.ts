@@ -8,6 +8,7 @@ import {
   type RoutingDecision,
   WORKSPACE_ROOT_ARGUMENT,
   WORKSPACE_ROOT_SCHEMA,
+  type WorkspaceMismatchDiagnostic,
   WorkspaceRouter,
   getWorkspaceRouter,
   setWorkspaceRouter,
@@ -132,7 +133,9 @@ function router(
 function remote(decision: RoutingDecision): Record<string, unknown> {
   if (decision.kind !== "remote") throw new Error("expected remote");
   return (
-    decision.result as { structuredContent: { data: Record<string, unknown> } }
+    decision.result as unknown as {
+      structuredContent: { data: Record<string, unknown> };
+    }
   ).structuredContent.data;
 }
 
@@ -149,10 +152,10 @@ function notice(
   attached: string,
   requested: string,
   resolved: string | null,
-  reason: string,
+  reason: WorkspaceMismatchDiagnostic["detail"]["reason"],
   text: string,
   error?: string,
-) {
+): WorkspaceMismatchDiagnostic {
   return {
     code: "workspace_mismatch",
     severity: "warning",
@@ -638,13 +641,12 @@ describe("defaults and helpers", () => {
   });
 
   test("withWorkspaceRootSchema adds the argument to any input schema", () => {
-    expect(
-      withWorkspaceRootSchema([
-        { name: "a", inputSchema: { type: "object", properties: { q: 1 } } },
-        { name: "b", inputSchema: { type: "object", properties: [1] } },
-        { name: "c", inputSchema: { type: "object" } },
-      ]),
-    ).toStrictEqual([
+    const tools: { name: string; inputSchema: Record<string, unknown> }[] = [
+      { name: "a", inputSchema: { type: "object", properties: { q: 1 } } },
+      { name: "b", inputSchema: { type: "object", properties: [1] } },
+      { name: "c", inputSchema: { type: "object" } },
+    ];
+    expect(withWorkspaceRootSchema(tools) as unknown).toStrictEqual([
       {
         name: "a",
         inputSchema: {
