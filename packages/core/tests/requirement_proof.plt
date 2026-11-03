@@ -22,6 +22,11 @@ rqp_roundtrip(Term, Parsed) :-
     with_output_to(string(Json), json_write_dict(current_output, Term, [])),
     atom_json_dict(Json, Parsed, [value_string_as(atom)]).
 
+%% rqp_hash(+Char, -Hash)
+% A 64-character hash of Char.
+rqp_hash(Char, Hash) :-
+    length(Codes, 64), maplist(=(Char), Codes), atom_codes(Hash, Codes).
+
 :- begin_tests(requirement_proof_normalizers).
 
 test(normalize_integer_shapes) :-
@@ -189,6 +194,22 @@ test(unknown_feasibility_is_an_advisory) :-
     del_dict(unknownFeasibility, Clean.scenarios, _, NoKey),
     put_dict(scenarios, Clean, NoKey, Stages2),
     once(requirement_proof:proof_issues(Stages2, [], [])).
+
+test(a_gap_with_several_causes_is_listed_once) :-
+    rqp_gaps([logicGrounding-missingManifestClaims-[k], logicGrounding-extraManifestClaims-[k],
+              logicGrounding-duplicateGroundClaims-[k], logicGrounding-invalidRuleFacts-[k]], Gaps),
+    Gaps == [logic_manifest_mismatch, ambiguous_logic_grounding],
+    rqp_full_stages([logicGrounding-missingManifestClaims-[k], logicGrounding-extraManifestClaims-[k],
+                     scenarios-unknownFeasibility-[x]], Stages),
+    findall(G-A, requirement_proof:proof_issues(Stages, G, A), Answers),
+    Answers == [[logic_manifest_mismatch]-[unknown_scenario_feasibility]].
+
+test(every_gap_has_repair_text) :-
+    forall(requirement_proof:gap_definition(Gap, _, _, Repair),
+           (   string(Repair), string_length(Repair, Len), Len > 20
+           ->  true
+           ;   format(user_error, "~q has repair ~q~n", [Gap, Repair]), fail
+           )).
 
 test(gaps_come_in_definition_order) :-
     rqp_gaps([sourceCoordinates-requirementSource-missing, semanticInventory-propositionCount-0,
@@ -743,3 +764,1852 @@ test(scenario_stage_without_unknown_or_negative_scenarios) :-
     )).
 
 :- end_tests(requirement_proof_context_and_scenarios).
+
+:- begin_tests(requirement_proof_certified_claims).
+
+%% rqp_contract_test(+TestId, +Contract, +Snapshot)
+% A unit test with Contract and one passed receipt on Snapshot that matches
+% the contract.
+rqp_contract_test(TestId, Contract, Snapshot) :-
+    with_output_to(string(ContractJson), json_write_dict(current_output, Contract, [width(0)])),
+    once(requirement_proof:proof_contract_hash(ContractJson, ContractHash)),
+    pf_receipt([test_id=TestId, scope=unit, code_snapshot=Snapshot, contract_hash=ContractHash], Receipt),
+    pf_receipts_json([Receipt], ReceiptsJson),
+    pf_entity(test, TestId, [status=passing, verification_scope=unit, proof_contract=ContractJson,
+                             proof_receipts=ReceiptsJson]).
+
+rqp_certified_context(Context) :-
+    rqp_hash(0'e, Current), rqp_hash(0'f, Old),
+    rqp_contract_test('T-STALE', _{kind: "exhaustive", proves: ["K1", "K3"]}, Old),
+    rqp_contract_test('T-OK', _{kind: "exhaustive", proves: ["K2"]}, Current),
+    rqp_contract_test('T-NOPROVES', _{kind: "exhaustive", proves: "K1"}, Old),
+    requirement_proof_context(Current, '2026-05-02T00:00:00Z', 100000000, strict_snapshot, _{}, Context).
+
+test(pending_certified_claims_are_open_claims_of_stale_certificates) :-
+    rqp_kb((
+        rqp_certified_context(Context),
+        once(requirement_proof:pending_certified_claim_keys(_{tests: ['T-STALE', 'T-OK', 'T-NOPROVES', 'T-NONE']},
+                                                            Context, ['K1', 'K2'], Keys)),
+        Keys == ['K1'],
+        once(requirement_proof:pending_certified_claim_keys(_{tests: ['T-STALE', 'T-STALE']}, Context,
+                                                            ['K3', 'K1'], Both)),
+        Both == ['K1', 'K3'],
+        once(requirement_proof:pending_certified_claim_keys(_{}, Context, ['K1'], None)),
+        None == []
+    )).
+
+:- end_tests(requirement_proof_certified_claims).
+
+rqp_ground_fixture :-
+    pf_entity(fact, 'F-SUBJ', [fact_kind=subject, subject_key="api.quota"]),
+    pf_entity(fact, 'F-P', [fact_kind=property_value, subject_key="api.quota", property_key="rate",
+        operator=eq, value_type=int, value_int=10, claim_key="K-P", claim_text="Quota is ten."]),
+    pf_entity(fact, 'F-D', [fact_kind=predicate, predicate_name="has_role", predicate_args=["alice", "admin"],
+        claim_key="K-D", claim_text="Alice  is admin"]),
+    with_output_to(string(Rule), json_write_dict(current_output,
+        _{version: 'kibi.logic.v1', kind: rule, modality: oblige,
+          head: _{kind: atom, name: act, args: []}, body: _{kind: atom, name: customer, args: []},
+          variables: []}, [width(0)])),
+    pf_entity(fact, 'F-R', [fact_kind=rule, rule_ir=Rule, rule_schema_id="F-SCHEMA", claim_key="K-R",
+        claim_text="Customers act"]),
+    pf_entity(fact, 'F-SCHEMA', [fact_kind=rule_schema, rule_name="act", argument_names=[], argument_types=[]]),
+    Inventory = [_{claim_key: "K-P", claim_text: "Quota is ten", role: a, status: modeled, span: _{start: 0, end: 1}},
+                 _{claim_key: "K-D", claim_text: "Alice is admin", role: a, status: modeled, span: _{start: 0, end: 1}},
+                 _{claim_key: "K-R", claim_text: "Customers act", role: a, status: modeled, span: _{start: 0, end: 1}},
+                 _{claim_key: "K-N", claim_text: "Nice", role: a, status: nonlogical, span: _{start: 0, end: 1}}],
+    with_output_to(string(InvJson), json_write_dict(current_output, Inventory, [width(0)])),
+    pf_entity(req, 'REQ-G', [status=open, logic_claims=["K-P", "K-D", "K-R"], semantic_inventory=InvJson]),
+    pf_raw_rel(constrains, 'REQ-G', 'F-SUBJ'),
+    pf_raw_rel(requires_property, 'REQ-G', 'F-P'),
+    pf_raw_rel(requires_predicate, 'REQ-G', 'F-D'),
+    pf_raw_rel(requires_rule, 'REQ-G', 'F-R').
+
+rqp_ground_stage(Context, Stage) :-
+    kb_entity('REQ-G', req, Props),
+    once(requirement_proof:semantic_inventory_stage(Props, _, Inventory)),
+    once(requirement_proof:logic_grounding_stage('REQ-G', Props, Inventory, Context, Stage)).
+
+rqp_no_findings(_{unsafeRules: [], unverifiableRules: []}).
+
+rqp_ground_fields(Stage, Keys, Pairs) :-
+    findall(Key-Value, (member(Key, Keys), get_dict(Key, Stage, Value)), Pairs).
+
+:- begin_tests(requirement_proof_logic_grounding).
+
+test(every_lane_grounds_its_claim) :-
+    rqp_kb((
+        rqp_ground_fixture,
+        rqp_no_findings(C),
+        rqp_ground_stage(C, Stage),
+        Path = 'test://proof_fixture.pl',
+        same(Stage, _{
+            status: passed,
+            manifestClaims: ['K-D', 'K-P', 'K-R'], inventoryClaims: ['K-D', 'K-P', 'K-R'],
+            modeledClaims: ['K-D', 'K-P', 'K-R'], groundedClaims: ['K-D', 'K-P', 'K-R'],
+            evidence: [_{claimKey: 'K-R', claimText: 'Customers act', factId: 'F-R', lane: rule},
+                       _{claimKey: 'K-D', claimText: 'Alice  is admin', factId: 'F-D', lane: predicate},
+                       _{claimKey: 'K-P', claimText: 'Quota is ten.', factId: 'F-P', lane: property}],
+            missingGroundClaims: [], duplicateGroundClaims: [], claimTextMismatchClaims: [],
+            invalidGroundClaims: [], missingManifestClaims: [], extraManifestClaims: [],
+            undeclaredGroundClaims: [], invalidRuleFacts: [],
+            sources: [_{id: 'F-P', path: Path}, _{id: 'F-D', path: Path}, _{id: 'F-R', path: Path}]})
+    )).
+
+test(broken_lanes_are_reported) :-
+    rqp_kb((
+        rqp_ground_fixture,
+        % A second fact for K-P, a predicate text that names another sentence,
+        % a rule whose schema is gone, and a linked claim outside the manifest.
+        pf_entity(fact, 'F-P2', [fact_kind=property_value, subject_key="api.quota", property_key="rate",
+            operator=eq, value_type=int, value_int=11, claim_key="K-P", claim_text="Quota is ten"]),
+        pf_raw_rel(requires_property, 'REQ-G', 'F-P2'),
+        pf_entity(fact, 'F-D', [fact_kind=predicate, predicate_name="has_role", predicate_args=["bob", "admin"],
+            claim_key="K-D", claim_text="Bob is admin"]),
+        pf_entity(fact, 'F-R', [fact_kind=rule, rule_ir="{}", rule_schema_id="F-SCHEMA", claim_key="K-R",
+            claim_text="Customers act"]),
+        pf_entity(fact, 'F-X', [fact_kind=predicate, predicate_name="has_role", predicate_args=["x", "y"],
+            claim_key="K-X", claim_text="Extra"]),
+        pf_raw_rel(requires_predicate, 'REQ-G', 'F-X'),
+        pf_entity(fact, 'F-Q', [fact_kind=property_value, subject_key="other.subject", property_key="rate",
+            operator=eq, value_type=int, value_int=1, claim_key="K-Q", claim_text="Other"]),
+        pf_raw_rel(requires_property, 'REQ-G', 'F-Q'),
+        rqp_no_findings(C),
+        rqp_ground_stage(C, Stage),
+        rqp_ground_fields(Stage, [status, groundedClaims, missingGroundClaims, duplicateGroundClaims,
+                                  claimTextMismatchClaims, invalidGroundClaims, undeclaredGroundClaims], Pairs),
+        Pairs == [status-missing, groundedClaims-['K-D', 'K-P', 'K-X'], missingGroundClaims-['K-R'],
+                  duplicateGroundClaims-['K-P'], claimTextMismatchClaims-['K-D'],
+                  invalidGroundClaims-['K-Q', 'K-R'], undeclaredGroundClaims-['K-Q', 'K-X']]
+    )).
+
+test(safety_findings_mark_rule_facts_invalid) :-
+    rqp_kb((
+        rqp_ground_fixture,
+        rqp_ground_stage(_{unsafeRules: [violation(r, 'F-R', d, s, x)], unverifiableRules: []}, S1),
+        get_dict(invalidRuleFacts, S1, I1), I1 == ['F-R'],
+        get_dict(status, S1, St1), St1 == unresolved,
+        rqp_ground_stage(_{unsafeRules: [], unverifiableRules: [violation(r, 'F-R', d, s, x)]}, S2),
+        get_dict(invalidRuleFacts, S2, I2), I2 == ['F-R']
+    )).
+
+test(manifest_and_inventory_differences) :-
+    rqp_kb((
+        rqp_ground_fixture,
+        rqp_no_findings(C),
+        Props = [logic_claims=["K-P", "K-D", "K-Z"]],
+        once(requirement_proof:logic_grounding_stage('REQ-G', Props, [], C, S)),
+        rqp_ground_fields(S, [status, manifestClaims, extraManifestClaims, missingManifestClaims,
+                              undeclaredGroundClaims], Pairs),
+        Pairs == [status-unresolved, manifestClaims-['K-D', 'K-P', 'K-Z'], extraManifestClaims-['K-D', 'K-P', 'K-Z'],
+                  missingManifestClaims-[], undeclaredGroundClaims-['K-R']],
+        once(requirement_proof:logic_grounding_stage('REQ-G', [], [], C, S0)),
+        get_dict(status, S0, St0), St0 == missing,
+        get_dict(manifestClaims, S0, M0), M0 == []
+    )).
+
+test(grounding_status_order) :-
+    once(requirement_proof:logic_grounding_status(false, [k], [], [], [], [], [], [], [], A)), A == missing,
+    first_answer_is_last(requirement_proof:logic_grounding_status(false, [], [], [], [], [], [], [], [], _)),
+    once(requirement_proof:logic_grounding_status(true, [k], [], [k], [], [], [], [], [], B)), B == missing,
+    once(requirement_proof:logic_grounding_status(true, [], [k], [], [], [], [], [], [], B2)), B2 == missing,
+    first_answer_is_last(requirement_proof:logic_grounding_status(true, [k], [k], [], [], [], [], [], [], _)),
+    forall(member(Args, [[[k], [], [], [], [], []], [[], [k], [], [], [], []], [[], [], [k], [], [], []],
+                         [[], [], [], [k], [], []], [[], [], [], [], [k], []], [[], [], [], [], [], [k]]]),
+           (   Args = [E, D, T, I, U, R],
+               once(requirement_proof:logic_grounding_status(true, [], [], E, D, T, I, U, R, S)), S == unresolved,
+               first_answer_is_last(requirement_proof:logic_grounding_status(true, [], [], E, D, T, I, U, R, _))
+           )),
+    once(requirement_proof:logic_grounding_status(true, [], [], [], [], [], [], [], [], P)), P == passed.
+
+test(claim_key_and_text_helpers) :-
+    once(requirement_proof:requirement_claim_keys([logic_claims=["b", "a", "b"]], P1, K1)), P1 == true, K1 == [a, b],
+    first_answer_is_last(requirement_proof:requirement_claim_keys([logic_claims=["a"]], _, _)),
+    once(requirement_proof:requirement_claim_keys([logic_claims=[]], P2, K2)), P2 == false, K2 == [],
+    once(requirement_proof:requirement_claim_keys([], P3, _)), P3 == false,
+    Entries = [_{claim_key: "K2", status: modeled}, _{claim_key: "K1", status: ambiguous},
+               _{claim_key: "K3", status: nonlogical}, _{status: modeled}],
+    once(requirement_proof:inventory_assertive_keys(Entries, A)), A == ['K1', 'K2'],
+    once(requirement_proof:inventory_modeled_keys(Entries, M)), M == ['K2'],
+    requirement_proof:claim_texts_equivalent('Users  sign in.', 'Users sign in'),
+    requirement_proof:claim_texts_equivalent('Users sign in !? ', 'Users sign in'),
+    \+ requirement_proof:claim_texts_equivalent('Users sign in', 'Users sign out'),
+    once(requirement_proof:canonical_claim_text('a b;', C)), C == 'a b',
+    once(requirement_proof:missing_keys([a, b, c], [b], Missing)), Missing == [a, c].
+
+:- end_tests(requirement_proof_logic_grounding).
+
+:- begin_tests(requirement_proof_contradiction_stage).
+
+rqp_witness_context(Witnesses, _{contradictionWitnesses: Witnesses}).
+
+test(contradiction_stage_outcomes) :-
+    W1 = _{requirements: ['REQ-A', 'REQ-B'], status: unresolved},
+    W2 = _{requirements: ['REQ-C', 'REQ-A'], status: contradiction},
+    W3 = _{requirements: ['REQ-C', 'REQ-D'], status: contradiction},
+    rqp_witness_context([W1, W2, W3], C1),
+    once(requirement_proof:contradiction_stage('REQ-A', passed, C1, S1)),
+    same(S1, _{status: blocked, outcome: conflict_found, conflicts: [W1, W2]}),
+    first_answer_is_last(requirement_proof:contradiction_stage('REQ-A', passed, C1, _)),
+    rqp_witness_context([W1, W3], C2),
+    once(requirement_proof:contradiction_stage('REQ-A', passed, C2, S2)),
+    same(S2, _{status: unresolved, outcome: analysis_incomplete, conflicts: [W1]}),
+    first_answer_is_last(requirement_proof:contradiction_stage('REQ-A', passed, C2, _)),
+    rqp_witness_context([W3], C3),
+    once(requirement_proof:contradiction_stage('REQ-A', missing, C3, S3)),
+    same(S3, _{status: unresolved, outcome: incomplete_grounding, conflicts: []}),
+    first_answer_is_last(requirement_proof:contradiction_stage('REQ-A', missing, C3, _)),
+    once(requirement_proof:contradiction_stage('REQ-A', passed, C3, S4)),
+    same(S4, _{status: passed, outcome: no_conflict_found, conflicts: []}).
+
+test(unmodeled_propositions_make_no_conflict_incomplete) :-
+    rqp_witness_context([], C),
+    once(requirement_proof:contradiction_stage('REQ-A', passed, unresolved, C, S1)),
+    same(S1, _{status: unresolved, outcome: analysis_incomplete, conflicts: [], reason: "unresolved_propositions"}),
+    once(requirement_proof:contradiction_stage('REQ-A', passed, passed, C, S2)),
+    same(S2, _{status: passed, outcome: no_conflict_found, conflicts: []}),
+    W = _{requirements: ['REQ-A'], status: contradiction},
+    rqp_witness_context([W], C2),
+    once(requirement_proof:contradiction_stage('REQ-A', passed, unresolved, C2, S3)),
+    get_dict(outcome, S3, O3), O3 == conflict_found.
+
+:- end_tests(requirement_proof_contradiction_stage).
+
+:- begin_tests(requirement_proof_negative_path).
+
+rqp_negative_stage(ScenarioStage, Stage) :-
+    requirement_proof_context(abc, '2026-05-02T00:00:00Z', 100, Context),
+    once(requirement_proof:negative_path_stage('REQ-G', ScenarioStage, _{}, Context, Stage)).
+
+rqp_suggestion(Key-FactId-Assumption, _{claimKey: Key, factId: FactId, assumption: Assumption, expects: rejection}).
+
+test(missing_failure_side_suggests_opposing_assumptions) :-
+    rqp_kb((
+        plunit_requirement_proof_logic_grounding:rqp_ground_fixture,
+        pf_entity(fact, 'F-NOKEY', [fact_kind=predicate, predicate_name="p", predicate_args=["a"]]),
+        pf_raw_rel(requires_predicate, 'REQ-G', 'F-NOKEY'),
+        rqp_negative_stage(_{}, Stage),
+        maplist(rqp_suggestion, [
+            'F-NOKEY'-'F-NOKEY'-_{fact_kind: predicate, polarity: deny, predicate_args: [a], predicate_name: p,
+                                  predicate_namespace: default},
+            'K-D'-'F-D'-_{fact_kind: predicate, polarity: deny, predicate_args: [alice, admin],
+                          predicate_name: has_role, predicate_namespace: default},
+            'K-P'-'F-P'-_{fact_kind: property_value, operator: neq, property_key: rate, subject_key: 'api.quota',
+                          value: 10, value_type: int},
+            'K-R'-'F-R'-_{fact_kind: predicate, polarity: assert, predicate_args: [], predicate_name: act,
+                          predicate_namespace: default}], Suggestions),
+        same(Stage, _{status: missing, claims: ['F-NOKEY', 'K-D', 'K-P', 'K-R'], certifiedClaims: [],
+                      negativeScenarios: [], suggestedNegatives: Suggestions, pendingReproofClaims: [],
+                      waiver: _{}})
+    )).
+
+test(negative_scenarios_waivers_and_no_claims) :-
+    rqp_kb((
+        plunit_requirement_proof_logic_grounding:rqp_ground_fixture,
+        rqp_negative_stage(_{negativeScenarios: ['SCN-N']}, Passed),
+        get_dict(status, Passed, S1), S1 == passed,
+        get_dict(suggestedNegatives, Passed, G1), G1 == [],
+        get_dict(negativeScenarios, Passed, N1), N1 == ['SCN-N'],
+        requirement_proof_context(abc, '2026-05-02T00:00:00Z', 100, Context),
+        pf_entity(req, 'REQ-W1', [status=open, failure_side_waiver="No input to refuse"]),
+        pf_raw_rel(requires_property, 'REQ-W1', 'F-P'),
+        once(requirement_proof:negative_path_stage('REQ-W1', _{}, _{}, Context, Pending)),
+        get_dict(status, Pending, S2), S2 == missing,
+        get_dict(waiver, Pending, W2), same(W2, _{reason: "No input to refuse"}),
+        pf_entity(req, 'REQ-W2', [status=open, failure_side_waiver="No input to refuse",
+                                  failure_side_waiver_approved_by="ann"]),
+        pf_raw_rel(requires_property, 'REQ-W2', 'F-P'),
+        once(requirement_proof:negative_path_stage('REQ-W2', _{}, _{}, Context, Waived)),
+        get_dict(status, Waived, S3), S3 == waived,
+        get_dict(waiver, Waived, W3), same(W3, _{reason: "No input to refuse", approvedBy: "ann"}),
+        get_dict(suggestedNegatives, Waived, G3), G3 == [],
+        pf_entity(req, 'REQ-EMPTY', [status=open]),
+        once(requirement_proof:negative_path_stage('REQ-EMPTY', _{negativeScenarios: []}, _{}, Context, Empty)),
+        get_dict(status, Empty, S4), S4 == not_required
+    )).
+
+test(failure_side_waiver_fields) :-
+    rqp_kb((
+        pf_entity(req, 'R-1', [failure_side_waiver="", failure_side_waiver_approved_by="ann"]),
+        pf_entity(req, 'R-2', [failure_side_waiver="why", failure_side_waiver_approved_by=""]),
+        once(requirement_proof:failure_side_waiver('R-1', W1)), same(W1, _{}),
+        once(requirement_proof:failure_side_waiver('R-2', W2)), same(W2, _{reason: "why"}),
+        once(requirement_proof:failure_side_waiver('R-NONE', W3)), same(W3, _{})
+    )).
+
+test(negative_path_links_and_claim_keys) :-
+    findall(L, requirement_proof:negative_path_link(L), Links),
+    Links == [requires_property, requires_predicate, requires_rule],
+    rqp_kb((
+        pf_entity(fact, 'F-K', [claim_key="K-1"]),
+        pf_entity(fact, 'F-E', [claim_key=""]),
+        once(requirement_proof:fact_claim_key_or_id('F-K', K1)), K1 == 'K-1',
+        once(requirement_proof:fact_claim_key_or_id('F-E', K2)), K2 == 'F-E',
+        once(requirement_proof:fact_claim_key_or_id('F-NONE', K3)), K3 == 'F-NONE'
+    )).
+
+:- end_tests(requirement_proof_negative_path).
+
+:- begin_tests(requirement_proof_scenario_obligations).
+
+rqp_items(States, Items) :-
+    findall(_{testId: T, state: S}, (nth1(N, States, S), format(atom(T), 'T-~w', [N])), Items).
+
+test(obligation_gaps_per_receipt_state) :-
+    once(requirement_proof:scenario_obligation_gaps(_{status: missing}, [], G1)), G1 == [missing_scenario_test],
+    once(requirement_proof:scenario_obligation_gaps(_{status: passed}, [], G2)), G2 == [missing_passing_e2e],
+    once(requirement_proof:scenario_obligation_gaps(_{status: blocked}, [], G3)), G3 == [],
+    rqp_items([snapshot_unavailable, contract_mismatch, invalid, failed, stale, missing, passed, stale], Items),
+    once(requirement_proof:scenario_obligation_gaps(_{status: passed}, Items, G4)),
+    G4 == [failed_proof_receipt, invalid_proof_receipt, missing_proof_receipt, proof_contract_mismatch,
+           proof_snapshot_unavailable, stale_proof_receipt],
+    rqp_items([passed], Passed),
+    once(requirement_proof:scenario_obligation_gaps(_{status: passed}, Passed, G5)), G5 == [].
+
+test(obligation_status) :-
+    rqp_items([passed, passed], Passed),
+    rqp_items([passed, stale], Mixed),
+    once(requirement_proof:scenario_obligation_status(_{status: missing}, Passed, S1)), S1 == missing,
+    first_answer_is_last(requirement_proof:scenario_obligation_status(_{status: missing}, Passed, _)),
+    once(requirement_proof:scenario_obligation_status(_{status: passed}, [], S2)), S2 == missing,
+    first_answer_is_last(requirement_proof:scenario_obligation_status(_{status: passed}, [], _)),
+    once(requirement_proof:scenario_obligation_status(_{status: passed}, Passed, S3)), S3 == passed,
+    first_answer_is_last(requirement_proof:scenario_obligation_status(_{status: passed}, Passed, _)),
+    once(requirement_proof:scenario_obligation_status(_{status: passed}, Mixed, S4)), S4 == unresolved.
+
+test(passing_e2e_status) :-
+    once(requirement_proof:passing_e2e_status([], S1)), S1 == missing,
+    first_answer_is_last(requirement_proof:passing_e2e_status([], _)),
+    once(requirement_proof:passing_e2e_status([_{status: passed}], S2)), S2 == passed,
+    first_answer_is_last(requirement_proof:passing_e2e_status([_{status: passed}], _)),
+    once(requirement_proof:passing_e2e_status([_{status: passed}, _{status: missing}], S3)), S3 == missing,
+    first_answer_is_last(requirement_proof:passing_e2e_status([_{status: unresolved}, _{status: missing}], _)),
+    once(requirement_proof:passing_e2e_status([_{status: passed}, _{status: unresolved}], S4)), S4 == unresolved.
+
+test(evidence_by_state_and_first_evidence) :-
+    Items = [_{testId: b, state: passed}, _{testId: a, state: passed}, _{testId: c, state: stale},
+             _{testId: a, state: passed}],
+    once(requirement_proof:evidence_tests_with_state(Items, passed, P)), P == [a, b],
+    Mixed = [_{testId: t, state: not_end_to_end, n: 1}, _{testId: t, state: passed, n: 2},
+             _{testId: u, state: not_end_to_end, n: 3}],
+    once(requirement_proof:first_evidence_for_test(Mixed, t, I1)), get_dict(n, I1, N1), N1 == 2,
+    first_answer_is_last(requirement_proof:first_evidence_for_test(Mixed, t, _)),
+    once(requirement_proof:first_evidence_for_test(Mixed, u, I2)), get_dict(n, I2, N2), N2 == 3,
+    first_answer_is_last(requirement_proof:first_evidence_for_test(Mixed, u, _)),
+    once(requirement_proof:unique_evidence_by_test(Mixed, U)),
+    findall(N, (member(I, U), get_dict(n, I, N)), Ns), Ns == [2, 3].
+
+test(component_scope_scenarios_accept_unit_evidence) :-
+    rqp_kb((
+        pf_entity(fact, 'F-UI', [fact_kind=predicate, predicate_name="ui_pattern", predicate_args=["card"]]),
+        pf_entity(fact, 'F-MARK', [fact_kind=predicate, predicate_name="pattern_marker", predicate_args=["card"]]),
+        pf_entity(fact, 'F-LAYOUT', [fact_kind=predicate, predicate_name="ui_container", predicate_args=["card"]]),
+        pf_entity(fact, 'F-SUBJ', [fact_kind=subject, subject_key="x"]),
+        pf_entity(req, 'REQ-UI', [status=open]),
+        pf_raw_rel(requires_predicate, 'REQ-UI', 'F-UI'),
+        pf_raw_rel(requires_predicate, 'REQ-UI', 'F-MARK'),
+        pf_entity(scenario, 'SCN-UI', []),
+        pf_raw_rel(specified_by, 'REQ-UI', 'SCN-UI'),
+        once(requirement_proof:scenario_accepted_scopes('SCN-UI', S1)), S1 == [unit, integration, end_to_end],
+        first_answer_is_last(requirement_proof:scenario_accepted_scopes('SCN-UI', _)),
+        pf_entity(scenario, 'SCN-NONE', []),
+        once(requirement_proof:scenario_accepted_scopes('SCN-NONE', S2)), S2 == [end_to_end],
+        pf_entity(req, 'REQ-LAYOUT', [status=open]),
+        pf_raw_rel(requires_predicate, 'REQ-LAYOUT', 'F-LAYOUT'),
+        \+ requirement_proof:component_scope_requirement('REQ-LAYOUT'),
+        pf_entity(req, 'REQ-EMPTY', [status=open]),
+        \+ requirement_proof:component_scope_requirement('REQ-EMPTY'),
+        pf_entity(req, 'REQ-PROP', [status=open]),
+        pf_raw_rel(requires_predicate, 'REQ-PROP', 'F-UI'),
+        requirement_proof:component_scope_requirement('REQ-PROP'),
+        pf_raw_rel(requires_property, 'REQ-PROP', 'F-SUBJ'),
+        \+ requirement_proof:component_scope_requirement('REQ-PROP'),
+        pf_entity(req, 'REQ-RULE', [status=open]),
+        pf_raw_rel(requires_predicate, 'REQ-RULE', 'F-UI'),
+        pf_raw_rel(requires_rule, 'REQ-RULE', 'F-SUBJ'),
+        \+ requirement_proof:component_scope_requirement('REQ-RULE'),
+        pf_raw_rel(specified_by, 'REQ-LAYOUT', 'SCN-UI'),
+        once(requirement_proof:scenario_accepted_scopes('SCN-UI', S3)), S3 == [end_to_end]
+    )).
+
+test(evidence_kinds) :-
+    requirement_proof:e2e_evidence(_{state: passed}),
+    \+ requirement_proof:e2e_evidence(_{state: not_end_to_end}),
+    requirement_proof:non_e2e_evidence(_{state: not_end_to_end}),
+    \+ requirement_proof:non_e2e_evidence(_{state: passed}).
+
+:- end_tests(requirement_proof_scenario_obligations).
+
+:- begin_tests(requirement_proof_symbol_stages).
+
+test(executable_symbol_stage) :-
+    rqp_kb((
+        pf_entity(symbol, 'SYM-1', []),
+        pf_entity(test, 'T-1', []),
+        pf_entity(test, 'T-2', []),
+        pf_entity(fact, 'NOT-SYM', []),
+        pf_raw_rel(executable_for, 'SYM-1', 'T-1'),
+        pf_raw_rel(executable_for, 'NOT-SYM', 'T-2'),
+        once(requirement_proof:executable_symbol_stage(['T-1', 'T-2'], S1, Syms1)),
+        Syms1 == ['SYM-1'],
+        same(S1, _{status: missing, symbols: ['SYM-1'], missingTests: ['T-2'],
+                   coordinates: [_{id: 'SYM-1', path: ''}]}),
+        once(requirement_proof:executable_symbol_stage(['T-1'], S2, _)),
+        get_dict(status, S2, St2), St2 == passed,
+        once(requirement_proof:executable_symbol_stage([], S3, Syms3)), Syms3 == [],
+        same(S3, _{status: blocked, symbols: [], missingTests: [], coordinates: []})
+    )).
+
+test(production_symbol_sets_split_structural_symbols) :-
+    rqp_kb((
+        pf_entity(req, 'REQ-P', [status=open]),
+        pf_entity(symbol, 'SYM-PROD', []),
+        pf_entity(symbol, 'SYM-SHAPE', [symbol_role="type-shape"]),
+        pf_entity(symbol, 'SYM-SHAPE-E2E', [symbol_role="type-shape"]),
+        pf_entity(symbol, 'SYM-EXEC', []),
+        pf_entity(fact, 'NOT-SYM', []),
+        pf_entity(test, 'T-UNIT', [verification_scope=unit, status=passing]),
+        pf_entity(test, 'T-E2E', [verification_scope=end_to_end, status=passing]),
+        pf_entity(test, 'T-RUN', []),
+        forall(member(S, ['SYM-PROD', 'SYM-SHAPE', 'SYM-SHAPE-E2E', 'SYM-EXEC', 'NOT-SYM']),
+               pf_raw_rel(implements, S, 'REQ-P')),
+        pf_raw_rel(executable_for, 'SYM-EXEC', 'T-RUN'),
+        pf_raw_rel(covered_by, 'SYM-SHAPE', 'T-UNIT'),
+        pf_raw_rel(covered_by, 'SYM-SHAPE-E2E', 'T-E2E'),
+        once(requirement_proof:production_symbol_sets('REQ-P', symbol_sets(Structural, Production, Coordinates))),
+        Structural == ['SYM-SHAPE'],
+        Production == ['SYM-PROD', 'SYM-SHAPE-E2E'],
+        same(Coordinates, [_{id: 'SYM-PROD', path: ''}, _{id: 'SYM-SHAPE-E2E', path: ''}]),
+        requirement_proof:structural_symbol_covered(['T-UNIT'], [], 'SYM-SHAPE'),
+        first_answer_is_last(requirement_proof:structural_symbol_covered(['T-UNIT'], ['T-UNIT'-passed], 'SYM-SHAPE')),
+        requirement_proof:structural_symbol_covered([], ['T-UNIT'-passed], 'SYM-SHAPE'),
+        \+ requirement_proof:structural_symbol_covered([], ['T-UNIT'-stale], 'SYM-SHAPE'),
+        \+ requirement_proof:structural_symbol_covered(['T-E2E'], [], 'SYM-SHAPE')
+    )).
+
+test(production_stage_status_reasons) :-
+    once(requirement_proof:production_stage_status([], [], [], [], [], S1, R1)),
+    S1 == missing, R1 == "no production symbols implement this requirement; link at least one with implements",
+    once(requirement_proof:production_stage_status([p], [], [], [p], [], S2, R2)),
+    S2 == blocked,
+    R2 == "no passing E2E test evidence is available for the current snapshot; run kibi prove so this stage can evaluate production symbol coverage",
+    once(requirement_proof:production_stage_status([], [s], [], [], [s], S2b, _)), S2b == blocked,
+    once(requirement_proof:production_stage_status([p], [s], [t], [], [], S3, R3)), S3 == passed, var(R3),
+    once(requirement_proof:production_stage_status([p, q], [], [t], [p, q], [], S4, R4)),
+    S4 == missing, R4 == '2 production symbol(s) lack covered_by links to the passing E2E tests',
+    once(requirement_proof:production_stage_status([], [s], [t], [], [s], S5, R5)),
+    S5 == missing,
+    R5 == '1 type-shape symbol(s) lack a covered_by unit test with a current passing receipt; run kibi prove on those unit tests',
+    once(requirement_proof:production_stage_status([p], [s, r], [t], [p], [s, r], S6, R6)),
+    S6 == missing,
+    R6 == '1 production symbol(s) lack covered_by links to the passing E2E tests and 2 type-shape symbol(s) lack a covered_by unit test with a current passing receipt'.
+
+:- end_tests(requirement_proof_symbol_stages).
+
+:- begin_tests(requirement_proof_source_coordinates).
+
+test(source_coordinate_stage_outcomes) :-
+    rqp_kb((
+        pf_entity(symbol, 'S-1', []),
+        pf_entity(symbol, 'S-2', [sourceFile="src/a.ts", sourceLine=1, sourceColumn=0, sourceEndLine=2,
+                                  sourceEndColumn=3]),
+        S2Ref = _{column: 0, endColumn: 3, endLine: 2, id: 'S-2', line: 1, path: 'src/a.ts'},
+        once(requirement_proof:source_coordinate_stage([], [], [], A)),
+        same(A, _{coordinates: [], missingSymbols: [], requirementPath: '', requirementSource: missing,
+                  status: missing, symbols: []}),
+        once(requirement_proof:source_coordinate_stage([source="r.md"], ['S-1'], ['S-2'], B)),
+        same(B, _{coordinates: [_{id: 'S-1', path: ''}, S2Ref], missingSymbols: ['S-1'], requirementPath: 'r.md',
+                  requirementSource: present, status: missing, symbols: ['S-1', 'S-2']}),
+        once(requirement_proof:source_coordinate_stage([source="r.md"], [], ['S-2'], C)),
+        same(C, _{coordinates: [S2Ref], missingSymbols: [], requirementPath: 'r.md', requirementSource: present,
+                  status: passed, symbols: ['S-2']}),
+        once(requirement_proof:source_coordinate_stage([source="r.md"], [], [], D)),
+        get_dict(status, D, DS), DS == blocked,
+        once(requirement_proof:source_coordinate_stage([source=""], [], ['S-2'], E)),
+        get_dict(requirementSource, E, ES), ES == missing
+    )).
+
+test(source_property_prefers_a_nonempty_source_file) :-
+    once(requirement_proof:proof_source_property([sourceFile="", source="b.md"], P1)), P1 == "b.md",
+    once(requirement_proof:proof_source_property([sourceFile="a.ts", source="b.md"], P2)), P2 == "a.ts",
+    first_answer_is_last(requirement_proof:proof_source_property([sourceFile="a.ts", source="b.md"], _)),
+    \+ requirement_proof:proof_source_property([sourceFile="", source=""], _),
+    \+ requirement_proof:proof_source_property([], _),
+    requirement_proof:nonempty_source([source="b.md"]),
+    \+ requirement_proof:nonempty_source([source=""]).
+
+test(ground_source_refs_skip_facts_without_a_source) :-
+    rqp_kb((
+        pf_entity(fact, 'F-1', [source="src/f.md"]),
+        pf_entity(fact, 'F-2', [source=""]),
+        once(requirement_proof:ground_source_refs([_{factId: 'F-2'}, _{factId: 'F-1'}], Refs)),
+        same(Refs, [_{id: 'F-1', path: 'src/f.md'}])
+    )).
+
+:- end_tests(requirement_proof_source_coordinates).
+
+% REQ-C claims K-SET, grounded by the set fact F-SET; T-CERT holds a fresh
+% exhaustive certificate receipt over that set with the claim bindings given.
+rqp_cert_fixture(Bindings) :-
+    pf_entity(fact, 'F-SET', [fact_kind=property_value, subject_key="palette", property_key="colors",
+        operator=eq, value_type=set, value_set=["a", "b"], claim_key="K-SET", claim_text="Colors are a and b"]),
+    with_output_to(string(Inv), json_write_dict(current_output, [_{claim_key: "K-SET", claim_text: "Colors are a and b",
+        role: normative, status: modeled, span: _{start: 0, end: 18}}], [width(0)])),
+    pf_entity(req, 'REQ-C', [status=open, semantic_inventory=Inv]),
+    pf_raw_rel(requires_property, 'REQ-C', 'F-SET'),
+    Cert = _{version: "kibi.code-certificate.v1", kind: "exhaustive", test_id: "T-CERT",
+             domain: _{symbol_id: "SYM-D", members: ["a", "b"]},
+             results: [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "passed"}]},
+    code_certificates:code_certificate_digest(Cert, Digest),
+    rqp_hash(0'a, Snap),
+    pf_receipt([test_id='T-CERT', scope=unit, code_snapshot=Snap, version='kibi.proof-receipt.v2',
+                kind=exhaustive, evidence_level=proved, certificate=Cert, certificate_digest=Digest,
+                claim_bindings=Bindings], R),
+    pf_receipts_json([R], RJ),
+    pf_entity(test, 'T-CERT', [status=passing, verification_scope=unit, proof_receipts=RJ]).
+
+rqp_derived_binding(_{claim_key: "K-SET", requirement_id: "REQ-C", fact_id: "F-SET", binding: "derived",
+                      scope: "code", obligation: _{kind: "set_equals", members: ["a", "b"]}}).
+
+rqp_cert_context(Context) :-
+    rqp_hash(0'a, Snapshot),
+    requirement_proof_context(Snapshot, '2026-05-01T00:05:00Z', 100000, Context).
+
+:- begin_tests(requirement_proof_certified_bindings).
+
+test(a_derived_code_binding_certifies_the_claim) :-
+    rqp_kb((
+        rqp_derived_binding(B), rqp_cert_fixture([B]),
+        rqp_cert_context(C),
+        once(requirement_proof:certified_claim_keys('REQ-C', _{tests: ['T-CERT', 'T-NONE']}, C, Keys)),
+        Keys == ['K-SET'],
+        once(requirement_proof:certified_claim_keys('REQ-OTHER', _{tests: ['T-CERT']}, C, Other)), Other == [],
+        once(requirement_proof:certified_claim_keys('REQ-C', _{}, C, None)), None == [],
+        once(requirement_proof:negative_path_stage('REQ-C', _{}, _{tests: ['T-CERT']}, C, Negative)),
+        get_dict(status, Negative, NS), NS == not_required,
+        get_dict(certifiedClaims, Negative, NC), NC == ['K-SET'],
+        once(requirement_proof:cases_stage('REQ-C', _{scenarios: []}, _{tests: ['T-CERT']}, C, Cases)),
+        get_dict(status, Cases, CS), CS == not_required
+    )).
+
+test(other_bindings_certify_nothing) :-
+    rqp_derived_binding(B),
+    forall(member(Change, [binding-"attested", scope-"intent", requirement_id-"REQ-OTHER"]),
+           (   Change = Key-Value,
+               put_dict(Key, B, Value, B1),
+               rqp_kb((
+                   rqp_cert_fixture([B1]),
+                   rqp_cert_context(C),
+                   once(requirement_proof:certified_claim_keys('REQ-C', _{tests: ['T-CERT']}, C, Keys)),
+                   Keys == []
+               ))
+           )).
+
+test(a_stale_certificate_certifies_nothing) :-
+    rqp_kb((
+        rqp_derived_binding(B), rqp_cert_fixture([B]),
+        rqp_hash(0'b, Other),
+        requirement_proof_context(Other, '2026-05-01T00:05:00Z', 100000, C),
+        once(requirement_proof:certified_claim_keys('REQ-C', _{tests: ['T-CERT']}, C, Keys)),
+        Keys == []
+    )).
+
+:- end_tests(requirement_proof_certified_bindings).
+
+:- begin_tests(requirement_proof_gap_table).
+
+rqp_all_gap_stages(ContradictionStatus, ScenarioStatus, Stages) :-
+    rqp_full_stages([
+        semanticInventory-propositionCount-0, semanticInventory-missingCount-1,
+        semanticInventory-malformedCount-1, semanticInventory-unresolvedCount-1,
+        logicGrounding-manifestClaims-[], logicGrounding-missingManifestClaims-[k],
+        logicGrounding-extraManifestClaims-[k], logicGrounding-undeclaredGroundClaims-[k],
+        logicGrounding-missingGroundClaims-[k], logicGrounding-duplicateGroundClaims-[k],
+        logicGrounding-claimTextMismatchClaims-[k], logicGrounding-invalidGroundClaims-[k],
+        logicGrounding-invalidRuleFacts-[k],
+        contradictions-status-ContradictionStatus,
+        scenarios-status-ScenarioStatus, scenarios-infeasibleScenarios-[s], scenarios-unknownFeasibility-[s],
+        negativePath-status-missing, dimension-status-missing, cases-status-missing,
+        scenarioTests-status-missing,
+        passingE2e-status-missing, passingE2e-missingReceiptTests-[t], passingE2e-staleReceiptTests-[t],
+        passingE2e-failedReceiptTests-[t], passingE2e-invalidReceiptTests-[t],
+        passingE2e-contractMismatchReceiptTests-[t], passingE2e-snapshotUnavailableTests-[t],
+        executableSymbols-status-missing,
+        productionSymbols-symbols-[], productionSymbols-uncoveredSymbols-[s],
+        sourceCoordinates-missingSymbols-[s], sourceCoordinates-requirementSource-missing
+    ], Stages).
+
+% Every clause answers in turn when the gap is left open, so no clause may
+% commit to its answer.
+test(every_gap_clause_answers) :-
+    rqp_all_gap_stages(blocked, missing, S1),
+    findall(G, requirement_proof:proof_gap_present(G, S1), L1),
+    L1 == [missing_semantic_inventory, incomplete_semantic_inventory, malformed_semantic_inventory,
+           unresolved_semantic_proposition, missing_logic_claims,
+           logic_manifest_mismatch, logic_manifest_mismatch, logic_manifest_mismatch,
+           missing_logic_grounding,
+           ambiguous_logic_grounding, ambiguous_logic_grounding, ambiguous_logic_grounding, ambiguous_logic_grounding,
+           blocking_contradiction, missing_scenario, infeasible_scenario, unknown_scenario_feasibility,
+           happy_path_only, dimension_unrepresented, uncovered_case, missing_passing_e2e,
+           missing_proof_receipt, stale_proof_receipt, failed_proof_receipt, invalid_proof_receipt,
+           proof_contract_mismatch, proof_snapshot_unavailable, missing_executable_test_symbol,
+           missing_production_symbol, missing_production_symbol_coverage, missing_symbol_coordinates,
+           missing_requirement_source],
+    rqp_all_gap_stages(unresolved, blocked, S2),
+    findall(G, (requirement_proof:proof_gap_present(G, S2),
+                memberchk(G, [contradiction_check_incomplete, missing_scenario_test, missing_scenario])), L2),
+    L2 == [contradiction_check_incomplete, missing_scenario_test],
+    rqp_all_gap_stages(unresolved, passed, S3),
+    once(requirement_proof:proof_gap_present(missing_scenario_test, S3)).
+
+test(gap_definitions_table) :-
+    findall(G-P-S, requirement_proof:gap_definition(G, P, S, _), Rows),
+    Rows == [missing_semantic_inventory-10-semantic_inventory, incomplete_semantic_inventory-11-semantic_inventory,
+             malformed_semantic_inventory-12-semantic_inventory, unresolved_semantic_proposition-20-semantic_inventory,
+             missing_logic_claims-30-logic_grounding, logic_manifest_mismatch-31-logic_grounding,
+             missing_logic_grounding-32-logic_grounding, ambiguous_logic_grounding-33-logic_grounding,
+             blocking_contradiction-40-contradictions, contradiction_check_incomplete-41-contradictions,
+             unknown_scenario_feasibility-49-scenarios, missing_scenario-50-scenarios,
+             infeasible_scenario-49-scenarios, dimension_unrepresented-47-dimension, uncovered_case-46-cases,
+             happy_path_only-48-negative_path, missing_scenario_test-51-scenario_tests,
+             missing_passing_e2e-52-passing_e2e, missing_proof_receipt-53-passing_e2e,
+             stale_proof_receipt-54-passing_e2e, failed_proof_receipt-55-passing_e2e,
+             invalid_proof_receipt-56-passing_e2e, proof_contract_mismatch-57-passing_e2e,
+             proof_snapshot_unavailable-58-passing_e2e, missing_executable_test_symbol-60-executable_symbols,
+             missing_production_symbol-70-production_symbols,
+             missing_production_symbol_coverage-71-production_symbols,
+             missing_symbol_coordinates-80-source_coordinates, missing_requirement_source-81-source_coordinates].
+
+:- end_tests(requirement_proof_gap_table).
+
+:- begin_tests(requirement_proof_applicability).
+
+test(exempt_and_not_current_requirements_skip_the_ladder) :-
+    rqp_kb((
+        pf_entity(req, 'REQ-EX', [status=open, proof_exempt=true, proof_exempt_reason="Outside scope"]),
+        pf_entity(req, 'REQ-OLD', [status=deprecated]),
+        pf_entity(req, 'REQ-OPEN', [status=open]),
+        requirement_proof_context(abc, '2026-05-02T00:00:00Z', 100, C),
+        forall(member(Id-Reason, ['REQ-EX'-'Outside scope',
+                                  'REQ-OLD'-'status \'deprecated\' is not a current requirement status']),
+               (   kb_entity(Id, req, Props),
+                   once(requirement_proof:compute_requirement_proof(Id, Props, C, Proof)),
+                   get_dict(proofStatus, Proof, not_applicable),
+                   get_dict(proofStages, Proof, Stages),
+                   same(Stages, _{applicability: _{status: not_applicable, reason: Reason}}),
+                   first_answer_is_last(requirement_proof:compute_requirement_proof(Id, Props, C, _))
+               )),
+        kb_entity('REQ-OPEN', req, OpenProps),
+        once(requirement_proof:compute_requirement_proof('REQ-OPEN', OpenProps, C, Open)),
+        get_dict(proofStatus, Open, OpenStatus), OpenStatus == missing
+    )).
+
+test(proof_exempt_needs_a_true_flag_and_a_reason) :-
+    forall(member(F, [true, "yes", on, '1']),
+           (   once(requirement_proof:proof_exempt([proof_exempt=F, proof_exempt_reason="r"], R)), R == r )),
+    \+ requirement_proof:proof_exempt([proof_exempt=no, proof_exempt_reason="r"], _),
+    \+ requirement_proof:proof_exempt([proof_exempt=true, proof_exempt_reason=""], _),
+    \+ requirement_proof:proof_exempt([proof_exempt=true], _),
+    \+ requirement_proof:proof_exempt([proof_exempt_reason="r"], _).
+
+:- end_tests(requirement_proof_applicability).
+
+:- begin_tests(requirement_proof_default_context).
+
+test(default_context_parameters) :-
+    rqp_kb((
+        once(requirement_proof_context(C)),
+        get_dict(proofSnapshot, C, S), S == unknown,
+        get_dict(proofCheckedAt, C, A), A == '1970-01-01T00:00:00Z',
+        get_dict(proofMaxAgeSeconds, C, M), M == 604800,
+        get_dict(proofBindingMode, C, B), B == strict_snapshot,
+        get_dict(proofTestBindings, C, T), same(T, _{}),
+        once(requirement_proof:proof_version(V)), V == 'kibi.requirement-proof.v5'
+    )).
+
+:- end_tests(requirement_proof_default_context).
+
+%% rqp_canon(+Term, -Canon)
+% Term with every dict replaced by dict(Pairs), so whole proofs compare with ==.
+rqp_canon(D, dict(Ps)) :- is_dict(D), !, dict_pairs(D, _, P0), maplist(rqp_canon_pair, P0, Ps).
+rqp_canon(L, C) :- is_list(L), !, maplist(rqp_canon, L, C).
+rqp_canon(X, X).
+rqp_canon_pair(K-V, K-C) :- rqp_canon(V, C).
+
+rqp_json(T, S) :- with_output_to(string(S), json_write_dict(current_output, T, [width(0)])).
+
+% REQ-P is tested end to end through T-E2E on two scenarios, and T-CERT
+% holds an exhaustive certificate over K-P's set; REQ-D and its tests,
+% scenarios and symbols are unrelated entities the proof must leave out.
+rqp_full_cert(Members, Results, Cert) :-
+    Cert = _{version: "kibi.code-certificate.v1", kind: "exhaustive", test_id: "T-CERT",
+             domain: _{symbol_id: "SYM-DOM", members: Members}, results: Results}.
+
+rqp_full_fixture(Cert, Digest, Bindings) :-
+    rqp_hash(0'a, Snap),
+    rqp_json([_{claim_key: "K-P", claim_text: "Outcomes are a and b", role: normative, status: modeled,
+            span: _{start: 0, end: 20}},
+          _{claim_key: "K-N", claim_text: "Background", role: context, status: nonlogical,
+            span: _{start: 21, end: 31}}], Inv),
+    pf_entity(req, 'REQ-P', [status=active, priority=must, logic_claims=['K-P'], semantic_inventory=Inv]),
+    pf_entity(fact, 'F-PS', [fact_kind=subject, subject_key="report"]),
+    pf_entity(fact, 'F-PP', [fact_kind=property_value, subject_key="report", property_key="outcomes",
+        operator=eq, value_type=set, value_set=["a", "b"], claim_key="K-P", claim_text="Outcomes are a and b",
+        case_waiver="Closed set", case_waiver_approved_by="Owner"]),
+    pf_entity(fact, 'F-PART', [fact_kind=property_value, subject_key="report", property_key="outcomes",
+        operator=eq, value_type=set, value_set=["a"]]),
+    pf_entity(scenario, 'S-P', []),
+    pf_entity(scenario, 'S-PN', [expects=rejection]),
+    pf_receipt([test_id='T-E2E', code_snapshot=Snap], E2eReceipt),
+    pf_receipts_json([E2eReceipt], E2eJson),
+    pf_entity(test, 'T-E2E', [status=passing, verification_scope=end_to_end, proof_receipts=E2eJson]),
+    pf_receipt([test_id='T-CERT', receipt_id='PR-FIXTURE00002', scope=unit, code_snapshot=Snap,
+                version='kibi.proof-receipt.v2', kind=exhaustive, evidence_level=proved, certificate=Cert,
+                certificate_digest=Digest, claim_bindings=Bindings], CertReceipt),
+    pf_receipts_json([CertReceipt], CertJson),
+    pf_entity(test, 'T-CERT', [status=passing, verification_scope=unit, proof_receipts=CertJson]),
+    pf_entity(symbol, 'SYM-PROD', [sourceFile="src/a.pl", sourceLine=10, sourceColumn=0, sourceEndLine=30, sourceEndColumn=1]),
+    pf_entity(symbol, 'SYM-E2E', [sourceFile="tests/a.plt", sourceLine=5, sourceColumn=0, sourceEndLine=9, sourceEndColumn=1]),
+    forall(member(R-A-B, [constrains-'REQ-P'-'F-PS', requires_property-'REQ-P'-'F-PP',
+                          specified_by-'REQ-P'-'S-P', specified_by-'REQ-P'-'S-PN',
+                          assumes-'S-PN'-'F-PART',
+                          verified_by-'S-P'-'T-E2E', verified_by-'S-PN'-'T-E2E',
+                          verified_by-'S-P'-'T-CERT', verified_by-'S-PN'-'T-CERT',
+                          implements-'SYM-PROD'-'REQ-P', covered_by-'SYM-PROD'-'T-E2E',
+                          executable_for-'SYM-E2E'-'T-E2E']),
+           pf_raw_rel(R, A, B)),
+    rqp_full_distractors.
+
+rqp_full_distractors :-
+    pf_entity(req, 'REQ-D', [status=active, priority=must]),
+    pf_entity(fact, 'F-DP', [fact_kind=property_value, subject_key="report", property_key="mode",
+        operator=eq, value_type=set, value_set=["x"], claim_key="K-D", claim_text="Mode is x"]),
+    pf_entity(fact, 'F-DS', [fact_kind=subject, subject_key="other"]),
+    pf_entity(scenario, 'S-D', []),
+    pf_entity(test, 'T-D', [status=passing, verification_scope=end_to_end]),
+    pf_entity(symbol, 'SYM-D', []),
+    pf_entity(symbol, 'SYM-DX', []),
+    forall(member(R-A-B, [requires_property-'REQ-D'-'F-DP', constrains-'REQ-D'-'F-DS',
+                          specified_by-'REQ-D'-'S-D', verified_by-'S-D'-'T-D',
+                          implements-'SYM-D'-'REQ-D', covered_by-'SYM-D'-'T-D',
+                          executable_for-'SYM-DX'-'T-D', covered_by-'SYM-D'-'T-E2E',
+                          verified_by-'S-D'-'T-CERT-D', verified_by-'S-P'-'T-CERT-F']),
+           pf_raw_rel(R, A, B)),
+    % T-CERT-D binds K-P with a failing certificate but verifies only S-D;
+    % T-CERT-F verifies S-P with a re-checking certificate whose run failed.
+    rqp_hash(0'a, Snap),
+    rqp_full_binding(Binding),
+    rqp_full_cert(["a", "b"], [_{member: "a", outcome: "failed"}, _{member: "b", outcome: "passed"}], Failing),
+    rqp_full_cert(["a", "b"], [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "passed"}], Passing),
+    forall(member(TestId-Cert-Outcome-Rid, ['T-CERT-D'-Failing-passed-'PR-FIXTURE00003',
+                                            'T-CERT-F'-Passing-failed-'PR-FIXTURE00004']),
+           (   code_certificates:code_certificate_digest(Cert, Digest),
+               pf_receipt([test_id=TestId, receipt_id=Rid, scope=unit, code_snapshot=Snap, outcome=Outcome,
+                           run_outcome=Outcome, version='kibi.proof-receipt.v2', kind=exhaustive,
+                           evidence_level=proved, certificate=Cert, certificate_digest=Digest,
+                           claim_bindings=[Binding]], Receipt),
+               pf_receipts_json([Receipt], Json),
+               pf_entity(test, TestId, [status=passing, verification_scope=unit, proof_receipts=Json])
+           )).
+
+rqp_put_pair(Key-Value, Dict0, Dict) :-
+    put_dict(Key, Dict0, Value, Dict).
+
+%% rqp_full_view(+Proof, -View)
+% The claim-level fields of Proof, as compared for the binding variants.
+rqp_full_view(Proof, View) :-
+    findall(Key-Value,
+        (   member(Key, [certificateRejections, claimBindingRejections, claimEvidence, claimSummary,
+                         evidenceLevel, unprovedClaims]),
+            (get_dict(Key, Proof, Value) -> true ; Value = absent)
+        ;   member(Stage-Key, [negativePath-certifiedClaims, negativePath-status, cases-status, dimension-status]),
+            get_dict(Stage, Proof.proofStages, StageDict),
+            get_dict(Key, StageDict, Value)
+        ), Pairs0),
+    maplist(rqp_canon_pair, Pairs0, View).
+
+rqp_full_binding(_{claim_key: "K-P", requirement_id: "REQ-P", fact_id: "F-PP", binding: "derived",
+          scope: "code", obligation: _{kind: "set_equals", members: ["a", "b"]}}).
+
+rqp_full_proof(Cert, Bindings, Proof) :-
+    code_certificates:code_certificate_digest(Cert, Digest),
+    rqp_kb((
+        rqp_full_fixture(Cert, Digest, Bindings),
+        rqp_hash(0'a, Snap),
+        requirement_proof_context(Snap, '2026-05-01T00:05:00Z', 100000, Ctx),
+        kb:kb_entity('REQ-P', req, Props),
+        once(requirement_proof:requirement_proof('REQ-P', Props, Ctx, Proof)),
+        once(requirement_proof:requirement_proof('REQ-P', Props, Ctx, Again)),
+        rqp_canon(Again, A), rqp_canon(Proof, P), A == P)).
+
+
+rqp_golden(
+  proved,
+  dict(
+    [ claimEvidence - [ dict(
+          [ applicable-true,
+            bindings-[ dict(
+                [ binding-derived,
+                  kind-exhaustive,
+                  scope-code,
+                  test-'T-CERT'
+                ])
+            ],
+            claimKey-'K-P',
+            level-proved,
+            role-normative,
+            status-modeled
+          ]),
+        dict(
+          [ applicable-false,
+            bindings-[],
+            claimKey-'K-N',
+            level-null,
+            role-context,
+            status-nonlogical
+          ])
+      ],
+      claimSummary-dict(
+        [ applicable-1,
+          attested-0,
+          proved-1,
+          tested-0,
+          unresolved-0
+        ]),
+      evidence - [ dict(
+          [ kind-certificate,
+            kinds-[ exhaustive
+            ],
+            level-proved,
+            scope-code,
+            tests-[ 'T-CERT'
+            ]
+          ]),
+        dict(
+          [ kind-e2e,
+            level-tested,
+            scope-code,
+            tests-[ 'T-E2E'
+            ]
+          ]),
+        dict(
+          [ basis-firm,
+            kind-human_intent,
+            level-asserted,
+            scope-intent
+          ])
+      ],
+      evidenceFloor-dict(
+        [ required-tested,
+          source-firmness,
+          status-met
+        ]),
+      evidenceLevel-proved,
+      proofAdvisories-[],
+      proofGaps-[],
+      proofRepairs-[],
+      proofStages - dict(
+        [ cases - dict(
+            [ cases-[],
+              limitReached-false,
+              pendingReproofClaims-[],
+              status-not_required,
+              summary-dict(
+                [ covered-0,
+                  generated-0,
+                  uncovered-0,
+                  unspecified-0,
+                  waived-0
+                ]),
+              uncoveredCases-[],
+              waivedCases-[]
+            ]),
+          contradictions-dict(
+            [ conflicts-[],
+              outcome-no_conflict_found,
+              status-passed
+            ]),
+          dimension-dict(
+            [ claims-[],
+              pendingReproofClaims-[],
+              status-not_required,
+              waivedClaims-[]
+            ]),
+          executableSymbols - dict(
+            [ coordinates - [ dict(
+                  [ column-0,
+                    endColumn-1,
+                    endLine-9,
+                    id-'SYM-E2E',
+                    line-5,
+                    path-'tests/a.plt'
+                  ])
+              ],
+              missingTests-[],
+              status-passed,
+              symbols-[ 'SYM-E2E'
+              ]
+            ]),
+          logicGrounding - dict(
+            [ claimTextMismatchClaims-[],
+              duplicateGroundClaims-[],
+              evidence - [ dict(
+                  [ claimKey-'K-P',
+                    claimText-'Outcomes are a and b',
+                    factId-'F-PP',
+                    lane-property
+                  ])
+              ],
+              extraManifestClaims-[],
+              groundedClaims-[ 'K-P'
+              ],
+              invalidGroundClaims-[],
+              invalidRuleFacts-[],
+              inventoryClaims-[ 'K-P'
+              ],
+              manifestClaims-[ 'K-P'
+              ],
+              missingGroundClaims-[],
+              missingManifestClaims-[],
+              modeledClaims-[ 'K-P'
+              ],
+              sources-[ dict(
+                  [ id-'F-PP',
+                    path-'test://proof_fixture.pl'
+                  ])
+              ],
+              status-passed,
+              undeclaredGroundClaims-[]
+            ]),
+          negativePath - dict(
+            [ certifiedClaims-[ 'K-P'
+              ],
+              claims-[],
+              negativeScenarios-[ 'S-PN'
+              ],
+              pendingReproofClaims-[],
+              status-not_required,
+              suggestedNegatives-[],
+              waiver-dict(
+                [])
+            ]),
+          passingE2e - dict(
+            [ checkedAt-'2026-05-01T00:05:00Z',
+              contractMismatchReceiptTests-[],
+              currentCodeSnapshot-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+              failedReceiptTests-[],
+              invalidReceiptTests-[],
+              maxAgeSeconds-100000,
+              missingReceiptTests-[],
+              nonEndToEndTests-[ 'T-CERT',
+                'T-CERT-F'
+              ],
+              receiptEvidence - [ dict(
+                  [ scope-unit,
+                    state-not_end_to_end,
+                    testId-'T-CERT'
+                  ]),
+                dict(
+                  [ scope-unit,
+                    state-not_end_to_end,
+                    testId-'T-CERT-F'
+                  ]),
+                dict(
+                  [ ageSeconds-240.0,
+                    artifactDigest-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc,
+                    codeSnapshot-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+                    environmentHash - bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,
+                    finishedAt-'2026-05-01T00:01:00Z',
+                    outcome-passed,
+                    receiptId-'PR-FIXTURE00001',
+                    scope-end_to_end,
+                    startedAt-'2026-05-01T00:00:00Z',
+                    state-passed,
+                    testId-'T-E2E'
+                  ])
+              ],
+              scenarioObligations - [ dict(
+                  [ acceptedScopes-[ end_to_end
+                    ],
+                    contractMismatchReceiptTests-[],
+                    e2eTests-[ 'T-E2E'
+                    ],
+                    evidence - [ dict(
+                        [ scope-unit,
+                          state-not_end_to_end,
+                          testId-'T-CERT'
+                        ]),
+                      dict(
+                        [ scope-unit,
+                          state-not_end_to_end,
+                          testId-'T-CERT-F'
+                        ]),
+                      dict(
+                        [ ageSeconds-240.0,
+                          artifactDigest - cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc,
+                          codeSnapshot - aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+                          environmentHash - bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,
+                          finishedAt-'2026-05-01T00:01:00Z',
+                          outcome-passed,
+                          receiptId-'PR-FIXTURE00001',
+                          scope-end_to_end,
+                          startedAt-'2026-05-01T00:00:00Z',
+                          state-passed,
+                          testId-'T-E2E'
+                        ])
+                    ],
+                    failedReceiptTests-[],
+                    gaps-[],
+                    invalidReceiptTests-[],
+                    invalidScenarioTestTargets-[],
+                    missingReceiptTests-[],
+                    nonEndToEndTests-[ 'T-CERT',
+                      'T-CERT-F'
+                    ],
+                    passingE2eTests-[ 'T-E2E'
+                    ],
+                    scenarioId-'S-P',
+                    scenarioTestTargets-[ 'T-CERT',
+                      'T-CERT-F',
+                      'T-E2E'
+                    ],
+                    snapshotUnavailableTests-[],
+                    staleReceiptTests-[],
+                    status-passed,
+                    tests-[ 'T-CERT',
+                      'T-CERT-F',
+                      'T-E2E'
+                    ]
+                  ]),
+                dict(
+                  [ acceptedScopes-[ end_to_end
+                    ],
+                    contractMismatchReceiptTests-[],
+                    e2eTests-[ 'T-E2E'
+                    ],
+                    evidence - [ dict(
+                        [ scope-unit,
+                          state-not_end_to_end,
+                          testId-'T-CERT'
+                        ]),
+                      dict(
+                        [ ageSeconds-240.0,
+                          artifactDigest - cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc,
+                          codeSnapshot - aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+                          environmentHash - bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,
+                          finishedAt-'2026-05-01T00:01:00Z',
+                          outcome-passed,
+                          receiptId-'PR-FIXTURE00001',
+                          scope-end_to_end,
+                          startedAt-'2026-05-01T00:00:00Z',
+                          state-passed,
+                          testId-'T-E2E'
+                        ])
+                    ],
+                    failedReceiptTests-[],
+                    gaps-[],
+                    invalidReceiptTests-[],
+                    invalidScenarioTestTargets-[],
+                    missingReceiptTests-[],
+                    nonEndToEndTests-[ 'T-CERT'
+                    ],
+                    passingE2eTests-[ 'T-E2E'
+                    ],
+                    scenarioId-'S-PN',
+                    scenarioTestTargets-[ 'T-CERT',
+                      'T-E2E'
+                    ],
+                    snapshotUnavailableTests-[],
+                    staleReceiptTests-[],
+                    status-passed,
+                    tests-[ 'T-CERT',
+                      'T-E2E'
+                    ]
+                  ])
+              ],
+              snapshotUnavailableTests-[],
+              staleReceiptTests-[],
+              status-passed,
+              tests-[ 'T-E2E'
+              ]
+            ]),
+          productionSymbols - dict(
+            [ coordinates - [ dict(
+                  [ column-0,
+                    endColumn-1,
+                    endLine-30,
+                    id-'SYM-PROD',
+                    line-10,
+                    path-'src/a.pl'
+                  ])
+              ],
+              explanations - [ dict(
+                  [ classification-unknown,
+                    coverageCandidates - [ dict(
+                        [ qualifies-true,
+                          reason-covered,
+                          reasonText-"Qualifying covered_by to a passing scenario-backed E2E test",
+                          receiptState-passed,
+                          relationship-covered_by,
+                          scope-end_to_end,
+                          secondaryReasons-[],
+                          testId-'T-E2E'
+                        ])
+                    ],
+                    reason-covered,
+                    reasonText-"Qualifying covered_by to a passing scenario-backed E2E test",
+                    requirementId-'REQ-P',
+                    status-covered,
+                    symbolId-'SYM-PROD'
+                  ])
+              ],
+              status-passed,
+              structuralSymbols-[],
+              symbols-[ 'SYM-PROD'
+              ],
+              uncoveredSymbols-[]
+            ]),
+          scenarioTests - dict(
+            [ invalidScenarioTestTargets-[],
+              obligations - [ dict(
+                  [ invalidScenarioTestTargets-[],
+                    scenarioId-'S-P',
+                    scenarioTestTargets-[ 'T-CERT',
+                      'T-CERT-F',
+                      'T-E2E'
+                    ],
+                    sources - [ dict(
+                        [ id-'T-CERT',
+                          path-'test://proof_fixture.pl'
+                        ]),
+                      dict(
+                        [ id-'T-CERT-F',
+                          path-'test://proof_fixture.pl'
+                        ]),
+                      dict(
+                        [ id-'T-E2E',
+                          path-'test://proof_fixture.pl'
+                        ])
+                    ],
+                    status-passed,
+                    tests-[ 'T-CERT',
+                      'T-CERT-F',
+                      'T-E2E'
+                    ]
+                  ]),
+                dict(
+                  [ invalidScenarioTestTargets-[],
+                    scenarioId-'S-PN',
+                    scenarioTestTargets-[ 'T-CERT',
+                      'T-E2E'
+                    ],
+                    sources - [ dict(
+                        [ id-'T-CERT',
+                          path-'test://proof_fixture.pl'
+                        ]),
+                      dict(
+                        [ id-'T-E2E',
+                          path-'test://proof_fixture.pl'
+                        ])
+                    ],
+                    status-passed,
+                    tests-[ 'T-CERT',
+                      'T-E2E'
+                    ]
+                  ])
+              ],
+              resolutions - [ dict(
+                  [ executableFor-[],
+                    requiredProofs-[],
+                    testId-'T-CERT'
+                  ]),
+                dict(
+                  [ executableFor-[],
+                    requiredProofs-[],
+                    testId-'T-CERT-F'
+                  ]),
+                dict(
+                  [ executableFor - [ dict(
+                        [ column-0,
+                          endColumn-1,
+                          endLine-9,
+                          exists-true,
+                          id-'SYM-E2E',
+                          line-5,
+                          path-'tests/a.plt',
+                          role-unknown
+                        ])
+                    ],
+                    requiredProofs-[],
+                    testId-'T-E2E'
+                  ])
+              ],
+              scenarioTestTargets-[ 'T-CERT',
+                'T-CERT-F',
+                'T-E2E'
+              ],
+              scenarios-[ 'S-P',
+                'S-PN'
+              ],
+              sources - [ dict(
+                  [ id-'T-CERT',
+                    path-'test://proof_fixture.pl'
+                  ]),
+                dict(
+                  [ id-'T-CERT-F',
+                    path-'test://proof_fixture.pl'
+                  ]),
+                dict(
+                  [ id-'T-E2E',
+                    path-'test://proof_fixture.pl'
+                  ])
+              ],
+              status-passed,
+              tests-[ 'T-CERT',
+                'T-CERT-F',
+                'T-E2E'
+              ]
+            ]),
+          scenarios - dict(
+            [ infeasibleScenarios-[],
+              invalidScenarioTargets-[],
+              negativeScenarios-[ 'S-PN'
+              ],
+              scenarioTargets-[ 'S-P',
+                'S-PN'
+              ],
+              scenarios-[ 'S-P',
+                'S-PN'
+              ],
+              sources - [ dict(
+                  [ id-'S-P',
+                    path-'test://proof_fixture.pl'
+                  ]),
+                dict(
+                  [ id-'S-PN',
+                    path-'test://proof_fixture.pl'
+                  ])
+              ],
+              status-passed,
+              unknownFeasibility-[]
+            ]),
+          semanticInventory - dict(
+            [ malformedCount-0,
+              missingCount-0,
+              modeledCount-1,
+              nonlogicalCount-1,
+              propositionCount-2,
+              status-passed,
+              unresolvedCount-0
+            ]),
+          sourceCoordinates - dict(
+            [ coordinates - [ dict(
+                  [ column-0,
+                    endColumn-1,
+                    endLine-9,
+                    id-'SYM-E2E',
+                    line-5,
+                    path-'tests/a.plt'
+                  ]),
+                dict(
+                  [ column-0,
+                    endColumn-1,
+                    endLine-30,
+                    id-'SYM-PROD',
+                    line-10,
+                    path-'src/a.pl'
+                  ])
+              ],
+              missingSymbols-[],
+              requirementPath-'test://proof_fixture.pl',
+              requirementSource-present,
+              status-passed,
+              symbols-[ 'SYM-E2E',
+                'SYM-PROD'
+              ]
+            ])
+        ]),
+      proofStatus-tested,
+      proofVersion-'kibi.requirement-proof.v5',
+      testResolutions - [ dict(
+          [ executableFor-[],
+            requiredProofs-[],
+            testId-'T-CERT'
+          ]),
+        dict(
+          [ executableFor-[],
+            requiredProofs-[],
+            testId-'T-CERT-F'
+          ]),
+        dict(
+          [ executableFor - [ dict(
+                [ column-0,
+                  endColumn-1,
+                  endLine-9,
+                  exists-true,
+                  id-'SYM-E2E',
+                  line-5,
+                  path-'tests/a.plt',
+                  role-unknown
+                ])
+            ],
+            requiredProofs-[],
+            testId-'T-E2E'
+          ])
+      ],
+      unprovedClaims-[]
+    ])).
+
+rqp_golden(
+  failing,
+  dict(
+    [ certificateRejections-[ dict(
+          [ reason-"member b did not pass",
+            test-'T-CERT'
+          ])
+      ],
+      claimBindingRejections - [ dict(
+          [ claimKey-'K-P',
+            reason-'the certificate does not re-check',
+            test-'T-CERT'
+          ])
+      ],
+      claimEvidence - [ dict(
+          [ applicable-true,
+            bindings - [ dict(
+                [ binding-rejected,
+                  kind-exhaustive,
+                  reason-'the certificate does not re-check',
+                  scope-code,
+                  test-'T-CERT'
+                ])
+            ],
+            claimKey-'K-P',
+            level-tested,
+            rejections - [ dict(
+                [ claimKey-'K-P',
+                  reason-'the certificate does not re-check',
+                  test-'T-CERT'
+                ])
+            ],
+            role-normative,
+            status-modeled
+          ]),
+        dict(
+          [ applicable-false,
+            bindings-[],
+            claimKey-'K-N',
+            level-null,
+            role-context,
+            status-nonlogical
+          ])
+      ],
+      claimSummary-dict(
+        [ applicable-1,
+          attested-0,
+          proved-0,
+          tested-1,
+          unresolved-0
+        ]),
+      evidence - [ dict(
+          [ kind-e2e,
+            level-tested,
+            scope-code,
+            tests-[ 'T-E2E'
+            ]
+          ]),
+        dict(
+          [ basis-firm,
+            kind-human_intent,
+            level-asserted,
+            scope-intent
+          ])
+      ],
+      evidenceFloor-dict(
+        [ required-tested,
+          source-firmness,
+          status-met
+        ]),
+      evidenceLevel-tested,
+      proofAdvisories-[],
+      proofGaps-[],
+      proofRepairs-[],
+      proofStatus-tested,
+      proofVersion-'kibi.requirement-proof.v5',
+      testResolutions - [ dict(
+          [ executableFor-[],
+            requiredProofs-[],
+            testId-'T-CERT'
+          ]),
+        dict(
+          [ executableFor-[],
+            requiredProofs-[],
+            testId-'T-CERT-F'
+          ]),
+        dict(
+          [ executableFor - [ dict(
+                [ column-0,
+                  endColumn-1,
+                  endLine-9,
+                  exists-true,
+                  id-'SYM-E2E',
+                  line-5,
+                  path-'tests/a.plt',
+                  role-unknown
+                ])
+            ],
+            requiredProofs-[],
+            testId-'T-E2E'
+          ])
+      ],
+      unprovedClaims-[ 'K-P'
+      ]
+    ])).
+
+rqp_view(
+  other_requirement,
+  [ certificateRejections-absent,
+    claimBindingRejections-absent,
+    claimEvidence - [ dict(
+        [ applicable-true,
+          bindings-[],
+          claimKey-'K-P',
+          level-tested,
+          role-normative,
+          status-modeled
+        ]),
+      dict(
+        [ applicable-false,
+          bindings-[],
+          claimKey-'K-N',
+          level-null,
+          role-context,
+          status-nonlogical
+        ])
+    ],
+    claimSummary-dict(
+      [ applicable-1,
+        attested-0,
+        proved-0,
+        tested-1,
+        unresolved-0
+      ]),
+    evidenceLevel-tested,
+    unprovedClaims-[ 'K-P'
+    ],
+    certifiedClaims-[],
+    status-passed,
+    status-waived,
+    status-not_required
+  ]).
+
+rqp_view(
+  other_claim,
+  [ certificateRejections-absent,
+    claimBindingRejections-absent,
+    claimEvidence - [ dict(
+        [ applicable-true,
+          bindings-[],
+          claimKey-'K-P',
+          level-tested,
+          role-normative,
+          status-modeled
+        ]),
+      dict(
+        [ applicable-false,
+          bindings-[],
+          claimKey-'K-N',
+          level-null,
+          role-context,
+          status-nonlogical
+        ])
+    ],
+    claimSummary-dict(
+      [ applicable-1,
+        attested-0,
+        proved-0,
+        tested-1,
+        unresolved-0
+      ]),
+    evidenceLevel-tested,
+    unprovedClaims-[ 'K-P'
+    ],
+    certifiedClaims-[],
+    status-passed,
+    status-waived,
+    status-not_required
+  ]).
+
+rqp_view(
+  attested,
+  [ certificateRejections-absent,
+    claimBindingRejections - [ dict(
+        [ claimKey-'K-P',
+          reason - 'the claim now has a derivable obligation; re-prove the test so Kibi can derive it',
+          test-'T-CERT'
+        ])
+    ],
+    claimEvidence - [ dict(
+        [ applicable-true,
+          bindings - [ dict(
+              [ binding-rejected,
+                kind-exhaustive,
+                reason - 'the claim now has a derivable obligation; re-prove the test so Kibi can derive it',
+                scope-code,
+                test-'T-CERT'
+              ])
+          ],
+          claimKey-'K-P',
+          level-tested,
+          rejections - [ dict(
+              [ claimKey-'K-P',
+                reason - 'the claim now has a derivable obligation; re-prove the test so Kibi can derive it',
+                test-'T-CERT'
+              ])
+          ],
+          role-normative,
+          status-modeled
+        ]),
+      dict(
+        [ applicable-false,
+          bindings-[],
+          claimKey-'K-N',
+          level-null,
+          role-context,
+          status-nonlogical
+        ])
+    ],
+    claimSummary-dict(
+      [ applicable-1,
+        attested-0,
+        proved-0,
+        tested-1,
+        unresolved-0
+      ]),
+    evidenceLevel-tested,
+    unprovedClaims-[ 'K-P'
+    ],
+    certifiedClaims-[],
+    status-passed,
+    status-waived,
+    status-not_required
+  ]).
+
+rqp_view(
+  intent_scope,
+  [ certificateRejections-absent,
+    claimBindingRejections-absent,
+    claimEvidence - [ dict(
+        [ applicable-true,
+          bindings-[ dict(
+              [ binding-derived,
+                kind-exhaustive,
+                scope-intent,
+                test-'T-CERT'
+              ])
+          ],
+          claimKey-'K-P',
+          level-tested,
+          role-normative,
+          status-modeled
+        ]),
+      dict(
+        [ applicable-false,
+          bindings-[],
+          claimKey-'K-N',
+          level-null,
+          role-context,
+          status-nonlogical
+        ])
+    ],
+    claimSummary-dict(
+      [ applicable-1,
+        attested-0,
+        proved-0,
+        tested-1,
+        unresolved-0
+      ]),
+    evidenceLevel-tested,
+    unprovedClaims-[ 'K-P'
+    ],
+    certifiedClaims-[],
+    status-passed,
+    status-waived,
+    status-not_required
+  ]).
+
+:- begin_tests(requirement_proof_full_ladder).
+
+test(a_rechecked_certificate_proves_the_requirement) :-
+    rqp_full_cert(["a", "b"], [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "passed"}], Cert),
+    rqp_full_binding(Binding),
+    rqp_full_proof(Cert, [Binding], Proof),
+    rqp_canon(Proof, Canon),
+    rqp_golden(proved, Expected),
+    Canon == Expected.
+
+test(a_failing_certificate_is_rejected_once) :-
+    rqp_full_cert(["a", "b"], [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "failed"}], Cert),
+    rqp_full_binding(Binding),
+    rqp_full_proof(Cert, [Binding], Proof),
+    del_dict(proofStages, Proof, _, Top),
+    rqp_canon(Top, Canon),
+    rqp_golden(failing, Expected),
+    Canon == Expected.
+
+test(binding_variants_leave_the_claim_tested) :-
+    rqp_full_cert(["a", "b"], [_{member: "a", outcome: "passed"}, _{member: "b", outcome: "passed"}], Cert),
+    rqp_full_binding(Binding),
+    forall(member(Name-Changes, [other_requirement-[requirement_id-"REQ-D"], other_claim-[claim_key-"K-OTHER"],
+                                 attested-[binding-"attested"], intent_scope-[scope-"intent"]]),
+           (   foldl(rqp_put_pair, Changes, Binding, Changed),
+               rqp_full_proof(Cert, [Changed], Proof),
+               rqp_full_view(Proof, View),
+               rqp_view(Name, Expected),
+               (   View == Expected -> true
+               ;   format(user_error, "~q gave ~q~n", [Name, View]), fail
+               )
+           )).
+
+:- end_tests(requirement_proof_full_ladder).
+
+:- begin_tests(requirement_proof_direct_helpers).
+
+rqp_evidence_facts(ReqId, FactIds) :-
+    findall(FactId, (requirement_proof:valid_ground_evidence(ReqId, E), get_dict(factId, E, FactId)), FactIds).
+
+test(ground_evidence_follows_the_requirement_links) :-
+    rqp_kb((
+        rqp_ground_fixture,
+        pf_entity(fact, 'F-D2', [fact_kind=predicate, claim_key="K-D2", claim_text="Bad predicate"]),
+        pf_raw_rel(requires_predicate, 'REQ-G', 'F-D2'),
+        pf_entity(fact, 'F-BADSCHEMA', [fact_kind=rule_schema]),
+        pf_entity(fact, 'F-R2', [fact_kind=rule, rule_ir="{}", rule_schema_id="F-BADSCHEMA", claim_key="K-R2",
+                                 claim_text="Bad rule"]),
+        pf_raw_rel(requires_rule, 'REQ-G', 'F-R2'),
+        pf_entity(req, 'REQ-SUBJ-ONLY', []),
+        pf_raw_rel(constrains, 'REQ-SUBJ-ONLY', 'F-SUBJ'),
+        pf_entity(req, 'REQ-PROP-ONLY', []),
+        pf_raw_rel(requires_property, 'REQ-PROP-ONLY', 'F-P'),
+        rqp_evidence_facts('REQ-G', All), All == ['F-P', 'F-D', 'F-R'],
+        rqp_evidence_facts('REQ-SUBJ-ONLY', S), S == [],
+        rqp_evidence_facts('REQ-PROP-ONLY', P), P == []
+    )).
+
+test(test_scope_reads_the_scope_tags_and_source) :-
+    forall(member(Props-Expected, [
+            [verification_scope="unit", tags=["e2e"]]-[unit],
+            [tags=["unit", "E2E"]]-[end_to_end],
+            [tags=["unit"]]-[unknown],
+            [tags=["e2e", "e2e"]]-[end_to_end],
+            [tags=["unit"], source="checkout.E2E.test.ts"]-[end_to_end],
+            [source="tests/unit/flow.test.ts"]-[unknown],
+            []-[unknown]
+        ]),
+        (   findall(S, requirement_proof:test_scope(Props, S), Scopes),
+            (   Scopes == Expected -> true
+            ;   format(user_error, "~q gave ~q~n", [Props, Scopes]), fail
+            )
+        )).
+
+test(receipt_atoms_are_normalized_once) :-
+    forall(member(Raw-Expected, ["text"-text, 'A b'-'A b', f(x)-'f(x)', 7-'7', ^^("t", type)-t]),
+           (   findall(A, requirement_proof:normalize_receipt_atom(Raw, A), As),
+               As == [Expected]
+           )).
+
+test(symbol_classification_reads_the_role) :-
+    rqp_kb((
+        pf_entity(symbol, 'SYM-R', [symbol_role="production"]),
+        pf_entity(symbol, 'SYM-E', [symbol_role=""]),
+        pf_entity(symbol, 'SYM-N', []),
+        pf_entity(test, 'T-R', [symbol_role="production"]),
+        forall(member(Id-Expected, ['SYM-R'-[production], 'SYM-E'-[unknown], 'SYM-N'-[unknown], 'T-R'-[unknown]]),
+               (   findall(C, requirement_proof:symbol_classification(Id, C), Cs), Cs == Expected ))
+    )).
+
+test(test_resolution_refs_read_the_contract_and_executable_links) :-
+    rqp_kb((
+        pf_entity(symbol, 'SYM-A', []),
+        pf_entity(symbol, 'SYM-B', []),
+        pf_entity(symbol, 'SYM-C', []),
+        rqp_json(_{required_proofs: [_{symbol_id: "SYM-B"}, _{symbolId: "SYM-A"}, _{symbol_id: ""},
+                                     _{other: "SYM-C"}]}, Contract),
+        pf_entity(test, 'T-1', [proof_contract=Contract]),
+        pf_entity(test, 'T-2', [proof_contract="not json"]),
+        pf_entity(test, 'T-3', [proof_contract="{\"other\": 1}"]),
+        pf_raw_rel(executable_for, 'SYM-A', 'T-1'),
+        pf_raw_rel(executable_for, 'T-2', 'T-1'),
+        pf_raw_rel(executable_for, 'SYM-C', 'T-2'),
+        findall(Ids, (requirement_proof:test_required_proof_refs('T-1', Refs),
+                      findall(Id, (member(R, Refs), get_dict(id, R, Id)), Ids)), Answers),
+        Answers == [['SYM-A', 'SYM-B']],
+        once(requirement_proof:test_required_proof_refs('T-2', R2)), R2 == [],
+        once(requirement_proof:test_required_proof_refs('T-3', R3)), R3 == [],
+        once(requirement_proof:test_required_proof_refs('SYM-A', R4)), R4 == [],
+        once(requirement_proof:test_executable_for_refs('T-1', E1)),
+        findall(Id, (member(R, E1), get_dict(id, R, Id)), EIds), EIds == ['SYM-A']
+    )).
+
+test(proof_contract_binding_hashes_a_valid_contract) :-
+    once(requirement_proof:proof_contract_binding([], None)), None == none,
+    once(requirement_proof:proof_contract_binding([proof_contract="not json"], Invalid)), Invalid == invalid,
+    once(requirement_proof:proof_contract_binding([proof_contract="{\"b\":1,\"a\":[true,null]}"], hash(Hash))),
+    crypto_data_hash("{\"a\":[true,null],\"b\":1}", Expected, [algorithm(sha256), encoding(utf8)]),
+    Hash == Expected,
+    once(requirement_proof:proof_contract_dict(_{a: 1}, Dict)), get_dict(a, Dict, One), One == 1.
+
+test(canonical_json_is_compact_and_sorted) :-
+    findall(J, requirement_proof:canonical_json_value([_{b: 1, a: [2, 3]}, "s", true], J), Js),
+    Js == ["[{\"a\":[2,3],\"b\":1},\"s\",true]"],
+    findall(J, requirement_proof:canonical_json_value(null, J), Ns), Ns == ["null"].
+
+test(receipt_history_must_strictly_increase) :-
+    once(requirement_proof:strictly_increasing([1, 2, 3])),
+    \+ requirement_proof:strictly_increasing([1, 3, 2]),
+    \+ requirement_proof:strictly_increasing([2, 2]).
+
+test(receipts_follow_the_binding_mode) :-
+    Bound = _{binding_hash: h1, code_snapshot: s2},
+    Plain = _{code_snapshot: s1},
+    Receipts = [Bound, Plain],
+    once(requirement_proof:receipt_for_current_mode('T-1',
+        _{proofBindingMode: strict_snapshot, proofTestBindings: _{'T-1': h1}, proofSnapshot: s1}, Receipts, Strict)),
+    Strict = [S1], same(S1, Plain), length(Strict, 1),
+    once(requirement_proof:receipt_for_current_mode('T-1',
+        _{proofBindingMode: per_contract, proofTestBindings: _{'T-1': h1}, proofSnapshot: s1}, Receipts, Per)),
+    Per = [P1], same(P1, Bound),
+    once(requirement_proof:receipt_for_current_mode('T-1',
+        _{proofBindingMode: per_contract, proofTestBindings: _{'T-1': h9}, proofSnapshot: s1}, Receipts, Fallback)),
+    Fallback = [F1], same(F1, Plain),
+    once(requirement_proof:receipt_for_binding([h0, h1], Bound)),
+    \+ requirement_proof:receipt_for_binding([h0], Bound),
+    once(requirement_proof:receipt_for_binding(h1, Bound)).
+
+test(attempt_status_matches_the_entries) :-
+    requirement_proof:valid_attempt_status(unavailable, _{}),
+    requirement_proof:valid_attempt_status(unavailable, _{entries: []}),
+    \+ requirement_proof:valid_attempt_status(unavailable, _{entries: [_{outcome: passed}]}),
+    requirement_proof:valid_attempt_status(complete, _{entries: [_{outcome: passed}]}),
+    \+ requirement_proof:valid_attempt_status(complete, _{entries: []}).
+
+test(arithmetic_certificates_match_the_constraint) :-
+    Claim = _{operator: "<=", value: 10},
+    Cert = _{claim: Claim, variable: "rate", value_type: "int"},
+    Obligation = _{kind: "numeric_constraint", variable: "rate", value_type: "int", operator: "<=", value: 10},
+    \+ requirement_proof:certificate_obligation_problem(arithmetic, _{certificate: Cert}, Obligation, _),
+    forall(member(Changed, [_{claim: Claim.put(operator, ">=")}, _{claim: Claim.put(value, 11)},
+                            _{variable: "other"}, _{value_type: "real"}]),
+           (   put_dict(Changed, Cert, Cert1),
+               findall(P, requirement_proof:certificate_obligation_problem(arithmetic, _{certificate: Cert1},
+                                                                          Obligation, P), Ps),
+               Ps == ['the certificate\'s claim is not the fact\'s constraint']
+           )),
+    forall(member(Key, [claim, variable, value_type]),
+           (   del_dict(Key, Cert, _, Cert2),
+               once(requirement_proof:certificate_obligation_problem(arithmetic, _{certificate: Cert2}, Obligation, P2)),
+               P2 == 'the certificate\'s claim is not the fact\'s constraint'
+           )),
+    \+ requirement_proof:certificate_obligation_problem(arithmetic, _{}, Obligation, _).
+
+
+test(no_scenarios_leave_the_scenario_tests_missing) :-
+    rqp_kb((
+        once(requirement_proof:scenario_test_stage([], Stage, Tests)),
+        get_dict(status, Stage, Status), Status == missing, Tests == []
+    )).
+
+test(receipt_evidence_states_for_missing_and_malformed_receipts) :-
+    rqp_kb((
+        rqp_hash(0'a, Snap),
+        pf_receipt([test_id='T-BADCONTRACT', code_snapshot=Snap], R),
+        pf_receipts_json([R], RJ),
+        pf_entity(test, 'T-NONE', [status=passing, verification_scope=end_to_end]),
+        pf_entity(test, 'T-EMPTY', [status=passing, verification_scope=end_to_end, proof_receipts="[]"]),
+        pf_entity(test, 'T-BADCONTRACT', [status=passing, verification_scope=end_to_end, proof_receipts=RJ,
+                                          proof_contract="not json"]),
+        requirement_proof_context(Snap, '2026-05-01T00:05:00Z', 100000, C),
+        forall(member(T-State-Count, ['T-NONE'-missing-0, 'T-EMPTY'-invalid-0, 'T-BADCONTRACT'-invalid-1]),
+               (   findall(E, test_receipt_evidence(C, [end_to_end], T, E), Es),
+                   Es = [E1],
+                   get_dict(state, E1, S), get_dict(receiptCount, E1, N),
+                   (   S == State, N == Count -> true
+                   ;   format(user_error, "~q gave ~q~n", [T, Es]), fail
+                   )
+               ))
+    )).
+
+:- end_tests(requirement_proof_direct_helpers).
+
+:- begin_tests(requirement_proof_explanations).
+
+test(reused_receipt_reasons) :-
+    findall(R, requirement_proof:reused_receipt_reject_reasons([_{testId: 'T-1', state: passed}], 'T-1', R), Passed),
+    Passed == [[]],
+    findall(R, requirement_proof:reused_receipt_reject_reasons([_{testId: 'T-0', state: failed},
+                                                                 _{testId: 'T-1', state: missing}], 'T-1', R), Missing),
+    Missing == [[missing_proof_receipt]],
+    findall(R, requirement_proof:reused_receipt_reject_reasons([], 'T-1', R), None), None == [[]].
+
+test(in_chain_receipt_rejections) :-
+    rqp_kb((
+        pf_entity(test, 'T-NONE', [status=passing, verification_scope=end_to_end]),
+        rqp_hash(0'a, Snap),
+        requirement_proof_context(Snap, '2026-05-01T00:05:00Z', 100000, C),
+        forall(member(Evidence-Ctx-Expected, [
+                   [_{testId: 'T-NONE', state: passed}]-C-no_qualifying_e2e_coverage,
+                   [_{testId: 'T-NONE', state: failed}]-C-failed_proof_receipt,
+                   []-C-missing_proof_receipt,
+                   []-none-no_qualifying_e2e_coverage,
+                   []-_{}-no_qualifying_e2e_coverage
+               ]),
+               (   findall(P-S, requirement_proof:receipt_reject_for_in_chain(Evidence, Ctx, 'T-NONE', P, S), Answers),
+                   (   Answers == [Expected-[]] -> true
+                   ;   format(user_error, "~q gave ~q~n", [Evidence, Answers]), fail
+                   )
+               ))
+    )).
+
+test(explanation_texts) :-
+    once(requirement_proof:explanation_reason_text(no_qualifying_e2e_coverage, Text)),
+    Text == "covered_by relationships exist but none qualify as passing scenario-backed E2E coverage",
+    once(requirement_proof:explanation_reason_text(odd_reason, Odd)), Odd == odd_reason.
+
+test(structural_unit_contracts) :-
+    rqp_kb((
+        pf_entity(symbol, 'SYM-T', [symbol_role="type-shape"]),
+        pf_entity(symbol, 'SYM-O', [symbol_role="type-shape"]),
+        pf_entity(test, 'T-U', [status=passing, verification_scope=unit]),
+        pf_entity(test, 'T-U2', [status=passing, verification_scope=unit]),
+        pf_entity(test, 'T-UF', [status=failing, verification_scope=unit]),
+        pf_entity(test, 'T-E', [status=passing, verification_scope=end_to_end]),
+        forall(member(R-A-B, [covered_by-'SYM-T'-'T-U', covered_by-'SYM-T'-'T-E', covered_by-'SYM-T'-'T-UF',
+                              covered_by-'SYM-O'-'T-U2']),
+               pf_raw_rel(R, A, B)),
+        forall(member(T-Expected, ['T-U'-true, 'T-E'-false, 'T-UF'-false]),
+               (   (requirement_proof:structural_unit_contract_test(T) -> Got = true ; Got = false),
+                   Got == Expected
+               )),
+        requirement_proof_context(C),
+        once(requirement_proof:structural_unit_receipts(['SYM-T'], C, UR)),
+        findall(T, member(T-_, UR), UTests), UTests == ['T-U'],
+        \+ requirement_proof:structural_symbol_covered([], ['T-U2'-passed], 'SYM-T'),
+        once(requirement_proof:structural_symbol_covered([], ['T-U'-passed], 'SYM-T')),
+        once(requirement_proof:coverage_candidate_qualification(structural(['T-U'-passed]), [], [], [], C, 'T-U',
+                                                                Q1, P1, S1)),
+        Q1-P1-S1 == true-structural_unit_contract-[],
+        once(requirement_proof:coverage_candidate_qualification(structural([]), [], [], [], C, 'T-U', Q2, P2, S2)),
+        Q2-P2-S2 == false-structural_unit_receipt_not_current-[],
+        once(requirement_proof:coverage_candidate_qualification(structural(['T-U'-stale]), [], [], [], C, 'T-U',
+                                                                _, _, S3)),
+        S3 == [stale_proof_receipt]
+    )).
+
+test(stages_without_tests_or_obligations_give_no_claim_evidence) :-
+    rqp_kb((
+        requirement_proof_context(C),
+        once(requirement_proof:certificate_rejections(_{}, C, Rejections)), Rejections == [],
+        once(requirement_proof:claim_evidence('REQ-X', [], [], tested, _{}, C, Evidence, Proved, BindingRejections)),
+        Evidence-Proved-BindingRejections == []-[]-[]
+    )).
+
+:- end_tests(requirement_proof_explanations).

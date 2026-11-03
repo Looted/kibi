@@ -618,7 +618,6 @@ contradiction_stage(ReqId, _LogicStatus, Context, Stage) :-
     requirement_contradiction_witnesses(ReqId, Context.contradictionWitnesses, Conflicts),
     member(Witness, Conflicts),
     Witness.status == contradiction,
-    Conflicts \= [],
     !,
     Stage = _{status: blocked, outcome: conflict_found, conflicts: Conflicts}.
 contradiction_stage(ReqId, _LogicStatus, Context, Stage) :-
@@ -626,11 +625,6 @@ contradiction_stage(ReqId, _LogicStatus, Context, Stage) :-
     Conflicts \= [],
     !,
     Stage = _{status: unresolved, outcome: analysis_incomplete, conflicts: Conflicts}.
-contradiction_stage(ReqId, _LogicStatus, Context, Stage) :-
-    requirement_contradictions(ReqId, Context.contradictions, Conflicts),
-    Conflicts \= [],
-    !,
-    Stage = _{status: blocked, outcome: conflict_found, conflicts: Conflicts}.
 contradiction_stage(_ReqId, LogicStatus, _Context, Stage) :-
     LogicStatus \= passed,
     !,
@@ -652,22 +646,11 @@ contradiction_stage(ReqId, LogicStatus, InventoryStatus, Context, Stage) :-
     ;   Stage = Stage0
     ).
 
-requirement_contradictions(ReqId, Violations, Conflicts) :-
-    include(violation_mentions_requirement(ReqId), Violations, Conflicts0),
-    maplist(violation_description, Conflicts0, Conflicts).
-
 requirement_contradiction_witnesses(ReqId, Witnesses, Conflicts) :-
     include(witness_mentions_requirement(ReqId), Witnesses, Conflicts).
 
 witness_mentions_requirement(ReqId, Witness) :-
     memberchk(ReqId, Witness.requirements).
-
-violation_mentions_requirement(ReqId, violation(_, EntityId, _, _, _)) :-
-    normalize_atom(EntityId, Pair),
-    atomic_list_concat(Ids, '/', Pair),
-    memberchk(ReqId, Ids).
-
-violation_description(violation(_, EntityId, Description, _, _), _{requirements: EntityId, reason: Description}).
 
 violation_for_entity(Violations, EntityId) :-
     member(violation(_, RawId, _, _, _), Violations),
@@ -1324,7 +1307,6 @@ scenario_obligation_status(TestObligation, _E2eEvidence, missing) :-
 scenario_obligation_status(_TestObligation, [], missing) :-
     !.
 scenario_obligation_status(_TestObligation, Evidence, passed) :-
-    Evidence \= [],
     forall(member(Item, Evidence), Item.state == passed),
     !.
 scenario_obligation_status(_TestObligation, _Evidence, unresolved).
@@ -1398,7 +1380,9 @@ proof_receipt_entries(Props, Receipts, Present) :-
     (   memberchk(proof_receipts=Raw, Props)
     ->  Present = true,
         inventory_entries(Raw, Receipts)
-    ;   Present = false,
+    ;   % mutalog-disable-next-line goal_true: the only caller's clause heads bind false and [] alike
+        Present = false,
+        % mutalog-disable-next-line goal_true: the only caller's clause heads bind false and [] alike
         Receipts = []
     ).
 
@@ -1515,10 +1499,10 @@ valid_receipt_attempts(Result) :-
     valid_attempt_status(Status, Attempts).
 
 valid_attempt_status(unavailable, Attempts) :-
-    \+ inventory_entry_field(Attempts, entries, _Present), !.
-valid_attempt_status(unavailable, Attempts) :-
-    inventory_entry_field(Attempts, entries, Entries),
-    Entries == [], !.
+    (   inventory_entry_field(Attempts, entries, Entries)
+    ->  Entries == []
+    ;   true
+    ).
 valid_attempt_status(complete, Attempts) :-
     inventory_entry_field(Attempts, entries, Entries),
     is_list(Entries),
@@ -2145,10 +2129,7 @@ receipt_state_reject_reason(snapshot_unavailable, proof_snapshot_unavailable) :-
 receipt_state_reject_reason(contract_mismatch, receipt_contract_mismatch) :- !.
 receipt_state_reject_reason(invalid, invalid_proof_receipt) :- !.
 receipt_state_reject_reason(failed, failed_proof_receipt) :- !.
-receipt_state_reject_reason(not_end_to_end, none) :- !.
 receipt_state_reject_reason(stale, receipt_snapshot_mismatch) :- !.
-receipt_state_reject_reason(passed, none) :- !.
-receipt_state_reject_reason(none, none) :- !.
 receipt_state_reject_reason(_, none).
 
 explanation_reason_text(Reason, Text) :-
@@ -2194,9 +2175,7 @@ test_required_proof_refs(TestId, Refs) :-
 test_required_proof_refs(_TestId, []).
 
 contract_required_symbol_ids(Contract, SymbolIds) :-
-    (   get_dict(required_proofs, Contract, Raw)
-    ;   get_dict('required_proofs', Contract, Raw)
-    ),
+    get_dict(required_proofs, Contract, Raw),
     !,
     inventory_entries(Raw, Entries),
     findall(SymbolId,
@@ -2364,13 +2343,14 @@ certificate_rejections(ScenarioTestStage, Context, Rejections) :-
     ->  true
     ;   Obligations = []
     ),
-    findall(_{test: TestId, reason: Reason},
+    findall(TestId-Reason,
         (member(Obligation, Obligations),
          member(TestId, Obligation.tests),
          test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
          get_dict(certificateRejection, Evidence, Reason)),
-        Rejections0),
-    sort(Rejections0, Rejections).
+        Pairs0),
+    sort(Pairs0, Pairs),
+    findall(_{test: TestId, reason: Reason}, member(TestId-Reason, Pairs), Rejections).
 
 % implements REQ-kibi-claim-bound-proofs
 %% receipt_claim_fields(+Receipt, +Evidence0, -Evidence)
@@ -2819,14 +2799,12 @@ proof_advisories(Stages, Advisories) :-
 proof_issues(Stages, Gaps, Advisories) :-
     findall(Gap,
         (gap_definition(Gap, _, _, _),
-         proof_gap_present(Gap, Stages),
-         \+ proof_issue_advisory(Gap, Stages)),
-        Gaps),
-    findall(Gap,
-        (gap_definition(Gap, _, _, _),
-         proof_gap_present(Gap, Stages),
-         proof_issue_advisory(Gap, Stages)),
-        Advisories).
+         once(proof_gap_present(Gap, Stages))),
+        Present),
+    partition(advisory_gap(Stages), Present, Advisories, Gaps).
+
+advisory_gap(Stages, Gap) :-
+    proof_issue_advisory(Gap, Stages).
 
 receipt_completeness_issue(missing_proof_receipt).
 receipt_completeness_issue(stale_proof_receipt).
