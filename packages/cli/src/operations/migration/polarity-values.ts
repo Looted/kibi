@@ -53,14 +53,19 @@ export function planPolarityValueBackfill(
         `Cannot migrate polarity fact ${file.relativePath}: subject_key and property_key are required`,
       );
     const after = `${slice.prefix}${slice.text}operator: eq${slice.eol}value_type: bool${slice.eol}value_bool: true${slice.eol}${slice.suffix}`;
-    const afterFrontmatter = sliceFrontmatter(after);
-    if (!afterFrontmatter)
-      throw new Error(
-        `Polarity migration could not verify ${file.relativePath}`,
-      );
-    const parsed = loadYaml(afterFrontmatter.text) as Record<string, unknown>;
+    // The appended keys sit at column 0, so a front matter block indented as
+    // a whole no longer parses and is refused here.
+    let parsed: Record<string, unknown> | null;
+    try {
+      parsed = loadYaml(sliceFrontmatter(after)?.text ?? "") as Record<
+        string,
+        unknown
+      > | null;
+    } catch {
+      parsed = null;
+    }
     if (
-      parsed.operator !== "eq" ||
+      parsed?.operator !== "eq" ||
       parsed.value_type !== "bool" ||
       parsed.value_bool !== true
     )

@@ -188,26 +188,14 @@ function scalarLine(key: string, value: string, previous: string): string {
 }
 
 /**
- * Whether `document` reads back, through the same frontmatter split, as
- * exactly `expected` with the closing delimiter and body of `original`
- * unchanged, and without a new `---` in its frontmatter that a reader
- * splitting on any `---` would cut on.
+ * Whether `document` splits at the same closing delimiter, with the body of
+ * `original` unchanged. The frontmatter it then holds is the text the caller
+ * just parsed: scalarLine never writes a run of three dashes, so the edit adds
+ * no `---` a reader splitting on any `---` would cut on.
  */
-function readsBackAs(
-  document: string,
-  expected: Record<string, unknown>,
-  original: FrontmatterSlice,
-): boolean {
+function splitsLike(document: string, original: FrontmatterSlice): boolean {
   const slice = sliceFrontmatter(document);
-  if (slice === null || slice.suffix !== original.suffix) return false;
-  if (slice.text.includes("---") && !original.text.includes("---")) {
-    return false;
-  }
-  try {
-    return isDeepStrictEqual(loadYaml(slice.text), expected);
-  } catch {
-    return false;
-  }
+  return slice !== null && slice.suffix === original.suffix;
 }
 
 /**
@@ -245,7 +233,7 @@ export function withTopLevelField(
     const { [key]: _nextValue, ...nextRest } = next;
     if (!isDeepStrictEqual(beforeRest, nextRest)) return null;
     const document = `${slice.prefix}${text}${slice.suffix}`;
-    return readsBackAs(document, next, slice) ? document : null;
+    return splitsLike(document, slice) ? document : null;
   } catch {
     return null;
   }
