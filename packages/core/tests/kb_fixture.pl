@@ -43,12 +43,11 @@ fixture_kb_open(LegacyEntities, Dir) :-
 
 %% detach_leftover_kb
 % Detach a KB that a test cut short (a time limit, say) left attached, so
-% the next setup can attach its own.
+% the next setup can attach its own. kb_detach/0 is safe without an attached
+% KB, and it also releases an audit database that outlived the KB's own
+% attachment state, which a guard on kb_attached/1 would leave in place.
 detach_leftover_kb :-
-    (   kb:kb_attached(_)
-    ->  kb_detach
-    ;   true
-    ).
+    kb_detach.
 
 %% fixture_kb_close(+Dir)
 fixture_kb_close(Dir) :-
