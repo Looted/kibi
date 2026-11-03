@@ -572,6 +572,16 @@ describe("coordinate overlay", () => {
     expect(readManifestWithCoordinateOverlay(manifest)).toStrictEqual([
       { id: "SYM-a", title: "alpha", ...span },
     ]);
+    const bare = workspace({
+      ".kb/symbols.yaml": symbols,
+      ".kb/symbol-coordinates.yaml": writeLegacyCoordinateArtifact({
+        "SYM-a": span,
+      }),
+    });
+    process.chdir(empty);
+    expect(
+      readManifestWithCoordinateOverlay(path.join(bare, ".kb/symbols.yaml")),
+    ).toStrictEqual([{ id: "SYM-a", title: "alpha", sourceFile: "src/a.ts" }]);
     const dirSource = workspace({ "src/a.ts/x": "" });
     process.chdir(dirSource);
     expect(readManifestWithCoordinateOverlay(manifest)).toStrictEqual([

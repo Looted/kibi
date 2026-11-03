@@ -155,11 +155,8 @@ function signalGroup(
       // The group may already be gone.
     }
   }
-  try {
-    child.kill(signal);
-  } catch {
-    // Already exited.
-  }
+  // An exited child returns false here rather than throwing.
+  child.kill(signal);
 }
 
 /** Run one step once, in its own process group, with a timeout. */
