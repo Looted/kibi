@@ -71,11 +71,18 @@ import {
 } from "../utils/merge-driver-setup.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../utils/schema-version.js";
 import {
+  AGENTS_FILE,
+  KIBI_AGENT_INSTRUCTIONS,
+  managedSectionState,
+} from "./agent-instructions.js";
+import { GITHUB_CHECK_WORKFLOW_RELPATH } from "./github-init.js";
+import {
   type DetectedHookManager,
   detectHookManager,
   hookManagerCommands,
   missingKibiHookCommands,
 } from "./hook-managers.js";
+import { hasKibiPrepareScript } from "./hooks-install.js";
 import {
   KIBI_HOOK_BEGIN,
   type ManagedHookName,
@@ -83,6 +90,7 @@ import {
   outdatedManagedHooks,
 } from "./init-helpers.js";
 import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
+import { readSetupChoices } from "./setup-choices.js";
 
 /**
  * First-party plugin diagnostics known without importing the package.
@@ -119,6 +127,7 @@ export interface DoctorOptions {
 
 // implements REQ-kibi-anonymous-usage-telemetry
 /** `doctor:capability_plugins+git_hooks` for the checks that failed. */
+// implements REQ-kibi-anonymous-usage-telemetry
 export function doctorFailureCategory(
   results: readonly { name: string; passed: boolean }[],
 ): string | undefined {
@@ -181,6 +190,10 @@ export async function doctorCommand(
     {
       name: "Kibi-managed hook sections",
       check: checkManagedHookSections,
+    },
+    {
+      name: "Fresh-clone setup",
+      check: checkFreshCloneSetup,
     },
     {
       name: "Manifest merge driver",
@@ -1055,6 +1068,73 @@ function checkBranchStore(): DoctorCheckResult {
   };
 }
 
+/**
+ * What a fresh clone of this repository gets without anyone running
+ * `kibi init`, against the setup choices the project recorded: the agent
+ * instructions every host reads, the prepare step that installs the hooks
+ * and the pull-request gate. Each gap is a warning; `kibi init` repairs it.
+ */
+// implements REQ-kibi-fresh-clone-setup
+function checkFreshCloneSetup(): DoctorCheckResult {
+  const root = doctorRepositoryContext()?.worktreeRoot ?? process.cwd();
+  if (!existsSync(path.join(root, ".kb", "manifest.json"))) {
+    return { passed: true, message: "Skipped: Kibi is not initialized here" };
+  }
+  const choices = readSetupChoices(root);
+  const gaps: string[] = [];
+  if (choices.agentInstructions) {
+    const state = managedSectionState(
+      path.join(root, AGENTS_FILE),
+      KIBI_AGENT_INSTRUCTIONS,
+    );
+    if (state !== "current")
+      gaps.push(
+        state === "missing"
+          ? "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists"
+          : "the Kibi section of AGENTS.md is outdated",
+      );
+  }
+  if (
+    choices.prepareHooks &&
+    existsSync(path.join(root, "package.json")) &&
+    doctorHookManager() === null &&
+    !hasKibiPrepareScript(root)
+  ) {
+    gaps.push(
+      "package.json has no prepare step installing Kibi's git hooks, so a fresh clone has no commit gate",
+    );
+  }
+  if (
+    choices.ciGate &&
+    !existsSync(path.join(root, GITHUB_CHECK_WORKFLOW_RELPATH))
+  ) {
+    gaps.push(`${GITHUB_CHECK_WORKFLOW_RELPATH} is missing`);
+  }
+  const details = {
+    choices: {
+      autoSync: choices.autoSync,
+      prepareHooks: choices.prepareHooks,
+      agentInstructions: choices.agentInstructions,
+      ciGate: choices.ciGate,
+    },
+    source: choices.source,
+  };
+  if (gaps.length === 0) {
+    return {
+      passed: true,
+      message: `Matches the recorded choices (${choices.source === "defaults" ? "defaults; none recorded" : choices.source})`,
+      details,
+    };
+  }
+  return {
+    passed: true,
+    warning: true,
+    message: `${gaps.join("; ")}`,
+    remediation: "Run: kibi init (applies the recorded choices)",
+    details,
+  };
+}
+
 // Hook health must be diagnosed against the hooks directory Git actually
 // executes (resolved via git rev-parse --git-path hooks, honoring
 // core.hooksPath and linked worktrees), not against <cwd>/.git/hooks.
@@ -1221,7 +1301,7 @@ function checkGitHooks(): DoctorCheckResult {
       passed: true,
       warning: true,
       message: `Not installed: a new branch is not compiled on checkout and commits skip 'kibi check --staged'${hooksPathSuffix()}`,
-      remediation: "Run: kibi init (installs the git hooks)",
+      remediation: "Run: kibi hooks install",
     };
   }
 

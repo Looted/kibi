@@ -16,6 +16,7 @@ import {
   CapabilityRegistryCache,
   declaresWriteEffect,
   detachedHeadWriteRefusal,
+  ensureBranchStoreCompiled,
   ensureCapabilityRegistry,
   resolveBranchAttachment,
   resolveOperationAttachment,
@@ -170,6 +171,14 @@ export function createMcpRuntime<TProlog = PrologPort>(
       }
       if (options.prolog) {
         return attachedContextWithProlog(withAttachment, options.prolog);
+      }
+      // implements REQ-kibi-fresh-clone-setup
+      if (!("error" in attachment)) {
+        await ensureBranchStoreCompiled(
+          context.workspaceRoot,
+          attachment,
+          spec,
+        );
       }
       const sessionProlog = await session.ensureProlog();
       const operationContext: OperationContext = {

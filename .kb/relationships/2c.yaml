@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-837d6413a1fd
+  - type: implements
+    from: SYM-setup-choices-setup-choice-names
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:53:15.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-621849931a82
+  - type: covered_by
+    from: SYM-setup-choices-setup-choice-names
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:53:15.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ed88131af28

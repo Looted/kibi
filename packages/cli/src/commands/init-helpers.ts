@@ -25,6 +25,7 @@ import {
   lstatSync,
   mkdirSync,
   readFileSync,
+  realpathSync,
   writeFileSync,
 } from "node:fs";
 import * as path from "node:path";
@@ -37,6 +38,7 @@ import {
   branchStorePath,
   ensureBranchStoreManifest,
 } from "../utils/branch-store-locator.js";
+import type { GitRepositoryContext } from "../utils/git-repository-context.js";
 import { defaultKbManifest, writeKbManifest } from "../utils/kb-manifest.js";
 import { ENTITY_LANES, KB_PATHS } from "../utils/kb-paths.js";
 import { SYMBOLS_MANIFEST_COMMENT_BLOCK } from "./sync/manifest.js";
@@ -518,9 +520,14 @@ export function hasManagedHooks(hooksDir: string): boolean {
 
 export function installGitHooks(
   hooksDir: string,
-  options: { hooksPathOrigin?: string | null } = {},
+  options: {
+    hooksPathOrigin?: string | null;
+    /** Where install notes go; `kibi hooks install --quiet` passes a no-op. */
+    log?: (message: string) => void;
+  } = {},
 ): GitHookInstallResult[] {
   // implements REQ-git-hook-effective-install
+  const log = options.log ?? ((message: string) => console.log(message));
   mkdirSync(hooksDir, { recursive: true });
 
   const results: GitHookInstallResult[] = MANAGED_HOOK_TEMPLATES.map(
@@ -532,37 +539,95 @@ export function installGitHooks(
 
   for (const { hook, result } of results) {
     if (result === "skipped-foreign") {
-      console.log(
+      log(
         `! ${hook}: existing non-Kibi hook left untouched; Kibi enforcement is NOT installed for this hook. To integrate: ${hookIntegrationRecipe(hook)}.`,
       );
     } else if (result === "skipped-symlink") {
-      console.log(
+      log(
         `! ${hook}: hook is a symlink; Kibi never edits symlink targets. Manage the target manually (${hookIntegrationRecipe(hook)}).`,
       );
     } else if (result === "skipped-unsupported") {
-      console.log(
-        `! ${hook}: hook path is not a regular file; left untouched.`,
-      );
+      log(`! ${hook}: hook path is not a regular file; left untouched.`);
     }
   }
   const installedOrUpdated = results.filter(
     (entry) => entry.result === "installed" || entry.result === "updated",
   );
   if (installedOrUpdated.length > 0) {
-    console.log(
+    log(
       `✓ Installed/updated Kibi git hooks at ${hooksDir} (${installedOrUpdated.map((entry) => entry.hook).join(", ")})`,
     );
   } else {
-    console.log(
+    log(
       `! No Kibi git hooks installed at ${hooksDir} (all hooks were skipped).`,
     );
   }
   if (options.hooksPathOrigin) {
     // Configuration/location reporting stays neutral about what happened:
     // the per-hook lines and the aggregate above carry the install verdict.
-    console.log(
+    log(
       `! core.hooksPath is configured (${options.hooksPathOrigin}); the effective hooks directory for THIS checkout is ${hooksDir}. Git resolves a relative hooks path separately under every worktree, so coverage of other worktrees is INCOMPLETE/UNVERIFIED: commit a versioned launcher that delegates to kibi, or run 'kibi init' in each checkout. Kibi will not change core.hooksPath.`,
     );
   }
   return results;
+}
+
+/**
+ * A hooks directory may be auto-managed only when Git resolves it inside this
+ * repository: under the common Git directory (the default hooks location) or
+ * under the current worktree root (repository-local relative core.hooksPath).
+ * Anything else — global configs, other repositories, external directories —
+ * must never receive auto-installed hooks.
+ * implements REQ-git-hook-effective-install
+ */
+export function isRepositoryManagedHooksDir(
+  context: GitRepositoryContext,
+): boolean {
+  const realpathAllowMissingTail = (candidate: string): string | null => {
+    let current = path.resolve(candidate);
+    const missingSegments: string[] = [];
+
+    while (true) {
+      try {
+        return path.resolve(realpathSync.native(current), ...missingSegments);
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (code !== "ENOENT" && code !== "ENOTDIR") return null;
+
+        // A dangling symlink cannot be canonicalized. Do not treat it as an
+        // ordinary missing suffix: mkdir could follow it into an external
+        // directory when Git's hooks path is created.
+        try {
+          if (lstatSync(current).isSymbolicLink()) return null;
+        } catch (statError) {
+          const statCode = (statError as NodeJS.ErrnoException).code;
+          if (statCode !== "ENOENT" && statCode !== "ENOTDIR") return null;
+        }
+
+        const parent = path.dirname(current);
+        if (parent === current) return null;
+        missingSegments.unshift(path.basename(current));
+        current = parent;
+      }
+    }
+  };
+
+  const isWithin = (candidate: string, root: string) => {
+    const relative = path.relative(root, candidate);
+    return (
+      relative === "" ||
+      (relative !== ".." &&
+        !relative.startsWith(`..${path.sep}`) &&
+        !path.isAbsolute(relative))
+    );
+  };
+
+  const hooksDir = realpathAllowMissingTail(context.effectiveHooksDir);
+  const commonGitDir = realpathAllowMissingTail(context.commonGitDir);
+  const worktreeRoot = realpathAllowMissingTail(context.worktreeRoot);
+  if (!hooksDir || !commonGitDir || !worktreeRoot) return false;
+
+  // The default hooks dir in a linked worktree is shared under the common Git
+  // directory, which can sit outside the current worktree root.
+  return isWithin(hooksDir, commonGitDir) || isWithin(hooksDir, worktreeRoot);
 }

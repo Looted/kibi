@@ -335,3 +335,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-47abf28885b2
+  - type: implements
+    from: SYM-auto-compile-ensure-branch-store-compiled
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:15.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0be08a16d97a
+  - type: covered_by
+    from: SYM-auto-compile-ensure-branch-store-compiled
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:15.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ac9c3f13b44

@@ -16,7 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { existsSync, lstatSync, realpathSync } from "node:fs";
+import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { classifyActivation } from "../operations/bootstrap/activation.js";
@@ -24,11 +24,15 @@ import { workspaceReferenceLanguageNote } from "../plugins/reference-language-su
 import { nodeFilesystem } from "../public/operations/node-ports.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import { readLegacyKbConfig } from "../utils/config.js";
+import { resolveGitRepository } from "../utils/git-repository-context.js";
 import {
-  type GitRepositoryContext,
-  resolveGitRepository,
-} from "../utils/git-repository-context.js";
-import { scaffoldGitHubIntegration } from "./github-init.js";
+  reportAgentInstructions,
+  writeAgentInstructions,
+} from "./agent-instructions.js";
+import {
+  scaffoldCheckWorkflow,
+  scaffoldGitHubIntegration,
+} from "./github-init.js";
 import {
   type DetectedHookManager,
   HOOK_SNIPPET_FORMATS,
@@ -37,6 +41,7 @@ import {
   hookManagerCoverage,
   hookManagerSnippet,
 } from "./hook-managers.js";
+import { syncPrepareScript } from "./hooks-install.js";
 import {
   MANAGED_HOOK_NAMES,
   copySchemaFiles,
@@ -45,69 +50,17 @@ import {
   ensureSymbolsManifestFile,
   installGitHooks,
   isManagedHookName,
+  isRepositoryManagedHooksDir,
   updateGitIgnore,
 } from "./init-helpers.js";
+import {
+  type SetupChoices,
+  readSetupChoices,
+  writeSetupChoices,
+} from "./setup-choices.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-/**
- * A hooks directory may be auto-managed only when Git resolves it inside this
- * repository: under the common Git directory (the default hooks location) or
- * under the current worktree root (repository-local relative core.hooksPath).
- * Anything else — global configs, other repositories, external directories —
- * must never receive auto-installed hooks.
- * implements REQ-git-hook-effective-install
- */
-function isRepositoryManagedHooksDir(context: GitRepositoryContext): boolean {
-  const realpathAllowMissingTail = (candidate: string): string | null => {
-    let current = path.resolve(candidate);
-    const missingSegments: string[] = [];
-
-    while (true) {
-      try {
-        return path.resolve(realpathSync.native(current), ...missingSegments);
-      } catch (error) {
-        const code = (error as NodeJS.ErrnoException).code;
-        if (code !== "ENOENT" && code !== "ENOTDIR") return null;
-
-        // A dangling symlink cannot be canonicalized. Do not treat it as an
-        // ordinary missing suffix: mkdir could follow it into an external
-        // directory when Git's hooks path is created.
-        try {
-          if (lstatSync(current).isSymbolicLink()) return null;
-        } catch (statError) {
-          const statCode = (statError as NodeJS.ErrnoException).code;
-          if (statCode !== "ENOENT" && statCode !== "ENOTDIR") return null;
-        }
-
-        const parent = path.dirname(current);
-        if (parent === current) return null;
-        missingSegments.unshift(path.basename(current));
-        current = parent;
-      }
-    }
-  };
-
-  const isWithin = (candidate: string, root: string) => {
-    const relative = path.relative(root, candidate);
-    return (
-      relative === "" ||
-      (relative !== ".." &&
-        !relative.startsWith(`..${path.sep}`) &&
-        !path.isAbsolute(relative))
-    );
-  };
-
-  const hooksDir = realpathAllowMissingTail(context.effectiveHooksDir);
-  const commonGitDir = realpathAllowMissingTail(context.commonGitDir);
-  const worktreeRoot = realpathAllowMissingTail(context.worktreeRoot);
-  if (!hooksDir || !commonGitDir || !worktreeRoot) return false;
-
-  // The default hooks dir in a linked worktree is shared under the common Git
-  // directory, which can sit outside the current worktree root.
-  return isWithin(hooksDir, commonGitDir) || isWithin(hooksDir, worktreeRoot);
-}
 
 interface InitOptions {
   hooks?: boolean;
@@ -115,6 +68,92 @@ interface InitOptions {
   badgeOnly?: boolean;
   printHook?: string;
   format?: string;
+  /** Explicit setup choices; undefined keeps the recorded (or default) one. */
+  autoSync?: boolean;
+  prepareHooks?: boolean;
+  agentInstructions?: boolean;
+  ciGate?: boolean;
+}
+
+/**
+ * Settles the setup choices for this run: flags given now win and are
+ * recorded; a repository with no recorded choices gets the defaults written
+ * down on its first init, so every clone and harness reads the same answer.
+ */
+// implements REQ-kibi-fresh-clone-setup
+function settleSetupChoices(
+  projectRoot: string,
+  options: InitOptions,
+): SetupChoices {
+  const explicit: Partial<Record<keyof SetupChoices, boolean>> = {};
+  for (const name of [
+    "autoSync",
+    "prepareHooks",
+    "agentInstructions",
+    "ciGate",
+  ] as const) {
+    if (options[name] !== undefined) explicit[name] = options[name];
+  }
+  const recorded = readSetupChoices(projectRoot);
+  const choices: SetupChoices = {
+    autoSync: explicit.autoSync ?? recorded.autoSync,
+    prepareHooks: explicit.prepareHooks ?? recorded.prepareHooks,
+    agentInstructions: explicit.agentInstructions ?? recorded.agentInstructions,
+    ciGate: explicit.ciGate ?? recorded.ciGate,
+  };
+  let written: string | null = null;
+  try {
+    written = writeSetupChoices(
+      projectRoot,
+      recorded.source === "defaults" ? choices : explicit,
+    );
+  } catch (error) {
+    console.error(
+      `Warning: could not record Kibi setup choices (${(error as Error).message}); this run used them without recording.`,
+    );
+  }
+  if (written !== null)
+    console.log(
+      `✓ Recorded Kibi setup choices in ${written} (autoSync: ${choices.autoSync}, prepareHooks: ${choices.prepareHooks}, agentInstructions: ${choices.agentInstructions}, ciGate: ${choices.ciGate})`,
+    );
+  return choices;
+}
+
+/** Keeps the package.json prepare step in line with the hooks choice. */
+// implements REQ-kibi-fresh-clone-setup
+function reconcilePrepareScript(
+  projectRoot: string,
+  enabled: boolean,
+  managedByHookManager: boolean,
+): void {
+  if (managedByHookManager) return;
+  const result = syncPrepareScript(projectRoot, enabled);
+  switch (result) {
+    case "added":
+    case "appended":
+      console.log(
+        "✓ Added Kibi's hook install to the package.json prepare script, so every install of this repository's dependencies installs the hooks",
+      );
+      return;
+    case "removed":
+      console.log(
+        "✓ Removed Kibi's hook install from the package.json prepare script (prepareHooks: false)",
+      );
+      return;
+    case "no-package-json":
+      if (enabled)
+        console.log(
+          "  No package.json at the repository root: each clone installs Kibi's hooks with 'kibi init'.",
+        );
+      return;
+    case "unreadable-package-json":
+      console.error(
+        "Warning: package.json could not be parsed; Kibi's hook install was not added to its prepare script.",
+      );
+      return;
+    default:
+      return;
+  }
 }
 
 /**
@@ -321,6 +360,11 @@ export async function initCommand(
       ensureSymbolsManifestFile(projectRoot);
     }
 
+    const choices = settleSetupChoices(projectRoot, options);
+    if (choices.agentInstructions) {
+      reportAgentInstructions(writeAgentInstructions(projectRoot));
+    }
+
     if (options.hooks) {
       const manager = repoContext
         ? detectHookManager(
@@ -355,6 +399,11 @@ export async function initCommand(
           );
         }
       }
+      reconcilePrepareScript(
+        projectRoot,
+        choices.prepareHooks,
+        manager !== null,
+      );
     }
 
     console.log(
@@ -380,6 +429,9 @@ export async function initCommand(
         cwd: projectRoot,
         badgeOnly: options.badgeOnly === true,
       });
+    }
+    if (choices.ciGate) {
+      scaffoldCheckWorkflow(projectRoot);
     }
 
     return { exitCode: 0 };

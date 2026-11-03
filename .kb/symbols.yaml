@@ -66699,3 +66699,522 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-bundled-skill-catalog
+  - id: SYM-kibi-fresh-clone-setup-verifier
+    title: Fresh-clone setup verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/fresh-clone-setup.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:27:07.095Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-agent-instructions-result
+    title: AgentInstructionsResult
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:05.922Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-agents-file
+    title: AGENTS_FILE
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:11.403Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-claude-file
+    title: CLAUDE_FILE
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:16.557Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-claude-import-section
+    title: CLAUDE_IMPORT_SECTION
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:21.407Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-instruction-file-result
+    title: InstructionFileResult
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:26.304Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-kibi-agent-instructions
+    title: KIBI_AGENT_INSTRUCTIONS
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:31.434Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-kibi-instructions-begin
+    title: KIBI_INSTRUCTIONS_BEGIN
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:36.102Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-kibi-instructions-end
+    title: KIBI_INSTRUCTIONS_END
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:41.232Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-managed-section-state
+    title: managedSectionState
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:46.351Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-report-agent-instructions
+    title: reportAgentInstructions
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:51.437Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-upsert-managed-section
+    title: upsertManagedSection
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:56.572Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-write-agent-instructions
+    title: writeAgentInstructions
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:01.621Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-auto-compile-auto-compile-outcome
+    title: AutoCompileOutcome
+    status: active
+    sourceFile: packages/cli/src/utils/auto-compile.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:07.061Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-auto-compile-ensure-branch-store-compiled
+    title: ensureBranchStoreCompiled
+    status: active
+    sourceFile: packages/cli/src/utils/auto-compile.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:13.567Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-checkout-hooks-has-kibi-pre-commit-gate
+    title: hasKibiPreCommitGate
+    status: active
+    sourceFile: packages/agent-core/src/checkout-hooks.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:19.814Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-checkout-hooks-kibi-hooks-missing
+    title: kibiHooksMissing
+    status: active
+    sourceFile: packages/agent-core/src/checkout-hooks.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:24.986Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-checkout-hooks-missing-hooks-note-text
+    title: MISSING_HOOKS_NOTE
+    status: active
+    sourceFile: packages/agent-core/src/checkout-hooks.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:30.807Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-checkout-hooks-missing-hooks-note
+    title: missingHooksNote
+    status: active
+    sourceFile: packages/agent-core/src/checkout-hooks.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:36.341Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-doctor-doctor-failure-category
+    title: doctorFailureCategory
+    status: active
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:41.622Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: implements
+        target: REQ-kibi-anonymous-usage-telemetry
+  - id: SYM-github-init-github-check-workflow-relpath
+    title: GITHUB_CHECK_WORKFLOW_RELPATH
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:48.563Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-github-init-scaffold-check-workflow
+    title: scaffoldCheckWorkflow
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:53.949Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-hooks-install-has-kibi-prepare-script
+    title: hasKibiPrepareScript
+    status: active
+    sourceFile: packages/cli/src/commands/hooks-install.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:59.506Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-hooks-install-hooks-install-command
+    title: hooksInstallCommand
+    status: active
+    sourceFile: packages/cli/src/commands/hooks-install.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:05.402Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-hooks-install-hooks-install-outcome
+    title: HooksInstallOutcome
+    status: active
+    sourceFile: packages/cli/src/commands/hooks-install.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:11.006Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-hooks-install-kibi-prepare-command
+    title: KIBI_PREPARE_COMMAND
+    status: active
+    sourceFile: packages/cli/src/commands/hooks-install.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:17.383Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-hooks-install-prepare-script-result
+    title: PrepareScriptResult
+    status: active
+    sourceFile: packages/cli/src/commands/hooks-install.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:23.634Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-hooks-install-sync-prepare-script
+    title: syncPrepareScript
+    status: active
+    sourceFile: packages/cli/src/commands/hooks-install.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:29.745Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-init-helpers-is-repository-managed-hooks-dir
+    title: isRepositoryManagedHooksDir
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:35.340Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-effective-install
+      - type: implements
+        target: REQ-git-hook-effective-install
+  - id: SYM-setup-choices-auto-sync-enabled
+    title: autoSyncEnabled
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:41.850Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-default-setup-choices
+    title: DEFAULT_SETUP_CHOICES
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:47.368Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-read-setup-choices
+    title: readSetupChoices
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:53.053Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-resolved-setup-choices
+    title: ResolvedSetupChoices
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:58.372Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-serialize-json
+    title: serializeJson
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:03.570Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-setup-choice-name
+    title: SetupChoiceName
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:08.308Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-setup-choice-names
+    title: SETUP_CHOICE_NAMES
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:13.418Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-setup-choices-source
+    title: SetupChoicesSource
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:19.326Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-setup-choices
+    title: SetupChoices
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:25.036Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-setup-file
+    title: SETUP_FILE
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:30.019Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-write-setup-choices
+    title: writeSetupChoices
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:35.180Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup

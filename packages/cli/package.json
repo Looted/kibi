@@ -32,6 +32,7 @@
       "types": "./dist/cli.d.ts",
       "default": "./dist/cli.js"
     },
+    "./bin/kibi": "./bin/kibi",
     "./prolog": {
       "types": "./dist/public/prolog/index.d.ts",
       "default": "./dist/public/prolog/index.js"

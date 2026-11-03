@@ -604,6 +604,12 @@ export async function syncCommand(
     detachedSnapshot?: BranchAttachment;
     /** Keep stdout clean for a host's own output; stderr still reports. */
     quiet?: boolean;
+    /**
+     * Compile the store and write nothing Git tracks: no block-layout
+     * rewrite of the symbol manifest and no adoption receipt. Auto-sync on
+     * a store's first use runs this, so a read never dirties the checkout.
+     */
+    compileOnly?: boolean;
   } = {},
   runtime: SyncCommandRuntime = {},
 ): Promise<SyncResult> {
@@ -698,6 +704,7 @@ export async function syncCommand(
     // sources its symbols reference read as newer after every clone.
     if (
       !validateOnly &&
+      options.compileOnly !== true &&
       recoveryBackupPath === undefined &&
       options.detachedSnapshot === undefined &&
       runtime.createProlog === undefined
@@ -797,7 +804,7 @@ export async function syncCommand(
     // A manifest an older writer left in flow layout is rewritten as block
     // YAML before anything hashes it, ahead of the no-op fast path below, so
     // a project whose cache is already fresh still gets it on the next sync.
-    if (!validateOnly) {
+    if (!validateOnly && options.compileOnly !== true) {
       for (const file of manifestFiles) {
         const normalized = normalizeManifestLayout(file);
         if (normalized !== null) {
