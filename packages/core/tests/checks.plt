@@ -69,6 +69,8 @@ chk_raw_rel(Type, From, To) :-
     atom_concat('urn-kibi:', Type, RelUri),
     kb:with_kb_mutex(rdf_db:rdf_assert(FromUri, RelUri, ToUri, Graph)).
 
+chk_xsd(Text, ^^(Text, 'http://www.w3.org/2001/XMLSchema#string')).
+
 chk_req(Id) :- chk_ent(req, Id, [status=open]).
 chk_req(Id, Props0) :-
     (   memberchk(status=_, Props0) -> Props = Props0 ; Props = [status=open|Props0] ),
@@ -654,8 +656,6 @@ test(cycle_search_helpers) :-
     \+ checks:dfs_cycle([a-a], a, a, [a], _),
     checks:cycles_to_violations([], [], V0),
     V0 == [].
-
-chk_xsd(Text, ^^(Text, 'http://www.w3.org/2001/XMLSchema#string')).
 
 test(required_fields, Violations == [
         violation('required-fields', 'REQ-BARE', "Missing required field: source", "Add source to entity definition", ""),
@@ -1459,3 +1459,1457 @@ test(assumption_statuses, Statuses == ['F-PROP'-governed, 'F-ACT'-action, 'F-OTH
     )).
 
 :- end_tests(checks_feasibility_rules).
+
+% --- scenario feasibility over the KB ----------------------------------------
+
+% The cart.total property: FACT-CART is the subject, each requirement
+% constrains it and requires one property fact.
+chk_cart_req(Req, Fact, Op, Value) :-
+    chk_cart_req(Req, Fact, Op, Value, []).
+
+chk_cart_req(Req, Fact, Op, Value, Extra) :-
+    (   kb_entity('FACT-CART', fact, _) -> true ; chk_subject('FACT-CART', cart) ),
+    (   kb_entity(Req, req, _) -> true ; chk_req(Req) ),
+    chk_prop(Fact, cart, total, Op, int, Value, Extra),
+    chk_strict(Req, 'FACT-CART', Fact).
+
+chk_scenario(Id, Expects, Assumed) :-
+    chk_ent(scenario, Id, [expects=Expects]),
+    forall(member(F, Assumed), chk_rel(assumes, Id, F)).
+
+chk_total(Id, Op, Value) :- chk_total(Id, Op, Value, []).
+chk_total(Id, Op, Value, Extra) :- chk_prop(Id, cart, total, Op, int, Value, Extra).
+
+chk_analysis(Scenario, Analysis) :-
+    checks:compute_scenario_feasibility_analysis(Scenario, Analysis).
+
+chk_outcome(Scenario, Outcome) :-
+    findall(O, checks:scenario_feasibility_outcome(Scenario, O), [Outcome]).
+
+:- begin_tests(checks_feasibility_kb).
+
+chk_zero_fixture :-
+    chk_cart_req('REQ-POS', 'FACT-POS', gt, 0, [claim_key="CLAIM-POS", claim_text="Total is positive"]),
+    chk_total('FACT-ZERO', eq, 0),
+    chk_scenario('SCEN-ZERO', success, ['FACT-ZERO']).
+
+chk_zero_description(Tail, Description) :-
+    format(string(Description),
+        "Scenario expects success but assumes FACT-ZERO, which current requirement REQ-POS forbids via FACT-POS: No value of cart.total satisfies assumed FACT-ZERO (eq 0) together with required FACT-POS (gt 0)~w",
+        [Tail]).
+
+chk_exception(Id, Props) :-
+    chk_req(Id, Props),
+    chk_rel(exempts, Id, 'REQ-POS'),
+    chk_rel(specified_by, Id, 'SCEN-ZERO').
+
+test(pairwise_infeasible, Violations == [violation('scenario-feasibility', 'SCEN-ZERO', D,
+        "Set expects: rejection on SCEN-ZERO, correct the assumption, or record a human-approved exception requirement (approved_by set) that exempts REQ-POS and is specified_by SCEN-ZERO",
+        Source)]) :-
+    chk_zero_description("", D),
+    chk_xsd("kb/SCEN-ZERO.md", Source),
+    chk_kb((chk_zero_fixture, check_scenario_feasibility(Violations))).
+
+test(unapproved_exception, Violations == [violation('scenario-feasibility', 'SCEN-ZERO', D,
+        "Have a human approve REQ-EX by setting approved_by (and optionally approval_ref), or set expects: rejection on SCEN-ZERO, or correct the assumption",
+        Source)]) :-
+    chk_zero_description(". An exception exists (REQ-EX exempts REQ-POS) but is not approved", D),
+    chk_xsd("kb/SCEN-ZERO.md", Source),
+    chk_kb((chk_zero_fixture, chk_exception('REQ-EX', [approved_by="   "]),
+            check_scenario_feasibility(Violations))).
+
+test(narrow_exception, Violations == [violation('scenario-feasibility', 'SCEN-ZERO', D,
+        "Add the claim_key of FACT-POS to exempts_claims on REQ-EX if a human approves waiving that clause too, set expects: rejection on SCEN-ZERO, or correct the assumption",
+        Source)]) :-
+    chk_zero_description(". Approved exception REQ-EX waives only the claims listed in its exempts_claims, and FACT-POS is not grounded by one of them", D),
+    chk_xsd("kb/SCEN-ZERO.md", Source),
+    chk_kb((chk_zero_fixture, chk_exception('REQ-EX', [approved_by="Owner", exempts_claims=["CLAIM-OTHER"]]),
+            check_scenario_feasibility(Violations))).
+
+test(approved_exceptions, Outcomes == [feasible_by_exception, feasible_by_exception]) :-
+    chk_kb((chk_zero_fixture, chk_exception('REQ-EX', [approved_by="Owner"]),
+            chk_outcome('SCEN-ZERO', O1))),
+    chk_kb((chk_zero_fixture, chk_exception('REQ-EX', [approved_by="Owner", exempts_claims=["CLAIM-POS"]]),
+            chk_outcome('SCEN-ZERO', O2))),
+    Outcomes = [O1, O2].
+
+test(exception_must_be_current_and_specify_the_scenario, Outcomes == [infeasible, infeasible]) :-
+    chk_kb((chk_zero_fixture, chk_exception('REQ-EX', [approved_by="Owner", status=deprecated]),
+            chk_outcome('SCEN-ZERO', infeasible(_)))),
+    chk_kb((chk_zero_fixture, chk_req('REQ-EX', [approved_by="Owner"]), chk_rel(exempts, 'REQ-EX', 'REQ-POS'),
+            chk_outcome('SCEN-ZERO', infeasible(_)))),
+    Outcomes = [infeasible, infeasible].
+
+test(scenario_without_source, [Source, Outcome] == ["", infeasible]) :-
+    chk_kb((
+        chk_cart_req('REQ-POS', 'FACT-POS', gt, 0),
+        chk_total('FACT-ZERO', eq, 0),
+        chk_raw_entity(scenario, 'SCEN-RAW', [id='SCEN-RAW', title="Raw", status=active, expects=success]),
+        chk_raw_rel(assumes, 'SCEN-RAW', 'FACT-ZERO'),
+        check_scenario_feasibility([violation(_, 'SCEN-RAW', _, _, Source)]),
+        chk_outcome('SCEN-RAW', infeasible(_)),
+        Outcome = infeasible
+    )).
+
+test(infeasible_scenarios_enumerate_success_scenarios, Witnesses == [
+        'SCEN-A'-['REQ-POS']-['FACT-ZERO']-['FACT-POS'],
+        'SCEN-B'-['REQ-POS']-['FACT-ZERO']-['FACT-POS']
+    ]) :-
+    chk_kb((
+        chk_cart_req('REQ-POS', 'FACT-POS', gt, 0),
+        chk_total('FACT-ZERO', eq, 0),
+        chk_scenario('SCEN-B', success, ['FACT-ZERO']),
+        chk_scenario('SCEN-A', success, ['FACT-ZERO']),
+        chk_scenario('SCEN-C', rejection, ['FACT-ZERO']),
+        chk_ent(scenario, 'SCEN-D', []),
+        findall(S-R-A-F, checks:infeasible_scenario(S, R, A, F, _), Witnesses),
+        checks:infeasible_scenario('SCEN-A', _, _, _, _),
+        \+ checks:infeasible_scenario('SCEN-C', _, _, _, _),
+        \+ checks:infeasible_scenario('SCEN-D', _, _, _, _)
+    )).
+
+test(outcomes, Outcomes == [
+        unknown(no_assumptions),
+        unknown(unmatched_assumption(['FACT-COLOR'])),
+        feasible,
+        unknown(contradictory_assumptions(['FACT-ONE', 'FACT-TWO'])),
+        unknown(incomparable_assumption(['FACT-TEXT'])),
+        unknown(conflicting_requirements(['REQ-HI', 'REQ-LO'])),
+        unknown(undetermined_validity(['FACT-WIN'])),
+        not_applicable(outside_validity(['FACT-NOW'])),
+        not_applicable(disjoint_scope(['FACT-US']))
+    ]) :-
+    chk_kb((
+        chk_cart_req('REQ-POS', 'FACT-POS', gt, 0),
+        chk_scenario('SCEN-NONE', success, []),
+        chk_prop('FACT-COLOR', cart, color, eq, string, "red", []),
+        chk_scenario('SCEN-COLOR', success, ['FACT-COLOR']),
+        chk_total('FACT-FIVE', eq, 5),
+        chk_scenario('SCEN-FIVE', success, ['FACT-FIVE']),
+        chk_total('FACT-ONE', eq, 1),
+        chk_total('FACT-TWO', eq, 2),
+        chk_scenario('SCEN-BOTH', success, ['FACT-ONE', 'FACT-TWO']),
+        chk_prop('FACT-TEXT', cart, total, eq, string, "lots", []),
+        chk_scenario('SCEN-TEXT', success, ['FACT-TEXT']),
+        Outcomes0 = [O1, O2, O3, O4, O5],
+        forall(member(_, []), true),
+        chk_outcome('SCEN-NONE', O1),
+        chk_outcome('SCEN-COLOR', O2),
+        chk_outcome('SCEN-FIVE', O3),
+        chk_outcome('SCEN-BOTH', O4),
+        chk_outcome('SCEN-TEXT', O5)
+    )),
+    chk_kb((
+        chk_cart_req('REQ-HI', 'FACT-HI', gt, 5),
+        chk_cart_req('REQ-LO', 'FACT-LO', lt, 3),
+        chk_total('FACT-ANY', gte, 0),
+        chk_scenario('SCEN-ANY', success, ['FACT-ANY']),
+        chk_outcome('SCEN-ANY', O6)
+    )),
+    chk_kb((
+        chk_cart_req('REQ-WIN', 'FACT-WIN', gt, 0, [valid_from="2026-01-01T00:00:00Z"]),
+        chk_total('FACT-ZERO', eq, 0),
+        chk_scenario('SCEN-WIN', success, ['FACT-ZERO']),
+        chk_outcome('SCEN-WIN', O7)
+    )),
+    chk_kb((
+        chk_cart_req('REQ-OLD', 'FACT-OLD', gt, 0, [valid_to="2020-01-01T00:00:00Z"]),
+        chk_total('FACT-NOW', eq, 0, [valid_from="2026-01-01T00:00:00Z"]),
+        chk_scenario('SCEN-NOW', success, ['FACT-NOW']),
+        chk_outcome('SCEN-NOW', O8)
+    )),
+    chk_kb((
+        chk_cart_req('REQ-EU', 'FACT-EU', gt, 0, [scope="eu"]),
+        chk_total('FACT-US', eq, 0, [scope="us"]),
+        chk_scenario('SCEN-US', success, ['FACT-US']),
+        chk_outcome('SCEN-US', O9)
+    )),
+    append(Outcomes0, [O6, O7, O8, O9], Outcomes).
+
+test(no_outcome_for_rejection_scenarios) :-
+    chk_kb((
+        chk_scenario('SCEN-R', rejection, []),
+        \+ checks:scenario_feasibility_outcome('SCEN-R', _),
+        findall(S, checks:scenario_feasibility_outcome(S, _), Ss),
+        Ss == []
+    )).
+
+test(outcome_decided_before_matching) :-
+    chk_kb((
+        chk_zero_fixture,
+        chk_prop('FACT-COLOR', cart, color, eq, string, "red", []),
+        chk_rel(assumes, 'SCEN-ZERO', 'FACT-COLOR'),
+        \+ checks:scenario_feasibility_outcome('SCEN-ZERO', unknown(_))
+    )).
+
+test(analysis_of_a_mixed_scenario, Analysis == analysis(
+        [infeasibility(['REQ-POS'], ['FACT-ZERO'], ['FACT-POS'],
+            'No value of cart.total satisfies assumed FACT-ZERO (eq 0) together with required FACT-POS (gt 0)')],
+        [unmatched_assumption(['FACT-COLOR'])], false, [])) :-
+    chk_kb((
+        chk_zero_fixture,
+        chk_prop('FACT-COLOR', cart, color, eq, string, "red", []),
+        chk_rel(assumes, 'SCEN-ZERO', 'FACT-COLOR'),
+        chk_analysis('SCEN-ZERO', Analysis)
+    )).
+
+test(analysis_reports_every_unknown_in_order, Unknowns == [
+        contradictory_assumptions(['FACT-ONE', 'FACT-TWO']),
+        unmatched_assumption(['FACT-COLOR']),
+        incomparable_assumption(['FACT-TEXT'])
+    ]) :-
+    chk_kb((
+        chk_cart_req('REQ-POS', 'FACT-POS', gt, 0),
+        chk_prop('FACT-QTY', cart, qty, eq, int, 1, []),
+        chk_prop('FACT-QTY2', cart, qty, eq, int, 2, []),
+        chk_prop('FACT-REQ-QTY', cart, qty, gt, int, 0, []),
+        chk_rel(requires_property, 'REQ-POS', 'FACT-REQ-QTY'),
+        chk_total('FACT-ONE', eq, 1),
+        chk_total('FACT-TWO', eq, 2),
+        chk_prop('FACT-COLOR', cart, color, eq, string, "red", []),
+        chk_prop('FACT-TEXT', cart, qty, eq, string, "x", [scope="eu"]),
+        chk_scenario('SCEN-MIX', success, ['FACT-ONE', 'FACT-TWO', 'FACT-COLOR', 'FACT-TEXT']),
+        chk_analysis('SCEN-MIX', analysis([], Unknowns, false, []))
+    )).
+
+test(not_applicable_lists_outside_then_disjoint, NotApplicable == [
+        outside_validity(['FACT-NOW']), disjoint_scope(['FACT-US'])]) :-
+    chk_kb((
+        chk_cart_req('REQ-OLD', 'FACT-OLD', gt, 0, [valid_to="2020-01-01T00:00:00Z"]),
+        chk_prop('FACT-EU', cart, qty, gt, int, 0, [scope="eu"]),
+        chk_rel(requires_property, 'REQ-OLD', 'FACT-EU'),
+        chk_total('FACT-NOW', eq, 0, [valid_from="2026-01-01T00:00:00Z"]),
+        chk_prop('FACT-US', cart, qty, eq, int, 0, [scope="us"]),
+        chk_scenario('SCEN-NA', success, ['FACT-NOW', 'FACT-US']),
+        chk_analysis('SCEN-NA', analysis([], [], false, NotApplicable))
+    )).
+
+test(by_exception_flag, Analysis == analysis([], [], true, [])) :-
+    chk_kb((chk_zero_fixture, chk_exception('REQ-EX', [approved_by="Owner"]),
+            chk_analysis('SCEN-ZERO', Analysis))).
+
+test(no_assumptions_analysis, Analysis == analysis([], [no_assumptions], false, [])) :-
+    chk_kb((chk_scenario('SCEN-N', success, []), chk_analysis('SCEN-N', Analysis))).
+
+test(analysis_memo) :-
+    chk_kb((
+        chk_zero_fixture,
+        retractall(kb:kb_scenario_feasibility_memo(_, _, _)),
+        assertz(kb:kb_scenario_feasibility_memo(stale, old_key, stale_analysis)),
+        checks:scenario_feasibility_analysis('SCEN-ZERO', A1),
+        findall(S-A, kb:kb_scenario_feasibility_memo(S, _, A), Memo1),
+        Memo1 == ['SCEN-ZERO'-A1],
+        A1 = analysis([_], [], false, []),
+        kb:kb_scenario_feasibility_memo('SCEN-ZERO', Key, _),
+        retractall(kb:kb_scenario_feasibility_memo(_, _, _)),
+        assertz(kb:kb_scenario_feasibility_memo('SCEN-ZERO', Key, cached)),
+        checks:scenario_feasibility_analysis('SCEN-ZERO', A2),
+        A2 == cached,
+        chk_total('FACT-SEVEN', eq, 7),
+        chk_scenario('SCEN-SEVEN', success, ['FACT-SEVEN']),
+        kb:index_verification_key(scenario_feasibility, Key2),
+        retractall(kb:kb_scenario_feasibility_memo(_, _, _)),
+        assertz(kb:kb_scenario_feasibility_memo('SCEN-ZERO', Key2, kept)),
+        checks:scenario_feasibility_analysis('SCEN-SEVEN', A3),
+        A3 == analysis([], [], false, []),
+        findall(S, kb:kb_scenario_feasibility_memo(S, _, _), Memo3),
+        Memo3 == ['SCEN-ZERO', 'SCEN-SEVEN'],
+        rdf_transaction((
+            checks:scenario_feasibility_analysis('SCEN-ZERO', A4),
+            A4 = analysis([_], [], false, [])
+        )),
+        findall(S, kb:kb_scenario_feasibility_memo(S, _, _), Memo4),
+        Memo4 == ['SCEN-ZERO', 'SCEN-SEVEN'],
+        retractall(kb:kb_scenario_feasibility_memo(_, _, _))
+    )).
+
+test(analysis_memo_skipped_for_unbound_scenarios) :-
+    chk_kb((
+        chk_zero_fixture,
+        retractall(kb:kb_scenario_feasibility_memo(_, _, _)),
+        findall(S, checks:scenario_feasibility_analysis(S, _), _),
+        \+ kb:kb_scenario_feasibility_memo(_, _, _)
+    )).
+
+test(scenario_windows, Windows == [unspecified, window('2026-02-01T00:00:00Z', '2026-03-01T00:00:00Z'),
+                                   window('2026-01-01T00:00:00Z', ''), window('', '2026-03-01T00:00:00Z')]) :-
+    chk_kb((
+        chk_total('F-PLAIN', eq, 1),
+        chk_total('F-A', eq, 1, [valid_from="2026-01-01T00:00:00Z", valid_to="2026-03-01T00:00:00Z"]),
+        chk_total('F-B', eq, 1, [valid_from="2026-02-01T00:00:00Z", valid_to="2026-04-01T00:00:00Z"]),
+        chk_total('F-C', eq, 1, [valid_from="2026-01-01T00:00:00Z"]),
+        chk_total('F-D', eq, 1, [valid_to="2026-03-01T00:00:00Z"]),
+        checks:scenario_window(['F-PLAIN'], W1),
+        checks:scenario_window(['F-PLAIN', 'F-A', 'F-B'], W2),
+        checks:scenario_window(['F-C'], W3),
+        checks:scenario_window(['F-D', 'F-PLAIN'], W4),
+        Windows = [W1, W2, W3, W4]
+    )).
+
+test(property_members, Members == [
+        m(assumption, 'F-A', 'F-A', cart-total, '', int, '', eq, 1, 'eq 1'),
+        m(requirement, 'REQ', 'F-B', cart-total, eu, int, s, gt, 60, 'forbid lte 1 min'),
+        m(requirement, 'REQ', 'F-C', cart-total, '', int, '', unsupported, 2, 'forbid matches 2')
+    ]) :-
+    chk_kb((
+        chk_total('F-A', eq, 1),
+        chk_total('F-B', lte, 1, [polarity=forbid, unit="min", scope="eu"]),
+        chk_raw_entity(fact, 'F-C', [fact_kind=property_value, subject_key="cart", property_key="total",
+                                     operator=matches, value_type=int, value_int=2, polarity=forbid]),
+        checks:assumption_member('F-A', M1),
+        checks:property_member(requirement, 'REQ', 'F-B', M2),
+        checks:property_member(requirement, 'REQ', 'F-C', M3),
+        \+ checks:property_member(requirement, 'REQ', 'F-MISSING', _),
+        Members = [M1, M2, M3]
+    )).
+
+test(property_constraints, Constraints == [
+        rc(m(requirement, 'REQ-A', 'FACT-A', cart-total, '', int, '', gt, 0, 'gt 0'), applies, false),
+        rc(m(requirement, 'REQ-B', 'FACT-B', cart-total, '', int, '', lt, 9, 'lt 9'), undetermined, true)
+    ]) :-
+    chk_kb((
+        chk_cart_req('REQ-A', 'FACT-A', gt, 0),
+        chk_cart_req('REQ-B', 'FACT-B', lt, 9, [valid_to="2027-01-01T00:00:00Z"]),
+        chk_cart_req('REQ-GONE', 'FACT-GONE', lt, 1),
+        chk_req('REQ-NEW'),
+        chk_rel(supersedes, 'REQ-NEW', 'REQ-GONE'),
+        chk_prop('FACT-QTY', cart, qty, gt, int, 0, []),
+        chk_rel(requires_property, 'REQ-A', 'FACT-QTY'),
+        chk_scenario('SCEN', success, []),
+        chk_req('REQ-EX', [approved_by="Owner"]),
+        chk_rel(exempts, 'REQ-EX', 'REQ-B'),
+        chk_rel(specified_by, 'REQ-EX', 'SCEN'),
+        checks:property_constraints('SCEN', [cart-total], unspecified, Constraints)
+    )).
+
+test(exception_helpers) :-
+    chk_kb((
+        chk_zero_fixture,
+        chk_req('REQ-EX', [approved_by="Owner", exempts_claims=["CLAIM-POS", "CLAIM-X"]]),
+        chk_req('REQ-EMPTY', [approved_by="", exempts_claims=[]]),
+        chk_req('REQ-NUM', [approved_by="7"]),
+        checks:exception_claim_keys('REQ-EX', Keys),
+        Keys == ['CLAIM-POS', 'CLAIM-X'],
+        \+ checks:exception_claim_keys('REQ-EMPTY', _),
+        \+ checks:exception_claim_keys('REQ-POS', _),
+        checks:fact_claim_key('FACT-POS', Claim),
+        Claim == 'CLAIM-POS',
+        \+ checks:fact_claim_key('FACT-ZERO', _),
+        checks:exception_covers('REQ-EX', 'FACT-POS'),
+        \+ checks:exception_covers('REQ-EX', 'FACT-ZERO'),
+        checks:exception_covers('REQ-NUM', 'FACT-ZERO'),
+        checks:exception_approved('REQ-EX'),
+        checks:exception_approved('REQ-NUM'),
+        \+ checks:exception_approved('REQ-EMPTY'),
+        \+ checks:exception_approved('REQ-POS'),
+        checks:evidence_text(^^("a", x), T1), T1 == "a",
+        checks:evidence_text(abc, T2), T2 == "abc",
+        checks:evidence_text(f(x), T3), T3 == "f(x)",
+        checks:evidence_text(42, T4), T4 == "42"
+    )).
+
+test(constraint_exempt_once) :-
+    chk_kb((
+        chk_zero_fixture,
+        chk_exception('REQ-EX', [approved_by="Owner"]),
+        chk_exception('REQ-EX2', [approved_by="Owner"]),
+        deterministic(checks:constraint_exempt('SCEN-ZERO', 'REQ-POS', 'FACT-POS')),
+        checks:exemption_flag('SCEN-ZERO', 'REQ-POS', 'FACT-POS', E1),
+        E1 == true,
+        checks:exemption_flag('SCEN-ZERO', 'REQ-OTHER', 'FACT-POS', E2),
+        E2 == false
+    )).
+
+test(narrow_exception_helper) :-
+    chk_kb((
+        chk_zero_fixture,
+        chk_exception('REQ-NARROW', [approved_by="Owner", exempts_claims=["CLAIM-OTHER"]]),
+        chk_exception('REQ-WIDE', [approved_by="Owner"]),
+        chk_exception('REQ-COVERS', [approved_by="Owner", exempts_claims=["CLAIM-POS"]]),
+        chk_exception('REQ-UNAPPROVED', [exempts_claims=["CLAIM-OTHER"]]),
+        findall(E, checks:narrow_scenario_exception('SCEN-ZERO', 'REQ-POS', ['FACT-POS', 'FACT-POS'], E), Es),
+        Es == ['REQ-NARROW'],
+        findall(U, checks:unapproved_scenario_exception('SCEN-ZERO', 'REQ-POS', U), Us),
+        Us == ['REQ-UNAPPROVED']
+    )).
+
+:- end_tests(checks_feasibility_kb).
+
+% --- scenario feasibility: the rule lane --------------------------------------
+
+:- begin_tests(checks_feasibility_rule_lane).
+
+% REQ-RULE requires FACT-RULE: Modality Head :- cart.total =< 0 (or the given
+% conditions), read in the rule lane.
+chk_rule_req(Kind, Modality, Head, Conditions, Extra) :-
+    chk_req('REQ-RULE'),
+    chk_rule_fact('FACT-RULE', Kind, Modality, Head, Conditions, Extra, [], _),
+    chk_rel(requires_rule, 'REQ-RULE', 'FACT-RULE').
+
+chk_rule_scenario(Assumed) :-
+    chk_total('FACT-ZERO', eq, 0),
+    chk_scenario('SCEN-R', success, Assumed).
+
+chk_rule_witness(Text, analysis([infeasibility(['REQ-RULE'], ['FACT-ZERO'], ['FACT-RULE'], Reason)], [], false, [])) :-
+    format(atom(Reason), 'No value of cart.total satisfies assumed FACT-ZERO (eq 0) together with required FACT-RULE (~w)', [Text]).
+
+test(forbid_rule_specified_by_the_requirement, Analysis == Expected) :-
+    chk_rule_witness('rule forbids checkout unless gt 0', Expected),
+    chk_kb((
+        chk_rule_req(rule, forbid, checkout, [total-lte-0], []),
+        chk_rule_scenario(['FACT-ZERO']),
+        chk_rel(specified_by, 'REQ-RULE', 'SCEN-R'),
+        chk_analysis('SCEN-R', Analysis)
+    )).
+
+test(deny_rule_through_an_exception_link, Analysis == Expected) :-
+    chk_rule_witness('rule forbids checkout unless gt 0', Expected),
+    chk_kb((
+        chk_rule_req(rule, deny, checkout, [total-lte-0], []),
+        chk_rule_scenario(['FACT-ZERO']),
+        chk_req('REQ-EX'),
+        chk_rel(exempts, 'REQ-EX', 'REQ-RULE'),
+        chk_rel(specified_by, 'REQ-EX', 'SCEN-R'),
+        chk_analysis('SCEN-R', Analysis)
+    )).
+
+test(headless_rule_always_restricts, Analysis == Expected) :-
+    chk_rule_witness('rule forbids the scenario unless gt 0', Expected),
+    chk_kb((
+        chk_rule_req(rule, forbid, none, [total-lte-0], []),
+        chk_rule_scenario(['FACT-ZERO']),
+        chk_analysis('SCEN-R', Analysis)
+    )).
+
+test(constraint_permit_rule, Analyses == [E, E]) :-
+    chk_rule_witness('rule permits checkout only when gt 0', E),
+    findall(A,
+        (   member(Modality, [permit, oblige]),
+            chk_kb((
+                chk_rule_req(constraint, Modality, checkout, [total-gt-0], []),
+                chk_rule_scenario(['FACT-ZERO']),
+                chk_rel(specified_by, 'REQ-RULE', 'SCEN-R'),
+                chk_analysis('SCEN-R', A)
+            ))
+        ),
+        Analyses).
+
+test(assumed_action_performs_the_head, Analysis == analysis([infeasibility(['REQ-RULE'], ['FACT-ZERO'], ['FACT-RULE'], Reason)], [], false, [])) :-
+    Reason = 'No value of cart.total satisfies assumed FACT-ZERO (eq 0) together with required FACT-RULE (rule forbids shop:checkout unless gt 0)',
+    chk_kb((
+        chk_req('REQ-RULE'),
+        chk_rule_json(rule, forbid, checkout, [total-lte-0], [], Json0),
+        atom_json_dict(Json0, D0, []),
+        Head = D0.head.put(namespace, shop),
+        atom_json_dict(Json, D0.put(head, Head), [width(0)]),
+        chk_raw_entity(fact, 'FACT-RULE', [id='FACT-RULE', title="Rule", status=active, fact_kind=rule, rule_ir=Json]),
+        chk_rel(requires_rule, 'REQ-RULE', 'FACT-RULE'),
+        chk_ent(fact, 'FACT-DO', [fact_kind=predicate, predicate_namespace="shop", predicate_name="checkout",
+                                  predicate_args=["cart"], canonical_key="checkout(cart)"]),
+        chk_ent(fact, 'FACT-DONT', [fact_kind=predicate, predicate_namespace="shop", predicate_name="checkout",
+                                    predicate_args=["cart"], polarity=deny, canonical_key="checkout(cart):deny"]),
+        chk_rule_scenario(['FACT-ZERO', 'FACT-DO']),
+        chk_analysis('SCEN-R', Analysis)
+    )).
+
+test(rules_that_do_not_restrict_the_scenario, Analyses == [U, U, U, D, U]) :-
+    D = analysis([], [unmatched_assumption(['FACT-DONT', 'FACT-ZERO'])], false, []),
+    U = analysis([], [unmatched_assumption(['FACT-ZERO'])], false, []),
+    findall(A,
+        (   member(Kind-Modality-Conditions-Link,
+                   [ rule-forbid-[total-lte-0]-none,
+                     rule-permit-[total-gt-0]-specified,
+                     rule-forbid-[qty-lte-0]-specified,
+                     rule-forbid-[total-lte-0]-deny_assumed,
+                     rule-forbid-[total-lte-0]-superseded
+                   ]),
+            chk_kb((
+                chk_rule_req(Kind, Modality, checkout, Conditions, []),
+                chk_rule_scenario(['FACT-ZERO']),
+                chk_rule_link(Link),
+                chk_analysis('SCEN-R', A)
+            ))
+        ),
+        Analyses).
+
+chk_rule_link(none).
+chk_rule_link(specified) :- chk_rel(specified_by, 'REQ-RULE', 'SCEN-R').
+chk_rule_link(deny_assumed) :-
+    chk_ent(fact, 'FACT-DONT', [fact_kind=predicate, predicate_name="checkout", predicate_args=["cart"],
+                                polarity=deny, canonical_key="checkout(cart):deny"]),
+    chk_raw_rel(assumes, 'SCEN-R', 'FACT-DONT').
+chk_rule_link(superseded) :-
+    chk_rel(specified_by, 'REQ-RULE', 'SCEN-R'),
+    chk_req('REQ-NEXT'),
+    chk_rel(supersedes, 'REQ-NEXT', 'REQ-RULE').
+
+test(rule_validity_windows, Analyses == [
+        analysis([], [undetermined_validity(['FACT-RULE'])], false, []),
+        analysis([], [undetermined_validity(['FACT-RULE'])], false, []),
+        analysis([], [], false, [outside_validity(['FACT-ZERO'])])
+    ]) :-
+    findall(A,
+        (   member(Extra-FactExtra-Assumed,
+                   [ ['validFrom'-'2026-01-01T00:00:00Z']-[]-[],
+                     []-[valid_from="2026-01-01T00:00:00Z"]-[],
+                     ['validTo'-'2020-01-01T00:00:00Z']-[valid_from="2027-01-01T00:00:00Z"]-[valid_from="2026-01-01T00:00:00Z"]
+                   ]),
+            chk_kb((
+                chk_req('REQ-RULE'),
+                chk_rule_fact('FACT-RULE', rule, forbid, checkout, [total-lte-0], Extra, FactExtra, _),
+                chk_rel(requires_rule, 'REQ-RULE', 'FACT-RULE'),
+                chk_total('FACT-ZERO', eq, 0, Assumed),
+                chk_scenario('SCEN-R', success, ['FACT-ZERO']),
+                chk_rel(specified_by, 'REQ-RULE', 'SCEN-R'),
+                chk_analysis('SCEN-R', A)
+            ))
+        ),
+        Analyses).
+
+test(general_rule_blocks, Analysis == analysis([infeasibility(['REQ-RULE'], ['FACT-NINE', 'FACT-ZERO'], ['FACT-RULE'], Reason)], [], false, [])) :-
+    chk_kb((
+        chk_rule_req(rule, forbid, checkout, [total-lte-0, qty-gt-5], []),
+        chk_prop('FACT-NINE', cart, qty, eq, int, 9, []),
+        chk_rule_scenario(['FACT-ZERO', 'FACT-NINE']),
+        chk_rel(specified_by, 'REQ-RULE', 'SCEN-R'),
+        chk_analysis('SCEN-R', Analysis),
+        kb_entity('FACT-RULE', fact, Props),
+        checks:logic_rule_render(Props, Text),
+        format(atom(Reason), 'Assumed FACT-NINE (eq 9), FACT-ZERO (eq 0) satisfy every condition of rule FACT-RULE (~w), which forbids the scenario\'s action', [Text])
+    )).
+
+test(general_rule_undecided_and_exempt, Analyses == [
+        analysis([], [undecided_rule(['FACT-RULE'])], false, []),
+        analysis([], [], true, [])
+    ]) :-
+    chk_kb((
+        chk_rule_req(rule, forbid, checkout, [total-lte-0, qty-gt-5], []),
+        chk_rule_scenario(['FACT-ZERO']),
+        chk_rel(specified_by, 'REQ-RULE', 'SCEN-R'),
+        chk_analysis('SCEN-R', A1)
+    )),
+    chk_kb((
+        chk_rule_req(rule, forbid, checkout, [total-lte-0, qty-gt-5], []),
+        chk_prop('FACT-NINE', cart, qty, eq, int, 9, []),
+        chk_rule_scenario(['FACT-ZERO', 'FACT-NINE']),
+        chk_req('REQ-EX', [approved_by="Owner"]),
+        chk_rel(exempts, 'REQ-EX', 'REQ-RULE'),
+        chk_rel(specified_by, 'REQ-EX', 'SCEN-R'),
+        chk_analysis('SCEN-R', A2)
+    )),
+    Analyses = [A1, A2].
+
+test(rule_constraints_split_and_actions) :-
+    chk_kb((
+        chk_req('REQ-A'),
+        chk_rule_fact('FACT-A', rule, forbid, checkout, [total-lte-0], [], [], _),
+        chk_rel(requires_rule, 'REQ-A', 'FACT-A'),
+        chk_req('REQ-B'),
+        chk_rule_fact('FACT-B', rule, forbid, pay, [total-lte-0, qty-gt-1], [], [], _),
+        chk_rel(requires_rule, 'REQ-B', 'FACT-B'),
+        chk_req('REQ-C'),
+        chk_rule_fact('FACT-C', rule, forbid, none, [total-gt-9], [], [], _),
+        chk_rel(requires_rule, 'REQ-C', 'FACT-C'),
+        chk_scenario('SCEN', success, []),
+        chk_rel(specified_by, 'REQ-A', 'SCEN'),
+        chk_rel(specified_by, 'REQ-B', 'SCEN'),
+        checks:rule_constraints('SCEN', [cart-total], unspecified, Constraints, General, Actions),
+        Constraints == [
+            rc(m(requirement, 'REQ-A', 'FACT-A', cart-total, '', number, '', gt, 0, 'rule forbids checkout unless gt 0'), applies, false),
+            rc(m(requirement, 'REQ-C', 'FACT-C', cart-total, '', number, '', lte, 9, 'rule forbids the scenario unless lte 9'), applies, false)
+        ],
+        General = [gr('REQ-B', 'FACT-B', forbids, '', applies, false, [cart-qty, cart-total], _)],
+        Actions == [default-checkout, default-pay]
+    )).
+
+test(rule_head_performed) :-
+    chk_kb((
+        chk_req('REQ-A'),
+        chk_scenario('SCEN', success, []),
+        deterministic(checks:rule_head_performed('SCEN', 'REQ-A', none)),
+        \+ checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], positive, false)),
+        chk_rel(specified_by, 'REQ-A', 'SCEN'),
+        deterministic(checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], positive, false)))
+    )),
+    chk_kb((
+        chk_req('REQ-A'),
+        chk_req('REQ-EX'),
+        chk_scenario('SCEN', success, []),
+        chk_rel(exempts, 'REQ-EX', 'REQ-A'),
+        chk_rel(specified_by, 'REQ-EX', 'SCEN'),
+        chk_req('REQ-EX2'),
+        chk_rel(exempts, 'REQ-EX2', 'REQ-A'),
+        chk_rel(specified_by, 'REQ-EX2', 'SCEN'),
+        deterministic(checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], positive, false)))
+    )),
+    chk_kb((
+        chk_req('REQ-A'),
+        chk_ent(fact, 'FACT-DO', [fact_kind=predicate, predicate_name="checkout", predicate_args=["cart"], canonical_key="checkout(cart)"]),
+        chk_ent(fact, 'FACT-DO2', [fact_kind=predicate, predicate_name="checkout", predicate_args=["bag"], canonical_key="checkout(bag)"]),
+        chk_scenario('SCEN', success, ['FACT-DO', 'FACT-DO2']),
+        deterministic(checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], positive, false))),
+        \+ checks:rule_head_performed('SCEN', 'REQ-A', atom(default, checkout, [], negative, false)),
+        \+ checks:rule_head_performed('SCEN', 'REQ-A', atom(other, checkout, [], positive, false))
+    )).
+
+test(rule_validity) :-
+    chk_kb((
+        chk_total('F', eq, 0, [valid_from="2026-01-01T00:00:00Z"]),
+        findall(F-T, checks:rule_validity('F', '', '', F, T), W1),
+        W1 == ['2026-01-01T00:00:00Z'-''],
+        findall(F-T, checks:rule_validity('F', a, '', F, T), W2),
+        W2 == [a-''],
+        findall(F-T, checks:rule_validity('F', '', b, F, T), W3),
+        W3 == [''-b]
+    )).
+
+:- end_tests(checks_feasibility_rule_lane).
+
+% --- negative scenarios, opposing assumptions, unknown and mismatch reports ----
+
+:- begin_tests(checks_negative_scenarios).
+
+test(witnesses_from_feasibility, Witnesses == ['SCEN-ERR'-'REQ-POS', 'SCEN-REJ'-'REQ-POS']) :-
+    chk_kb((
+        chk_cart_req('REQ-POS', 'FACT-POS', gt, 0),
+        chk_total('FACT-ZERO', eq, 0),
+        chk_scenario('SCEN-REJ', rejection, ['FACT-ZERO']),
+        chk_scenario('SCEN-ERR', error, ['FACT-ZERO']),
+        chk_scenario('SCEN-OK', success, ['FACT-ZERO']),
+        findall(S-R, checks:negative_scenario_witness(S, R, infeasibility(_, _, _, _)), Witnesses),
+        checks:negative_scenario_witness('SCEN-REJ', 'REQ-POS', _),
+        \+ checks:negative_scenario_witness('SCEN-OK', _, _),
+        \+ checks:negative_scenario_witness('SCEN-REJ', 'REQ-OTHER', infeasibility(_, _, _, _))
+    )).
+
+test(opposed_claim_facts, Witnesses == [
+        'SCEN-PRED'-opposed('FACT-DENY', 'FACT-ALLOW'),
+        'SCEN-RULE'-opposed('FACT-DO', 'FACT-RULE'),
+        'SCEN-VALUE'-opposed('FACT-TEN', 'FACT-POS')
+    ]) :-
+    chk_kb((
+        % a property value against the requirement's property fact
+        chk_cart_req('REQ-POS', 'FACT-POS', lt, 5),
+        chk_total('FACT-TEN', eq, 10),
+        chk_scenario('SCEN-VALUE', rejection, ['FACT-TEN']),
+        chk_rel(specified_by, 'REQ-POS', 'SCEN-VALUE'),
+        % the opposite polarity of a required predicate
+        chk_req('REQ-PRED'),
+        chk_ent(fact, 'FACT-ALLOW', [fact_kind=predicate, predicate_name="refund", predicate_args=["order"], canonical_key="refund(order)"]),
+        chk_ent(fact, 'FACT-DENY', [fact_kind=predicate, predicate_name="refund", predicate_args=["order"], polarity=deny, canonical_key="refund(order):deny"]),
+        chk_rel(requires_predicate, 'REQ-PRED', 'FACT-ALLOW'),
+        chk_scenario('SCEN-PRED', rejection, ['FACT-DENY']),
+        chk_rel(specified_by, 'REQ-PRED', 'SCEN-PRED'),
+        % a fact instantiating an atom of a required rule
+        chk_req('REQ-R'),
+        chk_rule_fact('FACT-RULE', forbid, checkout, [total-lte-0], [], _),
+        chk_rel(requires_rule, 'REQ-R', 'FACT-RULE'),
+        chk_ent(fact, 'FACT-DO', [fact_kind=predicate, predicate_name="checkout", predicate_args=["cart"], canonical_key="checkout(cart)"]),
+        chk_scenario('SCEN-RULE', error, ['FACT-DO']),
+        chk_rel(specified_by, 'REQ-R', 'SCEN-RULE'),
+        % not current, not specified: no witness
+        chk_req('REQ-OLD', [status=deprecated]),
+        chk_rel(requires_predicate, 'REQ-OLD', 'FACT-ALLOW'),
+        chk_rel(specified_by, 'REQ-OLD', 'SCEN-PRED'),
+        findall(S-W, (checks:negative_scenario_witness(S, _, W), W = opposed(_, _)), Witnesses)
+    )).
+
+chk_oppose_fixture :-
+    chk_total('A-EQ5', eq, 5),
+    chk_total('A-EQ5-EU', eq, 5, [scope="eu"]),
+    chk_total('R-EQ5-FORBID', eq, 5, [polarity=forbid]),
+    chk_total('R-GT5', gt, 5),
+    chk_total('R-GT5-US', gt, 5, [scope="us"]),
+    chk_total('R-EQ5-US', eq, 5, [scope="us", polarity=forbid]),
+    chk_total('R-GT1', gt, 1),
+    chk_total('R-GT1-FORBID', gt, 1, [polarity=forbid]),
+    chk_prop('R-OTHER', cart, qty, gt, int, 9, []),
+    chk_ent(fact, 'P-ALLOW', [fact_kind=predicate, predicate_name="refund", predicate_args=["order"], canonical_key="refund(order)"]),
+    chk_ent(fact, 'P-ALLOW2', [fact_kind=predicate, predicate_name="refund", predicate_args=["order"], canonical_key="refund(order)"]),
+    chk_ent(fact, 'P-DENY', [fact_kind=predicate, predicate_name="refund", predicate_args=["order"], polarity=deny, canonical_key="refund(order):deny"]),
+    chk_ent(fact, 'P-OTHER-ARGS', [fact_kind=predicate, predicate_name="refund", predicate_args=["gift"], polarity=deny, canonical_key="refund(gift):deny"]),
+    chk_rule_fact('RULE-REFUND', forbid, refund, [total-lte-0], [], _),
+    chk_rule_fact('RULE-PAY', forbid, pay, [total-lte-0], [], _).
+
+test(facts_oppose) :-
+    chk_kb((
+        chk_oppose_fixture,
+        findall(R, (member(R, ['R-EQ5-FORBID', 'R-GT5', 'R-GT5-US', 'R-EQ5-US', 'R-GT1', 'R-GT1-FORBID', 'R-OTHER',
+                               'P-ALLOW', 'RULE-REFUND']),
+                    checks:facts_oppose('A-EQ5', R)), Opposed),
+        Opposed == ['R-EQ5-FORBID', 'R-GT5', 'R-GT5-US', 'R-EQ5-US'],
+        \+ checks:facts_oppose('A-EQ5-EU', 'R-GT5-US'),
+        findall(R, (member(R, ['P-ALLOW', 'P-ALLOW2', 'P-OTHER-ARGS', 'RULE-REFUND', 'RULE-PAY', 'R-GT1']),
+                    checks:facts_oppose('P-DENY', R)), POpposed),
+        POpposed == ['P-ALLOW', 'P-ALLOW2', 'RULE-REFUND'],
+        \+ checks:facts_oppose('P-ALLOW', 'P-ALLOW2'),
+        deterministic(checks:facts_oppose('A-EQ5', 'R-GT5')),
+        deterministic(checks:facts_oppose('P-DENY', 'P-ALLOW')),
+        deterministic(checks:facts_oppose('P-DENY', 'RULE-REFUND'))
+    )).
+
+chk_opposing(Id, Plain) :-
+    checks:opposing_assumption(Id, A),
+    dict_pairs(A, _, Plain).
+
+test(opposing_property_assumptions, Assumptions == [
+        [fact_kind-property_value, operator-eq, property_key-total, subject_key-cart, value-6, value_type-int],
+        [fact_kind-property_value, operator-eq, property_key-total, scope-eu, subject_key-cart, unit-s, value-4, value_type-int],
+        [fact_kind-property_value, operator-lt, property_key-total, subject_key-cart, value-5.0, value_type-number],
+        [fact_kind-property_value, operator-neq, property_key-total, subject_key-cart, value-7, value_type-int],
+        [fact_kind-property_value, operator-eq, property_key-flag, subject_key-cart, value-false, value_type-bool],
+        [fact_kind-property_value, operator-eq, property_key-flag, subject_key-cart, value-true, value_type-bool],
+        [fact_kind-property_value, operator-neq, property_key-name, subject_key-cart, value-"a", value_type-string],
+        [fact_kind-property_value, operator-eq, property_key-name, subject_key-cart, value-"b", value_type-string],
+        [fact_kind-property_value, operator-eq, property_key-tags, subject_key-cart, value-[a], value_type-set]
+    ]) :-
+    chk_kb((
+        chk_total('F-LTE', lte, 5),
+        chk_total('F-GTE', gte, 5, [unit="s", scope="eu"]),
+        chk_prop('F-NUM', cart, total, gte, number, 5, []),
+        chk_total('F-FORBID', neq, 7, [polarity=forbid]),
+        chk_prop('F-TRUE', cart, flag, eq, bool, true, []),
+        chk_prop('F-FALSE', cart, flag, eq, bool, false, []),
+        chk_prop('F-STR', cart, name, eq, string, "a", []),
+        chk_prop('F-NEQ', cart, name, neq, string, "b", []),
+        chk_prop('F-SET', cart, tags, eq, set, ["a", "b"], []),
+        findall(P, (member(Id, ['F-LTE', 'F-GTE', 'F-NUM', 'F-FORBID', 'F-TRUE', 'F-FALSE', 'F-STR', 'F-NEQ', 'F-SET']),
+                    chk_opposing(Id, P)),
+                Assumptions)
+    )).
+
+test(opposing_predicate_and_rule_assumptions, Assumptions == [
+        [fact_kind-predicate, polarity-deny, predicate_args-[order], predicate_name-refund, predicate_namespace-default],
+        [fact_kind-predicate, polarity-assert, predicate_args-[c], predicate_name-checkout, predicate_namespace-default],
+        [fact_kind-predicate, polarity-assert, predicate_args-[c, v1], predicate_name-total, predicate_namespace-cart]
+    ]) :-
+    chk_kb((
+        chk_ent(fact, 'P-ALLOW', [fact_kind=predicate, predicate_name="refund", predicate_args=["order"], canonical_key="refund(order)"]),
+        chk_rule_fact('RULE-HEAD', forbid, checkout, [total-lte-0], [], _),
+        chk_rule_fact('RULE-BODY', forbid, none, [total-lte-0], [], _),
+        findall(P, (member(Id, ['P-ALLOW', 'RULE-HEAD', 'RULE-BODY', 'MISSING']), chk_opposing(Id, P)), Assumptions),
+        deterministic(checks:opposing_assumption('P-ALLOW', _)),
+        deterministic(checks:opposing_assumption('RULE-HEAD', _))
+    )).
+
+test(opposing_values) :-
+    findall(O-V, checks:opposing_value(bool, eq, "true", O, V), B1), B1 == [eq-false],
+    findall(O-V, checks:opposing_value(bool, eq, 'True', O, V), B2), B2 == [eq-false],
+    findall(O-V, checks:opposing_value(bool, eq, no, O, V), B3), B3 == [eq-true],
+    findall(O-V, checks:opposing_value(int, gt, 3, O, V), N1), N1 == [eq-3],
+    findall(O-V, checks:opposing_value(int, lt, 3, O, V), N2), N2 == [eq-3],
+    findall(O-V, checks:opposing_value(int, gte, 3, O, V), N3), N3 == [eq-2],
+    findall(O-V, checks:opposing_value(number, gte, 3, O, V), N4), N4 == [lt-3],
+    findall(O-V, checks:opposing_value(int, lte, 3, O, V), N5), N5 == [eq-4],
+    findall(O-V, checks:opposing_value(number, lte, 3, O, V), N6), N6 == [gt-3],
+    findall(O-V, checks:opposing_value(int, eq, 3, O, V), N7), N7 == [neq-3],
+    findall(O-V, checks:opposing_value(int, neq, 3, O, V), N8), N8 == [eq-3],
+    findall(O-V, checks:opposing_value(int, matches, 3, O, V), N9), N9 == [],
+    findall(O-V, checks:opposing_value(int, eq, x, O, V), N10), N10 == [neq-x],
+    findall(O-V, checks:opposing_value(set, eq, [a, b], O, V), S1), S1 == [eq-[a]],
+    findall(O-V, checks:opposing_value(set, includes, [a], O, V), S2), S2 == [eq-[]],
+    findall(O-V, checks:opposing_value(set, subset_of, [a], O, V), S3), S3 == [includes-[unlisted_member]],
+    findall(O-V, checks:opposing_value(set, excludes, [a, b], O, V), S4), S4 == [includes-[a]],
+    findall(O-V, checks:opposing_value(set, excludes, [], O, V), S5), S5 == [],
+    findall(O-V, checks:opposing_value(string, neq, s, O, V), T1), T1 == [eq-s],
+    findall(O-V, checks:opposing_value(string, matches, s, O, V), T2), T2 == [],
+    checks:members_but_last([], F0), F0 == [].
+
+test(term_constants, Constants == [cart, '5', 'f(x)']) :-
+    maplist(checks:term_constant, [var('Cart', t), const(5, int), f(x)], Constants).
+
+chk_unknown_violation(Scenario, Description, Suggestion, violation('scenario-feasibility-unknown', Scenario, Description, Suggestion, Source)) :-
+    format(string(S), "kb/~w.md", [Scenario]),
+    chk_xsd(S, Source).
+
+test(unknown_texts, Texts == [
+        "Scenario expects success but assumes nothing, so its feasibility against current requirements is unknown"-"Link the property values the scenario relies on with assumes facts so feasibility can be checked",
+        "Scenario expects success but its feasibility is unknown: assumptions a, b cannot hold together"-"Correct the assumed facts so they can hold together; a scenario whose assumptions contradict each other describes no situation",
+        "Scenario expects success but its feasibility is unknown: assumption a, b is not constrained by any current requirement that governs this scenario"-"Constrain the assumed subject and property with a current requirement, correct the assumed fact's subject_key/property_key, or, for a requirement whose rule restricts an action, link the scenario to that requirement with specified_by",
+        "Scenario expects success but its feasibility is unknown: assumption a, b cannot be compared with the requirement constraints on its property (type, unit or operator mismatch)"-"Align the value_type and unit of the assumed fact with the requirement facts on that property (int and number compare; units must match or be convertible), and use eq or neq for non-numeric values",
+        "Scenario expects success but its feasibility is unknown: requirements a, b admit no common value for an assumed property"-"Resolve the conflict between these requirements (see the contradiction checks) before judging the scenario",
+        "Scenario expects success but its feasibility is unknown: the assumptions neither satisfy nor refute the conditions of rule a, b"-"Assume values for every property the rule reads so its conditions are decided, or restate the rule with one comparison per property (forbid ... unless, or a permit-only-when constraint)",
+        "Scenario expects success but its feasibility is unknown: it conflicts with a, b, whose validity window may or may not cover the scenario's time"-"State when the scenario happens by setting valid_from/valid_to on its assumed facts, or bound the scenario inside or outside the requirement's validity window"
+    ]) :-
+    findall(D-S,
+        (   member(R, [no_assumptions, contradictory_assumptions([a, b]), unmatched_assumption([a, b]),
+                       incomparable_assumption([a, b]), conflicting_requirements([a, b]),
+                       undecided_rule([a, b]), undetermined_validity([a, b])]),
+            checks:unknown_feasibility_text(R, D, S)
+        ),
+        Texts).
+
+test(unknown_violations, Violations == [V1, V2]) :-
+    chk_kb((
+        chk_cart_req('REQ-POS', 'FACT-POS', gt, 0),
+        chk_total('FACT-ZERO', eq, 0),
+        chk_scenario('SCEN-BAD', success, ['FACT-ZERO']),
+        chk_scenario('SCEN-B-NONE', success, []),
+        chk_prop('FACT-COLOR', cart, color, eq, string, "red", []),
+        chk_scenario('SCEN-A-COLOR', success, ['FACT-COLOR']),
+        chk_raw_entity(scenario, 'SCEN-C-RAW', [id='SCEN-C-RAW', expects=success]),
+        check_scenario_feasibility_unknown(Violations0),
+        exclude(chk_raw_violation, Violations0, Violations),
+        include(chk_raw_violation, Violations0, [violation(_, 'SCEN-C-RAW', _, _, RawSource)]),
+        RawSource == ""
+    )),
+    checks:unknown_feasibility_text(unmatched_assumption(['FACT-COLOR']), D1, S1),
+    chk_unknown_violation('SCEN-A-COLOR', D1, S1, V1),
+    checks:unknown_feasibility_text(no_assumptions, D2, S2),
+    chk_unknown_violation('SCEN-B-NONE', D2, S2, V2).
+
+chk_raw_violation(violation(_, 'SCEN-C-RAW', _, _, _)).
+
+test(outcome_mismatch, Violations == [violation('scenario-outcome-mismatch', 'SCEN-ERR',
+        "Scenario expects error, but current requirements permit everything it assumes (FACT-FIVE, FACT-SIX), so the knowledge base predicts success",
+        "Assume a value a current requirement forbids, so the scenario exercises that requirement's failure side, or set expects: success when the scenario describes a permitted situation",
+        Source1),
+        violation('scenario-outcome-mismatch', 'SCEN-RAW',
+        "Scenario expects rejection, but current requirements permit everything it assumes (FACT-FIVE), so the knowledge base predicts success",
+        "Assume a value a current requirement forbids, so the scenario exercises that requirement's failure side, or set expects: success when the scenario describes a permitted situation",
+        "")]) :-
+    chk_xsd("kb/SCEN-ERR.md", Source1),
+    chk_kb((
+        chk_cart_req('REQ-POS', 'FACT-POS', gt, 0),
+        chk_total('FACT-FIVE', eq, 5),
+        chk_total('FACT-SIX', gte, 5),
+        chk_total('FACT-ZERO', eq, 0),
+        chk_scenario('SCEN-ERR', error, ['FACT-SIX', 'FACT-FIVE']),
+        chk_raw_entity(scenario, 'SCEN-RAW', [id='SCEN-RAW', expects=rejection]),
+        chk_raw_rel(assumes, 'SCEN-RAW', 'FACT-FIVE'),
+        chk_scenario('SCEN-REJ', rejection, ['FACT-ZERO']),
+        chk_scenario('SCEN-NONE', rejection, []),
+        chk_scenario('SCEN-OK', success, ['FACT-FIVE']),
+        check_scenario_outcome_mismatch(Violations)
+    )).
+
+test(negative_scenario_enumeration, Ids == ['SCEN-A', 'SCEN-B']) :-
+    chk_kb((
+        chk_scenario('SCEN-B', rejection, []),
+        chk_scenario('SCEN-A', error, []),
+        chk_scenario('SCEN-C', success, []),
+        findall(S, checks:negative_scenario(S), Ids),
+        checks:negative_scenario('SCEN-A'),
+        \+ checks:negative_scenario('SCEN-C')
+    )).
+
+:- end_tests(checks_negative_scenarios).
+
+% --- exception claim keys, numeric strings, status vocabulary ----------------
+
+:- begin_tests(checks_claims_and_values).
+
+chk_claim_key_violation(Ex, Key, Base, violation('exception-claim-keys', Ex, D, S, Source)) :-
+    format(string(D), "exempts_claims names ~w, which is not a claim of exempted requirement ~w", [Key, Base]),
+    format(string(S), "Use a claim key from the logic_claims or semantic_inventory of ~w, or remove ~w from exempts_claims", [Base, Key]),
+    format(atom(Source), '~w.md', [Ex]).
+
+test(exception_claim_keys, Violations == [V1, V2, V3]) :-
+    chk_kb((
+        chk_req('REQ-BASE', [logic_claims=["CLAIM-LOGIC"],
+                             semantic_inventory="[{\"claim_key\":\"CLAIM-INV\",\"status\":\"modeled\"}]"]),
+        chk_req('REQ-BASE2'),
+        chk_cart_req('REQ-BASE2', 'FACT-G', gt, 0, [claim_key="CLAIM-GROUND", claim_text="Positive"]),
+        chk_req('REQ-EX', [exempts_claims=["CLAIM-LOGIC", "CLAIM-INV", "CLAIM-GROUND", "CLAIM-NONE"]]),
+        chk_rel(exempts, 'REQ-EX', 'REQ-BASE'),
+        chk_rel(exempts, 'REQ-EX', 'REQ-BASE2'),
+        chk_req('REQ-LONE', [exempts_claims=["CLAIM-X"]]),
+        chk_req('REQ-ONE', [exempts_claims=["CLAIM-GROUND"]]),
+        chk_rel(exempts, 'REQ-ONE', 'REQ-BASE'),
+        chk_req('REQ-EMPTY', [exempts_claims=[]]),
+        check_exception_claim_keys(Violations)
+    )),
+    chk_claim_key_violation('REQ-EX', 'CLAIM-NONE', 'REQ-BASE, REQ-BASE2', V1),
+    V2 = violation('exception-claim-keys', 'REQ-LONE', "Requirement lists exempts_claims but exempts no requirement",
+                   "Link the exception to the requirement whose clauses it waives with exempts, or remove exempts_claims", 'REQ-LONE.md'),
+    chk_claim_key_violation('REQ-ONE', 'CLAIM-GROUND', 'REQ-BASE', V3).
+
+test(requirement_declares_claim_once) :-
+    chk_kb((
+        chk_req('REQ-BASE', [logic_claims=["CLAIM-A", "CLAIM-A"],
+                             semantic_inventory="[{\"claim_key\":\"CLAIM-A\",\"status\":\"modeled\"},{\"claim_key\":\"CLAIM-B\",\"status\":\"modeled\"},{\"claim_key\":\"CLAIM-B\",\"status\":\"missing\"}]"]),
+        chk_cart_req('REQ-BASE', 'FACT-G', gt, 0, [claim_key="CLAIM-C", claim_text="Positive"]),
+        chk_prop('FACT-G2', cart, total, gt, int, 1, [claim_key="CLAIM-C", claim_text="Positive"]),
+        chk_rel(requires_property, 'REQ-BASE', 'FACT-G2'),
+        deterministic(checks:requirement_declares_claim('REQ-BASE', 'CLAIM-A')),
+        deterministic(checks:requirement_declares_claim('REQ-BASE', 'CLAIM-B')),
+        deterministic(checks:requirement_declares_claim('REQ-BASE', 'CLAIM-C')),
+        \+ checks:requirement_declares_claim('REQ-BASE', 'CLAIM-D')
+    )).
+
+chk_numeric_violation(Fact, Literal, Why, Type, Field, Number, violation('numeric-string-value', Fact, D, S, Source)) :-
+    format(string(D), "Fact ~w stores cart.total value \"~w\" as value_type string, but ~w; string values compare only by equality and are not converted to numbers",
+           [Fact, Literal, Why]),
+    format(string(S), "Set value_type: ~w and ~w: ~w on ~w (replacing value_string) so the value takes part in numeric comparisons",
+           [Type, Field, Number, Fact]),
+    format(atom(Source), '~w.md', [Fact]).
+
+test(numeric_string_values, Violations == [V1, V2, V3]) :-
+    chk_kb((
+        chk_prop('F-A-LT', cart, total, lt, string, " 7 ", []),
+        chk_prop('F-B-NEG', cart, total, gte, string, "-3", []),
+        chk_prop('F-C-DEC', cart, total, eq, string, "2.5", []),
+        chk_prop('F-D-PEER', cart, total, eq, int, 1, []),
+        chk_prop('F-E-WORD', cart, total, lt, string, "abc", []),
+        chk_prop('F-F-DOT', cart, total, lt, string, "1.", []),
+        chk_prop('F-G-EMPTY', cart, total, lt, string, "", []),
+        chk_prop('F-H-QTY', cart, qty, eq, string, "4", []),
+        chk_prop('F-I-QTY', cart, qty, eq, string, "5", []),
+        chk_prop('F-J-MINUS', cart, total, lt, string, "-", []),
+        chk_prop('F-K-LEAD', cart, total, lt, string, ".5", []),
+        check_numeric_string_values(Violations)
+    )),
+    chk_numeric_violation('F-A-LT', '7', "its operator lt orders values numerically", int, value_int, 7, V1),
+    chk_numeric_violation('F-B-NEG', '-3', "its operator gte orders values numerically", int, value_int, -3, V2),
+    chk_numeric_violation('F-C-DEC', '2.5', "F-D-PEER types the same property as int", number, value_number, 2.5, V3).
+
+test(numeric_literals) :-
+    checks:numeric_literal('12', T1, N1), T1 == "12", N1 == 12,
+    checks:numeric_literal("0.25", T2, N2), T2 == "0.25", N2 == 0.25,
+    \+ checks:numeric_literal(12, _, _),
+    \+ checks:numeric_literal("1 2", _, _),
+    \+ checks:numeric_literal("12a", _, _),
+    \+ checks:numeric_literal("1.2.3", _, _),
+    \+ checks:numeric_literal("--1", _, _),
+    deterministic(checks:numeric_literal("-12.5", _, _)).
+
+test(numeric_string_contexts) :-
+    forall(member(Op, [lt, lte, gt, gte]),
+           (   checks:numeric_string_context(f, s, p, Op, Why),
+               format(string(Expected), "its operator ~w orders values numerically", [Op]),
+               Why == Expected
+           )),
+    chk_kb((
+        chk_prop('F-S', cart, total, eq, string, "1", []),
+        chk_prop('F-N', cart, total, eq, number, 1.5, []),
+        chk_prop('F-N2', cart, total, eq, int, 1, []),
+        deterministic(checks:numeric_string_context('F-S', cart, total, eq, Why)),
+        Why == "F-N types the same property as number",
+        \+ checks:numeric_string_context('F-N', cart, qty, eq, _),
+        deterministic(checks:numeric_string_context(f, s, p, lt, _))
+    )).
+
+:- end_tests(checks_claims_and_values).
+
+% --- requirement status vocabulary and strict fact shapes ---------------------
+
+:- begin_tests(checks_shapes).
+
+test(req_status_vocabulary, Sorted == [violation('req-status-vocabulary', 'REQ-ACC', D, S, 'REQ-ACC.md')]) :-
+    format(string(D), "Requirement status 'accepted' is not a current requirement status; it is silently excluded from the proof ladder", []),
+    S = "Set status to one of open, in_progress, closed (legacy: active, approved). To park a current requirement out of E2E-proof scope, use proof_exempt: true with proof_exempt_reason instead of an ADR status",
+    chk_kb((
+        forall(member(St, [open, in_progress, closed, active, approved]),
+               (atom_concat('REQ-', St, Id), chk_req(Id, [status=St]))),
+        chk_req('REQ-ACC', [status=accepted]),
+        chk_raw_entity(req, 'REQ-NOSTATUS', [id='REQ-NOSTATUS']),
+        check_req_status_vocabulary(Sorted)
+    )).
+
+test(status_vocabularies) :-
+    checks:canonical_req_statuses(C), C == [open, in_progress, closed],
+    checks:legacy_req_statuses(L), L == [active, approved].
+
+chk_shape(Id, Props, Result) :-
+    chk_kb((
+        chk_raw_entity(fact, Id, [id=Id|Props]),
+        check_strict_fact_shape(Result)
+    )).
+
+chk_shape_answer(Id, Props, D-S) :-
+    chk_shape(Id, Props, [violation('strict-fact-shape', Id, D, S, _)]).
+
+test(fact_shapes_without_violations, Results == [[], [], [], [], [], [], [], [], []]) :-
+    findall(R,
+        (   member(Props, [
+                [title="legacy"],
+                [fact_kind=subject, subject_key="s"],
+                [fact_kind=property_value, subject_key="s", property_key="p", operator=eq, value_type=int, value_int=1],
+                [fact_kind=observation],
+                [fact_kind=meta],
+                [fact_kind=predicate_schema, predicate_name="p", predicate_arity=1, argument_names=[a], argument_types=[t]],
+                [fact_kind=predicate, predicate_name="p", predicate_args=[a], canonical_key="p(a)", polarity=deny],
+                [fact_kind=rule_schema, rule_name="r", argument_names=[a], argument_types=[t]],
+                [fact_kind=predicate, predicate_name="p", predicate_args=[a], canonical_key="p(a)"]
+            ]),
+            chk_shape('F', Props, R)
+        ),
+        Results).
+
+test(subject_and_unknown_shapes, Answers == [
+        "Subject fact missing required field: subject_key"-"Add subject_key to define the subject domain key",
+        "Unknown fact_kind: widget"-"Use one of: subject, property_value, observation, meta, predicate_schema, predicate, rule_schema, rule"
+    ]) :-
+    chk_shape_answer('F', [fact_kind=subject], A1),
+    chk_shape_answer('F', [fact_kind=widget], A2),
+    Answers = [A1, A2].
+
+test(shape_source, Sources == ['x.md', ""]) :-
+    chk_shape('F', [fact_kind=widget, source="kb/x.md"], [violation(_, _, _, _, S1)]),
+    chk_shape('F', [fact_kind=widget], [violation(_, _, _, _, S2)]),
+    Sources = [S1, S2].
+
+test(property_value_shapes, Answers == [
+        "Property value fact missing required field: subject_key",
+        "Property value fact missing required field: property_key",
+        "Property value fact missing required field: operator",
+        "Property value fact missing required field: value_type",
+        "Property value fact missing value field (value_string, value_int, value_number, value_bool, or value_set)",
+        "Property value fact has multiple value fields (should have exactly one)",
+        "Property value fact value_type does not match value field",
+        "Property value fact value_type does not match value field",
+        "Property value fact value_type does not match value field",
+        "Property value fact value_type does not match value field",
+        "Property value fact value_type does not match value field",
+        "Property value fact value_type does not match value field"
+    ]) :-
+    Base = [fact_kind=property_value, subject_key="s", property_key="p", operator=eq],
+    findall(D,
+        (   member(Props, [
+                [fact_kind=property_value],
+                [fact_kind=property_value, subject_key="s"],
+                [fact_kind=property_value, subject_key="s", property_key="p"],
+                [fact_kind=property_value, subject_key="s", property_key="p", operator=eq],
+                [value_type=int],
+                [value_type=int, value_int=1, value_string="1"],
+                [value_type=int, value_string="1"],
+                [value_type=string, value_int=1],
+                [value_type=number, value_int=1],
+                [value_type=bool, value_int=1],
+                [value_type=set, value_int=1],
+                [value_type=other, value_int=1]
+            ]),
+            (   Props = [fact_kind=_|_] -> All = Props ; append(Base, Props, All) ),
+            chk_shape_answer('F', All, D-S),
+            S == "Ensure property_value facts have subject_key, property_key, operator, value_type, and exactly one value field"
+        ),
+        Answers).
+
+test(property_value_shape_errors, Errors == [
+        "Property value fact has multiple value fields (should have exactly one)",
+        "Property value fact value_type does not match value field"
+    ]) :-
+    findall(E, checks:property_value_shape_error([subject_key=s, property_key=p, operator=eq, value_type=int,
+                                                  value_number=1, value_bool=true], E), Errors).
+
+test(value_fields) :-
+    forall(member(F, [value_string, value_int, value_number, value_bool, value_set]),
+           (   checks:is_value_field(F),
+               deterministic(checks:has_value_field([F=1, F=2])),
+               atom_concat(value_, T, F),
+               deterministic(checks:value_type_matches_field(T, [F=1, F=2]))
+           )),
+    \+ checks:is_value_field(value_other),
+    \+ checks:has_value_field([value_other=1]).
+
+test(predicate_schema_shapes, Answers == [
+        "Predicate schema fact missing required field: predicate_name",
+        "Predicate schema fact missing required field: predicate_arity",
+        "Predicate schema fact missing required field: argument_names",
+        "Predicate schema fact missing required field: argument_types",
+        "Predicate schema fact argument_names length must match predicate_arity",
+        "Predicate schema fact argument_types length must match predicate_arity"
+    ]) :-
+    findall(D,
+        (   member(Props, [
+                [],
+                [predicate_name="p"],
+                [predicate_name="p", predicate_arity=1],
+                [predicate_name="p", predicate_arity=1, argument_names=[a]],
+                [predicate_name="p", predicate_arity="2", argument_names=[a], argument_types=[t, u]],
+                [predicate_name="p", predicate_arity=2, argument_names=[a, b], argument_types=[t]]
+            ]),
+            chk_shape_answer('F', [fact_kind=predicate_schema|Props], D-S),
+            S == "Ensure predicate_schema facts have predicate_name, predicate_arity, argument_names, and argument_types with matching arity"
+        ),
+        Answers).
+
+test(predicate_shapes, Answers == [
+        "Predicate fact missing required field: predicate_name",
+        "Predicate fact missing required field: predicate_args",
+        "Predicate fact predicate_args must be non-empty",
+        "Predicate fact missing required field: canonical_key",
+        "Predicate fact polarity must be assert or deny"
+    ]) :-
+    findall(D,
+        (   member(Props, [
+                [],
+                [predicate_name="p"],
+                [predicate_name="p", predicate_args=[], canonical_key="p"],
+                [predicate_name="p", predicate_args=[a]],
+                [predicate_name="p", predicate_args=[a], canonical_key="p(a)", polarity=maybe]
+            ]),
+            chk_shape_answer('F', [fact_kind=predicate|Props], D-S),
+            S == "Ensure predicate facts have predicate_name, non-empty predicate_args, canonical_key, and assert/deny polarity when present"
+        ),
+        Answers).
+
+test(rule_schema_shapes, Answers == [
+        "Rule schema fact missing required field: rule_name",
+        "Rule schema fact missing required field: argument_names",
+        "Rule schema fact missing required field: argument_types",
+        "Rule schema fact argument_names and argument_types must have equal lengths"
+    ]) :-
+    findall(D,
+        (   member(Props, [
+                [],
+                [rule_name="r"],
+                [rule_name="r", argument_names=[a]],
+                [rule_name="r", argument_names=[a], argument_types=[t, u]]
+            ]),
+            chk_shape_answer('F', [fact_kind=rule_schema|Props], D-S),
+            S == "Ensure rule_schema facts declare rule_name plus same-length argument_names and argument_types"
+        ),
+        Answers).
+
+test(rule_shapes, Answers == [
+        "Rule fact missing required field: rule_ir",
+        "Rule fact missing required field: rule_hash",
+        "Rule fact missing required field: rule_schema_id",
+        "Rule fact missing required field: rule_name",
+        "Rule fact missing required field: semantic_key",
+        "Rule fact rule_ir failed kibi.logic.v1 safety validation",
+        none
+    ]) :-
+    chk_rule_json(rule, forbid, checkout, [total-lte-0], [], Json),
+    Full = [rule_ir=Json, rule_hash="h", rule_schema_id="S", rule_name="r", semantic_key="k"],
+    findall(D,
+        (   member(Props, [
+                [],
+                [rule_ir=Json],
+                [rule_ir=Json, rule_hash="h"],
+                [rule_ir=Json, rule_hash="h", rule_schema_id="S"],
+                [rule_ir=Json, rule_hash="h", rule_schema_id="S", rule_name="r"],
+                [rule_ir="{}", rule_hash="h", rule_schema_id="S", rule_name="r", semantic_key="k"],
+                Full
+            ]),
+            chk_shape('F', [fact_kind=rule|Props], Result),
+            (   Result == []
+            ->  D = none
+            ;   Result = [violation('strict-fact-shape', 'F', D, S, _)],
+                S == "Ensure rule facts contain a safe kibi.logic.v1 rule_ir, full rule_hash, rule_schema_id, rule_name, and semantic_key"
+            )
+        ),
+        Answers).
+
+test(shape_violations_sorted, Ids == ['F-A', 'F-B']) :-
+    chk_kb((
+        chk_raw_entity(fact, 'F-B', [fact_kind=widget]),
+        chk_raw_entity(fact, 'F-A', [fact_kind=widget]),
+        check_strict_fact_shape(Violations),
+        findall(Id, member(violation(_, Id, _, _, _), Violations), Ids)
+    )).
+
+test(normalizers) :-
+    checks:checks_normalize_integer(^^("3", x), I1), I1 == 3,
+    checks:checks_normalize_integer(4, I2), I2 == 4,
+    checks:checks_normalize_integer('5', I3), I3 == 5,
+    checks:checks_normalize_integer("6", I4), I4 == 6,
+    \+ checks:checks_normalize_integer(f(x), _),
+    checks:checks_normalize_atom_list(^^([a, "b"], x), L1), L1 == [a, b],
+    checks:checks_normalize_atom_list([c], L2), L2 == [c],
+    checks:checks_normalize_atom_list(nope, L3), L3 == [].
+
+:- end_tests(checks_shapes).
+
+% --- domain contradictions, rule key arguments and what-if --------------------
+
+:- begin_tests(checks_contradictions).
+
+chk_rule_req(Req, Fact, Modality, Conditions, FactExtra) :-
+    chk_req(Req),
+    chk_rule_fact(Fact, rule, Modality, checkout, Conditions, [], FactExtra, _),
+    chk_rel(requires_rule, Req, Fact).
+
+chk_rule_pairs :-
+    chk_rule_req('REQ-A', 'FACT-A', forbid, [total-lte-0],
+                 [claim_key="CLAIM-A", claim_text="No free checkout", rule_hash="hash-a", semantic_key="sem-a",
+                  claim_span_start=3, claim_span_end="9"]),
+    chk_rule_req('REQ-B', 'FACT-B', permit, [total-eq-0], [claim_span_start="x"]),
+    chk_rule_req('REQ-C', 'FACT-C', permit, [total-gt-5], []).
+
+chk_side(Witness, Side, Plain) :-
+    get_dict(Side, Witness, Dict),
+    del_dict(ruleIr, Dict, _, Rest),
+    chk_plain(Rest, Plain).
+
+test(rule_witnesses) :-
+    chk_kb((
+        chk_rule_pairs,
+        check_domain_contradiction_witnesses([WC, WB]),
+        kb_entity('FACT-A', fact, PropsA),
+        memberchk(rule_ir=RawA, PropsA),
+        checks:evidence_term_text(RawA, IrA),
+        checks:evidence_term_text(WB.left.ruleIr, IrA)
+    )),
+    WB.kind == rule, WB.status == contradiction, WB.requirements == ['REQ-A', 'REQ-B'],
+    WB.reason == "Rule conflict (contradiction) between REQ-A and REQ-B",
+    WC.status == unresolved, WC.requirements == ['REQ-A', 'REQ-C'],
+    chk_side(WB, left, Left),
+    chk_plain(_{requirementId: 'REQ-A', requirementSource: 'kb/REQ-A.md', factId: 'FACT-A', factSource: 'kb/FACT-A.md',
+                claimKey: 'CLAIM-A', claimText: 'No free checkout', claimSpan: _{start: 3, end: 9},
+                ruleHash: 'hash-a', semanticKey: 'sem-a'}, Left),
+    chk_side(WB, right, Right),
+    chk_plain(_{requirementId: 'REQ-B', requirementSource: 'kb/REQ-B.md', factId: 'FACT-B', factSource: 'kb/FACT-B.md',
+                claimKey: '', claimText: '', claimSpan: _{start: -1, end: -1}, ruleHash: '', semanticKey: ''}, Right),
+    chk_same(WB.comparison, _{
+        modalityA: forbid, modalityB: permit,
+        headA: "atom(default,checkout,[var('C',cart)],positive,false)",
+        headB: "atom(default,checkout,[var('C',cart)],positive,false)",
+        bodyA: "all([atom(cart,total,[var('C',cart),var('V1',money)],positive,false),compare(lte,var('V1',money),number(0,none))])",
+        bodyB: "all([atom(cart,total,[var('C',cart),var('V1',money)],positive,false),compare(eq,var('V1',money),number(0,none))])",
+        scopeA: "scope('','',[])", scopeB: "scope('','',[])",
+        validFromA: '', validToA: '', validFromB: '', validToB: '',
+        ruleSchemaA: '', ruleSchemaB: ''
+    }).
+
+test(rule_contradiction_violations, Violations == [
+        violation('domain-contradictions', "REQ-A/REQ-C", "Rule conflict (unresolved) between REQ-A and REQ-C",
+                  "Align the opposing rule heads, separate their scopes, or add an explicit supersedes relationship", ""),
+        violation('domain-contradictions', "REQ-A/REQ-B", "Rule conflict (contradiction) between REQ-A and REQ-B",
+                  "Align the opposing rule heads, separate their scopes, or add an explicit supersedes relationship", "")
+    ]) :-
+    chk_kb((chk_rule_pairs, check_domain_contradictions(Violations),
+            check_domain_contradictions_and_witnesses(V2, W2),
+            V2 == Violations,
+            length(W2, 2))).
+
+test(property_contradiction_violations, Violations == [
+        violation('domain-contradictions', "REQ-HI/REQ-LO", D,
+                  "Supersede one requirement or align both to the same canonical logical term", "")
+    ]) :-
+    chk_kb((
+        chk_cart_req('REQ-HI', 'FACT-HI', gt, 5),
+        chk_cart_req('REQ-LO', 'FACT-LO', lt, 3),
+        check_domain_contradiction_witnesses([W]),
+        format(string(D), "~w [strict-readiness: contradiction-ready]", [W.reason]),
+        check_domain_contradictions(Violations)
+    )).
+
+test(disjoint_and_unpaired_rules, Witnesses == []) :-
+    chk_kb((
+        chk_rule_req('REQ-A', 'FACT-A', forbid, [total-lte-0], []),
+        chk_rule_req('REQ-B', 'FACT-B', forbid, [total-eq-0], []),
+        % rules of retired requirements and links to non-rules never pair
+        chk_rule_req('REQ-OLD', 'FACT-OLD', permit, [total-eq-0], []),
+        chk_req('REQ-NEW'),
+        chk_rel(supersedes, 'REQ-NEW', 'REQ-OLD'),
+        chk_req('REQ-P'),
+        chk_total('FACT-P', eq, 0),
+        chk_raw_rel(requires_rule, 'REQ-P', 'FACT-P'),
+        chk_raw_entity(fact, 'FACT-BAD', [fact_kind=rule, rule_ir="{"]),
+        chk_raw_rel(requires_rule, 'REQ-P', 'FACT-BAD'),
+        check_domain_contradiction_witnesses(Witnesses)
+    )).
+
+test(requirement_never_pairs_with_itself, Witnesses == []) :-
+    chk_kb((
+        chk_rule_req('REQ-A', 'FACT-A', forbid, [total-lte-0], []),
+        chk_rule_fact('FACT-A2', rule, permit, checkout, [total-eq-0], [], [], _),
+        chk_rel(requires_rule, 'REQ-A', 'FACT-A2'),
+        check_domain_contradiction_witnesses(Witnesses)
+    )).
+
+test(rule_pairs_once_across_permuted_ids, Pairs == ['REQ-A'-'FACT-Z'-'REQ-Z'-'FACT-A']) :-
+    chk_kb((
+        chk_rule_req('REQ-A', 'FACT-Z', forbid, [total-lte-0], []),
+        chk_rule_req('REQ-Z', 'FACT-A', permit, [total-eq-0], []),
+        findall(RA-FA-RB-FB, checks:opposing_rule_requirement_facts(RA, RB, FA, FB, _, _), Pairs)
+    )).
+
+test(rule_requirement_links, Links == ['REQ-A'-['FACT-A'-rule]]) :-
+    chk_kb((
+        chk_rule_req('REQ-A', 'FACT-A', forbid, [total-lte-0], []),
+        chk_req('REQ-EMPTY'),
+        checks:rule_requirement_links(Links0),
+        findall(R-Fs, (member(R-Rs, Links0), findall(F-rule, member(F-_, Rs), Fs)), Links)
+    )).
+
+test(rule_fact_rule) :-
+    chk_kb((
+        chk_rule_fact('FACT-A', forbid, checkout, [total-lte-0], [], _),
+        chk_total('FACT-P', eq, 0),
+        checks:rule_fact_rule('FACT-A', Rule),
+        Rule = rule(rule, forbid, _, _, _, _, _, _, _, _),
+        \+ checks:rule_fact_rule('FACT-P', _)
+    )).
+
+test(contradiction_memo) :-
+    chk_kb((
+        chk_rule_pairs,
+        retractall(kb:kb_contradiction_witness_memo(_, _)),
+        check_domain_contradiction_witnesses(W1),
+        length(W1, 2),
+        kb:kb_contradiction_witness_memo(Key, Stored),
+        chk_same(Stored, W1),
+        retractall(kb:kb_contradiction_witness_memo(_, _)),
+        assertz(kb:kb_contradiction_witness_memo(Key, [cached])),
+        assertz(kb:kb_contradiction_witness_memo(other, [other])),
+        check_domain_contradiction_witnesses(W2),
+        W2 == [cached],
+        rdf_transaction((check_domain_contradiction_witnesses(W3), length(W3, 2))),
+        findall(K, kb:kb_contradiction_witness_memo(K, _), Keys),
+        Keys == [Key, other],
+        chk_req('REQ-D'),
+        check_domain_contradiction_witnesses(W4),
+        length(W4, 2),
+        findall(K, kb:kb_contradiction_witness_memo(K, _), Keys2),
+        Keys2 = [NewKey],
+        NewKey \== Key,
+        retractall(kb:kb_contradiction_witness_memo(_, _))
+    )).
+
+test(rule_key_arguments_missing, Violations == [violation('rule-key-arguments-missing', "REQ-A/REQ-C", D, S, "")]) :-
+    D = "Opposing rules FACT-A (REQ-A) and FACT-C (REQ-C) stay unresolved because predicate cart:total/2 declares no key_arguments; declaring key_arguments [positions 1] would decide the pair",
+    S = "If the remaining arguments of cart:total/2 are determined by [positions 1], add key_arguments to its predicate_schema fact; if the predicate is genuinely multivalued, leave it undeclared and accept the unresolved result",
+    chk_kb((chk_rule_pairs, check_rule_key_arguments_missing(Violations))).
+
+test(key_set_texts, Texts == ['[positions 1, 2]', '[cart, total]', '[positions 1]']) :-
+    chk_kb((
+        checks:key_set_text(cart, total, 2, [1, 2], T1),
+        chk_ent(fact, 'FACT-SCHEMA', [fact_kind=predicate_schema, predicate_namespace="cart", predicate_name="total",
+                                      predicate_arity=2, argument_names=["cart", "total"], argument_types=["cart", "money"]]),
+        checks:key_set_text(cart, total, 2, [1, 2], T2),
+        chk_raw_entity(fact, 'FACT-SHORT', [fact_kind=predicate_schema, predicate_namespace="cart", predicate_name="short",
+                                            predicate_arity=2, argument_names=["cart"], argument_types=["cart"]]),
+        checks:key_set_text(cart, short, 2, [1], T3),
+        Texts = [T1, T2, T3]
+    )).
+
+test(evidence_texts) :-
+    checks:evidence_term_text(^^("a", x), T1), T1 == a,
+    checks:evidence_term_text(literal(type(x, "b")), T2), T2 == b,
+    checks:evidence_term_text(c, T3), T3 == c,
+    checks:evidence_term_text("d", T4), T4 == d,
+    checks:evidence_term_text(f(x), T5), T5 == 'f(x)',
+    checks:evidence_property_text([k= ^^("v", x)], k, P1), P1 == v,
+    checks:evidence_property_text([], k, P2), P2 == '',
+    checks:evidence_property_integer([k= ^^(4, x)], k, I1), I1 == 4,
+    checks:evidence_property_integer([k=f(x)], k, I2), I2 == -1,
+    checks:evidence_property_integer([k="z"], k, I3), I3 == -1,
+    checks:evidence_property_integer([], k, I4), I4 == -1.
+
+% --- what-if ---
+
+chk_fact_props(Id, Op, Value, Props) :-
+    Props = [id=Id, title="Total", status=active, created_at="2026-05-01T00:00:00Z", updated_at="2026-05-01T00:00:00Z",
+             source="kb/what-if.md", fact_kind=property_value, subject_key="cart", property_key="total",
+             operator=Op, value_type=int, value_int=Value].
+
+chk_req_props(Id, [id=Id, title="Req", status=open, created_at="2026-05-01T00:00:00Z",
+                   updated_at="2026-05-01T00:00:00Z", source="kb/what-if.md"]).
+
+chk_kinds(Witnesses, Kinds) :-
+    findall(K-R, (member(W, Witnesses), get_dict(kind, W, K), get_dict(requirements, W, R)), Kinds).
+
+test(what_if_introduces_and_removes) :-
+    chk_kb((
+        chk_cart_req('REQ-HI', 'FACT-HI', gt, 5),
+        chk_cart_req('REQ-LO', 'FACT-LO', lt, 3),
+        chk_total('FACT-ZERO', eq, 0),
+        chk_scenario('SCEN-OLD', success, ['FACT-ZERO']),
+        chk_fact_props('FACT-LO', lt, 9, Relaxed),
+        chk_req_props('REQ-NEW', NewReq),
+        chk_fact_props('FACT-NEW', gt, 20, NewFact),
+        Entries = [
+            upsert(fact, Relaxed, []),
+            upsert(req, NewReq, [rel(constrains, 'REQ-NEW', 'FACT-CART', [])]),
+            upsert(fact, NewFact, []),
+            relate([rel(requires_property, 'REQ-NEW', 'FACT-NEW', [])])
+        ],
+        checks:what_if_analysis(Entries, A),
+        % rolled back and re-indexed
+        \+ kb_entity('REQ-NEW', _, _),
+        kb_entity('FACT-LO', fact, LoProps),
+        memberchk(value_int=LoRaw, LoProps),
+        kb:unwrap_rdf_value(LoRaw, 3),
+        check_domain_contradiction_witnesses(Now),
+        length(Now, 1)
+    )),
+    chk_kinds(A.before, Before),
+    Before == [strict_property-['REQ-HI', 'REQ-LO'], scenario_feasibility-['REQ-HI']],
+    chk_kinds(A.after, After),
+    msort(After, AfterSorted),
+    AfterSorted == [scenario_feasibility-['REQ-HI'], scenario_feasibility-['REQ-NEW'],
+                    strict_property-['REQ-LO', 'REQ-NEW']],
+    chk_kinds(A.introduced, Introduced),
+    msort(Introduced, IntroducedSorted),
+    IntroducedSorted == [scenario_feasibility-['REQ-NEW'], strict_property-['REQ-LO', 'REQ-NEW']],
+    chk_kinds(A.removed, Removed),
+    Removed == [strict_property-['REQ-HI', 'REQ-LO']],
+    chk_kinds(A.unchanged, Unchanged),
+    Unchanged == [scenario_feasibility-['REQ-HI']],
+    chk_kinds(A.witnesses, Staged),
+    Staged == [strict_property-['REQ-LO', 'REQ-NEW']].
+
+test(what_if_scenario_witness_text) :-
+    chk_kb((
+        chk_cart_req('REQ-POS', 'FACT-POS', gt, 0),
+        chk_total('FACT-ZERO', eq, 0),
+        chk_scenario('SCEN-ZERO', success, ['FACT-ZERO']),
+        findall(W, checks:scenario_infeasibility_witness(W), [W])
+    )),
+    chk_same(W, _{kind: scenario_feasibility, status: infeasible, requirements: ['REQ-POS'], scenario: 'SCEN-ZERO',
+                  assumedFacts: ['FACT-ZERO'], requirementFacts: ['FACT-POS'],
+                  reason: "Scenario SCEN-ZERO expects success but assumes FACT-ZERO, which REQ-POS forbids via FACT-POS: No value of cart.total satisfies assumed FACT-ZERO (eq 0) together with required FACT-POS (gt 0)"}).
+
+test(what_if_rejects_invalid_plans_and_rolls_back, error(existence_error(entity, 'FACT-NOPE'), _)) :-
+    chk_kb((
+        chk_req('REQ-A'),
+        chk_fact_props('FACT-T', eq, 1, Props),
+        catch(checks:what_if_analysis([upsert(fact, Props, []),
+                                       relate([rel(requires_property, 'REQ-A', 'FACT-NOPE', [])])], _),
+              E, true),
+        \+ kb_entity('FACT-T', _, _),
+        throw(E)
+    )).
+
+test(what_if_json) :-
+    chk_kb((
+        chk_cart_req('REQ-HI', 'FACT-HI', gt, 5),
+        chk_cart_req('REQ-LO', 'FACT-LO', lt, 3),
+        checks:what_if_contradiction_witnesses_json([], J1),
+        atom_json_dict(J1, D1, []),
+        checks:what_if_analysis_json([], J2),
+        atom_json_dict(J2, D2, []),
+        checks:what_if_contradiction_witnesses([], W)
+    )),
+    D1 = [Witness],
+    Witness.kind == "strict_property",
+    length(W, 1),
+    D2.introduced == [], D2.removed == [],
+    length(D2.unchanged, 1),
+    length(D2.before, 1), length(D2.after, 1), length(D2.witnesses, 1).
+
+test(what_if_witness_keys, Keys == [
+        key(rule, contradiction, [r1, r2], [fa, fb], none),
+        key(scenario_feasibility, infeasible, [r], [a, f], s),
+        key(none, none, none, [], none)
+    ]) :-
+    findall(K,
+        (   member(W, [
+                _{kind: rule, status: contradiction, requirements: [r1, r2], left: _{factId: fb}, right: _{factId: fa}, reason: x},
+                _{kind: scenario_feasibility, status: infeasible, requirements: [r], scenario: s,
+                  assumedFacts: [f], requirementFacts: [a]},
+                _{left: none, right: _{other: 1}}
+            ]),
+            checks:what_if_witness_key(W, K)
+        ),
+        Keys).
+
+test(what_if_witness_absent) :-
+    W1 = _{kind: rule, status: contradiction, requirements: [r1, r2], reason: "one"},
+    W2 = _{kind: rule, status: contradiction, requirements: [r1, r2], reason: "reworded"},
+    W3 = _{kind: rule, status: unresolved, requirements: [r1, r2]},
+    \+ checks:what_if_witness_absent([W1], W2),
+    checks:what_if_witness_absent([W1], W3),
+    checks:what_if_witness_absent([], W1).
+
+test(what_if_entry_ids, Ids == [a, b, c, d, e]) :-
+    findall(Id,
+        (   member(E, [upsert(req, [title=t, id=a], [rel(x, b, c, [])]), relate([rel(x, d, e, [])])]),
+            checks:what_if_entry_id(E, Id)
+        ),
+        Ids).
+
+:- end_tests(checks_contradictions).

@@ -2928,9 +2928,6 @@ contradiction_witness_violation(Witness, violation(
         Suggestion = "Supersede one requirement or align both to the same canonical logical term"
     ).
 
-opposing_rule_requirements(ReqA, ReqB, RuleA, RuleB) :-
-    opposing_rule_requirement_facts(ReqA, ReqB, _FactA, _FactB, RuleA, RuleB).
-
 % Each unordered pair of (requirement, rule fact) endpoints is compared once,
 % ordered by the requirement-fact pair: ordering requirements and facts
 % independently would never compare REQ-A->FACT-Z with REQ-Z->FACT-A.
