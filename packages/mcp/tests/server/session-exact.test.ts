@@ -531,7 +531,9 @@ describe("graceful shutdown", () => {
       "[KIBI-MCP] All in-flight requests completed",
     ]);
     expect(timers).toHaveLength(1);
-    expect(clear).toHaveBeenCalledWith(timers[0] as never);
+    expect(clear.mock.calls.some(([handle]) => handle === timers[0])).toBe(
+      true,
+    );
     expect(exit).toHaveBeenCalledWith(0);
   });
 
@@ -555,6 +557,8 @@ describe("graceful shutdown", () => {
     const clear = spyOn(globalThis, "clearTimeout");
     spies.push(clear);
     session.resetSessionStateForTests();
-    expect(clear).toHaveBeenCalledWith(timers[0] as never);
+    expect(clear.mock.calls.some(([handle]) => handle === timers[0])).toBe(
+      true,
+    );
   });
 });
