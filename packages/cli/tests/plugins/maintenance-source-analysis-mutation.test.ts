@@ -29,7 +29,7 @@ describe("language pack waiver", () => {
 
 const ANALYZER = {
   package: "kibi-plugin-treesitter",
-  capabilities: { "kibi.symbol-extractor.v2": { mode: "augment" } },
+  capabilities: { "kibi.symbol-extractor.v2": { mode: "augment" as const } },
 };
 
 /** A snapshot whose trees hold these package.json kibi sections (null: no package.json). */
