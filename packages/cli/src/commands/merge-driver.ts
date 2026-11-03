@@ -25,19 +25,22 @@ export type KbManifestMergeResult =
 interface ParsedManifest {
   readonly doc: Document;
   readonly listKey: string | undefined;
+  /** In list order: a Map iterates in insertion order. */
   readonly records: Map<string, { node: YAMLMap; value: unknown }>;
-  readonly order: readonly string[];
   readonly rest: Record<string, unknown>;
 }
 
-function canonical(value: unknown): string {
+/** Order-independent text of a value; exported for tests. */
+export function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
   if (value && typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>)
-      .filter(([, entry]) => entry !== undefined)
-      .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0));
-    return `{${entries
-      .map(([key, entry]) => `${JSON.stringify(key)}:${canonical(entry)}`)
+    const record = value as Record<string, unknown>;
+    // Keys are unique, so the default code-unit sort orders them fully.
+    const keys = Object.keys(record)
+      .filter((key) => record[key] !== undefined)
+      .sort();
+    return `{${keys
+      .map((key) => `${JSON.stringify(key)}:${canonical(record[key])}`)
       .join(",")}}`;
   }
   return JSON.stringify(value) ?? "undefined";
@@ -53,8 +56,9 @@ function parseManifest(
   conflicts: string[],
 ): ParsedManifest | null {
   const doc = parseDocument(content);
-  if (doc.errors.length > 0) {
-    conflicts.push(`${label}: not valid YAML (${doc.errors[0]?.message})`);
+  const [error] = doc.errors;
+  if (error !== undefined) {
+    conflicts.push(`${label}: not valid YAML (${error.message})`);
     return null;
   }
   const top = doc.toJS() ?? {};
@@ -68,21 +72,22 @@ function parseManifest(
     return null;
   }
   const listKey = listKeys[0];
-  const rest = { ...(top as Record<string, unknown>) };
-  if (listKey) delete rest[listKey];
+  const rest = Object.fromEntries(
+    Object.entries(top).filter(([key]) => key !== listKey),
+  );
   const records = new Map<string, { node: YAMLMap; value: unknown }>();
-  const order: string[] = [];
-  const seq = listKey ? doc.get(listKey, true) : undefined;
-  if (seq === undefined || seq === null) {
-    return { doc, listKey, records, order, rest };
-  }
+  if (listKey === undefined) return { doc, listKey, records, rest };
+  // A list is returned as its node; anything else (a scalar, null or a
+  // mapping) is not a list.
+  const seq = doc.get(listKey);
   if (!isSeq(seq)) {
     conflicts.push(`${label}: ${listKey} is not a list`);
     return null;
   }
   for (const item of seq.items) {
+    // Only a mapping has an id.
     const id = isMap(item) ? item.get("id") : undefined;
-    if (!isMap(item) || typeof id !== "string" || !id) {
+    if (typeof id !== "string" || id === "") {
       conflicts.push(`${label}: ${listKey} entry without a string id`);
       return null;
     }
@@ -90,10 +95,10 @@ function parseManifest(
       conflicts.push(`${label}: duplicate id ${id}`);
       return null;
     }
-    records.set(id, { node: item, value: item.toJS(doc) });
-    order.push(id);
+    const node = item as YAMLMap;
+    records.set(id, { node, value: node.toJS(doc) });
   }
-  return { doc, listKey, records, order, rest };
+  return { doc, listKey, records, rest };
 }
 
 /** Three-way merge of a set-valued field: keep ours, drop their removals, add their additions. */
@@ -147,7 +152,8 @@ function mergeRecord(
       conflicts.push(`${id}: both sides changed ${key}`);
       continue;
     }
-    if (value !== undefined) merged[key] = value;
+    // A field merged to undefined is dropped when the record becomes a node.
+    merged[key] = value;
   }
   return merged;
 }
@@ -209,9 +215,7 @@ export function mergeKbManifests(
   }
 
   const items: unknown[] = [];
-  for (const id of ours.order) {
-    const ourRecord = ours.records.get(id);
-    if (!ourRecord) continue;
+  for (const [id, ourRecord] of ours.records) {
     const baseRecord = base.records.get(id);
     const theirRecord = theirs.records.get(id);
     if (!theirRecord) {
@@ -239,10 +243,8 @@ export function mergeKbManifests(
       items.push(ours.doc.createNode(merged));
     }
   }
-  for (const id of theirs.order) {
+  for (const [id, theirRecord] of theirs.records) {
     if (ours.records.has(id)) continue;
-    const theirRecord = theirs.records.get(id);
-    if (!theirRecord) continue;
     const baseRecord = base.records.get(id);
     if (!baseRecord) items.push(theirRecord.node.clone());
     else if (!same(theirRecord.value, baseRecord.value)) {
@@ -251,7 +253,7 @@ export function mergeKbManifests(
   }
   if (conflicts.length > 0) return { status: "conflict", conflicts };
 
-  const seq = ours.doc.get(listKey, true);
+  const seq = ours.doc.get(listKey);
   if (isSeq(seq)) seq.items = items;
   else ours.doc.set(listKey, ours.doc.createNode(items));
   return {
