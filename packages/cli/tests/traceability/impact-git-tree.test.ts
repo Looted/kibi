@@ -27,7 +27,7 @@ function snapshot(
       return typeof output === "string" ? Buffer.from(output) : output;
     },
     readBlobs: (oids) =>
-      new Map(oids.filter((o) => o in blobs).map((o) => [o, blobs[o]!])),
+      new Map(Object.entries(blobs).filter(([oid]) => oids.includes(oid))),
     assertUnchanged() {},
   };
 }
@@ -74,7 +74,7 @@ describe("entriesForTree", () => {
   test("rejects rows with missing or invalid header fields", () => {
     for (const header of [
       "",
-      `\tpath`,
+      "\tpath",
       "100644",
       "100644 blob",
       `100644 blob ${"g".repeat(40)}`,
