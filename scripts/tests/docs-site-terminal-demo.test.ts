@@ -78,7 +78,7 @@ describe("docs-site terminal demo", () => {
       '<span class="kd-ln"><span class="kd-you">› Sessions must expire after 30 minutes idle.</span></span>',
     );
     const json =
-      /<script type="application\/json" id="kd-scenes">([^]*?)<\/script>/.exec(
+      /<script type="application\/json" id="kd-scenes">([\s\S]*?)<\/script>/.exec(
         html,
       )?.[1];
     expect(json).not.toContain("<");
