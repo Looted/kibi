@@ -293,3 +293,21 @@ describe("authority and posture", () => {
     });
   });
 });
+
+describe("ancestorKbRoots manifest check", () => {
+  test("a .kb directory without a manifest is no KB root", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-kb-roots-"));
+    try {
+      fs.mkdirSync(path.join(root, "outer", ".kb"), { recursive: true });
+      fs.mkdirSync(path.join(root, "outer", "inner", ".kb"), {
+        recursive: true,
+      });
+      fs.writeFileSync(path.join(root, "outer", ".kb", "manifest.json"), "{}");
+      expect(ancestorKbRoots(path.join(root, "outer", "inner"))).toEqual([
+        path.join(root, "outer"),
+      ]);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
