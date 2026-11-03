@@ -100,20 +100,26 @@ describe("matchesJsonSchemaCondition, exact", () => {
     expect(matches("a", { not: { type: "string" } })).toBe(false);
     // An absent `not` subschema accepts everything, so `not` rejects.
     expect(matches(1, { not: undefined })).toBe(false);
-    expect(matches(1, { anyOf: [{ type: "string" }, { type: "number" }] })).toBe(
+    expect(
+      matches(1, { anyOf: [{ type: "string" }, { type: "number" }] }),
+    ).toBe(true);
+    expect(
+      matches(true, { anyOf: [{ type: "string" }, { type: "number" }] }),
+    ).toBe(false);
+    expect(matches(1, { anyOf: "x" })).toBe(true);
+    expect(matches(1, { allOf: [{ type: "number" }, { const: 1 }] })).toBe(
       true,
     );
-    expect(matches(true, { anyOf: [{ type: "string" }, { type: "number" }] })).toBe(
+    expect(matches(2, { allOf: [{ type: "number" }, { const: 1 }] })).toBe(
       false,
     );
-    expect(matches(1, { anyOf: "x" })).toBe(true);
-    expect(matches(1, { allOf: [{ type: "number" }, { const: 1 }] })).toBe(true);
-    expect(matches(2, { allOf: [{ type: "number" }, { const: 1 }] })).toBe(false);
     expect(matches(1, { allOf: "x" })).toBe(true);
-    expect(matches(1, { oneOf: [{ type: "number" }, { type: "string" }] })).toBe(
-      true,
+    expect(
+      matches(1, { oneOf: [{ type: "number" }, { type: "string" }] }),
+    ).toBe(true);
+    expect(matches(1, { oneOf: [{ type: "number" }, { const: 1 }] })).toBe(
+      false,
     );
-    expect(matches(1, { oneOf: [{ type: "number" }, { const: 1 }] })).toBe(false);
     expect(matches(true, { oneOf: [{ type: "number" }] })).toBe(false);
     expect(matches(1, { oneOf: "x" })).toBe(true);
   });
