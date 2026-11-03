@@ -18,11 +18,16 @@ export const sha = (value: string) =>
   createHash("sha256").update(value).digest("hex");
 export const spies: { mockRestore: () => void }[] = [];
 const cleanups: (() => void)[] = [];
-/** Restore every spy and remove every workspace after each test. */
-afterEach(() => {
-  for (const spy of spies.splice(0)) spy.mockRestore();
-  for (const cleanup of cleanups.splice(0)) cleanup();
-});
+/**
+ * Restore every spy and remove every workspace after each test. A module is
+ * evaluated once per run, so each test file registers the hook itself.
+ */
+export function cleanUpAfterEach(): void {
+  afterEach(() => {
+    for (const spy of spies.splice(0)) spy.mockRestore();
+    for (const cleanup of cleanups.splice(0)) cleanup();
+  });
+}
 
 export function compilePlan(
   overrides: Partial<CompilePlanV1> = {},

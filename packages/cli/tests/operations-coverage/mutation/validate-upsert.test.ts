@@ -6,7 +6,9 @@ import type {
   PrologQueryResult,
 } from "../../../src/public/operations/runtime-types.js";
 import { isWhatIfGoal, whatIfResult } from "../../helpers/what-if.js";
-import { ctx } from "../planning/fixtures.js";
+import { cleanUpAfterEach, ctx } from "../planning/fixtures.js";
+
+cleanUpAfterEach();
 
 const fact = (id: string, extra: Record<string, unknown> = {}) => ({
   type: "fact",

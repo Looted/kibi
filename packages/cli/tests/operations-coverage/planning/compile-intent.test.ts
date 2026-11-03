@@ -7,7 +7,9 @@ import * as orchestration from "../../../src/operations/semantic-advisor/plugin-
 import * as discoveryExecutors from "../../../src/public/operations/discovery-executors.js";
 import type { PrologQueryResult } from "../../../src/public/operations/runtime-types.js";
 import { isWhatIfGoal, whatIfResult } from "../../helpers/what-if.js";
-import { ctx, spies } from "./fixtures.js";
+import { cleanUpAfterEach, ctx, spies } from "./fixtures.js";
+
+cleanUpAfterEach();
 
 const status = (structuredContent: unknown) =>
   spies.push(

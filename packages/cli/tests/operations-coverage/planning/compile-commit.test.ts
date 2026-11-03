@@ -4,7 +4,16 @@ import { OperationError } from "../../../src/cli-errors.js";
 import * as journalModule from "../../../src/operations/mutation/plan-apply-journal.js";
 import { nodeFilesystem } from "../../../src/public/operations/node-ports.js";
 import { isWhatIfGoal } from "../../helpers/what-if.js";
-import { apply, compilePlan, ctx, sha, spies } from "./fixtures.js";
+import {
+  apply,
+  cleanUpAfterEach,
+  compilePlan,
+  ctx,
+  sha,
+  spies,
+} from "./fixtures.js";
+
+cleanUpAfterEach();
 
 const existing = "---\nid: REQ-apply\n---\n";
 const realOpen = journalModule.openPlanApplyJournal;

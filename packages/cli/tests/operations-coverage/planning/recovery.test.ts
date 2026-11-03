@@ -7,7 +7,16 @@ import { executeApplyPlan } from "../../../src/operations/planning/apply-plan.js
 import * as discoveryExecutors from "../../../src/public/operations/discovery-executors.js";
 import { buildMigrationPlan } from "../../../src/public/operations/migration-plan.js";
 import { nodeFilesystem } from "../../../src/public/operations/node-ports.js";
-import { apply, compilePlan, ctx, sha, spies } from "./fixtures.js";
+import {
+  apply,
+  cleanUpAfterEach,
+  compilePlan,
+  ctx,
+  sha,
+  spies,
+} from "./fixtures.js";
+
+cleanUpAfterEach();
 
 const journal = {
   branch: "develop",
