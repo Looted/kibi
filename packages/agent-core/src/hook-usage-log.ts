@@ -143,7 +143,7 @@ export function appendHookUsage(
   try {
     const logPath = path.join(row.workspaceRoot, ".kb", "usage.log");
     fs.mkdirSync(path.dirname(logPath), { recursive: true });
-    fs.appendFileSync(logPath, `${JSON.stringify(record)}\n`, "utf8");
+    fs.appendFileSync(logPath, `${JSON.stringify(record)}\n`);
   } catch {
     // Telemetry is best effort and must never disturb the tool call.
   }
@@ -195,7 +195,6 @@ export function appendHookUsageRows(
   traces: readonly HookTrace[],
   env: NodeJS.ProcessEnv = process.env,
 ): void {
-  if (!hookTracesWanted(env)) return;
   for (const trace of traces) appendHookUsage({ ...row, trace }, env);
 }
 
@@ -237,17 +236,12 @@ export async function finishHookTelemetry(
  */
 export function readPackageVersion(packageJsonPath: string): string | null {
   try {
-    const parsed: unknown = JSON.parse(
-      fs.readFileSync(packageJsonPath, "utf8"),
+    const parsed: { version?: unknown } = JSON.parse(
+      String(fs.readFileSync(packageJsonPath)),
     );
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      "version" in parsed &&
-      typeof parsed.version === "string"
-    ) {
-      return parsed.version;
-    }
+    // A `null` manifest throws here and lands in the catch below.
+    const version = parsed.version;
+    if (typeof version === "string") return version;
   } catch {
     // An unreadable manifest leaves the version unknown.
   }

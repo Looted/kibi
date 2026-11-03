@@ -9,10 +9,12 @@ import {
   type VocabularyAlignmentV1,
 } from "kibi-plugin-sdk";
 import {
-  type JevChoiceAnswer,
   type JevClient,
-  type JevNoulAnswer,
   JevProviderError,
+  asChoice,
+  asNoul,
+  choiceConfidence,
+  clamp01,
   mapJevError,
 } from "./jev-client.js";
 import {
@@ -28,44 +30,6 @@ export const JEV_SUBJECT_TOP_K = 5;
 
 // implements REQ-kibi-vocabulary-alignment-capability
 export type JevVocabularyAlignmentOptions = JevSemanticClassifierOptions;
-
-function asChoice(answer: unknown): JevChoiceAnswer {
-  if (
-    typeof answer !== "object" ||
-    answer === null ||
-    typeof (answer as { choice?: unknown }).choice !== "string"
-  ) {
-    throw new JevProviderError(
-      "malformed",
-      "Jev Choice answer is missing a string choice field",
-    );
-  }
-  return answer as JevChoiceAnswer;
-}
-
-function asNoul(answer: unknown): JevNoulAnswer {
-  if (
-    typeof answer !== "object" ||
-    answer === null ||
-    typeof (answer as { noul?: unknown }).noul !== "number"
-  ) {
-    throw new JevProviderError(
-      "malformed",
-      "Jev Noul answer is missing a numeric noul field",
-    );
-  }
-  return answer as JevNoulAnswer;
-}
-
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value));
-}
-
-function choiceConfidence(answer: JevChoiceAnswer): number {
-  if (typeof answer.confidence === "number") return clamp01(answer.confidence);
-  const selected = answer.probabilities?.[answer.choice];
-  return typeof selected === "number" ? clamp01(selected) : 0.5;
-}
 
 /**
  * TypeSafe Jev vocabulary alignment. `rankSubjects` asks one `choice` question
@@ -182,7 +146,7 @@ export function createJevVocabularyAlignment(
           return {
             pairKey: pair.pairKey,
             sameObligation: same >= 0.5,
-            confidence: same >= 0.5 ? same : 1 - same,
+            confidence: Math.max(same, 1 - same),
           };
         });
         return { judgments };

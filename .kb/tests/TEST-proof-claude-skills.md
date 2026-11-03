@@ -25,23 +25,23 @@ proof_contract:
     pattern: packages/claude/skills/*/SKILL.md
     capture: true
   proves:
-    - CLAIM-5B36379ABF96C3FD
+    - CLAIM-356FB1F64A34B134
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-0a7a151404ea42a14a035270
+    receipt_id: PR-fb1cca5830526530f76b8450
     test_id: TEST-proof-claude-skills
     scope: unit
     outcome: passed
-    code_snapshot: d2d6cab6dbd3f50aadeb2fd0d2dda459b10875fcef0d6b8408b3f76d0b95066d
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-27T07:44:26.753Z'
-    finished_at: '2026-10-27T07:44:26.907Z'
-    artifact_digest: dc9a7a5418a55d88e7887f1bf2e843a4e5ef183b71ac9bc8dcd6b464071373b3
-    contract_hash: bbb9e3e8c7268852f51aa53f671981cd11d1d18d43088bebbd0af0ac9aa4094e
-    binding_hash: 89a580e56cb563af73611635c20d4d8c4d5b6b816edbebc4f25805a93d361569
-    fingerprint: c81dbfa044d1d596c98efc3f2da2a676954fef0c63bb795d7cc69d6187eee0e9
+    code_snapshot: 88c2873a38c9e4ea633f3ff0eacfb92e6e29c64fa0f3cc023471f8c6fc0964af
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-03T10:50:45.170Z'
+    finished_at: '2026-11-03T10:50:45.379Z'
+    artifact_digest: 62641970bfbdcc1223bb74c86a7b30b195788f1726307c3b654fd1f660329c3a
+    contract_hash: 40c835539a953fdbd23c4de684c81dd4d28a6f6f5590710c44ec8b6d06636671
+    binding_hash: 0a708f052615730d326593bfd3dd48c8bd7a79d7f9a0ae44e6235e2f0617022c
+    fingerprint: 143a3addd3eee08d39aa3e5341a5a1c093e7c3b4da07e8b737d6788e3d9c4d43
     fingerprint_components:
-      contract: bbb9e3e8c7268852f51aa53f671981cd11d1d18d43088bebbd0af0ac9aa4094e
+      contract: 40c835539a953fdbd23c4de684c81dd4d28a6f6f5590710c44ec8b6d06636671
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -76,15 +76,16 @@ proof_receipts:
           - kibi-commit-review
           - kibi-decisions
           - kibi-freshness
+          - kibi-provable-code
           - kibi-traceability
           - kibi-usage
-    certificate_digest: 7cf186990b0e463f1c0fc3cd0dbafa2b3a18a63a3eec78dd45b1abc2af47fce6
+    certificate_digest: 9278be8e606335c618e3dcb4b50b09d6748507a6da0f5e94d3a9bd828c97c663
     claim_bindings:
-      - claim_key: CLAIM-5B36379ABF96C3FD
+      - claim_key: CLAIM-356FB1F64A34B134
         requirement_id: REQ-claude-plugin-package
         fact_id: FACT-claude-bundled-skills
         binding: derived
-        scope: code
+        scope: source
         obligation:
           kind: set_relation
           members:
@@ -92,8 +93,9 @@ proof_receipts:
             - kibi-commit-review
             - kibi-decisions
             - kibi-freshness
+            - kibi-provable-code
             - kibi-traceability
             - kibi-usage
-          operator: includes
+          operator: eq
 ---
 Globs packages/claude/skills/*/SKILL.md and checks the six skill names are present.

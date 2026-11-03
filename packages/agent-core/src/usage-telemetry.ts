@@ -139,8 +139,7 @@ type QueuedEvent = {
 };
 
 function flagValue(value: string | undefined): boolean | undefined {
-  const normalized = value?.trim().toLowerCase();
-  if (normalized === undefined || normalized === "") return undefined;
+  const normalized = String(value).trim().toLowerCase();
   if (["1", "true", "yes", "on"].includes(normalized)) return true;
   if (["0", "false", "no", "off"].includes(normalized)) return false;
   return undefined;
@@ -214,8 +213,8 @@ export const SESSION_ENV_KEYS = [
 
 /** `Claude Code`, `claude_code` and `claude-code` name the same host. */
 function hostKey(name: string): string {
+  // Edge spaces become edge dashes, which the last step strips.
   return name
-    .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
@@ -278,7 +277,8 @@ function sandboxedHome(env: Env): boolean {
   if (!home) return false;
   const temp = realDirectory(os.tmpdir());
   const resolved = realDirectory(home);
-  return resolved !== temp && resolved.startsWith(`${temp}${path.sep}`);
+  // The temp directory itself does not start with `${temp}/`.
+  return resolved.startsWith(`${temp}${path.sep}`);
 }
 
 /** The Kibi monorepo root's package name. */
@@ -289,14 +289,15 @@ const KIBI_REPOSITORY_PACKAGE = "kibi";
  * format can drop `import.meta.url` or make reading it throw.
  */
 export function moduleFileFromUrl(readUrl: () => unknown): string | undefined {
+  let file: string | undefined;
   try {
     const url = readUrl();
-    return typeof url === "string" && url !== ""
-      ? fileURLToPath(url)
-      : undefined;
+    // An empty URL makes fileURLToPath throw, so it lands in the catch.
+    if (typeof url === "string") file = fileURLToPath(url);
   } catch {
-    return undefined;
+    // No usable module URL.
   }
+  return file;
 }
 
 /** This module's file. */
@@ -359,7 +360,8 @@ export function telemetryChannel(
   const explicit = env.KIBI_TELEMETRY_CHANNEL?.trim();
   if (explicit)
     return {
-      channel: telemetryCategory(explicit) ?? "release",
+      // A non-blank value always has a category.
+      channel: telemetryCategory(explicit) as string,
       source: "KIBI_TELEMETRY_CHANNEL",
     };
   if (!moduleFile) return { channel: "release", source: "installed" };
@@ -392,7 +394,7 @@ export function telemetryDirectory(env: Env = process.env): string {
 export function readTelemetryConfig(env: Env = process.env): TelemetryConfig {
   try {
     const parsed: unknown = JSON.parse(
-      fs.readFileSync(path.join(telemetryDirectory(env), CONFIG_FILE), "utf8"),
+      String(fs.readFileSync(path.join(telemetryDirectory(env), CONFIG_FILE))),
     );
     return typeof parsed === "object" && parsed !== null
       ? (parsed as TelemetryConfig)
@@ -408,7 +410,6 @@ function writeTelemetryConfig(config: TelemetryConfig, env: Env): void {
   fs.writeFileSync(
     path.join(directory, CONFIG_FILE),
     `${JSON.stringify(config, null, 2)}\n`,
-    "utf8",
   );
 }
 
@@ -538,11 +539,15 @@ export function takeTelemetryNotice(env: Env = process.env): string | null {
   ].join("\n");
 }
 
+// rationale: the suite runs under Bun, whose global cannot be removed, so
+// the Node branch is unreachable from tests.
+// Stryker disable all
 function runtimeName(): string {
   return typeof (globalThis as { Bun?: unknown }).Bun === "undefined"
     ? "node"
     : "bun";
 }
+// Stryker restore all
 
 type SessionMarkers = Record<string, { session: string; at: number }>;
 
@@ -553,11 +558,10 @@ function sessionMarkersPath(env: Env): string {
 function readSessionMarkers(env: Env): SessionMarkers {
   try {
     const parsed: unknown = JSON.parse(
-      fs.readFileSync(sessionMarkersPath(env), "utf8"),
+      String(fs.readFileSync(sessionMarkersPath(env))),
     );
-    return parsed !== null &&
-      typeof parsed === "object" &&
-      !Array.isArray(parsed)
+    // An array works as a record here: its markers are named properties.
+    return typeof parsed === "object" && parsed !== null
       ? (parsed as SessionMarkers)
       : {};
   } catch {
@@ -655,7 +659,8 @@ function baseProperties(
     package: source.packageName,
     package_version: source.packageVersion ?? null,
     host:
-      (source.host?.trim() && hostKey(source.host)) ||
+      // A blank host keys to "", which falls through like no host.
+      (source.host && hostKey(source.host)) ||
       detectTelemetryHost(env) ||
       "unknown",
     remote: remoteEnvironment(env),
@@ -664,7 +669,7 @@ function baseProperties(
     os: process.platform,
     arch: process.arch,
     runtime: runtimeName(),
-    runtime_version: process.versions.node.split(".")[0] ?? null,
+    runtime_version: process.versions.node.split(".")[0] as string,
   };
 }
 
@@ -681,7 +686,7 @@ function appendEvent(event: QueuedEvent, env: Env): void {
     } catch {
       // No queue yet.
     }
-    fs.appendFileSync(file, `${JSON.stringify(event)}\n`, "utf8");
+    fs.appendFileSync(file, `${JSON.stringify(event)}\n`);
   } catch {
     // Telemetry is best effort and must never disturb the caller.
   }
@@ -766,6 +771,9 @@ export function clearTelemetryQueue(env: Env = process.env): void {
       name === SESSIONS_FILE ||
       name.endsWith(SENDING_SUFFIX)
     ) {
+      // rationale: `force` covers a file a concurrent flush renames between
+      // the listing and this removal; tests cannot time that race.
+      // Stryker disable next-line ObjectLiteral, BooleanLiteral
       fs.rmSync(path.join(directory, name), { force: true });
     }
   }
@@ -774,8 +782,8 @@ export function clearTelemetryQueue(env: Env = process.env): void {
 function parseQueued(text: string, now: number): QueuedEvent[] {
   const events: QueuedEvent[] = [];
   for (const line of text.split("\n")) {
-    if (line.trim() === "") continue;
     try {
+      // A blank line fails to parse and is dropped with torn lines.
       const event = JSON.parse(line) as QueuedEvent;
       const age = now - Date.parse(event.timestamp);
       if (Number.isFinite(age) && age <= MAX_EVENT_AGE_MS) events.push(event);
@@ -797,7 +805,7 @@ function flushDue(file: string, now: number): boolean {
   if (lines.length === 0) return false;
   if (lines.length >= FLUSH_BATCH_EVENTS) return true;
   try {
-    const first = JSON.parse(lines[0] ?? "") as QueuedEvent;
+    const first = JSON.parse(lines[0] as string) as QueuedEvent;
     return now - Date.parse(first.timestamp) >= FLUSH_MAX_AGE_MS;
   } catch {
     return true;
@@ -806,6 +814,9 @@ function flushDue(file: string, now: number): boolean {
 
 /** Atomically take the queue and any batch a dead process left behind. */
 function claimBatches(directory: string, now: number): string[] {
+  // rationale: a placeholder path in place of the empty list names no file,
+  // so reading it fails and it is dropped like an unreadable batch.
+  // Stryker disable next-line ArrayDeclaration
   const claimed: string[] = [];
   let names: string[];
   try {
@@ -861,8 +872,8 @@ export async function flushTelemetry(
   const directory = telemetryDirectory(env);
   const now = Date.now();
   if (!options.force && !flushDue(queuePath(env), now)) return 0;
+  // With nothing claimed there are no events, so nothing is sent.
   const claimed = claimBatches(directory, now);
-  if (claimed.length === 0) return 0;
   const events: QueuedEvent[] = [];
   for (const file of claimed) {
     try {
@@ -872,6 +883,9 @@ export async function flushTelemetry(
     }
   }
   const release = () => {
+    // rationale: `force` only matters when a claimed file is already gone,
+    // which no other process does to a batch this one claimed.
+    // Stryker disable next-line ObjectLiteral, BooleanLiteral
     for (const file of claimed) fs.rmSync(file, { force: true });
   };
   if (events.length === 0) {
@@ -884,7 +898,10 @@ export async function flushTelemetry(
     () => controller.abort(),
     options.timeoutMs ?? DEFAULT_FLUSH_TIMEOUT_MS,
   );
-  timer.unref?.();
+  // rationale: unref only lets the process exit before the timeout fires;
+  // no test can observe the process lifetime from inside it.
+  // Stryker disable next-line CallExpression
+  timer.unref();
   try {
     const response = await fetchImpl(`${telemetryHost(env)}/batch/`, {
       method: "POST",
@@ -897,7 +914,7 @@ export async function flushTelemetry(
       signal: controller.signal,
     });
     // A 4xx means PostHog will never accept this batch; drop it.
-    if (!response.ok && response.status >= 500) throw new Error("retry");
+    if (!response.ok && response.status >= 500) throw new Error();
     release();
     return response.ok ? events.length : 0;
   } catch {

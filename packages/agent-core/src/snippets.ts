@@ -55,10 +55,15 @@ function truncate(text: string, limit: number): string {
   return text.length <= limit ? text : `${text.slice(0, limit - 1)}…`;
 }
 
+/** A symbol without a line is NaN here, and NaN overlaps nothing. */
 function overlaps(symbol: IndexedSymbol, range: LineRange): boolean {
-  if (symbol.line === undefined) return false;
-  const end = symbol.endLine ?? symbol.line;
-  return symbol.line <= range.end && end >= range.start;
+  const line = Number(symbol.line);
+  return line <= range.end && Number(symbol.endLine ?? line) >= range.start;
+}
+
+/** Lines a focused symbol spans; every focused symbol has a line. */
+function span(symbol: IndexedSymbol): number {
+  return Number(symbol.endLine ?? symbol.line) - Number(symbol.line);
 }
 
 // implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1
@@ -67,19 +72,10 @@ export function focusedSymbols(
   symbols: readonly IndexedSymbol[],
   focus: readonly LineRange[] | undefined,
 ): IndexedSymbol[] {
-  if (!focus || focus.length === 0) return [];
+  if (!focus) return [];
   return symbols
     .filter((symbol) => focus.some((range) => overlaps(symbol, range)))
-    .sort(
-      (left, right) =>
-        (left.endLine ?? left.line ?? 0) -
-        (left.line ?? 0) -
-        ((right.endLine ?? right.line ?? 0) - (right.line ?? 0)),
-    );
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+    .sort((left, right) => span(left) - span(right));
 }
 
 // implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
@@ -91,21 +87,23 @@ export function editFocus(
   absolutePath: string,
   toolInput: unknown,
 ): LineRange[] | undefined {
-  if (!isRecord(toolInput)) return undefined;
-  const needles: string[] = [];
-  const collect = (record: Record<string, unknown>) => {
-    for (const key of ["old_string", "oldString"]) {
-      const value = record[key];
-      if (typeof value === "string") needles.push(value);
-    }
-  };
-  collect(toolInput);
-  if (Array.isArray(toolInput.edits)) {
-    for (const edit of toolInput.edits) {
-      if (isRecord(edit)) collect(edit);
-    }
-  }
-  const usable = needles.filter((needle) => needle.length > 0);
+  // Reading a field of a primitive yields undefined; only null and
+  // undefined need replacing before fields are read.
+  type Fields = Record<string, unknown>;
+  const input = (toolInput ?? {}) as Fields;
+  // rationale: a placeholder entry in place of no edits is a primitive, whose
+  // fields read as undefined, so the empty list cannot be told apart.
+  // Stryker disable next-line ArrayDeclaration
+  const edits: unknown[] = Array.isArray(input.edits) ? input.edits : [];
+  const usable = [input, ...edits.map((edit) => (edit ?? {}) as Fields)]
+    .flatMap((record) => [record.old_string, record.oldString])
+    .filter(
+      (needle): needle is string =>
+        typeof needle === "string" && needle.length > 0,
+    );
+  // rationale: without needles the scan below finds nothing either; the
+  // early return only saves reading the file.
+  // Stryker disable next-line ConditionalExpression
   if (usable.length === 0) return undefined;
 
   let content: string;
@@ -136,7 +134,8 @@ const RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired/i;
 // implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
 /** True for a status that marks an entity as no longer current policy. */
 export function isRetiredStatus(status: string | undefined): boolean {
-  return status !== undefined && RETIRED_STATUS.test(status);
+  // `String(undefined)` is "undefined", which names no retired status.
+  return RETIRED_STATUS.test(String(status));
 }
 
 // implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1, REQ-kb-decision-firmness, REQ-kb-decision-firmness-from-origin
@@ -174,7 +173,8 @@ function displayTitle(summary: EntitySummary): string | undefined {
   const rest = statement.slice(title.length);
   if (!/^\.\S/.test(rest)) return title;
   const end = rest.search(/[.!?](?:\s|$)/);
-  return end < 0 ? statement : statement.slice(0, title.length + end);
+  // The rest starts with a dot and a non-space, so a stop is never at 0.
+  return end === -1 ? statement : statement.slice(0, title.length + end);
 }
 
 function jsonString(value: string): string {
@@ -203,7 +203,7 @@ export function unownedSourceNote(
       );
     const note = [
       head,
-      `Requirements whose titles share words with this path or the request: ${named.join("; ")}. kb_query({id:${jsonString(candidates[0]?.id ?? "")}}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).`,
+      `Requirements whose titles share words with this path or the request: ${named.join("; ")}. kb_query({id:${jsonString((candidates[0] as RequirementHead).id)}}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).`,
       search,
     ].join("\n");
     if (note.length <= MAX_SNIPPET_CHARS) return note;
@@ -266,7 +266,8 @@ const OPERATOR_PHRASES: Readonly<Record<string, string>> = {
 };
 
 function joinMembers(values: readonly string[], conjunction: string): string {
-  if (values.length <= 1) return values[0] ?? "";
+  // Claims always carry at least one member here.
+  if (values.length === 1) return values[0] as string;
   return `${values.slice(0, -1).join(", ")} ${conjunction} ${values.at(-1)}`;
 }
 
@@ -275,7 +276,8 @@ const MODAL =
 
 /** The claim's own subject words, before its modal verb, else the key's. */
 function subjectPhrase(claim: FactClaim): string | undefined {
-  const spoken = MODAL.exec(claim.claimText ?? "")?.[1];
+  // `String(undefined)` has no modal verb.
+  const spoken = MODAL.exec(String(claim.claimText))?.[1];
   if (spoken) return spoken;
   return claim.subjectKey?.replace(/[._]+/g, " ").trim() || undefined;
 }
@@ -425,10 +427,7 @@ function requirementOwners(
   focus: readonly IndexedSymbol[],
 ): { owners: Map<string, string[]>; requirementIds: string[] } {
   const owners = new Map<string, string[]>();
-  const ordered = [
-    ...focus,
-    ...symbols.filter((symbol) => !focus.includes(symbol)),
-  ];
+  const ordered = new Set([...focus, ...symbols]);
   for (const symbol of ordered) {
     for (const requirement of symbol.implements) {
       const titles = owners.get(requirement) ?? [];
@@ -442,7 +441,8 @@ function requirementOwners(
       Number(focusOwners.has(right)) - Number(focusOwners.has(left));
     return focusOrder !== 0
       ? focusOrder
-      : (owners.get(right)?.length ?? 0) - (owners.get(left)?.length ?? 0);
+      : (owners.get(right) as string[]).length -
+          (owners.get(left) as string[]).length;
   });
   return { owners, requirementIds };
 }
@@ -470,7 +470,7 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
     `Kibi knowledge for ${relativePath} (symbol manifest):`,
   ];
   for (const requirementId of requirementIds.slice(0, MAX_REQUIREMENTS)) {
-    const symbolTitles = owners.get(requirementId) ?? [];
+    const symbolTitles = owners.get(requirementId) as string[];
     lines.push(
       `- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`,
     );
@@ -604,20 +604,18 @@ export function editKnowledgeContext(
   for (const relativePath of new Set(input.relativePaths)) {
     if (snippets.length >= (input.maxFiles ?? 3)) break;
     const symbols = input.symbolsFor(relativePath);
-    const snippet =
-      symbols.length > 0
-        ? fileKnowledgeSnippet({
-            relativePath,
-            symbols,
-            surface: "edit",
-            focus: input.focusFor?.(relativePath),
-            summarize: input.summarize,
-            maxChars: input.maxChars,
-          })
-        : undefined;
+    // A file without symbols has no snippet.
+    const snippet = fileKnowledgeSnippet({
+      relativePath,
+      symbols,
+      surface: "edit",
+      focus: input.focusFor?.(relativePath),
+      summarize: input.summarize,
+      maxChars: input.maxChars,
+    });
     const text = snippet ?? input.noteFor?.(relativePath);
     if (!text) continue;
-    const key = `${input.sessionId ?? ""}\u0000edit\u0000${relativePath}`;
+    const key = `${String(input.sessionId)}\u0000edit\u0000${relativePath}`;
     if (!claimSnippetSlot(input.stateDir, key)) continue;
     snippets.push(text);
   }

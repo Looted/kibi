@@ -10124,7 +10124,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-proof-bundled-skill-catalog
+      - type: covered_by
         target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-kibi-bundled-skill-catalog
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-loadBundledSkill
@@ -53479,6 +53483,45 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-staged-inventory-drift-STAGED_STATEMENT_DRIFT_RULE
+    title: STAGED_STATEMENT_DRIFT_RULE
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-inventory-drift.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T10:45:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-staged-inventory-drift-StagedStatementDriftViolation
+    title: StagedStatementDriftViolation
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-inventory-drift.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T10:45:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-staged-inventory-drift-stagedStatementDriftViolations
+    title: stagedStatementDriftViolations
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-inventory-drift.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T10:45:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-merge-driver-setup-manifestMergeDriverGaps
     title: manifestMergeDriverGaps
     status: active
@@ -66621,3 +66664,17 @@ symbols:
         target: TEST-kibi-tree-sitter-script-references
       - type: implements
         target: REQ-kibi-tree-sitter-script-references
+  - id: SYM-proof-bundled-skill-catalog
+    title: canonicalSkillCatalogCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/skill-catalog.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T10:48:40.140Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-bundled-skill-catalog

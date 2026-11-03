@@ -46,17 +46,22 @@ import {
 
 const EXTRACTOR_ID = "kibi-plugin-builtin.ts-morph";
 
+const V2_LANGUAGE_ALIASES = new Map<
+  string | undefined,
+  "javascript" | "typescript"
+>([
+  ["javascript", "javascript"],
+  ["js", "javascript"],
+  ["node", "javascript"],
+  ["nodejs", "javascript"],
+  ["typescript", "typescript"],
+  ["ts", "typescript"],
+]);
+
 function normalizeV2ScriptLanguage(
   language: string | undefined,
 ): "javascript" | "typescript" | undefined {
-  const normalized = language?.trim().toLowerCase();
-  if (["javascript", "js", "node", "nodejs"].includes(normalized ?? "")) {
-    return "javascript";
-  }
-  if (["typescript", "ts"].includes(normalized ?? "")) {
-    return "typescript";
-  }
-  return undefined;
+  return V2_LANGUAGE_ALIASES.get(language?.trim().toLowerCase());
 }
 
 function v2ScriptKind(
@@ -90,7 +95,8 @@ export function createBuiltinTsMorphSymbolExtractor(): SymbolExtractorV1 {
   // (and the TypeScript compiler behind it) is built on the first analysis.
   let project: Project | undefined;
   const getProject = (): Project => {
-    project ??= new (tsMorph().Project)({ skipAddingFilesFromTsConfig: true });
+    // Without a tsconfig path the project reads no tsconfig files.
+    project ??= new (tsMorph().Project)();
     return project;
   };
 
@@ -142,7 +148,6 @@ export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
   let project: Project | undefined;
   const getProject = (): Project => {
     project ??= new (tsMorph().Project)({
-      skipAddingFilesFromTsConfig: true,
       compilerOptions: { noLib: true, noResolve: true, types: [] },
     });
     return project;
@@ -197,25 +202,14 @@ export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
           .getProgram()
           .getSyntacticDiagnostics(analyzed)
           .map((diagnostic) => {
-            const start = diagnostic.getStart();
-            const length = diagnostic.getLength();
-            const range =
-              start === undefined
-                ? wholeSourceRange(analyzed, input.content)
-                : sourceRangeAtOffsets(
-                    analyzed,
-                    input.content,
-                    start,
-                    start + (length ?? 0),
-                  );
-            const message = diagnostic.getMessageText();
+            // Parser diagnostics always carry a span inside the analyzed text
+            // and a plain string message (never a chained message).
+            const start = diagnostic.getStart() as number;
+            const end = start + (diagnostic.getLength() as number);
             return {
               code: `TS${diagnostic.getCode()}`,
-              message:
-                typeof message === "string"
-                  ? message
-                  : message.getMessageText(),
-              range,
+              message: diagnostic.getMessageText() as string,
+              range: sourceRangeAtOffsets(analyzed, start, end),
             };
           });
         const result: SourceAnalysisResultV2 = {
@@ -258,32 +252,24 @@ export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
   };
 }
 
+type SourceRange = NonNullable<
+  SourceAnalysisResultV2["diagnostics"][number]["range"]
+>;
+
+// ts-morph columns are 1-based; Kibi ranges use 0-based columns.
 function sourceRangeAtOffsets(
   sourceFile: SourceFile,
-  content: string,
   startOffset: number,
   endOffset: number,
-): NonNullable<SourceAnalysisResultV2["diagnostics"][number]["range"]> {
-  const boundedStart = Math.min(Math.max(startOffset, 0), content.length);
-  const boundedEnd = Math.min(
-    Math.max(endOffset, boundedStart),
-    content.length,
-  );
-  const start = sourceFile.getLineAndColumnAtPos(boundedStart);
-  const end = sourceFile.getLineAndColumnAtPos(boundedEnd);
+): SourceRange {
+  const start = sourceFile.getLineAndColumnAtPos(startOffset);
+  const end = sourceFile.getLineAndColumnAtPos(endOffset);
   return {
     startLine: start.line,
-    startColumn: Math.max(0, start.column - 1),
+    startColumn: start.column - 1,
     endLine: end.line,
-    endColumn: Math.max(0, end.column - 1),
+    endColumn: end.column - 1,
   };
-}
-
-function wholeSourceRange(
-  sourceFile: SourceFile,
-  content: string,
-): NonNullable<SourceAnalysisResultV2["diagnostics"][number]["range"]> {
-  return sourceRangeAtOffsets(sourceFile, content, 0, content.length);
 }
 
 // implements REQ-capability-plugin-builtin-parity-v1
@@ -328,17 +314,17 @@ function collectSourceSymbols(
         includeV2Fields,
       ),
     );
-    try {
+    // v1 skips malformed class member walks and keeps the class symbol;
+    // v2 must expose the failure.
+    attempt(includeV2Fields, () =>
       appendClassMembers(
         sourceFile,
         decl,
         decl.getName(),
         symbols,
         includeV2Fields,
-      );
-    } catch {
-      // Skip malformed class member walks; keep the class symbol.
-    }
+      ),
+    );
   }
 
   for (const decl of sourceFile.getInterfaces()) {
@@ -346,13 +332,13 @@ function collectSourceSymbols(
     pushSymbol(symbols, includeV2Fields, () =>
       toSourceSymbolAnalysis(
         sourceFile,
-        decl.getName() ?? "<anonymous>",
+        decl.getName(),
         "interface",
-        decl.getNameNode() ?? decl,
+        decl.getNameNode(),
         decl,
         // Historical CLI used getText(); keep calling it so characterization
         // mocks that throw from getText still isolate the failure.
-        `${leadingCommentsAndJsDocs(sourceFile, decl)}\n${safeGetText(decl)}`,
+        `${leadingCommentsAndJsDocs(sourceFile, decl)}\n${decl.getText()}`,
         includeV2Fields,
       ),
     );
@@ -363,11 +349,11 @@ function collectSourceSymbols(
     pushSymbol(symbols, includeV2Fields, () =>
       toSourceSymbolAnalysis(
         sourceFile,
-        decl.getName() ?? "<anonymous>",
+        decl.getName(),
         "type",
-        decl.getNameNode() ?? decl,
+        decl.getNameNode(),
         decl,
-        `${leadingCommentsAndJsDocs(sourceFile, decl)}\n${safeGetText(decl)}`,
+        `${leadingCommentsAndJsDocs(sourceFile, decl)}\n${decl.getText()}`,
         includeV2Fields,
       ),
     );
@@ -378,13 +364,13 @@ function collectSourceSymbols(
     pushSymbol(symbols, includeV2Fields, () =>
       toSourceSymbolAnalysis(
         sourceFile,
-        decl.getName() ?? "<anonymous>",
+        decl.getName(),
         "enum",
-        decl.getNameNode() ?? decl,
+        decl.getNameNode(),
         decl,
         // Enums historically used getText(); prefer leading comments when the
         // real AST is available, else getText for test doubles.
-        `${leadingCommentsAndJsDocs(sourceFile, decl)}\n${safeGetText(decl)}`,
+        `${leadingCommentsAndJsDocs(sourceFile, decl)}\n${decl.getText()}`,
         includeV2Fields,
       ),
     );
@@ -399,21 +385,20 @@ function collectSourceSymbols(
           sourceFile,
           declaration.getName(),
           "variable",
-          declaration.getNameNode() ?? declaration,
+          declaration.getNameNode(),
           declaration,
           // Statement carries leading `// implements`; declaration text is the
           // historical fallback when only getText is stubbed in tests.
-          `${safeFullText(statement)}\n${safeGetText(declaration)}`,
+          `${safeFullText(statement)}\n${declaration.getText()}`,
           includeV2Fields,
         ),
       );
-      try {
-        const classExpression =
-          typeof declaration.getInitializerIfKind === "function"
-            ? declaration.getInitializerIfKind(
-                tsMorph().SyntaxKind.ClassExpression,
-              )
-            : undefined;
+      attempt(includeV2Fields, () => {
+        // Characterization doubles may omit AST accessors; treat a missing
+        // one as "nothing there".
+        const classExpression = declaration.getInitializerIfKind?.(
+          tsMorph().SyntaxKind.ClassExpression,
+        );
         if (classExpression) {
           appendClassMembers(
             sourceFile,
@@ -423,70 +408,48 @@ function collectSourceSymbols(
             includeV2Fields,
           );
         }
-      } catch (error) {
-        if (includeV2Fields) throw error;
-        // Preserve legacy v1 class-expression recovery.
-      }
+      });
     }
   }
 
   return symbols;
 }
 
-function jsDocsOnly(node: {
+// Characterization doubles of the v1 extractor may omit any of these AST
+// accessors; a missing accessor contributes no text.
+interface DirectiveTextNode {
+  getFullText?: () => string;
+  getFullStart?: () => number;
+  getStart?: (includeJsDocComments?: boolean) => number;
   getJsDocs?: () => ReadonlyArray<{ getFullText: () => string }>;
-}): string {
-  if (typeof node.getJsDocs !== "function") return "";
-  return node
-    .getJsDocs()
-    .map((doc) => doc.getFullText())
-    .join("\n");
+}
+
+function jsDocsOnly(node: DirectiveTextNode): string {
+  return (node.getJsDocs?.() ?? []).map((doc) => doc.getFullText()).join("\n");
 }
 
 function leadingCommentsAndJsDocs(
   sourceFile: SourceFile,
-  node: {
-    getFullStart?: () => number;
-    getStart?: (includeJsDocComment?: boolean) => number;
-    getJsDocs?: () => ReadonlyArray<{ getFullText: () => string }>;
-  },
+  node: DirectiveTextNode,
 ): string {
-  let leading = "";
-  try {
-    if (
-      typeof node.getFullStart === "function" &&
-      typeof node.getStart === "function"
-    ) {
-      const fullStart = node.getFullStart();
-      // Exclude JSDoc from the range so we don't double-count with jsDocsOnly.
-      const start = node.getStart(false);
-      if (
-        Number.isFinite(fullStart) &&
-        Number.isFinite(start) &&
-        start > fullStart
-      ) {
-        leading = sourceFile.getFullText().slice(fullStart, start);
-      }
-    }
-  } catch {
-    leading = "";
-  }
+  // The span between the full start and the start without JSDoc holds the
+  // leading comments and the JSDoc itself (the JSDoc is appended again below,
+  // matching the historical directive text).
+  const leading =
+    node.getFullStart === undefined || node.getStart === undefined
+      ? ""
+      : sourceFile
+          .getFullText()
+          .slice(node.getFullStart(), node.getStart(false));
   return `${leading}\n${jsDocsOnly(node)}`;
 }
 
-function fullTextWithJsDocs(node: {
-  getFullText?: () => string;
-  getJsDocs?: () => ReadonlyArray<{ getFullText: () => string }>;
-}): string {
+function fullTextWithJsDocs(node: DirectiveTextNode): string {
   return `${safeFullText(node)}\n${jsDocsOnly(node)}`;
 }
 
-function safeFullText(node: { getFullText?: () => string }): string {
-  return typeof node.getFullText === "function" ? node.getFullText() : "";
-}
-
-function safeGetText(node: { getText?: () => string }): string {
-  return typeof node.getText === "function" ? node.getText() : "";
+function safeFullText(node: DirectiveTextNode): string {
+  return node.getFullText?.() ?? "";
 }
 
 function appendClassMembers(
@@ -499,18 +462,14 @@ function appendClassMembers(
   // Inherit class *leading* ownership comments onto members (not the class
   // body). Method-local `// implements` stay on the method via getFullText.
   const classLeading = leadingCommentsAndJsDocs(sourceFile, declaration);
-  const methods =
-    typeof declaration.getMethods === "function"
-      ? declaration.getMethods()
-      : [];
-  for (const method of methods) {
+  for (const method of declaration.getMethods?.() ?? []) {
     if (isPrivateClassMember(method)) continue;
     pushSymbol(symbols, includeV2Fields, () =>
       toSourceSymbolAnalysis(
         sourceFile,
         formatMethodSymbolName(className, method.getName()),
         "method",
-        method.getNameNode() ?? method,
+        method.getNameNode(),
         method,
         `${classLeading}\n${fullTextWithJsDocs(method)}`,
         includeV2Fields,
@@ -519,18 +478,14 @@ function appendClassMembers(
     );
   }
 
-  const properties =
-    typeof declaration.getProperties === "function"
-      ? declaration.getProperties()
-      : [];
-  for (const property of properties) {
+  for (const property of declaration.getProperties?.() ?? []) {
     if (isPrivateClassMember(property)) continue;
     pushSymbol(symbols, includeV2Fields, () =>
       toSourceSymbolAnalysis(
         sourceFile,
         formatMethodSymbolName(className, property.getName()),
         "property",
-        property.getNameNode() ?? property,
+        property.getNameNode(),
         property,
         `${classLeading}\n${fullTextWithJsDocs(property)}`,
         includeV2Fields,
@@ -540,12 +495,8 @@ function appendClassMembers(
   }
 
   const accessors = [
-    ...(typeof declaration.getGetAccessors === "function"
-      ? declaration.getGetAccessors()
-      : []),
-    ...(typeof declaration.getSetAccessors === "function"
-      ? declaration.getSetAccessors()
-      : []),
+    ...(declaration.getGetAccessors?.() ?? []),
+    ...(declaration.getSetAccessors?.() ?? []),
   ];
   const pairedAccessors = new Set<Node>();
   for (const accessor of accessors) {
@@ -557,29 +508,31 @@ function appendClassMembers(
           candidate.getName() === accessor.getName() &&
           candidate.isStatic() === accessor.isStatic(),
       );
-      const other = candidates.find((candidate) => candidate !== accessor);
-      if (
-        candidates.length === 2 &&
-        other &&
-        other.getKind() !== accessor.getKind()
-      ) {
-        const first = accessor.getStart() < other.getStart() ? accessor : other;
-        const last = first === accessor ? other : accessor;
+      const [one, two] = candidates as [typeof accessor, typeof accessor];
+      if (candidates.length === 2 && one.getKind() !== two.getKind()) {
+        // Class members in source order put the earlier accessor first.
+        const [first, last] = declaration
+          .getMembers()
+          .filter((member) => member === one || member === two) as [
+          typeof one,
+          typeof two,
+        ];
         // A complementary getter/setter pair is one authored property. Keep
         // both bodies in its span without assigning the same ID twice.
         const symbol = toSourceSymbolAnalysis(
           sourceFile,
           formatMethodSymbolName(className, accessor.getName()),
           "accessor",
-          first.getNameNode() ?? first,
+          first.getNameNode(),
           last,
           `${classLeading}\n${fullTextWithJsDocs(first)}\n${fullTextWithJsDocs(last)}`,
           true,
           className,
         );
         symbols.push({ ...symbol, nativeKind: "AccessorPair" });
-        pairedAccessors.add(accessor);
-        pairedAccessors.add(other);
+        // Only the later partner can still come up in this loop: `one` is
+        // either the current accessor or one already visited.
+        pairedAccessors.add(two);
         continue;
       }
     }
@@ -588,7 +541,7 @@ function appendClassMembers(
         sourceFile,
         formatMethodSymbolName(className, accessor.getName()),
         "accessor",
-        accessor.getNameNode() ?? accessor,
+        accessor.getNameNode(),
         accessor,
         `${classLeading}\n${fullTextWithJsDocs(accessor)}`,
         includeV2Fields,
@@ -603,11 +556,17 @@ function pushSymbol(
   strict: boolean,
   build: () => SourceSymbolAnalysis,
 ): void {
-  try {
+  attempt(strict, () => {
     symbols.push(build());
+  });
+}
+
+/** Legacy v1 recovers from a failing step; v2 must expose the failure. */
+function attempt(strict: boolean, run: () => void): void {
+  try {
+    run();
   } catch (error) {
     if (strict) throw error;
-    // Preserve legacy v1 recovery; v2 must expose extraction failure.
   }
 }
 
@@ -618,34 +577,31 @@ function toSourceSymbolAnalysis(
   startNode: Node,
   endNode: Node,
   directiveText: string,
-  includeV2Fields = false,
+  includeV2Fields: boolean,
   containerName?: string,
 ): SourceSymbolAnalysisV2 {
-  const start = sourceFile.getLineAndColumnAtPos(startNode.getStart());
-  const end = sourceFile.getLineAndColumnAtPos(endNode.getEnd());
+  const span = sourceRangeAtOffsets(
+    sourceFile,
+    startNode.getStart(),
+    endNode.getEnd(),
+  );
 
   const result: SourceSymbolAnalysis = {
     name,
     kind,
-    startLine: start.line,
-    startColumn: Math.max(0, start.column - 1),
-    endLine: end.line,
-    endColumn: Math.max(0, end.column - 1),
+    ...span,
     directiveText,
   };
   if (!includeV2Fields) return result;
 
-  const nameKind = startNode.getKindName();
+  // Private identifiers never reach here (private members are skipped) and
+  // declaration names cannot be template literals.
   const hasNameNode = [
     "Identifier",
-    "PrivateIdentifier",
     "StringLiteral",
     "NumericLiteral",
-    "NoSubstitutionTemplateLiteral",
     "ComputedPropertyName",
-  ].includes(nameKind);
-  const nameRangeStart = sourceFile.getLineAndColumnAtPos(startNode.getStart());
-  const nameRangeEnd = sourceFile.getLineAndColumnAtPos(startNode.getEnd());
+  ].includes(startNode.getKindName());
   return {
     ...result,
     qualifiedName: name,
@@ -653,12 +609,11 @@ function toSourceSymbolAnalysis(
     nativeKind: endNode.getKindName(),
     ...(hasNameNode
       ? {
-          nameRange: {
-            startLine: nameRangeStart.line,
-            startColumn: Math.max(0, nameRangeStart.column - 1),
-            endLine: nameRangeEnd.line,
-            endColumn: Math.max(0, nameRangeEnd.column - 1),
-          },
+          nameRange: sourceRangeAtOffsets(
+            sourceFile,
+            startNode.getStart(),
+            startNode.getEnd(),
+          ),
         }
       : {}),
   };
@@ -673,7 +628,7 @@ function inferSourceLanguage(filePath: string): string {
 }
 
 function inferModuleTitle(filePath: string): string {
-  const extension = path.extname(filePath);
-  const basename = path.basename(filePath, extension);
-  return basename.length > 0 ? basename : path.basename(filePath);
+  // A dotfile such as `.ts` has no extension, so the basename is never empty
+  // for a non-empty file name.
+  return path.basename(filePath, path.extname(filePath));
 }

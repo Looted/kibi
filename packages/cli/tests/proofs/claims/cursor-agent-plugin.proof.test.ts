@@ -36,7 +36,7 @@ export function agentPluginManifestFieldsCertificate(): CodeCertificate {
   });
 }
 
-/** The kibi-cursor portable Agent Plugin artifact must package the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills under its skills directory. */
+/** The kibi-cursor portable Agent Plugin artifact must package the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others under its skills directory. */
 export function agentPluginSkillsCertificate(): CodeCertificate {
   return sourceCertificate({ testId: "TEST-proof-cursor-agent-plugin-skills" });
 }
@@ -121,7 +121,7 @@ describe("The layout and fields of the kibi-cursor portable Agent Plugin artifac
       ],
     );
   });
-  test("The kibi-cursor portable Agent Plugin artifact must package the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills under its skills directory", async () => {
+  test("The kibi-cursor portable Agent Plugin artifact must package the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others under its skills directory", async () => {
     writeCodeCertificate(agentPluginSkillsCertificate());
     await expectSource(
       {
@@ -129,12 +129,13 @@ describe("The layout and fields of the kibi-cursor portable Agent Plugin artifac
         pattern: "packages/cursor/agent-plugin/skills/*/SKILL.md",
         capture: true,
       },
-      "includes",
+      "eq",
       [
         "kibi-bootstrap",
         "kibi-commit-review",
         "kibi-decisions",
         "kibi-freshness",
+        "kibi-provable-code",
         "kibi-traceability",
         "kibi-usage",
       ],
