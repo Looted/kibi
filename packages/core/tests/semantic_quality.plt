@@ -14,12 +14,21 @@
 sqx_entity(Type, Id, Props0) :-
     Defaults = [title="Fixture entity", status=active, created_at="2026-05-01T00:00:00Z",
                 updated_at="2026-05-01T00:00:00Z", source="test://semantic_quality.plt"],
-    exclude([Key=_]>>memberchk(Key=_, Props0), Defaults, Missing),
+    sqx_missing(Defaults, Props0, Missing),
     append([[id=Id], Missing, Props0], Props),
     (   kb_assert_entity(Type, Props)
     ->  true
     ;   throw(error(sqx_entity_rejected(Type, Props), _))
     ).
+
+% The defaults whose key Props does not set.
+sqx_missing([], _, []).
+sqx_missing([Key=Value|Defaults], Props, Missing) :-
+    (   memberchk(Key=_, Props)
+    ->  Missing = Missing1
+    ;   Missing = [Key=Value|Missing1]
+    ),
+    sqx_missing(Defaults, Props, Missing1).
 
 sqx_req(Id) :- sqx_entity(req, Id, [status=open]).
 
