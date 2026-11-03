@@ -176,6 +176,29 @@ describe("loadProofReferenceExtractors", () => {
 });
 
 describe("proofReferenceExtractorLoader", () => {
+  test("starts with the release-qualified closures and the caching load", async () => {
+    // A fresh module copy: other test files reassign the shared loader.
+    const fresh = (await import(
+      new URL(
+        "../../src/plugins/proof-reference-extractors.ts?initial",
+        import.meta.url,
+      ).href
+    )) as typeof import("../../src/plugins/proof-reference-extractors.js");
+    expect(Object.keys(fresh.proofReferenceExtractorLoader)).toStrictEqual([
+      "approvals",
+      "load",
+    ]);
+    expect(fresh.proofReferenceExtractorLoader.approvals).toBe(
+      APPROVED_SOURCE_ANALYZERS,
+    );
+    const root = workspace(["refs-a"]);
+    install(root, "refs-a");
+    expect(await fresh.proofReferenceExtractorLoader.load(root)).toStrictEqual({
+      extractors: [],
+      problems: ["refs-a is not a release-qualified reference reader"],
+    });
+  });
+
   test("names the suggested reference plugin", () => {
     expect(REFERENCE_PLUGIN_PACKAGE).toBe("kibi-plugin-treesitter");
   });
