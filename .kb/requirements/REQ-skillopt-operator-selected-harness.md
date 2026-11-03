@@ -61,10 +61,10 @@ semantic_source_field: semantic_text
 semantic_source_hash: afae973ad11d7ff16333bd7e0e0fc99a2cbc953ae440e12c09ef2971c6127a2f
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks'
-  approved_by: Piotr
+  ref: 'Maintainer request, 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks'
+  approved_by: maintainer
   recorded_at: '2026-10-05T23:49:00.429Z'
-rationale: Codex usage can run out and operators want to compare harnesses; the Codex-only rule blocked measuring skills on other agent hosts. Piotr asked to support different harnesses and run what the operator selects.
+rationale: Codex usage can run out and operators want to compare harnesses; the Codex-only rule blocked measuring skills on other agent hosts. The maintainer asked to support different harnesses and run what the operator selects.
 id: REQ-skillopt-operator-selected-harness
 type: req
 ---

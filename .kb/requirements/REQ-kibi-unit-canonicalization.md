@@ -48,7 +48,9 @@ id: REQ-kibi-unit-canonicalization
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
+firmness: default
+required_evidence: tested
 ---
 Kibi must compare property values with a known duration, data-size, or percentage unit in the base unit of that family. Kibi must store authored property values and units unchanged. Unknown or ambiguous units must never be equated with a different unit.

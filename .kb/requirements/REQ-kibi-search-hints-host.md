@@ -84,4 +84,4 @@ On Kibi's own KB, reworded questions found the expected requirement 2 times in 2
 
 > Install in kibis own repo, all entities are fine, I'll leave the limits up to you (you can use kibis own kb and possibly measure)
 
-Maintainer, project thread on semantic search, 2026-10-29.
+Maintainer, semantic search discussion, 2026-10-29.

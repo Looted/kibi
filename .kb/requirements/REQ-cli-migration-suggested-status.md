@@ -2,7 +2,7 @@
 title: Suggested status for legacy requirement status words
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: A legacy requirement status word shall be accepted, proposed, draft, deprecated, superseded or rejected. A requirement marked accepted shall be migrated as open. A requirement marked proposed shall be migrated as open. A requirement marked draft shall be migrated as open. A requirement marked deprecated shall be migrated as closed. A requirement marked superseded shall be migrated as closed. A requirement marked rejected shall be migrated as closed.
 semantic_clauses:
   - A legacy requirement status word shall be accepted, proposed, draft, deprecated, superseded or rejected.
@@ -16,7 +16,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-29T10:39:29.290Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -82,6 +82,7 @@ logic_claims:
   - CLAIM-0A2412C4CAB9F99B
 id: REQ-cli-migration-suggested-status
 type: req
+required_evidence: tested
 ---
 A legacy requirement status word shall be accepted, proposed, draft, deprecated, superseded or rejected. A requirement marked accepted shall be migrated as open. A requirement marked proposed shall be migrated as open. A requirement marked draft shall be migrated as open. A requirement marked deprecated shall be migrated as closed. A requirement marked superseded shall be migrated as closed. A requirement marked rejected shall be migrated as closed.
 

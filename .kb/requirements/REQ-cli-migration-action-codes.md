@@ -2,7 +2,7 @@
 title: Requirement status migration codes
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: A migrated delivered requirement shall carry the tag implemented. The delivered status migration action id shall be req-status-delivered-map. The delivered status migration code shall be req_status_delivered_map. The entity type backfill action id shall be entity-type-backfill. The entity type backfill code shall be entity_type_backfill.
 semantic_clauses:
   - A migrated delivered requirement shall carry the tag implemented.
@@ -14,7 +14,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T17:41:59.909Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -64,6 +64,7 @@ logic_claims:
   - CLAIM-1A3FD18EB41F242A
 id: REQ-cli-migration-action-codes
 type: req
+required_evidence: tested
 ---
 A migrated delivered requirement shall carry the tag implemented. The delivered status migration action id shall be req-status-delivered-map. The delivered status migration code shall be req_status_delivered_map. The entity type backfill action id shall be entity-type-backfill. The entity type backfill code shall be entity_type_backfill.
 

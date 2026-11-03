@@ -2,7 +2,7 @@
 title: The canonical .kb knowledge lanes
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The canonical Kibi knowledge lanes shall be requirements, scenarios, tests, facts, adr, flags and events.
 semantic_clauses:
   - The canonical Kibi knowledge lanes shall be requirements, scenarios, tests, facts, adr, flags and events.
@@ -10,7 +10,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T10:10:05.363Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -28,6 +28,7 @@ logic_claims:
   - CLAIM-F0379E1995819F07
 id: REQ-cli-canonical-kb-lanes
 type: req
+required_evidence: tested
 ---
 The canonical Kibi knowledge lanes shall be requirements, scenarios, tests, facts, adr, flags and events.
 

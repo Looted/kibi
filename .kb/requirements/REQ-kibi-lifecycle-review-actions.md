@@ -2,7 +2,7 @@
 title: kb_check review action ids and codes
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The unapproved agent requirements review action id shall be review-agent-requirements-unapproved. The unapproved agent requirements review code shall be review_agent_requirements_unapproved. The close superseded requirements action id shall be close-superseded-requirements. The close superseded requirements code shall be close_superseded_requirements. The self-attested exception review code shall be review_exception_approval_self_attested. The predicate key arguments review code shall be review_predicate_key_arguments. The missing rationale review action id shall be review-requirement-rationale-missing. The unknown scenario feasibility review code shall be review_scenario_feasibility_unknown.
 semantic_clauses:
   - The unapproved agent requirements review action id shall be review-agent-requirements-unapproved.
@@ -17,7 +17,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T20:25:29.913Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -91,6 +91,7 @@ logic_claims:
   - CLAIM-32019240AFC60906
 id: REQ-kibi-lifecycle-review-actions
 type: req
+required_evidence: tested
 ---
 The unapproved agent requirements review action id shall be review-agent-requirements-unapproved. The unapproved agent requirements review code shall be review_agent_requirements_unapproved. The close superseded requirements action id shall be close-superseded-requirements. The close superseded requirements code shall be close_superseded_requirements. The self-attested exception review code shall be review_exception_approval_self_attested. The predicate key arguments review code shall be review_predicate_key_arguments. The missing rationale review action id shall be review-requirement-rationale-missing. The unknown scenario feasibility review code shall be review_scenario_feasibility_unknown.
 

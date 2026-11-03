@@ -17,7 +17,7 @@ claim_key: CLAIM-12C32D7A69826609
 claim_text: Proposition-complete ingestion must keep accepting stored inventories that recorded the earlier definition role
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+  ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
   recorded_at: '2026-10-06T20:43:32.409Z'
 id: FACT-bootstrap-advisor-proposition-roles-legacy-definition-role-accepted
 type: fact

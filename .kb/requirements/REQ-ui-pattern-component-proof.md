@@ -8,7 +8,7 @@ tags:
   - proof-ladder
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:13:34.643Z'
 rationale: A visual pattern is fully observable by rendering one component in isolation, so demanding a browser test for every pattern would make end-to-end suites heavy without adding evidence.
 semantic_text: A scenario whose specifying requirements are grounded only in ui_pattern, same_pattern and pattern_marker predicates must accept unit and integration tests with fresh passing receipts as proof. Every other scenario must accept only end-to-end tests as proof.
@@ -53,4 +53,4 @@ The project owner did not want UI design enforcement to make end-to-end suites h
 
 > By units, I don't mean traditional unit test runners, which are just architecture. What I mean is specifically testing one unit in isolation.
 
-Project owner, project thread on the UI design plugin, 2026-10-09.
+Project owner, UI design plugin discussion, 2026-10-09.

@@ -2,7 +2,7 @@
 title: Signoff gate and change labels
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: A signoff gate shall be semantic, scenario, implementation, e2e, evidence or tested. A signoff change shall be new, changed, affected or retired. The signoff label of the semantic gate shall be semantic model incomplete. The signoff label of the scenario gate shall be no scenario yet. The signoff label of the implementation gate shall be no owning code yet. The signoff label of the e2e gate shall be no end-to-end test yet. The signoff label of the evidence gate shall be end-to-end evidence not current. The signoff label of the tested gate shall be tested. The signoff label of a new change shall be New. The signoff label of a changed change shall be Changed. The signoff label of a retired change shall be Superseded or retired.
 semantic_clauses:
   - A signoff gate shall be semantic, scenario, implementation, e2e, evidence or tested.
@@ -20,7 +20,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T22:21:32.453Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -118,6 +118,7 @@ logic_claims:
   - CLAIM-2AD8CEB028472F05
 id: REQ-kibi-signoff-labels
 type: req
+required_evidence: tested
 ---
 A signoff gate shall be semantic, scenario, implementation, e2e, evidence or tested. A signoff change shall be new, changed, affected or retired. The signoff label of the semantic gate shall be semantic model incomplete. The signoff label of the scenario gate shall be no scenario yet. The signoff label of the implementation gate shall be no owning code yet. The signoff label of the e2e gate shall be no end-to-end test yet. The signoff label of the evidence gate shall be end-to-end evidence not current. The signoff label of the tested gate shall be tested. The signoff label of a new change shall be New. The signoff label of a changed change shall be Changed. The signoff label of a retired change shall be Superseded or retired.
 

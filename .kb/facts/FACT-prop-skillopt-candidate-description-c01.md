@@ -15,7 +15,7 @@ tags:
   - strict-lane
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+  ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
   recorded_at: '2026-10-06T00:22:37.189Z'
 id: FACT-prop-skillopt-candidate-description-c01
 type: fact

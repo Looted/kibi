@@ -1,22 +1,23 @@
 ---
-title: Semantic judgment contradictions E2E execution package changes receipt history a
+title: kb_apply_plan and kibi migrate --apply-safe must require the exact approved plan hash and explicit automatic action IDs
 status: active
 tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.migration.orchestration
-property_key: clause_04_semantic_judgment_contradictions_e2e_execution_p
+property_key: clause_04_kb_apply_plan_and_kibi_migrate_apply_safe_must_require_the_e
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_agent_guided_migration_orchestration.clause_04_semantic_judgment_contradictions_e2e_execution_p.eq.true
-claim_key: CLAIM-3EF02740A21BCBAE
-claim_text: Semantic judgment contradictions E2E execution package changes receipt history and limitation acceptance MUST remain review operator or execution actions
+canonical_key: req.req_agent_guided_migration_orchestration.clause_04_kb_apply_plan_and_kibi_migrate_apply_safe_must_require_the_e.eq.true
+claim_key: CLAIM-40F4E828F37792DE
+claim_text: kb_apply_plan and kibi migrate --apply-safe must require the exact approved plan hash and explicit automatic action IDs
 id: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C04
 type: fact
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T11:34:18.000Z'
 ---

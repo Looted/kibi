@@ -18,32 +18,29 @@ links:
   - REQ-vscode-kb-to-source
   - REQ-vscode-source-to-kb
   - REQ-vscode-sidebar-kb-tree
-semantic_text: The Kibi VS Code extension provides bidirectional traceability between the knowledge base and source code.\n\nThis requirement is an umbrella doc for the following granular behaviors:\nNavigation from KB Tree to Source (REQ-vscode-kb-to-source)\nDiscovering KB Context from Editor (REQ-vscode-source-to-kb)\nStructural TreeView Sidebar (REQ-vscode-sidebar-kb-tree)
+semantic_text: The Kibi VS Code extension must provide traceability in both directions between the knowledge base and source code.
 logic_claims:
-  - CLAIM-95DF68E76EC233A1
+  - CLAIM-90E0513C98F55FAB
 semantic_clauses:
-  - The Kibi VS Code extension provides bidirectional traceability between the knowledge base and source code.\n\nThis requirement is an umbrella doc for the following granular behaviors:\nNavigation from KB Tree to Source (REQ-vscode-kb-to-source)\nDiscovering KB Context from Editor (REQ-vscode-source-to-kb)\nStructural TreeView Sidebar (REQ-vscode-sidebar-kb-tree)
+  - The Kibi VS Code extension must provide traceability in both directions between the knowledge base and source code.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 0d3e5ad2c9594613b8d8d2d97a49449c77337e6c007c887486877f046eec615d
+semantic_source_hash: 3ba7e2e652c8dba837b1bb4a2d52abefb1b46b251d750da884ad933746a3b09d
 semantic_inventory:
-  - claim_key: CLAIM-95DF68E76EC233A1
-    claim_text: The Kibi VS Code extension provides bidirectional traceability between the knowledge base and source code.\n\nThis requirement is an umbrella doc for the following granular behaviors:\nNavigation from KB Tree to Source (REQ-vscode-kb-to-source)\nDiscovering KB Context from Editor (REQ-vscode-source-to-kb)\nStructural TreeView Sidebar (REQ-vscode-sidebar-kb-tree)
-    role: descriptive
+  - claim_key: CLAIM-90E0513C98F55FAB
+    claim_text: The Kibi VS Code extension must provide traceability in both directions between the knowledge base and source code
+    role: normative
     status: modeled
     span:
       start: 0
-      end: 364
+      end: 114
 type: req
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T11:35:21.000Z'
+firmness: default
+required_evidence: tested
 ---
-
-The Kibi VS Code extension provides bidirectional traceability between the knowledge base and source code.
-
-This requirement is an umbrella doc for the following granular behaviors:
-1. Navigation from KB Tree to Source (REQ-vscode-kb-to-source)
-2. Discovering KB Context from Editor (REQ-vscode-source-to-kb)
-3. Structural TreeView Sidebar (REQ-vscode-sidebar-kb-tree)
+- The Kibi VS Code extension must provide traceability in both directions between the knowledge base and source code.

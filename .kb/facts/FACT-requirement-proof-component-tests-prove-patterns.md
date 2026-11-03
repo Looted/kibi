@@ -17,7 +17,7 @@ claim_key: CLAIM-48DD5A9E3BE8C4C1
 claim_text: A scenario whose specifying requirements are grounded only in ui_pattern, same_pattern and pattern_marker predicates must accept unit and integration tests with fresh passing receipts as proof
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:13:32.109Z'
 id: FACT-requirement-proof-component-tests-prove-patterns
 type: fact

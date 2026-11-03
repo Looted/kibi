@@ -496,3 +496,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ccb01be7fc7
+  - type: specified_by
+    from: REQ-skillopt-external-adoption-verdict
+    to: SCEN-skillopt-external-adoption-verdict
+    created_at: 2026-11-03T11:38:39.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc46e941023a
+  - type: verified_by
+    from: REQ-skillopt-external-adoption-verdict
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-11-03T11:38:39.863Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f2058549158
+  - type: supersedes
+    from: REQ-skillopt-external-adoption-verdict
+    to: REQ-skillopt-automatic-adoption
+    created_at: 2026-11-03T11:38:39.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79aa33f7e234
+  - type: requires_property
+    from: REQ-skillopt-external-adoption-verdict
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C05
+    created_at: 2026-11-03T11:38:39.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b35580e4485c

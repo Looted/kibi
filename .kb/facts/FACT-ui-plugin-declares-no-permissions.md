@@ -17,7 +17,7 @@ claim_key: CLAIM-3E9D243F8B18A315
 claim_text: The kibi-plugin-ui package must declare no permissions
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:13:45.535Z'
 id: FACT-ui-plugin-declares-no-permissions
 type: fact

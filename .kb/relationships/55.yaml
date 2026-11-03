@@ -300,3 +300,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7d069ceb8825
+  - type: specified_by
+    from: REQ-mcp-search-discovery
+    to: SCEN-mcp-search-discovery
+    created_at: 2026-11-03T11:35:08.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b33326eb36a9
+  - type: verified_by
+    from: REQ-mcp-search-discovery
+    to: TEST-mcp-search-discovery
+    created_at: 2026-11-03T11:35:08.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d796607ae8b
+  - type: requires_property
+    from: REQ-mcp-search-discovery
+    to: FACT-PROP-REQ-MCP-SEARCH-DISCOVERY-C02
+    created_at: 2026-11-03T11:35:08.673Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-912877116234
+  - type: requires_property
+    from: REQ-mcp-search-discovery
+    to: FACT-PROP-REQ-MCP-SEARCH-DISCOVERY-C03
+    created_at: 2026-11-03T11:35:08.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15da6c9e9d0f
+  - type: requires_property
+    from: REQ-mcp-search-discovery
+    to: FACT-PROP-REQ-MCP-SEARCH-DISCOVERY-C04
+    created_at: 2026-11-03T11:35:08.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33c1f23d6057
+  - type: requires_property
+    from: REQ-mcp-search-discovery
+    to: FACT-PROP-REQ-MCP-SEARCH-DISCOVERY-C05
+    created_at: 2026-11-03T11:35:08.757Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f46686b85ec
+  - type: requires_property
+    from: REQ-mcp-search-discovery
+    to: FACT-PROP-REQ-MCP-SEARCH-DISCOVERY-C06
+    created_at: 2026-11-03T11:35:08.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1133e6e293e2
+  - type: requires_property
+    from: REQ-mcp-search-discovery
+    to: FACT-PROP-REQ-MCP-SEARCH-DISCOVERY-C07
+    created_at: 2026-11-03T11:35:08.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bf4f61e15b0

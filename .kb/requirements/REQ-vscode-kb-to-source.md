@@ -16,31 +16,49 @@ links:
     target: SCEN-vscode-kb-to-source
   - type: verified_by
     target: TEST-vscode-traceability
-semantic_text: The VS Code extension must support navigation from the KB tree to source code.\n\nClicking a symbol entity in the Kibi tree sidebar must open its real source file and line.\nNavigation coordinates must be resolved from `.kb/symbols.yaml`.\nThe tree node must still be expandable to show linked KB entities (requirements, tests, etc.) while allowing navigation.
+semantic_text: Clicking a symbol entity in the Kibi tree sidebar must open its source file at its line. The VS Code extension must resolve navigation coordinates from .kb/symbols.yaml and the generated .kb/symbol-coordinates.yaml. A symbol node in the Kibi tree must stay expandable to show its linked KB entities while it navigates to source.
 logic_claims:
-  - CLAIM-C1E2C732F49744FB
+  - CLAIM-CD84B3CE96F03B5A
+  - CLAIM-0C836E504D2BEBAE
+  - CLAIM-B7E475F481023A75
 semantic_clauses:
-  - The VS Code extension must support navigation from the KB tree to source code.\n\nClicking a symbol entity in the Kibi tree sidebar must open its real source file and line.\nNavigation coordinates must be resolved from `.kb/symbols.yaml`.\nThe tree node must still be expandable to show linked KB entities (requirements, tests, etc.) while allowing navigation
+  - Clicking a symbol entity in the Kibi tree sidebar must open its source file at its line.
+  - The VS Code extension must resolve navigation coordinates from .kb/symbols.yaml and the generated .kb/symbol-coordinates.yaml.
+  - A symbol node in the Kibi tree must stay expandable to show its linked KB entities while it navigates to source.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: fda64659b54ebe024b2210ad7a8dc8a8737b77ece2886651c07376a0dceefa11
+semantic_source_hash: 9a955029bce94ad7b4f62ab31bf0edac802b40da8c06b1fa9f3247f6925b7ad9
 semantic_inventory:
-  - claim_key: CLAIM-C1E2C732F49744FB
-    claim_text: The VS Code extension must support navigation from the KB tree to source code.\n\nClicking a symbol entity in the Kibi tree sidebar must open its real source file and line.\nNavigation coordinates must be resolved from `.kb/symbols.yaml`.\nThe tree node must still be expandable to show linked KB entities (requirements, tests, etc.) while allowing navigation
+  - claim_key: CLAIM-CD84B3CE96F03B5A
+    claim_text: Clicking a symbol entity in the Kibi tree sidebar must open its source file at its line
     role: normative
     status: modeled
     span:
       start: 0
-      end: 359
+      end: 87
+  - claim_key: CLAIM-0C836E504D2BEBAE
+    claim_text: The VS Code extension must resolve navigation coordinates from .kb/symbols.yaml and the generated .kb/symbol-coordinates.yaml
+    role: normative
+    status: modeled
+    span:
+      start: 89
+      end: 214
+  - claim_key: CLAIM-B7E475F481023A75
+    claim_text: A symbol node in the Kibi tree must stay expandable to show its linked KB entities while it navigates to source
+    role: normative
+    status: modeled
+    span:
+      start: 216
+      end: 327
 type: req
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T11:35:21.000Z'
+firmness: default
+required_evidence: tested
 ---
-
-The VS Code extension must support navigation from the KB tree to source code:
-
-1. Clicking a symbol entity in the Kibi tree sidebar must open its real source file and line.
-2. Navigation coordinates must be resolved from `documentation/symbols.yaml`.
-3. The tree node must still be expandable to show linked KB entities (requirements, tests, etc.) while allowing navigation.
+- Clicking a symbol entity in the Kibi tree sidebar must open its source file at its line.
+- The VS Code extension must resolve navigation coordinates from .kb/symbols.yaml and the generated .kb/symbol-coordinates.yaml.
+- A symbol node in the Kibi tree must stay expandable to show its linked KB entities while it navigates to source.

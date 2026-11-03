@@ -1,22 +1,23 @@
 ---
-title: Schema and storage migrations MUST be ordered idempotent audited and recoverable
+title: Semantic judgment, contradictions, E2E execution, package changes, receipt history and limitation acceptance must remain review, operator or execution actions
 status: active
 tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.migration.orchestration
-property_key: clause_05_schema_and_storage_migrations_must_be_ordered_id
+property_key: clause_05_semantic_judgment_contradictions_e2e_execution_package_chang
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_agent_guided_migration_orchestration.clause_05_schema_and_storage_migrations_must_be_ordered_id.eq.true
-claim_key: CLAIM-AD03788F5B2C23FD
-claim_text: Schema and storage migrations MUST be ordered idempotent audited and recoverable with preserved backups before the next status readback
+canonical_key: req.req_agent_guided_migration_orchestration.clause_05_semantic_judgment_contradictions_e2e_execution_package_chang.eq.true
+claim_key: CLAIM-CA304D0A5C107DC2
+claim_text: Semantic judgment, contradictions, E2E execution, package changes, receipt history and limitation acceptance must remain review, operator or execution actions
 id: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C05
 type: fact
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T11:34:18.000Z'
 ---

@@ -2,7 +2,7 @@
 title: Entity context check rule names
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: An entity without a context body shall be reported as entity-context-missing. An acknowledged missing context shall be reported as entity-context-acknowledged.
 semantic_clauses:
   - An entity without a context body shall be reported as entity-context-missing.
@@ -11,7 +11,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-29T16:42:17.964Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -37,6 +37,7 @@ logic_claims:
   - CLAIM-D6F9F25234BCBB15
 id: REQ-kb-entity-context-rule-names
 type: req
+required_evidence: tested
 ---
 An entity without a context body shall be reported as entity-context-missing. An acknowledged missing context shall be reported as entity-context-acknowledged.
 

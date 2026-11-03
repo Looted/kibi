@@ -2,7 +2,7 @@
 title: Agent hook snippet and candidate limits
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: An edit snippet shall hold at most 1200 characters. A hook shall offer at most 3 requirement candidates. Firm edit confirmation shall be switched by KIBI_CONFIRM_FIRM_EDITS. A snippet grounding link shall be constrains, requires_property, requires_predicate or requires_rule.
 semantic_clauses:
   - An edit snippet shall hold at most 1200 characters.
@@ -13,7 +13,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-29T16:29:58.522Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -55,6 +55,7 @@ logic_claims:
   - CLAIM-128DF93CAB36C7E3
 id: REQ-agent-core-hook-limits
 type: req
+required_evidence: tested
 ---
 An edit snippet shall hold at most 1200 characters. A hook shall offer at most 3 requirement candidates. Firm edit confirmation shall be switched by KIBI_CONFIRM_FIRM_EDITS. A snippet grounding link shall be constrains, requires_property, requires_predicate or requires_rule.
 

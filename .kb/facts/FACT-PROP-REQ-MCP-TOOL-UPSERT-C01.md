@@ -1,18 +1,18 @@
 ---
-title: The `kb_upsert` MCP tool must:\n\nAllow agents to create or update a single enti
+title: The kb_upsert MCP tool must create or update a single entity with its metadata
 status: active
 tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.kb_upsert
-property_key: clause_01_the_kb_upsert_mcp_tool_must_n_nallow_agents_to_c
+property_key: clause_01_the_kb_upsert_mcp_tool_must_create_or_update_a_single_entity
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_tool_upsert.clause_01_the_kb_upsert_mcp_tool_must_n_nallow_agents_to_c.eq.true
-claim_key: CLAIM-8A6BF5268C7491AB
-claim_text: The `kb_upsert` MCP tool must:\n\nAllow agents to create or update a single entity with its metadata.\nSupport batch creation of relationships to other existing entities in the same call.\nValidate relationship types against the supported canonical list.\nEnforce requirement consistency by rejecting writes that contradict existing requirements, unless a `supersedes` relationship is provided.\nTrigger a refresh of symbol coordinates if the upsert affects symbol linkage
+canonical_key: req.req_mcp_tool_upsert.clause_01_the_kb_upsert_mcp_tool_must_create_or_update_a_single_entity.eq.true
+claim_key: CLAIM-7A41F00A73F13D45
+claim_text: The kb_upsert MCP tool must create or update a single entity with its metadata
 id: FACT-PROP-REQ-MCP-TOOL-UPSERT-C01
 type: fact
 origin:

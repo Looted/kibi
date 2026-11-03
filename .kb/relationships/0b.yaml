@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-be44c192cab8
+  - type: specified_by
+    from: REQ-cursor-kibi-plugin-v1
+    to: SCEN-cursor-kibi-plugin-v1
+    created_at: 2026-11-03T11:42:04.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8db6328ac4e3
+  - type: verified_by
+    from: REQ-cursor-kibi-plugin-v1
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-11-03T11:42:04.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a566cc6c684

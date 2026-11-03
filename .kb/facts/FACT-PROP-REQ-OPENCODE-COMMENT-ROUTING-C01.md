@@ -1,18 +1,18 @@
 ---
-title: The OpenCode plugin should detect long explanatory comments in code files and pr
+title: The OpenCode plugin must detect long explanatory comments in code files and guide the agent to route durable knowledge to the matching Kibi entity type (FACT, ADR, REQ, SCEN or TEST) instead of an inl
 status: active
 tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_01_the_opencode_plugin_should_detect_long_explanato
+property_key: clause_01_the_opencode_plugin_must_detect_long_explanatory_comments_in
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_comment_routing.clause_01_the_opencode_plugin_should_detect_long_explanato.eq.true
-claim_key: CLAIM-B8B7611ACC73E37C
-claim_text: 'The OpenCode plugin should detect long explanatory comments in code files and provide specific guidance for routing durable knowledge to appropriate Kibi entity types (FACT, ADR, REQ, SCEN, TEST) instead of inline code comments.\n\n\n**Multi-language comment extraction**: Support JavaScript/TypeScript (`//`, `/* */`, `/** */`) and Python (`#` blocks, true docstrings).\n\n**Durable knowledge detection**: Extract comment blocks that cross `guidance.commentDetection.minLines` threshold and contain prose suitable for Kibi artifacts.\n\n**Smart filtering for Python**: Analyze contiguous `#` comment blocks and true docstrings (module, class, function level)'
+canonical_key: req.req_opencode_comment_routing.clause_01_the_opencode_plugin_must_detect_long_explanatory_comments_in.eq.true
+claim_key: CLAIM-85B6728384E0847D
+claim_text: The OpenCode plugin must detect long explanatory comments in code files and guide the agent to route durable knowledge to the matching Kibi entity type (FACT, ADR, REQ, SCEN or TEST) instead of an inline comment
 id: FACT-PROP-REQ-OPENCODE-COMMENT-ROUTING-C01
 type: fact
 origin:

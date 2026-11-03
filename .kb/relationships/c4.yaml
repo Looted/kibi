@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a2298a853a58
+  - type: specified_by
+    from: REQ-opencode-smart-enforcement-v1
+    to: SCEN-opencode-smart-enforcement-v1-coverage
+    created_at: 2026-11-03T11:36:31.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c83b5da44f2
+  - type: requires_property
+    from: REQ-opencode-smart-enforcement-v1
+    to: FACT-PROP-REQ-OPENCODE-SMART-ENFORCEMENT-V1-C02
+    created_at: 2026-11-03T11:36:31.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65c9fe78e2fa

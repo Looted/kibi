@@ -8,7 +8,7 @@ tags:
 priority: must
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:12:47.176Z'
 id: SCEN-capability-check-policy
 type: scenario

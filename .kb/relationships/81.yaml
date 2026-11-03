@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c98630f8a7c3
+  - type: specified_by
+    from: REQ-skillopt-predicate-first-requirements
+    to: SCEN-skillopt-predicate-first-requirements
+    created_at: 2026-11-03T11:46:57.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c1521571589
+  - type: verified_by
+    from: REQ-skillopt-predicate-first-requirements
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-11-03T11:46:57.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b02bad673d47

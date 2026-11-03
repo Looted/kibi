@@ -37,7 +37,7 @@ logic_claims:
   - CLAIM-A303F373E6C1CCCD
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-06: kibi check --staged let an infeasible scenario commit through'
+  ref: 'Maintainer request, 2026-10-06: kibi check --staged let an infeasible scenario commit through'
   recorded_at: '2026-10-06T18:18:39.297Z'
 id: REQ-cli-staged-consistency
 type: req

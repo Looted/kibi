@@ -8,7 +8,7 @@ tags:
   - kb-check
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:12:48.441Z'
 rationale: An opt-in plugin must be able to make kb_check stricter for the projects that want it, while kb_check, a maintenance path, never runs third-party plugin code.
 semantic_text: The kb_check operation must read an activated check policy as JSON data without importing plugin code. The kb_check operation must report a production symbol in an ownership rule file set that implements no current requirement grounded in one of the rule predicates. The kb_check operation must report an implementing file that lacks a pattern marker declared for its requirement pattern. The kb_check operation must block when an activated check policy cannot be read.
@@ -69,4 +69,4 @@ The project owner asked for an experimental, opt-in way to stop coding agents dr
 
 > kibi.check-policy.v1 can be core.
 
-Project owner, project thread on the UI design plugin, 2026-10-09.
+Project owner, UI design plugin discussion, 2026-10-09.

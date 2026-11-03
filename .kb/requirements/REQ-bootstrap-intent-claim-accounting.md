@@ -12,7 +12,7 @@ rationale: An Oct 6 2026 onboarding rerun on a test project lost all 31 tracker 
 semantic_text: The bootstrap planner must keep every declared intent claim regardless of maxCandidates and apply maxCandidates only to discovered candidates. The bootstrap planner must suppress a candidate that would rewrite an entity another planned candidate writes with different content. The bootstrap planner must run the claim key grounding check against planned writes before offering write actions. The bootstrap planner must report declared, planned and existing intent claims for each knowledge source. The bootstrap planner must not mark a plan ready when an authoritative knowledge source has no planned or existing claims. The bootstrap planner must report why each declared intent claim was not planned for each knowledge source.
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-06: fix bootstrap truncation after a test project onboarding rerun'
+  ref: 'Maintainer request, 2026-10-06: fix bootstrap truncation after a test project onboarding rerun'
   recorded_at: '2026-10-06T11:35:48.740Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

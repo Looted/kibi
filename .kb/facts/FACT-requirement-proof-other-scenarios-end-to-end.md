@@ -18,7 +18,7 @@ claim_key: CLAIM-000ADB011443E23F
 claim_text: Every other scenario must accept only end-to-end tests as proof
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:13:32.764Z'
 id: FACT-requirement-proof-other-scenarios-end-to-end
 type: fact

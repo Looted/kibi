@@ -16,43 +16,71 @@ links:
     target: REQ-007
   - type: specified_by
     target: SCEN-001
-semantic_text: 'Kibi extracts entities and relationships from source files using specialized extractors:\nMarkdown extractor: Parses YAML frontmatter for core entity types and interprets Markdown links as `relates_to` edges.\nSymbol extractor: Parses `symbols.yaml` to import code symbol definitions into the KB.\nTyped relationship objects in Markdown frontmatter are imported with their explicit types.\n\nSymbol coordinate refreshes must keep authored metadata in `symbols.yaml` and generated locations in `symbol-coordinates.yaml`. Consecutive refreshes over unchanged sources must be idempotent and must not alternate generated coordinate fields in the authored manifest.'
+semantic_text: The Markdown extractor must parse YAML front matter for the core entity types and import Markdown links as relates_to edges. The symbol extractor must import code symbol definitions from symbols.yaml into the KB. Typed relationship objects in Markdown front matter must be imported with their explicit types. Symbol coordinate refreshes must keep authored metadata in symbols.yaml and generated locations in symbol-coordinates.yaml. Consecutive refreshes over unchanged sources must be idempotent and must not alternate generated coordinate fields in the authored manifest.
 logic_claims:
-  - CLAIM-C2DE8571B0CEC508
+  - CLAIM-B6CFD3F2FE7ACA69
+  - CLAIM-2B61831A52C4F752
+  - CLAIM-032A21035746B5BE
+  - CLAIM-4CC3B142BC51AEA3
   - CLAIM-973E5C6674238256
 semantic_clauses:
-  - 'Kibi extracts entities and relationships from source files using specialized extractors:\nMarkdown extractor: Parses YAML frontmatter for core entity types and interprets Markdown links as `relates_to` edges.\nSymbol extractor: Parses `symbols.yaml` to import code symbol definitions into the KB.\nTyped relationship objects in Markdown frontmatter are imported with their explicit types.\n\nSymbol coordinate refreshes must keep authored metadata in `symbols.yaml` and generated locations in `symbol-coordinates.yaml`'
-  - Consecutive refreshes over unchanged sources must be idempotent and must not alternate generated coordinate fields in the authored manifest
+  - The Markdown extractor must parse YAML front matter for the core entity types and import Markdown links as relates_to edges.
+  - The symbol extractor must import code symbol definitions from symbols.yaml into the KB.
+  - Typed relationship objects in Markdown front matter must be imported with their explicit types.
+  - Symbol coordinate refreshes must keep authored metadata in symbols.yaml and generated locations in symbol-coordinates.yaml.
+  - Consecutive refreshes over unchanged sources must be idempotent and must not alternate generated coordinate fields in the authored manifest.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: aaa3cbfdd09d1e0a563e3d7ce2543dd6a10b4b1e1f2c72cf4d03e5eab650f83b
+semantic_source_hash: d34e7697c66eb88576e1abee9036dafe71e48555762f1b6f1995f2f8d1080908
 semantic_inventory:
-  - claim_key: CLAIM-C2DE8571B0CEC508
-    claim_text: 'Kibi extracts entities and relationships from source files using specialized extractors:\nMarkdown extractor: Parses YAML frontmatter for core entity types and interprets Markdown links as `relates_to` edges.\nSymbol extractor: Parses `symbols.yaml` to import code symbol definitions into the KB.\nTyped relationship objects in Markdown frontmatter are imported with their explicit types.\n\nSymbol coordinate refreshes must keep authored metadata in `symbols.yaml` and generated locations in `symbol-coordinates.yaml`'
+  - claim_key: CLAIM-B6CFD3F2FE7ACA69
+    claim_text: The Markdown extractor must parse YAML front matter for the core entity types and import Markdown links as relates_to edges
     role: normative
     status: modeled
     span:
       start: 0
-      end: 518
+      end: 123
+  - claim_key: CLAIM-2B61831A52C4F752
+    claim_text: The symbol extractor must import code symbol definitions from symbols.yaml into the KB
+    role: normative
+    status: modeled
+    span:
+      start: 125
+      end: 211
+  - claim_key: CLAIM-032A21035746B5BE
+    claim_text: Typed relationship objects in Markdown front matter must be imported with their explicit types
+    role: normative
+    status: modeled
+    span:
+      start: 213
+      end: 307
+  - claim_key: CLAIM-4CC3B142BC51AEA3
+    claim_text: Symbol coordinate refreshes must keep authored metadata in symbols.yaml and generated locations in symbol-coordinates.yaml
+    role: normative
+    status: modeled
+    span:
+      start: 309
+      end: 431
   - claim_key: CLAIM-973E5C6674238256
     claim_text: Consecutive refreshes over unchanged sources must be idempotent and must not alternate generated coordinate fields in the authored manifest
     role: normative
     status: modeled
     span:
-      start: 520
-      end: 659
+      start: 433
+      end: 572
 type: req
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T11:34:18.000Z'
 failure_side_waiver: "The claims describe extraction and idempotent refresh. Malformed front matter is reported as a warning, which other requirements govern, so this one refuses nothing."
 failure_side_waiver_approved_by: Piotr Franczyk
+firmness: firm
+required_evidence: tested
 ---
-
-Kibi extracts entities and relationships from source files using specialized extractors:
-- Markdown extractor: Parses YAML frontmatter for core entity types and interprets Markdown links as `relates_to` edges.
-- Symbol extractor: Parses `symbols.yaml` to import code symbol definitions into the KB.
-Typed relationship objects in Markdown frontmatter are imported with their explicit types.
-
-Symbol coordinate refreshes must keep authored metadata in `symbols.yaml` and generated locations in `symbol-coordinates.yaml`. Consecutive refreshes over unchanged sources must be idempotent and must not alternate generated coordinate fields in the authored manifest.
+- The Markdown extractor must parse YAML front matter for the core entity types and import Markdown links as relates_to edges.
+- The symbol extractor must import code symbol definitions from symbols.yaml into the KB.
+- Typed relationship objects in Markdown front matter must be imported with their explicit types.
+- Symbol coordinate refreshes must keep authored metadata in symbols.yaml and generated locations in symbol-coordinates.yaml.
+- Consecutive refreshes over unchanged sources must be idempotent and must not alternate generated coordinate fields in the authored manifest.

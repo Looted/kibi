@@ -69,7 +69,9 @@ id: REQ-cli-kb-merge-driver
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
+firmness: default
+required_evidence: tested
 ---
 Kibi merge-driver must keep every record that either side of a merge added to the symbols manifest or a relationship shard. Kibi merge-driver must apply a record edit or deletion made on a single side. Kibi merge-driver must union the relationships and links that both sides added to the same symbol. Kibi merge-driver must report each field that both sides changed differently, leave conflict markers, and exit non-zero. Kibi merge-driver must reproduce the current manifest byte for byte if the other side changed nothing

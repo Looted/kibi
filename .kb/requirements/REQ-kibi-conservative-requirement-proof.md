@@ -106,10 +106,12 @@ links:
     target: FACT-SUBJECT-kibi-proof-requirement
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 semantic_text: Coverage reports must publish a proof outcome separately from structural coverage. A proven requirement must have a complete proposition ledger with no unresolved assertive entries. Every modeled proposition must have exactly one valid logical grounding. Contradiction analysis must not report a clear outcome while logical grounding is incomplete. Every detected contradiction must block proof. Proof requires a requirement-specified scenario with passing end-to-end test evidence. Every qualifying end-to-end test must have executable test symbols linked through executable_for. Every proof-bearing production symbol must implement the requirement. Every proof-bearing production symbol must be covered by a qualifying end-to-end test. Every proof-bearing symbol must resolve to exact current source coordinates. Missing or unresolved evidence must produce explicit ranked repair guidance.
 type: req
+firmness: default
+required_evidence: tested
 ---
 
 Coverage reports must publish a proof outcome separately from structural coverage. A proven requirement must have a complete proposition ledger with no unresolved assertive entries. Every modeled proposition must have exactly one valid logical grounding. Contradiction analysis must not report a clear outcome while logical grounding is incomplete. Every detected contradiction must block proof. Proof requires a requirement-specified scenario with passing end-to-end test evidence. Every qualifying end-to-end test must have executable test symbols linked through executable_for. Every proof-bearing production symbol must implement the requirement. Every proof-bearing production symbol must be covered by a qualifying end-to-end test. Every proof-bearing symbol must resolve to exact current source coordinates. Missing or unresolved evidence must produce explicit ranked repair guidance.

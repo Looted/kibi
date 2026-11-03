@@ -2,7 +2,7 @@
 title: Schema migration codes
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: Entity origins shall arrive with KB schema version 6. The entity origin backfill action id shall be entity-origin-backfill. The entity origin backfill code shall be entity_origin_backfill. The requirement status vocabulary map code shall be req_status_vocabulary_map. The semantic inventory rederive code shall be semantic_inventory_rederive. The semantic inventory review code shall be semantic_inventory_review. The polarity value backfill code shall be polarity_value_backfill.
 semantic_clauses:
   - Entity origins shall arrive with KB schema version 6.
@@ -16,7 +16,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T18:48:53.574Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -82,6 +82,7 @@ logic_claims:
   - CLAIM-9D5492D92C96C6BA
 id: REQ-cli-schema-migration-codes
 type: req
+required_evidence: tested
 ---
 Entity origins shall arrive with KB schema version 6. The entity origin backfill action id shall be entity-origin-backfill. The entity origin backfill code shall be entity_origin_backfill. The requirement status vocabulary map code shall be req_status_vocabulary_map. The semantic inventory rederive code shall be semantic_inventory_rederive. The semantic inventory review code shall be semantic_inventory_review. The polarity value backfill code shall be polarity_value_backfill.
 

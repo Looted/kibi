@@ -15,44 +15,39 @@ links:
     target: SCEN-root-suite-batch-diagnostics
   - type: verified_by
     target: TEST-root-suite-batch-diagnostics
-semantic_text: The curated unit test suite (`test/root.test.ts`) runs package-scoped\nbatches as spawned `bun` subprocesses and must surface actionable\ndiagnostics when a batch times out, exits non-zero, or produces an\nunexpected number of bun summaries.\n\nEach batch is bounded by `BATCH_TIMEOUT_MINUTES` (25 min). When a batch\nfails, `getBatchFailureMessage` produces a human-readable message that\nidentifies the batch label, timeout status, exit code, and summary count\nso the operator can trace the failure without re-running the suite.
+semantic_text: The curated unit suite (test/root.test.ts) must run package-scoped batches as spawned bun subprocesses bounded by BATCH_TIMEOUT_MINUTES (25 minutes). When a batch times out, exits non-zero or produces an unexpected number of bun summaries, getBatchFailureMessage must report the batch label, timeout status, exit code and summary count.
 logic_claims:
-  - CLAIM-76A149F31027A6F8
-  - CLAIM-1C806E08FBD2E6DA
+  - CLAIM-F06D80E8EEC340F7
+  - CLAIM-2289156CE3CCB8DB
 semantic_clauses:
-  - The curated unit test suite (`test/root.test.ts`) runs package-scoped\nbatches as spawned `bun` subprocesses and must surface actionable\ndiagnostics when a batch times out, exits non-zero, or produces an\nunexpected number of bun summaries.\n\nEach batch is bounded by `BATCH_TIMEOUT_MINUTES` (25 min)
-  - When a batch\nfails, `getBatchFailureMessage` produces a human-readable message that\nidentifies the batch label, timeout status, exit code, and summary count\nso the operator can trace the failure without re-running the suite
+  - The curated unit suite (test/root.test.ts) must run package-scoped batches as spawned bun subprocesses bounded by BATCH_TIMEOUT_MINUTES (25 minutes).
+  - When a batch times out, exits non-zero or produces an unexpected number of bun summaries, getBatchFailureMessage must report the batch label, timeout status, exit code and summary count.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 2f6b50af227ecacecf1c6a7e27fb883d0304360dca76165bc4b642b480c669fa
+semantic_source_hash: 26cb063b590e35b2c2922f58807b7ee236215108b5fbac1989026dcaff60db08
 semantic_inventory:
-  - claim_key: CLAIM-76A149F31027A6F8
-    claim_text: The curated unit test suite (`test/root.test.ts`) runs package-scoped\nbatches as spawned `bun` subprocesses and must surface actionable\ndiagnostics when a batch times out, exits non-zero, or produces an\nunexpected number of bun summaries.\n\nEach batch is bounded by `BATCH_TIMEOUT_MINUTES` (25 min)
+  - claim_key: CLAIM-F06D80E8EEC340F7
+    claim_text: The curated unit suite (test/root.test.ts) must run package-scoped batches as spawned bun subprocesses bounded by BATCH_TIMEOUT_MINUTES (25 minutes)
     role: normative
     status: modeled
     span:
       start: 0
-      end: 302
-  - claim_key: CLAIM-1C806E08FBD2E6DA
-    claim_text: When a batch\nfails, `getBatchFailureMessage` produces a human-readable message that\nidentifies the batch label, timeout status, exit code, and summary count\nso the operator can trace the failure without re-running the suite
+      end: 148
+  - claim_key: CLAIM-2289156CE3CCB8DB
+    claim_text: When a batch times out, exits non-zero or produces an unexpected number of bun summaries, getBatchFailureMessage must report the batch label, timeout status, exit code and summary count
     role: condition
     status: modeled
     span:
-      start: 304
-      end: 530
+      start: 150
+      end: 335
 type: req
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T11:35:21.000Z'
+firmness: default
+required_evidence: tested
 ---
-
-The curated unit test suite (`test/root.test.ts`) runs package-scoped
-batches as spawned `bun` subprocesses and must surface actionable
-diagnostics when a batch times out, exits non-zero, or produces an
-unexpected number of bun summaries.
-
-Each batch is bounded by `BATCH_TIMEOUT_MINUTES` (25 min). When a batch
-fails, `getBatchFailureMessage` produces a human-readable message that
-identifies the batch label, timeout status, exit code, and summary count
-so the operator can trace the failure without re-running the suite.
+- The curated unit suite (test/root.test.ts) must run package-scoped batches as spawned bun subprocesses bounded by BATCH_TIMEOUT_MINUTES (25 minutes).
+- When a batch times out, exits non-zero or produces an unexpected number of bun summaries, getBatchFailureMessage must report the batch label, timeout status, exit code and summary count.

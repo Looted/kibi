@@ -38,12 +38,13 @@ semantic_inventory:
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof."'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-27T08:36:26.457Z'
-firmness: firm
+firmness: default
 failure_side_waiver: "A capability claim: Agent Plugins clients can load the portable artifact. Its opposite is only that the artifact does not load."
 failure_side_waiver_approved_by: Piotr Franczyk
+required_evidence: tested
 ---
 Any client that supports the open Agent Plugins standard must be able to load Kibi Agent Skills and the MCP server from the kibi-cursor portable Agent Plugin artifact.
 

@@ -11,7 +11,7 @@ verification_scope: integration
 verification_perspective: internal
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+  ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
   recorded_at: '2026-10-05T21:21:03.650Z'
 id: TEST-skillopt-claude-code-host
 type: test

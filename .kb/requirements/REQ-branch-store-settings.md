@@ -2,7 +2,7 @@
 title: Branch store and store lock settings
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The detached HEAD read-only code shall be detached_head_read_only. The branch store manifest version shall be 1. The uncompiled branch store code shall be branch_store_not_compiled. The uncompiled branch store rule shall be branch-store-not-compiled. The store lock takeover record shall be .kibi-lock-takeover.json. A store lock takeover shall stay visible for 86400000 milliseconds.
 semantic_clauses:
   - The detached HEAD read-only code shall be detached_head_read_only.
@@ -15,7 +15,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T20:42:17.659Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -73,6 +73,7 @@ logic_claims:
   - CLAIM-68F4FC02E5AEE4E4
 id: REQ-branch-store-settings
 type: req
+required_evidence: tested
 ---
 The detached HEAD read-only code shall be detached_head_read_only. The branch store manifest version shall be 1. The uncompiled branch store code shall be branch_store_not_compiled. The uncompiled branch store rule shall be branch-store-not-compiled. The store lock takeover record shall be .kibi-lock-takeover.json. A store lock takeover shall stay visible for 86400000 milliseconds.
 

@@ -50,7 +50,7 @@ type: req
 The upsert validation error must name every unknown entity property. The upsert validation error must direct entity prose placed in properties to the document body. The bootstrap skill scenario example must be a valid upsert with a context-bearing document body.
 
 ## Context
-In an external onboarding evaluation 95 scenario upserts failed with 'Entity validation failed: root: must NOT have additional properties' because the agent put the scenario text in a body property. The message named no field, and the kibi-bootstrap scenario example had no document body even though schema 8 requires context in scenario bodies, so the agent found document.body only after 95 failed calls. Piotr asked for the error to name the field and for the skill example to be valid.
+In an external onboarding evaluation 95 scenario upserts failed with 'Entity validation failed: root: must NOT have additional properties' because the agent put the scenario text in a body property. The message named no field, and the kibi-bootstrap scenario example had no document body even though schema 8 requires context in scenario bodies, so the agent found document.body only after 95 failed calls. The maintainer asked for the error to name the field and for the skill example to be valid.
 
 ## Source
 > Komunikat nie podaje nazwy nadmiarowego pola ani podpowiedzi.

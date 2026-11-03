@@ -2,7 +2,7 @@
 title: Claim-bound proof receipts and rule
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: A proof receipt outcome shall be passed, failed, errored, cancelled, skipped, timed_out or interrupted. Claim-bound proofs shall start at KB schema version 12. The proof contract claims check rule shall be proof-contract-claims.
 semantic_clauses:
   - A proof receipt outcome shall be passed, failed, errored, cancelled, skipped, timed_out or interrupted.
@@ -12,7 +12,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T10:57:39.069Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -46,6 +46,7 @@ logic_claims:
   - CLAIM-1308E97B03211146
 id: REQ-kibi-claim-bound-proof-settings
 type: req
+required_evidence: tested
 ---
 A proof receipt outcome shall be passed, failed, errored, cancelled, skipped, timed_out or interrupted. Claim-bound proofs shall start at KB schema version 12. The proof contract claims check rule shall be proof-contract-claims.
 

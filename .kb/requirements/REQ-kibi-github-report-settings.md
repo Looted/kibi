@@ -2,7 +2,7 @@
 title: GitHub report and badge settings
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The Kibi badge workflow shall be written to .github/workflows/kibi-badge.yml. The GitHub Pages report folder shall be kibi-report. The Kibi badge alt text shall be Kibi requirement health. The placeholder repository owner shall be OWNER. The placeholder repository name shall be REPOSITORY.
 semantic_clauses:
   - The Kibi badge workflow shall be written to .github/workflows/kibi-badge.yml.
@@ -14,7 +14,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-29T10:18:25.917Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -64,6 +64,7 @@ logic_claims:
   - CLAIM-3CE88F3B9079CA71
 id: REQ-kibi-github-report-settings
 type: req
+required_evidence: tested
 ---
 The Kibi badge workflow shall be written to .github/workflows/kibi-badge.yml. The GitHub Pages report folder shall be kibi-report. The Kibi badge alt text shall be Kibi requirement health. The placeholder repository owner shall be OWNER. The placeholder repository name shall be REPOSITORY.
 

@@ -510,3 +510,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f5c3bd90a20
+  - type: specified_by
+    from: REQ-mcp-suggest-predicates
+    to: SCEN-mcp-suggest-predicates
+    created_at: 2026-11-03T11:45:50.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a077c587296
+  - type: verified_by
+    from: REQ-mcp-suggest-predicates
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-11-03T11:45:50.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dcc627a8275

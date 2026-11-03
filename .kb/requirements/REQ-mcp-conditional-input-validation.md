@@ -50,7 +50,7 @@ type: req
 The MCP server must accept an observation or meta fact that quotes claim text without a claim key. The MCP server must accept a subject, property value or predicate fact that quotes claim text without a claim key. The MCP server must evaluate not, enum, const and type conditions in conditional schema rules with the same result as the CLI validator.
 
 ## Context
-An external onboarding evaluation wrote every ontology-gap review note over MCP as an observation fact with claim text and no claim key. All 73 writes failed with 'Required by conditional JSON Schema rule: claim_key' while the CLI accepted the same payloads, so the review lane added in the previous release did not exist over MCP. The MCP schema converter checked only the required keys of an if condition and ignored its not and enum parts. Piotr asked for MCP validation to agree with the CLI.
+An external onboarding evaluation wrote every ontology-gap review note over MCP as an observation fact with claim text and no claim key. All 73 writes failed with 'Required by conditional JSON Schema rule: claim_key' while the CLI accepted the same payloads, so the review lane added in the previous release did not exist over MCP. The MCP schema converter checked only the required keys of an if condition and ignored its not and enum parts. The maintainer asked for MCP validation to agree with the CLI.
 
 The CLI later began deriving claim_key from claim_text for every fact kind, so the input schema stopped demanding the key. On 2026-10-30 the second rule was reworded from requiring a claim key to accepting these facts without one.
 
