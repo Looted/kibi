@@ -16,8 +16,8 @@ concurrency:
 jobs:
   impact:
     # This label must select a fresh, isolated runner with pinned Node 24 and
-    # Bun 1.4.2, no write credentials, and no workspace reused across jobs.
-    runs-on: [self-hosted, ephemeral, kibi-trusted-node24-bun142]
+    # Bun 1.4.4, no write credentials, and no workspace reused across jobs.
+    runs-on: [self-hosted, ephemeral, kibi-trusted-node24-bun144]
     timeout-minutes: 20
     env:
       KIBI_IMPACT_TRUSTED_TARGET_REF: refs/heads/main
@@ -51,7 +51,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          bun --version | grep -Fx '1.4.2'
+          bun --version | grep -Fx '1.4.4'
           node --version | grep -E '^v24\.'
           bun install --frozen-lockfile
           bun run build:cli-stack
