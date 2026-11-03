@@ -64,7 +64,7 @@ let savedBranch: string | undefined;
 let syncSpy: ReturnType<typeof spyOn<typeof sync, "syncCommand">>;
 beforeEach(() => {
   savedBranch = process.env.KIBI_BRANCH;
-  delete process.env.KIBI_BRANCH;
+  Reflect.deleteProperty(process.env, "KIBI_BRANCH");
   syncSpy = spyOn(sync, "syncCommand").mockResolvedValue(
     undefined as unknown as Awaited<ReturnType<typeof sync.syncCommand>>,
   );
@@ -72,7 +72,8 @@ beforeEach(() => {
 afterEach(() => {
   syncSpy.mockRestore();
   _setBranchResolverDepsForTests({});
-  if (savedBranch === undefined) delete process.env.KIBI_BRANCH;
+  if (savedBranch === undefined)
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
   else process.env.KIBI_BRANCH = savedBranch;
 });
 
