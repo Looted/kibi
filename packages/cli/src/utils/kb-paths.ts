@@ -119,8 +119,8 @@ export const LEGACY_DEFAULT_ENTITY_PATHS: KbEntityPaths = {
 export function isEntityLanePath(repoRelativePath: string): boolean {
   if (!repoRelativePath.startsWith(`${KB_ROOT}/`)) return false;
   const rest = repoRelativePath.slice(KB_ROOT.length + 1);
-  const segment = rest.split("/")[0] ?? "";
-  return (ENTITY_LANES as readonly string[]).includes(segment);
+  const [segment] = rest.split("/");
+  return (ENTITY_LANES as readonly string[]).includes(segment as string);
 }
 
 export function entityLaneForPath(repoRelativePath: string): EntityLane | null {

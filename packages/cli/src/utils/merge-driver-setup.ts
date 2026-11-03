@@ -45,26 +45,32 @@ export function mergeDriverSetup(cwd?: string): string {
 // implements REQ-cli-doctor
 export const MERGE_DRIVER_SETUP = mergeDriverSetup();
 
-function gitOutput(cwd: string, args: readonly string[]): string | null {
+/** Trimmed stdout of a git command, or "" when it fails. */
+function gitOutput(cwd: string, args: readonly string[]): string {
+  let output = "";
   try {
-    return execFileSync("git", [...args], {
+    output = execFileSync("git", [...args], {
       cwd,
       encoding: "utf8",
+      // rationale: this only keeps git's stderr off the console; stdout is
+      // piped either way.
+      // Stryker disable next-line ArrayDeclaration
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();
   } catch {
-    return null;
+    // Not a work tree, or the config key is unset: no answer.
   }
+  return output;
 }
 
 function hasSymbolRecords(cwd: string): boolean {
+  let manifest = "";
   try {
-    return /^\s*-\s+id\s*:/m.test(
-      readFileSync(path.join(cwd, ".kb", "symbols.yaml"), "utf8"),
-    );
+    manifest = readFileSync(path.join(cwd, ".kb", "symbols.yaml")).toString();
   } catch {
-    return false;
+    // No manifest yet: nothing to merge.
   }
+  return /^\s*-\s+id\s*:/m.test(manifest);
 }
 
 /**
@@ -79,13 +85,8 @@ export function manifestMergeDriverGaps(cwd: string): string[] | null {
     return null;
   }
   if (!hasSymbolRecords(cwd)) return null;
-  const attribute = gitOutput(cwd, [
-    "check-attr",
-    "merge",
-    "--",
-    ".kb/symbols.yaml",
-  ]);
-  const routed = attribute?.endsWith(": merge: kibi") === true;
+  const attribute = gitOutput(cwd, ["check-attr", "merge", ".kb/symbols.yaml"]);
+  const routed = attribute.endsWith(": merge: kibi");
   const driver = gitOutput(cwd, ["config", "--get", "merge.kibi.driver"]);
   return [
     ...(routed ? [] : [".kb/symbols.yaml is not routed to merge=kibi"]),
