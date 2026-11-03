@@ -107,13 +107,12 @@ export function findUntrackedDocumentMatches(
     } catch {
       continue;
     }
-    const ids = manifest ? manifestIds(content) : [frontmatterId(content)];
+    // A document without an id (null) is never among the missing ids.
+    const ids = (
+      manifest ? manifestIds(content) : [frontmatterId(content)]
+    ) as string[];
     for (const id of ids) {
-      // A document without an id (null) is never among the missing ids.
-      if (remaining.has(id as string)) {
-        matches.set(id, workspaceRelative);
-        remaining.delete(id);
-      }
+      if (remaining.delete(id)) matches.set(id, workspaceRelative);
     }
   }
   return matches;
