@@ -242,7 +242,9 @@ export function proposeProofIntegration(
     contractDefaults: {
       version: PROOF_CONTRACT_VERSION,
       integration: id,
-      required_proofs: [{ symbol_id: "SYM-<symbol the test proves>", target: "default" }],
+      required_proofs: [
+        { symbol_id: "SYM-<symbol the test proves>", target: "default" },
+      ],
       success_policy: "all_required_first_attempt",
     },
   };
@@ -315,11 +317,11 @@ export function buildProofIntegrationPlan(
     };
   }
   if (update !== undefined && readIntegrationsFile(root) === null)
-      return {
-        plan: null,
-        proposal: null,
-        reason: `${PROOF_INTEGRATIONS_PATH} is not a valid ${PROOF_INTEGRATION_VERSION} file, so Kibi cannot update one integration in it. Run kibi prove for the validation error.`,
-      };
+    return {
+      plan: null,
+      proposal: null,
+      reason: `${PROOF_INTEGRATIONS_PATH} is not a valid ${PROOF_INTEGRATION_VERSION} file, so Kibi cannot update one integration in it. Run kibi prove for the validation error.`,
+    };
   const proposal = proposeProofIntegration(root, update, options.command);
   if (proposal === null) {
     return {
