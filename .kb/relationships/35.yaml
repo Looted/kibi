@@ -461,3 +461,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e291fa98417a
+  - type: validates
+    from: TEST-kibi-telemetry-expected-outcomes-cli
+    to: SCEN-kibi-telemetry-agent-signals
+    created_at: 2026-11-03T14:25:09.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-060a3a2b2cdb

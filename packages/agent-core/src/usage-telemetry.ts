@@ -5,6 +5,21 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  type OperationSignals,
+  RELATIONSHIP_COUNT_BUCKETS,
+  RESULT_COUNT_BUCKETS,
+  SMALL_COUNT_BUCKETS,
+  countBucket,
+  recallOperation,
+  rememberSkillLoad,
+  telemetryCrash,
+  telemetryField,
+  telemetryRule,
+} from "./telemetry-signals.js";
+
+export type { OperationSignals, RejectionIssue } from "./telemetry-signals.js";
+
 /**
  * Anonymous usage telemetry shared by the CLI, the MCP server and the host
  * hooks.
@@ -107,6 +122,8 @@ export type OperationTelemetry = {
    */
   errorClass?: string | undefined;
   exitCode?: number | undefined;
+  /** Where the agent struggled; see telemetry-signals.ts. */
+  signals?: OperationSignals | undefined;
 };
 
 // implements REQ-kibi-telemetry-expected-outcomes
@@ -212,6 +229,8 @@ export type HookTelemetry = {
   kbOperation?: string | undefined;
   kbUsedBefore?: boolean | undefined;
   requirementCount?: number | undefined;
+  /** The Kibi skill a `skill_loaded` action loaded (fixed names or `other`). */
+  skill?: string | undefined;
 };
 
 // implements REQ-kibi-anonymous-usage-telemetry
@@ -837,10 +856,98 @@ export function recordOperationTelemetry(
         error_class:
           status === "error" ? telemetryClassName(operation.errorClass) : null,
         exit_code: operation.exitCode ?? null,
+        ...signalProperties(source, operation, status, env),
       },
     },
     env,
   );
+}
+
+/** The workspace's hash and its parents', for markers set in a parent. */
+function workspaceHashes(workspaceRoot: string | undefined): string[] {
+  if (!workspaceRoot) return [];
+  const hashes: string[] = [];
+  let current = path.resolve(workspaceRoot);
+  for (;;) {
+    hashes.push(workspaceKey(current));
+    const parent = path.dirname(current);
+    if (parent === current) return hashes;
+    current = parent;
+  }
+}
+
+// implements REQ-kibi-telemetry-agent-signals
+/**
+ * The struggle signals of one operation event, sanitized: fixed rule ids,
+ * Kibi schema field paths, bucketed counts and booleans. Retries, repeated
+ * searches and skill loads are recognised from local hashes only.
+ */
+function signalProperties(
+  source: TelemetrySource,
+  operation: OperationTelemetry,
+  status: TelemetryOutcome,
+  env: Env,
+): Record<string, unknown> {
+  const signals = operation.signals ?? {};
+  const issues = (signals.issues ?? []).slice(0, 50);
+  const first = issues[0];
+  const workspace = source.workspaceRoot
+    ? path.resolve(source.workspaceRoot)
+    : "";
+  const recall = recallOperation(telemetryDirectory(env), {
+    retryHash: signals.retryKey
+      ? hashTelemetryId(`retry\0${workspace}\0${signals.retryKey}`)
+      : undefined,
+    searchHash: signals.search
+      ? hashTelemetryId(`search\0${workspace}`)
+      : undefined,
+    workspaceHashes: workspaceHashes(source.workspaceRoot),
+    outcome: status,
+  });
+  const crash =
+    status === "error"
+      ? telemetryCrash(signals.error, telemetryClassName(operation.errorClass))
+      : { frame: null, fingerprint: null };
+  return {
+    dry_run: signals.dryRun ?? null,
+    relationship_count: countBucket(
+      signals.relationshipCount,
+      RELATIONSHIP_COUNT_BUCKETS,
+    ),
+    rejection_code: telemetryCategory(signals.rejectionCode),
+    validation_rule: telemetryRule(first?.rule),
+    validation_field: telemetryField(first?.field),
+    issue_count:
+      issues.length > 0
+        ? countBucket(issues.length, SMALL_COUNT_BUCKETS)
+        : null,
+    attempt:
+      recall.attempt === null
+        ? null
+        : countBucket(recall.attempt, SMALL_COUNT_BUCKETS),
+    prior_outcome: recall.priorOutcome,
+    skill_loaded_before: recall.skillLoadedBefore,
+    result_count: countBucket(signals.resultCount, RESULT_COUNT_BUCKETS),
+    abstained: signals.abstained ?? null,
+    hints_shown: signals.hintsShown ?? null,
+    search_repeat: recall.searchRepeat,
+    crash_frame: crash.frame,
+    crash_fingerprint: crash.fingerprint,
+  };
+}
+
+// implements REQ-kibi-telemetry-agent-signals
+/**
+ * Remember that a host hook saw a Kibi skill load in a workspace, so later
+ * CLI and MCP events there carry `skill_loaded_before`. Only the workspace
+ * path's hash is stored.
+ */
+export function rememberTelemetrySkillLoad(
+  workspaceRoot: string,
+  env: Env = process.env,
+): void {
+  if (!telemetryEnabled(env)) return;
+  rememberSkillLoad(telemetryDirectory(env), workspaceKey(workspaceRoot));
 }
 
 // implements REQ-kibi-anonymous-usage-telemetry
@@ -862,6 +969,7 @@ export function recordHookTelemetry(
         kb_operation: hook.kbOperation ?? null,
         kb_used_before: hook.kbUsedBefore ?? null,
         requirement_count: hook.requirementCount ?? null,
+        skill: hook.skill ?? null,
       },
     },
     env,

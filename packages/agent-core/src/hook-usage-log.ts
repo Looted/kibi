@@ -5,10 +5,12 @@ import path from "node:path";
 
 import { hostKbOperation } from "./kb-mcp-tools.js";
 import { classifyPath } from "./path-policy.js";
+import { kibiSkillLoad } from "./telemetry-signals.js";
 import {
   flushTelemetry,
   recordHookTelemetry,
   rememberHookSession,
+  rememberTelemetrySkillLoad,
   telemetryEnabled,
 } from "./usage-telemetry.js";
 
@@ -43,6 +45,8 @@ export type HookTrace = {
   kbOperation?: string;
   /** Session state before this call: had the agent used Kibi yet? */
   kbUsedBefore?: boolean | undefined;
+  /** The Kibi skill a `skill_loaded` action loaded. */
+  skill?: string | undefined;
 };
 
 // implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
@@ -50,6 +54,8 @@ export type HookTrace = {
 export const HOOK_ACTION_EDITED = "edited";
 // implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 export const HOOK_ACTION_KB_USAGE = "kb_usage";
+// implements REQ-kibi-telemetry-agent-signals
+export const HOOK_ACTION_SKILL_LOADED = "skill_loaded";
 
 // implements REQ-claude-hook-usage-telemetry-v2
 export function hookTelemetryEnabled(
@@ -114,9 +120,13 @@ export function appendHookUsage(
       kbOperation: row.trace.kbOperation,
       kbUsedBefore: row.trace.kbUsedBefore,
       requirementCount: row.trace.requirementIds?.length,
+      skill: row.trace.skill,
     },
     env,
   );
+  if (row.trace.action === HOOK_ACTION_SKILL_LOADED) {
+    rememberTelemetrySkillLoad(row.workspaceRoot, env);
+  }
   if (!hookTelemetryEnabled(env)) return;
   const finishedAt = new Date();
   const { trace } = row;
@@ -159,9 +169,21 @@ export function kbUsageTrace(
   toolInput: unknown,
 ): HookTrace | undefined {
   const kbOperation = hostKbOperation(toolName, toolInput);
-  return kbOperation
-    ? { action: HOOK_ACTION_KB_USAGE, kbOperation }
-    : undefined;
+  if (kbOperation) return { action: HOOK_ACTION_KB_USAGE, kbOperation };
+  return skillLoadTrace(toolName, toolInput);
+}
+
+// implements REQ-kibi-telemetry-agent-signals
+/**
+ * Trace for a tool call that loads a Kibi skill (a skill tool, or a read or
+ * shell command naming a `kibi-*\/SKILL.md` file), or undefined.
+ */
+export function skillLoadTrace(
+  toolName: string | undefined,
+  toolInput: unknown,
+): HookTrace | undefined {
+  const skill = kibiSkillLoad(toolName, toolInput);
+  return skill ? { action: HOOK_ACTION_SKILL_LOADED, skill } : undefined;
 }
 
 // implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2

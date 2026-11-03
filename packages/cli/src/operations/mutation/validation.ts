@@ -8,6 +8,7 @@ import {
   SYMBOL_ROLES,
   isAllowedGranularityReason,
 } from "../../public/symbol-granularity.js";
+import { checkIssue, schemaIssues } from "../../telemetry-details.js";
 import {
   deriveFactClaimKey,
   semanticClaimKey,
@@ -246,6 +247,7 @@ export function validateUpsertInput(
     throw new KbRejection(
       "VALIDATION_FAILED",
       "'type' and 'id' are required for upsert",
+      [checkIssue("required", input.type ? "id" : "type")],
     );
   }
   const entity: Record<string, unknown> = {
@@ -261,6 +263,7 @@ export function validateUpsertInput(
     throw new KbRejection(
       "ENTITY_VALIDATION_FAILED",
       `Entity validation failed: ${formatEntityErrors(entity, validateEntity.errors ?? [])}`,
+      schemaIssues(validateEntity.errors),
     );
   }
   deriveFactClaimKey(entity);
@@ -280,6 +283,7 @@ export function validateUpsertInput(
       throw new KbRejection(
         "ENTITY_VALIDATION_FAILED",
         `Entity validation failed: ${receiptErrors.join("; ")}`,
+        [checkIssue("proof_receipt_history", "proof_receipts")],
       );
     }
   }
@@ -294,6 +298,7 @@ export function validateUpsertInput(
       throw new KbRejection(
         "ENTITY_VALIDATION_FAILED",
         `Entity validation failed: claim_key must equal the stable key derived from claim_text (expected '${expectedClaimKey}')`,
+        [checkIssue("claim_key_mismatch", "claim_key")],
       );
     }
   }
@@ -307,6 +312,7 @@ export function validateUpsertInput(
       throw new KbRejection(
         "RELATIONSHIP_VALIDATION_FAILED",
         `Relationship validation failed at index ${index}: ${details}`,
+        schemaIssues(validateRelationship.errors, ["relationships", "0"]),
       );
     }
   });
@@ -335,6 +341,7 @@ function validateSymbolSourceFile(
     throw new KbRejection(
       "ENTITY_VALIDATION_FAILED",
       `Entity validation failed: symbol sourceFile must point at a real code file in the workspace, not into the knowledge base ('${sourceFile}'). Coordinates for .kb/ paths are never merged into the engine, so coverage would report missing_symbol_coordinates permanently. Point the symbol at the implementing or verifying code file instead.`,
+      [checkIssue("symbol_source_in_kb", "sourceFile")],
     );
   }
   // Lexical confinement (no workspace root needed): absolute paths and `..`
@@ -348,6 +355,7 @@ function validateSymbolSourceFile(
     throw new KbRejection(
       "ENTITY_VALIDATION_FAILED",
       `Entity validation failed: symbol sourceFile must be a workspace-relative path ('${sourceFile}'). Absolute paths and '..' escapes are rejected so coordinate refresh cannot read files outside the repository.`,
+      [checkIssue("symbol_source_outside_workspace", "sourceFile")],
     );
   }
 }
@@ -376,6 +384,7 @@ function validateProofExemptionPairing(
     throw new KbRejection(
       "ENTITY_VALIDATION_FAILED",
       "Entity validation failed: proof_exempt requires a non-empty proof_exempt_reason explaining why the requirement is outside E2E-proof scope",
+      [checkIssue("required", "proof_exempt_reason")],
     );
   }
 }

@@ -1338,3 +1338,17 @@ describe("hook environment", () => {
     ).toStrictEqual([null]);
   });
 });
+
+// implements REQ-kibi-telemetry-agent-signals
+describe("skill loads", () => {
+  test("loading a Kibi skill through the Skill tool is recorded as skill_loaded", async () => {
+    const fixture = workspace();
+    const h = hooks(fixture);
+    expect(await h.pre("Skill", { skill: "kibi:kibi-usage" })).toStrictEqual(
+      {},
+    );
+    expect(h.lastRow()?.hook_action).toBe("skill_loaded");
+    await h.pre("Skill", { skill: "pdf" });
+    expect(h.rows().map((r) => r.hook_action)).toStrictEqual(["skill_loaded"]);
+  });
+});

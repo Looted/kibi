@@ -9,8 +9,8 @@ predicate_args:
   - contain_only_summary_fields
 canonical_key: conditional_behavior(telemetry_event,any_telemetry_event,contain_only_summary_fields)
 polarity: assert
-claim_key: CLAIM-0FD7A3E712C0353E
-claim_text: Telemetry events shall contain only fixed operation names, statuses, durations, error categories, error class names, an event version, package versions, platform, a random install id and a hashed host session id
+claim_key: CLAIM-2E3082F2E84A2812
+claim_text: Telemetry events shall contain only fixed operation names, statuses, durations, error categories, error class names, an event version, fixed struggle signals, package versions, platform, a random install id and a hashed host session id
 tags:
   - lane:ontology
   - predicate:conditional-behavior
@@ -22,4 +22,4 @@ origin:
 id: FACT-PRED-telemetry-summary-fields-only
 type: fact
 ---
-Telemetry events shall contain only fixed operation names, statuses, durations, error categories, error class names, an event version, package versions, platform, a random install id and a hashed host session id. Grounds one clause of REQ-kibi-anonymous-usage-telemetry as a conditional behavior of anonymous usage telemetry.
+Telemetry events shall contain only fixed operation names, statuses, durations, error categories, error class names, an event version, fixed struggle signals, package versions, platform, a random install id and a hashed host session id. Grounds one clause of REQ-kibi-anonymous-usage-telemetry as a conditional behavior of anonymous usage telemetry.

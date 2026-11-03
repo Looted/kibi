@@ -122,8 +122,31 @@ describe("kibi CLI telemetry outcomes (end to end)", () => {
         "{}",
       );
       expect(malformed.exitCode).toBe(2);
+      // implements REQ-kibi-telemetry-agent-signals
+      // The same entity again: a retry after a refusal.
+      const retried = await runKibi(
+        ["upsert", "--input", "-"],
+        workspace,
+        env,
+        JSON.stringify({
+          type: "req",
+          id: "REQ-secret-customer-rule",
+          properties: { title: "Secret customer rule", status: "bogus" },
+          relationships: [
+            {
+              type: "relates_to",
+              from: "REQ-secret-customer-rule",
+              to: "REQ-other",
+            },
+          ],
+        }),
+      );
+      expect(retried.exitCode).toBe(1);
+      for (const query of ["zebra quantum ledger", "zebra quantum ledger"]) {
+        await runKibi(["search", query, "--format", "json"], workspace, env);
+      }
       // Twenty queued events make the next command's flush due.
-      for (let index = 0; index < 17; index += 1) {
+      for (let index = 0; index < 14; index += 1) {
         await runKibi(["status"], workspace, env);
       }
 
@@ -136,7 +159,34 @@ describe("kibi CLI telemetry outcomes (end to end)", () => {
       expect(outcomes).toEqual([
         ["rejected", "entity_validation_failed", 1],
         ["rejected", "validation_failed", 2],
+        ["rejected", "entity_validation_failed", 1],
       ]);
+      const upserts = events.filter((event) => event.operation === "upsert");
+      expect(upserts[0]).toMatchObject({
+        validation_rule: "enum",
+        validation_field: "status",
+        issue_count: "1",
+        dry_run: false,
+        relationship_count: null,
+        attempt: "1",
+        prior_outcome: null,
+      });
+      expect(upserts[1]).toMatchObject({ attempt: null, dry_run: false });
+      expect(upserts[2]).toMatchObject({
+        attempt: "2",
+        prior_outcome: "rejected",
+        relationship_count: "1",
+      });
+      const searches = events.filter((event) => event.operation === "search");
+      expect(searches.map((event) => event.search_repeat)).toEqual([
+        false,
+        true,
+      ]);
+      expect(searches[0]).toMatchObject({
+        result_count: "0",
+        abstained: true,
+        hints_shown: false,
+      });
       const status = events.find((event) => event.operation === "status");
       expect(status).toMatchObject({
         status: "success",
@@ -147,6 +197,8 @@ describe("kibi CLI telemetry outcomes (end to end)", () => {
       const payload = JSON.stringify(collector.batches);
       expect(payload).not.toContain("secret");
       expect(payload).not.toContain("bogus");
+      expect(payload).not.toContain("zebra");
+      expect(payload).not.toContain("REQ-other");
       expect(payload).not.toContain(workspace);
     } finally {
       collector.stop();

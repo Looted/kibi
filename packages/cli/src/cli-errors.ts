@@ -1,3 +1,4 @@
+import type { RejectionIssue } from "kibi-agent-core/usage-telemetry";
 // implements REQ-kibi-operation-interface-parity
 export class InputError extends Error {
   // implements REQ-kibi-operation-interface-parity
@@ -28,7 +29,7 @@ export class OperationError extends Error {
   }
 }
 
-// implements REQ-kibi-telemetry-expected-outcomes
+// implements REQ-kibi-telemetry-expected-outcomes, REQ-kibi-telemetry-agent-signals
 /**
  * A KB operation refusing its input or the workspace state: a payload that
  * fails validation, a contradiction, an id that does not exist. The message
@@ -40,6 +41,11 @@ export class KbRejection extends Error {
   constructor(
     readonly code: KbRejectionCode,
     message: string,
+    /**
+     * Why, as fixed rule ids and Kibi schema field paths (never values), for
+     * the anonymous telemetry that shows where agents struggle.
+     */
+    readonly issues: readonly RejectionIssue[] = [],
   ) {
     super(message);
   }
@@ -53,7 +59,7 @@ export class KbRejection extends Error {
 export function prefixedFailure(prefix: string, error: unknown): Error {
   const message = `${prefix}${error instanceof Error ? error.message : String(error)}`;
   return error instanceof KbRejection
-    ? new KbRejection(error.code, message)
+    ? new KbRejection(error.code, message, error.issues)
     : new Error(message);
 }
 

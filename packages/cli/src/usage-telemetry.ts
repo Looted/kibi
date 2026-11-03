@@ -8,6 +8,8 @@ import {
   telemetryErrorClass,
 } from "kibi-agent-core/usage-telemetry";
 
+import { operationTelemetrySignals } from "./telemetry-details.js";
+
 /**
  * Anonymous usage telemetry for the CLI: one summary event per command,
  * named by its registered command path (`sync`, `storage compact`, `search`)
@@ -20,6 +22,8 @@ const UNRECORDED_COMMANDS = new Set(["telemetry"]);
 
 let notedErrorCategory: string | undefined;
 let notedErrorClass: string | undefined;
+let notedError: unknown;
+let notedCall: Parameters<typeof operationTelemetrySignals>[0] | undefined;
 
 /**
  * Commands whose non-zero exit without a thrown error is their answer, not a
@@ -58,6 +62,19 @@ export function noteCliThrownError(error: unknown): void {
       : undefined;
   if (typeof code === "string" && code !== "") noteCliErrorCategory(code);
   notedErrorClass ??= telemetryErrorClass(error) ?? undefined;
+  notedError ??= error;
+}
+
+// implements REQ-kibi-telemetry-agent-signals
+/**
+ * Note the Kibi operation a command ran, with its input and result, so the
+ * event recorded at exit carries its struggle signals (see
+ * telemetry-details.ts). Only fixed vocabulary and counts are derived.
+ */
+export function noteCliOperationCall(
+  call: Parameters<typeof operationTelemetrySignals>[0],
+): void {
+  notedCall ??= call;
 }
 
 // implements REQ-kibi-anonymous-usage-telemetry
@@ -122,8 +139,12 @@ export async function finishCliTelemetry(input: {
   const command = input.commandPath;
   const noted = notedErrorCategory;
   const notedClass = notedErrorClass;
+  const thrown = notedError ?? input.error;
+  const call = notedCall;
   notedErrorCategory = undefined;
   notedErrorClass = undefined;
+  notedError = undefined;
+  notedCall = undefined;
   if (!command || UNRECORDED_COMMANDS.has(command.split(" ")[0] ?? "")) {
     return;
   }
@@ -153,6 +174,11 @@ export async function finishCliTelemetry(input: {
         input.exitCode === 0
           ? undefined
           : (notedClass ?? telemetryErrorClass(input.error) ?? undefined),
+      signals: operationTelemetrySignals({
+        operation: call?.operation ?? command,
+        ...call,
+        ...(thrown !== undefined ? { error: thrown } : {}),
+      }),
     },
     env,
   );

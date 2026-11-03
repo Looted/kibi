@@ -392,6 +392,12 @@ export async function executeValidateUpsert(
     if (isModuleLoadFailure(error)) throw error;
     const message = error instanceof Error ? error.message : String(error);
     const errorCode = codedErrorOf(error)?.code;
+    // implements REQ-kibi-telemetry-agent-signals
+    // Which refusal this is, as fixed rule ids and schema fields.
+    const rejection =
+      error instanceof KbRejection
+        ? { code: error.code, issues: error.issues }
+        : undefined;
     const payload: ValidateUpsertPayload = {
       valid: false,
       errors: [message],
@@ -399,6 +405,7 @@ export async function executeValidateUpsert(
       semanticAdvisor: null,
       normalizedPreview: null,
       ...(errorCode !== undefined ? { errorCode } : {}),
+      ...(rejection !== undefined ? { rejection } : {}),
     };
     return {
       content: [

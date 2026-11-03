@@ -1,4 +1,7 @@
 import Ajv from "ajv";
+import type { RejectionIssue } from "kibi-agent-core/usage-telemetry";
+
+import { schemaIssues } from "./telemetry-details.js";
 
 // implements REQ-kibi-operation-interface-parity
 export type DiagnosticTelemetry = Readonly<Record<string, unknown>>;
@@ -15,7 +18,12 @@ export type PreparedInputResult =
       readonly businessInput: Readonly<Record<string, unknown>>;
       readonly telemetry?: DiagnosticTelemetry;
     }
-  | { readonly valid: false; readonly errors: readonly string[] };
+  | {
+      readonly valid: false;
+      readonly errors: readonly string[];
+      /** The schema rules the input broke, for anonymous telemetry. */
+      readonly issues?: readonly RejectionIssue[];
+    };
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -79,6 +87,7 @@ export function prepareOperationInput(
       errors: validator.errors
         ? formatValidationErrors(validator.errors)
         : ["input is invalid"],
+      issues: schemaIssues(validator.errors),
     };
   }
 

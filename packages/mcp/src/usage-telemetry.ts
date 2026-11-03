@@ -7,6 +7,7 @@ import {
   takeTelemetryNotice,
   telemetryErrorClass,
 } from "kibi-agent-core/usage-telemetry";
+import { operationTelemetrySignals } from "kibi-cli/telemetry-details";
 
 import { classifyDiagnosticError } from "./diagnostics-helpers.js";
 import { readMcpPackageVersion } from "./diagnostics.js";
@@ -77,6 +78,8 @@ export function recordMcpToolTelemetry(input: {
   readonly result?: unknown;
   /** The client name the host sent on initialize. */
   readonly clientName?: string | undefined;
+  /** The tool's business arguments; only fixed signals are derived. */
+  readonly args?: unknown;
 }): void {
   recordOperationTelemetry(telemetrySource(input.clientName), {
     interface: "mcp",
@@ -93,6 +96,13 @@ export function recordMcpToolTelemetry(input: {
       input.error !== undefined
         ? (telemetryErrorClass(input.error) ?? undefined)
         : undefined,
+    // implements REQ-kibi-telemetry-agent-signals
+    signals: operationTelemetrySignals({
+      operation: input.operation,
+      args: input.args,
+      result: input.result,
+      ...(input.error !== undefined ? { error: input.error } : {}),
+    }),
   });
 }
 

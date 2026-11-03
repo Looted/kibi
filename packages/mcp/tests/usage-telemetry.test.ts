@@ -175,6 +175,71 @@ describe("MCP anonymous usage telemetry", () => {
     expect(text).not.toContain("REQ-secret");
   });
 
+  // implements REQ-kibi-telemetry-agent-signals
+  test("derives struggle signals from the tool's arguments and result", () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
+    temporaryRoots.push(directory);
+    process.env.KIBI_TELEMETRY = "1";
+    process.env.KIBI_TELEMETRY_DIR = directory;
+    const args = {
+      type: "req",
+      id: "REQ-secret",
+      relationships: [{ type: "relates_to", from: "REQ-secret", to: "REQ-y" }],
+    };
+    recordMcpToolTelemetry({
+      operation: "kb_validate_upsert",
+      startedAt: new Date(),
+      status: "error",
+      args,
+      result: {
+        status: "error",
+        error: { code: "UPSERT_DRY_RUN_INVALID", message: "REQ-secret" },
+        data: {
+          valid: false,
+          rejection: {
+            code: "INCOMPLETE_PROPOSITIONS",
+            issues: [
+              { rule: "inventory_missing", field: "semantic_inventory" },
+            ],
+          },
+        },
+      },
+    });
+    recordMcpToolTelemetry({
+      operation: "kb_search",
+      startedAt: new Date(),
+      status: "success",
+      args: { query: "secret question" },
+      result: { status: "success", data: { count: 7 } },
+    });
+
+    const text = fs.readFileSync(
+      path.join(directory, "telemetry-queue.jsonl"),
+      "utf8",
+    );
+    const [validate, search] = text
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line).properties);
+    expect(validate).toMatchObject({
+      status: "rejected",
+      error_category: "upsert_dry_run_invalid",
+      rejection_code: "incomplete_propositions",
+      validation_rule: "inventory_missing",
+      validation_field: "semantic_inventory",
+      dry_run: true,
+      relationship_count: "1",
+      attempt: "1",
+    });
+    expect(search).toMatchObject({
+      result_count: "6-10",
+      abstained: false,
+      search_repeat: false,
+    });
+    expect(text).not.toContain("REQ-secret");
+    expect(text).not.toContain("secret question");
+  });
+
   test("queues nothing when telemetry is off", () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
     temporaryRoots.push(directory);

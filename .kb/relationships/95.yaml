@@ -188,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51c493ef45de
+  - type: covered_by
+    from: SYM-cli-telemetry-details-schemafieldpath
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T14:24:32.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be69db5f815d
+  - type: implements
+    from: SYM-cli-telemetry-details-schemafieldpath
+    to: REQ-kibi-telemetry-agent-signals
+    created_at: 2026-11-03T14:24:32.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7b482507d65

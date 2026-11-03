@@ -10,7 +10,7 @@ tags:
   - cli
   - mcp
   - claude
-semantic_text: Kibi shall send anonymous usage telemetry to its PostHog project by default. Telemetry events shall contain only fixed operation names, statuses, durations, error categories, error class names, an event version, package versions, platform, a random install id and a hashed host session id. Telemetry events shall never contain file paths, queries, entity ids, KB content, error messages or repository names. KIBI_TELEMETRY=0, DO_NOT_TRACK=1 and kibi telemetry disable shall each turn telemetry off. Telemetry shall be off in CI and under test runners unless KIBI_TELEMETRY=1 is set. The first run that records telemetry shall print a one-time notice that names how to turn it off. A telemetry failure shall not change a command's output or exit code.
+semantic_text: Kibi shall send anonymous usage telemetry to its PostHog project by default. Telemetry events shall contain only fixed operation names, statuses, durations, error categories, error class names, an event version, fixed struggle signals, package versions, platform, a random install id and a hashed host session id. Telemetry events shall never contain file paths, queries, entity ids, KB content, error messages or repository names. KIBI_TELEMETRY=0, DO_NOT_TRACK=1 and kibi telemetry disable shall each turn telemetry off. Telemetry shall be off in CI and under test runners unless KIBI_TELEMETRY=1 is set. The first run that records telemetry shall print a one-time notice that names how to turn it off. A telemetry failure shall not change a command's output or exit code.
 origin:
   kind: agent
   ref: 'Maintainer decision, 2026-10-29: "I already decided on PostHog, will pay if needed." Chose "Opt-out with first-run notice" for anonymous usage telemetry.'
@@ -18,7 +18,7 @@ origin:
   recorded_at: '2026-10-29T09:39:35.487Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: d8f85a340820de3bfa9e26f53ef1b515dd8f9745d1c340bc6725772d95e353ac
+semantic_source_hash: 5aca7cc74177a666f2cfdf43c31e77ce155bb6bcef4fa43d5bfbaa172a74ac17
 semantic_inventory:
   - claim_key: CLAIM-B9506D1354D5C2E5
     claim_text: Kibi shall send anonymous usage telemetry to its PostHog project by default
@@ -27,51 +27,51 @@ semantic_inventory:
     span:
       start: 0
       end: 75
-  - claim_key: CLAIM-0FD7A3E712C0353E
-    claim_text: Telemetry events shall contain only fixed operation names, statuses, durations, error categories, error class names, an event version, package versions, platform, a random install id and a hashed host session id
+  - claim_key: CLAIM-2E3082F2E84A2812
+    claim_text: Telemetry events shall contain only fixed operation names, statuses, durations, error categories, error class names, an event version, fixed struggle signals, package versions, platform, a random install id and a hashed host session id
     role: normative
     status: modeled
     span:
       start: 77
-      end: 288
+      end: 312
   - claim_key: CLAIM-A4F55BAE730997F5
     claim_text: Telemetry events shall never contain file paths, queries, entity ids, KB content, error messages or repository names
     role: normative
     status: modeled
     span:
-      start: 290
-      end: 406
+      start: 314
+      end: 430
   - claim_key: CLAIM-3B08B01970785EE6
     claim_text: KIBI_TELEMETRY=0, DO_NOT_TRACK=1 and kibi telemetry disable shall each turn telemetry off
     role: normative
     status: modeled
     span:
-      start: 408
-      end: 497
+      start: 432
+      end: 521
   - claim_key: CLAIM-7B1E72BD214645FB
     claim_text: Telemetry shall be off in CI and under test runners unless KIBI_TELEMETRY=1 is set
     role: exception
     status: modeled
     span:
-      start: 499
-      end: 581
+      start: 523
+      end: 605
   - claim_key: CLAIM-5CE2F792D0C02825
     claim_text: The first run that records telemetry shall print a one-time notice that names how to turn it off
     role: normative
     status: modeled
     span:
-      start: 583
-      end: 679
+      start: 607
+      end: 703
   - claim_key: CLAIM-3EDC3389D69BBE83
     claim_text: A telemetry failure shall not change a command's output or exit code
     role: normative
     status: modeled
     span:
-      start: 681
-      end: 749
+      start: 705
+      end: 773
 logic_claims:
   - CLAIM-B9506D1354D5C2E5
-  - CLAIM-0FD7A3E712C0353E
+  - CLAIM-2E3082F2E84A2812
   - CLAIM-A4F55BAE730997F5
   - CLAIM-3B08B01970785EE6
   - CLAIM-7B1E72BD214645FB
@@ -79,7 +79,7 @@ logic_claims:
   - CLAIM-3EDC3389D69BBE83
 semantic_clauses:
   - Kibi shall send anonymous usage telemetry to its PostHog project by default.
-  - Telemetry events shall contain only fixed operation names, statuses, durations, error categories, error class names, an event version, package versions, platform, a random install id and a hashed host session id.
+  - Telemetry events shall contain only fixed operation names, statuses, durations, error categories, error class names, an event version, fixed struggle signals, package versions, platform, a random install id and a hashed host session id.
   - Telemetry events shall never contain file paths, queries, entity ids, KB content, error messages or repository names.
   - KIBI_TELEMETRY=0, DO_NOT_TRACK=1 and kibi telemetry disable shall each turn telemetry off.
   - Telemetry shall be off in CI and under test runners unless KIBI_TELEMETRY=1 is set.
@@ -88,7 +88,7 @@ semantic_clauses:
 id: REQ-kibi-anonymous-usage-telemetry
 type: req
 ---
-Kibi shall send anonymous usage telemetry to its PostHog project by default. Telemetry events shall contain only fixed operation names, statuses, durations, error categories, error class names, an event version, package versions, platform, a random install id and a hashed host session id. Telemetry events shall never contain file paths, queries, entity ids, KB content, error messages or repository names. KIBI_TELEMETRY=0, DO_NOT_TRACK=1 and kibi telemetry disable shall each turn telemetry off. Telemetry shall be off in CI and under test runners unless KIBI_TELEMETRY=1 is set. The first run that records telemetry shall print a one-time notice that names how to turn it off. A telemetry failure shall not change a command's output or exit code.
+Kibi shall send anonymous usage telemetry to its PostHog project by default. Telemetry events shall contain only fixed operation names, statuses, durations, error categories, error class names, an event version, fixed struggle signals, package versions, platform, a random install id and a hashed host session id. Telemetry events shall never contain file paths, queries, entity ids, KB content, error messages or repository names. KIBI_TELEMETRY=0, DO_NOT_TRACK=1 and kibi telemetry disable shall each turn telemetry off. Telemetry shall be off in CI and under test runners unless KIBI_TELEMETRY=1 is set. The first run that records telemetry shall print a one-time notice that names how to turn it off. A telemetry failure shall not change a command's output or exit code.
 
 ## Context
 

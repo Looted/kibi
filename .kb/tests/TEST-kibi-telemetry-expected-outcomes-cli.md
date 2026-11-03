@@ -1,5 +1,5 @@
 ---
-title: The kibi CLI sends a refused upsert as rejected with its code and never its content
+title: The kibi CLI sends a refused upsert as rejected with its rule, field and attempt, and never its content
 status: passing
 priority: should
 tags:
@@ -66,4 +66,4 @@ proof_receipts:
 ---
 Runs the real `kibi` binary in a new git workspace against a local stand-in for the PostHog batch endpoint (`packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts`).
 
-It sends an upsert with an invalid status and an upsert without a type, then runs enough commands to make the queue due. It checks that both upserts arrive as `rejected` with the categories `entity_validation_failed` and `validation_failed` and their exit codes, that a successful command arrives as `success` with `telemetry_version` 2 and no error class, and that the sent payload holds neither the entity id, the invalid value nor the workspace path.
+It sends an upsert with an invalid status, an upsert without a type and the invalid entity again with one relationship, searches twice for words the KB does not hold, then runs enough commands to make the queue due. It checks that the upserts arrive as `rejected` with the categories `entity_validation_failed` and `validation_failed` and their exit codes; that the first names the rule `enum` and the field `status` as attempt 1 and the retry is attempt 2 after a `rejected` attempt with relationship count 1; that both searches report result count 0 and abstained, the second as a repeated search; that a successful command arrives as `success` with `telemetry_version` 2 and no error class; and that the sent payload holds neither the entity ids, the invalid value, the search words nor the workspace path.

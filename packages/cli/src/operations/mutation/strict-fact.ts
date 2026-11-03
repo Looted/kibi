@@ -1,5 +1,6 @@
 import { KbRejection } from "../../cli-errors.js";
 import { validateLogicIr } from "../../logic/ir.js";
+import { checkIssue } from "../../telemetry-details.js";
 import { predicateVocabularyErrors } from "../modeling/predicate-vocabulary.js";
 
 const PROPERTY_VALUE_FIELDS = [
@@ -125,6 +126,7 @@ export function assertRuleSchemaArity(
     throw new KbRejection(
       "ENTITY_VALIDATION_FAILED",
       "Entity validation failed: rule_schema argument_names and argument_types must have equal lengths",
+      [checkIssue("rule_schema_arity", "argument_types")],
     );
   }
 }
@@ -138,6 +140,7 @@ export function validateFactModelingShape(
     throw new KbRejection(
       "ENTITY_VALIDATION_FAILED",
       `Entity validation failed: ${hints.join("; ")}`,
+      [checkIssue("fact_kind_shape", "fact_kind")],
     );
   }
   const vocabularyErrors = predicateVocabularyErrors(entity);
@@ -145,6 +148,7 @@ export function validateFactModelingShape(
     throw new KbRejection(
       "ENTITY_VALIDATION_FAILED",
       `Entity validation failed: ${vocabularyErrors.join("; ")}`,
+      [checkIssue("predicate_vocabulary", "predicate_name")],
     );
   }
   if (entity.type === "fact" && entity.fact_kind === "rule") {
@@ -153,6 +157,7 @@ export function validateFactModelingShape(
       throw new KbRejection(
         "ENTITY_VALIDATION_FAILED",
         `Entity validation failed: rule_ir is unsafe or malformed (${validation.errors.join("; ")})`,
+        [checkIssue("rule_ir_invalid", "rule_ir")],
       );
     }
     if (
@@ -162,6 +167,7 @@ export function validateFactModelingShape(
       throw new KbRejection(
         "ENTITY_VALIDATION_FAILED",
         `Entity validation failed: rule_hash must equal ${validation.ruleHash}`,
+        [checkIssue("rule_hash_mismatch", "rule_hash")],
       );
     }
     if (
@@ -171,6 +177,7 @@ export function validateFactModelingShape(
       throw new KbRejection(
         "ENTITY_VALIDATION_FAILED",
         `Entity validation failed: semantic_key must equal ${validation.semanticKey}`,
+        [checkIssue("semantic_key_mismatch", "semantic_key")],
       );
     }
     for (const field of ["rule_schema_id", "rule_name"] as const) {
@@ -178,6 +185,7 @@ export function validateFactModelingShape(
         throw new KbRejection(
           "ENTITY_VALIDATION_FAILED",
           `Entity validation failed: fact_kind 'rule' requires ${field}`,
+          [checkIssue("required", field)],
         );
       }
     }
@@ -190,6 +198,7 @@ export function validateFactModelingShape(
       throw new KbRejection(
         "ENTITY_VALIDATION_FAILED",
         "Entity validation failed: fact_kind 'rule_schema' requires rule_name",
+        [checkIssue("required", "rule_name")],
       );
     }
     assertRuleSchemaArity(entity.argument_names, entity.argument_types);

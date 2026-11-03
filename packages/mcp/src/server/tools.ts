@@ -523,6 +523,7 @@ export function addTool<TProlog>(
           status: envelope.status === "error" ? "error" : "success",
           result: envelope,
           clientName: clientName(server),
+          args: businessArgs,
         });
 
         // Log usage in diagnostic mode
@@ -579,6 +580,7 @@ export function addTool<TProlog>(
           status: "error",
           error,
           clientName: clientName(server),
+          args: businessArgs,
         });
 
         // Log error in diagnostic mode

@@ -1,3 +1,6 @@
+import type { RejectionIssue } from "kibi-agent-core/usage-telemetry";
+
+import { KbRejection } from "../../cli-errors.js";
 import { escapeAtom } from "../../prolog/codec.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import { semanticClaimKey } from "./clauses.js";
@@ -300,8 +303,10 @@ export function assertSemanticInventoryBoundary(
     receipt,
   );
   if (result.errors.length > 0) {
-    throw new Error(
+    throw new KbRejection(
+      "INCOMPLETE_PROPOSITIONS",
       `Proposition-complete ingestion failed: ${result.errors.join("; ")}. The contract kb_model mode analyze returns for this prose, to merge into properties and resend (a claim marked modeled needs one requires_property, requires_predicate or requires_rule link to a fact with its claim_key; otherwise keep the advisor's status): ${JSON.stringify(semanticInventoryContract(payload, receipt))}`,
+      inventoryIssues(payload, result.errors),
     );
   }
 }
@@ -447,12 +452,98 @@ export async function assertLogicalGroundingClaimKeys(
         !(await prolog.query(`once(kb_entity('${escapeAtom(target)}', _, _))`))
           .success
       )
-        throw new Error(missingGroundingFactError(target));
+        throw new KbRejection(
+          "INCOMPLETE_PROPOSITIONS",
+          missingGroundingFactError(target),
+          [{ rule: "grounding_fact_missing", field: "relationships.*.to" }],
+        );
     }
     grounded.push([target, claimKey]);
     // The first target without a claim_key is reported; later reads are moot.
     if (!claimKey) break;
   }
   const error = groundingClaimKeyError(modeledClaimKeys, grounded);
-  if (error) throw new Error(error);
+  if (error)
+    throw new KbRejection("INCOMPLETE_PROPOSITIONS", error, [
+      groundingIssue(error),
+    ]);
+}
+
+/** Fixed rule ids for the inventory errors above, by their fixed wording. */
+const INVENTORY_ERROR_RULES: readonly (readonly [RegExp, string, string])[] = [
+  [
+    /^semantic_inventory_version must/,
+    "inventory_version",
+    "semantic_inventory_version",
+  ],
+  [/^semantic_source_field must/, "source_field", "semantic_source_field"],
+  [/^semantic_source_hash must/, "source_hash", "semantic_source_hash"],
+  [
+    /^semantic_inventory must contain exactly/,
+    "inventory_count",
+    "semantic_inventory",
+  ],
+  [
+    /^semantic_inventory has duplicate claim_key/,
+    "duplicate_claim_key",
+    "semantic_inventory.*.claim_key",
+  ],
+  [
+    /^semantic_inventory has duplicate span/,
+    "duplicate_span",
+    "semantic_inventory.*.span",
+  ],
+  [
+    /^semantic_inventory\[\d+\]\.claim_key must/,
+    "claim_key_mismatch",
+    "semantic_inventory.*.claim_key",
+  ],
+  [
+    /^semantic_inventory\[\d+\]\.span must/,
+    "span_mismatch",
+    "semantic_inventory.*.span",
+  ],
+  [
+    /^semantic_inventory\[\d+\] does not match/,
+    "proposition_mismatch",
+    "semantic_inventory",
+  ],
+  [
+    /^semantic_inventory\[\d+\] (?:role|assertive role)/,
+    "context_role_status",
+    "semantic_inventory.*.status",
+  ],
+  [/^logic_claims must/, "logic_claims_mismatch", "logic_claims"],
+  [/^modeled semantic_inventory entries/, "grounding_count", "relationships"],
+];
+
+// implements REQ-kibi-telemetry-agent-signals
+/**
+ * The inventory errors as rejection issues for anonymous telemetry. A
+ * payload that sent no inventory at all is one issue, `inventory_missing`:
+ * the other errors follow from it.
+ */
+function inventoryIssues(
+  payload: Payload,
+  errors: readonly string[],
+): RejectionIssue[] {
+  if (!Array.isArray(propertiesOf(payload).semantic_inventory)) {
+    return [{ rule: "inventory_missing", field: "semantic_inventory" }];
+  }
+  return errors.map((error) => {
+    const match = INVENTORY_ERROR_RULES.find(([pattern]) =>
+      pattern.test(error),
+    );
+    return match
+      ? { rule: match[1], field: match[2] }
+      : { rule: "inventory_other" };
+  });
+}
+
+function groundingIssue(error: string): RejectionIssue {
+  if (error.includes("must declare a claim_key"))
+    return { rule: "grounding_claim_key_missing", field: "claim_key" };
+  if (error.includes("more than one logical grounding"))
+    return { rule: "duplicate_grounding", field: "relationships" };
+  return { rule: "grounding_claim_key_mismatch", field: "claim_key" };
 }
