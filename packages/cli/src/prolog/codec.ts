@@ -115,14 +115,10 @@ export function typedLiteralFromParts(
   const [literalPart, datatypePart] = pair;
 
   let literalValue = literalPart.trim();
-  const datatype = datatypePart.trim();
+  // Datatypes are matched by substring, so surrounding spaces never matter.
+  const datatype = datatypePart;
 
-  const decodedLiteral = decodePrologQuotedLiteral(literalValue, '"');
-  if (decodedLiteral !== undefined) {
-    literalValue = decodedLiteral;
-  } else if (literalValue.startsWith('"') && literalValue.endsWith('"')) {
-    literalValue = literalValue.substring(1, literalValue.length - 1);
-  }
+  literalValue = unquote(literalValue, DOUBLE_QUOTE_ONLY) ?? literalValue;
 
   if (datatype.includes("#integer")) {
     return Number.parseInt(literalValue, 10);
@@ -136,9 +132,6 @@ export function typedLiteralFromParts(
 
   if (literalValue.startsWith("[") && literalValue.endsWith("]")) {
     const listContent = literalValue.substring(1, literalValue.length - 1);
-    if (listContent === "") {
-      return [];
-    }
     return splitTopLevelGeneral(listContent, ",").map((item) => item.trim());
   }
 
@@ -146,11 +139,8 @@ export function typedLiteralFromParts(
 }
 
 export function fileUriLeaf(value: string): string {
-  const lastSlash = value.lastIndexOf("/");
-  if (lastSlash !== -1) {
-    return value.substring(lastSlash + 1);
-  }
-  return value;
+  // Without a slash, lastIndexOf is -1 and the whole value is the leaf.
+  return value.substring(value.lastIndexOf("/") + 1);
 }
 
 export function entityFromBindingParts(
@@ -168,10 +158,8 @@ export function entityFromBindingParts(
 
   const id = idPart.trim();
   const type = typePart.trim();
-  const propsStr = parts.slice(2).join(",").trim();
-
-  const props = parsePropertyList(propsStr);
-  return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
+  const props = parsePropertyList(parts.slice(2).join(","));
+  return { ...props, id: normalizeEntityId(stripQuotes(id)), type };
 }
 
 export function parseEntityFromBinding(
@@ -184,10 +172,7 @@ export function parseEntityFromBinding(
 
 export function parseEntityFromList(data: string[]): Record<string, unknown> {
   // implements REQ-009
-  if (data.length < 3) {
-    return {};
-  }
-
+  // A short or sparse row leaves a part undefined.
   const [idPart, typePart, propsPart] = data;
   if (
     idPart === undefined ||
@@ -196,13 +181,10 @@ export function parseEntityFromList(data: string[]): Record<string, unknown> {
   ) {
     return {};
   }
-
   const id = idPart.trim();
   const type = typePart.trim();
-  const propsStr = propsPart.trim();
-
-  const props = parsePropertyList(propsStr);
-  return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
+  const props = parsePropertyList(propsPart);
+  return { ...props, id: normalizeEntityId(stripQuotes(id)), type };
 }
 
 export function parsePropertyList(propsStr: string): Record<string, unknown> {
@@ -271,9 +253,11 @@ export function parsePrologValue(valueInput: string): unknown {
     const innerStart = value.indexOf("(") + 1;
     let depth = 1;
     let innerEnd = innerStart;
-    for (let i = innerStart; i < value.length; i++) {
-      if (value[i] === "(") depth++;
-      if (value[i] === ")") {
+    for (let i = innerStart; ; i++) {
+      const char = value[i];
+      if (char === undefined) break;
+      if (char === "(") depth++;
+      if (char === ")") {
         depth--;
         if (depth === 0) {
           innerEnd = i;
@@ -282,11 +266,11 @@ export function parsePrologValue(valueInput: string): unknown {
       }
     }
     const innerContent = value.substring(innerStart, innerEnd);
-
-    const parts = splitTopLevelGeneral(innerContent, ",");
-    if (parts.length >= 2) {
-      return typedLiteralFromParts(parts, value);
-    }
+    // Fewer than two parts leave the value as it is.
+    return typedLiteralFromParts(
+      splitTopLevelGeneral(innerContent, ","),
+      value,
+    );
   }
 
   // Handle URI
@@ -294,32 +278,14 @@ export function parsePrologValue(valueInput: string): unknown {
     return fileUriLeaf(value);
   }
 
-  // Handle quoted string
-  if (value.startsWith('"') && value.endsWith('"')) {
-    return (
-      decodePrologQuotedLiteral(value, '"') ??
-      value.substring(1, value.length - 1)
-    );
-  }
-
-  // Handle quoted atom
-  if (value.startsWith("'") && value.endsWith("'")) {
-    return (
-      decodePrologQuotedLiteral(value, "'") ??
-      value.substring(1, value.length - 1)
-    );
-  }
+  // Handle quoted string or atom
+  const unquoted = unquote(value, PROLOG_QUOTES);
+  if (unquoted !== undefined) return unquoted;
 
   // Handle list
   if (value.startsWith("[") && value.endsWith("]")) {
     const listContent = value.substring(1, value.length - 1);
-    if (listContent === "") {
-      return [];
-    }
-    const items = splitTopLevelGeneral(listContent, ",").map((item) => {
-      return parsePrologValue(item.trim());
-    });
-    return items;
+    return splitTopLevelGeneral(listContent, ",").map(parsePrologValue);
   }
 
   return value;
@@ -347,20 +313,15 @@ function scanTopLevelGeneral(str: string, delimiter: string): TopLevelScan {
   const delimiters: string[] = [];
   let balanced = true;
 
-  for (let i = 0; i < str.length; i++) {
+  for (let i = 0; ; i++) {
     const char = str[i];
+    if (char === undefined) break;
 
     if (quote !== null) {
-      if (char === "\\") {
-        if (i + 1 < str.length) i++;
-      } else if (char === quote) {
-        const doubledPrologQuote = quote === "'" && str[i + 1] === "'";
-        if (doubledPrologQuote) {
-          i++;
-        } else {
-          quote = null;
-        }
-      }
+      // An escape skips the next character. A doubled quote inside a quoted
+      // atom closes and reopens the quote, which scans the same way.
+      if (char === "\\") i++;
+      else if (char === quote) quote = null;
       continue;
     }
 
@@ -408,16 +369,6 @@ export function splitTopLevel(str: string, delimiter: string): string[] {
   return splitTopLevelGeneral(str, delimiter);
 }
 
-function stripOuterQuotes(value: string): string {
-  if (value.startsWith("'") && value.endsWith("'")) {
-    return decodePrologQuotedLiteral(value, "'") ?? value.slice(1, -1);
-  }
-  if (value.startsWith('"') && value.endsWith('"')) {
-    return decodePrologQuotedLiteral(value, '"') ?? value.slice(1, -1);
-  }
-  return value;
-}
-
 export function normalizeEntityId(value: string): string {
   if (value.startsWith("kb:entity/")) {
     return value.slice("kb:entity/".length);
@@ -426,23 +377,13 @@ export function normalizeEntityId(value: string): string {
     return value;
   }
 
-  const idx = value.lastIndexOf("/");
-  return idx === -1 ? value : value.slice(idx + 1);
+  return fileUriLeaf(value);
 }
 
 export function parseAtomList(raw: string): string[] {
   // implements REQ-009
-  const trimmed = raw.trim();
-  if (trimmed === "[]" || trimmed.length === 0) {
-    return [];
-  }
-
-  const content = unwrapList(trimmed);
-  if (content.length === 0) {
-    return [];
-  }
-
-  return splitTopLevelGeneral(content, ",")
+  // An empty list or input unwraps to nothing, which has no tokens.
+  return splitTopLevelGeneral(unwrapList(raw.trim()), ",")
     .map((token) => stripQuotes(token.trim()))
     .filter((token) => token.length > 0);
 }
@@ -456,13 +397,7 @@ export function parsePairList(raw: string): Array<[string, string]> {
     const parts = splitTopLevelGeneral(row, ",").map((part) =>
       stripQuotes(part.trim()),
     );
-    if (parts.length >= 2) {
-      const first = parts[0];
-      const second = parts[1];
-      if (first !== undefined && second !== undefined) {
-        pairs.push([first, second]);
-      }
-    }
+    if (parts.length >= 2) pairs.push([parts[0], parts[1]] as [string, string]);
   }
 
   return pairs;
@@ -477,14 +412,8 @@ export function parseTriples(raw: string): Array<[string, string, string]> {
     const parts = splitTopLevelGeneral(row, ",").map((part) =>
       stripQuotes(part.trim()),
     );
-    if (parts.length >= 3) {
-      const first = parts[0];
-      const second = parts[1];
-      const third = parts[2];
-      if (first !== undefined && second !== undefined && third !== undefined) {
-        triples.push([first, second, third]);
-      }
-    }
+    if (parts.length >= 3)
+      triples.push([parts[0], parts[1], parts[2]] as [string, string, string]);
   }
 
   return triples;
@@ -492,20 +421,12 @@ export function parseTriples(raw: string): Array<[string, string, string]> {
 
 function parseListRows(raw: string): string[] {
   const trimmed = raw.trim();
-  if (trimmed === "[]" || trimmed.length === 0) {
-    return [];
-  }
-
   if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
     return [];
   }
 
-  const content = unwrapList(trimmed);
-  if (content.length === 0) {
-    return [];
-  }
-
-  const scanned = scanTopLevelGeneral(content, ",");
+  // An empty list scans to no rows.
+  const scanned = scanTopLevelGeneral(unwrapList(trimmed), ",");
   if (!scanned.balanced) {
     return [];
   }
@@ -517,14 +438,14 @@ function parseListRows(raw: string): string[] {
     if (!row.startsWith("[") || !row.endsWith("]")) {
       return [];
     }
-    rows.push(row.slice(1, -1).trim());
+    rows.push(row.slice(1, -1));
   }
   return rows;
 }
 
 function unwrapList(value: string): string {
   if (value.startsWith("[") && value.endsWith("]")) {
-    return value.slice(1, -1).trim();
+    return value.slice(1, -1);
   }
   return value;
 }
@@ -543,10 +464,6 @@ export interface ParsedViolation {
 export function parseViolationRows(raw: string): ParsedViolation[] {
   // implements REQ-006
   const trimmed = raw.trim();
-  if (trimmed === "[]" || trimmed.length === 0) {
-    return [];
-  }
-
   const violations: ParsedViolation[] = [];
 
   // Unwrap outer list
@@ -569,27 +486,17 @@ export function parseViolationRows(raw: string): ParsedViolation[] {
     const parts = splitTopLevelGeneral(inner, ",");
     if (parts.length < 4) continue;
 
-    const rulePart = parts[0];
-    const entityIdPart = parts[1];
-    const descriptionPart = parts[2];
-    const suggestionPart = parts[3];
-    if (
-      rulePart === undefined ||
-      entityIdPart === undefined ||
-      descriptionPart === undefined ||
-      suggestionPart === undefined
-    ) {
-      continue;
-    }
-
+    const [rulePart, entityIdPart, descriptionPart, suggestionPart] = parts as [
+      string,
+      string,
+      string,
+      string,
+    ];
     const rule = stripQuotes(rulePart.trim());
     const entityId = stripQuotes(entityIdPart.trim());
     const description = stripQuotes(descriptionPart.trim());
     const suggestion = stripQuotes(suggestionPart.trim());
-    const source =
-      parts.length >= 5
-        ? stripQuotes(parts[4]?.trim() ?? "") || undefined
-        : undefined;
+    const source = stripQuotes(parts[4]?.trim() ?? "") || undefined;
 
     violations.push({
       rule,
@@ -604,31 +511,35 @@ export function parseViolationRows(raw: string): ParsedViolation[] {
 }
 
 function stripQuotes(value: string): string {
-  if (value.startsWith("'") && value.endsWith("'")) {
-    return decodePrologQuotedLiteral(value, "'") ?? value.slice(1, -1);
-  }
-
-  if (value.startsWith('"') && value.endsWith('"')) {
-    return decodePrologQuotedLiteral(value, '"') ?? value.slice(1, -1);
-  }
-
-  return value;
+  return unquote(value, PROLOG_QUOTES) ?? value;
 }
 
-/** Decode one Prolog quoted literal without decoding an escaped value twice. */
-function decodePrologQuotedLiteral(
+const PROLOG_QUOTES: readonly PrologQuote[] = ["'", '"'];
+const DOUBLE_QUOTE_ONLY: readonly PrologQuote[] = ['"'];
+
+/**
+ * The text of a literal wrapped in one of `quotes`, decoded when its escapes
+ * are valid and taken verbatim otherwise; undefined when it is not wrapped.
+ * A lone quote character reads as an empty literal.
+ */
+function unquote(
   value: string,
+  quotes: readonly PrologQuote[],
+): string | undefined {
+  const quote = value[0] as PrologQuote;
+  if (!quotes.includes(quote) || !value.endsWith(quote)) return undefined;
+  const content = value.slice(1, -1);
+  return decodeQuotedContent(content, quote) ?? content;
+}
+
+/** Decode the content of one Prolog quoted literal without decoding twice. */
+function decodeQuotedContent(
+  content: string,
   quote: PrologQuote,
 ): string | undefined {
-  if (!value.startsWith(quote) || !value.endsWith(quote) || value.length < 2) {
-    return undefined;
-  }
-
-  const content = value.slice(1, -1);
   let decoded = "";
   for (let index = 0; index < content.length; index++) {
-    const char = content[index];
-    if (char === undefined) continue;
+    const char = content[index] as string;
 
     if (quote === "'" && char === "'") {
       if (content[index + 1] !== "'") return undefined;
@@ -641,8 +552,8 @@ function decodePrologQuotedLiteral(
       continue;
     }
 
+    // A trailing backslash escapes nothing and falls to the default case.
     const escaped = content[index + 1];
-    if (escaped === undefined) return undefined;
     index++;
     switch (escaped) {
       case "a":
@@ -680,14 +591,14 @@ function decodePrologQuotedLiteral(
         break;
       case "u": {
         const code = content.slice(index + 1, index + 5);
-        if (!/^[0-9A-Fa-f]{4}$/.test(code)) return undefined;
+        if (!/[0-9A-Fa-f]{4}/.test(code)) return undefined;
         decoded += String.fromCodePoint(Number.parseInt(code, 16));
         index += 4;
         break;
       }
       case "U": {
         const code = content.slice(index + 1, index + 9);
-        if (!/^[0-9A-Fa-f]{8}$/.test(code)) return undefined;
+        if (!/[0-9A-Fa-f]{8}/.test(code)) return undefined;
         const codePoint = Number.parseInt(code, 16);
         if (codePoint > 0x10ffff) return undefined;
         decoded += String.fromCodePoint(codePoint);
