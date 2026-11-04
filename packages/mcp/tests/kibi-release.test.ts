@@ -34,6 +34,12 @@ describe("kibiReleaseForMcp", () => {
       ),
     ).toBeUndefined();
     expect(kibiReleaseForMcp("3.25.0", () => "{")).toBeUndefined();
+    expect(kibiReleaseForMcp("3.25.0", () => "null")).toBeUndefined();
+    expect(
+      kibiReleaseForMcp("3.25.0", () =>
+        JSON.stringify({ release: "2026.11.0", packages: null }),
+      ),
+    ).toBeUndefined();
     expect(
       kibiReleaseForMcp("3.25.0", () => {
         throw new Error("Cannot find module 'kibi-core/release.json'");

@@ -30,20 +30,27 @@ const require = createRequire(import.meta.url);
 export function kibiReleaseForMcp(
   mcpVersion: string,
   readManifest: () => string = () =>
-    readFileSync(require.resolve("kibi-core/release.json"), "utf8"),
+    String(readFileSync(require.resolve("kibi-core/release.json"))),
 ): string | undefined {
+  let manifest: unknown;
+  // rationale: an emptied catch block leaves manifest undefined, which the
+  // checks below turn into the same undefined result, so no test can tell.
+  // Stryker disable BlockStatement
   try {
-    const manifest = JSON.parse(readManifest()) as {
-      release?: unknown;
-      packages?: Record<string, unknown>;
-    };
-    return typeof manifest.release === "string" &&
-      manifest.packages?.["kibi-mcp"] === mcpVersion
-      ? manifest.release
-      : undefined;
+    manifest = JSON.parse(readManifest());
   } catch {
     return undefined;
   }
+  // Stryker restore BlockStatement
+  // Object() turns null and primitives into objects without these keys.
+  const { release, packages } = Object(manifest) as {
+    release?: unknown;
+    packages?: unknown;
+  };
+  return typeof release === "string" &&
+    Object(packages)["kibi-mcp"] === mcpVersion
+    ? release
+    : undefined;
 }
 
 // implements REQ-kibi-release-version
