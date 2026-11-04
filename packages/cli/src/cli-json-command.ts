@@ -8,6 +8,7 @@ import {
   openFailureResult,
 } from "./cli-protocol.js";
 import { prepareOperationInput } from "./cli-validate.js";
+import { scopeJsonInputToKbDependency } from "./dependencies/kb-dependency-cli.js";
 import {
   appendCliDiagnosticUsage,
   diagnosticEnvOptIn,
@@ -110,7 +111,7 @@ export async function runJsonInvocation(
 ): Promise<void> {
   const startedAt = new Date();
   const diagnostic = diagnosticModeEnabled(invocation.command);
-  const workspaceRoot = process.cwd();
+  let workspaceRoot = process.cwd();
   const spec = await loadOperationSpec(invocation.operationName);
   const conflicts = findInputConflicts(invocation);
   if (conflicts.length > 0) {
@@ -158,6 +159,18 @@ export async function runJsonInvocation(
     throw error;
   }
 
+  // implements REQ-kb-dependencies-git
+  // A `kb` scope moves the whole invocation to that dependency's checkout.
+  try {
+    input = scopeJsonInputToKbDependency(input, spec.businessInputSchema);
+  } catch (error) {
+    if (error instanceof InputError) {
+      writeInputError(error);
+      return;
+    }
+    throw error;
+  }
+  workspaceRoot = process.cwd();
   const prepared = prepareOperationInput(input, spec.businessInputSchema);
   const businessArgs = prepared.valid ? prepared.businessInput : {};
   // implements REQ-kibi-telemetry-agent-signals

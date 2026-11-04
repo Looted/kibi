@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4c64358b0b57
+  - type: implements
+    from: SYM-kb-dependencies-resolve-kb-dependency
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:56:27.220Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef2c32bd0a60
+  - type: covered_by
+    from: SYM-kb-dependencies-resolve-kb-dependency
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:56:27.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d67cf5c983e

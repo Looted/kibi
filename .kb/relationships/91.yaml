@@ -314,3 +314,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2cf53f916ee
+  - type: implements
+    from: SYM-kb-dependencies-git-runner-type
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:53:40.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5769493dab1
+  - type: covered_by
+    from: SYM-kb-dependencies-git-runner-type
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:53:40.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6cf232633333
+  - type: implements
+    from: SYM-kb-dependencies-kb-dependency-spec-type
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:55:36.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f90dd1fbe91e
+  - type: covered_by
+    from: SYM-kb-dependencies-kb-dependency-spec-type
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:55:36.616Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85177bb583be

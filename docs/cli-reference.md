@@ -1276,6 +1276,56 @@ kibi branch recover
 kibi branch recover --apply
 ```
 
+## `kibi deps lock|fetch|status`
+
+Manage KB dependencies: other repositories' knowledge bases this project reads,
+read-only, at pinned commits. Declare them in `.kb/dependencies.json`:
+
+```json
+{
+  "version": 1,
+  "dependencies": {
+    "billing-service": { "git": "git@example.com:acme/billing-service.git", "ref": "v3.2.0" },
+    "catalog": { "git": "https://example.com/acme/platform.git", "ref": "main", "directory": "services/catalog" }
+  }
+}
+```
+
+`git` is any URL or path `git` can fetch; `ref` is a tag, branch or commit (the
+remote `HEAD` when absent); `directory` names the subdirectory that holds the
+Kibi workspace in a monorepo. Names use lowercase letters, digits, `.`, `_`
+and `-`.
+
+- `kibi deps lock [names...]` resolves each ref to a commit, fetches it, checks
+  that it holds a Kibi KB of schema 6 or newer, and writes
+  `.kb/dependencies.lock.json`. Existing pins are kept, so a dependency only
+  moves when you name it or pass `--update`. Commit both files.
+- `kibi deps fetch` fetches every pinned commit into the shared cache, for CI or
+  before going offline. Reads fetch on first use otherwise.
+- `kibi deps status` lists each dependency with its pinned commit, KB schema and
+  cache state (`not_locked`, `lock_stale`, `not_fetched`, `fetched`); it exits
+  1 when a dependency needs `kibi deps lock`.
+
+All three accept `--format json`. Git runs without a terminal prompt, so private
+repositories need credentials git already has (SSH keys, a credential helper or
+a CI token).
+
+Read a dependency with `--kb <name>` on `kibi search`, `kibi query`,
+`kibi status`, `kibi find-gaps`, `kibi coverage` and `kibi graph`, or with `kb`
+in their JSON route input:
+
+```bash
+kibi search "how are refunds approved" --kb billing-service
+printf '%s\n' '{"query":"refund approval","kb":"billing-service"}' | kibi search --input -
+```
+
+The answer comes from the dependency's own KB at the pinned commit, compiled
+once into a read-only store inside its cached checkout. The project's own
+`.kb/`, branch store, sync, check and hooks never read or write it. Writes are
+refused. The cache lives in `$KIBI_DEPENDENCY_CACHE`, else
+`$XDG_CACHE_HOME/kibi/dependencies`, else `~/.cache/kibi/dependencies`, keyed by
+repository URL and commit, so projects pinning the same commit share it.
+
 ## `kibi skills`
 
 Manage and inspect bundled agent skills. Skills are reusable Markdown guidance packages shipped with Kibi.

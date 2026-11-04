@@ -587,3 +587,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4ad024adc67f
+  - type: implements
+    from: SYM-cli-json-command-with-console-on-stderr
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-11-04T10:53:05.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5c0a6c75175
+  - type: covered_by
+    from: SYM-cli-json-command-with-console-on-stderr
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-11-04T10:53:05.221Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c04d528853a2

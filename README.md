@@ -195,6 +195,7 @@ Kibi's skill subsystem gives the agent seven bundled skills that teach it how to
 - **Plain-language answers.** Ask "what governs checkout rounding?" and `kb_search` returns the current requirements, the tests and decisions behind them, and what Kibi's checks say about each.
 - **A review of every change.** `kb_check` on the files the agent touched quotes the requirements that code implements and flags new code no requirement covers.
 - **Safe writes.** Every write can be previewed first, and a plan you approve lands in full or not at all.
+- **Other repositories' knowledge, read-only.** Declare a repository your code depends on in `.kb/dependencies.json`, pin it with `kibi deps lock`, and `kb_search` (or `kibi search --kb <name>`) answers from that repository's own KB at the pinned commit. Its KB stays separate from yours, is never written to, and can be on an older KB schema (6 or later).
 
 The [MCP reference](https://looted.github.io/kibi/reference/mcp.html) lists every tool. Generic agents can start from [agent onboarding](https://looted.github.io/kibi/reference/agent-onboarding.html).
 

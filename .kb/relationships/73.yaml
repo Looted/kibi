@@ -363,3 +363,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3117f4d31a11
+  - type: requires_predicate
+    from: REQ-kb-dependencies-git
+    to: FACT-PRED-kb-dependencies-pinned-commit
+    created_at: 2026-11-04T10:43:10.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-115a3a223303
+  - type: requires_predicate
+    from: REQ-kb-dependencies-git
+    to: FACT-PRED-kb-dependencies-own-store
+    created_at: 2026-11-04T10:43:10.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ba73b5c1758
+  - type: requires_predicate
+    from: REQ-kb-dependencies-git
+    to: FACT-PRED-kb-dependencies-schema-range
+    created_at: 2026-11-04T10:43:10.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06c90123c5e9
+  - type: requires_predicate
+    from: REQ-kb-dependencies-git
+    to: FACT-PRED-kb-dependencies-lock-command
+    created_at: 2026-11-04T10:43:10.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77691367f900
+  - type: requires_predicate
+    from: REQ-kb-dependencies-git
+    to: FACT-PRED-kb-dependencies-kb-argument
+    created_at: 2026-11-04T10:43:10.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a9aafed7acb
+  - type: specified_by
+    from: REQ-kb-dependencies-git
+    to: SCEN-kb-dependencies-git
+    created_at: 2026-11-04T10:43:10.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df83a8923626
+  - type: specified_by
+    from: REQ-kb-dependencies-git
+    to: SCEN-NEG-kb-dependencies-git-refused
+    created_at: 2026-11-04T10:43:10.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb7d91a341ff
+  - type: relates_to
+    from: REQ-kb-dependencies-git
+    to: REQ-mcp-workspace-routing
+    created_at: 2026-11-04T10:43:10.329Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a24b8811a4be

@@ -5,6 +5,51 @@ import type { usageRemediationCommand } from "./commands/usage-remediation.js";
 
 // implements REQ-kibi-operation-interface-parity
 export function registerMaintenanceCommands(program: Command): void {
+  // implements REQ-kb-dependencies-git
+  const deps = program
+    .command("deps")
+    .description(
+      "Manage KB dependencies: other repositories' knowledge bases this project reads, read-only, at pinned commits (.kb/dependencies.json and .kb/dependencies.lock.json)",
+    );
+  deps
+    .command("lock [names...]")
+    .description(
+      "Pin declared KB dependencies to commits in .kb/dependencies.lock.json; existing pins are kept unless named or --update is set",
+    )
+    .option("--update", "Re-resolve every dependency's ref", false)
+    .option("--format <format>", "Output format: json|text", "text")
+    .action(
+      withExitCode(
+        async (
+          names: string[],
+          options: { update?: boolean; format?: string },
+        ) =>
+          (await import("./commands/deps.js")).depsLockCommand(names, options),
+      ),
+    );
+  deps
+    .command("fetch")
+    .description(
+      "Fetch every pinned KB dependency into the shared cache (for CI and offline use)",
+    )
+    .option("--format <format>", "Output format: json|text", "text")
+    .action(
+      withExitCode(async (options: { format?: string }) =>
+        (await import("./commands/deps.js")).depsFetchCommand(options),
+      ),
+    );
+  deps
+    .command("status")
+    .description(
+      "List declared KB dependencies with their pinned commits, KB schema and cache state",
+    )
+    .option("--format <format>", "Output format: json|text", "text")
+    .action(
+      withExitCode(async (options: { format?: string }) =>
+        (await import("./commands/deps.js")).depsStatusCommand(options),
+      ),
+    );
+
   const engine = program
     .command("engine")
     .description("Manage the per-workspace Kibi engine");

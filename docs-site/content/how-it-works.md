@@ -72,6 +72,10 @@ Prolog verifies the knowledge that was encoded. It does not decide whether the o
 
 The model lives in your repository under `.kb/`, and each Git branch carries its own snapshot. Feature work gets its own isolated project state; switching branches switches context with it. Kibi compiles each branch's snapshot from that branch's own files and never copies another branch's; a branch created without Kibi's Git hooks starts uncompiled, and `kibi status`, `kibi check` and `kibi doctor` (and `kb_status` and `kb_check` over MCP) say so once and point at `kibi sync`. Because the model is reviewed and committed like code, its history is your project's history.
 
+## Knowledge from the repositories you depend on
+
+A project can read the KB of another repository it builds on, such as a library or a service it calls. List the repository and a tag, branch or commit in `.kb/dependencies.json`, and `kibi deps lock` pins it to a commit in `.kb/dependencies.lock.json`, which you commit. Reads named with `kb` (MCP) or `--kb` (CLI) are answered from that repository's own KB at the pinned commit. It is a read-only copy kept in a shared cache outside your repository, it never mixes with your KB or slows your own checks, and the other repository can stay on an older KB schema until it chooses to upgrade. The [CLI reference](../reference/cli.md#kibi-deps-lockfetchstatus) has the file format.
+
 ## Go deeper
 
 - [The proof ladder](proof-ladder.md) — the stages from stated intent to a tested requirement, the evidence levels, and knowledge-base certificates.

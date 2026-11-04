@@ -826,6 +826,8 @@ export async function syncCommand(
         try {
           await refreshManifestCoordinates(file, workspaceRoot, {
             incremental: true,
+            // A read-only snapshot compile keeps the reader's stdout clean.
+            ...(options.quiet === true ? { quiet: true } : {}),
           });
         } catch (error) {
           const message =

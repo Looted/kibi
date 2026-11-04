@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d2efa237aaa8
+  - type: implements
+    from: SYM-kb-dependencies-write-kb-dependency-lock
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:56:31.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22f4ae84f88d
+  - type: covered_by
+    from: SYM-kb-dependencies-write-kb-dependency-lock
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:56:31.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12fd04b266d0
