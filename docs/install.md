@@ -197,6 +197,21 @@ The manifest ships in `kibi-core` as `release.json`. It also declares the compat
 
 Compatibility questions key off these numbers, not off package versions. A KB at `schemaVersion` 13 works with every release whose `kbSchema.current` is 13, whatever its package versions are.
 
+### Update notices
+
+When a newer `kibi-cli` is published on npm, the CLI prints one line on stderr after a command, for example:
+
+```text
+Kibi update available: kibi-cli 2.41.0 -> 2.42.0. Update with 'npm install -D kibi-cli@latest'. (KIBI_UPDATE_CHECK=0 turns this off)
+```
+
+The update command matches the install: the project's package manager (from its lockfile) for a project dependency, `npx kibi-cli@latest` for an npx cache, and a global install otherwise. When the newer release writes a newer KB schema (`kibi.kbSchema` in its `package.json`), the line also names the schema move and asks you to run `kibi migrate` after updating. Update `kibi-mcp` and the other Kibi packages to the same release; `kibi doctor` warns about a mixed install.
+
+- The CLI asks the npm registry for the latest `kibi-cli` at most once a day, from a detached background process, so no command waits on the network. The request sends nothing about you or the project, and the answer is cached in Kibi's per-user state directory (`update-check.json` next to the telemetry settings). It uses `KIBI_UPDATE_REGISTRY`, then `npm_config_registry`, then `https://registry.npmjs.org`.
+- The line appears at most once a day per version, and only when stderr is a terminal. Agent and hook runs, pipes, commands that print JSON (`--json`, `--format json`, `--input`), CI and test runs, local dev builds and a Kibi source checkout never show it and never check.
+- `KIBI_UPDATE_CHECK=0` or `NO_UPDATE_NOTIFIER=1` turns the check off entirely.
+- `kibi doctor` reports the same answer under "Kibi updates" for every agent host and for the plain CLI: a newer version is a warning with the update command, an unreachable registry is neither a warning nor a failure.
+
 ### First-run lifecycle
 
 After installing the packages, use this short path:

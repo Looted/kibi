@@ -489,3 +489,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4c57a7fbb808
+  - type: implements
+    from: SYM-cli-update-check-update-command-context
+    to: REQ-kibi-update-notice
+    created_at: 2026-11-04T13:25:16.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9febf99570ee
+  - type: covered_by
+    from: SYM-cli-update-check-update-command-context
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:25:16.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-144259bfa161
+  - type: assumes
+    from: SCEN-NEG-kibi-update-notice-CHECK-EVERY-RUN
+    to: FACT-NEG-kibi-update-notice-CHECK-EVERY-RUN
+    created_at: 2026-11-04T13:26:24.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9480eaa0c32
+  - type: verified_by
+    from: SCEN-NEG-kibi-update-notice-CHECK-EVERY-RUN
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:26:24.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61e4faef6441

@@ -468,3 +468,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6131bf8ea097
+  - type: implements
+    from: SYM-cli-update-check-finish-update-check
+    to: REQ-kibi-update-notice
+    created_at: 2026-11-04T13:25:36.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36d73f80ca3f
+  - type: covered_by
+    from: SYM-cli-update-check-finish-update-check
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:25:36.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b724b1cc2f23

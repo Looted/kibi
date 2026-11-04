@@ -402,3 +402,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6bbc5fba548
+  - type: implements
+    from: SYM-cli-update-check-default-npm-registry
+    to: REQ-kibi-update-notice
+    created_at: 2026-11-04T13:23:40.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16275e57be95
+  - type: covered_by
+    from: SYM-cli-update-check-default-npm-registry
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:23:40.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e764dd037078

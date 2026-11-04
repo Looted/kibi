@@ -50,6 +50,7 @@ import {
   buildMigrationPlan,
   migrationAction,
 } from "../public/operations/migration-plan.js";
+import { checkKibiUpdates } from "../update-check.js";
 import { noteCliErrorCategory } from "../usage-telemetry.js";
 import {
   resolveBranchAttachment,
@@ -159,6 +160,14 @@ export async function doctorCommand(
     {
       name: "Kibi release",
       check: () => checkKibiRelease(),
+    },
+    {
+      name: "Kibi updates",
+      check: () =>
+        checkKibiUpdates({
+          currentVersion: cliVersion(),
+          currentKbSchema: LATEST_KB_SCHEMA_VERSION,
+        }),
     },
     {
       name: "SWI-Prolog",
