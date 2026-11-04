@@ -2,7 +2,7 @@
 id: TEST-agent-kibi-interface-selection
 title: Agent guidance surface selection verification plan
 type: test
-status: pending
+status: passing
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-21T00:00:00.000Z
 priority: must
@@ -29,20 +29,20 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-7aaac9fb344b9f060a7aaf31
+    receipt_id: PR-65891a2ff73fc36d14aad271
     test_id: TEST-agent-kibi-interface-selection
     scope: end_to_end
     outcome: passed
-    code_snapshot: 6a50f2c502f50261f2dc53bb28dd92e536697075ad7758a3fe3fd4e599444636
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T13:15:34.358Z'
-    finished_at: '2026-10-25T13:16:00.066Z'
-    artifact_digest: 458d106c7a2f3aa4ec178f81fe12ca841caf510b86faee56916b42774b4f8d0a
-    contract_hash: 681a9eb47ecf14fac4d635d33e4467a6977aba74d54f412c8b972832715503e1
-    binding_hash: 90e3b4ae8c000d235c2cb810968da49e0b2d199905d7e180df05d47c9acaab54
-    fingerprint: 816c3ffe046dbf2f4fc6fcff2172a8f1c89b184ae848a7852fceaacd82be8a17
+    code_snapshot: 7ed5ab55b3c5d386434b8837b93f63ec6797d0dd5bf2b248a10008d63b41039a
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-04T13:31:12.784Z'
+    finished_at: '2026-11-04T13:31:42.441Z'
+    artifact_digest: fc404e38ec46353316c3447a470411c52f1cb2e1fe44b2f57e0525547742a621
+    contract_hash: 16c8ca5924f1d2e8c40217057c8cd8ac04745dfafde4772670d5c2a2437b938a
+    binding_hash: f765254a293e49e8effea98c86a6e992d762872f0f18cf6c5b817c2458464c3a
+    fingerprint: 10eff81d0bc3303e3c216878cb7d8d04f482e9e8c5fedb54c67b66ea0199712f
     fingerprint_components:
-      contract: 681a9eb47ecf14fac4d635d33e4467a6977aba74d54f412c8b972832715503e1
+      contract: 16c8ca5924f1d2e8c40217057c8cd8ac04745dfafde4772670d5c2a2437b938a
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -55,7 +55,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-agent-kibi-interface-selection
+      - symbol_id: SYM-e2e-mcp-cli-operation-parity
         target: default
         outcome: passed
         binding: aggregate_run

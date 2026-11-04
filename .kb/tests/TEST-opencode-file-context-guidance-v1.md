@@ -2,7 +2,7 @@
 id: TEST-opencode-file-context-guidance-v1
 title: Verification of Lifecycle Events and E2E Evidence
 type: test
-status: pending
+status: passing
 created_at: 2026-05-04T10:00:00.000Z
 updated_at: 2026-05-04T10:00:00.000Z
 source: .kb/requirements/REQ-opencode-file-context-guidance-v1.md
@@ -25,18 +25,18 @@ proof_contract:
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-8806b7eceb13332658e701b5
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-4b81c06c66955dc522273492
     test_id: TEST-opencode-file-context-guidance-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 7ed5ab55b3c5d386434b8837b93f63ec6797d0dd5bf2b248a10008d63b41039a
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-04T13:32:00.604Z'
+    finished_at: '2026-11-04T13:32:10.906Z'
+    artifact_digest: 57a64c65b8958ae240b127bc0b90fa73acab7eb092a9c8c7ce22c8aee0197c07
     contract_hash: 26529bf139028fe7a629b15a91caf878fa1888f6deb861df095e16b7fc022501
-    binding_hash: 39124b376ff6ab5cdf105175380bb378347c4bc2516ea7e85fa390d613ba4f8e
+    binding_hash: 993c7fd610a0ae538a42dbd21cbb58364a01e4ab87ba245644b7f1dc0c265ad2
     fingerprint: 43caae686b44da99da316ea24f926007c9fd8678cf4c269908ffb75b97faf933
     fingerprint_components:
       contract: 26529bf139028fe7a629b15a91caf878fa1888f6deb861df095e16b7fc022501
@@ -58,6 +58,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6
