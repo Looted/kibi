@@ -409,6 +409,201 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/proofs/claims/search-answer-limits.proof.test.ts",
     "packages/cli/tests/search-provenance-stubs.test.ts",
   ],
+  "packages/cli/src/commands/status.ts": [
+    "packages/cli/tests/commands/discovery-wrappers-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/gaps.ts": [
+    "packages/cli/tests/commands/discovery-wrappers-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/graph.ts": [
+    "packages/cli/tests/commands/discovery-wrappers-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/search.ts": [
+    "packages/cli/tests/commands/discovery-wrappers-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/query.ts": [
+    "packages/cli/tests/commands/discovery-wrappers-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/coverage.ts": [
+    "packages/cli/tests/commands/discovery-wrappers-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/telemetry.ts": [
+    "packages/cli/tests/commands/telemetry-command-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/usage-remediation.ts": [
+    "packages/cli/tests/commands/usage-remediation-mutation.test.ts",
+    "packages/cli/tests/commands/usage-remediation.test.ts",
+  ],
+  "packages/cli/src/commands/proof-explain.ts": [
+    "packages/cli/tests/commands/proof-commands-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/proof-migrate-legacy.ts": [
+    "packages/cli/tests/commands/proof-commands-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/proof-prune.ts": [
+    "packages/cli/tests/commands/proof-commands-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/proof-compact.ts": [
+    "packages/cli/tests/commands/proof-commands-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/skills.ts": [
+    "packages/cli/tests/commands/skills-command-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/check-diff.ts": [
+    "packages/cli/tests/commands-coverage/check-diff.test.ts",
+    "packages/cli/tests/commands/check-diff.test.ts",
+  ],
+  "packages/cli/src/commands/migrate-plan-record.ts": [
+    "packages/cli/tests/commands/migrate-plan-record-mutation.test.ts",
+    "packages/cli/tests/commands/migrate-plan-record.test.ts",
+  ],
+  "packages/cli/src/commands/sync/extraction.ts": [
+    "packages/cli/tests/commands/sync/extraction-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/sync/errors.ts": [
+    "packages/cli/tests/commands/sync-errors-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/discovery-shared.ts": [
+    "packages/cli/tests/commands/discovery-shared-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/merge-driver.ts": [
+    "packages/cli/tests/commands/merge-driver-mutation.test.ts",
+    "packages/cli/tests/commands/merge-driver.test.ts",
+    "packages/cli/tests/commands-coverage/merge-driver.test.ts",
+  ],
+  "packages/cli/src/commands/sync/untracked-targets.ts": [
+    "packages/cli/tests/commands/sync/untracked-targets-mutation.test.ts",
+    "packages/cli/tests/commands/sync/untracked-targets.test.ts",
+  ],
+  "packages/cli/src/commands/engine.ts": [
+    "packages/cli/tests/commands/engine-command-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/gc.ts": [
+    "packages/cli/tests/commands/gc-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/check-certificates.ts": [
+    "packages/cli/tests/commands/check-certificates-mutation.test.ts",
+    "packages/cli/tests/commands/check-certificates.test.ts",
+    "packages/cli/tests/commands-coverage/check-certificates.test.ts",
+  ],
+  "packages/cli/src/commands/aggregated-checks.ts": [
+    "packages/cli/tests/commands/aggregated-checks.test.ts",
+    "packages/cli/tests/commands/aggregated-checks-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/signoff.ts": [
+    "packages/cli/tests/commands/signoff-command-mutation.test.ts",
+    "packages/cli/tests/commands/signoff.test.ts",
+    "packages/cli/tests/commands-coverage/signoff.test.ts",
+  ],
+  "packages/cli/src/commands/report.ts": [
+    "packages/cli/tests/commands/report-command-mutation.test.ts",
+    "packages/cli/tests/commands/report.test.ts",
+    "packages/cli/tests/commands-coverage/report.test.ts",
+    "packages/cli/tests/commands/report-badge-coverage.test.ts",
+  ],
+  "packages/cli/src/commands/check-generated.ts": [
+    "packages/cli/tests/commands/check-generated-mutation.test.ts",
+    "packages/cli/tests/commands-coverage/check-generated.test.ts",
+    "packages/cli/tests/commands/check-generated-hook.test.ts",
+  ],
+  "packages/cli/src/commands/sync/staging.ts": [
+    "packages/cli/tests/commands/sync/staging-mutation.test.ts",
+    "packages/cli/tests/commands/sync/staging.test.ts",
+    "packages/cli/tests/commands/sync/staging-liveness.test.ts",
+    "packages/cli/tests/commands/sync/staging-remaining.coverage.test.ts",
+  ],
+  "packages/cli/src/commands/sync/discovery.ts": [
+    "packages/cli/tests/commands/sync/discovery-mutation.test.ts",
+    "packages/cli/tests/commands/sync/discovery-coverage.test.ts",
+    "packages/cli/tests/commands/sync/discovery-remaining.coverage.test.ts",
+    "packages/cli/tests/coverage-isolates/discovery-remaining.coverage.test.ts",
+  ],
+  "packages/cli/src/commands/init.ts": [
+    "packages/cli/tests/commands/init-command-mutation.test.ts",
+    "packages/cli/tests/commands/init-coverage.test.ts",
+    "packages/cli/tests/commands/init-git-context.test.ts",
+    "packages/cli/tests/commands/init-remaining.coverage.test.ts",
+    "packages/cli/tests/commands-coverage/init-command.test.ts",
+  ],
+  "packages/cli/src/commands/discovery-table.ts": [
+    "packages/cli/tests/commands/discovery-table-mutation.test.ts",
+    "packages/cli/tests/commands-coverage/discovery-table-github-init.test.ts",
+  ],
+  "packages/cli/src/commands/github-init.ts": [
+    "packages/cli/tests/commands/github-init-mutation.test.ts",
+    "packages/cli/tests/commands/github-init.test.ts",
+    "packages/cli/tests/commands/github-init-remaining.coverage.test.ts",
+    "packages/cli/tests/commands-coverage/discovery-table-github-init.test.ts",
+  ],
+  "packages/cli/src/commands/sync/cache.ts": [
+    "packages/cli/tests/commands/sync/cache-mutation.test.ts",
+    "packages/cli/tests/sync-cache-pure.test.ts",
+    "packages/cli/tests/commands-coverage/sync-cache.test.ts",
+    "packages/cli/tests/commands/sync/cache-remaining.coverage.test.ts",
+    "packages/cli/tests/commands/sync/compiler-fingerprint.test.ts",
+  ],
+  "packages/cli/src/commands/hook-managers.ts": [
+    "packages/cli/tests/commands/hook-managers-mutation.test.ts",
+    "packages/cli/tests/commands/hook-managers.test.ts",
+    "packages/cli/tests/commands-coverage/hook-managers.test.ts",
+  ],
+  "packages/cli/src/commands/init-helpers.ts": [
+    "packages/cli/tests/commands/init-helpers-mutation.test.ts",
+    "packages/cli/tests/commands/init-helpers.test.ts",
+    "packages/cli/tests/commands-coverage/init-helpers.test.ts",
+    "packages/cli/tests/commands/install-hook-safety.test.ts",
+    "packages/cli/tests/proofs/claims/git-hook-managed-names.proof.test.ts",
+    "packages/cli/tests/commands/init-command-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/usage-metrics.ts": [
+    "packages/cli/tests/commands/usage-metrics-mutation.test.ts",
+    "packages/cli/tests/commands/usage-metrics.test.ts",
+    "packages/cli/tests/commands/usage.in-process.test.ts",
+  ],
+  "packages/cli/src/commands/branch.ts": [
+    "packages/cli/tests/commands/branch-command-mutation.test.ts",
+    "packages/cli/tests/commands/branch-remaining.coverage.test.ts",
+    "packages/cli/tests/commands/branch.in-process.test.ts",
+  ],
+  "packages/cli/src/commands/sync/manifest.ts": [
+    "packages/cli/tests/commands/sync/manifest-mutation.test.ts",
+    "packages/cli/tests/commands/sync/manifest.test.ts",
+    "packages/cli/tests/commands-coverage/sync-manifest.test.ts",
+    "packages/cli/tests/commands/sync/manifest-remaining.coverage.test.ts",
+    "packages/cli/tests/commands/sync/incremental-coordinates.test.ts",
+  ],
+  "packages/cli/src/commands/legacy-storage-migration.ts": [
+    "packages/cli/tests/commands/legacy-storage-migration-mutation.test.ts",
+    "packages/cli/tests/commands-coverage/legacy-storage-migration.test.ts",
+    "packages/cli/tests/commands/legacy-storage-migration-remaining.coverage.test.ts",
+    "packages/cli/tests/commands/legacy-storage-migration.test.ts",
+  ],
+  "packages/cli/src/commands/sync/persistence.ts": [
+    "packages/cli/tests/commands/sync/persistence-mutation.test.ts",
+    "packages/cli/tests/commands-coverage/sync-persistence.test.ts",
+    "packages/cli/tests/commands/sync/persistence.test.ts",
+    "packages/cli/tests/commands/sync/persistence-gap-behaviors.test.ts",
+    "packages/cli/tests/commands/sync/persistence-remaining.coverage.test.ts",
+    "packages/cli/tests/commands/sync/persistence-reset.test.ts",
+  ],
+  "packages/cli/src/commands/prove.ts": [
+    "packages/cli/tests/commands/prove-mutation.test.ts",
+    "packages/cli/tests/commands-coverage/prove.test.ts",
+    "packages/cli/tests/proof/prove-command.test.ts",
+    "packages/cli/tests/commands/prove-remaining.coverage.test.ts",
+    "packages/cli/tests/commands/prove-drift.test.ts",
+    "packages/cli/tests/proof/evaluate.test.ts",
+    "packages/cli/tests/cli-register-proof-coverage.test.ts",
+  ],
+  "packages/cli/src/commands/agent-instructions.ts": [
+    "packages/cli/tests/commands/agent-instructions-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/setup-choices.ts": [
+    "packages/cli/tests/commands/setup-choices-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/hooks-install.ts": [
+    "packages/cli/tests/commands/hooks-install-mutation.test.ts",
+  ],
 };
 
 // Plugin package modules gated the same way: each with the hermetic tests of
