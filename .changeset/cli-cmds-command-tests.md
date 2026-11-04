@@ -11,3 +11,5 @@ Remove an unused attach flag and an unreachable process factory from the shared 
 Simplify the manifest merge driver's record bookkeeping and the untracked-document lookup used by `kibi sync` warnings; behaviour is unchanged.
 
 `kibi gc` and the engine maintenance commands drop redundant guards (unused legacy flags, default stdio options, duplicate workspace resolution); behaviour is unchanged.
+
+The report command reads its output target and certificate option once, and its commit lookup and badge share no longer carry redundant fallbacks.
