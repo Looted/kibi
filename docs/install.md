@@ -177,6 +177,26 @@ Validation command: `npm exec -- kibi check`.
 
 The CLI and MCP server are peer agent-operation surfaces. MCP-capable hosts can call the public `kb_*` contracts directly; agents in trusted project-local shells can invoke the equivalent CLI JSON routes with `kibi <route> --input <file|->`. Neither path requires direct access to `.kb/**` files.
 
+### Kibi release versions
+
+Each Kibi package keeps its own semantic version, so `kibi-cli` 2.41.0, `kibi-mcp` 3.25.0 and `kibi-core` 0.30.0 can belong to the same release. Every release therefore also gets one Kibi release version in calendar form, `YYYY.M.N`: `2026.11.0` is the first release in November 2026, and `2026.11.1` is the next one. A release version names an exact package set and says nothing about compatibility on its own.
+
+- `kibi --version` prints both versions, for example `Kibi 2026.11.0 (kibi-cli 2.41.0)`.
+- `kibi doctor` reports the release under "Kibi release". If an installed Kibi package has a version other than the one that release lists, it warns with a "Mixed install" message that names each package. The JSON output (`kibi doctor --format json`) carries the full manifest under `runtime.release`.
+- The MCP server's title names the release, for example `Kibi MCP (Kibi 2026.11.0)`.
+- Each release is published as a `kibi@<release>` GitHub release that lists every package version, with the manifest attached as `release.json`. To install a specific release, install the versions it lists.
+
+The manifest ships in `kibi-core` as `release.json`. It also declares the compatibility versions of that release:
+
+| Field | Meaning |
+| --- | --- |
+| `kbSchema.current` | The `.kb/manifest.json` `schemaVersion` this release reads and writes. |
+| `kbSchema.migratesFrom` | The oldest `schemaVersion` that `kibi migrate` upgrades in place. |
+| `operationProtocol` | The `kibiProtocol` of every CLI JSON and MCP result envelope. |
+| `pluginApi` | The capability plugin API (`kibi.plugin.v1`) that plugins declare as `apiVersion`. |
+
+Compatibility questions key off these numbers, not off package versions. A KB at `schemaVersion` 13 works with every release whose `kbSchema.current` is 13, whatever its package versions are.
+
 ### First-run lifecycle
 
 After installing the packages, use this short path:

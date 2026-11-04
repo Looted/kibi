@@ -36,7 +36,8 @@ if (RUN_NODE_TEST_SUITE) {
         const out = execFileSync("tar", ["-tzf", tgz], { encoding: "utf8" });
         const entries = out.split("\n").map((l) => l.replace(/^package\//, ""));
 
-        const required = ["src/kb.pl"];
+        // release.json names the Kibi release this kibi-core belongs to.
+        const required = ["src/kb.pl", "release.json"];
         // also accept any other .pl files under src/
         const hasPlFiles = entries.some(
           (e) => e.startsWith("src/") && e.endsWith(".pl"),

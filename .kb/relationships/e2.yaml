@@ -475,3 +475,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f0d92043b47
+  - type: verified_by
+    from: SCEN-NEG-kibi-release-version-VERSION-OMITS-RELEASE
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:46:54.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11f232db8f6c
+  - type: assumes
+    from: SCEN-NEG-kibi-release-version-VERSION-OMITS-RELEASE
+    to: FACT-NEG-kibi-release-version-VERSION-OMITS-RELEASE
+    created_at: 2026-11-04T05:46:54.308Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c57a7fbb808

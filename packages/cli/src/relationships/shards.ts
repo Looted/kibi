@@ -454,9 +454,12 @@ export function listShards(kbRoot: string): string[] {
     return [];
   }
 
+  // readdir order is filesystem-specific; sort so every reader and planner
+  // sees the shards in the same order everywhere.
   return fs
     .readdirSync(relationshipsDir)
     .filter((f) => f.endsWith(".yaml"))
+    .sort()
     .map((f) => path.join(relationshipsDir, f));
 }
 

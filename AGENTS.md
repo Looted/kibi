@@ -82,7 +82,8 @@ Applies to publishable packages (`kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-open
 
 - Add a changeset in the same work. It opens with 2-4 sentences of user impact, then the technical summary.
 - Use Conventional Commits. Never `npm publish` manually.
-- `bun run version-packages` runs on `develop`; never merge `master` back into `develop`.
+- `bun run version-packages` runs on `develop`; never merge `master` back into `develop`. It also assigns the Kibi release version (`YYYY.M.N`), patch-bumps `kibi-core` when nothing else does, and rewrites `packages/core/release.json` and `releases/history.json`. Never edit package versions or those files by hand; `bun run release:check` fails on drift.
+- Compatibility work keys off the compatibility versions in the release manifest (KB schema, operation protocol, plugin API), not package versions.
 - After version or wiring changes used for dogfooding, run `bun run build` (and `bun run sync:cursor-dogfood` for Cursor).
 
 ## Quality Bar
