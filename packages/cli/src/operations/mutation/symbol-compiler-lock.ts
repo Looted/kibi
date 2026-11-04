@@ -43,7 +43,7 @@ const NODE_FILE_SYSTEM: SymbolCompilerLockFileSystem = {
   mkdirSync: (target, options) => {
     mkdirSync(target, options);
   },
-  readFileSync: (target) => readFileSync(target, "utf8"),
+  readFileSync: (target) => readFileSync(target).toString(),
   writeFileSync: (target, data, options) => {
     writeFileSync(target, data, options);
   },
@@ -81,17 +81,14 @@ function randomToken(): string {
 
 function readLockRecord(content: string): LockRecord | null {
   try {
-    const parsed: unknown = JSON.parse(content);
-    if (
-      typeof parsed !== "object" ||
-      parsed === null ||
-      typeof (parsed as Record<string, unknown>).pid !== "number" ||
-      typeof (parsed as Record<string, unknown>).token !== "string" ||
-      typeof (parsed as Record<string, unknown>).acquiredAt !== "number"
-    ) {
-      return null;
-    }
-    return parsed as LockRecord;
+    // A primitive has none of the fields; null throws here and reads as
+    // corrupt like any unparsable text.
+    const parsed = JSON.parse(content) as Record<string, unknown>;
+    return typeof parsed.pid === "number" &&
+      typeof parsed.token === "string" &&
+      typeof parsed.acquiredAt === "number"
+      ? (parsed as unknown as LockRecord)
+      : null;
   } catch {
     return null;
   }
@@ -104,13 +101,12 @@ function errorDetail(error: unknown): string {
 }
 
 function errorCode(error: unknown): string | undefined {
-  if (typeof error !== "object" || error === null) return undefined;
-  return (error as NodeJS.ErrnoException).code;
+  // A primitive reads no code; only null and undefined need the guard.
+  return (error as NodeJS.ErrnoException | null | undefined)?.code;
 }
 
 function isTransientFilesystemError(error: unknown): boolean {
-  if (typeof error !== "object" || error === null) return false;
-  const code = (error as NodeJS.ErrnoException).code;
+  const code = errorCode(error);
   return (
     code === "EBUSY" ||
     code === "EAGAIN" ||
@@ -127,9 +123,7 @@ function retryTransientFilesystemOperation<T>(
   operation: () => T,
   canRetry: (error: unknown) => boolean = () => true,
 ): RetryOutcome<T> {
-  let attempts = 0;
-  while (attempts < MAX_RELEASE_FILESYSTEM_ATTEMPTS) {
-    attempts += 1;
+  for (let attempts = 1; ; attempts += 1) {
     try {
       return { ok: true, value: operation(), attempts };
     } catch (error) {
@@ -142,7 +136,6 @@ function retryTransientFilesystemOperation<T>(
       }
     }
   }
-  throw new Error("unreachable retry state");
 }
 
 function manualCleanupGuidance(target: string, ownerPath: string): string {
@@ -210,15 +203,10 @@ function defaultIsProcessAlive(pid: number): boolean {
     process.kill(pid, 0);
     return true;
   } catch (error) {
-    return !(
-      error instanceof Error &&
-      "code" in error &&
-      (error as NodeJS.ErrnoException).code === "ESRCH"
-    );
+    // process.kill throws only errno errors; only ESRCH proves the pid gone.
+    return (error as NodeJS.ErrnoException).code !== "ESRCH";
   }
 }
-
-type StaleLockOutcome = "stolen" | "live" | "unknown";
 
 /**
  * Read the current lock owner record and steal the lock only when the
@@ -233,7 +221,7 @@ function stealStaleLockIfHolderIsDead(
   target: string,
   ownerPath: string,
   isProcessAlive: (pid: number) => boolean,
-): StaleLockOutcome {
+): boolean {
   let record: LockRecord | null = null;
   let legacyFileLock = false;
   try {
@@ -243,25 +231,21 @@ function stealStaleLockIfHolderIsDead(
       record = readLockRecord(fileSystem.readFileSync(target));
       legacyFileLock = true;
     } catch {
-      return "unknown";
+      // Neither is readable: the record stays unknown.
     }
   }
-  if (record === null) return "unknown";
-  if (isProcessAlive(record.pid)) return "live";
+  if (record === null || isProcessAlive(record.pid)) return false;
+  if (legacyFileLock)
+    return retryTransientFilesystemOperation(() =>
+      fileSystem.unlinkSync(target),
+    ).ok;
   try {
-    if (legacyFileLock) {
-      const removal = retryTransientFilesystemOperation(() =>
-        fileSystem.unlinkSync(target),
-      );
-      if (!removal.ok) return "unknown";
-      return "stolen";
-    }
     removeLockOwner(fileSystem, target, ownerPath, true);
     removeLockDirectory(fileSystem, target);
   } catch {
-    return "unknown";
+    return false;
   }
-  return "stolen";
+  return true;
 }
 
 async function defaultSleep(ms: number): Promise<void> {
@@ -362,10 +346,9 @@ export async function acquireSymbolCompilerLock(
         target,
         ownerPath,
         isProcessAlive,
-      ) === "stolen"
-    ) {
+      )
+    )
       continue;
-    }
 
     await sleep(RETRY_INTERVAL_MS);
   }
@@ -421,12 +404,13 @@ export async function acquireSymbolCompilerLock(
     );
   }
 
-  let releaseState: "owned" | "owner-removed" | "released" = "owned";
+  let ownerRemoved = false;
+  let released = false;
   return {
     release: () => {
-      if (releaseState === "released") return;
+      if (released) return;
 
-      if (releaseState === "owned") {
+      if (!ownerRemoved) {
         const readResult = retryTransientFilesystemOperation(() =>
           fileSystem.readFileSync(ownerPath),
         );
@@ -443,16 +427,16 @@ export async function acquireSymbolCompilerLock(
           );
         }
         if (record.token !== token) {
-          releaseState = "released";
+          released = true;
           return;
         }
 
         removeLockOwner(fileSystem, target, ownerPath, false);
-        releaseState = "owner-removed";
+        ownerRemoved = true;
       }
 
       removeLockDirectory(fileSystem, target);
-      releaseState = "released";
+      released = true;
     },
   };
 }
