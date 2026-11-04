@@ -271,29 +271,35 @@ export function diagnosticCliHost(
   return env.CLAUDECODE === "1" ? "claude-code" : "unknown";
 }
 
-let cachedCliPackageVersion: string | null | undefined;
+function manifestVersion(manifestPath: string): string | null {
+  try {
+    const parsed: unknown = JSON.parse(String(readFileSync(manifestPath)));
+    return isRecord(parsed) && typeof parsed.version === "string"
+      ? parsed.version
+      : null;
+  } catch {
+    // An unreadable manifest leaves the version unknown.
+    return null;
+  }
+}
 
-function cliPackageVersion(): string | null {
-  if (cachedCliPackageVersion !== undefined) return cachedCliPackageVersion;
-  cachedCliPackageVersion = null;
-  let current = path.dirname(fileURLToPath(import.meta.url));
+/**
+ * The `version` of the nearest `package.json` at or above `startDir`, or
+ * null when there is none or it carries no string version.
+ */
+export function nearestPackageVersion(startDir: string): string | null {
+  let current = startDir;
   while (true) {
     const candidate = path.join(current, "package.json");
-    if (existsSync(candidate)) {
-      try {
-        const parsed: unknown = JSON.parse(readFileSync(candidate, "utf8"));
-        if (isRecord(parsed) && typeof parsed.version === "string") {
-          cachedCliPackageVersion = parsed.version;
-        }
-      } catch {
-        // An unreadable manifest leaves the version unknown.
-      }
-      return cachedCliPackageVersion;
-    }
+    if (existsSync(candidate)) return manifestVersion(candidate);
     const parent = path.dirname(current);
     if (parent === current) return null;
     current = parent;
   }
+}
+
+function cliPackageVersion(): string | null {
+  return nearestPackageVersion(path.dirname(fileURLToPath(import.meta.url)));
 }
 
 export function appendCliDiagnosticUsage(input: DiagnosticUsageInput): void {
@@ -329,6 +335,5 @@ export function appendCliDiagnosticUsage(input: DiagnosticUsageInput): void {
         input.result,
       ),
     })}\n`,
-    "utf8",
   );
 }
