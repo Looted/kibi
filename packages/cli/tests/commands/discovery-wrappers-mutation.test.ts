@@ -20,6 +20,7 @@ import {
   findGapsSpec,
   graphSpec,
 } from "../../src/public/operations/specs/reporting.js";
+import * as usageTelemetry from "../../src/usage-telemetry.js";
 
 type Result = {
   content: { type: "text"; text: string }[];
@@ -248,11 +249,18 @@ describe("searchCommand", () => {
   });
 
   test("passes the query, type and paging and prints the result", async () => {
-    const ops = stubOperation(
-      result("found", { results: [1], count: 1 }),
-      result(undefined, undefined),
-    );
+    const found = result("found", { results: [1], count: 1 });
+    const empty = result(undefined, undefined);
+    const ops = stubOperation(found, empty);
     const prints = stubPrint();
+    const noted: unknown[] = [];
+    const note = spyOn(
+      usageTelemetry,
+      "noteCliOperationCall",
+    ).mockImplementation((call) => {
+      noted.push(call);
+    });
+    restores.push(() => note.mockRestore());
     await searchCommand("auth", {
       type: "scenario",
       limit: "4",
@@ -272,6 +280,10 @@ describe("searchCommand", () => {
     expect(prints).toStrictEqual([
       ["json", { results: [1], count: 1 }, "found"],
       [undefined, { results: [], count: 0 }, "No search results for 'login'."],
+    ]);
+    expect(noted).toStrictEqual([
+      { operation: "kb_search", result: found },
+      { operation: "kb_search", result: empty },
     ]);
     expect(process.exitCode).toBe(0);
   });

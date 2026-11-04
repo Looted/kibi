@@ -450,9 +450,7 @@ describe("scaffoldCheckWorkflow", () => {
     expect(scaffoldCheckWorkflow(root, deps)).toBe("unchanged");
     writeFileSync(path.join(root, FILE), "name: mine\n");
     expect(scaffoldCheckWorkflow(root, deps)).toBe("conflict");
-    expect(readFileSync(path.join(root, FILE)).toString()).toBe(
-      "name: mine\n",
-    );
+    expect(readFileSync(path.join(root, FILE)).toString()).toBe("name: mine\n");
     expect(logs).toStrictEqual([
       `✓ Added ${FILE}: pull requests must pass kibi check`,
     ]);
