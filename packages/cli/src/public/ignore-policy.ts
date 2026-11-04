@@ -1,7 +1,7 @@
-import { type Dirent, existsSync, readFileSync, readdirSync } from "node:fs";
+import { type Dirent, readFileSync, readdirSync } from "node:fs";
 import * as path from "node:path";
 import ignore from "ignore";
-import { DERIVED_KB_PREFIXES } from "../utils/kb-paths.js";
+import { DERIVED_KB_PREFIXES, isDerivedKbPath } from "../utils/kb-paths.js";
 
 const HARD_DENYLIST = [
   ".git",
@@ -12,9 +12,6 @@ const HARD_DENYLIST = [
   ".opencode",
 ];
 
-/** Derived .kb/ runtime trees. Authored knowledge lanes stay visible. */
-const HARD_DENY_KB_PREFIXES = DERIVED_KB_PREFIXES;
-
 export interface IgnorePolicy {
   isIgnored(inputPath: string): boolean;
   getFastGlobIgnoreGlobs(): string[];
@@ -22,8 +19,8 @@ export interface IgnorePolicy {
 }
 
 function readIgnoreFileLines(filePath: string): string[] {
-  if (!existsSync(filePath)) return [];
   try {
+    // A missing or unreadable file contributes no patterns.
     const content = readFileSync(filePath, "utf8");
     return content
       .split(/\r?\n/)
@@ -38,19 +35,32 @@ function toPosix(p: string): string {
   return p.split(path.sep).join("/");
 }
 
+/**
+ * Fast-glob forms of gitignore lines, relative to `prefix`. Negations cannot
+ * be expressed as ignore globs, so they are left out; a leading slash only
+ * anchors the pattern to its directory.
+ */
+function patternGlobs(prefix: string, patterns: readonly string[]): string[] {
+  return patterns
+    .filter((pattern) => !pattern.startsWith("!"))
+    .map((pattern) => `**/${prefix}${pattern.replace(/^\//, "")}`);
+}
+
 // implements REQ-cli-canonical-runtime
 export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
   const root = path.resolve(workspaceRoot);
 
   // Load root .gitignore
-  const rootGitignorePath = path.join(root, ".gitignore");
-  const rootGitPatterns = readIgnoreFileLines(rootGitignorePath);
+  const rootGitPatterns = readIgnoreFileLines(path.join(root, ".gitignore"));
 
   // Load .git/info/exclude
-  const gitInfoExcludePath = path.join(root, ".git", "info", "exclude");
-  const gitInfoPatterns = readIgnoreFileLines(gitInfoExcludePath);
+  const gitInfoPatterns = readIgnoreFileLines(
+    path.join(root, ".git", "info", "exclude"),
+  );
 
-  // Find nested .gitignore files (skip scanning inside hard denylist directories)
+  // Find nested .gitignore files (skip scanning inside hard denylist
+  // directories, which include .git, and the .kb tree), keyed by their
+  // workspace-relative POSIX directory.
   const nestedPatterns = new Map<string, string[]>();
 
   function walk(dirAbs: string) {
@@ -67,16 +77,14 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
         // avoid descending into common heavy or control directories
         if (HARD_DENYLIST.includes(name)) continue;
         if (name === ".kb") continue;
-        if (name === ".git") continue;
         walk(abs);
-      } else if (ent.isFile()) {
-        if (name === ".gitignore") {
-          // skip root .gitignore (we already loaded it)
-          if (path.resolve(dirAbs) === root) continue;
-          const patterns = readIgnoreFileLines(abs);
-          const relDir = path.relative(root, dirAbs) || ".";
-          nestedPatterns.set(toPosix(relDir), patterns);
-        }
+      } else if (ent.isFile() && name === ".gitignore") {
+        // skip root .gitignore (we already loaded it)
+        if (dirAbs === root) continue;
+        nestedPatterns.set(
+          toPosix(path.relative(root, dirAbs)),
+          readIgnoreFileLines(abs),
+        );
       }
     }
   }
@@ -84,39 +92,29 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
   walk(root);
 
   // Create ignore instances
-  const rootIgnore = ignore();
-  if (rootGitPatterns.length > 0) rootIgnore.add(rootGitPatterns);
-
-  const gitInfoIgnore = ignore();
-  if (gitInfoPatterns.length > 0) gitInfoIgnore.add(gitInfoPatterns);
-
-  const nestedIgnoreMap = new Map<string, ReturnType<typeof ignore>>();
-  for (const [dirRel, pats] of nestedPatterns.entries()) {
-    const ig = ignore();
-    if (pats.length > 0) ig.add(pats);
-    nestedIgnoreMap.set(dirRel, ig);
-  }
-
-  // Prepare nested directories sorted by specificity (longest first)
-  const nestedDirsSorted = Array.from(nestedIgnoreMap.keys()).sort(
-    (a, b) => b.length - a.length,
+  const rootIgnore = ignore().add(rootGitPatterns);
+  const gitInfoIgnore = ignore().add(gitInfoPatterns);
+  const nestedIgnoreMap = new Map(
+    [...nestedPatterns].map(([dirRel, pats]) => [dirRel, ignore().add(pats)]),
   );
 
   function isPathOutsideWorkspace(absPath: string): boolean {
-    const rel = path.relative(root, absPath);
-    // path.relative returns paths starting with '..' for outside
-    return rel === "" ? false : rel.split(path.sep)[0] === "..";
+    // path.relative starts with a '..' segment for outside paths
+    return path.relative(root, absPath).split(path.sep)[0] === "..";
   }
 
   function matchesHardDeny(relPosix: string): boolean {
-    const segments = relPosix.split("/").filter(Boolean);
-    for (const prefix of HARD_DENY_KB_PREFIXES) {
-      if (relPosix === prefix || relPosix.startsWith(`${prefix}/`)) {
-        return true;
-      }
-    }
-    for (const deny of HARD_DENYLIST) {
-      if (segments.includes(deny)) return true;
+    if (isDerivedKbPath(relPosix)) return true;
+    const segments = relPosix.split("/");
+    return HARD_DENYLIST.some((deny) => segments.includes(deny));
+  }
+
+  /** ignore() throws on paths it cannot judge, such as the root itself. */
+  function ignores(ig: ReturnType<typeof ignore>, relPosix: string): boolean {
+    try {
+      return ig.ignores(relPosix);
+    } catch {
+      // judged as not ignored
     }
     return false;
   }
@@ -126,53 +124,34 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
     reason?: string;
   } {
     // Resolve to absolute and relative path inside workspace
-    const abs = path.isAbsolute(inputPath)
-      ? path.resolve(inputPath)
-      : path.resolve(root, inputPath);
+    const abs = path.resolve(root, inputPath);
 
     if (path.isAbsolute(inputPath) && isPathOutsideWorkspace(abs)) {
       return { ignored: true, reason: "outside_workspace" };
     }
 
-    const rel = path.relative(root, abs) || ".";
-    const relPosix = toPosix(rel);
+    const relPosix = toPosix(path.relative(root, abs));
 
     // Hard denylist always wins
     if (matchesHardDeny(relPosix))
       return { ignored: true, reason: "hard_deny" };
 
-    // Root .gitignore
-    try {
-      if (rootGitPatterns.length > 0 && rootIgnore.ignores(relPosix)) {
+    if (ignores(rootIgnore, relPosix)) {
+      return { ignored: true, reason: "gitignored" };
+    }
+
+    if (ignores(gitInfoIgnore, relPosix)) {
+      return { ignored: true, reason: "git_info_exclude" };
+    }
+
+    // Nested .gitignore (apply relative to their directory); any of them
+    // ignoring the path ignores it.
+    for (const [dirRel, ig] of nestedIgnoreMap) {
+      if (
+        relPosix.startsWith(`${dirRel}/`) &&
+        ignores(ig, relPosix.slice(dirRel.length + 1))
+      ) {
         return { ignored: true, reason: "gitignored" };
-      }
-    } catch (e) {
-      // ignore errors from library usage; continue
-    }
-
-    // .git/info/exclude
-    try {
-      if (gitInfoPatterns.length > 0 && gitInfoIgnore.ignores(relPosix)) {
-        return { ignored: true, reason: "git_info_exclude" };
-      }
-    } catch (e) {
-      // noop
-    }
-
-    // Nested .gitignore (apply relative to their directory)
-    for (const dirRel of nestedDirsSorted) {
-      // dirRel is '.' for nested at root which we skipped, so dirRel will be like 'docs'
-      if (dirRel === ".") continue;
-      if (relPosix === dirRel || relPosix.startsWith(`${dirRel}/`)) {
-        const sub =
-          relPosix === dirRel ? "." : relPosix.slice(dirRel.length + 1);
-        const ig = nestedIgnoreMap.get(dirRel);
-        if (!ig) continue;
-        try {
-          if (ig.ignores(sub)) return { ignored: true, reason: "gitignored" };
-        } catch (e) {
-          // noop
-        }
       }
     }
 
@@ -180,62 +159,18 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
   }
 
   function getFastGlobIgnoreGlobs(): string[] {
-    const globs: string[] = [];
-
-    // Hard denylist globs
-    for (const d of HARD_DENYLIST) {
-      // match directory and its contents anywhere
-      globs.push(`**/${d}/**`);
-      globs.push(`**/${d}`);
+    // Hard denylist globs: match directory and its contents anywhere
+    const globs = [...HARD_DENYLIST, ...DERIVED_KB_PREFIXES].flatMap((d) => [
+      `**/${d}/**`,
+      `**/${d}`,
+    ]);
+    globs.push(...patternGlobs("", rootGitPatterns));
+    globs.push(...patternGlobs("", gitInfoPatterns));
+    // Nested patterns are scoped to their directory instead of ignoring the
+    // entire directory.
+    for (const [dirRel, patterns] of nestedPatterns) {
+      globs.push(...patternGlobs(`${dirRel}/`, patterns));
     }
-    for (const prefix of HARD_DENY_KB_PREFIXES) {
-      globs.push(`**/${prefix}/**`);
-      globs.push(`**/${prefix}`);
-    }
-
-    // Root .gitignore patterns (convert to simple globs)
-    for (const p of rootGitPatterns) {
-      if (!p || p.startsWith("#") || p.startsWith("!")) continue;
-      let pat = p;
-      if (pat.startsWith("/")) pat = pat.slice(1);
-      if (pat.includes("/")) {
-        // anchored path
-        globs.push(`**/${toPosix(pat)}`);
-      } else {
-        globs.push(`**/${pat}`);
-      }
-    }
-
-    // .git/info/exclude patterns
-    for (const p of gitInfoPatterns) {
-      if (!p || p.startsWith("#") || p.startsWith("!")) continue;
-      let pat = p;
-      if (pat.startsWith("/")) pat = pat.slice(1);
-      if (pat.includes("/")) {
-        globs.push(`**/${toPosix(pat)}`);
-      } else {
-        globs.push(`**/${pat}`);
-      }
-    }
-
-    // Nested .gitignore patterns - prefix with directory path
-    // Use the raw patterns collected in nestedPatterns so we scope patterns
-    // to the nested directory instead of ignoring the entire directory.
-    // Debug: print nested patterns and the computed globs to help diagnosing test failures.
-    for (const [dirRel, patterns] of nestedPatterns.entries()) {
-      for (const p of patterns) {
-        if (!p || p.startsWith("#") || p.startsWith("!")) continue;
-        let pat = p;
-        if (pat.startsWith("/")) pat = pat.slice(1);
-        const prefix = dirRel === "." ? "" : `${dirRel}/`;
-        if (pat.includes("/")) {
-          globs.push(`**/${prefix}${toPosix(pat)}`);
-        } else {
-          globs.push(`**/${prefix}${pat}`);
-        }
-      }
-    }
-
     return Array.from(new Set(globs));
   }
 
