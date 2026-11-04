@@ -507,7 +507,9 @@ describe("CLI", () => {
         cwd: path.join(importMetaDir, "../../.."),
       },
     );
-    expect(output.trim()).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(output.trim()).toMatch(
+      /^Kibi \d{4}\.\d{1,2}\.\d+ \(kibi-cli \d+\.\d+\.\d+\)$/,
+    );
     // Read expected version from package.json
     const pkgJson = JSON.parse(
       require("node:fs").readFileSync(
@@ -515,7 +517,15 @@ describe("CLI", () => {
         "utf-8",
       ),
     );
-    expect(output.trim()).toBe(pkgJson.version);
+    const release = JSON.parse(
+      require("node:fs").readFileSync(
+        path.join(importMetaDir, "../../core/release.json"),
+        "utf-8",
+      ),
+    );
+    expect(output.trim()).toBe(
+      `Kibi ${release.release} (kibi-cli ${pkgJson.version})`,
+    );
   });
 
   test("shows help with all required commands", () => {

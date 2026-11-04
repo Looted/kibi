@@ -248,6 +248,8 @@ symbols:
         target: TEST-e2e-kibi-env-bootstrap
       - type: covered_by
         target: TEST-engine-daemon-package-versions
+      - type: covered_by
+        target: TEST-kibi-release-version
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
@@ -260,6 +262,8 @@ symbols:
         target: REQ-engine-daemon-package-versions
       - type: implements
         target: REQ-kibi-env-bootstrap
+      - type: implements
+        target: REQ-kibi-release-version
       - type: implements
         target: REQ-legacy-kb-first-step-migrate
   - id: SYM-kibi-check-diagnostic
@@ -2319,8 +2323,12 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-release-version
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-kibi-release-version
   - id: SYM-activate
     title: activate
     sourceFile: packages/vscode/src/extension.ts
@@ -3436,9 +3444,13 @@ symbols:
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
+        target: TEST-kibi-release-version
+      - type: covered_by
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-release-version
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-command-result-type
@@ -67490,3 +67502,212 @@ symbols:
         target: TEST-kibi-telemetry-expected-outcomes-cli
       - type: implements
         target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-test-kibi-release-version-script
+    title: Kibi release script suite
+    status: active
+    sourceFile: scripts/tests/kibi-release.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T05:50:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-release-version
+  - id: SYM-test-kibi-release-version-cli
+    title: Kibi release CLI and doctor suite
+    status: active
+    sourceFile: packages/cli/tests/kibi-release.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T05:50:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-release-version
+  - id: SYM-test-kibi-release-version-mcp
+    title: Kibi release MCP title suite
+    status: active
+    sourceFile: packages/mcp/tests/kibi-release.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T05:50:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-release-version
+  - id: SYM-cli-kibi-release-kibi-release-manifest
+    title: KibiReleaseManifest
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-kibi-release-kibi-release-mismatch
+    title: KibiReleaseMismatch
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-kibi-release-parse-kibi-release-manifest
+    title: parseKibiReleaseManifest
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-kibi-release-read-kibi-release
+    title: readKibiRelease
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-kibi-release-matches-listed-version
+    title: matchesListedVersion
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-kibi-release-release-mismatches
+    title: releaseMismatches
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-kibi-release-format-version-line
+    title: formatVersionLine
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-doctor-check-kibi-release
+    title: checkKibiRelease
+    status: active
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-package-versions-cli-version
+    title: cliVersion
+    status: active
+    sourceFile: packages/cli/src/package-versions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-daemon-package-versions
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-engine-daemon-package-versions
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-built-package-versions
+    title: KIBI_BUILT_PACKAGE_VERSIONS
+    status: active
+    sourceFile: packages/cli/src/package-versions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-daemon-package-versions
+      - type: implements
+        target: REQ-engine-daemon-package-versions
+  - id: SYM-cli-is-closed-output-error
+    title: isClosedOutputError
+    status: active
+    sourceFile: packages/cli/src/cli.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-mcp-kibi-release-for-mcp
+    title: kibiReleaseForMcp
+    status: active
+    sourceFile: packages/mcp/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-mcp-server-title
+    title: mcpServerTitle
+    status: active
+    sourceFile: packages/mcp/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
