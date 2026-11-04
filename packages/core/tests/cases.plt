@@ -3,6 +3,8 @@
 :- use_module(kb_fixture).
 :- use_module(test_helpers).
 
+:- fixture_setups_fail_tests.
+
 % One KB holds every fixture: property facts on svc.api.limit (and one on
 % another subject), the scenarios that assume them, and two requirements
 % grounding claims on them.
