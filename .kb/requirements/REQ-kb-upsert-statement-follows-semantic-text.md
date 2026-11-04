@@ -25,6 +25,7 @@ semantic_inventory:
       end: 221
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T14:43:06.594Z'
 id: REQ-kb-upsert-statement-follows-semantic-text
 type: req

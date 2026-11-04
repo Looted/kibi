@@ -110,6 +110,7 @@ logic_claims:
   - CLAIM-81CA6DAF832B824E
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T17:32:26.798Z'
 id: REQ-kibi-schema6-migration-v2
 type: req

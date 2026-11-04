@@ -52,6 +52,7 @@ semantic_inventory:
       end: 432
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-07T19:00:20.382Z'
 id: REQ-model-predicates-grounding-aware-v2
 type: req

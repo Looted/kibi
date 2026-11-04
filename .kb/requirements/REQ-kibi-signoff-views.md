@@ -71,6 +71,7 @@ logic_claims:
   - CLAIM-65ED97AB98F70C91
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-22T09:25:17.980Z'
 id: REQ-kibi-signoff-views
 type: req

@@ -39,6 +39,7 @@ logic_claims:
   - CLAIM-7A23B5C900230815
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-26T13:32:31.609Z'
 id: REQ-cli-subdirectory-workspace
 type: req

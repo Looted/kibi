@@ -209,13 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d74ed1bac883
-  - type: requires_property
-    from: REQ-cli-gc
-    to: FACT-PROP-REQ-CLI-GC-C02
-    created_at: 2026-09-05T14:30:04.782Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9b8115c6dded
   - type: covered_by
     from: SYM-cli-impact-isModuleOrConfig
     to: TEST-audit-quality-diagnostics-v1

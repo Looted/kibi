@@ -58,6 +58,7 @@ origin:
   recorded_at: '2026-11-03T11:35:21.000Z'
 firmness: default
 required_evidence: tested
+rationale: "While editing code, people should see which requirements and tests a symbol carries before changing it."
 ---
 - A registered symbol in the editor must offer a Kibi: Browse linked entities code action.
 - Selecting the Browse linked entities action must open a Quick Pick listing the symbol's related KB entities.

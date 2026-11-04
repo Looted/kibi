@@ -68,6 +68,7 @@ logic_claims:
   - CLAIM-3CA540C3A4E7EB38
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:40:22.709Z'
 id: REQ-kibi-search-gold-set-gate
 type: req

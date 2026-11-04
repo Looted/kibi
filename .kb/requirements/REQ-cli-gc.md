@@ -15,16 +15,14 @@ links:
     target: REQ-003
   - type: specified_by
     target: SCEN-006
-semantic_text: The `kibi gc` command removes stale KB branch stores that no longer have a corresponding local git branch. This keeps the `.kb/branches/` directory clean and prevents disk bloat from long-deleted features.
+semantic_text: The `kibi gc` command removes stale KB branch stores that no longer have a corresponding local git branch.
 semantic_clauses:
   - The `kibi gc` command removes stale KB branch stores that no longer have a corresponding local git branch
-  - This keeps the `.kb/branches/` directory clean and prevents disk bloat from long-deleted features
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 87c1ed61d99b2eda656f9b295530084ec966cfd6c5c2402bb5a41deea70a9a6f
+semantic_source_hash: b5c8ece540c2b3493ed98fe46df1cb836babfd4ede9fcb97e3592b123133f4b9
 logic_claims:
   - CLAIM-F6BDC944EFE3155C
-  - CLAIM-6D4A56A6E8B488CD
 semantic_inventory:
   - claim_key: CLAIM-F6BDC944EFE3155C
     claim_text: The `kibi gc` command removes stale KB branch stores that no longer have a corresponding local git branch
@@ -33,19 +31,12 @@ semantic_inventory:
     span:
       start: 0
       end: 105
-  - claim_key: CLAIM-6D4A56A6E8B488CD
-    claim_text: This keeps the `.kb/branches/` directory clean and prevents disk bloat from long-deleted features
-    role: descriptive
-    status: modeled
-    span:
-      start: 107
-      end: 204
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'Maintainer decision, 2026-11-04, approving the KB gold-standard cleanup that moves the why sentence into rationale: "Ok, all approved."'
   recorded_at: '2026-10-04T01:17:15.284Z'
+rationale: Keeps the .kb/branches/ directory clean and prevents disk bloat from long-deleted features.
 ---
 
 The `kibi gc` command removes stale KB branch stores that no longer have a corresponding local git branch.
-This keeps the `.kb/branches/` directory clean and prevents disk bloat from long-deleted features.

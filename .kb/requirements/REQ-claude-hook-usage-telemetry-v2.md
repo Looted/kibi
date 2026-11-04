@@ -118,6 +118,7 @@ logic_claims:
   - CLAIM-C533C51637295AA8
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:13:09.581Z'
 id: REQ-claude-hook-usage-telemetry-v2
 type: req

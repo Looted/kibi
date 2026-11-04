@@ -38,6 +38,7 @@ logic_claims:
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-10-06: kibi check --staged let an infeasible scenario commit through'
+  approved_by: maintainer
   recorded_at: '2026-10-06T18:18:39.297Z'
 id: REQ-cli-staged-consistency
 type: req

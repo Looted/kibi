@@ -119,6 +119,7 @@ logic_claims:
   - CLAIM-1D06495FE053404E
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:18:02.233Z'
 id: REQ-branch-store-recovery-v4
 type: req

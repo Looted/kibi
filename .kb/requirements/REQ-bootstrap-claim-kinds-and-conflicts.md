@@ -24,6 +24,7 @@ logic_claims:
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-10-06: claim kinds and conflicts in bootstrapContext after a test project rerun'
+  approved_by: maintainer
   recorded_at: '2026-10-06T15:48:20.706Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

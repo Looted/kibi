@@ -58,6 +58,7 @@ origin:
   recorded_at: '2026-11-03T11:35:21.000Z'
 firmness: default
 required_evidence: tested
+rationale: "Reviewers browsing the KB need to jump straight to the code a symbol names."
 ---
 - Clicking a symbol entity in the Kibi tree sidebar must open its source file at its line.
 - The VS Code extension must resolve navigation coordinates from .kb/symbols.yaml and the generated .kb/symbol-coordinates.yaml.

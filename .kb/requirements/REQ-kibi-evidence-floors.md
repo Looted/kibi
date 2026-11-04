@@ -56,6 +56,7 @@ logic_claims:
   - CLAIM-B8F130D981627AB6
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-24T17:34:03.297Z'
 id: REQ-kibi-evidence-floors
 type: req

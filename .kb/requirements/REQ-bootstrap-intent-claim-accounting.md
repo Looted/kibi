@@ -13,6 +13,7 @@ semantic_text: The bootstrap planner must keep every declared intent claim regar
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-10-06: fix bootstrap truncation after a test project onboarding rerun'
+  approved_by: maintainer
   recorded_at: '2026-10-06T11:35:48.740Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

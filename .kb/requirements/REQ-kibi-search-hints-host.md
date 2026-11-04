@@ -9,6 +9,7 @@ semantic_text: Search hints must be requested from a provider only when the kb_s
 required_evidence: tested
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-29T19:17:31.538Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

@@ -94,6 +94,7 @@ origin:
   recorded_at: '2026-11-03T11:34:18.000Z'
 firmness: default
 required_evidence: tested
+rationale: "Agents and people should find the same answers whether they use MCP or the CLI, through one curated read-only set of discovery commands."
 ---
 - Kibi must provide a curated read-only discovery surface through both MCP and the CLI.
 - The discovery surface must offer free-text discovery with kb_search and kibi search.

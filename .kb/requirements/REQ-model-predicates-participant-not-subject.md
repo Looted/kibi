@@ -11,6 +11,7 @@ priority: must
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-10-09: onboarding evaluation round 9 finding K19, constrained identifier offered as actor'
+  approved_by: maintainer
   recorded_at: '2026-10-09T08:03:57.655Z'
 semantic_text: Predicate modeling must leave a participant argument unbound when its value equals a component identifier the requirement constrains. Predicate binding hints must offer the component identifiers the requirement constrains only for the argument that names what the claim is about and for entity arguments. Predicate binding hints must say that the schema does not fit the claim when the claim names no participant.
 logic_claims:

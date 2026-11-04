@@ -34,6 +34,7 @@ semantic_inventory:
       end: 379
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T16:34:01.383Z'
 id: REQ-kb-check-unverified-requirement-statements
 type: req

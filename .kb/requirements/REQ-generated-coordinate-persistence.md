@@ -88,6 +88,7 @@ origin:
   recorded_at: '2026-11-03T11:34:18.000Z'
 firmness: default
 required_evidence: tested
+rationale: "Symbol coordinates are derived compiler state; letting callers author them, or reporting a mutation complete when they failed to generate, leaves navigation and impact analysis pointing at the wrong code."
 ---
 - Callers must not author symbol coordinate fields through kb_upsert, because symbol source coordinates are generated compiler state.
 - A source-first symbol upsert must preserve or regenerate valid coordinates in persisted RDF without copying coordinate fields into the authored symbol manifest.

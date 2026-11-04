@@ -78,6 +78,7 @@ failure_side_waiver: "The claims describe extraction and idempotent refresh. Mal
 failure_side_waiver_approved_by: Piotr Franczyk
 firmness: firm
 required_evidence: tested
+rationale: "Markdown and YAML are the authored source of truth for the KB, so extraction must import them faithfully, including typed links, or the graph diverges from what people wrote."
 ---
 - The Markdown extractor must parse YAML front matter for the core entity types and import Markdown links as relates_to edges.
 - The symbol extractor must import code symbol definitions from symbols.yaml into the KB.

@@ -103,6 +103,7 @@ origin:
   recorded_at: '2026-11-03T12:03:44.000Z'
 firmness: default
 required_evidence: tested
+rationale: "Enforcement should match the risk of an edit: docs and tests stay light, structural KB and code changes get checked."
 ---
 - The OpenCode plugin must classify a proposed edit into a risk class that sets its enforcement level.
 - The OpenCode plugin must classify edits to non-KB documentation as safe_docs_only.

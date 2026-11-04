@@ -141,6 +141,7 @@ logic_claims:
   - CLAIM-A0151FEC23EA1948
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:16:29.860Z'
 id: REQ-kibi-fresh-verification-receipts-v2
 type: req

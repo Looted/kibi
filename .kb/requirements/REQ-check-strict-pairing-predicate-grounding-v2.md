@@ -31,6 +31,7 @@ logic_claims:
   - CLAIM-B97373C4711CFEAF
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T21:05:24.863Z'
 id: REQ-check-strict-pairing-predicate-grounding-v2
 type: req

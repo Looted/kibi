@@ -11,6 +11,7 @@ priority: must
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-10-09: onboarding evaluation round 9 finding K18, provider facts without a claim'
+  approved_by: maintainer
   recorded_at: '2026-10-09T07:23:17.036Z'
 semantic_text: The bootstrap planner must write a discovered provider candidate that states no claim as a meta fact tagged bootstrap:provenance-stub. The bootstrap planner must select provenance stubs after every discovered candidate that states a claim. The bootstrap plan must report planned provenance stubs separately from candidates with claims. Search ranking must sort a provenance stub after every match that is not a provenance stub. The search answer layer must not list a provenance stub as a note. Gap and type coverage reports must not count a provenance stub as a fact.
 logic_claims:

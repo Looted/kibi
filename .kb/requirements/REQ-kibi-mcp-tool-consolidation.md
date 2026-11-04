@@ -53,5 +53,6 @@ origin:
   approved_by: maintainer
   recorded_at: '2026-10-28T09:29:20.974Z'
 required_evidence: tested
+rationale: "A smaller tool list keeps agent context small and tool choice reliable; composite tools must stay at parity with the routes they replaced, and rarely used tools stay off unless asked for."
 ---
 The composite kb_skills and kb_model MCP tools must return the routed catalog operation payload plus the selector. kb_upsert with dryRun true must write nothing and report both write effects as skipped in place of kb_validate_upsert. kb_sparql_remote and kb_job_status must register only when KIBI_MCP_OPTIONAL_TOOLS names them.

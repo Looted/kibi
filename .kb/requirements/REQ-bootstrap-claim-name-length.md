@@ -34,6 +34,7 @@ semantic_inventory:
       end: 199
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T09:14:16.476Z'
 id: REQ-bootstrap-claim-name-length
 type: req

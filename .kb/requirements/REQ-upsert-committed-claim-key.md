@@ -24,6 +24,7 @@ logic_claims:
   - CLAIM-5F99B49B92FC42D6
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-12T18:54:49.600Z'
 id: REQ-upsert-committed-claim-key
 type: req
