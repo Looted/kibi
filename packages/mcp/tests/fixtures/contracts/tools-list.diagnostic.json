@@ -5279,6 +5279,11 @@
                       }
                     ]
                   },
+                  "rejection": {
+                    "additionalProperties": {},
+                    "properties": {},
+                    "type": "object"
+                  },
                   "semanticAdvisor": {
                     "anyOf": [
                       {

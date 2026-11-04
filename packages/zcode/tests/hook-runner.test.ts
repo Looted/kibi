@@ -1,8 +1,11 @@
 // implements REQ-zcode-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+
+import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
 
 import {
   captureReminder,
@@ -257,6 +260,26 @@ describe("ZCode hook runner workspace opt-in", () => {
     expect(context).toContain("kb_search");
     expect(context).toContain("kibi-usage");
     expect(context).toContain("kb_status");
+    // Outside a Git work tree there are no hooks to install: no note.
+    expect(context).not.toContain("kibi hooks install");
+    expect(context.endsWith("\n")).toBe(false);
+  });
+
+  // implements REQ-kibi-fresh-clone-setup
+  test("SessionStart adds the missing-hooks note in a checkout without Kibi hooks", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-nohooks");
+    spawnSync("git", ["init", "-q"], { cwd });
+
+    const context = expectAdditionalContext(
+      await runHook(
+        { hook_event_name: "SessionStart", session_id: "s1", cwd },
+        { pluginData },
+      ),
+      "SessionStart",
+    );
+
+    expect(context).toContain("kb_search");
+    expect(context.endsWith(`\n${MISSING_HOOKS_NOTE}`)).toBe(true);
   });
 
   test("PreToolUse keeps the direct .kb edit warning in opted-in workspaces", async () => {

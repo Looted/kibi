@@ -689,3 +689,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9f488c22c738
+  - type: implements
+    from: SYM-setup-choices-auto-sync-enabled
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:52:43.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5df9f4e745a
+  - type: covered_by
+    from: SYM-setup-choices-auto-sync-enabled
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:52:43.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7118239d3285

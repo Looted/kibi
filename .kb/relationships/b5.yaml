@@ -594,3 +594,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cfa17a26c111
+  - type: implements
+    from: SYM-agent-instructions-agent-instructions-result
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:50:07.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41d6025a75c2
+  - type: covered_by
+    from: SYM-agent-instructions-agent-instructions-result
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:50:07.572Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ca8646f7a5c
+  - type: implements
+    from: SYM-auto-compile-auto-compile-outcome
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:08.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bfdf29b8cd9
+  - type: covered_by
+    from: SYM-auto-compile-auto-compile-outcome
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:08.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77ae40c933aa

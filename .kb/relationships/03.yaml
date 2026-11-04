@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-075af035f0f2
+  - type: covered_by
+    from: SYM-cli-telemetry-details-operationtelemetrysignals
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T14:24:13.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc3784985bff
+  - type: implements
+    from: SYM-cli-telemetry-details-operationtelemetrysignals
+    to: REQ-kibi-telemetry-agent-signals
+    created_at: 2026-11-03T14:24:13.181Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dacd73ed072

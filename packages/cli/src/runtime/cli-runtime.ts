@@ -25,6 +25,7 @@ import type {
   PrologPort,
   RuntimeOptions,
 } from "../public/operations/runtime-types.js";
+import { ensureBranchStoreCompiled } from "../utils/auto-compile.js";
 import {
   type BranchAttachment,
   type BranchResolutionError,
@@ -255,6 +256,10 @@ export function createCliRuntime(
         );
       }
       const usesEngine = merged.prolog === undefined;
+      // An injected Prolog port (tests, hosts) owns its own store.
+      if (usesEngine) {
+        await ensureBranchStoreCompiled(root, attachment, spec);
+      }
       const rawProlog: ManagedPrologPort =
         merged.prolog ?? createDefaultProlog(root, attachment.kbBranch);
       const prolog = bindSignal(rawProlog, signal);

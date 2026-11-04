@@ -39,9 +39,53 @@ export function registerFoundationCommands(program: Command): void {
       "--format <format>",
       "With --print-hook: shell (default), lefthook, husky or pre-commit",
     )
+    .option(
+      "--auto-sync",
+      "Compile a missing branch store on first use (default; recorded in package.json kibi.setup or .kb/setup.json)",
+    )
+    .option(
+      "--no-auto-sync",
+      "Answer from an uncompiled store with a 'run kibi sync' warning instead",
+    )
+    .option(
+      "--prepare-hooks",
+      "Install Kibi's git hooks from the package.json prepare script on every dependency install (default)",
+    )
+    .option("--no-prepare-hooks", "Leave the prepare script alone")
+    .option(
+      "--agent-instructions",
+      "Keep a Kibi section in AGENTS.md and an @AGENTS.md import in CLAUDE.md (default)",
+    )
+    .option("--no-agent-instructions", "Write no agent instruction files")
+    .option(
+      "--ci-gate",
+      "Add .github/workflows/kibi-check.yml, which runs kibi check on every pull request",
+    )
+    .option("--no-ci-gate", "Add no pull-request gate workflow (default)")
     .action(
       withExitCode(async (options: Parameters<typeof initCommand>[0]) =>
         (await import("./commands/init.js")).initCommand(options),
+      ),
+    );
+
+  const hooks = program
+    .command("hooks")
+    .description("Manage Kibi's git hooks in this checkout");
+  hooks
+    .command("install")
+    .description(
+      "Install Kibi's git hooks in this checkout (run by the package.json prepare script that kibi init adds)",
+    )
+    .option(
+      "--quiet",
+      "Print only when hooks were installed and never fail: do nothing in CI, outside a Git work tree, before kibi init, or where a hook manager owns the hooks",
+    )
+    .action(
+      withExitCode(
+        async (options: { quiet?: boolean }) =>
+          await (
+            await import("./commands/hooks-install.js")
+          ).hooksInstallCommand(options),
       ),
     );
 

@@ -3,6 +3,7 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   captureReminder,
@@ -103,6 +104,11 @@ export type HookResult = {
          * rewrite the edit (Codex caps it at roughly 2,500 tokens).
          */
         hookEventName: "PreToolUse";
+        additionalContext: string;
+      }
+    | {
+        /** SessionStart only: developer context added when the session opens. */
+        hookEventName: "SessionStart";
         additionalContext: string;
       }
     | {
@@ -412,9 +418,19 @@ export async function runHook(
 
   try {
     switch (input.event) {
-      case "SessionStart":
+      // implements REQ-kibi-fresh-clone-setup
+      case "SessionStart": {
         trace.action = "session_start";
-        return defaultResult();
+        const note = missingHooksNote(workspace.root);
+        if (note === null) return defaultResult();
+        return {
+          continue: true,
+          hookSpecificOutput: {
+            hookEventName: "SessionStart",
+            additionalContext: note,
+          },
+        };
+      }
 
       // implements REQ-agent-hosts-decision-guard
       case "UserPromptSubmit": {

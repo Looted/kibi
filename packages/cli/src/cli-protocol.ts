@@ -19,6 +19,7 @@ import type { OperationContext } from "./public/operations/runtime-types.js";
 import type { OperationSpec } from "./public/operations/types.js";
 import type { OperationEffect } from "./public/operations/types.js";
 import { detachedReadOnlyDiagnostic } from "./runtime/detached-snapshot.js";
+import { noteCliThrownError } from "./usage-telemetry.js";
 
 // Only whether an envelope is valid matters here, never the list of errors.
 const outputValidator = new Ajv2020({ strict: false });
@@ -208,6 +209,7 @@ export async function executeOperation(
       );
     }
     if (error instanceof Error) {
+      noteCliThrownError(error);
       return errorResult(
         catalogName,
         new OperationError("OPERATION_FAILED", error.message),

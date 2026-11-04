@@ -7,6 +7,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
 import { createEntitySummarizer } from "kibi-agent-core/snippets";
 import {
   CONFIRM_FIRM_EDITS_ENV,
@@ -316,6 +317,21 @@ describe("session start", () => {
       }),
     );
     expect(h.journal()).toStrictEqual([]);
+  });
+
+  // implements REQ-kibi-fresh-clone-setup
+  test("a checkout without Kibi's hooks gets the missing-hooks note on its own line", async () => {
+    const fixture = workspace();
+    spawnSync("git", ["init", "-q"], { cwd: fixture.root });
+    const h = hooks(fixture);
+    expect(
+      await h.call({ hook_event_name: "SessionStart", source: "startup" }),
+    ).toStrictEqual({
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: `${sessionStartContext(6)}\n${MISSING_HOOKS_NOTE}`,
+      },
+    });
   });
 
   test("a compact or clear resets what was shown; a startup or resume does not", async () => {
@@ -1336,5 +1352,32 @@ describe("hook environment", () => {
     expect(
       await counts({ KIBI_DIAGNOSTIC_MODE: "1" }, ".kb/symbols.yaml"),
     ).toStrictEqual([null]);
+  });
+});
+
+// implements REQ-kibi-telemetry-agent-signals
+describe("skill loads", () => {
+  test("loading a Kibi skill through the Skill tool is recorded as skill_loaded", async () => {
+    const fixture = workspace();
+    const h = hooks(fixture);
+    expect(await h.pre("Skill", { skill: "kibi:kibi-usage" })).toStrictEqual(
+      {},
+    );
+    expect(h.lastRow()?.hook_action).toBe("skill_loaded");
+    await h.pre("Skill", { skill: "pdf" });
+    expect(h.rows().map((r) => r.hook_action)).toStrictEqual(["skill_loaded"]);
+    await h.pre("Read", {
+      file_path: path.join(
+        fixture.root,
+        ".claude/skills/kibi-decisions/SKILL.md",
+      ),
+    });
+    expect(h.lastRow()?.hook_action).toBe("skill_loaded");
+    // A hook that already chose an action keeps it.
+    await h.pre("Grep", {
+      pattern: "x",
+      path: ".claude/skills/kibi-decisions/SKILL.md",
+    });
+    expect(h.lastRow()?.hook_action).toBe("search_tip");
   });
 });

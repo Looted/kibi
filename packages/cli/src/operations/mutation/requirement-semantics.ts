@@ -1,3 +1,4 @@
+import { KbRejection } from "../../cli-errors.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import {
@@ -186,7 +187,8 @@ export async function assertStoredRequirementBoundary(
     const previous = boundaryOf(input, before, relationships);
     if (previous.applicable && previous.sourceHash === after.sourceHash) return;
   }
-  throw new Error(
+  throw new KbRejection(
+    "INCOMPLETE_PROPOSITIONS",
     `Proposition-complete ingestion failed: ${input.id} would be written as a current requirement without a complete proposition inventory (${after.errors.join("; ")}). Run kb_model mode analyze (CLI: semantic-advisor) with id '${input.id}' and its complete semantic_text, then send the returned inventory contract (semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash, logic_claims) in this kb_upsert, or retire the requirement through a superseding one instead.`,
   );
 }

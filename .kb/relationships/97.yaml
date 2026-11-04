@@ -342,6 +342,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e4f075014cb0
+  - type: executable_for
+    from: SYM-test-kibi-telemetry-expected-outcomes-cli
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T13:39:09.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10ed26eaa699
   - type: depends_on
     from: REQ-mcp-cli-help
     to: REQ-002

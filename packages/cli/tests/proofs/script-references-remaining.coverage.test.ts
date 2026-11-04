@@ -81,6 +81,53 @@ describe("script references: shadowed globals", () => {
     expect(extract("env", "send(process);\n").unresolved).toHaveLength(1);
   });
 
+  test("a local whose value binds no name shadows the global", () => {
+    const result = extract(
+      "env",
+      "function f() {\n  const window = pick();\n  if (!window) return;\n  send(window);\n}\n",
+    );
+    expect(result.unresolved).toEqual([]);
+  });
+
+  test("a local bound to the global object still reads through it", () => {
+    const result = extract("env", "const g = globalThis;\nsend(g);\n");
+    expect(result.unresolved).toHaveLength(1);
+  });
+
+  test("typeof a global or the environment hands nothing on", () => {
+    const result = extract(
+      "env",
+      "if (typeof window === 'undefined') {}\nconst t = typeof globalThis;\nconst e = typeof process.env;\nconst p = typeof (window as unknown);\n",
+    );
+    expect(result.unresolved).toEqual([]);
+  });
+
+  test("a literal key tested with in on the global object hands nothing on", () => {
+    const result = extract(
+      "env",
+      "const ok = 'Notification' in window && 'PushManager' in globalThis;\n",
+    );
+    expect(result.unresolved).toEqual([]);
+  });
+
+  test("in on the global object with process, Bun or a computed key is unresolved", () => {
+    expect(
+      extract("env", "const a = 'process' in window;\n").unresolved,
+    ).toHaveLength(1);
+    expect(
+      extract("env", "const b = 'Bun' in globalThis;\n").unresolved,
+    ).toHaveLength(1);
+    expect(extract("env", "const c = key in self;\n").unresolved).toHaveLength(
+      1,
+    );
+  });
+
+  test("in on the environment object itself stays unresolved", () => {
+    expect(
+      extract("env", "const a = 'HOME' in process.env;\n").unresolved,
+    ).toHaveLength(1);
+  });
+
   test("a type position is not a read", () => {
     const result = extract(
       "env",

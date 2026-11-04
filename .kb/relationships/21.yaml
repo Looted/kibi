@@ -419,6 +419,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-42eac3133207
+  - type: covered_by
+    from: SYM-cli-contradictions-upsertfailure
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T13:39:48.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5812b6127456
+  - type: implements
+    from: SYM-cli-contradictions-upsertfailure
+    to: REQ-kibi-telemetry-expected-outcomes
+    created_at: 2026-11-03T13:39:48.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b111d3968eb3
   - type: specified_by
     from: REQ-reusable-skill-subsystem
     to: SCEN-reusable-skill-subsystem

@@ -124,8 +124,13 @@ describe.skipIf(process.platform !== "linux")(
           "## Context\n\nReports export as CSV.\n",
         ),
       );
-      // A query attaches an engine to the empty store; nothing is compiled.
-      ws.json(["query"], { type: "req" });
+      // A query attaches an engine to the empty store; with auto-sync off,
+      // nothing is compiled.
+      ws.json(
+        ["query"],
+        { type: "req" },
+        { ...process.env, KIBI_AUTO_SYNC: "0" },
+      );
       const store = (ws.json(["status"], {}) as { data: StatusData }).data
         .kbPath;
       const holderPid = await killEngine(store);

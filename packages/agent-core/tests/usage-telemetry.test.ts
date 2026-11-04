@@ -523,6 +523,8 @@ describe("anonymous usage telemetry events", () => {
       status: "error",
       duration_ms: 42,
       error_category: "tool_timeout",
+      error_class: null,
+      telemetry_version: 2,
     });
     expect(Object.keys(operation?.properties ?? {}).sort()).toEqual(
       [
@@ -534,6 +536,7 @@ describe("anonymous usage telemetry events", () => {
         "distinct_id",
         "duration_ms",
         "error_category",
+        "error_class",
         "exit_code",
         "host",
         "interface",
@@ -546,6 +549,22 @@ describe("anonymous usage telemetry events", () => {
         "runtime_version",
         "session",
         "status",
+        "telemetry_version",
+        "dry_run",
+        "relationship_count",
+        "rejection_code",
+        "validation_rule",
+        "validation_field",
+        "issue_count",
+        "attempt",
+        "prior_outcome",
+        "skill_loaded_before",
+        "result_count",
+        "abstained",
+        "hints_shown",
+        "search_repeat",
+        "crash_frame",
+        "crash_fingerprint",
       ].sort(),
     );
     expect(hook?.event).toBe("kibi_hook");

@@ -123,6 +123,7 @@ import {
   validateStagedSymbolCoverage,
   validateStagedSymbols,
 } from "../traceability/validate.js";
+import { ensureBranchStoreCompiled } from "../utils/auto-compile.js";
 import { resolveReadBranchAttachment } from "../utils/branch-resolver.js";
 import { CANONICAL_ENTITY_PATHS, isEntityLanePath } from "../utils/kb-paths.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
@@ -709,6 +710,11 @@ export async function checkCommand(
           `Warning: reading legacy KB attachment ${attachment.gitBranch} -> ${attachment.kbBranch}; migrate before writes or sync.`,
         );
       }
+      // A fresh clone's first commit must not fail on a store nothing compiled.
+      // implements REQ-kibi-fresh-clone-setup
+      await ensureBranchStoreCompiled(process.cwd(), attachment, {
+        name: "kb_check",
+      });
       resolvedKbPath = attachment.storePath;
     }
 

@@ -440,3 +440,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-810a32384d2e
+  - type: implements
+    from: SYM-checkout-hooks-missing-hooks-note-text
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:32.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67fa9f6e1fb1
+  - type: covered_by
+    from: SYM-checkout-hooks-missing-hooks-note-text
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:32.540Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-852891cb2e05
+  - type: implements
+    from: SYM-checkout-hooks-missing-hooks-note
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:37.912Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d703fb8c8e72
+  - type: covered_by
+    from: SYM-checkout-hooks-missing-hooks-note
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:37.942Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-533123205dfa

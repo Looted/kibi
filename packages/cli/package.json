@@ -32,6 +32,7 @@
       "types": "./dist/cli.d.ts",
       "default": "./dist/cli.js"
     },
+    "./bin/kibi": "./bin/kibi",
     "./prolog": {
       "types": "./dist/public/prolog/index.d.ts",
       "default": "./dist/public/prolog/index.js"
@@ -115,6 +116,10 @@
     "./diagnostics": {
       "types": "./dist/diagnostics.d.ts",
       "default": "./dist/diagnostics.js"
+    },
+    "./telemetry-details": {
+      "types": "./dist/telemetry-details.d.ts",
+      "default": "./dist/telemetry-details.js"
     },
     "./search-ranking": {
       "types": "./dist/search-ranking.d.ts",

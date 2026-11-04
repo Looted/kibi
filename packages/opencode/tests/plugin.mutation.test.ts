@@ -4,6 +4,7 @@ import {
   beforeEach,
   describe,
   expect,
+  setSystemTime,
   spyOn,
   test,
 } from "bun:test";
@@ -128,6 +129,11 @@ function workspace(config: Record<string, unknown> = {}): string {
   fs.writeFileSync(
     path.join(dir, ".opencode/kibi.json"),
     JSON.stringify(config),
+  );
+  // An initialized checkout: kibi init installed the pre-commit gate.
+  fs.writeFileSync(
+    path.join(dir, ".git/hooks/pre-commit"),
+    "#!/bin/sh\n# pre-commit hook for kibi\nkibi check --staged\n",
   );
   return dir;
 }
@@ -527,6 +533,41 @@ describe("plugin system transform", () => {
     ]);
     expect(system).toEqual(["before <!-- kibi-opencode --> after"]);
     expect(run.of("smart-enforcement.guidance")).toHaveLength(0);
+  });
+
+  // implements REQ-kibi-fresh-clone-setup
+  test("a checkout without Kibi's git hooks is told how to install them", async () => {
+    const dir = workspace();
+    fs.rmSync(path.join(dir, ".git/hooks/pre-commit"));
+    const run = await start(dir);
+    const system = await run.transform(null, ["host"]);
+    expect(system.at(-1)).toContain("kibi hooks install");
+  });
+
+  // implements REQ-kibi-fresh-clone-setup
+  test("the missing-hooks check is cached for 30 seconds per worktree", async () => {
+    const dir = workspace();
+    const hook = path.join(dir, ".git/hooks/pre-commit");
+    const hookText = fs.readFileSync(hook, "utf8");
+    fs.rmSync(hook);
+    const start0 = new Date("2026-01-01T00:00:00.000Z").getTime();
+    try {
+      setSystemTime(new Date(start0));
+      const run = await start(dir);
+      const noted = async () =>
+        (await run.transform(null, ["host"])).some((line) =>
+          line.includes("kibi hooks install"),
+        );
+      expect(await noted()).toBe(true);
+      // Installing the hooks mid-session shows only after the cache expires.
+      fs.writeFileSync(hook, hookText);
+      setSystemTime(new Date(start0 + 29_999));
+      expect(await noted()).toBe(true);
+      setSystemTime(new Date(start0 + 30_000));
+      expect(await noted()).toBe(false);
+    } finally {
+      setSystemTime();
+    }
   });
 
   test("an idle session gets only the sentinel and a skip log", async () => {

@@ -346,3 +346,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-faaed8791c2e
+  - type: relates_to
+    from: REQ-kibi-telemetry-expected-outcomes
+    to: REQ-kibi-anonymous-usage-telemetry
+    created_at: 2026-11-03T13:37:51.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28888cfc521b
+  - type: specified_by
+    from: REQ-kibi-telemetry-expected-outcomes
+    to: SCEN-kibi-telemetry-expected-outcomes
+    created_at: 2026-11-03T13:38:47.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfaa314ebcc6
+  - type: verified_by
+    from: REQ-kibi-telemetry-expected-outcomes
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T13:38:47.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c016156ea85
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-expected-outcomes
+    to: FACT-PRED-telemetry-refusal-rejected
+    created_at: 2026-11-03T13:44:21.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05b17aaa618e
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-expected-outcomes
+    to: FACT-PRED-telemetry-fault-error
+    created_at: 2026-11-03T13:44:22.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-816ed09a2cbd
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-expected-outcomes
+    to: FACT-PRED-telemetry-error-class-only-for-errors
+    created_at: 2026-11-03T13:44:22.059Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6dedf3c971d9
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-expected-outcomes
+    to: FACT-PRED-telemetry-event-version
+    created_at: 2026-11-03T13:44:22.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16093811b08d
+  - type: specified_by
+    from: REQ-kibi-telemetry-expected-outcomes
+    to: SCEN-NEG-kibi-telemetry-expected-outcomes-refusal-as-error
+    created_at: 2026-11-03T13:47:29.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31a4dd4c53e5

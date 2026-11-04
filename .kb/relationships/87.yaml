@@ -531,3 +531,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ab65c9d34057
+  - type: implements
+    from: SYM-checkout-hooks-kibi-hooks-missing
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:26.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cc1af13d6ba
+  - type: covered_by
+    from: SYM-checkout-hooks-kibi-hooks-missing
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:26.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-703020271e97
