@@ -9744,11 +9744,11 @@ ks_stage_lines(Text, Stages) :-
 ks_stage_line(Line) :-
     sub_string(Line, 0, _, _, "__KIBI_").
 
-ks_open_file_streams(Suffix, Streams) :-
-    findall(Stream,
-            ( stream_property(Stream, file_name(File)),
-              sub_atom(File, _, _, 0, Suffix) ),
-            Streams).
+% The streams still open on File. Only this file counts: a stream that an
+% earlier test cut short (by a time limit, say) left open on its own store
+% is no concern of the test asking.
+ks_open_file_streams(File, Streams) :-
+    findall(Stream, stream_property(Stream, file_name(File)), Streams).
 
 ks_temp_snapshots(Dir, Temps) :-
     directory_files(Dir, Files),
@@ -9889,9 +9889,10 @@ test(legacy_save_reports_its_stages_and_releases_the_branch_lock, [setup(setup_k
     ks_stage_lines(Text, Stages),
     assertion(Stages == ["__KIBI_STAGE__:snapshot_save", "__KIBI_STAGE__:audit_sync",
                          "__KIBI_STAGE__:snapshot_save"]),
-    ks_open_file_streams('kb.lock', Streams),
-    assertion(Streams == []),
     test_kb_dir(Dir),
+    atom_concat(Dir, '/kb.lock', Lock),
+    ks_open_file_streams(Lock, Streams),
+    assertion(Streams == []),
     atom_concat(Dir, '/kb.rdf', DataFile),
     assertion(exists_file(DataFile)).
 
@@ -9907,7 +9908,7 @@ test(legacy_save_refuses_a_snapshot_another_writer_replaced, [setup(setup_kb), c
     setup_call_cleanup(open(DataFile, append, Out), nl(Out), close(Out)),
     ks_assert_req('REQ-STALE-2'),
     catch(ks_stderr(kb_save, _), Error, true),
-    assertion(ks_caught(Error, error(permission_error(save, kb, stale_snapshot), _))),
+    assertion(Error == error(permission_error(save, kb, stale_snapshot), kb_save/0)),
     ks_temp_snapshots(Dir, Temps),
     assertion(Temps == []).
 
@@ -10207,13 +10208,14 @@ test(migration_does_not_wait_for_a_held_branch_lock, [setup(cleanup_test_kb), cl
     assertion(ks_caught(Error, error(permission_error(lock, _, _), _))),
     assertion(kb:kb_attached(Source)),
     assertion(\+ exists_directory(Target)),
-    ks_open_file_streams('kb.lock', Streams),
+    ks_open_file_streams(Lock, Streams),
     assertion(Streams == []).
 
 test(migration_lock_is_released_after_the_copy, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
     ks_legacy_source(Source, Target),
     ks_stderr(kb_migrate_legacy(Source, Target), _),
-    ks_open_file_streams('kb.lock', Streams),
+    atom_concat(Source, '/kb.lock', Lock),
+    ks_open_file_streams(Lock, Streams),
     assertion(Streams == []).
 
 test(migration_refuses_extra_triples_in_the_staged_store, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
@@ -10473,7 +10475,8 @@ test(legacy_commit_reports_runtime_and_stages, [setup(setup_kb), cleanup(cleanup
                          "__KIBI_STAGE__:relationship_audit",
                          "__KIBI_STAGE__:snapshot_save", "__KIBI_STAGE__:audit_sync",
                          "__KIBI_STAGE__:snapshot_save"]),
-    ks_open_file_streams('audit.log', Streams),
+    atom_concat(Dir, '/audit.log', AuditLog),
+    ks_open_file_streams(AuditLog, Streams),
     assertion(Streams == []).
 
 test(legacy_commit_refuses_an_unknown_skip_flag, [setup(setup_kb), cleanup(cleanup_kb)]) :-

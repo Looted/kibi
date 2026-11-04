@@ -861,14 +861,14 @@ current_data_stamp(DataFile, stamp(MTime, Size)) :-
     time_file(DataFile, MTime),
     size_file(DataFile, Size).
 
+% A legacy attach records the snapshot stamp, and only an attached store is
+% saved or written.
 ensure_snapshot_current(DataFile) :-
-    (   kb_attached_snapshot(ExpectedStamp)
-    ->  current_data_stamp(DataFile, CurrentStamp),
-        (   ExpectedStamp == CurrentStamp
-        ->  true
-        ;   throw(error(permission_error(save, kb, stale_snapshot), kb_save/0))
-        )
-    ;   true
+    kb_attached_snapshot(ExpectedStamp),
+    current_data_stamp(DataFile, CurrentStamp),
+    (   ExpectedStamp == CurrentStamp
+    ->  true
+    ;   throw(error(permission_error(save, kb, stale_snapshot), kb_save/0))
     ).
 
 %% with_kb_mutex(+Goal)
@@ -2653,7 +2653,7 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
 % arguments before enumerating partner requirements.
 req_conflict_witness(ReqA, ReqB, Witness) :-
     decision_signatures(Signatures),
-    % mutalog-disable-next-line goal_true: with no signatures decision_req_fact fails anyway; this only skips the search
+    % mutalog-disable-next-line goal_true,literal: with no signatures decision_req_fact fails anyway; this only skips the search, and a fresh [_] never equals Signatures
     Signatures \== [],
     decision_conflict_pair(Signatures, ReqA, ReqB, FactA, FactB, Namespace, Name,
                            ArgsA, ArgsB, PolarityA, PolarityB, KeyPositions, DecisionPosition),
