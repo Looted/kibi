@@ -3,7 +3,6 @@ title: Host hooks decide paths, Kibi MCP calls and the knowledge index through s
 status: open
 priority: must
 firmness: firm
-required_evidence: tested
 tags:
   - hooks
   - agent-core
@@ -33,6 +32,8 @@ logic_claims:
   - CLAIM-DF64F5F40C65E752
 id: REQ-agent-core-shared-hook-inputs
 type: req
+proof_exempt: true
+proof_exempt_reason: 'A source structure contract: which module a host hook takes a decision from is visible in the host sources, not in packed behavior (the Claude Code hooks ship as one bundle). Verified by the shared hook input contract test (TEST-agent-core-shared-hook-inputs); each host''s packed e2e test exercises the decisions themselves.'
 ---
 The Claude Code, Codex, Cursor and ZCode hooks must classify workspace paths, recognize Kibi MCP tool calls and load the knowledge index through the shared kibi-agent-core functions, so every host reaches the same decision for the same input.
 

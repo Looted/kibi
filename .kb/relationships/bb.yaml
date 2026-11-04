@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3abf4942b7a
+  - type: assumes
+    from: SCEN-NEG-agent-core-shared-hook-inputs-FORKED-HOST
+    to: FACT-NEG-agent-core-shared-hook-inputs-FORKED-HOST
+    created_at: 2026-11-04T14:44:07.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84e981f33e9e
+  - type: verified_by
+    from: SCEN-NEG-agent-core-shared-hook-inputs-FORKED-HOST
+    to: TEST-agent-core-shared-hook-inputs
+    created_at: 2026-11-04T14:44:07.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e60d8435dd8d

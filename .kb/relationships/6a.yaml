@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a6c37b2f4352
+  - type: specified_by
+    from: REQ-agent-core-shared-hook-inputs
+    to: SCEN-NEG-agent-core-shared-hook-inputs-FORKED-HOST
+    created_at: 2026-11-04T14:44:08.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4704288a04cb
