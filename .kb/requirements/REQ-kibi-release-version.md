@@ -49,6 +49,7 @@ semantic_inventory:
       end: 467
 id: REQ-kibi-release-version
 type: req
+required_evidence: tested
 ---
 Every Kibi release must have one release version of the form YYYY.M.N. The kibi-core package must ship a release manifest that lists the version of every publishable Kibi package in the release and the KB schema, operation protocol and plugin API versions of the release. The kibi --version command must print the release version next to the kibi-cli version. Kibi doctor must warn when an installed Kibi package has a version other than the version its release lists.
 
