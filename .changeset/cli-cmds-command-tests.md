@@ -23,3 +23,5 @@ Source discovery reads pending receipts through one parser and lets errors in a 
 `kibi init` drops an unused next-step identifier and a redundant containment check; its output is unchanged.
 
 `kibi init --github` derives workflow paths from one table and simplifies README badge placement; the README output is unchanged.
+
+The sync cache reader shares one empty-cache shape and one optional-field list, and the manifest fingerprint reads symbol sources with fewer redundant guards; fingerprints and cache files are unchanged.
