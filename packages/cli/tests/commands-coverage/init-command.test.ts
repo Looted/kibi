@@ -44,9 +44,10 @@ function captureConsole(): { logs: string[]; errors: string[] } {
 describe("initCommand --print-hook", () => {
   test("rejects an unknown hook", async () => {
     const io = captureConsole();
-    expect(await initCommand({ printHook: "pre-push" })).toStrictEqual({
-      exitCode: 1,
-    });
+    const root = workspace();
+    expect(
+      await withCwd(root, () => initCommand({ printHook: "pre-push" })),
+    ).toStrictEqual({ exitCode: 1 });
     expect(io.errors).toStrictEqual([
       "Error: unknown hook 'pre-push' for --print-hook. Expected one of: post-checkout, post-merge, post-rewrite, pre-commit, all.",
     ]);
@@ -58,7 +59,10 @@ describe("initCommand --print-hook", () => {
       out.push(String(chunk));
       return true;
     });
-    const result = await initCommand({ printHook: "post-merge" });
+    const root = workspace();
+    const result = await withCwd(root, () =>
+      initCommand({ printHook: "post-merge" }),
+    );
     mock.restore();
     expect(result).toStrictEqual({ exitCode: 0 });
     expect(out.join("")).toContain("sync");
@@ -72,7 +76,11 @@ describe("initCommand repository refusals", () => {
       reason: "dubious ownership",
     } as never);
     const io = captureConsole();
-    expect(await initCommand({})).toStrictEqual({ exitCode: 1 });
+    // From a scratch workspace: an init that ignored the refusal must not
+    // write into the checkout running the tests.
+    expect(await withCwd(workspace(), () => initCommand({}))).toStrictEqual({
+      exitCode: 1,
+    });
     expect(io.errors).toStrictEqual([
       "Error: dubious ownership",
       "Kibi cannot verify this directory's Git context; refusing to create workspace state.",
@@ -85,7 +93,11 @@ describe("initCommand repository refusals", () => {
       reason: "bare repository",
     } as never);
     const io = captureConsole();
-    expect(await initCommand({})).toStrictEqual({ exitCode: 1 });
+    // From a scratch workspace: an init that ignored the refusal must not
+    // write into the checkout running the tests.
+    expect(await withCwd(workspace(), () => initCommand({}))).toStrictEqual({
+      exitCode: 1,
+    });
     expect(io.errors).toStrictEqual([
       "Error: bare repository",
       "Kibi requires a working-tree checkout; refusing to create workspace state.",

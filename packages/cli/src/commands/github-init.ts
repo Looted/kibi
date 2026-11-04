@@ -90,26 +90,21 @@ export type GitHubScaffoldResult = Readonly<{
   repo: GitHubRepo | undefined;
 }>;
 
-function workflowRelativePath(kind: GitHubWorkflowKind): string {
-  switch (kind) {
-    case "badge":
-      return GITHUB_BADGE_WORKFLOW_RELPATH;
-    case "check":
-      return GITHUB_CHECK_WORKFLOW_RELPATH;
-    case "report":
-      return GITHUB_REPORT_WORKFLOW_RELPATH;
-  }
-}
-
 // implements REQ-kibi-github-report-integration
 export function githubTemplateDir(): string {
   return path.resolve(__dirname, "..", "..", "templates", "github");
 }
 
+const WORKFLOW_PATHS: Readonly<Record<GitHubWorkflowKind, string>> = {
+  report: GITHUB_REPORT_WORKFLOW_RELPATH,
+  badge: GITHUB_BADGE_WORKFLOW_RELPATH,
+  check: GITHUB_CHECK_WORKFLOW_RELPATH,
+};
+
 export function githubWorkflowTemplateFileName(
   kind: GitHubWorkflowKind,
 ): string {
-  return path.basename(workflowRelativePath(kind));
+  return path.basename(WORKFLOW_PATHS[kind]);
 }
 
 export function loadGitHubWorkflowTemplate(kind: GitHubWorkflowKind): string {
@@ -125,9 +120,6 @@ export function loadGitHubWorkflowTemplate(kind: GitHubWorkflowKind): string {
 
 export function parseGitHubRemote(url: string): GitHubRepo | undefined {
   const trimmed = url.trim();
-  if (trimmed.length === 0) {
-    return undefined;
-  }
 
   const patterns: RegExp[] = [
     /^https?:\/\/(?:[^/@]+@)?(?:www\.)?github\.com\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i,
@@ -137,20 +129,17 @@ export function parseGitHubRemote(url: string): GitHubRepo | undefined {
   ];
 
   for (const pattern of patterns) {
-    const match = trimmed.match(pattern);
-    const owner = match?.[1];
-    const repoRaw = match?.[2];
-    if (!owner || !repoRaw) {
+    const match = pattern.exec(trimmed);
+    if (!match) {
       continue;
     }
+    // Both groups match at least one character.
+    const [, owner, repoRaw] = match as unknown as [string, string, string];
     if (owner.includes(":") || repoRaw.includes(" ")) {
       return undefined;
     }
     const repo = repoRaw.replace(/\.git$/i, "");
-    if (owner.length === 0 || repo.length === 0) {
-      return undefined;
-    }
-    return { owner, repo };
+    return repo.length === 0 ? undefined : { owner, repo };
   }
 
   return undefined;
@@ -218,19 +207,11 @@ export function insertKibiBadge(
 ): string {
   const newline = content.includes("\r\n") ? "\r\n" : "\n";
   const lines = content.split(/\r?\n/);
-  let h1Index = -1;
-  for (let index = 0; index < lines.length; index += 1) {
-    if (/^#\s+\S/.test(lines[index] ?? "")) {
-      h1Index = index;
-      break;
-    }
-  }
+  const h1Index = lines.findIndex((line) => /^#\s+\S/.test(line));
 
-  const clusterEnd = findBadgeClusterEnd(lines, h1Index >= 0 ? h1Index + 1 : 0);
-  if (h1Index >= 0) {
-    const insertAt = clusterEnd > h1Index + 1 ? clusterEnd : h1Index + 1;
-    return insertLine(lines, insertAt, badgeMarkdown, newline);
-  }
+  // The badge cluster starts after the title, or at the top without one; it
+  // never ends before where it starts, so a title always puts it past 0.
+  const clusterEnd = findBadgeClusterEnd(lines, h1Index + 1);
   if (clusterEnd > 0) {
     return insertLine(lines, clusterEnd, badgeMarkdown, newline);
   }
@@ -248,9 +229,11 @@ export function listGitRemotes(cwd: string): GitRemote[] {
     });
     const remotes: GitRemote[] = [];
     for (const line of output.split("\n")) {
-      const match = line.match(/^(\S+)\s+(\S+)\s+\(fetch\)$/);
-      if (match?.[1] && match[2]) {
-        remotes.push({ name: match[1], url: match[2] });
+      const match = /^(\S+)\s+(\S+)\s+\(fetch\)$/.exec(line);
+      if (match) {
+        // Both groups match at least one character.
+        const [, name, url] = match as unknown as [string, string, string];
+        remotes.push({ name, url });
       }
     }
     return remotes;
@@ -277,7 +260,7 @@ export function writeGitHubWorkflow(
   kind: GitHubWorkflowKind,
   template: string,
 ): WorkflowWriteStatus {
-  const dest = path.join(cwd, workflowRelativePath(kind));
+  const dest = path.join(cwd, WORKFLOW_PATHS[kind]);
   const normalizedTemplate = normalizeNewlines(template);
   if (existsSync(dest)) {
     const existing = normalizeNewlines(readFileSync(dest, "utf8"));
@@ -312,14 +295,8 @@ export function scaffoldGitHubIntegration(
   const error = deps.error ?? ((message: string) => console.error(message));
   const listRemotes = deps.listRemotes ?? listGitRemotes;
   const kind: GitHubWorkflowKind = options.badgeOnly ? "badge" : "report";
-  const workflowPath =
-    kind === "badge"
-      ? GITHUB_BADGE_WORKFLOW_RELPATH
-      : GITHUB_REPORT_WORKFLOW_RELPATH;
-  const siblingPath =
-    kind === "badge"
-      ? GITHUB_REPORT_WORKFLOW_RELPATH
-      : GITHUB_BADGE_WORKFLOW_RELPATH;
+  const workflowPath = WORKFLOW_PATHS[kind];
+  const siblingPath = WORKFLOW_PATHS[options.badgeOnly ? "report" : "badge"];
   const template = loadGitHubWorkflowTemplate(kind);
   const workflow = writeGitHubWorkflow(options.cwd, kind, template);
   const gitignore = ensureKibiReportGitIgnore(options.cwd);
@@ -420,39 +397,35 @@ export function skipBlankLines(
   start: number,
 ): number {
   let peek = start;
-  while (peek < lines.length && (lines[peek] ?? "").trim() === "") {
+  while (peek < lines.length && (lines[peek] as string).trim() === "") {
     peek += 1;
   }
   return peek;
 }
 
+/** A line past the end reads as "undefined", which is no badge. */
+function isBadgeLine(line: string | undefined): boolean {
+  return BADGE_OR_IMAGE_LINE.test(line as string);
+}
+
 function findBadgeClusterEnd(lines: readonly string[], start: number): number {
-  let index = start;
-  while (index < lines.length && (lines[index] ?? "").trim() === "") {
-    index += 1;
-  }
-  if (index >= lines.length || !BADGE_OR_IMAGE_LINE.test(lines[index] ?? "")) {
+  let index = skipBlankLines(lines, start);
+  if (!isBadgeLine(lines[index])) {
     return start;
   }
-  while (index < lines.length) {
-    const line = lines[index] ?? "";
-    if (BADGE_OR_IMAGE_LINE.test(line)) {
-      index += 1;
-      continue;
-    }
-    if (line.trim() === "") {
-      const peek = skipBlankLines(lines, index + 1);
-      if (peek < lines.length && BADGE_OR_IMAGE_LINE.test(lines[peek] ?? "")) {
-        index = peek;
-        continue;
-      }
-      break;
-    }
-    break;
+  while (isBadgeLine(lines[index])) {
+    index += 1;
+    // A blank gap between badges keeps the cluster going.
+    const peek = skipBlankLines(lines, index);
+    if (isBadgeLine(lines[peek])) index = peek;
   }
   return index;
 }
 
+/**
+ * Insert after the title or the last badge, so the line before is never
+ * blank and always gets a blank line between.
+ */
 function insertLine(
   lines: string[],
   index: number,
@@ -461,19 +434,8 @@ function insertLine(
 ): string {
   const before = lines.slice(0, index);
   const after = lines.slice(index);
-  const prefixBlank =
-    before.length === 0 || (before[before.length - 1] ?? "").trim() === ""
-      ? []
-      : [""];
-  const suffixBlank =
-    after.length === 0 || (after[0] ?? "").trim() === "" ? [] : [""];
-  return [
-    ...before,
-    ...prefixBlank,
-    badgeMarkdown,
-    ...suffixBlank,
-    ...after,
-  ].join(newline);
+  const suffixBlank = (after[0] ?? "").trim() === "" ? [] : [""];
+  return [...before, "", badgeMarkdown, ...suffixBlank, ...after].join(newline);
 }
 
 /**

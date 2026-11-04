@@ -111,7 +111,7 @@ function readExtractionFailures(
   cachePath: string,
   resolved: SyncCacheDeps,
 ): Record<string, SourceExtractionFailure> {
-  if (!resolved.existsSync(cachePath)) return {};
+  // A missing or unreadable cache records no failures.
   try {
     const parsed = JSON.parse(resolved.readFileSync(cachePath, "utf8")) as {
       extractionFailures?: unknown;
@@ -177,7 +177,7 @@ export function compilerFingerprintReason(
 ): Record<string, unknown> | null {
   const resolved = resolveDeps(deps);
   const cachePath = path.join(storePath, "sync-cache.json");
-  if (!resolved.existsSync(cachePath)) return null;
+  // A missing or unreadable cache has no compilation to judge.
   let recorded: unknown;
   try {
     recorded = (
@@ -260,10 +260,10 @@ export function sourceExtractionRemediation(
 
 export function toCacheKey(workspaceRoot: string, filePath: string): string {
   const root = path.resolve(workspaceRoot);
-  const target = path.isAbsolute(filePath)
-    ? filePath
-    : path.resolve(root, filePath);
-  return path.relative(root, target).split(path.sep).join("/");
+  return path
+    .relative(root, path.resolve(root, filePath))
+    .split(path.sep)
+    .join("/");
 }
 
 export function hashFile(
@@ -326,67 +326,54 @@ export function hashManifestWithCoordinates(
     state: "missing" | "outside-workspace" | "unreadable" | "present";
     sha256?: string;
   }> = [];
-  let symbols: unknown[] = [];
+  let parsed = null as { symbols?: unknown } | null;
   try {
-    const parsed = parseYAML(manifestContent.toString()) as unknown;
-    if (
-      parsed !== null &&
-      typeof parsed === "object" &&
-      !Array.isArray(parsed) &&
-      Array.isArray((parsed as { symbols?: unknown }).symbols)
-    ) {
-      symbols = (parsed as { symbols: unknown[] }).symbols;
-    }
+    parsed = parseYAML(manifestContent.toString()) as typeof parsed;
   } catch {
     // Extraction owns the user-facing YAML diagnostic. Fingerprinting must
     // still complete so malformed manifests cannot look cache-current.
   }
   const sourcePaths = new Set<string>();
-  for (const value of symbols) {
-    if (value === null || typeof value !== "object" || Array.isArray(value)) {
-      continue;
-    }
-    const symbol = value as { sourceFile?: unknown; source?: unknown };
-    const sourceFile =
-      typeof symbol.sourceFile === "string"
-        ? symbol.sourceFile
-        : typeof symbol.source === "string"
-          ? symbol.source
-          : undefined;
-    if (sourceFile !== undefined && sourceFile.length > 0) {
-      sourcePaths.add(sourceFile);
+  // Scalars and lists have no symbols field, and their entries no source.
+  const symbols = parsed?.symbols;
+  if (Array.isArray(symbols)) {
+    for (const value of symbols) {
+      const symbol = value as { sourceFile?: unknown; source?: unknown } | null;
+      const sourceFile =
+        typeof symbol?.sourceFile === "string"
+          ? symbol.sourceFile
+          : typeof symbol?.source === "string"
+            ? symbol.source
+            : "";
+      if (sourceFile) sourcePaths.add(sourceFile);
     }
   }
   const root = path.resolve(workspaceRoot);
   for (const sourceFile of [...sourcePaths].sort()) {
-    try {
-      const absolute = path.isAbsolute(sourceFile)
-        ? path.resolve(sourceFile)
-        : path.resolve(root, sourceFile);
-      const relative = path.relative(root, absolute);
-      if (relative === ".." || relative.startsWith(`..${path.sep}`)) {
-        referencedSources.push({
-          path: sourceFile,
-          state: "outside-workspace",
-        });
-      } else if (!resolved.existsSync(absolute)) {
-        referencedSources.push({ path: sourceFile, state: "missing" });
-      } else {
-        try {
-          referencedSources.push({
-            path: sourceFile,
-            state: "present",
-            sha256: resolved
-              .createHash("sha256")
-              .update(resolved.readFileSync(absolute))
-              .digest("hex"),
-          });
-        } catch {
-          referencedSources.push({ path: sourceFile, state: "unreadable" });
-        }
+    const absolute = path.resolve(root, sourceFile);
+    const relative = path.relative(root, absolute);
+    if (relative === ".." || relative.startsWith(`..${path.sep}`)) {
+      referencedSources.push({
+        path: sourceFile,
+        state: "outside-workspace",
+      });
+    } else {
+      try {
+        referencedSources.push(
+          resolved.existsSync(absolute)
+            ? {
+                path: sourceFile,
+                state: "present",
+                sha256: resolved
+                  .createHash("sha256")
+                  .update(resolved.readFileSync(absolute))
+                  .digest("hex"),
+              }
+            : { path: sourceFile, state: "missing" },
+        );
+      } catch {
+        referencedSources.push({ path: sourceFile, state: "unreadable" });
       }
-    } catch {
-      referencedSources.push({ path: sourceFile, state: "unreadable" });
     }
   }
   return resolved
@@ -401,6 +388,25 @@ export function hashManifestWithCoordinates(
     .digest("hex");
 }
 
+function emptySyncCache(): SyncCache {
+  return {
+    version: SYNC_CACHE_VERSION,
+    hashes: {},
+    seenAt: {},
+    semanticHashes: {},
+    semanticContracts: {},
+  };
+}
+
+const OPTIONAL_CACHE_FIELDS = [
+  "relationshipHashes",
+  "entityHashes",
+  "sourceEntityIds",
+  "shardRelationships",
+  "compilerFingerprint",
+  "extractionFailures",
+] as const;
+
 export function readSyncCache(
   // implements REQ-003
   cachePath: string,
@@ -411,15 +417,7 @@ export function readSyncCache(
   } = {},
 ): SyncCache {
   const resolved = resolveDeps(deps);
-  if (!resolved.existsSync(cachePath)) {
-    return {
-      version: SYNC_CACHE_VERSION,
-      hashes: {},
-      seenAt: {},
-      semanticHashes: {},
-      semanticContracts: {},
-    };
-  }
+  if (!resolved.existsSync(cachePath)) return emptySyncCache();
 
   try {
     const parsed = JSON.parse(
@@ -430,13 +428,7 @@ export function readSyncCache(
       (options.compilerFingerprint !== undefined &&
         parsed.compilerFingerprint !== options.compilerFingerprint)
     ) {
-      return {
-        version: SYNC_CACHE_VERSION,
-        hashes: {},
-        seenAt: {},
-        semanticHashes: {},
-        semanticContracts: {},
-      };
+      return emptySyncCache();
     }
 
     const cache: SyncCache = {
@@ -446,33 +438,13 @@ export function readSyncCache(
       semanticHashes: parsed.semanticHashes ?? {},
       semanticContracts: parsed.semanticContracts ?? {},
     };
-    if (parsed.relationshipHashes !== undefined) {
-      cache.relationshipHashes = parsed.relationshipHashes;
-    }
-    if (parsed.entityHashes !== undefined) {
-      cache.entityHashes = parsed.entityHashes;
-    }
-    if (parsed.sourceEntityIds !== undefined) {
-      cache.sourceEntityIds = parsed.sourceEntityIds;
-    }
-    if (parsed.shardRelationships !== undefined) {
-      cache.shardRelationships = parsed.shardRelationships;
-    }
-    if (parsed.compilerFingerprint !== undefined) {
-      cache.compilerFingerprint = parsed.compilerFingerprint;
-    }
-    if (parsed.extractionFailures !== undefined) {
-      cache.extractionFailures = parsed.extractionFailures;
+    for (const field of OPTIONAL_CACHE_FIELDS) {
+      if (parsed[field] !== undefined)
+        (cache as Record<string, unknown>)[field] = parsed[field];
     }
     return cache;
   } catch {
-    return {
-      version: SYNC_CACHE_VERSION,
-      hashes: {},
-      seenAt: {},
-      semanticHashes: {},
-      semanticContracts: {},
-    };
+    return emptySyncCache();
   }
 }
 

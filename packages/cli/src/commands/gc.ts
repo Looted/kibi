@@ -20,36 +20,35 @@ type GcOptions = {
   retentionDays?: number;
 };
 
-function localBranches(workspaceRoot: string): Set<string> {
-  const result = spawnSync("git", ["branch", "--format=%(refname:short)"], {
-    encoding: "utf8",
-    cwd: workspaceRoot,
-    stdio: ["pipe", "pipe", "pipe"],
-  });
+/** One Git invocation; stderr is null when Git could not be spawned. */
+export type GcGitRunner = (
+  args: readonly string[],
+  cwd: string,
+) => { status: number | null; stdout: string; stderr: string | null };
+
+const runGit: GcGitRunner = (args, cwd) =>
+  spawnSync("git", args, { encoding: "utf8", cwd });
+
+function localBranches(workspaceRoot: string, git: GcGitRunner): Set<string> {
+  const result = git(["branch", "--format=%(refname:short)"], workspaceRoot);
   if (result.status !== 0) {
     throw new Error(
       result.stderr?.trim() || "unable to list local Git branches",
     );
   }
-  const output = result.stdout ?? "";
+  // A blank line adds "", which names no branch store.
   const live = new Set(
-    output
-      .split("\n")
-      .map((branch) => branch.trim())
-      .filter(Boolean),
+    result.stdout.split("\n").map((branch) => branch.trim()),
   );
   // A branch checked out in another worktree is live even when it is not the
   // current worktree's symbolic HEAD. Remote-only refs are deliberately not
   // included: they have no local authored checkout to protect.
-  const worktrees = spawnSync("git", ["worktree", "list", "--porcelain"], {
-    encoding: "utf8",
-    cwd: workspaceRoot,
-    stdio: ["pipe", "pipe", "pipe"],
-  });
+  const worktrees = git(["worktree", "list", "--porcelain"], workspaceRoot);
   if (worktrees.status === 0) {
-    for (const line of (worktrees.stdout ?? "").split("\n")) {
-      const match = line.match(/^branch refs\/heads\/(.+)$/);
-      if (match?.[1]) live.add(match[1]);
+    for (const line of worktrees.stdout.split("\n")) {
+      // `.+` stops at the end of the line, which split already cut.
+      const match = line.match(/^branch refs\/heads\/(.+)/);
+      if (match) live.add(match[1] as string);
     }
   }
   return live;
@@ -106,28 +105,31 @@ function purgeQuarantine(workspaceRoot: string, retentionDays: number): number {
         const metadata = JSON.parse(fs.readFileSync(metadataPath, "utf8")) as {
           quarantinedAt?: string;
         };
-        if (metadata.quarantinedAt) {
-          const parsed = Date.parse(metadata.quarantinedAt);
-          if (Number.isFinite(parsed)) quarantinedAt = parsed;
-        }
+        // A missing or empty time parses to NaN and keeps the mtime.
+        const parsed = Date.parse(metadata.quarantinedAt as string);
+        if (Number.isFinite(parsed)) quarantinedAt = parsed;
       } catch {
         // A missing or malformed journal falls back to the directory mtime.
       }
       if (retentionDays > 0 && quarantinedAt > cutoff) continue;
-      fs.rmSync(candidate, { recursive: true, force: true });
+      fs.rmSync(candidate, { recursive: true });
       purged += 1;
     }
     if (fs.readdirSync(keyPath).length === 0) {
-      fs.rmSync(keyPath, { recursive: true, force: true });
+      fs.rmSync(keyPath, { recursive: true });
     }
   }
   return purged;
 }
 
-export async function gcCommand(options: GcOptions = {}): Promise<void> {
+export async function gcCommand(
+  options: GcOptions = {},
+  git: GcGitRunner = runGit,
+): Promise<void> {
   const workspaceRoot = process.cwd();
   const retentionDays =
-    Number.isFinite(options.retentionDays) && (options.retentionDays ?? 0) >= 0
+    Number.isFinite(options.retentionDays) &&
+    (options.retentionDays as number) >= 0
       ? Math.floor(options.retentionDays as number)
       : DEFAULT_RETENTION_DAYS;
   const branchesRoot = branchStoresRoot(workspaceRoot);
@@ -138,15 +140,14 @@ export async function gcCommand(options: GcOptions = {}): Promise<void> {
       process.exitCode = 0;
       return;
     }
-    const live = localBranches(workspaceRoot);
+    const live = localBranches(workspaceRoot, git);
     // The detached-HEAD snapshot is a regenerable read cache: live while this
     // checkout is detached on it, stale (collectable) once a branch is out.
     const readAttachment = resolveReadBranchAttachment(workspaceRoot);
     if (!("error" in readAttachment) && readAttachment.readOnly !== undefined) {
       live.add(DETACHED_SNAPSHOT_KB_BRANCH);
     }
-    const candidates: Array<{ branch: string; path: string; legacy: boolean }> =
-      [];
+    const candidates: Array<{ branch: string; path: string }> = [];
     const visit = (dir: string, relativeBranch: string): void => {
       const entries = fs.readdirSync(dir, { withFileTypes: true });
       for (const entry of entries) {
@@ -154,11 +155,7 @@ export async function gcCommand(options: GcOptions = {}): Promise<void> {
         if (!entry.isDirectory()) continue;
         const manifest = readBranchStoreManifest(candidatePath);
         if (manifest !== null) {
-          candidates.push({
-            branch: manifest.branch,
-            path: candidatePath,
-            legacy: false,
-          });
+          candidates.push({ branch: manifest.branch, path: candidatePath });
           continue;
         }
         const next = relativeBranch
@@ -168,7 +165,7 @@ export async function gcCommand(options: GcOptions = {}): Promise<void> {
           fs.existsSync(path.join(candidatePath, "kb.rdf")) ||
           fs.existsSync(path.join(candidatePath, "storage.json"))
         ) {
-          candidates.push({ branch: next, path: candidatePath, legacy: true });
+          candidates.push({ branch: next, path: candidatePath });
         } else {
           visit(candidatePath, next);
         }

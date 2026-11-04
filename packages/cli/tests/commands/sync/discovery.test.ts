@@ -121,11 +121,8 @@ describe("discoverSourceFiles", () => {
     ]);
   });
 
-  test("ignores README markdown files under entity directories", async () => {
-    fgMock.mockResolvedValueOnce([
-      "/project/.kb/tests/README.md",
-      "/project/.kb/tests/TEST-001.md",
-    ]);
+  test("leaves README markdown files to the glob ignore list", async () => {
+    fgMock.mockResolvedValueOnce(["/project/.kb/tests/TEST-001.md"]);
     fgMock.mockResolvedValueOnce([]);
 
     const result = await discoverSourceFiles("/project");

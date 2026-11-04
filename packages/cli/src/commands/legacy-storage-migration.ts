@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   existsSync,
@@ -25,7 +25,6 @@ import {
   readdirSync,
   renameSync,
   rmSync,
-  statSync,
   writeFileSync,
 } from "node:fs";
 import * as path from "node:path";
@@ -127,19 +126,15 @@ const LANE_BY_CONFIG_KEY: Record<string, EntityLane> = {
   facts: "facts",
 };
 
-function stripGlobToRoot(pattern: string): string {
-  const normalized = pattern.replaceAll("\\", "/").replace(/\/+$/, "");
-  if (!normalized.includes("*")) return normalized;
-  const [root] = normalized.split("*");
-  return (root ?? "").replace(/\/+$/, "");
-}
-
+// A glob's root is the text before its first wildcard; trailing slashes on
+// it make no difference to the paths resolved from it.
 function normalizeLegacySource(raw: string): { root: string; glob: string } {
   const normalized = raw.replaceAll("\\", "/");
-  if (normalized.includes("*")) {
-    return { root: stripGlobToRoot(normalized), glob: normalized };
+  const wildcard = normalized.indexOf("*");
+  if (wildcard === -1) {
+    return { root: normalized, glob: `${normalized}/**/*.md` };
   }
-  return { root: normalized, glob: `${normalized}/**/*.md` };
+  return { root: normalized.slice(0, wildcard), glob: normalized };
 }
 
 /** Discover the concrete migration moves for a workspace. */
@@ -160,23 +155,20 @@ export function planLegacyStorageMigration(cwd: string): StorageMigrationPlan {
     };
   }
 
-  const config: LegacyKbConfig | undefined =
-    legacyConfigResult.kind === "present"
-      ? legacyConfigResult.config
-      : undefined;
+  const { config } = legacyConfigResult as { config?: LegacyKbConfig };
   const legacyPaths = resolveLegacyEntityPaths(config);
 
   const moves: StorageMigrationMove[] = [];
   const blockers: string[] = [];
 
   for (const [key, lane] of Object.entries(LANE_BY_CONFIG_KEY)) {
+    // Resolved legacy paths are always non-empty, trimmed strings.
     const legacy = legacyPaths[key as keyof typeof legacyPaths];
-    if (typeof legacy !== "string" || legacy.trim().length === 0) continue;
     const { root, glob } = normalizeLegacySource(legacy);
     const legacyRoot = path.resolve(cwd, root);
-    // Skip lanes whose legacy root is already the canonical location.
+    // Skip lanes whose legacy root is already the canonical location; a
+    // missing root simply globs to nothing.
     if (legacyRoot === path.resolve(cwd, KB_PATHS.lanes[lane])) continue;
-    if (!existsSync(legacyRoot)) continue;
 
     const files = fg.sync([glob], {
       cwd,
@@ -209,7 +201,7 @@ export function planLegacyStorageMigration(cwd: string): StorageMigrationPlan {
   if (symbolsSource.conflict !== undefined)
     conflicts.push(symbolsSource.conflict);
   const legacySymbols = symbolsSource.path;
-  if (typeof legacySymbols === "string" && legacySymbols.trim().length > 0) {
+  if (legacySymbols !== null) {
     const legacyManifest = path.resolve(cwd, legacySymbols);
     if (
       existsSync(legacyManifest) &&
@@ -221,11 +213,15 @@ export function planLegacyStorageMigration(cwd: string): StorageMigrationPlan {
         lane: "symbols",
       });
     }
-    const legacyCoordinates = legacySymbols
-      .replace(/\.ya?ml$/, ".yaml")
-      .replace(/symbols\.yaml$/, "symbol-coordinates.yaml");
+    // Coordinates sit beside a manifest named symbols.yaml/.yml; a manifest
+    // with any other name has no coordinates file to carry.
+    const legacyCoordinates = legacySymbols.replace(
+      /symbols\.ya?ml$/,
+      "symbol-coordinates.yaml",
+    );
     const legacyCoordinatesPath = path.resolve(cwd, legacyCoordinates);
     if (
+      legacyCoordinates !== legacySymbols &&
       existsSync(legacyCoordinatesPath) &&
       legacyCoordinatesPath !== path.resolve(cwd, KB_PATHS.symbolCoordinates)
     ) {
@@ -301,23 +297,19 @@ function hashFile(filePath: string): string | null {
 
 /** Symbol ids a manifest declares, or null when it does not parse. */
 function manifestSymbolIds(filePath: string): Set<string> | null {
+  let parsed: unknown;
   try {
-    const parsed = parseYaml(readFileSync(filePath, "utf8")) as {
-      symbols?: unknown;
-    } | null;
-    if (!Array.isArray(parsed?.symbols)) return null;
-    return new Set(
-      parsed.symbols.flatMap((symbol) =>
-        symbol !== null &&
-        typeof symbol === "object" &&
-        typeof (symbol as { id?: unknown }).id === "string"
-          ? [(symbol as { id: string }).id]
-          : [],
-      ),
-    );
+    parsed = parseYaml(readFileSync(filePath).toString());
   } catch {
-    return null;
+    // An unparsable manifest declares no symbols list.
   }
+  const symbols = (parsed as { symbols?: unknown } | null | undefined)?.symbols;
+  if (!Array.isArray(symbols)) return null;
+  return new Set(
+    symbols.flatMap((symbol: { id?: unknown } | null) =>
+      typeof symbol?.id === "string" ? [symbol.id] : [],
+    ),
+  );
 }
 
 /**
@@ -371,10 +363,12 @@ function configuredLaneParents(config: LegacyKbConfig | undefined): string[] {
   const parents = new Set<string>();
   for (const key of Object.keys(LANE_BY_CONFIG_KEY)) {
     const value = config?.paths?.[key as keyof LegacyKbConfigPaths];
-    if (typeof value !== "string" || value.trim().length === 0) continue;
+    // The legacy config loader keeps only string paths; a blank one
+    // resolves to "." and names no parent.
+    if (value === undefined) continue;
     const { root } = normalizeLegacySource(value.trim());
-    const parent = path.posix.dirname(root.replace(/^\.\//, ""));
-    if (parent !== "." && parent !== "") parents.add(parent);
+    const parent = path.posix.dirname(path.posix.normalize(root));
+    if (parent !== ".") parents.add(parent);
   }
   return [...parents].sort();
 }
@@ -409,7 +403,7 @@ function resolveLegacySymbolsSource(
   if (candidates.length === 1 && !fallbackExists)
     return { path: candidates[0] ?? null };
   if (candidates.length === 0 && !fallbackExists) return { path: null };
-  const all = [...candidates, ...(fallbackExists ? [fallback] : [])];
+  const all = fallbackExists ? [...candidates, fallback] : candidates;
   return {
     path: null,
     conflict: {
@@ -528,8 +522,7 @@ function pruneEmptyLegacyDirs(cwd: string, plan: StorageMigrationPlan): void {
     const absolute = path.resolve(cwd, from);
     let dir = path.dirname(absolute);
     while (
-      dir.startsWith(path.resolve(cwd)) &&
-      dir !== path.resolve(cwd) &&
+      dir.startsWith(`${path.resolve(cwd)}${path.sep}`) &&
       !dir.startsWith(path.resolve(cwd, KB_ROOT))
     ) {
       roots.add(dir);
@@ -540,9 +533,7 @@ function pruneEmptyLegacyDirs(cwd: string, plan: StorageMigrationPlan): void {
   const ordered = [...roots].sort((a, b) => b.length - a.length);
   for (const dir of ordered) {
     try {
-      if (statSync(dir).isDirectory() && readdirSync(dir).length === 0) {
-        rmSync(dir, { recursive: true });
-      }
+      if (readdirSync(dir).length === 0) rmSync(dir, { recursive: true });
     } catch {
       // Best-effort pruning; leftover empty dirs are harmless.
     }
@@ -564,19 +555,16 @@ export function rewritePendingSourceReceiptPaths(
     if (!name.endsWith(".json")) continue;
     const receiptPath = path.join(pendingRoot, name);
     try {
-      const raw = readFileSync(receiptPath, "utf8");
+      const raw = readFileSync(receiptPath).toString();
       const receipt = JSON.parse(raw) as {
         path?: unknown;
         afterHash?: unknown;
       };
-      if (typeof receipt.path !== "string") continue;
-      const normalized = receipt.path.replaceAll("\\", "/");
+      const normalized = String(receipt.path).replaceAll("\\", "/");
       const destination =
         moveByFrom.get(normalized) ??
-        (normalized.startsWith("documentation/")
-          ? normalized.replace(/^documentation\//, ".kb/")
-          : undefined);
-      if (destination === undefined || destination === normalized) continue;
+        normalized.replace(/^documentation\//, ".kb/");
+      if (destination === normalized) continue;
       const absolute = path.resolve(cwd, destination);
       if (!existsSync(absolute)) continue;
       const afterHash =
@@ -587,7 +575,6 @@ export function rewritePendingSourceReceiptPaths(
       writeFileSync(
         receiptPath,
         `${JSON.stringify({ ...receipt, path: destination, afterHash }, null, 2)}\n`,
-        "utf8",
       );
       rewritten += 1;
     } catch {
@@ -599,21 +586,15 @@ export function rewritePendingSourceReceiptPaths(
 
 /** Workspace-relative paths Git tracks, or null outside a repository. */
 function gitTrackedFiles(cwd: string): Set<string> | null {
-  try {
-    return new Set(
-      execFileSync("git", ["-C", cwd, "ls-files", "--cached", "-z"], {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"],
-        maxBuffer: 64 * 1024 * 1024,
-        timeout: 30_000,
-      })
-        .split("\0")
-        .filter((file) => file.length > 0)
-        .map((file) => file.replaceAll("\\", "/")),
-    );
-  } catch {
-    return null;
-  }
+  // spawnSync captures stderr, so a non-repository stays quiet.
+  const result = spawnSync("git", ["-C", cwd, "ls-files", "--cached", "-z"], {
+    maxBuffer: 64 * 1024 * 1024,
+    timeout: 30_000,
+  });
+  if (result.status !== 0) return null;
+  // Git prints forward slashes on every platform; the empty name after the
+  // final separator matches no move.
+  return new Set(result.stdout.toString().split("\0"));
 }
 
 /**
@@ -654,18 +635,20 @@ export function writeMovedSourceReceipts(
 
 // implements REQ-cli-schema-migration
 function isEmptySymbolsStub(filePath: string): boolean {
+  let content: string;
   try {
-    const statements = readFileSync(filePath, "utf8")
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0 && !line.startsWith("#"));
-    return (
-      statements.length === 1 &&
-      /^symbols:\s*\[\s*\]$/.test(statements[0] ?? "")
-    );
+    content = readFileSync(filePath).toString();
   } catch {
     return false;
   }
+  const statements = content
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"));
+  return (
+    statements.length === 1 &&
+    /^symbols:\s*\[\s*\]$/.test(String(statements[0]))
+  );
 }
 
 // implements REQ-cli-schema-migration
@@ -675,7 +658,7 @@ function sourceSchemaVersion(
 ): number {
   const known = [legacyVersion, existing?.schemaVersion].filter(
     (version): version is number =>
-      typeof version === "number" && Number.isInteger(version) && version > 0,
+      Number.isInteger(version) && (version as number) > 0,
   );
   return known.length > 0 ? Math.min(...known) : LATEST_KB_SCHEMA_VERSION;
 }
@@ -686,9 +669,9 @@ export function needsLegacyStorageMigration(cwd: string): boolean {
   return (
     plan.moves.length > 0 ||
     plan.removals.length > 0 ||
+    // A malformed config always carries a blocker.
     plan.blockers.length > 0 ||
-    plan.legacyConfig === "present" ||
-    plan.legacyConfig === "malformed"
+    plan.legacyConfig === "present"
   );
 }
 
