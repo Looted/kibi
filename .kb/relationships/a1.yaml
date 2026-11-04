@@ -168,13 +168,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-544e0c474891
   - type: covered_by
-    from: SYM-cap-plugin-jevclientfactory-d5d8b117
-    to: TEST-capability-plugin-jev-mocked-v1
-    created_at: 2026-09-22T19:44:59.015Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-889e99a2e12f
-  - type: covered_by
     from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
     to: TEST-kibi-predicate-vocabulary-migration-e2e
     created_at: 2026-09-28T13:28:42.520Z

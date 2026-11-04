@@ -5504,8 +5504,6 @@ symbols:
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
       - type: implements
-        target: REQ-agent-kibi-interface-selection
-      - type: implements
         target: REQ-cursor-kibi-plugin-v1
   - id: SYM-deactivate
     title: deactivate
@@ -30670,36 +30668,6 @@ symbols:
         target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-jev-fallback-v1
-  - id: SYM-cap-plugin-jevprovidererror-code-4b330f05
-    title: JevProviderError.code
-    sourceFile: packages/plugin-jev/src/jev-client.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-jev-fallback-v1
-  - id: SYM-cap-plugin-jevlane-f699c725
-    title: JevLane
-    sourceFile: packages/plugin-jev/src/jev-client.ts
-    status: active
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-capability-plugin-jev-mocked-v1
-      - type: implements
-        target: REQ-capability-plugin-jev-fallback-v1
-  - id: SYM-cap-plugin-jevclientfactory-d5d8b117
-    title: JevClientFactory
-    sourceFile: packages/plugin-jev/src/jev-client.ts
-    status: active
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-capability-plugin-jev-mocked-v1
-      - type: implements
-        target: REQ-capability-plugin-jev-fallback-v1
   - id: SYM-cap-plugin-createjevsemanticclassifier-cfdd9a4c
     title: createJevSemanticClassifier
     sourceFile: packages/plugin-jev/src/semantic-classifier.ts
@@ -31882,8 +31850,6 @@ symbols:
         target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-kibi-interface-selection
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
   - id: SYM-cursor-getSourceLinkedRequirementIds

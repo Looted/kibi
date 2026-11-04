@@ -147,13 +147,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-629bbd38fb6d
   - type: implements
-    from: SYM-cursor-preEditGuidance
-    to: REQ-agent-kibi-interface-selection
-    created_at: 2026-09-25T16:15:02.477Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-aa7db32dc86c
-  - type: implements
     from: SYM-kibi-migration-check-actions
     to: REQ-kibi-predicate-vocabulary-migration
     created_at: 2026-09-28T13:28:33.914Z
