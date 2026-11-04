@@ -70,11 +70,8 @@ export function getSchemaVersionStatus(
   config?: SchemaVersionSource,
 ): SchemaVersionStatus {
   const latestVersion = LATEST_KB_SCHEMA_VERSION;
-  const hasSchemaVersion =
-    config !== null &&
-    config !== undefined &&
-    "schemaVersion" in config &&
-    config.schemaVersion !== undefined;
+  // An explicit null counts as a recorded (invalid) version.
+  const hasSchemaVersion = config?.schemaVersion !== undefined;
   const currentVersion = normalizeSchemaVersion(config?.schemaVersion);
 
   if (currentVersion === null) {

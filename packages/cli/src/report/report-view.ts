@@ -43,8 +43,8 @@ export function matchesReportView(
   const matchesFilter =
     view.filter === "all" || row.states.includes(view.filter);
   const matchesGate = view.gate === "all" || row.earliestGate === view.gate;
-  const matchesQuery =
-    query.length === 0 || row.text.toLocaleLowerCase().includes(query);
+  // Every text includes the empty query.
+  const matchesQuery = row.text.toLocaleLowerCase().includes(query);
   return matchesFilter && matchesGate && matchesQuery;
 }
 

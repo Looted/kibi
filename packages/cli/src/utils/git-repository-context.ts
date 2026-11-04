@@ -88,6 +88,9 @@ function runGitChecked(cwd: string, args: string[]): GitInvocation {
         cwd,
         encoding: "utf8",
         env: gitEnv(),
+        // rationale: stderr is piped by default too; ignoring stdin and
+        // stating the pipes only keeps git's diagnostics off the console.
+        // Stryker disable next-line ArrayDeclaration
         stdio: ["ignore", "pipe", "pipe"],
         timeout: 10_000,
         maxBuffer: 1024 * 1024,
@@ -95,10 +98,11 @@ function runGitChecked(cwd: string, args: string[]): GitInvocation {
       failure: null,
     };
   } catch (error) {
-    const stderr = (error as { stderr?: string | Buffer }).stderr;
-    const text = typeof stderr === "string" ? stderr : stderr?.toString("utf8");
+    // With encoding "utf8" stderr is a string; it is missing when git cannot
+    // start at all.
+    const stderr = (error as { stderr?: string }).stderr;
     const firstLine =
-      text
+      stderr
         ?.split("\n")
         .map((line) => line.trim())
         .find(Boolean) ?? null;
@@ -116,13 +120,9 @@ function runGit(cwd: string, args: string[]): string | null {
  * operational reason (dubious ownership, access, timeouts, anything
  * unrecognized) where callers must refuse before writing.
  */
-function classifyGitFailure(
-  failure: string | null,
-): "not-a-repository" | "refused" {
-  if (failure !== null && NOT_A_REPOSITORY_RE.test(failure)) {
-    return "not-a-repository";
-  }
-  return "refused";
+function isAbsenceAnswer(failure: string | null): boolean {
+  // String(null) is "null", which never reads as an absence answer.
+  return NOT_A_REPOSITORY_RE.test(String(failure));
 }
 
 /**
@@ -144,11 +144,10 @@ function findRepositoryMarker(start: string): string | null {
       return entry;
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
-      if (code === "EACCES" || code === "EPERM") {
-        // The entry cannot even be inspected: treat it as present.
-        return entry;
-      }
-      // ENOENT and friends: no entry at this level; keep walking.
+      // Only a missing entry (or a file where a directory should be) means
+      // "no marker here". Anything else, such as EACCES, EPERM or ELOOP,
+      // means the entry cannot even be inspected: treat it as present.
+      if (code !== "ENOENT" && code !== "ENOTDIR") return entry;
     }
     const parent = path.dirname(current);
     if (parent === current) return null;
@@ -160,13 +159,14 @@ function parseGitVersion(versionOutput: string): {
   major: number;
   minor: number;
 } | null {
-  const match = /^git version (\d+)\.(\d+)(\.\d+)?/.exec(versionOutput);
+  const match = /^git version (\d+)\.(\d+)/.exec(versionOutput);
   if (!match) return null;
   return { major: Number(match[1]), minor: Number(match[2]) };
 }
 
 function resolveAgainstCwd(candidate: string, cwd: string): string {
-  return path.isAbsolute(candidate) ? candidate : path.resolve(cwd, candidate);
+  // path.resolve keeps an absolute candidate as it is.
+  return path.resolve(cwd, candidate);
 }
 
 /**
@@ -207,7 +207,7 @@ export function resolveGitRepository(
         reason: "Bare repository: no working tree to attach Kibi to.",
       };
     }
-    if (classifyGitFailure(toplevel.failure) === "not-a-repository") {
+    if (isAbsenceAnswer(toplevel.failure)) {
       // Git's absence answer also fires when a `.git` entry exists but some
       // of its internals (objects, refs, HEAD) are unreadable; conservatively
       // refuse with the marker instead of a standalone-directory verdict.
@@ -215,9 +215,8 @@ export function resolveGitRepository(
       if (marker !== null) {
         return {
           status: "git-refused",
-          reason: `Git reported no repository, but a .git entry exists at ${marker} (${
-            toplevel.failure ?? "git produced no diagnostic output"
-          }); refusing to guess.`,
+          // An absence answer is a diagnostic line, never null.
+          reason: `Git reported no repository, but a .git entry exists at ${marker} (${toplevel.failure}); refusing to guess.`,
         };
       }
       return { status: "not-a-repository" };
@@ -291,13 +290,10 @@ export function resolveGitRepository(
   let hooksPathConfig: string | null = null;
   let hooksPathOrigin: string | null = null;
   if (originLine) {
-    const separator = originLine.lastIndexOf("\t");
-    if (separator >= 0) {
-      hooksPathOrigin = originLine.slice(0, separator).trim();
-      hooksPathConfig = originLine.slice(separator + 1).trim();
-    } else {
-      hooksPathConfig = originLine.trim();
-    }
+    // `<origin>\t<value>`; the value is what follows the last tab.
+    const parts = originLine.split("\t");
+    hooksPathConfig = (parts.pop() as string).trim();
+    hooksPathOrigin = parts.length > 0 ? parts.join("\t").trim() : null;
   }
 
   const isLinkedWorktree = gitDir !== commonGitDir;

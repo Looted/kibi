@@ -76,8 +76,9 @@ code_certificate_digest(Certificate, Digest) :-
 % Entry point for the CLI: {"accepted": true, "digest": D} or
 % {"accepted": false, "reason": R}.
 code_certificate_check_json(CertificateJson, ResultJson) :-
-    (   catch(atom_json_dict(CertificateJson, Certificate, [value_string_as(string)]), _, fail),
-        is_dict(Certificate)
+    (   catch(( atom_json_dict(CertificateJson, Certificate, [value_string_as(string)]),
+                  is_dict(Certificate) ),
+              _, fail)
     ->  code_certificate_check(Certificate, Result),
         code_certificate_digest(Certificate, Digest),
         (   Result == ok
@@ -89,16 +90,19 @@ code_certificate_check_json(CertificateJson, ResultJson) :-
     ),
     with_output_to(string(ResultJson), json_write_dict(current_output, Out, [width(0)])).
 
-% certificate_problem(+Certificate, -Reason) succeeds with the first problem.
+% certificate_problem(+Certificate, -Reason): its first answer is the first
+% problem. The caller commits to that answer, so the clauses need no cuts.
 certificate_problem(Certificate, Reason) :-
-    \+ is_dict(Certificate), !,
+    % mutalog-disable-next-line cut_insert: the caller commits to the first answer
+    \+ is_dict(Certificate),
     Reason = "the certificate is not an object".
 certificate_problem(Certificate, Reason) :-
     code_certificate_version(Version),
-    \+ get_dict(version, Certificate, Version), !,
+    \+ get_dict(version, Certificate, Version),
     format(string(Reason), "the certificate version is not ~w", [Version]).
 certificate_problem(Certificate, Reason) :-
-    \+ (get_dict(test_id, Certificate, TestId), nonempty_string(TestId)), !,
+    % mutalog-disable-next-line cut_insert: the caller commits to the first answer
+    \+ (get_dict(test_id, Certificate, TestId), nonempty_string(TestId)),
     Reason = "the certificate names no test_id".
 certificate_problem(Certificate, Reason) :-
     (   get_dict(kind, Certificate, KindString), string(KindString)
@@ -112,6 +116,7 @@ certificate_problem(Certificate, Reason) :-
     ).
 
 kind_problem(exhaustive, Certificate, Reason) :-
+    % mutalog-disable-next-line cut_insert: the kinds are distinct and the kind is bound
     field(Certificate, domain, Domain),
     field(Domain, symbol_id, Symbol),
     field(Domain, members, Members),
@@ -142,6 +147,7 @@ kind_problem(exhaustive, Certificate, Reason) :-
         format(string(Reason), "member ~w did not pass", [Failed])
     ).
 kind_problem(typecheck, Certificate, Reason) :-
+    % mutalog-disable-next-line cut_insert: the kinds are distinct and the kind is bound
     field(Certificate, witness, Witness),
     field(Witness, path, Path),
     field(Witness, sha256, Hash),
@@ -163,6 +169,7 @@ kind_problem(typecheck, Certificate, Reason) :-
     ->  Reason = "the type checker did not accept the witness"
     ).
 kind_problem(arithmetic, Certificate, Reason) :-
+    % mutalog-disable-next-line cut_insert: the kinds are distinct and the kind is bound
     field(Certificate, variable, Variable),
     field(Certificate, value_type, Type),
     field(Certificate, assumptions, Assumptions),
@@ -196,6 +203,7 @@ kind_problem(arithmetic, Certificate, Reason) :-
         )
     ).
 kind_problem(smt, Certificate, Reason) :-
+    % mutalog-disable-next-line cut_insert: the kinds are distinct and the kind is bound
     field(Certificate, solver, Solver),
     field(Solver, name, Name),
     field(Solver, version, SolverVersion),
@@ -212,6 +220,7 @@ kind_problem(smt, Certificate, Reason) :-
     ).
 
 kind_problem(rule, Certificate, Reason) :-
+    % mutalog-disable-next-line cut_insert: the kinds are distinct and the kind is bound
     field(Certificate, domains, Domains),
     field(Certificate, predicates, Predicates),
     (   \+ (is_dict(Domains), dict_pairs(Domains, _, DomainPairs), DomainPairs \== [])
@@ -229,6 +238,7 @@ kind_problem(rule, Certificate, Reason) :-
     ->  Reason = Reason0
     ).
 kind_problem(state_machine, Certificate, Reason) :-
+    % mutalog-disable-next-line cut_insert: the kinds are distinct and the kind is bound
     field(Certificate, machine, Machine),
     field(Machine, symbol_id, Symbol),
     field(Machine, states, States),
@@ -242,7 +252,7 @@ kind_problem(state_machine, Certificate, Reason) :-
     ;   \+ is_list(Transitions)
     ->  Reason = "the machine has no transitions list"
     ;   member(Edge, Transitions),
-        \+ ( is_list(Edge), Edge = [From, To], memberchk(From, States), memberchk(To, States) )
+        \+ ( Edge = [From, To], memberchk(From, States), memberchk(To, States) )
     ->  Reason = "every transition must be a [from, to] pair of the machine's states"
     ;   msort(Transitions, SortedEdges), sort(Transitions, UniqueEdges), SortedEdges \== UniqueEdges
     ->  Reason = "the machine lists a transition twice"
@@ -251,6 +261,7 @@ kind_problem(state_machine, Certificate, Reason) :-
     ->  Reason = "the machine's initial states must be states of the machine"
     ).
 kind_problem(regex, Certificate, Reason) :-
+    % mutalog-disable-next-line cut_insert: the kinds are distinct and the kind is bound
     field(Certificate, pattern, Pattern),
     field(Pattern, symbol_id, Symbol),
     field(Pattern, type, Type),
@@ -276,6 +287,7 @@ kind_problem(regex, Certificate, Reason) :-
 
 % implements REQ-kibi-source-proof-kinds
 kind_problem(source, Certificate, Reason) :-
+    % mutalog-disable-next-line cut_insert: the kinds are distinct and the kind is bound
     field(Certificate, source, Source),
     field(Certificate, model, Model),
     field(Model, members, Members),
@@ -286,14 +298,14 @@ kind_problem(source, Certificate, Reason) :-
     ;   \+ sorted_distinct_strings(Members)
     ->  Reason = "the source model's members must be a sorted list of distinct strings"
     ;   get_dict(entities, Model, Entities),
-        \+ ( is_list(Entities), maplist(source_entity_ok, Entities) )
+        \+ maplist(source_entity_ok, Entities)
     ->  Reason = "every source entity must have a name and columns of {name, nullable, optional}"
     ;   get_dict(routes, Model, Routes),
-        \+ ( is_list(Routes), maplist(source_route_ok, Routes) )
+        \+ maplist(source_route_ok, Routes)
     ->  Reason = "every source route must have a method, a path and a middleware list"
     ;   get_dict(sequence, Model, Sequence),
-        \+ ( is_list(Sequence), forall(member(Item, Sequence), string(Item)),
-              sort(Sequence, Members) )
+        % Members are strings, so sorting to them admits only strings.
+        \+ ( is_list(Sequence), sort(Sequence, Members) )
     ->  Reason = "the source model's sequence must list the members in the order read"
     ).
 
@@ -335,9 +347,9 @@ table_problem(Name, Table, Domains, Reason) :-
     ;   \+ is_list(Rows)
     ->  format(string(Reason), "the table for ~w has no rows", [Name])
     ;   member(Row, Rows),
-        get_dict(error, Row, Error)
-    ->  get_dict(args, Row, Args),
-        atomic_list_concat(Args, ', ', ArgText),
+        get_dict(error, Row, Error),
+        get_dict(args, Row, Args)
+    ->  atomic_list_concat(Args, ', ', ArgText),
         format(string(Reason), "~w(~w) failed: ~w", [Name, ArgText, Error])
     ;   member(Row, Rows),
         \+ table_row(Row, Types, Domains)
@@ -360,10 +372,9 @@ domain_product(Domains, Type, Count0, Count) :-
     length(Members, N),
     Count is Count0 * N.
 
+% Row is a dict: the error check before it raises on any other row.
 table_row(Row, Types, Domains) :-
-    is_dict(Row),
     get_dict(args, Row, Args),
-    is_list(Args),
     same_length(Args, Types),
     forall(nth1(I, Args, Arg),
            ( nth1(I, Types, T), atom_string(TA, T), get_dict(TA, Domains, D),
@@ -372,7 +383,6 @@ table_row(Row, Types, Domains) :-
     memberchk(Value, [true, false]).
 
 distinct_strings(Values) :-
-    is_list(Values),
     Values \== [],
     maplist(string, Values),
     msort(Values, Sorted),
@@ -420,10 +430,12 @@ operator_symbol(gte, '>=').
 % claim, so a rejection can name it (a count of 5 against "exactly 4").
 arithmetic_counterexample(Type, Assumptions, Claim, Value) :-
     findall(C, (member(Row, [Claim|Assumptions]), get_dict(value, Row, C)), Constants),
+    % mutalog-disable-next-line literal: the probes sit on both sides of each constant, so a negated step probes the same values
     (   Type == "int" -> Step = 1 ; Step = 0.5 ),
     findall(V,
             (   member(C, [0|Constants]),
                 member(D, [0, -1, 1]),
+                % mutalog-disable-next-line arith: D ranges over 0, -1 and 1, so C - D*Step probes the same values
                 V is C + D*Step,
                 (   Type == "int" -> integer(V) ; true )
             ),
@@ -431,21 +443,26 @@ arithmetic_counterexample(Type, Assumptions, Claim, Value) :-
     sort(Candidates0, Candidates),
     member(Value, Candidates),
     forall(member(Row, Assumptions), concrete_holds(Row, Value)),
-    \+ concrete_holds(Claim, Value),
-    !.
+    \+ concrete_holds(Claim, Value).
 
 concrete_holds(Row, X) :-
     arithmetic_constraint(Y, Row, c(Op, Y, V)),
     concrete_op(Op, X, V).
 
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 concrete_op(eq, X, V) :- X =:= V.
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 concrete_op(neq, X, V) :- X =\= V.
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 concrete_op(lt, X, V) :- X < V.
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 concrete_op(lte, X, V) :- X =< V.
+% mutalog-disable-next-line cut_insert: a comparison has one answer and the operators are distinct
 concrete_op(gt, X, V) :- X > V.
 concrete_op(gte, X, V) :- X >= V.
 
 integer_variables("int", X, [X]).
+% mutalog-disable-next-line literal: [_] names no variable, so it equals []
 integer_variables("real", _, []).
 
 nonempty_string(Value) :-
@@ -481,17 +498,16 @@ canonical_json(Value, Json) :-
     string(Value), !,
     canonical_string(Value, Json).
 canonical_json(Value, Json) :-
-    integer(Value), !,
-    format(string(Json), "~d", [Value]).
-canonical_json(Value, Json) :-
     memberchk(Value, [true, false, null]), !,
     atom_string(Value, Json).
 canonical_json(Value, Json) :-
     atom(Value), !,
     atom_string(Value, String),
     canonical_string(String, Json).
+% Numbers: json_write writes an integer in decimal and never breaks a number
+% across lines, so it needs no width option.
 canonical_json(Value, Json) :-
-    with_output_to(string(Json), json_write(current_output, Value, [width(0)])).
+    with_output_to(string(Json), json_write(current_output, Value)).
 
 % Keys as code lists, so keysort orders them by code point whatever the
 % reader made of them (an atom, or a small integer for a numeric key).

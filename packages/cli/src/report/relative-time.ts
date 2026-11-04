@@ -5,7 +5,8 @@ const DAY_SECONDS = 86_400;
 // implements REQ-kibi-html-health-report
 export function parseTimestamp(value: unknown): Date | undefined {
   if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
-  if (typeof value !== "string" || value.trim() === "") return undefined;
+  // A blank string parses to NaN like any other non-date.
+  if (typeof value !== "string") return undefined;
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? new Date(parsed) : undefined;
 }

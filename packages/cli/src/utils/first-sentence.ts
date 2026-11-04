@@ -33,20 +33,20 @@ const NEXT_SENTENCE = /^\s+["'(“]?\p{Lu}/u;
 export function firstSentence(text: string): string {
   const value = text.trim();
   let quoted = false;
-  for (let index = 0; index < value.length; index += 1) {
-    const char = value[index] ?? "";
-    if (char === "`") {
+  for (const match of value.matchAll(/[`.!?]/g)) {
+    const index = match.index;
+    if (match[0] === "`") {
       quoted = !quoted;
       continue;
     }
-    if (quoted || (char !== "." && char !== "!" && char !== "?")) continue;
+    if (quoted) continue;
+    // `value` is trimmed, so the rest is either empty or starts a word.
     const rest = value.slice(index + 1);
-    const atEnd = rest.trim() === "";
-    if (!atEnd && !NEXT_SENTENCE.test(rest)) continue;
-    if (char === "." && ABBREVIATION.test(value.slice(0, index + 1))) continue;
-    return (char === "." ? value.slice(0, index) : value.slice(0, index + 1))
-      .replace(/\.+$/, "")
-      .trim();
+    if (rest !== "" && !NEXT_SENTENCE.test(rest)) continue;
+    const sentence = value.slice(0, index + 1);
+    // Only a sentence ending in `.` can match ABBREVIATION.
+    if (ABBREVIATION.test(sentence)) continue;
+    return sentence.replace(/\.+$/, "").trim();
   }
   return value;
 }

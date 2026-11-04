@@ -36,12 +36,12 @@ const TERRAFORM_LOCATOR =
   /^terraform:(resource|data|module|variable|output|local)\[(.*)\]$/;
 const HCL_LOCATOR = /^hcl:(\[.*\])$/;
 
+/** The strings of a bracketed JSON list, or null when it is not one. */
 function jsonStrings(text: string): string[] | null {
   try {
-    const value: unknown = JSON.parse(text);
-    return Array.isArray(value) &&
-      value.length > 0 &&
-      value.every((item) => typeof item === "string")
+    // Both locators capture text from `[` to `]`, so it parses to a list.
+    const value = JSON.parse(text) as unknown[];
+    return value.every((item) => typeof item === "string")
       ? (value as string[])
       : null;
   } catch {
@@ -59,7 +59,7 @@ function jsonStrings(text: string): string[] | null {
 export function declarationTitleAliases(
   symbol: Pick<TitledDeclaration, "qualifiedName">,
 ): string[] {
-  const locator = symbol.qualifiedName ?? "";
+  const locator = String(symbol.qualifiedName);
   const terraform = TERRAFORM_LOCATOR.exec(locator);
   if (terraform) {
     const kind = terraform[1];
@@ -80,8 +80,8 @@ export function declarationTitleAliases(
     }
   }
   const hcl = HCL_LOCATOR.exec(locator);
-  if (hcl?.[1] !== undefined) {
-    const parts = jsonStrings(hcl[1]);
+  if (hcl) {
+    const parts = jsonStrings(hcl[1] as string);
     return parts !== null && parts.length > 1 ? [parts.join(".")] : [];
   }
   return [];
@@ -93,7 +93,6 @@ function isConstructorOf(
   type: TitledDeclaration,
 ): boolean {
   return (
-    member !== type &&
     member.kind === "method" &&
     member.containerName === member.name &&
     type.name === member.name &&
@@ -150,15 +149,21 @@ export function matchDeclarationTitle<T extends TitledDeclaration>(
   const candidates = byName.filter(
     (symbol) => !byName.some((other) => isConstructorOf(symbol, other)),
   );
-  const [only] = candidates;
-  if (candidates.length === 1 && only !== undefined) return { symbol: only };
   if (candidates.length > 1) {
     const titles = candidates.map((symbol) => uniqueTitle(symbol, all));
-    const distinct = new Set(titles).size === titles.length;
+    const placed = candidates
+      .map((symbol, index) => `${titles[index]} on ${lines(symbol)}`)
+      .join(", ");
+    const advice =
+      new Set(titles).size === titles.length
+        ? "use one of those titles"
+        : "no title tells them apart";
     return {
-      failure: `'${title}' matches ${candidates.length} declarations in ${sourceFile} (${candidates.map((symbol, index) => `${titles[index]} on ${lines(symbol)}`).join(", ")}); ${distinct ? "use one of those titles" : "no title tells them apart"}`,
+      failure: `'${title}' matches ${candidates.length} declarations in ${sourceFile} (${placed}); ${advice}`,
     };
   }
+  const [only] = candidates;
+  if (only !== undefined) return { symbol: only };
   if (
     all.some(
       (symbol) =>

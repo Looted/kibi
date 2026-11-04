@@ -282,3 +282,87 @@ describe("query service", () => {
     });
   });
 });
+
+const { escapeAtom } = await import("../../src/prolog/codec.js");
+
+describe("query service defaults and edge filters", () => {
+  afterEach(() => service._resetQueryCodecDepsForTests());
+
+  test("the default codec escapes atoms, also after a test override is reset", () => {
+    service._setQueryCodecDepsForTests({
+      escapeAtom: () => "FAKE",
+      parseListOfLists: () => [],
+      parseEntityFromList: () => ({}),
+      parseEntityFromBinding: () => ({}),
+    });
+    service._resetQueryCodecDepsForTests();
+    expect(service.buildEntityQueryGoal({ id: "a'b\\c" })).toBe(
+      `findall(['${escapeAtom("a'b\\c")}',Type,Props], kb_entity('${escapeAtom("a'b\\c")}', Type, Props), Results)`,
+    );
+    expect(service.buildEntityQueryGoal({ tags: ["x"], type: "req" })).toBe(
+      "findall([Id,'req',Props], kb_entity(Id, 'req', Props), Results)",
+    );
+    expect(service.buildEntityQueryGoal({ tags: ["x"] })).toBe(
+      "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
+    );
+  });
+
+  const entities = (rows: Array<Record<string, unknown>>) => {
+    service._setQueryCodecDepsForTests({
+      escapeAtom: (value) => value,
+      parseListOfLists: () => rows.map((_, index) => [String(index)]),
+      parseEntityFromList: (row) =>
+        rows[Number(row[0])] as Record<string, unknown>,
+      parseEntityFromBinding: () => ({}),
+    });
+    return asPrologProcess({
+      query: async () => ({ success: true, bindings: { Results: "[]" } }),
+    });
+  };
+
+  test("tag filtering needs an array of tags and keeps one row per type and id", async () => {
+    const prolog = entities([
+      { id: "A", type: "req", tags: ["x"] },
+      { id: "A", type: "req", tags: ["x"] },
+      { id: "A", type: "fact", tags: [" x "] },
+      { id: "B", type: "req", tags: "x" },
+      { id: "C", type: "req", tags: [] },
+      { id: "D", type: "req" },
+    ]);
+    const result = await service.queryEntities(prolog, { tags: ["x"] });
+    expect(result.entities.map((e) => `${e.type}:${e.id}`)).toStrictEqual([
+      "req:A",
+      "fact:A",
+    ]);
+    expect((await service.queryEntities(prolog, { tags: [] })).totalCount).toBe(
+      6,
+    );
+    expect((await service.queryEntities(prolog, {})).totalCount).toBe(6);
+  });
+
+  test("the summary strips only a leading file URI directory", () => {
+    const summary = service.buildQuerySummaryText(
+      {
+        entities: [
+          { id: "file:///repo/docs/REQ-a", title: "T", status: "open" },
+          { id: "see file:///x/y", title: "U", status: "draft" },
+          {},
+        ],
+        totalCount: 3,
+      },
+      { offset: 0, limit: 10 },
+    );
+    expect(summary).toBe(
+      "Found 3 entities. Showing 3 (offset 0, limit 10): REQ-a (T, status=open), see file:///x/y (U, status=draft),  (, status=)",
+    );
+    expect(
+      service.buildQuerySummaryText({ entities: [], totalCount: 0 }, {}),
+    ).toBe("No entities found.");
+    expect(
+      service.buildQuerySummaryText(
+        { entities: [], totalCount: 0 },
+        { type: "req" },
+      ),
+    ).toBe("No entities found of type 'req'.");
+  });
+});

@@ -23,7 +23,7 @@ export type BranchStoreManifest = Readonly<{
 }>;
 
 export function branchStoreKey(branch: string): string {
-  return createHash("sha256").update(branch, "utf8").digest("hex");
+  return createHash("sha256").update(branch).digest("hex");
 }
 
 export function branchStoresRoot(workspaceRoot: string): string {
@@ -52,7 +52,7 @@ export function readBranchStoreManifest(
   storePath: string,
 ): BranchStoreManifest | null {
   const manifestPath = branchStoreManifestPath(storePath);
-  if (!existsSync(manifestPath)) return null;
+  // A missing manifest makes readFileSync throw, which also yields null.
   try {
     const parsed = JSON.parse(
       readFileSync(manifestPath, "utf8"),
@@ -80,9 +80,9 @@ export function branchStoreManifestMatches(
 ): boolean {
   const manifest = readBranchStoreManifest(storePath);
   const expected = expectedBranchStoreManifest(branch);
+  // readBranchStoreManifest only returns the current version.
   return (
     manifest !== null &&
-    manifest.version === expected.version &&
     manifest.branch === expected.branch &&
     manifest.key === expected.key &&
     path.basename(storePath) === expected.key

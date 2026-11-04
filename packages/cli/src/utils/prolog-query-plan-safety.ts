@@ -7,40 +7,36 @@ export interface PrologQueryPlanSafetyViolation {
 
 const GENERATOR_PATTERN =
   /\b(?:kb_entity|kb_relationship|member|memberchk|findall|setof|bagof)\s*\(/;
-const NEGATION_PATTERN = /\\\+\s*/;
+const NEGATION_PATTERN = /\\\+/;
 
 export function analyzePrologQueryPlanSafety(
   source: string,
 ): PrologQueryPlanSafetyViolation[] {
-  const lines = source.split(/\r?\n/);
   const violations: PrologQueryPlanSafetyViolation[] = [];
   let clauseStart = 0;
-  let predicate = "unknown";
   let clauseLines: string[] = [];
 
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index] ?? "";
-    if (clauseLines.length === 0 && line.trim().length === 0) {
-      continue;
-    }
+  // A CRLF line keeps its "\r", which every check below trims away.
+  source.split("\n").forEach((line, index) => {
     if (clauseLines.length === 0) {
+      if (line.trim() === "") return;
       clauseStart = index + 1;
-      predicate = predicateNameFrom(line) ?? "unknown";
     }
     clauseLines.push(line);
     if (line.trim().endsWith(".")) {
+      const predicate = predicateNameFrom(clauseLines[0] as string);
       const violation = analyzeClause(predicate, clauseStart, clauseLines);
       if (violation) violations.push(violation);
       clauseLines = [];
     }
-  }
+  });
 
   return violations;
 }
 
-function predicateNameFrom(line: string): string | null {
+function predicateNameFrom(line: string): string {
   const match = line.match(/^\s*([a-z][a-zA-Z0-9_]*)\s*\(/);
-  return match?.[1] ?? null;
+  return match?.[1] ?? "unknown";
 }
 
 function analyzeClause(

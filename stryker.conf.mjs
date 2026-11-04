@@ -79,6 +79,117 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/plugins/generated-sources-mutation.test.ts",
     "packages/cli/tests/plugins/language-pack-relevance.test.ts",
   ],
+  "packages/cli/src/utils/canonical-path.ts": [
+    "packages/cli/tests/utils/canonical-path.test.ts",
+  ],
+  "packages/cli/src/utils/symbol-manifest-layout.ts": [
+    "packages/cli/tests/utils/symbol-manifest-layout.test.ts",
+  ],
+  "packages/cli/src/utils/prolog-cleanup.ts": [
+    "packages/cli/tests/utils/prolog-cleanup.test.ts",
+  ],
+  "packages/cli/src/utils/first-sentence.ts": [
+    "packages/cli/tests/utils/first-sentence.test.ts",
+  ],
+  "packages/cli/src/utils/prolog-query-plan-safety.ts": [
+    "packages/cli/tests/utils/prolog-query-plan-safety.test.ts",
+  ],
+  "packages/cli/src/utils/repo-relative-path.ts": [
+    "packages/cli/tests/utils/repo-relative-path.test.ts",
+  ],
+  "packages/cli/src/utils/entity-id-style.ts": [
+    "packages/cli/tests/utils/entity-id-style.test.ts",
+  ],
+  "packages/cli/src/utils/manifest-paths.ts": [
+    "packages/cli/tests/utils/manifest-paths.test.ts",
+  ],
+  "packages/cli/src/utils/merge-driver-setup.ts": [
+    "packages/cli/tests/utils/merge-driver-setup.test.ts",
+  ],
+  "packages/cli/src/utils/schema-version.ts": [
+    "packages/cli/tests/utils/schema-version.test.ts",
+  ],
+  "packages/cli/src/utils/branch-store-locator.ts": [
+    "packages/cli/tests/utils/branch-store-locator.test.ts",
+  ],
+  "packages/cli/src/utils/kb-paths.ts": [
+    "packages/cli/tests/utils/kb-paths.test.ts",
+  ],
+  "packages/cli/src/utils/rule-registry.ts": [
+    "packages/cli/tests/utils/rule-registry-classes.test.ts",
+  ],
+  "packages/cli/src/utils/config.ts": [
+    "packages/cli/tests/utils/config-legacy.test.ts",
+  ],
+  "packages/cli/src/utils/kb-manifest.ts": [
+    "packages/cli/tests/utils/kb-manifest.test.ts",
+  ],
+  "packages/cli/src/utils/content-freshness.ts": [
+    "packages/cli/tests/utils/content-freshness-evidence.test.ts",
+  ],
+  "packages/cli/src/utils/git-repository-context.ts": [
+    "packages/cli/tests/utils/git-repository-context-fake.test.ts",
+  ],
+  "packages/cli/src/utils/branch-store.ts": [
+    "packages/cli/tests/utils/branch-store-inspection.test.ts",
+  ],
+  "packages/cli/src/utils/strict-modeling.ts": [
+    "packages/cli/tests/utils/strict-modeling-shape.test.ts",
+  ],
+  "packages/cli/src/utils/branch-resolver.ts": [
+    "packages/cli/tests/utils/branch-resolver-scripted.test.ts",
+  ],
+  "packages/cli/src/report/relative-time.ts": [
+    "packages/cli/tests/report/report-pure.test.ts",
+  ],
+  "packages/cli/src/report/report-view.ts": [
+    "packages/cli/tests/report/report-pure.test.ts",
+  ],
+  "packages/cli/src/report/brand.ts": [
+    "packages/cli/tests/report/report-pure.test.ts",
+  ],
+  "packages/cli/src/report/repository.ts": [
+    "packages/cli/tests/report/report-pure.test.ts",
+  ],
+  "packages/cli/src/query/service.ts": [
+    "packages/cli/tests/query/service.test.ts",
+  ],
+  "packages/cli/src/relationships/shards.ts": [
+    "packages/cli/tests/relationships/shards-mutation.test.ts",
+  ],
+  "packages/cli/src/extractors/symbols-ts.ts": [
+    "packages/cli/tests/extractors/symbols-ts-adapter.test.ts",
+  ],
+  "packages/cli/src/extractors/symbol-title-match.ts": [
+    "packages/cli/tests/extractors/symbol-title-match-rules.test.ts",
+  ],
+  "packages/cli/src/extractors/playwright-cases.ts": [
+    "packages/cli/tests/extractors/playwright-cases-scanner.test.ts",
+  ],
+  "packages/cli/src/extractors/relationships.ts": [
+    "packages/cli/tests/extractors/relationships-convert.test.ts",
+  ],
+  "packages/cli/src/runtime/detached-snapshot.ts": [
+    "packages/cli/tests/runtime/detached-snapshot-attachment.test.ts",
+  ],
+  "packages/cli/src/runtime/cli-runtime.ts": [
+    "packages/cli/tests/runtime/cli-runtime-open.test.ts",
+  ],
+  "packages/cli/src/signoff/model.ts": [
+    "packages/cli/tests/signoff/model-pure.test.ts",
+  ],
+  "packages/cli/src/signoff/markdown.ts": [
+    "packages/cli/tests/signoff/markdown-render.test.ts",
+  ],
+  "packages/cli/src/signoff/html.ts": [
+    "packages/cli/tests/signoff/html-render.test.ts",
+  ],
+  "packages/cli/src/proof/evaluate.ts": [
+    "packages/cli/tests/proof/evaluate-contract.test.ts",
+  ],
+  "packages/cli/src/proof/integrations.ts": [
+    "packages/cli/tests/proof/integrations-config.test.ts",
+  ],
 };
 
 // Plugin package modules gated the same way: each with the hermetic tests of

@@ -157,8 +157,7 @@ export function proofLabel(proof: SignoffProof | undefined): string {
   if (proof.status === "not_applicable") return "not applicable";
   const gate = SIGNOFF_GATE_LABELS[proof.gate] ?? proof.gate;
   const tests = `${proof.testCount} ${proof.testCount === 1 ? "test" : "tests"}`;
-  const label =
-    proof.gate === "tested" ? `tested, ${tests}` : `${gate}, ${tests}`;
+  const label = `${gate}, ${tests}`;
   const evidence =
     proof.evidenceLevel === undefined || proof.evidenceLevel === "tested"
       ? label
@@ -210,7 +209,7 @@ function sentences(statement: string): string[] {
   return statement
     .replace(/\s+/g, " ")
     .trim()
-    .split(/(?<=[.!?])\s+(?=[A-Z0-9"'`(])/)
+    .split(/(?<=[.!?]) (?=[A-Z0-9"'`(])/)
     .filter((sentence) => sentence.length > 0);
 }
 
@@ -239,19 +238,22 @@ export function statementSentenceDiff(
           : Math.max(next[j] as number, row[j + 1] as number);
     }
   }
-  if ((table[0]?.[0] ?? 0) === 0) return undefined;
+  if ((table[0] as number[])[0] === 0) return undefined;
   const result: StatementSentence[] = [];
   let i = 0;
   let j = 0;
   while (i < before.length || j < after.length) {
-    if (i < before.length && j < after.length && before[i] === after[j]) {
+    // Past the end of either list the sentence there is undefined, so it
+    // never equals one still to place, and once every new sentence is placed
+    // the table cell past the row is undefined, so the old sentence goes.
+    if (before[i] === after[j]) {
       result.push({ text: after[j] as string, change: "kept" });
       i += 1;
       j += 1;
     } else if (
-      j < after.length &&
-      (i >= before.length ||
-        (table[i]?.[j + 1] as number) >= (table[i + 1]?.[j] as number))
+      i === before.length ||
+      ((table[i] as number[])[j + 1] as number) >=
+        ((table[i + 1] as number[])[j] as number)
     ) {
       result.push({ text: after[j] as string, change: "added" });
       j += 1;

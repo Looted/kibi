@@ -48,6 +48,25 @@ on:
       - 'packages/core/tests/kb_fixture.pl'
       - 'packages/core/tests/cert_fixture.pl'
       - 'packages/core/tests/test_helpers.pl'
+      - 'packages/core/schema/validation.pl'
+      - 'packages/core/schema/entities.pl'
+      - 'packages/core/schema/relationships.pl'
+      - 'packages/core/src/code_certificates.pl'
+      - 'packages/core/src/certificate_check.pl'
+      - 'packages/core/src/model_check.pl'
+      - 'packages/core/src/claim_obligations.pl'
+      - 'packages/core/src/semantic_quality.pl'
+      - 'packages/core/tests/entities.plt'
+      - 'packages/core/tests/relationships.plt'
+      - 'packages/core/tests/validation.plt'
+      - 'packages/core/tests/code_certificates.plt'
+      - 'packages/core/tests/certificate_check.plt'
+      - 'packages/core/tests/model_check.plt'
+      - 'packages/core/tests/claim_obligations.plt'
+      - 'packages/core/tests/semantic_quality.plt'
+      - 'packages/core/src/discovery.pl'
+      - 'packages/core/tests/discovery.plt'
+      - 'packages/core/tests/proof_fixture.pl'
       - 'packages/core/src/kb.pl'
       - 'packages/core/tests/kb.plt'
       - 'mutalog.config.pl'
@@ -63,7 +82,7 @@ jobs:
   prolog-mutation:
     needs: [swipl-bundle]
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 150
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

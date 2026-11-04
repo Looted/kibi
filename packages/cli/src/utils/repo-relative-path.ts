@@ -19,6 +19,12 @@
 import { realpathSync } from "node:fs";
 import path from "node:path";
 
+/** Drive and UNC spellings name another machine on a POSIX host. */
+// rationale: the path separator is fixed per host, so on the POSIX hosts that
+// run mutation tests forcing this to true changes nothing observable.
+// Stryker disable next-line ConditionalExpression
+const POSIX_PATHS = path.sep === "/";
+
 /**
  * Canonical repository-relative form of a recorded path, as proof freshness
  * reads it: POSIX separators and no `.` segments. An absolute path that
@@ -45,15 +51,20 @@ export function normalizeRepoRelativePath(
   const foreignAbsolute =
     /^[A-Za-z]:\//.test(slashed) || slashed.startsWith("//");
   if (slashed.startsWith("/") || foreignAbsolute) {
-    if (foreignAbsolute && path.sep === "/") return null;
+    if (foreignAbsolute && POSIX_PATHS) return null;
     const root = path.resolve(workspaceRoot);
     const relative = path.relative(root, path.resolve(candidate));
-    if (relative === "" || path.isAbsolute(relative)) return null;
+    // rationale: path.relative returns an absolute path only across Windows
+    // drives, so on the POSIX hosts that run mutation tests this never holds.
+    // Stryker disable next-line ConditionalExpression
+    if (path.isAbsolute(relative)) return null;
+    // An empty `relative` (the root itself) normalizes to "." below.
     slashed = relative.replaceAll("\\", "/");
   }
-  const normalized = path.posix.normalize(slashed).replace(/\/+$/, "");
+  // posix.normalize already collapses repeated slashes, so at most one trails;
+  // it never returns "".
+  const normalized = path.posix.normalize(slashed).replace(/\/$/, "");
   if (
-    normalized === "" ||
     normalized === "." ||
     normalized === ".." ||
     normalized.startsWith("../")
@@ -78,18 +89,13 @@ export function resolveWorkspaceSourceAbsolute(
   if (relative === null) return null;
   const absolute = path.resolve(workspaceRoot, relative);
   try {
-    const realRoot = realpathSync.native(path.resolve(workspaceRoot));
+    const realRoot = realpathSync.native(workspaceRoot);
     const realFile = realpathSync.native(absolute);
-    const confined = path.relative(realRoot, realFile);
-    // A name that only starts with two dots (`..config.ts`) stays inside.
-    if (
-      confined === ".." ||
-      confined.startsWith(`..${path.sep}`) ||
-      path.isAbsolute(confined)
-    ) {
-      return null;
-    }
-    return realFile;
+    // A symlink inside the root may point outside it: the real file must
+    // still be confined under the real root.
+    return normalizeRepoRelativePath(realRoot, realFile) === null
+      ? null
+      : realFile;
   } catch {
     // Missing path: lexical confinement from normalizeRepoRelativePath is enough.
     return absolute;

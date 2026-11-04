@@ -72,7 +72,7 @@ export const VALID_ENTITY_TYPES = [
  */
 export function buildEntityQueryGoal(filters: QueryFilters): string {
   // implements REQ-003
-  const { type, id, sourceFile, tags } = filters;
+  const { type, id, sourceFile } = filters;
 
   if (sourceFile) {
     const safeSource = codecDeps.escapeAtom(sourceFile);
@@ -94,14 +94,8 @@ export function buildEntityQueryGoal(filters: QueryFilters): string {
     return `findall(['${safeId}',Type,Props], kb_entity('${safeId}', Type, Props), Results)`;
   }
 
-  if (tags && tags.length > 0) {
-    if (type) {
-      const safeType = codecDeps.escapeAtom(type);
-      return `findall([Id,'${safeType}',Props], kb_entity(Id, '${safeType}', Props), Results)`;
-    }
-    return "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)";
-  }
-
+  // Tags are filtered client-side (queryEntities), so a tag query reads the
+  // same goal as a type-only or unfiltered one.
   if (type) {
     const safeType = codecDeps.escapeAtom(type);
     return `findall([Id,'${safeType}',Props], kb_entity(Id, '${safeType}', Props), Results)`;
@@ -181,9 +175,10 @@ export function buildQuerySummaryText(
 ): string {
   const { entities, totalCount } = result;
   const { type, offset, limit } = filters;
+  const ofType = type ? ` of type '${type}'` : "";
 
   if (totalCount === 0) {
-    return `No entities found${type ? ` of type '${type}'` : ""}.`;
+    return `No entities found${ofType}.`;
   }
 
   const details = entities
@@ -195,7 +190,7 @@ export function buildQuerySummaryText(
     })
     .join(", ");
 
-  return `Found ${totalCount} entities${type ? ` of type '${type}'` : ""}. Showing ${entities.length} (offset ${offset}, limit ${limit}): ${details}`;
+  return `Found ${totalCount} entities${ofType}. Showing ${entities.length} (offset ${offset}, limit ${limit}): ${details}`;
 }
 
 function hasAnyTag(
@@ -204,9 +199,7 @@ function hasAnyTag(
 ): boolean {
   const expected = new Set(requestedTags.map(normalizeTagValue));
   const rawTags = entity.tags;
-  if (!Array.isArray(rawTags) || rawTags.length === 0) {
-    return false;
-  }
+  if (!Array.isArray(rawTags)) return false;
 
   for (const tag of rawTags) {
     if (expected.has(normalizeTagValue(tag))) {
@@ -228,9 +221,7 @@ function dedupeEntities(
   const deduped: Array<Record<string, unknown>> = [];
 
   for (const entity of entities) {
-    const id = String(entity.id ?? "");
-    const type = String(entity.type ?? "");
-    const key = `${type}::${id}`;
+    const key = `${String(entity.type)}::${String(entity.id)}`;
     if (seen.has(key)) {
       continue;
     }
