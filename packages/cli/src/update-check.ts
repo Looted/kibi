@@ -61,11 +61,11 @@ export interface UpdateCache {
   notifiedVersion?: string;
 }
 
-function flagValue(value: string | undefined): boolean | undefined {
-  const normalized = String(value).trim().toLowerCase();
-  if (["1", "true", "yes", "on"].includes(normalized)) return true;
-  if (["0", "false", "no", "off"].includes(normalized)) return false;
-  return undefined;
+/** `0`, `false`, `no` or `off`, in any case and with any padding. */
+function isFalseFlag(value: string | undefined): boolean {
+  return ["0", "false", "no", "off"].includes(
+    String(value).trim().toLowerCase(),
+  );
 }
 
 function automationName(env: Env, keys: readonly string[]): string | undefined {
@@ -77,7 +77,7 @@ function automationName(env: Env, keys: readonly string[]): string | undefined {
       if (value === expected) return key;
       continue;
     }
-    if (flagValue(value) !== false) return name;
+    if (!isFalseFlag(value)) return name;
   }
   return undefined;
 }
@@ -95,7 +95,7 @@ export function updateCheckOffReason(
   env: Env = process.env,
   moduleFile: string | null = MODULE_FILE,
 ): string | undefined {
-  if (flagValue(env.KIBI_UPDATE_CHECK) === false) return "KIBI_UPDATE_CHECK=0";
+  if (isFalseFlag(env.KIBI_UPDATE_CHECK)) return "KIBI_UPDATE_CHECK=0";
   if (env.NO_UPDATE_NOTIFIER?.trim()) return "NO_UPDATE_NOTIFIER is set";
   const ci = automationName(env, CI_ENV_KEYS);
   if (ci) return `CI environment (${ci})`;
@@ -116,7 +116,7 @@ export function updateCachePath(env: Env = process.env): string {
 export function readUpdateCache(env: Env = process.env): UpdateCache {
   try {
     const parsed: unknown = JSON.parse(
-      fs.readFileSync(updateCachePath(env), "utf8"),
+      String(fs.readFileSync(updateCachePath(env))),
     );
     return typeof parsed === "object" &&
       parsed !== null &&
@@ -157,12 +157,10 @@ export function isNewerRelease(latest: string, current: string): boolean {
   const next = releaseParts(latest);
   const now = releaseParts(current);
   if (!next || !now) return false;
-  for (let index = 0; index < 3; index += 1) {
-    const a = next[index] as number;
-    const b = now[index] as number;
-    if (a !== b) return a > b;
-  }
-  return false;
+  const difference = next
+    .map((part, index) => part - (now[index] as number))
+    .find((delta) => delta !== 0);
+  return (difference ?? 0) > 0;
 }
 
 function isDue(
@@ -170,7 +168,7 @@ function isDue(
   intervalMs: number,
   now: number,
 ): boolean {
-  const at = timestamp === undefined ? Number.NaN : Date.parse(timestamp);
+  const at = Date.parse(String(timestamp));
   // A missing, unreadable or future timestamp makes the check due.
   return !Number.isFinite(at) || at > now || now - at >= intervalMs;
 }
@@ -184,11 +182,7 @@ export function updateCheckDue(
 }
 
 function existsFile(file: string): boolean {
-  try {
-    return fs.statSync(file).isFile();
-  } catch {
-    return false;
-  }
+  return fs.statSync(file, { throwIfNoEntry: false })?.isFile() === true;
 }
 
 // implements REQ-kibi-update-notice
@@ -198,18 +192,17 @@ function existsFile(file: string): boolean {
  * global install otherwise.
  */
 export function updateInstallCommand(
-  moduleFile: string | undefined = MODULE_FILE,
+  moduleFile: string = MODULE_FILE,
   cwd: string = process.cwd(),
   fileExists: (file: string) => boolean = existsFile,
 ): string {
   const target = `${PACKAGE_NAME}@latest`;
-  const file = (moduleFile ?? "").replaceAll("\\", "/");
+  const file = moduleFile.replaceAll("\\", "/");
   if (file.includes("/_npx/")) return `npx ${target}`;
   if (file.includes("/.bun/install/global/")) return `bun add -g ${target}`;
-  const marker = `/node_modules/${PACKAGE_NAME}/`;
-  const at = file.lastIndexOf(marker);
-  if (at > 0) {
-    const projectRoot = file.slice(0, at);
+  const project = /(.*)\/node_modules\/kibi-cli\//.exec(file);
+  if (project) {
+    const projectRoot = project[1] as string;
     const here = cwd.replaceAll("\\", "/");
     const inProject =
       here === projectRoot || here.startsWith(`${projectRoot}/`);
@@ -230,6 +223,15 @@ export function updateInstallCommand(
   return `npm install -g ${target}`;
 }
 
+/** The KB schema the latest release writes, when it is newer than ours. */
+function newerKbSchema(
+  cache: UpdateCache,
+  currentKbSchema: number,
+): number | undefined {
+  const schema = cache.latestKbSchema ?? 0;
+  return schema > currentKbSchema ? schema : undefined;
+}
+
 // implements REQ-kibi-update-notice
 /**
  * The one-line notice for a newer cached version, or null when the cache
@@ -245,9 +247,9 @@ export function formatUpdateNotice(input: {
   if (latest === undefined || !isNewerRelease(latest, input.currentVersion)) {
     return null;
   }
-  const schema = input.cache.latestKbSchema;
+  const schema = newerKbSchema(input.cache, input.currentKbSchema);
   const schemaNote =
-    typeof schema === "number" && schema > input.currentKbSchema
+    schema !== undefined
       ? ` It moves the KB from schema ${input.currentKbSchema} to ${schema}; run 'kibi migrate' after updating.`
       : "";
   return `Kibi update available: kibi-cli ${input.currentVersion} -> ${latest}. Update with '${input.installCommand}'.${schemaNote} (KIBI_UPDATE_CHECK=0 turns this off)`;
@@ -271,18 +273,18 @@ export function registryUrl(env: Env = process.env): string {
  */
 export function parseLatestManifest(
   value: unknown,
-): { latest: string; latestKbSchema?: number } | undefined {
-  if (value === null || typeof value !== "object") return undefined;
-  const record = value as { version?: unknown; kibi?: unknown };
+): { latest: string; latestKbSchema: number | undefined } | undefined {
+  const record = (value ?? {}) as { version?: unknown; kibi?: unknown };
   if (typeof record.version !== "string" || !releaseParts(record.version)) {
     return undefined;
   }
   const kibi = record.kibi as { kbSchema?: unknown } | null | undefined;
   const schema =
     kibi !== null && typeof kibi === "object" ? kibi.kbSchema : undefined;
-  return Number.isInteger(schema)
-    ? { latest: record.version, latestKbSchema: schema as number }
-    : { latest: record.version };
+  return {
+    latest: record.version,
+    latestKbSchema: Number.isInteger(schema) ? (schema as number) : undefined,
+  };
 }
 
 // implements REQ-kibi-update-notice
@@ -309,7 +311,10 @@ export async function refreshUpdateCache(
     () => controller.abort(),
     options.timeoutMs ?? UPDATE_FETCH_TIMEOUT_MS,
   );
-  timer.unref?.();
+  // rationale: unref only lets a process exit before the timeout fires, which
+  // no test can observe from inside that process.
+  // Stryker disable next-line CallExpression
+  timer.unref();
   try {
     const response = await (options.fetchImpl ?? globalThis.fetch)(
       registryUrl(env),
@@ -318,18 +323,17 @@ export async function refreshUpdateCache(
         signal: controller.signal,
       },
     );
-    if (response.ok) {
-      const parsed = parseLatestManifest(await response.json());
-      if (parsed) {
-        next.latest = parsed.latest;
-        next.latestKbSchema = parsed.latestKbSchema;
-      }
-    }
+    Object.assign(
+      next,
+      response.ok ? parseLatestManifest(await response.json()) : undefined,
+    );
   } catch {
     // Offline, blocked or slow registry: try again after the next interval.
-  } finally {
-    clearTimeout(timer);
   }
+  // rationale: the timer is unref'd and aborting a settled request does
+  // nothing, so clearing it early is not observable.
+  // Stryker disable next-line CallExpression
+  clearTimeout(timer);
   try {
     writeUpdateCache(next, env);
   } catch {
@@ -338,11 +342,8 @@ export async function refreshUpdateCache(
   return next;
 }
 
-/** The background worker that refreshes the cache, next to this module. */
-const WORKER_FILE = path.join(
-  path.dirname(MODULE_FILE),
-  `update-check-worker${path.extname(MODULE_FILE)}`,
-);
+/** Run this module with this argument to refresh the cache and exit. */
+export const UPDATE_REFRESH_ARGUMENT = "--kibi-update-refresh";
 
 // implements REQ-kibi-update-notice
 /**
@@ -350,18 +351,27 @@ const WORKER_FILE = path.join(
  * waiting on the network. A process that fails to start is ignored; the next
  * due run tries again.
  */
+// rationale: detaching, hiding and unref'ing the child are properties of the
+// operating-system process that no test can observe; the worker test checks
+// that the process runs and writes the cache.
+// Stryker disable all
 export function spawnUpdateRefresh(env: Env = process.env): void {
-  const child = spawn(process.execPath, [WORKER_FILE], {
-    detached: true,
-    stdio: "ignore",
-    windowsHide: true,
-    env,
-  });
+  const child = spawn(
+    process.execPath,
+    [MODULE_FILE, UPDATE_REFRESH_ARGUMENT],
+    {
+      detached: true,
+      stdio: "ignore",
+      windowsHide: true,
+      env,
+    },
+  );
   child.on("error", () => {
     // Best effort: the next due run tries again.
   });
   child.unref();
 }
+// Stryker restore all
 
 export interface UpdateCommandContext {
   readonly commandPath: string | undefined;
@@ -428,7 +438,7 @@ export function finishUpdateCheck(input: {
     return null;
   }
   if (input.context.machineOutput) return null;
-  if (!(input.stderrIsTTY ?? process.stderr.isTTY === true)) return null;
+  if (!(input.stderrIsTTY ?? process.stderr.isTTY)) return null;
   const moduleFile = input.moduleFile ?? MODULE_FILE;
   if (updateCheckOffReason(env, moduleFile) !== undefined) return null;
   if (!releaseParts(input.currentVersion)) return null;
@@ -444,14 +454,6 @@ export function finishUpdateCheck(input: {
       // No writable state directory: stay quiet rather than ask every run.
     }
   }
-  const latest = cache.latest;
-  if (
-    latest === undefined ||
-    (cache.notifiedVersion === latest &&
-      !isDue(cache.notifiedAt, UPDATE_NOTICE_INTERVAL_MS, now))
-  ) {
-    return null;
-  }
   const notice = formatUpdateNotice({
     currentVersion: input.currentVersion,
     currentKbSchema: input.currentKbSchema,
@@ -460,13 +462,19 @@ export function finishUpdateCheck(input: {
       input.installCommand ?? (() => updateInstallCommand(moduleFile))
     )(),
   });
-  if (notice === null) return null;
+  if (
+    notice === null ||
+    (cache.notifiedVersion === cache.latest &&
+      !isDue(cache.notifiedAt, UPDATE_NOTICE_INTERVAL_MS, now))
+  ) {
+    return null;
+  }
   try {
     writeUpdateCache(
       {
         ...cache,
         notifiedAt: new Date(now).toISOString(),
-        notifiedVersion: latest,
+        notifiedVersion: cache.latest as string,
       },
       env,
     );
@@ -541,9 +549,9 @@ export async function checkKibiUpdates(input: {
       details,
     };
   }
-  const schema = cache.latestKbSchema;
+  const schema = newerKbSchema(cache, input.currentKbSchema);
   const schemaNote =
-    typeof schema === "number" && schema > input.currentKbSchema
+    schema !== undefined
       ? ` (KB schema ${input.currentKbSchema} -> ${schema})`
       : "";
   const install = (
@@ -560,3 +568,22 @@ export async function checkKibiUpdates(input: {
     details,
   };
 }
+
+// implements REQ-kibi-update-notice
+/**
+ * The detached background process spawnUpdateRefresh starts: when this
+ * module runs with the refresh argument, make one registry request, write
+ * the cache, then exit. Returns whether it refreshed.
+ */
+export async function runUpdateRefreshEntrypoint(
+  argv: readonly string[] = process.argv,
+  env: Env = process.env,
+): Promise<boolean> {
+  if (argv[1] !== MODULE_FILE || argv[2] !== UPDATE_REFRESH_ARGUMENT) {
+    return false;
+  }
+  await refreshUpdateCache(env, {});
+  return true;
+}
+
+await runUpdateRefreshEntrypoint();

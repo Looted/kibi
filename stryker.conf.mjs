@@ -371,6 +371,9 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/cli-json-command.ts": [
     "packages/cli/tests/cli-json-command-mutation.test.ts",
   ],
+  "packages/cli/src/update-check.ts": [
+    "packages/cli/tests/update-check.test.ts",
+  ],
   "packages/cli/src/cli.ts": [
     "packages/cli/tests/cli-main-pure.test.ts",
     "packages/cli/tests/cli-main-mutation.test.ts",

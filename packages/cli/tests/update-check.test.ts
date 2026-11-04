@@ -6,6 +6,7 @@ import { Command } from "commander";
 import {
   DEFAULT_NPM_REGISTRY,
   UPDATE_CACHE_FILE,
+  UPDATE_REFRESH_ARGUMENT,
   type UpdateCache,
   type UpdateCommandContext,
   checkKibiUpdates,
@@ -17,6 +18,7 @@ import {
   readUpdateCache,
   refreshUpdateCache,
   registryUrl,
+  runUpdateRefreshEntrypoint,
   spawnUpdateRefresh,
   trackUpdateCommand,
   updateCachePath,
@@ -377,14 +379,17 @@ describe("refreshUpdateCache", () => {
       env,
     );
     const requested: string[] = [];
-    const fetchImpl = (async (url: string) => {
+    const headers: unknown[] = [];
+    const fetchImpl = (async (url: string, init: RequestInit) => {
       requested.push(url);
+      headers.push(init.headers);
       return new Response(
         JSON.stringify({ version: "2.42.0", kibi: { kbSchema: 14 } }),
       );
     }) as unknown as typeof fetch;
     const cache = await refreshUpdateCache(env, { fetchImpl, now: NOW });
     expect(requested).toEqual(["https://registry.npmjs.org/kibi-cli/latest"]);
+    expect(headers).toEqual([{ accept: "application/json" }]);
     const expected: UpdateCache = {
       notifiedAt: "2026-11-01T00:00:00.000Z",
       notifiedVersion: "2.41.5",
@@ -431,11 +436,13 @@ describe("refreshUpdateCache", () => {
           reject(new Error("aborted")),
         );
       })) as unknown as typeof fetch;
+    const started = Date.now();
     const cache = await refreshUpdateCache(env, {
       fetchImpl,
       timeoutMs: 10,
       now: NOW,
     });
+    expect(Date.now() - started).toBeLessThan(1000);
     expect(cache).toEqual({ checkedAt: new Date(NOW).toISOString() });
   });
 
@@ -706,12 +713,25 @@ describe("checkKibiUpdates (kibi doctor)", () => {
       { checkedAt: new Date(NOW - 1000).toISOString(), latest: "2.41.0" },
       env,
     );
+    let fetched = 0;
     const result = await doctor({
       fetchImpl: (async () => {
+        fetched += 1;
         throw new Error("must not fetch");
       }) as unknown as typeof fetch,
     });
-    expect(result.warning).toBeUndefined();
+    expect(fetched).toBe(0);
+    expect(result).toEqual({
+      passed: true,
+      message: "kibi-cli 2.41.0 is up to date (latest 2.41.0)",
+      details: {
+        enabled: true,
+        current: "2.41.0",
+        latest: "2.41.0",
+        latestKbSchema: null,
+        checkedAt: new Date(NOW - 1000).toISOString(),
+      },
+    });
     expect(result.message).toBe(
       "kibi-cli 2.41.0 is up to date (latest 2.41.0)",
     );
@@ -752,11 +772,130 @@ describe("checkKibiUpdates (kibi doctor)", () => {
         throw new Error("offline");
       }) as unknown as typeof fetch,
     });
-    expect(result).toMatchObject({
+    expect(result).toEqual({
       passed: true,
       message: "Could not reach the npm registry to check for a newer kibi-cli",
+      details: {
+        enabled: true,
+        current: "2.41.0",
+        latest: null,
+        latestKbSchema: null,
+        checkedAt: new Date(NOW).toISOString(),
+      },
     });
-    expect(result.warning).toBeUndefined();
+  });
+
+  test("names no schema move when the latest writes the same KB schema", async () => {
+    const result = await doctor({
+      fetchImpl: manifestResponse({
+        version: "2.42.0",
+        kibi: { kbSchema: 13 },
+      }),
+    });
+    expect(result.message).toBe(
+      "kibi-cli 2.42.0 is available; 2.41.0 is installed",
+    );
+    expect(result.remediation).not.toContain("kibi migrate");
+  });
+});
+
+describe("edge cases", () => {
+  test.each([" OFF ", "No", "FALSE", "0"])(
+    "KIBI_UPDATE_CHECK=%p turns the check off",
+    (value) => {
+      expect(
+        updateCheckOffReason({ KIBI_UPDATE_CHECK: value }, INSTALLED),
+      ).toBe("KIBI_UPDATE_CHECK=0");
+    },
+  );
+
+  test.each(["0", "false", "no", "off", " Off ", "   "])(
+    "CI=%p does not mark a CI run",
+    (value) => {
+      expect(updateCheckOffReason({ CI: value }, INSTALLED)).toBeUndefined();
+    },
+  );
+
+  test("CI with any other value marks a CI run", () => {
+    expect(updateCheckOffReason({ CI: "yes" }, INSTALLED)).toBe(
+      "CI environment (CI)",
+    );
+  });
+
+  test("compares every version part numerically and ignores padding", () => {
+    expect(isNewerRelease("12.0.0", "2.0.0")).toBe(true);
+    expect(isNewerRelease("2.0.10", "2.0.9")).toBe(true);
+    expect(isNewerRelease("2.10.0", "2.9.9")).toBe(true);
+    expect(isNewerRelease(" 2.42.0 ", "2.41.0")).toBe(true);
+    expect(isNewerRelease("x2.42.0", "2.41.0")).toBe(false);
+    expect(isNewerRelease("2.42.0", "2.41.0x")).toBe(false);
+  });
+
+  test("skips blank registry settings", () => {
+    expect(
+      registryUrl({
+        KIBI_UPDATE_REGISTRY: " ",
+        npm_config_registry: " ",
+        NPM_CONFIG_REGISTRY: " https://c.example ",
+      }),
+    ).toBe("https://c.example/kibi-cli/latest");
+  });
+
+  test("reads a cache that holds a JSON scalar as empty", () => {
+    fs.writeFileSync(updateCachePath(env), "5");
+    expect(readUpdateCache(env)).toEqual({});
+  });
+
+  test("a module outside any node_modules updates globally", () => {
+    expect(
+      updateInstallCommand("/usr/local/bin/x.js", "/usr/local", () => true),
+    ).toBe("npm install -g kibi-cli@latest");
+  });
+
+  test("the telemetry command never shows the notice", () => {
+    writeUpdateCache(
+      { checkedAt: new Date(NOW).toISOString(), latest: "2.42.0" },
+      env,
+    );
+    const written: string[] = [];
+    const notice = finishUpdateCheck({
+      context: { commandPath: "telemetry status", machineOutput: false },
+      currentVersion: "2.41.0",
+      currentKbSchema: 13,
+      env,
+      stderrIsTTY: true,
+      now: NOW,
+      moduleFile: INSTALLED,
+      write: (line) => written.push(line),
+    });
+    expect(notice).toBeNull();
+    expect(written).toEqual([]);
+  });
+
+  test("stays quiet by default when stderr is not a terminal", () => {
+    writeUpdateCache(
+      { checkedAt: new Date(NOW).toISOString(), latest: "2.42.0" },
+      env,
+    );
+    const tty = process.stderr.isTTY;
+    process.stderr.isTTY = false;
+    try {
+      expect(
+        finishUpdateCheck({
+          context: { commandPath: "search", machineOutput: false },
+          currentVersion: "2.41.0",
+          currentKbSchema: 13,
+          env,
+          now: NOW,
+          moduleFile: INSTALLED,
+          write: () => {
+            throw new Error("must not write");
+          },
+        }),
+      ).toBeNull();
+    } finally {
+      process.stderr.isTTY = tty;
+    }
   });
 });
 
@@ -787,6 +926,56 @@ describe("background refresh process", () => {
         latest: "2.50.0",
         latestKbSchema: 15,
       });
+    } finally {
+      server.stop(true);
+    }
+  });
+});
+
+describe("runUpdateRefreshEntrypoint", () => {
+  const moduleFile = path.join(import.meta.dir, "..", "src", "update-check.ts");
+
+  test("does nothing unless this module runs with the refresh argument", async () => {
+    let fetched = 0;
+    const original = globalThis.fetch;
+    globalThis.fetch = (async () => {
+      fetched += 1;
+      return new Response("{}");
+    }) as unknown as typeof fetch;
+    try {
+      expect(await runUpdateRefreshEntrypoint(["node", moduleFile], env)).toBe(
+        false,
+      );
+      expect(
+        await runUpdateRefreshEntrypoint(
+          ["node", "/other.js", UPDATE_REFRESH_ARGUMENT],
+          env,
+        ),
+      ).toBe(false);
+      expect(await runUpdateRefreshEntrypoint(undefined, env)).toBe(false);
+    } finally {
+      globalThis.fetch = original;
+    }
+    expect(fetched).toBe(0);
+    expect(fs.readdirSync(stateDir)).toEqual([]);
+  });
+
+  test("the refresh argument cannot be mistaken for a Kibi command", () => {
+    expect(UPDATE_REFRESH_ARGUMENT).toBe("--kibi-update-refresh");
+  });
+
+  test("refreshes the cache when it is the refresh process", async () => {
+    const server = Bun.serve({
+      port: 0,
+      fetch: () => Response.json({ version: "2.60.0" }),
+    });
+    try {
+      const refreshed = await runUpdateRefreshEntrypoint(
+        ["node", moduleFile, UPDATE_REFRESH_ARGUMENT],
+        { ...env, KIBI_UPDATE_REGISTRY: `http://127.0.0.1:${server.port}` },
+      );
+      expect(refreshed).toBe(true);
+      expect(readUpdateCache(env).latest).toBe("2.60.0");
     } finally {
       server.stop(true);
     }

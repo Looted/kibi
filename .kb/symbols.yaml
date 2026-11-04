@@ -68035,3 +68035,29 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-update-notice
+  - id: SYM-cli-update-check-run-update-refresh-entrypoint
+    title: runUpdateRefreshEntrypoint
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:49:27.421Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-refresh-argument
+    title: UPDATE_REFRESH_ARGUMENT
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:49:34.047Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
