@@ -33,3 +33,5 @@ Installing a Git hook whose path runs through a regular file now reports the hoo
 The usage-metrics tables are drawn by one helper, and the zero-result tool table reuses the shared counts table; the printed report is unchanged.
 
 `kibi branch restore --apply` now restores stores that `kibi gc` quarantined. Quarantine entries are named by time, and restore compared that directory name with the branch store key, so every restore of a garbage-collected store was refused as an identity mismatch; it now checks the identity recorded in the store manifest.
+
+The symbol coordinate refresh builds the artifact publication in one place, reads files without encoding arguments, and skips extraction when an incremental refresh reuses every record; manifests and coordinate artifacts are unchanged.
