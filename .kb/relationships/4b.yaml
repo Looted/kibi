@@ -370,3 +370,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-311e84fcfb48
+  - type: constrains
+    from: REQ-agent-hosts-rule-prompt-note
+    to: FACT-SUBJECT-KIBI-AGENT-HOSTS-DECISION-GUARD
+    created_at: 2026-11-04T18:21:06.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13b6a184ca32
+  - type: requires_property
+    from: REQ-agent-hosts-rule-prompt-note
+    to: FACT-agent-hosts-rule-prompt-note
+    created_at: 2026-11-04T18:21:06.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8ecfb5b31fe
+  - type: specified_by
+    from: REQ-agent-hosts-rule-prompt-note
+    to: SCEN-agent-hosts-decision-guard
+    created_at: 2026-11-04T18:21:06.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-978f9a930adc
+  - type: specified_by
+    from: REQ-agent-hosts-rule-prompt-note
+    to: SCEN-NEG-agent-hosts-decision-guard-UNNOTED-RULE
+    created_at: 2026-11-04T18:21:06.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2aee71c30890
+  - type: verified_by
+    from: REQ-agent-hosts-rule-prompt-note
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-11-04T18:21:06.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21771bfe2606
+  - type: verified_by
+    from: REQ-agent-hosts-rule-prompt-note
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-11-04T18:21:06.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d9b358e12ac
+  - type: verified_by
+    from: REQ-agent-hosts-rule-prompt-note
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-04T18:21:06.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0690f9544f88
+  - type: relates_to
+    from: REQ-agent-hosts-rule-prompt-note
+    to: REQ-claude-decision-capture-nudges
+    created_at: 2026-11-04T18:21:06.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b12983428d8c
+  - type: supersedes
+    from: REQ-agent-hosts-rule-prompt-note
+    to: REQ-agent-hosts-decision-guard
+    created_at: 2026-11-04T18:21:06.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc216f806e39

@@ -342,3 +342,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee3e9244d4d3
+  - type: constrains
+    from: REQ-cli-migration-supersession-codes
+    to: FACT-kibi-migration-pin-codes-component
+    created_at: 2026-11-04T18:11:01.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6f263a4b863
+  - type: requires_property
+    from: REQ-cli-migration-supersession-codes
+    to: FACT-firm-supersede-code
+    created_at: 2026-11-04T18:11:01.662Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d9f230bba03
+  - type: requires_property
+    from: REQ-cli-migration-supersession-codes
+    to: FACT-supersedes-acknowledge-code
+    created_at: 2026-11-04T18:11:01.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd8cb2a3bc99
+  - type: requires_property
+    from: REQ-cli-migration-supersession-codes
+    to: FACT-closed-requirement-status
+    created_at: 2026-11-04T18:11:01.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2739f245241
+  - type: specified_by
+    from: REQ-cli-migration-supersession-codes
+    to: SCEN-cli-migrate
+    created_at: 2026-11-04T18:11:01.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8102167eae58
+  - type: supersedes
+    from: REQ-cli-migration-supersession-codes
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-11-04T18:11:01.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b05362678d5a

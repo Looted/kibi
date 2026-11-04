@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-52d18685adb8
+  - type: assumes
+    from: SCEN-NEG-generated-coordinate-MALFORMED-ARTIFACT
+    to: FACT-NEG-generated-coordinate-MALFORMED-ARTIFACT
+    created_at: 2026-11-04T18:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0399d946ba5
+  - type: verified_by
+    from: SCEN-NEG-generated-coordinate-MALFORMED-ARTIFACT
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-11-04T18:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef66272aa414

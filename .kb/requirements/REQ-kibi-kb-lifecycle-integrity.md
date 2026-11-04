@@ -1,6 +1,6 @@
 ---
 title: Superseded requirements are closed, authored sources resolve, and migration repairs what it safely can
-status: open
+status: closed
 required_evidence: tested
 priority: must
 tags:

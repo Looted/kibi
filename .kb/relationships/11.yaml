@@ -405,3 +405,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-762235bdbd87
+  - type: constrains
+    from: REQ-cli-migration-proof-codes
+    to: FACT-kibi-migration-pin-codes-component
+    created_at: 2026-11-04T18:10:38.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3355e9f0f7d6
+  - type: requires_property
+    from: REQ-cli-migration-proof-codes
+    to: FACT-evidence-floor-pin-code
+    created_at: 2026-11-04T18:10:38.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f60cb1d092e
+  - type: requires_property
+    from: REQ-cli-migration-proof-codes
+    to: FACT-contract-claims-pin-code
+    created_at: 2026-11-04T18:10:38.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74f25b266e7d
+  - type: requires_property
+    from: REQ-cli-migration-proof-codes
+    to: FACT-contract-claims-review-code
+    created_at: 2026-11-04T18:10:38.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0634aa83f6ac
+  - type: specified_by
+    from: REQ-cli-migration-proof-codes
+    to: SCEN-cli-migrate
+    created_at: 2026-11-04T18:10:38.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c978d07bf4d0
+  - type: supersedes
+    from: REQ-cli-migration-proof-codes
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-11-04T18:10:38.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-160eaf006f7d

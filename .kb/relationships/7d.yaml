@@ -230,13 +230,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d267acb917e3
-  - type: implements
-    from: SYM-source-path-dangling-SOURCE_PATH_DANGLING_RULE
-    to: REQ-kibi-lifecycle-check-codes
-    created_at: 2026-10-28T17:27:49.582Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f86fe4935a0
   - type: covered_by
     from: SYM-source-path-dangling-SOURCE_PATH_DANGLING_RULE
     to: TEST-proof-source-path-dangling-rule

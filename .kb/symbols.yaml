@@ -3196,19 +3196,6 @@ symbols:
         target: TEST-codex-kibi-plugin-v1
       - type: implements
         target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-runHook
-    title: runHook
-    sourceFile: packages/codex/src/hook-runner.ts
-    text_ref: packages/codex/src/hook-runner.ts#runHook
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-decision-guard
-    links:
-      - REQ-codex-kibi-plugin-v1
   - id: SYM-codex-runHookCliIfMain
     title: runHookCliIfMain
     sourceFile: packages/codex/src/hook-runner.ts
@@ -13785,23 +13772,6 @@ symbols:
         target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
-  - id: SYM-SourceSymbolKind
-    title: SourceSymbolKind
-    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    links:
-      - REQ-core-extractors
-      - REQ-symbol-granularity
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-007
-      - type: covered_by
-        target: TEST-cli-sync-discovery-readme-ignore
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-symbol-granularity
   - id: SYM-SourceTreeHashError-name
     title: SourceTreeHashError.name
     sourceFile: scripts/skillopt-eval/source-tree-hash.ts
@@ -15475,12 +15445,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-proposition-complete-ingestion
-  - id: SYM-verification-receipt-history-errors
-    title: verificationReceiptHistoryErrors
-    status: deprecated
-  - id: SYM-append-only-verification-receipt-history-errors
-    title: appendOnlyVerificationReceiptHistoryErrors
-    status: deprecated
   - id: SYM-node-workspace-snapshot
     title: workspaceSnapshot
     status: active
@@ -15520,9 +15484,6 @@ symbols:
         target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-kibi-fresh-verification-receipts-v2
-  - id: SYM-core-verification-receipt-state
-    title: receipt_evidence_state
-    status: deprecated
   - id: SYM-test-packed-fresh-verification-receipts
     title: receiptRow
     sourceFile: documentation/tests/e2e/packed/fresh-verification-receipts.test.ts
@@ -15843,9 +15804,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-telemetry-remediation-evidence
-  - id: SYM-reqcompiler-receipt-append-only-validation
-    title: validateAppendOnlyProofReceipts
-    status: deprecated
   - id: SYM-reqcompiler-diagnostic-mutation-fingerprint
     title: diagnosticMutationFingerprint
     sourceFile: packages/cli/src/public/diagnostic-usage.ts
@@ -15908,9 +15866,6 @@ symbols:
         target: TEST-kibi-legacy-migration-preview-v2
       - type: implements
         target: REQ-kibi-legacy-migration-preview-v2
-  - id: SYM-reqcompiler-workspace-snapshot-evidence
-    title: WorkspaceSnapshotEvidence
-    status: deprecated
   - id: SYM-reqcompiler-telemetry-acceptance-version
     title: TELEMETRY_ACCEPTANCE_VERSION
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
@@ -15962,18 +15917,6 @@ symbols:
         target: TEST-proof-telemetry-remediation-version
       - type: implements
         target: REQ-kibi-telemetry-versions
-  - id: SYM-reqcompiler-verification-receipt
-    title: VerificationReceipt
-    status: deprecated
-  - id: SYM-reqcompiler-verification-receipt-version
-    title: VERIFICATION_RECEIPT_VERSION
-    status: deprecated
-  - id: SYM-reqcompiler-verification-receipt-outcomes
-    title: VERIFICATION_RECEIPT_OUTCOMES
-    status: deprecated
-  - id: SYM-reqcompiler-verification-receipt-schema
-    title: VERIFICATION_RECEIPT_SCHEMA
-    status: deprecated
   - id: SYM-reqcompiler-coverage-command
     title: coverageCommand
     sourceFile: packages/cli/src/commands/coverage.ts
@@ -19557,10 +19500,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-generated-coordinate-publication
       - type: covered_by
         target: TEST-generated-coordinate-repair
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-hashManifestWithCoordinates
     title: hashManifestWithCoordinates
     sourceFile: packages/cli/src/commands/sync/cache.ts
@@ -19568,10 +19511,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-generated-coordinate-sync-dependency
       - type: covered_by
         target: TEST-generated-coordinate-repair
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-extractManifestSymbolRecords
     title: extractManifestSymbolRecords
     sourceFile: packages/cli/src/extractors/manifest.ts
@@ -19579,6 +19522,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-generated-coordinate-authoring
       - type: covered_by
         target: TEST-generated-coordinate-repair
   - id: SYM-validateBundleContents
@@ -19678,10 +19623,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-generated-coordinate-publication
       - type: covered_by
         target: TEST-generated-coordinate-repair
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-coordinateSourceHash
     title: coordinateSourceHash
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
@@ -19689,10 +19634,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-generated-coordinate-publication
       - type: covered_by
         target: TEST-generated-coordinate-repair
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-coordinateIdentityHash
     title: coordinateIdentityHash
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
@@ -19700,10 +19645,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-generated-coordinate-publication
       - type: covered_by
         target: TEST-generated-coordinate-repair
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-parseCoordinateArtifact
     title: parseCoordinateArtifact
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
@@ -19711,10 +19656,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-generated-coordinate-publication
       - type: covered_by
         target: TEST-generated-coordinate-repair
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-acquireWorkspaceMutationLock
     title: acquireWorkspaceMutationLock
     sourceFile: packages/cli/src/operations/mutation/workspace-mutation-lock.ts
@@ -19748,10 +19693,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-generated-coordinate-sync-dependency
       - type: covered_by
         target: TEST-generated-coordinate-repair
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-refreshSymbolCoordinatesUnlocked
     title: refreshSymbolCoordinatesUnlocked
     sourceFile: packages/cli/src/operations/mutation/symbol-refresh.ts
@@ -19759,10 +19704,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-generated-coordinate-sync-dependency
       - type: covered_by
         target: TEST-generated-coordinate-repair
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-GENERATED_SYMBOL_FIELDS
     title: GENERATED_SYMBOL_FIELDS
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
@@ -19857,12 +19802,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-generated-coordinate-authoring
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
       - type: covered_by
         target: TEST-generated-coordinate-repair
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-skillopt-setup-thin-root-kb
     title: setupThinRootKb
     status: active
@@ -28553,10 +28498,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T06:00:09.620Z
     relationships:
+      - type: implements
+        target: REQ-kibi-superseded-requirements-closed
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
-      - type: implements
-        target: REQ-kibi-kb-lifecycle-integrity
   - id: SYM-source-paths-findSourceRepairs
     title: findSourceRepairs
     status: active
@@ -28566,10 +28511,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T06:00:15.684Z
     relationships:
+      - type: implements
+        target: REQ-kibi-authored-sources-resolve
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
-      - type: implements
-        target: REQ-kibi-kb-lifecycle-integrity
   - id: SYM-source-paths-plannedSourcePathRepairs
     title: plannedSourcePathRepairs
     status: active
@@ -28579,10 +28524,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T06:00:21.601Z
     relationships:
+      - type: implements
+        target: REQ-kibi-authored-sources-resolve
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
-      - type: implements
-        target: REQ-kibi-kb-lifecycle-integrity
   - id: SYM-source-paths-applySourcePathRepairs
     title: applySourcePathRepairs
     status: active
@@ -28592,10 +28537,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T06:00:27.519Z
     relationships:
+      - type: implements
+        target: REQ-kibi-authored-sources-resolve
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
-      - type: implements
-        target: REQ-kibi-kb-lifecycle-integrity
   - id: SYM-source-path-dangling-collectSourcePathDanglingViolations
     title: collectSourcePathDanglingViolations
     status: active
@@ -28605,10 +28550,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T06:00:33.353Z
     relationships:
+      - type: implements
+        target: REQ-kibi-authored-sources-resolve
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
-      - type: implements
-        target: REQ-kibi-kb-lifecycle-integrity
   - id: SYM-bootstrap-validate-payload
     title: validateBootstrapPayload
     status: active
@@ -31382,14 +31327,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T12:58:06.623Z
     relationships:
+      - type: implements
+        target: REQ-kibi-symbol-and-supersede-rule-names
       - type: covered_by
         target: TEST-kb-decision-firmness
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-supersedes-acknowledged-rule
-      - type: implements
-        target: REQ-kibi-check-rule-names
   - id: SYM-decision-firmness-rules
     title: DECISION_FIRMNESS_RULES
     status: active
@@ -31638,14 +31583,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-cli-migration-context-codes
       - type: covered_by
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-kibi-schema6-migration-cli
       - type: covered_by
         target: TEST-proof-rederive-drop-grounding-code
-      - type: implements
-        target: REQ-cli-migration-pin-codes
   - id: SYM-schema6-symbolLegacyLinkAction
     title: symbolLegacyLinkAction
     status: active
@@ -31668,10 +31613,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-authored-sources-resolve
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
-      - type: implements
-        target: REQ-kibi-kb-lifecycle-integrity
   - id: SYM-source-paths-resolveAuthoredSource
     title: resolveAuthoredSource
     status: active
@@ -31681,36 +31626,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-authored-sources-resolve
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
-      - type: implements
-        target: REQ-kibi-kb-lifecycle-integrity
-  - id: SYM-source-paths-scanAuthoredSources
-    title: scanAuthoredSources
-    status: active
-    sourceFile: packages/cli/src/operations/migration/source-paths.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-13T16:20:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-kb-lifecycle-integrity
-      - type: implements
-        target: REQ-kibi-kb-lifecycle-integrity
-  - id: SYM-source-paths-workspacePathExists
-    title: workspacePathExists
-    status: active
-    sourceFile: packages/cli/src/operations/migration/source-paths.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-13T16:20:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-kb-lifecycle-integrity
-      - type: implements
-        target: REQ-kibi-kb-lifecycle-integrity
   - id: SYM-schema6-check-actions-ADR_PROPOSED_REVIEW_CODE
     title: ADR_PROPOSED_REVIEW_CODE
     status: active
@@ -31720,12 +31639,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-lifecycle-review-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-adr-proposed-review-code
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-ADR_UNLINKED_REVIEW_CODE
     title: ADR_UNLINKED_REVIEW_CODE
     status: active
@@ -31735,12 +31654,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-lifecycle-review-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-adr-unlinked-review-code
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-AGENT_REQUIREMENTS_REVIEW_ACTION_ID
     title: AGENT_REQUIREMENTS_REVIEW_ACTION_ID
     status: active
@@ -31825,12 +31744,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-lifecycle-review-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-exception-unapproved-review-code
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-lifecycleActionsFromViolations
     title: lifecycleActionsFromViolations
     status: active
@@ -31840,10 +31759,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-superseded-requirements-closed
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
-      - type: implements
-        target: REQ-kibi-kb-lifecycle-integrity
   - id: SYM-schema6-check-actions-MIGRATION_SYNC_ACTION_ID
     title: MIGRATION_SYNC_ACTION_ID
     status: active
@@ -31853,12 +31772,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-sync-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-migration-sync-action
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-MIGRATION_SYNC_CODE
     title: MIGRATION_SYNC_CODE
     status: active
@@ -31868,12 +31787,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-sync-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-migration-sync-code
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-PREDICATE_KEY_ARGUMENTS_REVIEW_CODE
     title: PREDICATE_KEY_ARGUMENTS_REVIEW_CODE
     status: active
@@ -31913,12 +31832,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-lifecycle-review-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-rationale-review-code
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-SCENARIO_FEASIBILITY_REVIEW_CODE
     title: SCENARIO_FEASIBILITY_REVIEW_CODE
     status: active
@@ -31943,10 +31862,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-superseded-requirements-closed
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
-      - type: implements
-        target: REQ-kibi-kb-lifecycle-integrity
   - id: SYM-schema6-check-actions-SOURCE_PATH_REVIEW_CODE
     title: SOURCE_PATH_REVIEW_CODE
     status: active
@@ -31956,12 +31875,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-source-path-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-source-path-review-code
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_ACTION_ID
     title: SOURCE_PATH_REWRITE_ACTION_ID
     status: active
@@ -31971,12 +31890,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-source-path-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-source-path-rewrite-action
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_CODE
     title: SOURCE_PATH_REWRITE_CODE
     status: active
@@ -31986,12 +31905,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-source-path-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-source-path-rewrite-code
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-SOURCE_PLANNED_LIFECYCLE_CODES
     title: SOURCE_PLANNED_LIFECYCLE_CODES
     status: active
@@ -32001,10 +31920,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-authored-sources-resolve
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
-      - type: implements
-        target: REQ-kibi-kb-lifecycle-integrity
   - id: SYM-schema6-check-actions-SUPERSESSION_CYCLE_REVIEW_CODE
     title: SUPERSESSION_CYCLE_REVIEW_CODE
     status: active
@@ -32014,12 +31933,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-lifecycle-review-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-supersession-cycle-review-code
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_ACTION_ID
     title: SYMBOL_OWNER_REVIEW_ACTION_ID
     status: active
@@ -32029,12 +31948,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-lifecycle-review-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-symbol-owner-review-action
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_CODE
     title: SYMBOL_OWNER_REVIEW_CODE
     status: active
@@ -32044,12 +31963,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-lifecycle-review-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-symbol-owner-review-code
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-source-path-dangling-SOURCE_PATH_DANGLING_RULE
     title: SOURCE_PATH_DANGLING_RULE
     status: active
@@ -32059,12 +31978,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-source-path-codes
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-source-path-dangling-rule
-      - type: implements
-        target: REQ-kibi-lifecycle-check-codes
   - id: SYM-git-change-snapshot-captureStagedSnapshot
     title: captureStagedSnapshot
     status: active
@@ -33237,6 +33156,8 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T16:59:49.521Z
     relationships:
+      - type: implements
+        target: REQ-agent-hosts-stop-capture
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
       - type: covered_by
@@ -33245,8 +33166,6 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-decision-guard
       - type: implements
         target: REQ-claude-decision-capture-nudges
   - id: SYM-agent-core-candidates-requesttopicwords
@@ -33271,6 +33190,8 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T17:47:32.601Z
     relationships:
+      - type: implements
+        target: REQ-agent-hosts-firm-edit-ask
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
       - type: covered_by
@@ -33279,8 +33200,6 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-decision-guard
       - type: implements
         target: REQ-claude-firm-edit-confirmation
   - id: SYM-agent-core-decision-guard-firmrequirementstouched
@@ -33313,14 +33232,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T17:47:38.692Z
     relationships:
+      - type: implements
+        target: REQ-agent-hosts-firm-edit-ask
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-decision-guard
   - id: SYM-agent-core-decision-guard-recordrequest
     title: recordRequest
     status: active
@@ -33330,14 +33249,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T17:47:51.004Z
     relationships:
+      - type: implements
+        target: REQ-agent-hosts-rule-prompt-note
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-decision-guard
   - id: SYM-agent-core-decision-guard-requestwords
     title: requestWords
     status: active
@@ -33347,10 +33266,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T17:47:54.219Z
     relationships:
+      - type: implements
+        target: REQ-agent-hosts-rule-prompt-note
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-decision-guard
   - id: SYM-agent-core-decision-guard-claimcapturereminder
     title: claimCaptureReminder
     status: active
@@ -33360,14 +33279,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T17:47:57.307Z
     relationships:
+      - type: implements
+        target: REQ-agent-hosts-stop-capture
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-decision-guard
   - id: SYM-agent-core-decision-guard-settledfirmrequirements
     title: settledFirmRequirements
     status: active
@@ -33377,14 +33296,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T17:48:00.280Z
     relationships:
+      - type: implements
+        target: REQ-agent-hosts-firm-edit-ask
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-decision-guard
   - id: SYM-agent-core-decision-guard-settlefirmrequirements
     title: settleFirmRequirements
     status: active
@@ -33394,14 +33313,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T17:48:03.354Z
     relationships:
+      - type: implements
+        target: REQ-agent-hosts-firm-edit-ask
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-decision-guard
   - id: SYM-agent-core-decision-guard-holdrulenote
     title: holdRuleNote
     status: active
@@ -33411,10 +33330,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T17:48:06.414Z
     relationships:
+      - type: implements
+        target: REQ-agent-hosts-rule-prompt-note
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-decision-guard
   - id: SYM-agent-core-decision-guard-takerulenote
     title: takeRuleNote
     status: active
@@ -33424,10 +33343,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T17:48:09.431Z
     relationships:
+      - type: implements
+        target: REQ-agent-hosts-rule-prompt-note
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-decision-guard
   - id: SYM-prolog-utf8-streams-goal
     title: PROLOG_UTF8_STREAMS_GOAL
     status: active
@@ -35924,10 +35843,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-26T09:48:25.244Z
     relationships:
+      - type: implements
+        target: REQ-kibi-regex-proofs
       - type: covered_by
         target: TEST-kibi-non-numeric-proof-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-regular-language-compile
     title: compileLanguage
     status: active
@@ -35939,10 +35858,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-26T09:48:33.455Z
     relationships:
+      - type: implements
+        target: REQ-kibi-regex-proofs
       - type: covered_by
         target: TEST-kibi-non-numeric-proof-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-code-models-evaluate
     title: evaluateCodeModel
     status: active
@@ -35954,12 +35873,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-26T09:48:41.696Z
     relationships:
+      - type: implements
+        target: REQ-kibi-rule-proofs
       - type: covered_by
         target: TEST-kibi-multilingual-code-proofs
       - type: covered_by
         target: TEST-kibi-non-numeric-proof-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-code-models-rule-certificate-problem
     title: ruleCertificateProblem
     status: active
@@ -35971,10 +35890,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-26T09:48:50.522Z
     relationships:
+      - type: implements
+        target: REQ-kibi-rule-proofs
       - type: covered_by
         target: TEST-kibi-non-numeric-proof-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-code-models-machine-certificate-problem
     title: machineCertificateProblem
     status: active
@@ -35986,10 +35905,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-26T09:48:58.676Z
     relationships:
+      - type: implements
+        target: REQ-kibi-state-machine-proofs
       - type: covered_by
         target: TEST-kibi-non-numeric-proof-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-code-models-pattern-certificate-problem
     title: patternCertificateProblem
     status: active
@@ -36001,10 +35920,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-26T09:49:07.412Z
     relationships:
+      - type: implements
+        target: REQ-kibi-regex-proofs
       - type: covered_by
         target: TEST-kibi-non-numeric-proof-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-code-models-string-constraint-problem
     title: stringConstraintProblem
     status: active
@@ -36016,25 +35935,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-26T09:49:16.421Z
     relationships:
+      - type: implements
+        target: REQ-kibi-regex-proofs
       - type: covered_by
         target: TEST-kibi-non-numeric-proof-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
-  - id: SYM-claim-bindings-required-fields-witness
-    title: requiredFieldsWitness
-    status: active
-    sourceFile: packages/cli/src/operations/proof/claim-bindings.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-    origin:
-      kind: agent
-      recorded_at: 2026-10-26T09:49:24.239Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-non-numeric-proof-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-proof-certificates-rule-certificate
     title: ruleCertificate
     status: active
@@ -36046,10 +35950,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-26T09:49:30.756Z
     relationships:
+      - type: implements
+        target: REQ-kibi-rule-proofs
       - type: covered_by
         target: TEST-kibi-non-numeric-proof-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-proof-certificates-state-machine-certificate
     title: stateMachineCertificate
     status: active
@@ -36061,10 +35965,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-26T09:49:36.502Z
     relationships:
+      - type: implements
+        target: REQ-kibi-state-machine-proofs
       - type: covered_by
         target: TEST-kibi-non-numeric-proof-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-proof-certificates-regex-certificate
     title: regexCertificate
     status: active
@@ -36076,10 +35980,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-26T09:49:41.952Z
     relationships:
+      - type: implements
+        target: REQ-kibi-regex-proofs
       - type: covered_by
         target: TEST-kibi-non-numeric-proof-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-e2e-packed-cli-subdirectory-workspace
     title: checkSubdirectoryWorkspace
     status: active
@@ -36106,21 +36010,6 @@ symbols:
         target: TEST-cli-subdirectory-workspace
       - type: implements
         target: REQ-cli-subdirectory-workspace
-  - id: SYM-claim-bindings-required-fields-failures
-    title: requiredFieldsFailures
-    status: active
-    sourceFile: packages/cli/src/operations/proof/claim-bindings.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-    origin:
-      kind: agent
-      recorded_at: 2026-10-26T13:42:04.949Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-non-numeric-proof-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-claim-bindings-receipt-evidence-level
     title: receiptEvidenceLevel
     status: active
@@ -39665,12 +39554,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:19:35.010Z
     relationships:
+      - type: implements
+        target: REQ-kibi-evidence-floor-rule-name
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-evidence-floor-rule
-      - type: implements
-        target: REQ-kibi-check-rule-names
   - id: SYM-proof-evidence-floor-rule
     title: evidenceFloorRuleCertificate
     status: active
@@ -39694,12 +39583,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:20:01.998Z
     relationships:
+      - type: implements
+        target: REQ-kibi-evidence-floor-rule-name
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-evidence-floor-schema-version
-      - type: implements
-        target: REQ-kibi-check-rule-names
   - id: SYM-proof-evidence-floor-schema-version
     title: evidenceFloorSchemaVersionCertificate
     status: active
@@ -39723,12 +39612,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:20:26.410Z
     relationships:
+      - type: implements
+        target: REQ-kibi-origin-review-rule-names
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-agent-requirement-unapproved-rule
-      - type: implements
-        target: REQ-kibi-check-rule-names
   - id: SYM-proof-agent-requirement-unapproved-rule
     title: agentRequirementUnapprovedRuleCertificate
     status: active
@@ -39752,12 +39641,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:20:49.584Z
     relationships:
+      - type: implements
+        target: REQ-kibi-origin-review-rule-names
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-exception-unapproved-rule
-      - type: implements
-        target: REQ-kibi-check-rule-names
   - id: SYM-proof-exception-unapproved-rule
     title: exceptionUnapprovedRuleCertificate
     status: active
@@ -39781,12 +39670,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:21:12.314Z
     relationships:
+      - type: implements
+        target: REQ-kibi-origin-review-rule-names
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-exception-self-attested-rule
-      - type: implements
-        target: REQ-kibi-check-rule-names
   - id: SYM-proof-exception-self-attested-rule
     title: exceptionSelfAttestedRuleCertificate
     status: active
@@ -39810,12 +39699,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:21:35.668Z
     relationships:
+      - type: implements
+        target: REQ-kibi-origin-review-rule-names
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-rationale-missing-rule
-      - type: implements
-        target: REQ-kibi-check-rule-names
   - id: SYM-proof-rationale-missing-rule
     title: rationaleMissingRuleCertificate
     status: active
@@ -39839,12 +39728,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:21:59.292Z
     relationships:
+      - type: implements
+        target: REQ-kibi-policy-rule-names
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-policy-markers-rule
-      - type: implements
-        target: REQ-kibi-check-rule-names
   - id: SYM-proof-policy-markers-rule
     title: policyMarkersRuleCertificate
     status: active
@@ -39868,12 +39757,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:22:22.347Z
     relationships:
+      - type: implements
+        target: REQ-kibi-policy-rule-names
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-policy-ownership-rule
-      - type: implements
-        target: REQ-kibi-check-rule-names
   - id: SYM-proof-policy-ownership-rule
     title: policyOwnershipRuleCertificate
     status: active
@@ -39897,12 +39786,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:22:45.190Z
     relationships:
+      - type: implements
+        target: REQ-kibi-symbol-and-supersede-rule-names
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-symbol-granularity-rule
-      - type: implements
-        target: REQ-kibi-check-rule-names
   - id: SYM-proof-symbol-granularity-rule
     title: symbolGranularityRuleCertificate
     status: active
@@ -39940,12 +39829,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:23:28.578Z
     relationships:
+      - type: implements
+        target: REQ-kibi-symbol-and-supersede-rule-names
       - type: covered_by
         target: TEST-kibi-kb-lifecycle-integrity
       - type: covered_by
         target: TEST-proof-scoped-check-omitted-id
-      - type: implements
-        target: REQ-kibi-check-rule-names
   - id: SYM-proof-scoped-check-omitted-id
     title: scopedCheckOmittedIdCertificate
     status: active
@@ -40081,12 +39970,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:29:39.713Z
     relationships:
+      - type: implements
+        target: REQ-cli-migration-context-codes
       - type: covered_by
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-proof-context-missing-tag-code
-      - type: implements
-        target: REQ-cli-migration-pin-codes
   - id: SYM-proof-context-missing-tag-code
     title: contextMissingTagCodeCertificate
     status: active
@@ -40110,12 +39999,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:30:03.495Z
     relationships:
+      - type: implements
+        target: REQ-cli-migration-context-codes
       - type: covered_by
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-proof-semantic-text-pin-code
-      - type: implements
-        target: REQ-cli-migration-pin-codes
   - id: SYM-proof-semantic-text-pin-code
     title: semanticTextPinCodeCertificate
     status: active
@@ -40139,12 +40028,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:30:27.278Z
     relationships:
+      - type: implements
+        target: REQ-cli-migration-proof-codes
       - type: covered_by
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-proof-evidence-floor-pin-code
-      - type: implements
-        target: REQ-cli-migration-pin-codes
   - id: SYM-proof-evidence-floor-pin-code
     title: evidenceFloorPinCodeCertificate
     status: active
@@ -40168,12 +40057,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:30:51.599Z
     relationships:
+      - type: implements
+        target: REQ-cli-migration-supersession-codes
       - type: covered_by
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-proof-firm-supersede-code
-      - type: implements
-        target: REQ-cli-migration-pin-codes
   - id: SYM-proof-firm-supersede-code
     title: firmSupersedeCodeCertificate
     status: active
@@ -40197,12 +40086,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:31:10.553Z
     relationships:
+      - type: implements
+        target: REQ-cli-migration-proof-codes
       - type: covered_by
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-proof-contract-claims-pin-code
-      - type: implements
-        target: REQ-cli-migration-pin-codes
   - id: SYM-proof-contract-claims-pin-code
     title: contractClaimsPinCodeCertificate
     status: active
@@ -40226,12 +40115,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:31:34.372Z
     relationships:
+      - type: implements
+        target: REQ-cli-migration-proof-codes
       - type: covered_by
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-proof-contract-claims-review-code
-      - type: implements
-        target: REQ-cli-migration-pin-codes
   - id: SYM-proof-contract-claims-review-code
     title: contractClaimsReviewCodeCertificate
     status: active
@@ -40269,12 +40158,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:32:19.875Z
     relationships:
+      - type: implements
+        target: REQ-cli-migration-supersession-codes
       - type: covered_by
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-proof-supersedes-acknowledge-code
-      - type: implements
-        target: REQ-cli-migration-pin-codes
   - id: SYM-proof-supersedes-acknowledge-code
     title: supersedesAcknowledgeCodeCertificate
     status: active
@@ -40298,12 +40187,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:32:39.436Z
     relationships:
+      - type: implements
+        target: REQ-cli-migration-symbol-codes
       - type: covered_by
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-proof-legacy-link-mark-action
-      - type: implements
-        target: REQ-cli-migration-pin-codes
   - id: SYM-proof-legacy-link-mark-action
     title: legacyLinkMarkActionCertificate
     status: active
@@ -40327,12 +40216,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:33:03.485Z
     relationships:
+      - type: implements
+        target: REQ-cli-migration-symbol-codes
       - type: covered_by
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-proof-legacy-link-mark-code
-      - type: implements
-        target: REQ-cli-migration-pin-codes
   - id: SYM-proof-legacy-link-mark-code
     title: legacyLinkMarkCodeCertificate
     status: active
@@ -40356,12 +40245,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:33:27.446Z
     relationships:
+      - type: implements
+        target: REQ-cli-migration-supersession-codes
       - type: covered_by
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-proof-closed-requirement-status
-      - type: implements
-        target: REQ-cli-migration-pin-codes
   - id: SYM-proof-closed-requirement-status
     title: closedRequirementStatusCertificate
     status: active
@@ -40385,12 +40274,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-28T20:33:51.580Z
     relationships:
+      - type: implements
+        target: REQ-cli-migration-symbol-codes
       - type: covered_by
         target: TEST-cli-migrate
       - type: covered_by
         target: TEST-proof-derived-coordinates-schema
-      - type: implements
-        target: REQ-cli-migration-pin-codes
   - id: SYM-proof-derived-coordinates-schema
     title: derivedCoordinatesSchemaCertificate
     status: active
@@ -44076,32 +43965,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-fresh-clone-setup
-  - id: SYM-agent-instructions-kibi-instructions-begin
-    title: KIBI_INSTRUCTIONS_BEGIN
-    status: active
-    sourceFile: packages/cli/src/commands/agent-instructions.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-03T15:50:36.102Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
-  - id: SYM-agent-instructions-kibi-instructions-end
-    title: KIBI_INSTRUCTIONS_END
-    status: active
-    sourceFile: packages/cli/src/commands/agent-instructions.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-03T15:50:41.232Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-agent-instructions-managed-section-state
     title: managedSectionState
     status: active
@@ -44111,10 +43974,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:50:46.351Z
     relationships:
+      - type: implements
+        target: REQ-kibi-init-setup-choices
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-agent-instructions-report-agent-instructions
     title: reportAgentInstructions
     status: active
@@ -44124,10 +43987,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:50:51.437Z
     relationships:
+      - type: implements
+        target: REQ-kibi-init-setup-choices
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-agent-instructions-write-agent-instructions
     title: writeAgentInstructions
     status: active
@@ -44137,10 +44000,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:51:01.621Z
     relationships:
+      - type: implements
+        target: REQ-kibi-init-setup-choices
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-auto-compile-ensure-branch-store-compiled
     title: ensureBranchStoreCompiled
     status: active
@@ -44150,10 +44013,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:51:13.567Z
     relationships:
+      - type: implements
+        target: REQ-kibi-first-use-auto-compile
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-checkout-hooks-missing-hooks-note
     title: missingHooksNote
     status: active
@@ -44163,10 +44026,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:51:36.341Z
     relationships:
+      - type: implements
+        target: REQ-kibi-missing-hooks-notice
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-doctor-doctor-failure-category
     title: doctorFailureCategory
     status: active
@@ -44180,19 +44043,6 @@ symbols:
         target: TEST-kibi-anonymous-usage-telemetry-cli
       - type: implements
         target: REQ-kibi-anonymous-usage-telemetry
-  - id: SYM-github-init-scaffold-check-workflow
-    title: scaffoldCheckWorkflow
-    status: active
-    sourceFile: packages/cli/src/commands/github-init.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-03T15:51:53.949Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-hooks-install-has-kibi-prepare-script
     title: hasKibiPrepareScript
     status: active
@@ -44202,10 +44052,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:51:59.506Z
     relationships:
+      - type: implements
+        target: REQ-kibi-init-setup-choices
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-hooks-install-hooks-install-command
     title: hooksInstallCommand
     status: active
@@ -44215,10 +44065,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:52:05.402Z
     relationships:
+      - type: implements
+        target: REQ-kibi-missing-hooks-notice
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-hooks-install-sync-prepare-script
     title: syncPrepareScript
     status: active
@@ -44228,10 +44078,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:52:29.745Z
     relationships:
+      - type: implements
+        target: REQ-kibi-init-setup-choices
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-init-helpers-is-repository-managed-hooks-dir
     title: isRepositoryManagedHooksDir
     status: active
@@ -44254,10 +44104,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:52:41.850Z
     relationships:
+      - type: implements
+        target: REQ-kibi-first-use-auto-compile
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-setup-choices-setup-choice-names
     title: SETUP_CHOICE_NAMES
     status: active
@@ -44267,10 +44117,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:53:13.418Z
     relationships:
+      - type: implements
+        target: REQ-kibi-init-setup-choices
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-setup-choices-write-setup-choices
     title: writeSetupChoices
     status: active
@@ -44280,10 +44130,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:53:35.180Z
     relationships:
+      - type: implements
+        target: REQ-kibi-init-setup-choices
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
-      - type: implements
-        target: REQ-kibi-fresh-clone-setup
   - id: SYM-test-kibi-telemetry-expected-outcomes-cli
     title: kibi CLI telemetry outcomes end-to-end suite
     status: active

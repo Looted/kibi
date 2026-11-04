@@ -202,13 +202,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37a57af6c7b9
-  - type: implements
-    from: SYM-source-paths-plannedSourcePathRepairs
-    to: REQ-kibi-kb-lifecycle-integrity
-    created_at: 2026-10-04T06:00:22.439Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a6d3cd012dce
   - type: covered_by
     from: SYM-source-paths-plannedSourcePathRepairs
     to: TEST-kibi-kb-lifecycle-integrity
@@ -223,13 +216,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-280e8effc09c
-  - type: implements
-    from: SYM-schema6-check-actions-SOURCE_PATH_REVIEW_CODE
-    to: REQ-kibi-lifecycle-check-codes
-    created_at: 2026-10-28T17:27:29.011Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3294ef7a4568
   - type: covered_by
     from: SYM-schema6-check-actions-SOURCE_PATH_REVIEW_CODE
     to: TEST-proof-source-path-review-code

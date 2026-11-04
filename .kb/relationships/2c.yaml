@@ -202,13 +202,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cdc09ef3d7e5
-  - type: implements
-    from: SYM-const-scoped-check-omitted-id
-    to: REQ-kibi-check-rule-names
-    created_at: 2026-10-28T20:23:38.537Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f0b6b7d7f296
   - type: covered_by
     from: SYM-const-scoped-check-omitted-id
     to: TEST-proof-scoped-check-omitted-id
@@ -244,13 +237,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-837d6413a1fd
-  - type: implements
-    from: SYM-setup-choices-setup-choice-names
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:53:15.159Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-621849931a82
   - type: covered_by
     from: SYM-setup-choices-setup-choice-names
     to: TEST-kibi-fresh-clone-setup
@@ -258,3 +244,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4ed88131af28
+  - type: constrains
+    from: REQ-agent-hosts-firm-edit-ask
+    to: FACT-SUBJECT-KIBI-AGENT-HOSTS-DECISION-GUARD
+    created_at: 2026-11-04T18:20:35.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cc42f04f2cb
+  - type: requires_property
+    from: REQ-agent-hosts-firm-edit-ask
+    to: FACT-agent-hosts-firm-edit-notice
+    created_at: 2026-11-04T18:20:35.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e32dcc81b3f5
+  - type: specified_by
+    from: REQ-agent-hosts-firm-edit-ask
+    to: SCEN-agent-hosts-decision-guard
+    created_at: 2026-11-04T18:20:35.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19788a7b0d3d
+  - type: specified_by
+    from: REQ-agent-hosts-firm-edit-ask
+    to: SCEN-NEG-agent-hosts-decision-guard-SILENT-FIRM-EDIT
+    created_at: 2026-11-04T18:20:35.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b483b06c16c9
+  - type: verified_by
+    from: REQ-agent-hosts-firm-edit-ask
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-11-04T18:20:35.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5f1ac2f313a
+  - type: verified_by
+    from: REQ-agent-hosts-firm-edit-ask
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-11-04T18:20:35.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6407a979d1ba
+  - type: verified_by
+    from: REQ-agent-hosts-firm-edit-ask
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-04T18:20:35.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24aa6c3ec09c
+  - type: relates_to
+    from: REQ-agent-hosts-firm-edit-ask
+    to: REQ-claude-firm-edit-confirmation
+    created_at: 2026-11-04T18:20:35.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ab6abf18f9f
+  - type: supersedes
+    from: REQ-agent-hosts-firm-edit-ask
+    to: REQ-agent-hosts-decision-guard
+    created_at: 2026-11-04T18:20:35.943Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da98adebe7da

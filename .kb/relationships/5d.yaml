@@ -594,3 +594,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-00832e927cba
+  - type: assumes
+    from: SCEN-NEG-agent-hosts-decision-guard-SILENT-FIRM-EDIT
+    to: FACT-NEG-agent-hosts-decision-guard-SILENT-FIRM-EDIT
+    created_at: 2026-11-04T18:45:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99273cda22a9
+  - type: verified_by
+    from: SCEN-NEG-agent-hosts-decision-guard-SILENT-FIRM-EDIT
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-04T18:45:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6642b3c86a79

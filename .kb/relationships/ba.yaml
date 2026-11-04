@@ -251,20 +251,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28b26147f89b
-  - type: implements
-    from: SYM-agent-instructions-kibi-instructions-begin
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:50:37.531Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6dca424ebffd
-  - type: covered_by
-    from: SYM-agent-instructions-kibi-instructions-begin
-    to: TEST-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:50:37.562Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-efcdca8465e9
   - type: assumes
     from: SCEN-cli-staged-entity-context
     to: FACT-staged-entity-context-blocks-introduced

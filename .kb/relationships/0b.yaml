@@ -202,13 +202,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f75753553f46
-  - type: implements
-    from: SYM-regular-language-compile
-    to: REQ-kibi-non-numeric-proof-kinds
-    created_at: 2026-10-26T09:48:35.546Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-481546b2db0f
   - type: covered_by
     from: SYM-regular-language-compile
     to: TEST-kibi-non-numeric-proof-kinds
@@ -258,13 +251,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f064b0644310
-  - type: implements
-    from: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_ACTION_ID
-    to: REQ-kibi-lifecycle-check-codes
-    created_at: 2026-10-28T17:28:09.786Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0cfcaaa1efd9
   - type: covered_by
     from: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_ACTION_ID
     to: TEST-proof-source-path-rewrite-action
@@ -293,13 +279,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-24fa8623ee5b
-  - type: implements
-    from: SYM-const-context-missing-tag-code
-    to: REQ-cli-migration-pin-codes
-    created_at: 2026-10-28T20:29:49.428Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-41022ddfb0dc
   - type: executable_for
     from: SYM-proof-context-missing-tag-code
     to: TEST-proof-context-missing-tag-code

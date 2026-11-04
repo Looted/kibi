@@ -286,3 +286,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-230cd46332a7
+  - type: constrains
+    from: REQ-kibi-evidence-floor-rule-name
+    to: FACT-kibi-check-rule-names-component
+    created_at: 2026-11-04T18:08:43.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-beea99bb945f
+  - type: requires_property
+    from: REQ-kibi-evidence-floor-rule-name
+    to: FACT-evidence-floor-rule
+    created_at: 2026-11-04T18:08:43.719Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06e14076fb42
+  - type: requires_property
+    from: REQ-kibi-evidence-floor-rule-name
+    to: FACT-evidence-floor-schema-version
+    created_at: 2026-11-04T18:08:43.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0139727c1cfb
+  - type: specified_by
+    from: REQ-kibi-evidence-floor-rule-name
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-11-04T18:08:43.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7eb1a33d989
+  - type: supersedes
+    from: REQ-kibi-evidence-floor-rule-name
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-11-04T18:08:43.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31e16a75530b
+  - type: requires_predicate
+    from: REQ-kibi-init-setup-choices
+    to: FACT-PRED-fresh-clone-setup-choices
+    created_at: 2026-11-04T18:15:37.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f876a046bda
+  - type: requires_predicate
+    from: REQ-kibi-init-setup-choices
+    to: FACT-PRED-fresh-clone-agent-instructions
+    created_at: 2026-11-04T18:15:37.876Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78614d04464f
+  - type: requires_predicate
+    from: REQ-kibi-init-setup-choices
+    to: FACT-PRED-fresh-clone-prepare-hooks
+    created_at: 2026-11-04T18:15:37.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fd56e033fbe
+  - type: specified_by
+    from: REQ-kibi-init-setup-choices
+    to: SCEN-kibi-fresh-clone-setup
+    created_at: 2026-11-04T18:15:37.933Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6459f95e04de
+  - type: specified_by
+    from: REQ-kibi-init-setup-choices
+    to: SCEN-NEG-kibi-fresh-clone-setup-user-text-and-hook-manager
+    created_at: 2026-11-04T18:15:37.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f96671476570
+  - type: specified_by
+    from: REQ-kibi-init-setup-choices
+    to: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    created_at: 2026-11-04T18:15:37.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b0cfc17ca05
+  - type: relates_to
+    from: REQ-kibi-init-setup-choices
+    to: REQ-git-hook-manager-integration
+    created_at: 2026-11-04T18:15:37.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-242a3967627b
+  - type: supersedes
+    from: REQ-kibi-init-setup-choices
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-04T18:15:38.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f44225909ac2

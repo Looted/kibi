@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.lifecycle.check_codes
 claim_key: CLAIM-9573897FBAE210B4
 claim_text: The dangling source path check rule shall be source-path-dangling
-text_ref: REQ-kibi-lifecycle-check-codes
+text_ref: REQ-kibi-source-path-codes
 property_key: source_path_rule
 operator: eq
 value_type: string

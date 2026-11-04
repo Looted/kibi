@@ -283,13 +283,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd59d1c0da86
-  - type: implements
-    from: SYM-schema6-check-actions-RATIONALE_REVIEW_CODE
-    to: REQ-kibi-lifecycle-check-codes
-    created_at: 2026-10-28T17:26:47.397Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7464e4150310
   - type: covered_by
     from: SYM-schema6-check-actions-RATIONALE_REVIEW_CODE
     to: TEST-proof-rationale-review-code
@@ -339,13 +332,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4ed3df03d128
-  - type: implements
-    from: SYM-const-policy-ownership-rule
-    to: REQ-kibi-check-rule-names
-    created_at: 2026-10-28T20:22:31.681Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e1b42dd9bb97
   - type: covered_by
     from: SYM-const-policy-ownership-rule
     to: TEST-proof-policy-ownership-rule
@@ -479,13 +465,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9f488c22c738
-  - type: implements
-    from: SYM-setup-choices-auto-sync-enabled
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:52:43.696Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d5df9f4e745a
   - type: covered_by
     from: SYM-setup-choices-auto-sync-enabled
     to: TEST-kibi-fresh-clone-setup

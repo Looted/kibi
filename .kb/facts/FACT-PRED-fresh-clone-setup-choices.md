@@ -15,7 +15,7 @@ predicate_args:
 polarity: assert
 claim_key: CLAIM-4B22B74393700AB6
 claim_text: The `kibi init` command must record four setup choices (autoSync, prepareHooks, agentInstructions, ciGate) in the repository
-text_ref: .kb/requirements/REQ-kibi-fresh-clone-setup.md
+text_ref: .kb/requirements/REQ-kibi-init-setup-choices.md
 origin:
   kind: agent
   recorded_at: '2026-11-03T15:26:24.672Z'

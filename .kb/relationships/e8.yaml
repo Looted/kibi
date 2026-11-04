@@ -272,3 +272,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ea819a72fda8
+  - type: constrains
+    from: REQ-cli-migration-symbol-codes
+    to: FACT-kibi-migration-pin-codes-component
+    created_at: 2026-11-04T18:11:24.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9780b78e31dc
+  - type: requires_property
+    from: REQ-cli-migration-symbol-codes
+    to: FACT-legacy-link-mark-action
+    created_at: 2026-11-04T18:11:24.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-599a76fa7967
+  - type: requires_property
+    from: REQ-cli-migration-symbol-codes
+    to: FACT-legacy-link-mark-code
+    created_at: 2026-11-04T18:11:24.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48cbff1baea7
+  - type: requires_property
+    from: REQ-cli-migration-symbol-codes
+    to: FACT-derived-coordinates-schema
+    created_at: 2026-11-04T18:11:24.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b466e1485c44
+  - type: specified_by
+    from: REQ-cli-migration-symbol-codes
+    to: SCEN-cli-migrate
+    created_at: 2026-11-04T18:11:24.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de005698a3b4
+  - type: supersedes
+    from: REQ-cli-migration-symbol-codes
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-11-04T18:11:24.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23fca5149fef

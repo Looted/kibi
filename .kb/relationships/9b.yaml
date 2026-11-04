@@ -1,25 +1,4 @@
 relationships:
-  - id: rel-20850f26c64a
-    type: covered_by
-    from: SYM-append-only-verification-receipt-history-errors
-    to: TEST-kibi-fresh-verification-receipts
-    created_at: "2026-08-15T12:41:40.306Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-append-only-verification-receipt-history-errors
-    to: REQ-kibi-verification-receipts-v2
-    created_at: 2026-08-15T16:37:35.765Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d56165b12de1
-  - type: covered_by
-    from: SYM-append-only-verification-receipt-history-errors
-    to: TEST-kibi-verification-receipts-v2
-    created_at: 2026-08-15T16:37:35.769Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12fa4b0308ba
   - type: validates
     from: TEST-kibi-telemetry-acceptance-gate
     to: SCEN-kibi-telemetry-acceptance-gate
@@ -258,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a41da901623c
+  - type: assumes
+    from: SCEN-NEG-agent-hosts-decision-guard-UNNOTED-RULE
+    to: FACT-NEG-agent-hosts-decision-guard-UNNOTED-RULE
+    created_at: 2026-11-04T18:45:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcc19940e88b
+  - type: verified_by
+    from: SCEN-NEG-agent-hosts-decision-guard-UNNOTED-RULE
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-04T18:45:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef7ca6ac0219

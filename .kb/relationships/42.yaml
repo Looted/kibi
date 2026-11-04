@@ -272,3 +272,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3fe4fb7a07bd
+  - type: constrains
+    from: REQ-cli-migration-context-codes
+    to: FACT-kibi-migration-pin-codes-component
+    created_at: 2026-11-04T18:10:15.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-932a5d461cd5
+  - type: requires_property
+    from: REQ-cli-migration-context-codes
+    to: FACT-context-missing-tag-code
+    created_at: 2026-11-04T18:10:15.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b11154928797
+  - type: requires_property
+    from: REQ-cli-migration-context-codes
+    to: FACT-semantic-text-pin-code
+    created_at: 2026-11-04T18:10:15.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7974490f6125
+  - type: requires_property
+    from: REQ-cli-migration-context-codes
+    to: FACT-rederive-drop-grounding-code
+    created_at: 2026-11-04T18:10:15.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6dcda3df719
+  - type: specified_by
+    from: REQ-cli-migration-context-codes
+    to: SCEN-cli-migrate
+    created_at: 2026-11-04T18:10:15.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81ebc93aac06
+  - type: supersedes
+    from: REQ-cli-migration-context-codes
+    to: REQ-cli-migration-pin-codes
+    created_at: 2026-11-04T18:10:15.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93d4456b0c9c

@@ -15,7 +15,7 @@ predicate_args:
 polarity: assert
 claim_key: CLAIM-3D7E7357520EB243
 claim_text: The `kibi init` command must write a marker-delimited Kibi section into AGENTS.md when agentInstructions is on
-text_ref: .kb/requirements/REQ-kibi-fresh-clone-setup.md
+text_ref: .kb/requirements/REQ-kibi-init-setup-choices.md
 origin:
   kind: agent
   recorded_at: '2026-11-03T15:26:19.086Z'

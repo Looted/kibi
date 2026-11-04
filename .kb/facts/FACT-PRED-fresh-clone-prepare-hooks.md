@@ -15,7 +15,7 @@ predicate_args:
 polarity: assert
 claim_key: CLAIM-BC78880CDC1510BE
 claim_text: The `kibi init` command must add a package.json prepare step that installs Kibi's Git hooks when prepareHooks is on, unless a hook manager owns the hooks
-text_ref: .kb/requirements/REQ-kibi-fresh-clone-setup.md
+text_ref: .kb/requirements/REQ-kibi-init-setup-choices.md
 origin:
   kind: agent
   recorded_at: '2026-11-03T15:26:23.290Z'

@@ -174,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-283e66244533
-  - type: implements
-    from: SYM-decision-firmness-supersedes-reason-acknowledged-rule
-    to: REQ-kibi-check-rule-names
-    created_at: 2026-10-28T20:23:14.293Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ea98e699ccec
   - type: covered_by
     from: SYM-decision-firmness-supersedes-reason-acknowledged-rule
     to: TEST-proof-supersedes-acknowledged-rule
@@ -265,3 +258,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-916272714141
+  - type: constrains
+    from: REQ-generated-coordinate-publication
+    to: FACT-kibi-symbols-coordinates-component
+    created_at: 2026-11-04T18:14:55.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b748f46b7e8
+  - type: requires_property
+    from: REQ-generated-coordinate-publication
+    to: FACT-PROP-REQ-GENERATED-COORDINATE-PERSISTENCE-C03
+    created_at: 2026-11-04T18:14:55.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-156997be38df
+  - type: requires_property
+    from: REQ-generated-coordinate-publication
+    to: FACT-PROP-REQ-GENERATED-COORDINATE-PERSISTENCE-C07
+    created_at: 2026-11-04T18:14:55.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abbeb370cf07
+  - type: specified_by
+    from: REQ-generated-coordinate-publication
+    to: SCEN-generated-coordinate-repair
+    created_at: 2026-11-04T18:14:55.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d88fbfa4b41d
+  - type: specified_by
+    from: REQ-generated-coordinate-publication
+    to: SCEN-NEG-generated-coordinate-MALFORMED-ARTIFACT
+    created_at: 2026-11-04T18:14:55.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e99fd12057e8
+  - type: supersedes
+    from: REQ-generated-coordinate-publication
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-11-04T18:14:55.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfc219d2da44
+  - type: requires_predicate
+    from: REQ-kibi-first-use-auto-compile
+    to: FACT-PRED-fresh-clone-auto-compile
+    created_at: 2026-11-04T18:16:28.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7c4e36270ba
+  - type: specified_by
+    from: REQ-kibi-first-use-auto-compile
+    to: SCEN-kibi-fresh-clone-setup
+    created_at: 2026-11-04T18:16:28.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a94deddabe0
+  - type: specified_by
+    from: REQ-kibi-first-use-auto-compile
+    to: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    created_at: 2026-11-04T18:16:28.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf5889866cf1
+  - type: supersedes
+    from: REQ-kibi-first-use-auto-compile
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-04T18:16:28.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7f9d975c896

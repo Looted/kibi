@@ -195,3 +195,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4efa224bd618
+  - type: constrains
+    from: REQ-agent-hosts-stop-capture
+    to: FACT-SUBJECT-KIBI-AGENT-HOSTS-DECISION-GUARD
+    created_at: 2026-11-04T18:21:36.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b9232ccb6f1
+  - type: requires_property
+    from: REQ-agent-hosts-stop-capture
+    to: FACT-agent-hosts-capture-stop-once
+    created_at: 2026-11-04T18:21:36.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b2a69e83d4f
+  - type: specified_by
+    from: REQ-agent-hosts-stop-capture
+    to: SCEN-agent-hosts-decision-guard
+    created_at: 2026-11-04T18:21:36.844Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9afd72d4d5b1
+  - type: specified_by
+    from: REQ-agent-hosts-stop-capture
+    to: SCEN-NEG-agent-hosts-decision-guard-UNRECORDED-STOP
+    created_at: 2026-11-04T18:21:36.857Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-860b6a55582a
+  - type: verified_by
+    from: REQ-agent-hosts-stop-capture
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-11-04T18:21:36.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ea75ad7d433
+  - type: verified_by
+    from: REQ-agent-hosts-stop-capture
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-11-04T18:21:36.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a83bacf7036
+  - type: verified_by
+    from: REQ-agent-hosts-stop-capture
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-04T18:21:36.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d509b6213a1
+  - type: relates_to
+    from: REQ-agent-hosts-stop-capture
+    to: REQ-claude-decision-capture-nudges
+    created_at: 2026-11-04T18:21:36.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc89690609aa
+  - type: supersedes
+    from: REQ-agent-hosts-stop-capture
+    to: REQ-agent-hosts-decision-guard
+    created_at: 2026-11-04T18:21:36.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c493add63190

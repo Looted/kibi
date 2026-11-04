@@ -206,13 +206,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa485304998d
-  - type: implements
-    from: SYM-proof-certificates-rule-certificate
-    to: REQ-kibi-non-numeric-proof-kinds
-    created_at: 2026-10-26T09:49:32.386Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c9a928ee5b9a
   - type: covered_by
     from: SYM-proof-certificates-rule-certificate
     to: TEST-kibi-non-numeric-proof-kinds
@@ -346,3 +339,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82ba721aa0eb
+  - type: constrains
+    from: REQ-kibi-source-path-codes
+    to: FACT-kibi-lifecycle-check-codes-component
+    created_at: 2026-11-04T18:12:43.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cca8c08d3353
+  - type: requires_property
+    from: REQ-kibi-source-path-codes
+    to: FACT-source-path-review-code
+    created_at: 2026-11-04T18:12:43.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe3e74c4acc1
+  - type: requires_property
+    from: REQ-kibi-source-path-codes
+    to: FACT-source-path-dangling-rule
+    created_at: 2026-11-04T18:12:43.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b20563cc7e5d
+  - type: requires_property
+    from: REQ-kibi-source-path-codes
+    to: FACT-source-path-rewrite-action
+    created_at: 2026-11-04T18:12:43.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db89fe14c3fa
+  - type: requires_property
+    from: REQ-kibi-source-path-codes
+    to: FACT-source-path-rewrite-code
+    created_at: 2026-11-04T18:12:43.665Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4ecd7511548
+  - type: specified_by
+    from: REQ-kibi-source-path-codes
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-11-04T18:12:43.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cccb5aa79b8
+  - type: supersedes
+    from: REQ-kibi-source-path-codes
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-11-04T18:12:43.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d53bceb4221b

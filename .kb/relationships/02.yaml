@@ -181,3 +181,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a9f7b3fe8c35
+  - type: constrains
+    from: REQ-kibi-lifecycle-review-codes
+    to: FACT-kibi-lifecycle-check-codes-component
+    created_at: 2026-11-04T18:11:53.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5662dc6b9d9a
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-codes
+    to: FACT-adr-proposed-review-code
+    created_at: 2026-11-04T18:11:53.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04bb3716fc09
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-codes
+    to: FACT-adr-unlinked-review-code
+    created_at: 2026-11-04T18:11:53.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8288f9b020a9
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-codes
+    to: FACT-exception-unapproved-review-code
+    created_at: 2026-11-04T18:11:53.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d996e010265
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-codes
+    to: FACT-rationale-review-code
+    created_at: 2026-11-04T18:11:53.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e324e59ad3f
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-codes
+    to: FACT-supersession-cycle-review-code
+    created_at: 2026-11-04T18:11:53.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7099de8fb542
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-codes
+    to: FACT-symbol-owner-review-action
+    created_at: 2026-11-04T18:11:53.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd79aa84b981
+  - type: requires_property
+    from: REQ-kibi-lifecycle-review-codes
+    to: FACT-symbol-owner-review-code
+    created_at: 2026-11-04T18:11:53.426Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b3c066664e7
+  - type: specified_by
+    from: REQ-kibi-lifecycle-review-codes
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-11-04T18:11:53.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d6a2094a958
+  - type: supersedes
+    from: REQ-kibi-lifecycle-review-codes
+    to: REQ-kibi-lifecycle-check-codes
+    created_at: 2026-11-04T18:11:53.446Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5c1a4ab4865
+  - type: constrains
+    from: REQ-kibi-rule-proofs
+    to: FACT-SUBJECT-KIBI-NON-NUMERIC-PROOF
+    created_at: 2026-11-04T18:21:58.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e89696df5e7
+  - type: requires_property
+    from: REQ-kibi-rule-proofs
+    to: FACT-kibi-non-numeric-recheck-rule-tables
+    created_at: 2026-11-04T18:21:58.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92ab83476207
+  - type: requires_property
+    from: REQ-kibi-rule-proofs
+    to: FACT-kibi-non-numeric-rule-every-assignment
+    created_at: 2026-11-04T18:21:58.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56b9536fdb54
+  - type: specified_by
+    from: REQ-kibi-rule-proofs
+    to: SCEN-kibi-non-numeric-proof-kinds
+    created_at: 2026-11-04T18:21:58.948Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-428139429b19
+  - type: specified_by
+    from: REQ-kibi-rule-proofs
+    to: SCEN-CASE-kibi-non-numeric-proof-kinds-RULE-ASSIGNMENT-VIOLATED
+    created_at: 2026-11-04T18:21:58.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06fc89752ad2
+  - type: supersedes
+    from: REQ-kibi-rule-proofs
+    to: REQ-kibi-non-numeric-proof-kinds
+    created_at: 2026-11-04T18:21:58.974Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9de201831300

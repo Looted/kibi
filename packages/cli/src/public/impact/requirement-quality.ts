@@ -202,9 +202,24 @@ function createBroadRequirementDiagnostics(
 ): readonly KibiImpactDiagnostic[] {
   const typesByEntityId = entityTypeById(results);
   const index = fanoutIndex(results);
+  // A closed or superseded requirement's dependency links are history, so a
+  // known requirement that is not current never counts as a dependent.
+  const pastRequirementIds = new Set(
+    results
+      .filter(
+        (result) => isRequirement(result) && !isCurrentRequirement(result),
+      )
+      .map((result) => result.entity.id),
+  );
   return results.flatMap((result) => {
     if (!isCurrentRequirement(result)) return [];
-    const fanout = collectFanout(result.entity.id, index, typesByEntityId);
+    const collected = collectFanout(result.entity.id, index, typesByEntityId);
+    const fanout: RequirementFanout = {
+      ...collected,
+      dependentRequirementIds: collected.dependentRequirementIds.filter(
+        (id) => !pastRequirementIds.has(id),
+      ),
+    };
     if (!exceedsBroadThreshold(fanout)) return [];
     if (isUmbrellaRequirement(result)) return [];
 

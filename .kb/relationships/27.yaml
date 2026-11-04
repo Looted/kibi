@@ -188,13 +188,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38f920f49cff
-  - type: implements
-    from: SYM-agent-instructions-managed-section-state
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:50:47.591Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-460494988d26
   - type: covered_by
     from: SYM-agent-instructions-managed-section-state
     to: TEST-kibi-fresh-clone-setup

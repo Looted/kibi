@@ -388,3 +388,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-31def68d7c7e
+  - type: assumes
+    from: SCEN-NEG-generated-coordinate-DELETED-ARTIFACT
+    to: FACT-NEG-generated-coordinate-DELETED-ARTIFACT
+    created_at: 2026-11-04T18:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58a0cde33208
+  - type: verified_by
+    from: SCEN-NEG-generated-coordinate-DELETED-ARTIFACT
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-11-04T18:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5d8012169d8

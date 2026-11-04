@@ -286,13 +286,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de035796daa3
-  - type: implements
-    from: SYM-hooks-install-sync-prepare-script
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:52:31.267Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-14e4d578ab92
   - type: covered_by
     from: SYM-hooks-install-sync-prepare-script
     to: TEST-kibi-fresh-clone-setup

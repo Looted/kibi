@@ -335,3 +335,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dc2d78ca6fc0
+  - type: constrains
+    from: REQ-kibi-policy-rule-names
+    to: FACT-kibi-check-rule-names-component
+    created_at: 2026-11-04T18:09:29.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7b794084665
+  - type: requires_property
+    from: REQ-kibi-policy-rule-names
+    to: FACT-policy-markers-rule
+    created_at: 2026-11-04T18:09:29.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf2f0a847f0e
+  - type: requires_property
+    from: REQ-kibi-policy-rule-names
+    to: FACT-policy-ownership-rule
+    created_at: 2026-11-04T18:09:29.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab5e260d584f
+  - type: specified_by
+    from: REQ-kibi-policy-rule-names
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-11-04T18:09:29.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-683384ecbb6f
+  - type: supersedes
+    from: REQ-kibi-policy-rule-names
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-11-04T18:09:29.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a32574e7658

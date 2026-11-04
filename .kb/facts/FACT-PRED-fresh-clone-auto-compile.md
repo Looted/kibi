@@ -15,7 +15,7 @@ predicate_args:
 polarity: assert
 claim_key: CLAIM-9257D259BEE7DE86
 claim_text: Kibi must compile a never-compiled branch store on first use without writing any file Git tracks, unless auto-sync is turned off
-text_ref: .kb/requirements/REQ-kibi-fresh-clone-setup.md
+text_ref: .kb/requirements/REQ-kibi-first-use-auto-compile.md
 origin:
   kind: agent
   recorded_at: '2026-11-03T15:26:20.497Z'

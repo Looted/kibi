@@ -118,13 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bffb05cf6f3a
-  - type: implements
-    from: SYM-refreshSymbolCoordinatesUnlocked
-    to: REQ-generated-coordinate-persistence
-    created_at: 2026-08-23T20:41:51.818Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-48fc9f681155
   - type: covered_by
     from: SYM-refreshSymbolCoordinatesUnlocked
     to: TEST-generated-coordinate-repair
@@ -384,3 +377,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d13e39fb0da7
+  - type: constrains
+    from: REQ-kibi-regex-proofs
+    to: FACT-SUBJECT-KIBI-NON-NUMERIC-PROOF
+    created_at: 2026-11-04T18:22:39.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea572ced2658
+  - type: requires_property
+    from: REQ-kibi-regex-proofs
+    to: FACT-kibi-non-numeric-recheck-pattern
+    created_at: 2026-11-04T18:22:39.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a223750575e
+  - type: requires_property
+    from: REQ-kibi-regex-proofs
+    to: FACT-kibi-non-numeric-regex-language-equivalence
+    created_at: 2026-11-04T18:22:39.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c06981765251
+  - type: requires_property
+    from: REQ-kibi-regex-proofs
+    to: FACT-kibi-non-numeric-refuse-irregular-patterns
+    created_at: 2026-11-04T18:22:39.205Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb53a505ecff
+  - type: specified_by
+    from: REQ-kibi-regex-proofs
+    to: SCEN-kibi-non-numeric-proof-kinds
+    created_at: 2026-11-04T18:22:39.221Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e96f08ef0b8e
+  - type: specified_by
+    from: REQ-kibi-regex-proofs
+    to: SCEN-NEG-kibi-non-numeric-proof-kinds-LOOSE-PATTERN
+    created_at: 2026-11-04T18:22:39.240Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cef7fdfdff8
+  - type: supersedes
+    from: REQ-kibi-regex-proofs
+    to: REQ-kibi-non-numeric-proof-kinds
+    created_at: 2026-11-04T18:22:39.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9d8595b8f4a

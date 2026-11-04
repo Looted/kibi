@@ -234,13 +234,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f9113d486c32
-  - type: implements
-    from: SYM-const-requirement-rationale-missing-rule
-    to: REQ-kibi-check-rule-names
-    created_at: 2026-10-28T20:21:45.135Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f84a0fb5ddce
   - type: covered_by
     from: SYM-const-requirement-rationale-missing-rule
     to: TEST-proof-rationale-missing-rule
@@ -290,3 +283,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3a9a84a50d0e
+  - type: constrains
+    from: REQ-kibi-superseded-requirements-closed
+    to: FACT-kibi-kb-lifecycle-component
+    created_at: 2026-11-04T18:19:16.360Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56b4eff4b2af
+  - type: requires_predicate
+    from: REQ-kibi-superseded-requirements-closed
+    to: FACT-PRED-kb-lifecycle-superseded-closed
+    created_at: 2026-11-04T18:19:16.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd20667ebf64
+  - type: requires_property
+    from: REQ-kibi-superseded-requirements-closed
+    to: FACT-PRED-kb-lifecycle-cycle-once
+    created_at: 2026-11-04T18:19:16.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a132afa43876
+  - type: requires_predicate
+    from: REQ-kibi-superseded-requirements-closed
+    to: FACT-PRED-kb-lifecycle-migrate-closes
+    created_at: 2026-11-04T18:19:16.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3bbf403b81e
+  - type: requires_predicate
+    from: REQ-kibi-superseded-requirements-closed
+    to: FACT-PRED-kb-lifecycle-cycle-review
+    created_at: 2026-11-04T18:19:16.435Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bd94a9e6677
+  - type: specified_by
+    from: REQ-kibi-superseded-requirements-closed
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-11-04T18:19:16.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55bbdd6cc9b1
+  - type: specified_by
+    from: REQ-kibi-superseded-requirements-closed
+    to: SCEN-CASE-kibi-kb-lifecycle-integrity-cycle-reported-twice
+    created_at: 2026-11-04T18:19:16.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-948d17749e06
+  - type: specified_by
+    from: REQ-kibi-superseded-requirements-closed
+    to: SCEN-CASE-kibi-kb-lifecycle-integrity-cycle-unreported
+    created_at: 2026-11-04T18:19:16.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4088bf831d87
+  - type: relates_to
+    from: REQ-kibi-superseded-requirements-closed
+    to: REQ-kibi-schema6-migration
+    created_at: 2026-11-04T18:19:16.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1b724c8790f
+  - type: supersedes
+    from: REQ-kibi-superseded-requirements-closed
+    to: REQ-kibi-kb-lifecycle-integrity
+    created_at: 2026-11-04T18:19:16.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aaed12bb67c1

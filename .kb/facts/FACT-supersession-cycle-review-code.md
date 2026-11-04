@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.lifecycle.check_codes
 claim_key: CLAIM-B26CCE9856ABAD66
 claim_text: The supersession cycle review code shall be review_supersession_cycle
-text_ref: REQ-kibi-lifecycle-check-codes
+text_ref: REQ-kibi-lifecycle-review-codes
 property_key: supersession_cycle_code
 operator: eq
 value_type: string
