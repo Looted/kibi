@@ -31,3 +31,5 @@ Hook manager detection reads lefthook and pre-commit configuration through one p
 Installing a Git hook whose path runs through a regular file now reports the hook as not a regular file instead of failing with an uncaught ENOTDIR error. Hook files are written in one place, and the managed markers are matched without an escaping step they never needed.
 
 The usage-metrics tables are drawn by one helper, and the zero-result tool table reuses the shared counts table; the printed report is unchanged.
+
+`kibi branch restore --apply` now restores stores that `kibi gc` quarantined. Quarantine entries are named by time, and restore compared that directory name with the branch store key, so every restore of a garbage-collected store was refused as an identity mismatch; it now checks the identity recorded in the store manifest.
