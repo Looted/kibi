@@ -628,10 +628,10 @@ contradiction_stage(ReqId, _LogicStatus, Context, Stage) :-
     !,
     Stage = _{status: unresolved, outcome: analysis_incomplete, conflicts: Conflicts}.
 contradiction_stage(_ReqId, LogicStatus, _Context, Stage) :-
-    LogicStatus \= passed,
-    !,
-    Stage = _{status: unresolved, outcome: incomplete_grounding, conflicts: []}.
-contradiction_stage(_ReqId, passed, _Context, _{status: passed, outcome: no_conflict_found, conflicts: []}).
+    (   LogicStatus == passed
+    ->  Stage = _{status: passed, outcome: no_conflict_found, conflicts: []}
+    ;   Stage = _{status: unresolved, outcome: incomplete_grounding, conflicts: []}
+    ).
 
 %% contradiction_stage(+ReqId, +LogicStatus, +InventoryStatus, +Context, -Stage)
 % implements REQ-kibi-truthful-consistency

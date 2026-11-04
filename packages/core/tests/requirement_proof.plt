@@ -2816,6 +2816,15 @@ test(a_quantified_ground_predicate_claim_lacks_its_dimension) :-
                        pendingReproofClaims-['K-Q'], status-missing, waivedClaims-[]])
     )).
 
+test(every_grounding_fact_must_be_dimensionless) :-
+    rqp_kb((
+        pf_entity(fact, 'F-DIM', [fact_kind=predicate, claim_text="Every coach is staff"]),
+        pf_entity(fact, 'F-NUM', [fact_kind=property_value, value_type=int,
+                                  claim_text="Every refund is capped"]),
+        once(requirement_proof:unrepresented_quantified_claim('K-DIM', ['F-DIM'], _)),
+        \+ requirement_proof:unrepresented_quantified_claim('K-NUM', ['F-NUM'], _)
+    )).
+
 test(a_certified_claim_needs_no_dimension) :-
     rqp_kb((
         rqp_rule_cert_fixture,
