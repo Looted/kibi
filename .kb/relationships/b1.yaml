@@ -36,7 +36,7 @@ relationships:
     id: rel-3f51e89d23e2
   - type: implements
     from: SYM-skillopt-mcp-broker-error-name
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-08-21T19:52:46.998Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

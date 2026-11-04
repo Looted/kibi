@@ -183,7 +183,7 @@ relationships:
     id: rel-2e132a5bbf00
   - type: implements
     from: SYM-quality-inventory-462930c7e9c8
-    to: REQ-core-persistence
+    to: REQ-core-journaled-engine-persistence
     created_at: 2026-09-14T20:31:47.497Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

@@ -106,7 +106,7 @@ relationships:
     id: rel-deb83ab356f8
   - type: implements
     from: SYM-skillopt-objective-workflow-shape
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-08-24T17:23:00.657Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

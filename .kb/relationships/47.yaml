@@ -43,7 +43,7 @@ relationships:
     id: rel-63c9dde52cf8
   - type: implements
     from: SYM-skillopt-bridge-request
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-08-15T23:12:27.508Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

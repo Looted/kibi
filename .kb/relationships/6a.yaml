@@ -176,7 +176,7 @@ relationships:
     id: rel-c5c79c750658
   - type: implements
     from: SYM-source-authoring-is-untracked-by-git
-    to: REQ-core-persistence
+    to: REQ-core-journaled-engine-persistence
     created_at: 2026-10-14T10:13:26.305Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

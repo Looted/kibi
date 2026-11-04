@@ -85,7 +85,7 @@ relationships:
     id: rel-c7e441171e00
   - type: implements
     from: SYM-skillopt-run-cli-with-retry
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-08-29T01:01:11.418Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -351,7 +351,7 @@ relationships:
     id: rel-ec2eb421858f
   - type: implements
     from: SYM-skillopt-fixtures-task-definitions-supplemental-supplemental-cases-8e8546d2
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-10-05T12:24:52.026Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

@@ -43,7 +43,7 @@ relationships:
     id: rel-8bb6beecec46
   - type: implements
     from: SYM-skillopt-read-bridge-request
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-08-16T07:14:06.693Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -155,14 +155,14 @@ relationships:
     id: rel-d6be65b0f918
   - type: implements
     from: SYM-skillopt-migration-apply-objectives
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-08-24T17:20:50.026Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5810ee744d39
   - type: implements
     from: SYM-skillopt-cursor-parse-args
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-cursor-compat
     created_at: 2026-08-24T17:28:13.814Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

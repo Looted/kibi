@@ -36,7 +36,7 @@ relationships:
     id: rel-f13fd9da5cf0
   - type: implements
     from: SYM-canonical-setSymbolRefreshForTests
-    to: REQ-cli-sync
+    to: REQ-cli-canonical-runtime
     created_at: 2026-08-18T17:35:53.192Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

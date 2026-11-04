@@ -22,7 +22,7 @@ relationships:
     source: mcp://kibi/upsert
   - type: implements
     from: SYM-skillopt-runtime-process-summary
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-08-15T23:12:22.393Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -36,7 +36,7 @@ relationships:
     id: rel-2c810a97461f
   - type: implements
     from: SYM-skillopt-bridge-visibility-error-name
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-08-16T07:13:30.695Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

@@ -92,7 +92,7 @@ relationships:
     id: rel-f3e9e7c9f02d
   - type: implements
     from: SYM-quality-inventory-246e98f86c61
-    to: REQ-core-persistence
+    to: REQ-core-journaled-engine-persistence
     created_at: 2026-09-14T20:31:00.990Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -218,7 +218,7 @@ relationships:
     id: rel-41e79bf784f2
   - type: implements
     from: SYM-skillopt-campaign-main
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-operator-selected-harness
     created_at: 2026-10-05T12:02:51.678Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -232,7 +232,7 @@ relationships:
     id: rel-74f819ab58e4
   - type: implements
     from: SYM-skillopt-runtime-fixture-kb-setup-setupseededgovernedareakb-0b4488e6
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-10-05T13:18:33.753Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

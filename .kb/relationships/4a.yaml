@@ -155,7 +155,7 @@ relationships:
     id: rel-5be425f121ac
   - type: implements
     from: SYM-skillopt-campaign-workflow-parsecompletecampaignevaluation-e4f544e4
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-10-05T12:23:18.950Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -169,7 +169,7 @@ relationships:
     id: rel-f82cb998a110
   - type: implements
     from: SYM-skillopt-user-instruction
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-10-05T16:55:41.613Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

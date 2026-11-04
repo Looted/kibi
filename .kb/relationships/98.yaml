@@ -239,7 +239,7 @@ relationships:
     id: rel-cbb26aa9a408
   - type: implements
     from: SYM-upsert-assert-relationship-shard-contained
-    to: REQ-core-atomic-upsert-persistence
+    to: REQ-kibi-operation-interface-parity
     created_at: 2026-10-14T10:14:17.937Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
