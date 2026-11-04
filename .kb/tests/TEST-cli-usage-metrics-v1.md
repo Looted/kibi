@@ -18,7 +18,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-cli-usage-metrics-v1
+    - symbol_id: SYM-e2e-telemetry-acceptance-gate
       target: default
   success_policy: all_required_first_attempt
 type: test

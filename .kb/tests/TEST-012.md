@@ -19,7 +19,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-012
+    - symbol_id: SYM-e2e-init-sync-check
       target: default
   success_policy: all_required_first_attempt
 type: test

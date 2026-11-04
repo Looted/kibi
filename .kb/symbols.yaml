@@ -36828,7 +36828,7 @@ symbols:
         target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-e2e-skillopt-trust-boundaries
-  - id: SYM-e2e-test-003
+  - id: SYM-e2e-cli-workflows
     title: cli-workflows.test
     status: active
     sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
@@ -36836,8 +36836,26 @@ symbols:
     granularity_reason: test-suite
     relationships:
       - type: executable_for
+        target: TEST-001
+      - type: executable_for
         target: TEST-003
-  - id: SYM-e2e-test-kibi-bootstrap-plan-apply
+      - type: executable_for
+        target: TEST-011
+      - type: executable_for
+        target: TEST-audit-quality-diagnostics-v1
+      - type: executable_for
+        target: TEST-cli-staged-impact-enforcement
+      - type: executable_for
+        target: TEST-kibi-logical-requirement-coverage
+      - type: executable_for
+        target: TEST-kibi-proof-aware-quality-diagnostics
+      - type: executable_for
+        target: TEST-mcp-tool-check-coverage
+      - type: executable_for
+        target: TEST-opencode-smart-enforcement
+      - type: executable_for
+        target: TEST-prolog-library-adoption-core
+  - id: SYM-e2e-init-sync-check
     title: init-sync-check.test
     status: active
     sourceFile: documentation/tests/e2e/packed/init-sync-check.test.ts
@@ -36845,7 +36863,15 @@ symbols:
     granularity_reason: test-suite
     relationships:
       - type: executable_for
+        target: TEST-008
+      - type: executable_for
+        target: TEST-012
+      - type: executable_for
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: executable_for
+        target: TEST-cli-canonical-init
+      - type: executable_for
+        target: TEST-cli-canonical-runtime
   - id: SYM-e2e-test-agent-guided-migration-orchestration
     title: dependency-ordered-repair-plan.test
     status: active
@@ -36864,16 +36890,7 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-005
-  - id: SYM-e2e-test-001
-    title: cli-workflows.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-001
-  - id: SYM-e2e-test-010
+  - id: SYM-e2e-traceability-gate
     title: traceability-gate.test
     status: active
     sourceFile: documentation/tests/e2e/packed/traceability-gate.test.ts
@@ -36882,36 +36899,11 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-010
-  - id: SYM-e2e-test-011
-    title: cli-workflows.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
       - type: executable_for
-        target: TEST-011
-  - id: SYM-e2e-test-012
-    title: init-sync-check.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/init-sync-check.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
+        target: TEST-vscode-traceability
       - type: executable_for
-        target: TEST-008
-      - type: executable_for
-        target: TEST-012
-  - id: SYM-e2e-test-008
-    title: init-sync-check.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/init-sync-check.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-008
-  - id: SYM-e2e-test-014
+        target: TEST-vscode-traceability-coverage
+  - id: SYM-e2e-release-package-contract
     title: release-package-contract.test
     status: active
     sourceFile: documentation/tests/e2e/packed/release-package-contract.test.ts
@@ -36920,7 +36912,9 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-014
-  - id: SYM-e2e-test-agent-kibi-interface-selection
+      - type: executable_for
+        target: TEST-cli-doctor-packed-provenance
+  - id: SYM-e2e-mcp-cli-operation-parity
     title: mcp-cli-operation-parity.test
     status: active
     sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts
@@ -36929,42 +36923,10 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-agent-kibi-interface-selection
-  - id: SYM-e2e-test-audit-quality-diagnostics-v1
-    title: cli-workflows.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
       - type: executable_for
-        target: TEST-audit-quality-diagnostics-v1
-  - id: SYM-e2e-test-cli-canonical-runtime
-    title: init-sync-check.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/init-sync-check.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
+        target: TEST-kibi-operation-interface-parity
       - type: executable_for
-        target: TEST-cli-canonical-runtime
-  - id: SYM-e2e-test-cli-doctor-packed-provenance
-    title: release-package-contract.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/release-package-contract.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-cli-doctor-packed-provenance
-  - id: SYM-e2e-test-cli-canonical-init
-    title: init-sync-check.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/init-sync-check.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-cli-canonical-init
+        target: TEST-mcp-tag-filtering-server-side
   - id: SYM-e2e-test-cli-migrate
     title: source-first-recovery.test
     status: active
@@ -36974,16 +36936,7 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-migrate
-  - id: SYM-e2e-test-cli-staged-impact-enforcement
-    title: cli-workflows.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-cli-staged-impact-enforcement
-  - id: SYM-e2e-test-cli-status-pre-first-sync
+  - id: SYM-e2e-cli-status-pre-first-sync
     title: cli-status-pre-first-sync.test
     status: active
     sourceFile: documentation/tests/e2e/packed/cli-status-pre-first-sync.test.ts
@@ -36992,7 +36945,9 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-status-pre-first-sync
-  - id: SYM-e2e-test-cli-usage-metrics-v1
+      - type: executable_for
+        target: TEST-cli-sync-discovery-readme-ignore
+  - id: SYM-e2e-telemetry-acceptance-gate
     title: telemetry-acceptance-gate.test
     status: active
     sourceFile: documentation/tests/e2e/packed/telemetry-acceptance-gate.test.ts
@@ -37001,6 +36956,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-usage-metrics-v1
+      - type: executable_for
+        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-e2e-test-codex-kibi-plugin-v1
     title: codex-plugin.test
     status: active
@@ -37010,16 +36967,7 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-codex-kibi-plugin-v1
-  - id: SYM-e2e-test-cli-sync-discovery-readme-ignore
-    title: cli-status-pre-first-sync.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cli-status-pre-first-sync.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-cli-sync-discovery-readme-ignore
-  - id: SYM-e2e-test-cursor-agent-plugin-v1
+  - id: SYM-e2e-cursor-plugin-launcher
     title: cursor-plugin-launcher.test
     status: active
     sourceFile: documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts
@@ -37028,34 +36976,15 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cursor-agent-plugin-v1
-  - id: SYM-e2e-test-cursor-kibi-plugin-v1
-    title: cursor-plugin-launcher.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
       - type: executable_for
         target: TEST-cursor-kibi-plugin-v1
-  - id: SYM-e2e-test-cursor-stop-job-vs-plan
-    title: cursor-plugin-launcher.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
       - type: executable_for
         target: TEST-cursor-stop-job-vs-plan
-  - id: SYM-e2e-test-cursor-worktree-kibi-continuity
-    title: cursor-plugin-launcher.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
       - type: executable_for
         target: TEST-cursor-worktree-kibi-continuity
-  - id: SYM-e2e-test-generated-coordinate-repair
+      - type: executable_for
+        target: TEST-skillopt-cursor-compat
+  - id: SYM-e2e-source-relationship-parity
     title: source-relationship-parity.test
     status: active
     sourceFile: documentation/tests/e2e/packed/source-relationship-parity.test.ts
@@ -37063,26 +36992,10 @@ symbols:
     granularity_reason: test-suite
     relationships:
       - type: executable_for
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: executable_for
         target: TEST-generated-coordinate-repair
-  - id: SYM-e2e-test-kibi-logical-requirement-coverage
-    title: cli-workflows.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-logical-requirement-coverage
-  - id: SYM-e2e-test-kibi-proof-aware-quality-diagnostics
-    title: cli-workflows.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-proof-aware-quality-diagnostics
-  - id: SYM-e2e-test-mcp-cli-help
+  - id: SYM-e2e-mcp-cli-help
     title: mcp-cli-help.test
     status: active
     sourceFile: documentation/tests/e2e/packed/mcp-cli-help.test.ts
@@ -37091,6 +37004,10 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-cli-help
+      - type: executable_for
+        target: TEST-mcp-skills-resource-discoverability
+      - type: executable_for
+        target: TEST-skill-cli-load-validate
   - id: SYM-e2e-test-mcp-kb-freshness
     title: mcp-pnpm-upgrade-stale-path.test
     status: active
@@ -37100,7 +37017,7 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-kb-freshness
-  - id: SYM-e2e-test-mcp-relationship-preflight
+  - id: SYM-e2e-mcp-crud
     title: mcp-crud.test
     status: active
     sourceFile: documentation/tests/e2e/packed/mcp-crud.test.ts
@@ -37109,6 +37026,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-relationship-preflight
+      - type: executable_for
+        target: TEST-mcp-upsert-coverage
   - id: SYM-e2e-test-mcp-search-discovery
     title: discovery-bundle.test
     status: active
@@ -37127,16 +37046,7 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-semantic-advisor-preflight
-  - id: SYM-e2e-test-mcp-skills-resource-discoverability
-    title: mcp-cli-help.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/mcp-cli-help.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-skills-resource-discoverability
-  - id: SYM-e2e-test-mcp-suggest-predicates
+  - id: SYM-e2e-predicate-suggestion-relevance
     title: predicate-suggestion-relevance.test
     status: active
     sourceFile: documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts
@@ -37145,34 +37055,9 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-suggest-predicates
-  - id: SYM-e2e-test-mcp-tag-filtering-server-side
-    title: mcp-cli-operation-parity.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
       - type: executable_for
-        target: TEST-mcp-tag-filtering-server-side
-  - id: SYM-e2e-test-mcp-tool-check-coverage
-    title: cli-workflows.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-tool-check-coverage
-  - id: SYM-e2e-test-mcp-upsert-coverage
-    title: mcp-crud.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/mcp-crud.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-upsert-coverage
-  - id: SYM-e2e-test-opencode-kibi-plugin-v1
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-e2e-opencode-plugin
     title: opencode-plugin.test
     status: active
     sourceFile: documentation/tests/e2e/packed/opencode-plugin.test.ts
@@ -37181,6 +37066,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-opencode-kibi-plugin-v1
+      - type: executable_for
+        target: TEST-opencode-smart-enforcement-v1-coverage
   - id: SYM-e2e-test-opencode-python-comment-routing
     title: opencode-comment-guidance.test python-routing
     status: active
@@ -37199,42 +37086,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-opencode-file-context-guidance-v1
-  - id: SYM-e2e-test-opencode-smart-enforcement
-    title: cli-workflows.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-opencode-smart-enforcement
-  - id: SYM-e2e-test-opencode-smart-enforcement-v1-coverage
-    title: opencode-plugin.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/opencode-plugin.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-opencode-smart-enforcement-v1-coverage
-  - id: SYM-e2e-test-prolog-library-adoption-core
-    title: cli-workflows.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-prolog-library-adoption-core
-  - id: SYM-e2e-test-skill-cli-load-validate
-    title: mcp-cli-help.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/mcp-cli-help.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-skill-cli-load-validate
   - id: SYM-e2e-test-root-suite-batch-diagnostics
     title: ci-artifact-only-smoke.test
     status: active
@@ -37244,79 +37095,7 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-root-suite-batch-diagnostics
-  - id: SYM-e2e-test-skillopt-cursor-compat
-    title: cursor-plugin-launcher.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-cursor-compat
-  - id: SYM-e2e-test-skillopt-logical-evidence-fidelity
-    title: ontology-convergence-witnesses.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-logical-evidence-fidelity
-  - id: SYM-e2e-test-skillopt-paid-launch-accounting
-    title: telemetry-acceptance-gate.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/telemetry-acceptance-gate.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-paid-launch-accounting
-  - id: SYM-e2e-test-skillopt-predicate-first-requirements
-    title: predicate-suggestion-relevance.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-predicate-first-requirements
-  - id: SYM-e2e-test-cli-symbol-behavioral-anchors
-    title: source-relationship-parity.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/source-relationship-parity.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-cli-symbol-behavioral-anchors
-  - id: SYM-e2e-test-vscode-traceability
-    title: traceability-gate.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/traceability-gate.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-vscode-traceability
-  - id: SYM-e2e-test-vscode-traceability-coverage
-    title: traceability-gate.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/traceability-gate.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-vscode-traceability-coverage
-  - id: SYM-e2e-test-kibi-operation-interface-parity
-    title: mcp-cli-operation-parity.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-operation-interface-parity
-  - id: SYM-e2e-test-skillopt-external-adoption-verdict
+  - id: SYM-e2e-ontology-convergence-witnesses
     title: ontology-convergence-witnesses.test
     status: active
     sourceFile: documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts
@@ -37325,6 +37104,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
+      - type: executable_for
+        target: TEST-skillopt-logical-evidence-fidelity
   - id: SYM-test-root-cli-engine-batch-timeout
     title: CLI_ENGINE_BATCH_TIMEOUT_MS
     status: active

@@ -16,7 +16,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-mcp-tool-check-coverage
+    - symbol_id: SYM-e2e-cli-workflows
       target: default
   success_policy: all_required_first_attempt
 type: test

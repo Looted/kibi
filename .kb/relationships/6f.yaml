@@ -111,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e63f18d14b5
-  - type: executable_for
-    from: SYM-e2e-test-agent-kibi-interface-selection
-    to: TEST-agent-kibi-interface-selection
-    created_at: 2026-09-05T15:01:34.488Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23aaafa3bd24
   - type: covered_by
     from: SYM-atomicPublish
     to: TEST-cli-sync-discovery-readme-ignore

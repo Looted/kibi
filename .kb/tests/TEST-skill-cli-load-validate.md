@@ -18,7 +18,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-skill-cli-load-validate
+    - symbol_id: SYM-e2e-mcp-cli-help
       target: default
   success_policy: all_required_first_attempt
 type: test

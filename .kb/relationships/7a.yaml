@@ -104,13 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c04de1570b51
-  - type: executable_for
-    from: SYM-e2e-test-kibi-bootstrap-plan-apply
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-09-05T14:38:36.373Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4edec1deec58
   - type: covered_by
     from: SYM-ManifestError
     to: TEST-cli-sync-discovery-readme-ignore

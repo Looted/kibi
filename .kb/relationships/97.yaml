@@ -160,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-975a0b6505b6
-  - type: executable_for
-    from: SYM-e2e-test-prolog-library-adoption-core
-    to: TEST-prolog-library-adoption-core
-    created_at: 2026-09-05T15:49:05.899Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-418952d95cb3
   - type: covered_by
     from: SYM-canonical-KibiTreeDataProvider-onDidChangeTreeData
     to: TEST-vscode-traceability-coverage

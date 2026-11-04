@@ -15,7 +15,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-mcp-relationship-preflight
+    - symbol_id: SYM-e2e-mcp-crud
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:

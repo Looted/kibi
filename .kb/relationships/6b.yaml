@@ -153,13 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-36eca6e31cbf
-  - type: executable_for
-    from: SYM-e2e-test-kibi-logical-requirement-coverage
-    to: TEST-kibi-logical-requirement-coverage
-    created_at: 2026-09-05T15:44:58.040Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1cdcc364658b
   - type: covered_by
     from: SYM-run-failure-phases
     to: TEST-kibi-verification-evidence-contract

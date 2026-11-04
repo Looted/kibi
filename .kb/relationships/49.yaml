@@ -104,13 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e5ca35cbfa1
-  - type: executable_for
-    from: SYM-e2e-test-mcp-relationship-preflight
-    to: TEST-mcp-relationship-preflight
-    created_at: 2026-09-05T15:46:07.592Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1eaa336286b9
   - type: covered_by
     from: SYM-producer-kinds
     to: TEST-kibi-verification-evidence-contract

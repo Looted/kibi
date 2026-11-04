@@ -24,7 +24,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-agent-kibi-interface-selection
+    - symbol_id: SYM-e2e-mcp-cli-operation-parity
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:

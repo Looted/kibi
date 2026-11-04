@@ -125,13 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e9ecbe4f6663
-  - type: executable_for
-    from: SYM-e2e-test-cli-canonical-init
-    to: TEST-cli-canonical-init
-    created_at: 2026-09-05T15:08:45.909Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0d1f7cb96039
   - type: covered_by
     from: SYM-KIBI-SYMBOL-COORDINATES-PATH
     to: TEST-cli-staged-impact-enforcement

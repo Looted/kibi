@@ -55,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92ea671d54cc
-  - type: executable_for
-    from: SYM-e2e-test-opencode-smart-enforcement-v1-coverage
-    to: TEST-opencode-smart-enforcement-v1-coverage
-    created_at: 2026-09-05T15:48:47.222Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6f795a0e351a
   - type: implements
     from: SYM-cli-loadEntitiesPaged
     to: REQ-kibi-verification-evidence-contract

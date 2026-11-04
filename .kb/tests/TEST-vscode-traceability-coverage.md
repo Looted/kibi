@@ -16,7 +16,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-vscode-traceability-coverage
+    - symbol_id: SYM-e2e-traceability-gate
       target: default
   success_policy: all_required_first_attempt
 type: test

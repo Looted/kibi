@@ -139,13 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3d245a769ce5
-  - type: executable_for
-    from: SYM-e2e-test-mcp-skills-resource-discoverability
-    to: TEST-mcp-skills-resource-discoverability
-    created_at: 2026-09-05T15:46:43.710Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ced1497e9bc1
   - type: covered_by
     from: SYM-predicate-usage-hints-part-1
     to: TEST-mcp-suggest-predicates

@@ -90,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1388b81b02bc
-  - type: executable_for
-    from: SYM-e2e-test-014
-    to: TEST-014
-    created_at: 2026-09-05T14:53:33.258Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-33d25206f841
   - type: covered_by
     from: SYM-syncPluginManifestVersions
     to: TEST-014

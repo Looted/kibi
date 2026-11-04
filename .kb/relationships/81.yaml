@@ -139,13 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e6aae8b8fdde
-  - type: executable_for
-    from: SYM-e2e-test-kibi-operation-interface-parity
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-05T15:54:06.673Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6b0042c32f52
   - type: covered_by
     from: SYM-modeling-predicate-loader-usageHintsFromEntity
     to: TEST-mcp-suggest-predicates
