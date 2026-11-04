@@ -121,14 +121,13 @@ function editRefusedReason(field: SourceField): string {
   return field === "text_ref" ? TEXT_REF_EDIT_REFUSED : SOURCE_EDIT_REFUSED;
 }
 
-/** Whether a `text_ref` value reads as one workspace file path. */
+/**
+ * Whether a `text_ref` value reads as one workspace file path. A URL never
+ * does: the path shape allows no colon before its first slash.
+ */
 // implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function isPathShapedTextRef(value: unknown): boolean {
-  return (
-    typeof value === "string" &&
-    !URL_PATTERN.test(value.trim()) &&
-    FILE_PATH_SHAPE.test(value.trim())
-  );
+  return typeof value === "string" && FILE_PATH_SHAPE.test(value.trim());
 }
 
 function scalarText(value: unknown): string | undefined {
@@ -201,7 +200,7 @@ export function scanAuthoredSources(workspaceRoot: string): AuthoredSourceScan {
   const symbols = readText(path.join(workspaceRoot, KB_PATHS.symbolsManifest));
   if (symbols !== null) {
     for (const match of symbols.matchAll(SYMBOL_ID_LINE)) {
-      const id = unquote(match[1] ?? "");
+      const id = unquote(match[1] as string);
       if (id !== "") entityIds.add(id);
     }
   }
@@ -237,14 +236,12 @@ export function resolveAuthoredSource(
   if (URL_PATTERN.test(text)) return { kind: "url" };
   if (context.entityIds.has(text)) return { kind: "entity" };
   const hash = text.indexOf("#");
-  const anchor = hash >= 0 ? text.slice(hash) : "";
-  const relative = (hash >= 0 ? text.slice(0, hash) : text)
-    .trim()
-    .replaceAll("\\", "/")
-    .replace(/^\.\//, "");
+  const named = hash === -1 ? text : text.slice(0, hash);
+  const anchor = text.slice(named.length);
+  const relative = named.trim().replaceAll("\\", "/").replace(/^\.\//, "");
   const own = context.file?.toLowerCase();
   const exists = relative !== "" && context.exists(relative);
-  if (own !== undefined && relative.toLowerCase() === own) {
+  if (relative.toLowerCase() === own) {
     return { kind: "self", resolves: exists };
   }
   // Another existing file is provenance, even when its path would map onto
@@ -254,13 +251,13 @@ export function resolveAuthoredSource(
   const legacy = lower.startsWith(LEGACY_ROOT)
     ? lower.slice(LEGACY_ROOT.length)
     : lower;
-  if (own !== undefined && `${KB_ROOT}/${legacy}` === own) {
+  if (`${KB_ROOT}/${legacy}` === own) {
     return { kind: "self", resolves: false };
   }
   const rest = relative.startsWith(LEGACY_ROOT)
     ? relative.slice(LEGACY_ROOT.length)
     : relative;
-  const lane = rest.split("/")[0] ?? "";
+  const lane = rest.split("/")[0] as string;
   const target = `${KB_ROOT}/${rest}`;
   if (LEGACY_LANE_ROOTS.has(lane) && context.exists(target)) {
     return { kind: "dangling", rewrite: `${target}${anchor}` };
@@ -279,11 +276,9 @@ export function workspacePathExists(
     const cached = cache.get(relativePath);
     if (cached !== undefined) return cached;
     const absolute = path.resolve(root, relativePath);
-    const fromRoot = path.relative(root, absolute);
-    const exists =
-      !fromRoot.startsWith("..") &&
-      !path.isAbsolute(fromRoot) &&
-      existsSync(absolute);
+    const inside =
+      absolute === root || absolute.startsWith(`${root}${path.sep}`);
+    const exists = inside && existsSync(absolute);
     cache.set(relativePath, exists);
     return exists;
   };
@@ -294,14 +289,13 @@ function repairFor(
   resolution: SourceResolution,
 ): SourceRepair | undefined {
   if (ref.field === "text_ref") {
-    // A text_ref naming its own existing file is evidence, not redundancy.
-    if (resolution.kind === "self" && resolution.resolves) return undefined;
-    if (resolution.kind !== "dangling" && resolution.kind !== "self") {
-      return undefined;
-    }
-    // A pre-canonical spelling of the entity's own file moved with it.
-    const rewrite =
-      resolution.kind === "dangling" ? resolution.rewrite : ref.file;
+    let rewrite: string | undefined;
+    if (resolution.kind === "dangling") rewrite = resolution.rewrite;
+    // A pre-canonical spelling of the entity's own file moved with it; a
+    // text_ref naming its own existing file is evidence, not redundancy.
+    else if (resolution.kind === "self" && !resolution.resolves)
+      rewrite = ref.file;
+    else return undefined;
     if (ref.semanticSource === true) {
       return {
         ...ref,
@@ -487,9 +481,7 @@ export function plannedSourcePathRepairs(
 }
 
 function plannedField(repair: PlannedRepair): SourceField {
-  return "field" in repair && repair.field === "text_ref"
-    ? "text_ref"
-    : "source";
+  return (repair as { field?: "text_ref" }).field ?? "source";
 }
 
 function plannedKey(file: string, field: SourceField): string {
@@ -497,15 +489,16 @@ function plannedKey(file: string, field: SourceField): string {
 }
 
 function samePlannedRepair(left: PlannedRepair, right: PlannedRepair): boolean {
-  if (
-    left.entityId !== right.entityId ||
-    left.from !== right.from ||
-    plannedField(left) !== plannedField(right)
-  ) {
-    return false;
-  }
-  if ("to" in left) return "to" in right && left.to === right.to;
-  return "reason" in right && left.reason === right.reason;
+  // Both are keyed by file and field. A rewrite has no reason and a removal
+  // has no target, so comparing both also tells the two kinds apart.
+  const fix = (repair: PlannedRepair) =>
+    repair as { readonly to?: string; readonly reason?: string };
+  return (
+    left.entityId === right.entityId &&
+    left.from === right.from &&
+    fix(left).to === fix(right).to &&
+    fix(left).reason === fix(right).reason
+  );
 }
 
 /**
