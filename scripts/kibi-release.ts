@@ -28,8 +28,8 @@
 
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { LATEST_KB_SCHEMA_VERSION } from "../packages/cli/src/utils/schema-version.ts";
-import { KIBI_PLUGIN_API_VERSION } from "../packages/plugin-sdk/src/protocol.ts";
+import { LATEST_KB_SCHEMA_VERSION } from "../packages/cli/src/utils/schema-version.js";
+import { KIBI_PLUGIN_API_VERSION } from "../packages/plugin-sdk/src/protocol.js";
 import { parseChangesetPackages } from "./check-release-bumps";
 import { PACKAGE_CATALOG } from "./package-catalog";
 

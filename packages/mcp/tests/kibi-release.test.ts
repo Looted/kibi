@@ -28,6 +28,11 @@ describe("kibiReleaseForMcp", () => {
     expect(
       kibiReleaseForMcp("3.25.0", () => JSON.stringify({ release: 1 })),
     ).toBeUndefined();
+    expect(
+      kibiReleaseForMcp("3.25.0", () =>
+        JSON.stringify({ release: 1, packages: { "kibi-mcp": "3.25.0" } }),
+      ),
+    ).toBeUndefined();
     expect(kibiReleaseForMcp("3.25.0", () => "{")).toBeUndefined();
     expect(
       kibiReleaseForMcp("3.25.0", () => {
