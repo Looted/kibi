@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.discovery
-property_key: clause_06_the_discovery_surface_must_offer_bounded_relationship_traver
+property_key: offers_graph_traversal
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_search_discovery.clause_06_the_discovery_surface_must_offer_bounded_relationship_traver.eq.true
+canonical_key: req.req_mcp_search_discovery.offers_graph_traversal.eq.true
 claim_key: CLAIM-E82B1FCCDE8DC303
 claim_text: The discovery surface must offer bounded relationship traversal with kb_graph and kibi graph
 origin:

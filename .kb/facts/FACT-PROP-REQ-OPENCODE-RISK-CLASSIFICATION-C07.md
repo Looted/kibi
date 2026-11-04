@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_07_the_opencode_plugin_must_classify_symbol_changes_missing_req
+property_key: risk_traceability_candidate
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_risk_classification.clause_07_the_opencode_plugin_must_classify_symbol_changes_missing_req.eq.true
+canonical_key: req.req_opencode_risk_classification.risk_traceability_candidate.eq.true
 claim_key: CLAIM-C2FB5DD114E9A347
 claim_text: The OpenCode plugin must classify symbol changes missing requirement links as traceability_candidate
 origin:

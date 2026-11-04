@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.cli.doctor
-property_key: clause_01_when_kibi_doctor_runs_with_json_output_on_an_ins
+property_key: reports_installed_mcp_version
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_cli_doctor_packed_provenance.clause_01_when_kibi_doctor_runs_with_json_output_on_an_ins.eq.true
+canonical_key: req.req_cli_doctor_packed_provenance.reports_installed_mcp_version.eq.true
 claim_key: CLAIM-2F306D93E829A446
 claim_text: When kibi doctor runs with JSON output on an installed consumer workspace, it must report the installed kibi-mcp package version by resolving the package entrypoint whenever the package does not export its package.json subpath
 id: FACT-PROP-REQ-CLI-DOCTOR-PACKED-PROVENANCE-C01

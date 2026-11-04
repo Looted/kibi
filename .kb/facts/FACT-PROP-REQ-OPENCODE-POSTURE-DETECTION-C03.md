@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_03_the_opencode_plugin_must_classify_the_workspace_as_root_unin
+property_key: posture_root_uninitialized
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_posture_detection.clause_03_the_opencode_plugin_must_classify_the_workspace_as_root_unin.eq.true
+canonical_key: req.req_opencode_posture_detection.posture_root_uninitialized.eq.true
 claim_key: CLAIM-A84138C288B72584
 claim_text: The OpenCode plugin must classify the workspace as root_uninitialized when there is no root .kb/manifest.json but the root declares Kibi intent
 origin:

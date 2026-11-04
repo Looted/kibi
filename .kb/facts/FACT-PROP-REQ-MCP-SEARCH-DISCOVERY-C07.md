@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.discovery
-property_key: clause_07_kb_query_must_remain_exact_and_deterministic_and_must_not_be
+property_key: query_exact_not_fuzzy
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_search_discovery.clause_07_kb_query_must_remain_exact_and_deterministic_and_must_not_be.eq.true
+canonical_key: req.req_mcp_search_discovery.query_exact_not_fuzzy.eq.true
 claim_key: CLAIM-C366C52CD08BBDBC
 claim_text: kb_query must remain exact and deterministic and must not be turned into fuzzy search
 origin:

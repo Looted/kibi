@@ -64,27 +64,6 @@ relationships:
     id: rel-608e39abf6e0
   - type: requires_property
     from: REQ-020
-    to: FACT-PROP-REQ-020-C02
-    created_at: 2026-09-05T14:28:35.559Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-58ff37ec1128
-  - type: requires_property
-    from: REQ-020
-    to: FACT-PROP-REQ-020-C03
-    created_at: 2026-09-05T14:28:35.561Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0a84f49ea3d7
-  - type: requires_property
-    from: REQ-020
-    to: FACT-PROP-REQ-020-C04
-    created_at: 2026-09-05T14:28:35.564Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e7102965acf1
-  - type: requires_property
-    from: REQ-020
     to: FACT-PROP-REQ-020-C05
     created_at: 2026-09-05T14:28:35.567Z
     created_by: kibi/upsert
@@ -125,27 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c04de1570b51
-  - type: requires_property
-    from: REQ-020
-    to: FACT-PROP-REQ-020-C11
-    created_at: 2026-09-05T14:28:35.588Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-805f0f07c17e
-  - type: requires_property
-    from: REQ-020
-    to: FACT-PROP-REQ-020-C12
-    created_at: 2026-09-05T14:28:35.594Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6da1f91c50bb
-  - type: requires_property
-    from: REQ-020
-    to: FACT-PROP-REQ-020-C13
-    created_at: 2026-09-05T14:28:35.601Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c9583abaf156
   - type: executable_for
     from: SYM-e2e-test-kibi-bootstrap-plan-apply
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY

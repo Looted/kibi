@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.kb.canonical_layout
-property_key: clause_01_kibi_init_must_create_the_canonical_kb_knowledge
+property_key: init_creates_canonical_lanes
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_cli_init_canonical.clause_01_kibi_init_must_create_the_canonical_kb_knowledge.eq.true
+canonical_key: req.req_cli_init_canonical.init_creates_canonical_lanes.eq.true
 claim_key: CLAIM-9C2F47DE993B2F09
 claim_text: 'kibi init must create the canonical .kb/ knowledge namespace: entity lanes under .kb/requirements, .kb/scenarios, .kb/tests, .kb/facts, .kb/adr, .kb/flags, and .kb/events, plus .kb/symbols.yaml, .kb/symbol-coordinates.yaml, and Kibi-owned .kb/manifest.json lifecycle metadata'
 id: FACT-PROP-REQ-CLI-INIT-CANONICAL-C01

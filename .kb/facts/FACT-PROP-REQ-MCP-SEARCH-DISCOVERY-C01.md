@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.discovery
-property_key: clause_01_kibi_must_provide_a_curated_read_only_discovery_surface_thro
+property_key: read_only_discovery_surface
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_search_discovery.clause_01_kibi_must_provide_a_curated_read_only_discovery_surface_thro.eq.true
+canonical_key: req.req_mcp_search_discovery.read_only_discovery_surface.eq.true
 claim_key: CLAIM-22095215C677EF51
 claim_text: Kibi must provide a curated read-only discovery surface through both MCP and the CLI
 id: FACT-PROP-REQ-MCP-SEARCH-DISCOVERY-C01
