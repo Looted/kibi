@@ -30,68 +30,17 @@ id: TEST-proof-kb-merge-gate-order
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f0d6ad38e25a80d9e2d86153
+    receipt_id: PR-2f10f86c8782c1300248f379
     test_id: TEST-proof-kb-merge-gate-order
     scope: unit
     outcome: passed
-    code_snapshot: 8b4869505ab14fdc6d5dd258ec6c0af2fd47ca09698ebd81badf90867e6c2cb7
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T09:40:26.238Z'
-    finished_at: '2026-10-28T09:40:26.382Z'
-    artifact_digest: 6901cc9d8d1706a1cfc3bb52882b2da0950d74b36665a33127121692ad6448e2
-    contract_hash: d76dfcf52a14733a53c4be03addcb2abd8617eb1b387ee6852035998f34e3af8
-    binding_hash: cf7aab2bc1863298a730d2a359ef1699961b6f5aa692637f6375c3992a473079
-    fingerprint: 07a2156321846050bdbc366a74eeead67a4fd25fd1798f66611a1d14d823deed
-    fingerprint_components:
-      contract: d76dfcf52a14733a53c4be03addcb2abd8617eb1b387ee6852035998f34e3af8
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-proof-kb-merge-gate-order
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    kind: source
-    evidence_level: tested
-    certificate:
-      version: kibi.code-certificate.v1
-      kind: source
-      test_id: TEST-proof-kb-merge-gate-order
-    certificate_digest: cf3db706955a1795d7ee53675100d20a02ad17993af7ffb580391a2f0ccd6357
-    certificate_rejection: 'Kibi could not read yaml .github/workflows/kb-merge.yml at jobs.resolve.steps: jobs.resolve.steps holds a value that is not a string, number or boolean, so it cannot be a member (select keys, or point path at the list)'
-    claim_bindings:
-      - claim_key: CLAIM-8948B0F74FEC41BA
-        requirement_id: REQ-ci-kb-merge-gate-order
-        fact_id: FACT-ci-kb-merge-gate-before-push
-        binding: rejected
-        obligation:
-          kind: sequence_precedes
-          members:
-            - sh scripts/proof-gate.sh -> git push origin "HEAD:refs/heads/$KIBI_BRANCH"
-        reason: 'the certificate did not re-check: Kibi could not read yaml .github/workflows/kb-merge.yml at jobs.resolve.steps: jobs.resolve.steps holds a value that is not a string, number or boolean, so it cannot be a member (select keys, or point path at the list)'
-  - version: kibi.proof-receipt.v2
-    receipt_id: PR-719a70ab804045bb5f38810e
-    test_id: TEST-proof-kb-merge-gate-order
-    scope: unit
-    outcome: passed
-    code_snapshot: 8b4869505ab14fdc6d5dd258ec6c0af2fd47ca09698ebd81badf90867e6c2cb7
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T09:41:20.816Z'
-    finished_at: '2026-10-28T09:41:20.943Z'
-    artifact_digest: 33be35c3eb16eaaf13beb9727261c4734417949d5ae37d30eb75405727138422
+    code_snapshot: 97d0e95d2803eef139e4731599fac316348fd8eb1a484ebf032f2c4e0f78317d
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-04T15:10:00.569Z'
+    finished_at: '2026-11-04T15:10:00.734Z'
+    artifact_digest: 0b658f61b722d0bee0933f603dd4f8edc74b60bfb10dd2b244f08c40727e3f47
     contract_hash: 45a6f9f3cc2fbf971dffa955ec0b1d1f6dd354ce6747049a2df628c945f47452
-    binding_hash: 1fe0bf8548cf3f0b1c91d1dc7433371cf3eaefabb1104e806124207c5ce961b3
+    binding_hash: 82617b0e0cc4972f9de0d8d714db8ff814b89301b0eba717087b20fd1bfaeeb3
     fingerprint: dd742b853858584a2558565d938847525b5dcffebf2b3531b084a11bc067ec54
     fingerprint_components:
       contract: 45a6f9f3cc2fbf971dffa955ec0b1d1f6dd354ce6747049a2df628c945f47452
@@ -133,6 +82,13 @@ proof_receipts:
           - git push origin "HEAD:refs/heads/$KIBI_BRANCH"
           - |
             set -euo pipefail
+            bun "$KIBI_CLI" sync
+            if ! git diff --quiet HEAD; then
+              echo "::error::Kibi sync changed tracked files after the merge: $(git diff --name-only HEAD | tr '\n' ' ')"
+              exit 1
+            fi
+          - |
+            set -euo pipefail
             git commit -m "Merge $BASE into $KIBI_BRANCH" \
               -m "Kibi merge driver resolved the .kb manifest conflicts."
           - |
@@ -146,10 +102,6 @@ proof_receipts:
             if ! git rev-parse -q --verify MERGE_HEAD >/dev/null; then
               echo "::error::Nothing to merge; the branch already contains $BASE or the merge could not start."
               exit 1
-            fi
-            # Derived and no longer tracked: drop the branch's copy.
-            if git ls-files --error-unmatch .kb/symbol-coordinates.yaml >/dev/null 2>&1; then
-              git rm --cached --quiet -- .kb/symbol-coordinates.yaml
             fi
             unmerged=$(git diff --name-only --diff-filter=U)
             if [ -n "$unmerged" ]; then
@@ -174,10 +126,6 @@ proof_receipts:
               echo "::error::Nothing to merge; the branch already contains $BASE or the merge could not start."
               exit 1
             fi
-            # Derived and no longer tracked: drop the branch's copy.
-            if git ls-files --error-unmatch .kb/symbol-coordinates.yaml >/dev/null 2>&1; then
-              git rm --cached --quiet -- .kb/symbol-coordinates.yaml
-            fi
             unmerged=$(git diff --name-only --diff-filter=U)
             if [ -n "$unmerged" ]; then
               echo "::error::Conflicts need a person: $(echo $unmerged)"
@@ -188,9 +136,16 @@ proof_receipts:
             set -euo pipefail
             git commit -m "Merge $BASE into $KIBI_BRANCH" \
               -m "Kibi merge driver resolved the .kb manifest conflicts."
+          - |
+            set -euo pipefail
+            bun "$KIBI_CLI" sync
+            if ! git diff --quiet HEAD; then
+              echo "::error::Kibi sync changed tracked files after the merge: $(git diff --name-only HEAD | tr '\n' ' ')"
+              exit 1
+            fi
           - sh scripts/proof-gate.sh
           - git push origin "HEAD:refs/heads/$KIBI_BRANCH"
-    certificate_digest: 77a6db585c03d540ee2c32dc32c5e622f12145dd6d2088647791e9cae1403260
+    certificate_digest: e4cf6cded1c53bc6e2b75379b09ad68e99427919c6ef2ccb7cf1ff848ec4be4c
     claim_bindings:
       - claim_key: CLAIM-8948B0F74FEC41BA
         requirement_id: REQ-ci-kb-merge-gate-order
