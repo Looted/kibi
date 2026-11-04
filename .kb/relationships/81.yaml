@@ -370,3 +370,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b02bad673d47
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-harness-selection-c01
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca5fcf8f9c45
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-harness-selection-c02
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fe2498977fc
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-harness-selection-c03
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-baa71aae0bb1
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-harness-selection-c04
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbb68f86ba18
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-harness-selection-c05
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e79d5e01d012
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-claude-code-host-c01
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5da4f2c390dd
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-claude-code-host-c02
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-089aa1485a7e
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-claude-code-host-c03
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1fd6b1cab9c
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-claude-code-host-c04
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f56fb386f72
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-claude-code-host-c05
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d84279bc5e44
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-claude-code-host-c06
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92bed00e1620
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-claude-code-host-c07
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e90e923ddf3f
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-claude-code-host-c08
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7367c155157d
+  - type: assumes
+    from: SCEN-skillopt-claude-code-host
+    to: FACT-prop-skillopt-claude-code-host-c09
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-574190131079

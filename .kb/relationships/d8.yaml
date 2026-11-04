@@ -587,3 +587,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9693e4e31be2
+  - type: assumes
+    from: SCEN-mcp-conditional-input-validation
+    to: FACT-mcp-conditional-input-validation-review-note-accepted
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35a8c231cf63
+  - type: assumes
+    from: SCEN-mcp-conditional-input-validation
+    to: FACT-mcp-conditional-input-validation-matches-cli
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c85f84a7fe36

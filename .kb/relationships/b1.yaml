@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b983ecb4c029
+  - type: assumes
+    from: SCEN-bootstrap-advisor-proposition-roles
+    to: FACT-bootstrap-advisor-proposition-roles-bootstrap-roles-from-advisor
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7364708f59d9
+  - type: assumes
+    from: SCEN-bootstrap-advisor-proposition-roles
+    to: FACT-bootstrap-advisor-proposition-roles-relative-clause-definition-verb-normative
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f2e2f926a4c
+  - type: assumes
+    from: SCEN-bootstrap-advisor-proposition-roles
+    to: FACT-bootstrap-advisor-proposition-roles-legacy-definition-role-accepted
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19c38e0f54fa

@@ -423,3 +423,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-027ed6922755
+  - type: assumes
+    from: SCEN-upsert-unknown-field-guidance
+    to: FACT-upsert-unknown-field-guidance-properties-named
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c64dec573ed1
+  - type: assumes
+    from: SCEN-upsert-unknown-field-guidance
+    to: FACT-upsert-unknown-field-guidance-prose-hint
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a0565ccd788
+  - type: assumes
+    from: SCEN-upsert-unknown-field-guidance
+    to: FACT-upsert-unknown-field-guidance-skill-example
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82ba721aa0eb

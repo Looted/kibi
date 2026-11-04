@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8285b20b7ee0
+  - type: assumes
+    from: SCEN-bootstrap-authoring-claim-review
+    to: FACT-bootstrap-authoring-claim-review-named
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d03f62e6ee9d

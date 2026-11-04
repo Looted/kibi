@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4368da3d11d8
+  - type: assumes
+    from: SCEN-kibi-uncompiled-source-semantic-baseline
+    to: FACT-kibi-uncompiled-source-semantic-baseline-sync-keeps
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c9cdfaaa18d
+  - type: assumes
+    from: SCEN-kibi-uncompiled-source-semantic-baseline
+    to: FACT-kibi-uncompiled-source-semantic-baseline-upsert-matches-sync
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42951bf81c89

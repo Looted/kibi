@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f26661c0e257
+  - type: assumes
+    from: SCEN-cli-staged-consistency
+    to: FACT-cli-staged-consistency-blocks-introduced
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12fb134ba0a3
+  - type: assumes
+    from: SCEN-cli-staged-consistency
+    to: FACT-cli-staged-consistency-ignores-preexisting
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bde0d558d36

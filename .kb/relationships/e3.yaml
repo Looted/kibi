@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ed7bbec8026
+  - type: assumes
+    from: SCEN-docs-site-terminal-demo
+    to: FACT-docs-site-terminal-demo-shared
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cd457a63a51
+  - type: assumes
+    from: SCEN-docs-site-terminal-demo
+    to: FACT-docs-site-terminal-demo-generated
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-358600e96028
