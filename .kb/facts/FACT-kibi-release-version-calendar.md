@@ -1,5 +1,5 @@
 ---
-title: Every Kibi release must have one release version of the form YYYY.M.N
+title: A Kibi release must have one release version of the form YYYY.M.N
 status: active
 text_ref: REQ-kibi-release-version
 tags:
@@ -13,8 +13,8 @@ property_key: calendar_release_version
 operator: eq
 value_type: bool
 value_bool: true
-claim_key: CLAIM-0E6C6FF79086369F
-claim_text: Every Kibi release must have one release version of the form YYYY.M.N
+claim_key: CLAIM-ECEC2B0FC46D72B5
+claim_text: A Kibi release must have one release version of the form YYYY.M.N
 origin:
   kind: agent
   recorded_at: '2026-11-04T05:40:00.000Z'

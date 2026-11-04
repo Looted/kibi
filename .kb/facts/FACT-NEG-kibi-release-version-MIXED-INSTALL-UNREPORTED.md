@@ -3,10 +3,10 @@ title: Kibi doctor reports an install that mixes packages from two releases as o
 status: active
 fact_kind: property_value
 subject_key: kibi.release.version
-property_key: mixed_install_reported_as_one_release
+property_key: doctor_warns_mixed_install
 operator: eq
 value_type: bool
-value_bool: true
+value_bool: false
 origin:
   kind: agent
   recorded_at: '2026-11-04T05:50:00.000Z'
