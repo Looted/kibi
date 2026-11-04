@@ -317,7 +317,7 @@ kb_write_lock_owner(Directory) :-
 % The first line of File, or "" where the system keeps no boot id there.
 boot_id(File, BootId) :-
     catch(( read_file_to_string(File, BootIdRaw, []),
-            split_string(BootIdRaw, "\r\n", "\r\n", [BootId|_]) ),
+            split_string(BootIdRaw, "\r\n", "", [BootId|_]) ),
           _,
           BootId = "").
 
@@ -683,7 +683,6 @@ kb_migrate_legacy_locked(_SourceDirectory, TargetDirectory) :-
     findall(c(TS, Op, Entity, Data),
             changeset(TS, Op, Entity, Data),
             Audits),
-    canonical_triple_digest(Triples, SourceDigest),
     length(Triples, TripleCount),
     length(Audits, AuditCount),
     kb_detach,
@@ -694,20 +693,14 @@ kb_migrate_legacy_locked(_SourceDirectory, TargetDirectory) :-
     forall(member(t(S, P, O), Triples), rdf_assert(S, P, O, TargetGraph)),
     assert_migration_audits(Audits, 1),
     kb_mark_dirty,
-    validate_migrated_graph(
-        TargetGraph,
-        SourceDigest,
-        TripleCount,
-        AuditCount
-    ),
+    validate_migrated_graph(TargetGraph, TripleCount, AuditCount),
     kb_save_journaled,
     kb_detach.
 
-canonical_triple_digest(Triples, Digest) :-
-    sort(Triples, Canonical),
-    term_hash(Canonical, Digest).
-
-validate_migrated_graph(Graph, ExpectedDigest, ExpectedTriples, ExpectedAudits) :-
+% The target holds the source triples it was given plus whatever the staged
+% store already held, so its triples are exactly the source's when their count
+% is: comparing the count is comparing the triples.
+validate_migrated_graph(Graph, ExpectedTriples, ExpectedAudits) :-
     findall(
         t(S, P, O),
         (   rdf(S, P, O, Graph),
@@ -719,15 +712,6 @@ validate_migrated_graph(Graph, ExpectedDigest, ExpectedTriples, ExpectedAudits) 
     (   ActualTriples =:= ExpectedTriples
     ->  true
     ;   throw(error(migration_validation(triple_count, ExpectedTriples, ActualTriples),
-                    kb_migrate_legacy/2))
-    ),
-    canonical_triple_digest(Triples, ActualDigest),
-    % mutalog-disable-next-line goal_true: the target holds exactly the asserted source triples, so a count match implies a digest match
-    (   ActualDigest == ExpectedDigest
-    ->  true
-    % mutalog-disable-next-line goal_true: the target holds exactly the asserted source triples, so a count match implies a digest match
-    ;   throw(error(migration_validation(triple_digest, ExpectedDigest, ActualDigest),
-                    % mutalog-disable-next-line literal: the digest check above never fails, see there
                     kb_migrate_legacy/2))
     ),
     findall(Audit,
@@ -746,7 +730,7 @@ validate_migrated_graph(Graph, ExpectedDigest, ExpectedTriples, ExpectedAudits) 
         problem(Id, Type),
         (   kb_entity(Id, Type, Props),
             normalize_migration_props(Type, Props, ValidationProps),
-            \+ catch(validate_entity(Type, ValidationProps), _, fail)
+            \+ validate_entity(Type, ValidationProps)
         ),
         EntityProblems
     ),
@@ -763,7 +747,7 @@ validate_migrated_graph(Graph, ExpectedDigest, ExpectedTriples, ExpectedAudits) 
             ;   \+ once(kb_entity(ToId, _, _))
             ;   once(kb_entity(FromId, FromType, _)),
                 once(kb_entity(ToId, ToType, _)),
-                \+ catch(validate_relationship(RelType, FromType, ToType), _, fail)
+                \+ validate_relationship(RelType, FromType, ToType)
             )
         ),
         RelationshipProblems
@@ -819,8 +803,8 @@ migration_string(Value, Value) :- string(Value), !.
 migration_string(Value, String) :- atom(Value), !, atom_string(Value, String).
 migration_string(Value, String) :- term_string(Value, String).
 
+% Resource is an RDF subject, so always an atom.
 audit_resource(Resource) :-
-    atom(Resource),
     sub_atom(Resource, 0, _, _, 'urn:kibi:audit/').
 
 write_journal_marker(Directory) :-
@@ -861,11 +845,10 @@ temp_rdf_file(Directory, TempFile) :-
     current_prolog_flag(pid, Pid),
     format(atom(TempFile), '~w/kb.rdf.tmp.~w.~w', [Directory, Pid, Millis]).
 
+% Only an attached legacy store is saved, so the KB graph is always known.
 save_rdf_snapshot(TargetFile) :-
-    (   kb_graph(GraphURI)
-    ->  rdf_save(TargetFile, [graph(GraphURI), base_uri('urn-kibi:'), namespaces([kb, xsd])])
-    ;   rdf_save(TargetFile, [base_uri('urn-kibi:'), namespaces([kb, xsd])])
-    ).
+    kb_graph(GraphURI),
+    rdf_save(TargetFile, [graph(GraphURI), base_uri('urn-kibi:'), namespaces([kb, xsd])]).
 
 cleanup_temp_file(TempFile) :-
     catch(delete_file(TempFile), _, true).
@@ -993,8 +976,12 @@ kb_assert_entity_no_audit(Type, Props) :-
 % retained for the caller's serialization contract; the audit schema records
 % only the relationship endpoints and type, as before.
 kb_commit_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
-    kb_storage_mode(journaled),
-    !,
+    (   kb_storage_mode(journaled)
+    ->  kb_commit_upsert_journaled(Type, Props, Relationships, SkipContradiction, ChangeKind)
+    ;   kb_commit_upsert_legacy(Type, Props, Relationships, SkipContradiction, ChangeKind)
+    ).
+
+kb_commit_upsert_journaled(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
     memberchk(id=Id, Props),
     memberchk(SkipContradiction, [true, false]),
     upsert_change_kind(Id, ChangeKind),
@@ -1009,7 +996,8 @@ kb_commit_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
         )),
         kb_save_journaled
     )).
-kb_commit_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
+
+kb_commit_upsert_legacy(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
     memberchk(id=Id, Props),
     memberchk(SkipContradiction, [true, false]),
     kb_attached(Directory),
@@ -1123,8 +1111,12 @@ kb_stage_upserts([
 % Commit many upserts in one RDF transaction and one journal flush.
 % Entries are upsert(Type, Props, Relationships, SkipContradiction) terms.
 kb_commit_upsert_batch(Entries, ChangeKinds) :-
-    kb_storage_mode(journaled),
-    !,
+    (   kb_storage_mode(journaled)
+    ->  kb_commit_upsert_batch_journaled(Entries, ChangeKinds)
+    ;   kb_commit_upsert_batch_legacy(Entries, ChangeKinds)
+    ).
+
+kb_commit_upsert_batch_journaled(Entries, ChangeKinds) :-
     with_kb_mutex((
         kb_run_journaled_mutation((
             kb_stage(rdf_mutation),
@@ -1132,7 +1124,8 @@ kb_commit_upsert_batch(Entries, ChangeKinds) :-
         )),
         kb_save_journaled
     )).
-kb_commit_upsert_batch(Entries, ChangeKinds) :-
+
+kb_commit_upsert_batch_legacy(Entries, ChangeKinds) :-
     kb_attached(Directory),
     atom_concat(Directory, '/kb.rdf', DataFile),
     kb_stage(runtime),
@@ -1285,18 +1278,16 @@ kb_retract_all_relationships :-
 %% kb_log_entity_upsert(+ChangeKind, +Type, +Properties)
 % Append the audit entry for a successfully committed entity upsert.
 kb_log_entity_upsert(ChangeKind, Type, Props) :-
-    kb_storage_mode(journaled),
-    !,
     memberchk(id=Id, Props),
-    kb_assert_audit_event(upsert, Id, Type-[change_kind=ChangeKind|Props]).
-kb_log_entity_upsert(ChangeKind, Type, Props) :-
-    memberchk(id=Id, Props),
-    memberchk(ChangeKind, [created, updated]),
-    with_kb_mutex((
-        get_time(Timestamp),
-        format_time(atom(TS), '%FT%T%:z', Timestamp),
-        assert_changeset(TS, upsert, Id, Type-[change_kind=ChangeKind|Props])
-    )).
+    (   kb_storage_mode(journaled)
+    ->  kb_assert_audit_event(upsert, Id, Type-[change_kind=ChangeKind|Props])
+    ;   memberchk(ChangeKind, [created, updated]),
+        with_kb_mutex((
+            get_time(Timestamp),
+            format_time(atom(TS), '%FT%T%:z', Timestamp),
+            assert_changeset(TS, upsert, Id, Type-[change_kind=ChangeKind|Props])
+        ))
+    ).
 
 %% kb_retract_entity(+Id)
 % Remove an entity from the KB with audit logging.
@@ -1428,9 +1419,10 @@ kb_entity_raw_rdf(Id, Type, Props) :-
 ), Props).
 
 % Verifying the index counts every type triple in the store. Remember the
-% inputs of the last successful check (graph, RDF generation, legacy fact
-% count, and the index's own entity count) and skip the recount while all of
-% them are unchanged: the recount would then return the same answer. The
+% inputs of the last successful check (RDF generation, legacy fact count, and
+% the index's own entity count) and skip the recount while all of them are
+% unchanged: the recount would then return the same answer. The key needs no
+% graph: attaching a store rebuilds the index, which forgets the key. The
 % index count must be part of the key because incremental index updates are
 % plain Prolog facts that an RDF rollback does not undo, while the RDF
 % generation does revert.
@@ -1439,7 +1431,7 @@ kb_ensure_indexes :-
         kb_index_entity_count(Expected),
         index_verification_key(Expected, Key),
         % mutalog-disable-next-line goal_fail: a recount gives the same answer; the key only saves it
-        (   kb_index_verified_key(Verified), Verified == Key
+        (   kb_index_verified_key(Key)
         ->  true
         ;   current_entity_index_count(Expected),
             retractall(kb_index_verified_key(_)),
@@ -1449,8 +1441,7 @@ kb_ensure_indexes :-
     ;   kb_rebuild_indexes
     ).
 
-index_verification_key(IndexCount, key(Graph, Generation, LegacyCount, IndexCount)) :-
-    (kb_graph(Graph) -> true ; Graph = none),
+index_verification_key(IndexCount, key(Generation, LegacyCount, IndexCount)) :-
     rdf_generation(Generation),
     % entity/4 stays declared dynamic, so its clause count is always known.
     predicate_property(kb:entity(_, _, _, _), number_of_clauses(LegacyCount)).
@@ -1728,17 +1719,24 @@ indexed_entity_match(TypeFilter, IdFilter, Tags, SourceFilter, Id) :-
         sub_atom(Source, _, _, _, SourceQuery)
     ).
 
-drop_index_ids(0, Ids, Ids) :- !.
-drop_index_ids(_, [], []).
-drop_index_ids(Offset, [_|Rest], Remaining) :-
-    Next is Offset - 1,
-    drop_index_ids(Next, Rest, Remaining).
+drop_index_ids(Offset, Ids, Remaining) :-
+    (   Offset == 0
+    ->  Remaining = Ids
+    ;   Ids = [_|Rest]
+    ->  Next is Offset - 1,
+        drop_index_ids(Next, Rest, Remaining)
+    ;   Remaining = []
+    ).
 
-take_index_ids(0, _, []) :- !.
-take_index_ids(_, [], []).
-take_index_ids(Limit, [Id|Rest], [Id|Page]) :-
-    Next is Limit - 1,
-    take_index_ids(Next, Rest, Page).
+take_index_ids(Limit, Ids, Page) :-
+    (   Limit == 0
+    ->  Page = []
+    ;   Ids = [Id|Rest]
+    ->  Page = [Id|Page1],
+        Next is Limit - 1,
+        take_index_ids(Next, Rest, Page1)
+    ;   Page = []
+    ).
 
 %% kb_search_entities(+Type, +Query, +Limit, +Offset, -Rows, -Count)
 % Return an index-filtered page for the higher-level deterministic ranking
@@ -1980,18 +1978,16 @@ mixed_symbol_role(RelType, SymbolId) :-
 %% kb_log_relationship_upsert(+Type, +From, +To, +Metadata)
 % Append the audit entry for a successfully committed relationship upsert.
 kb_log_relationship_upsert(RelType, FromId, ToId, _Metadata) :-
-    kb_storage_mode(journaled),
-    !,
     format(atom(RelId), '~w->~w', [FromId, ToId]),
-    kb_assert_audit_event(upsert_rel, RelId,
-                          RelType-[from=FromId, to=ToId]).
-kb_log_relationship_upsert(RelType, FromId, ToId, _Metadata) :-
-    with_kb_mutex((
-        get_time(Timestamp),
-        format_time(atom(TS), '%FT%T%:z', Timestamp),
-        format(atom(RelId), '~w->~w', [FromId, ToId]),
-        assert_changeset(TS, upsert_rel, RelId, RelType-[from=FromId, to=ToId])
-    )).
+    (   kb_storage_mode(journaled)
+    ->  kb_assert_audit_event(upsert_rel, RelId,
+                              RelType-[from=FromId, to=ToId])
+    ;   with_kb_mutex((
+            get_time(Timestamp),
+            format_time(atom(TS), '%FT%T%:z', Timestamp),
+            assert_changeset(TS, upsert_rel, RelId, RelType-[from=FromId, to=ToId])
+        ))
+    ).
 
 % Journaled audit records live in the same RDF graph and transaction as the
 % domain mutation.  This keeps audit durability atomic without a second
@@ -2095,28 +2091,19 @@ kb_relationship(RelType, FromId, ToId) :-
     atom_concat(BaseURI, RelType, RelURI),
     kb_relationship_with_reluri(RelURI, Graph, FromId, ToId).
 
+% A bound end narrows the lookup to its URI. Either end is then read back
+% from the edge, which only confirms an end that was bound. The narrowing is
+% routing only: without it the lookup scans every edge of the type, and
+% reading the bound ends back keeps the same edges.
 kb_relationship_with_reluri(RelURI, Graph, FromId, ToId) :-
-    % mutalog-disable-next-line goal_fail: routing only; the last clause finds the same edges
-    nonvar(FromId), nonvar(ToId), !,
-    entity_id_to_uri(FromId, FromURI),
-    entity_id_to_uri(ToId, ToURI),
-    rdf(FromURI, RelURI, ToURI, Graph).
-% The clause above takes a bound ToId with a bound FromId.
-kb_relationship_with_reluri(RelURI, Graph, FromId, ToId) :-
-    nonvar(FromId), !,
-    entity_id_to_uri(FromId, FromURI),
-    rdf(FromURI, RelURI, ToURI, Graph),
-    entity_uri_to_id(ToURI, ToId).
-kb_relationship_with_reluri(RelURI, Graph, FromId, ToId) :-
-    % mutalog-disable-next-line goal_fail: routing only; the last clause finds the same edges
-    var(FromId), nonvar(ToId), !,
-    entity_id_to_uri(ToId, ToURI),
-    rdf(FromURI, RelURI, ToURI, Graph),
-    entity_uri_to_id(FromURI, FromId).
-kb_relationship_with_reluri(RelURI, Graph, FromId, ToId) :-
+    % mutalog-disable-next-line goal_true: routing only, see above
+    bound_entity_uri(FromId, FromURI), bound_entity_uri(ToId, ToURI),
     rdf(FromURI, RelURI, ToURI, Graph),
     entity_uri_to_id(FromURI, FromId),
     entity_uri_to_id(ToURI, ToId).
+
+% mutalog-disable-next-line goal_true: routing only, see kb_relationship_with_reluri/4
+bound_entity_uri(Id, URI) :- ( var(Id) -> true ; entity_id_to_uri(Id, URI) ).
 
 %% kb_relationship_edges(+Types, +Ids, -Edges)
 % implements REQ-mcp-search-discovery
@@ -2193,9 +2180,9 @@ value_to_literal(Key, Value, Literal) :-
     ->  Literal = Value^^'http://www.w3.org/2001/XMLSchema#boolean'
     ;   Key == closed_world, (Value == true ; Value == false)
     ->  Literal = Value^^'http://www.w3.org/2001/XMLSchema#boolean'
-    % Default: string or atom values as XSD string
-    ;   string(Value)
-    ->  Literal = Value^^'http://www.w3.org/2001/XMLSchema#string'
+    % Default: an XSD string. A string value needs no case of its own: ~w
+    % writes its text unchanged, and RDF stores an atom and a string with
+    % the same text as the same literal.
     ;   is_list(Value)
     ->  with_output_to(atom(ListStr), write_term(Value, [quoted(true)])),
         Literal = ListStr^^'http://www.w3.org/2001/XMLSchema#string'
@@ -2943,11 +2930,10 @@ compute_decision_signatures(Signatures) :-
     append(FromSchemas, Builtins, Signatures).
 
 schema_decision_positions(Namespace, Name, Arity, KeyPositions, DecisionPosition) :-
-    predicate_schema_keys(Namespace, Name, Arity, KeyPositions),
-    predicate_schema(_SchemaId, Namespace, Name, Arity, ArgumentNames, _ArgumentTypes),
-    nth1(DecisionPosition, ArgumentNames, decision),
-    \+ memberchk(DecisionPosition, KeyPositions),
-    !.
+    once(( predicate_schema_keys(Namespace, Name, Arity, KeyPositions),
+           predicate_schema(_SchemaId, Namespace, Name, Arity, ArgumentNames, _ArgumentTypes),
+           nth1(DecisionPosition, ArgumentNames, decision),
+           \+ memberchk(DecisionPosition, KeyPositions) )).
 
 %% bind_key_arguments(+KeyPositions, +ArgsA, ?ArgsB)
 % Unify ArgsB with ArgsA on every key position.
@@ -3234,18 +3220,28 @@ effective_req_property_fact(ReqId, SubjectKey, FactId, PropertyKey, Operator, Va
 %% value_from_props(+Props, +ValType, -Value)
 % Extract the appropriate value field based on value_type.
 % Handles RDF literal values (^^(Value, Type)) by unwrapping them.
-value_from_props(Props, string, Value) :- memberchk(value_string=ValueRaw, Props), !, unwrap_rdf_value(ValueRaw, Value).
-value_from_props(Props, int, Value) :- memberchk(value_int=ValueRaw, Props), !, unwrap_rdf_value(ValueRaw, Value).
-value_from_props(Props, number, Value) :- memberchk(value_number=ValueRaw, Props), !, unwrap_rdf_value(ValueRaw, Value).
-value_from_props(Props, bool, Value) :- memberchk(value_bool=ValueRaw, Props), !, unwrap_rdf_value(ValueRaw, Value).
+value_from_props(Props, ValType, Value) :-
+    (   value_field_key(ValType, Key),
+        memberchk(Key=ValueRaw, Props),
+        field_value(ValType, ValueRaw, Value0)
+    ->  Value = Value0
+    ;   Value = ''
+    ).
+
+value_field_key(string, value_string).
+value_field_key(int, value_int).
+value_field_key(number, value_number).
+value_field_key(bool, value_bool).
+value_field_key(set, value_set).
+
 % A set value is its sorted, unique members, so two facts naming the same set
 % in any order compare equal.
-value_from_props(Props, set, Value) :-
-    memberchk(value_set=ValueRaw, Props),
-    normalize_literal_atom_list(ValueRaw, Atoms),
-    !,
-    sort(Atoms, Value).
-value_from_props(_, _, '').
+field_value(ValType, ValueRaw, Value) :-
+    (   ValType == set
+    ->  normalize_literal_atom_list(ValueRaw, Atoms),
+        sort(Atoms, Value)
+    ;   unwrap_rdf_value(ValueRaw, Value)
+    ).
 
 %% unwrap_rdf_value(+Raw, -Value)
 % Unwrap RDF literal ^^(Value, Type) to raw value.

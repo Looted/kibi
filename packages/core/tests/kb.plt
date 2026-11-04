@@ -17,6 +17,7 @@
 :- use_module(library(date)).
 :- use_module(library(plunit)).
 :- use_module(test_helpers, [deterministic/1]).
+:- use_module(kb_fixture, [detach_leftover_kb/0]).
 :- use_module(library(yall)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(filesex)).
@@ -7933,9 +7934,9 @@ test(query_ids_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assertion(Count1 == 2),
     assertion(Rows == []),
     % An entry for another entity count is not this index's.
-    Key = key(Graph, Generation, Legacy, _),
+    Key = key(Generation, Legacy, _),
     retractall(kb:kb_query_ids_memo(_, _, _)),
-    assertz(kb:kb_query_ids_memo(key(Graph, Generation, Legacy, other_count), Filters,
+    assertz(kb:kb_query_ids_memo(key(Generation, Legacy, other_count), Filters,
                                  ['REQ-KEPT-A', 'REQ-KEPT-B'])),
     kb_query_entities(req, none, [], none, 10, 0, _, Count2),
     assertion(Count2 == 1),
@@ -9127,7 +9128,7 @@ cleanup_kb :-
 
 cleanup_test_kb :-
     cleanup_isolation_children,
-    kb_detach,
+    detach_leftover_kb,
     (   retract(test_kb_store(Dir))
     ->  (   exists_directory(Dir)
         ->  delete_directory_and_contents(Dir)
@@ -9862,6 +9863,10 @@ test(boot_id_is_the_first_line_or_empty, [setup(cleanup_test_kb), cleanup(cleanu
     ks_write_file(File, 'first\r\nsecond\n'),
     kb:boot_id(File, BootId),
     assertion(BootId == "first"),
+    % Only the line break ends the id; its own characters are kept.
+    ks_write_file(File, 'a-mutalog-a\n'),
+    kb:boot_id(File, Kept),
+    assertion(Kept == "a-mutalog-a"),
     atom_concat(Dir, '/missing', Missing),
     kb:boot_id(Missing, Empty),
     assertion(Empty == "").
@@ -10728,13 +10733,14 @@ ks_verification_req(Req, Facts) :-
 
 :- begin_tests(kb_storage_queries).
 
-test(index_verification_key_names_the_graph_and_legacy_count, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+test(index_verification_key_names_the_generation_and_legacy_count, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
     kb:index_verification_key(3, Detached),
-    assertion(Detached = key(none, _, 0, 3)),
+    rdf_generation(DetachedGeneration),
+    assertion(Detached == key(DetachedGeneration, 0, 3)),
     ks_attach_with_legacy([entity(req, 'REQ-LEGACY-KEY', "Legacy", [title("Legacy")])]),
-    kb:kb_graph(Graph),
     kb:index_verification_key(7, Attached),
-    assertion(Attached = key(Graph, _, 1, 7)),
+    rdf_generation(Generation),
+    assertion(Attached == key(Generation, 1, 7)),
     kb_entity_ids(_),
     kb:kb_index_verified_key(Verified),
     assertion(ground(Verified)).
@@ -12142,3 +12148,266 @@ test(migration_copies_audits_from_the_change_log_only, [setup(cleanup_test_kb), 
     assertion(Stray == false).
 
 :- end_tests(kb_symbol_coverage).
+
+:- begin_tests(kb_write_paths).
+
+test(an_update_drops_the_index_rows_of_the_old_version, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_entity_props('REQ-REINDEX', "Zebra crossing", Old0),
+    selectchk(source=_, Old0, Old1),
+    kb_assert_entity(req, [source="src/old.md", tags=[alpha]|Old1]),
+    assertion(kb:kb_index_tag(alpha, 'REQ-REINDEX')),
+    assertion(kb:kb_index_source('src/old.md', 'REQ-REINDEX')),
+    assertion(kb:kb_index_token(zebra, 'REQ-REINDEX')),
+    ks_entity_props('REQ-REINDEX', "Yak path", New0),
+    selectchk(source=_, New0, New1),
+    kb_assert_entity(req, [source="src/new.md", tags=[beta]|New1]),
+    findall(Tag, kb:kb_index_tag(Tag, 'REQ-REINDEX'), Tags),
+    findall(Source, kb:kb_index_source(Source, 'REQ-REINDEX'), Sources),
+    assertion(Tags == [beta]),
+    assertion(Sources == ['src/new.md']),
+    assertion(\+ kb:kb_index_token(zebra, 'REQ-REINDEX')),
+    assertion(\+ kb:kb_index_token(old, 'REQ-REINDEX')),
+    assertion(kb:kb_index_token(yak, 'REQ-REINDEX')).
+
+test(a_write_leaves_an_unbuilt_index_to_the_next_rebuild, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    retractall(kb:kb_index_entity_count(_)),
+    ks_assert_req('REQ-UNBUILT'),
+    assertion(\+ kb:kb_index_entity_count(_)),
+    assertion(\+ kb:kb_index_entity('REQ-UNBUILT', _)),
+    kb_entity_ids(Ids),
+    assertion(Ids == ['REQ-UNBUILT']),
+    assertion(kb:kb_index_entity_count(1)).
+
+test(a_new_entity_beside_others_is_logged_as_created, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert_req('REQ-FIRST'),
+    ks_assert_req('REQ-SECOND'),
+    findall(Kind,
+            ( changeset(_, upsert, 'REQ-SECOND', req-Props),
+              memberchk(change_kind=Kind, Props) ),
+            Kinds),
+    assertion(Kinds == [created]).
+
+test(a_journaled_relationship_marks_the_store_dirty, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(_),
+    ks_assert(req, 'REQ-EDGE-A'),
+    ks_assert(req, 'REQ-EDGE-B'),
+    ks_saved_clean(journaled),
+    kb_assert_relationship(relates_to, 'REQ-EDGE-A', 'REQ-EDGE-B', []),
+    assertion(kb:kb_dirty).
+
+test(a_relationship_against_the_schema_is_a_type_error, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-WRONG-WAY'),
+    ks_assert(symbol, 'SYM-WRONG-WAY'),
+    catch(kb_assert_relationship(implements, 'REQ-WRONG-WAY', 'SYM-WRONG-WAY', []), Error, true),
+    assertion(ks_caught(Error, error(type_error(relationship, implements), _))),
+    assertion(\+ kb_relationship(implements, _, _)).
+
+test(an_executable_symbol_keeps_its_other_relationships, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(symbol, 'SYM-EXEC-OTHER'),
+    ks_assert(test, 'TEST-EXEC-OTHER'),
+    ks_assert(adr, 'ADR-EXEC-OTHER'),
+    kb_assert_relationship(executable_for, 'SYM-EXEC-OTHER', 'TEST-EXEC-OTHER', []),
+    kb_assert_relationship(constrained_by, 'SYM-EXEC-OTHER', 'ADR-EXEC-OTHER', []),
+    assertion(kb_relationship(constrained_by, 'SYM-EXEC-OTHER', 'ADR-EXEC-OTHER')).
+
+test(relationships_are_read_from_the_kb_graph_only, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-EDGE-A'),
+    ks_assert(req, 'REQ-EDGE-B'),
+    ks_foreign_edge(Foreign),
+    findall(F-T, kb_relationship(relates_to, F, T), Edges),
+    (   kb_relationship(relates_to, 'REQ-EDGE-A', 'REQ-EDGE-B') -> Bound = found ; Bound = none ),
+    ks_foreign_edge_kept(Foreign, _),
+    assertion(Edges == []),
+    assertion(Bound == none).
+
+test(index_verification_skips_the_recount_while_its_key_holds, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert_req('REQ-VERIFIED'),
+    kb_entity_ids(_),
+    findall(Key, kb:kb_index_verified_key(Key), [Key]),
+    % A row dropped behind the index's back stays dropped: the index is
+    % neither recounted into a rebuild nor rebuilt while the key holds.
+    retract(kb:kb_index_type(req, 'REQ-VERIFIED')),
+    kb_entity_ids(_),
+    assertion(\+ kb:kb_index_type(req, 'REQ-VERIFIED')),
+    ks_assert_req('REQ-VERIFIED-2'),
+    kb_entity_ids(_),
+    findall(Next, kb:kb_index_verified_key(Next), Keys),
+    assertion(Keys = [_]),
+    assertion(Keys \== [Key]).
+
+test(numbers_are_typed_only_under_their_keys) :-
+    String = 'http://www.w3.org/2001/XMLSchema#string',
+    Decimal = 'http://www.w3.org/2001/XMLSchema#decimal',
+    kb:value_to_literal(value_number, 2.5, Number),
+    assertion(Number == 2.5^^Decimal),
+    kb:value_to_literal(title, 7, Seven),
+    assertion(Seven == '7'^^String),
+    kb:value_to_literal(value_number, "2.5", Text),
+    assertion(Text == '2.5'^^String),
+    kb:value_to_literal(title, "Plain", Plain),
+    assertion(Plain == 'Plain'^^String).
+
+test(property_tuples_default_and_read_the_value_type, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    % Legacy entities skip validation, so a property fact can lack its
+    % value_type or the value field it names.
+    ks_attach_with_legacy([
+        entity(fact, 'FACT-UNTYPED', "Untyped",
+               [fact_kind=property_value, subject_key=svc, property_key=limit, value_int=3]),
+        entity(fact, 'FACT-TYPED', "Typed",
+               [fact_kind=property_value, subject_key=svc, property_key=limit, value_type="int"])
+    ]),
+    kb:fact_property_tuple('FACT-UNTYPED', _, _, _, UntypedType, UntypedValue, _, _, _),
+    kb:fact_property_tuple('FACT-TYPED', _, _, _, TypedType, TypedValue, _, _, _),
+    kb_detach,
+    assertion(UntypedType-UntypedValue == string-''),
+    assertion(TypedType-TypedValue == int-'').
+
+test(every_project_decision_schema_is_a_decision_signature, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    % The decision is found by name, after a non-key argument, and never
+    % among the key arguments.
+    forall(member(Id-Name-Names-Keys,
+                  [ 'FACT-SCHEMA-GRANT'-"grant_rule"-[resource, decision]-[resource],
+                    'FACT-SCHEMA-SHARE'-"share_rule"-[resource, note, decision]-[resource],
+                    'FACT-SCHEMA-LOCK'-"lock_rule"-[resource, decision]-[resource, decision] ]),
+           ( length(Names, Arity),
+             length(Names, Count), length(Types, Count), maplist(=(atom), Types),
+             assert_fixture_entity(fact, Id, "Decision schema", active, [
+                 fact_kind=predicate_schema,
+                 predicate_name=Name,
+                 predicate_namespace="default",
+                 predicate_arity=Arity,
+                 argument_names=Names,
+                 argument_types=Types,
+                 key_arguments=Keys
+             ]) )),
+    kb:decision_signatures(Signatures),
+    assertion(Signatures == [decision_signature(default, grant_rule, 2, [1], 2),
+                             decision_signature(default, share_rule, 3, [1], 3),
+                             decision_signature(default, permission_rule, 4, [1, 2, 3], 4)]).
+
+test(every_conflicting_pair_has_its_own_witness, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_cert_property('FACT-WIT-A1', 'REQ-WIT-A1', "alpha.svc", "limit", eq, int, 1, []),
+    kb_cert_property('FACT-WIT-A2', 'REQ-WIT-A2', "alpha.svc", "limit", eq, int, 2, []),
+    kb_cert_property('FACT-WIT-B1', 'REQ-WIT-B1', "beta.svc", "limit", eq, int, 1, []),
+    kb_cert_property('FACT-WIT-B2', 'REQ-WIT-B2', "beta.svc", "limit", eq, int, 2, []),
+    findall(Reqs, ( req_conflict_witness(_, _, Witness), Reqs = Witness.requirements ), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [['REQ-WIT-A1', 'REQ-WIT-A2'], ['REQ-WIT-B1', 'REQ-WIT-B2']]).
+
+test(migration_reads_only_the_store_graph, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    % A triple already loaded into the staged store's graph is one the
+    % source does not hold, so the copy is refused for it.
+    ks_legacy_source(Source, Target),
+    kb:journal_expected_graph_uri(Target, TargetGraph),
+    kb:entity_id_to_uri('REQ-MIGRATE', Subject),
+    rdf_assert(Subject, 'urn-kibi:foreign', "elsewhere", TargetGraph),
+    ks_migration_error(Source, Target, Error),
+    assertion(ks_caught(Error, error(migration_validation(triple_count, _, _), _))),
+    Error = error(migration_validation(triple_count, Expected, Actual), _),
+    assertion(Actual =:= Expected + 1).
+
+test(migration_names_the_generation_after_the_process_and_time, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_legacy_source(Source, Target),
+    get_time(Before),
+    ks_stderr(kb_migrate_legacy(Source, Target), _),
+    get_time(After),
+    atom_concat(Target, '/CURRENT', Head),
+    read_file_to_string(Head, Text, []),
+    current_prolog_flag(pid, Pid),
+    format(atom(Prefix), 'generation-~w-', [Pid]),
+    sub_atom(Text, 0, PrefixLength, _, Prefix),
+    sub_atom(Text, PrefixLength, _, 0, Rest),
+    sub_atom(Rest, MillisLength, _, _, ':'),
+    sub_atom(Rest, 0, MillisLength, _, MillisAtom),
+    atom_number(MillisAtom, Millis),
+    assertion(Millis >= floor(Before * 1000)),
+    assertion(Millis =< ceiling(After * 1000)).
+
+test(evidence_fields_keep_atoms_verbatim, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_attach_with_legacy([
+        entity(fact, 'FACT-ATOM-SOURCE', "Atom source",
+               [fact_kind=meta, source='docs/a b.md', claim_key='CLAIM-ATOM'])
+    ]),
+    kb:fact_evidence_fields('FACT-ATOM-SOURCE', Source, ClaimKey, ClaimText, CanonicalKey),
+    kb_detach,
+    assertion(Source-ClaimKey == 'docs/a b.md'-'CLAIM-ATOM'),
+    assertion(ClaimText-CanonicalKey == ''-'').
+
+test(numeric_conflicts_need_numbers) :-
+    assertion(\+ kb:values_conflict(lt, abc, gt, 5, int)),
+    assertion(\+ kb:values_conflict(lt, 3, gt, abc, int)),
+    assertion(kb:values_conflict(lt, 3, gt, 5, int)).
+
+test(integer_bounds_without_an_integer_between_conflict) :-
+    assertion(kb:values_conflict(lt, 3, gt, 2, int)),
+    assertion(\+ kb:values_conflict(lt, 3, gt, 2, number)).
+
+test(only_numeric_values_compare_numerically) :-
+    assertion(kb:same_value(int, 1, number, 1.0)),
+    assertion(kb:same_value(string, "ab", string, "ab")),
+    assertion(\+ kb:same_value(string, "ab", int, 1)),
+    assertion(\+ kb:same_value(int, 1, string, "ab")).
+
+test(req_predicate_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb:index_verification_key(req_predicates, Key),
+    list_to_assoc([sentinel-[1-'REQ-SENTINEL']], Sentinel),
+    retractall(kb:kb_req_predicate_memo(_, _)),
+    assertz(kb:kb_req_predicate_memo(Key, Sentinel)),
+    kb:req_predicate_index(Memo),
+    assertion(Memo == Sentinel),
+    retractall(kb:kb_req_predicate_memo(_, _)),
+    assertz(kb:kb_req_predicate_memo(stale_key, Sentinel)),
+    kb:req_predicate_index(Fresh),
+    assertion(assoc_to_list(Fresh, [])),
+    findall(K, kb:kb_req_predicate_memo(K, _), Keys),
+    assertion(Keys == [Key]).
+
+test(property_conflicts_need_compatible_units_and_types) :-
+    assertion(kb:property_conflict(s, p, eq, int, 1, '', require, eq, int, 2, '', require, _)),
+    assertion(\+ kb:property_conflict(s, p, eq, int, 1, 'GB', require, eq, int, 2, 'MB', require, _)),
+    assertion(\+ kb:property_conflict(s, p, eq, string, "a", '', require, eq, int, 2, '', require, _)).
+
+test(a_journaled_audit_event_records_its_time, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(_),
+    get_time(Before),
+    ks_assert(req, 'REQ-AUDIT-TIME'),
+    get_time(After),
+    kb:kb_graph(Graph),
+    findall(Text, rdf(_, 'urn:kibi:audit/timestamp', Text^^_, Graph), [Text]),
+    parse_time(Text, iso_8601, Stamp),
+    assertion(Stamp >= floor(Before)),
+    assertion(Stamp =< ceiling(After)).
+
+test(saving_a_journaled_store_needs_no_attachment) :-
+    assertion(\+ kb:kb_attached(_)),
+    assertion(kb:kb_save_journaled).
+
+test(a_legacy_temp_snapshot_is_named_after_the_process_and_time) :-
+    get_time(Before),
+    kb:temp_rdf_file('/store', File),
+    get_time(After),
+    current_prolog_flag(pid, Pid),
+    format(atom(Prefix), '/store/kb.rdf.tmp.~w.', [Pid]),
+    atom_concat(Prefix, MillisAtom, File),
+    atom_number(MillisAtom, Millis),
+    assertion(Millis >= floor(Before * 1000)),
+    assertion(Millis =< ceiling(After * 1000)).
+
+test(a_legacy_snapshot_holds_only_the_store_graph, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    test_kb_dir(Dir),
+    ks_assert_req('REQ-SNAPSHOT'),
+    ks_foreign_edge_free(Foreign),
+    kb_save,
+    ks_foreign_edge_kept(Foreign, _),
+    atom_concat(Dir, '/kb.rdf', DataFile),
+    read_file_to_string(DataFile, Saved, []),
+    assertion(sub_string(Saved, _, _, _, "REQ-SNAPSHOT")),
+    assertion(\+ sub_string(Saved, _, _, _, "foreign-only")).
+
+:- end_tests(kb_write_paths).
+
+%% ks_foreign_edge_free(-Edge)
+% A triple about an entity outside the store, held in another graph.
+ks_foreign_edge_free(rdf(Subject, 'urn-kibi:title', "foreign-only", 'urn:kibi:test:foreign')) :-
+    kb:entity_id_to_uri('REQ-FOREIGN-ONLY', Subject),
+    rdf_assert(Subject, 'urn-kibi:title', "foreign-only", 'urn:kibi:test:foreign').
