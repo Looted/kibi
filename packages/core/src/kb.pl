@@ -1939,10 +1939,7 @@ kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
                 context(kb_assert_relationship, 'Invalid relationship: ~w from ~w to ~w'-[RelType, FromType, ToType])))
     ),
     validate_symbol_role_compatibility(RelType, FromId, ToId),
-    % NOTE: Strict-lane fact_kind pairing is validated at the MCP layer
-    % via validateStrictLanePairing() before the transaction begins.
-    % Prolog-level validation is deferred to avoid potential issues with
-    % rdf_transaction visibility and nondeterminism inside transactions.
+    validate_strict_lane_pairing(RelType, FromId, ToId),
     % Execute RDF operations with mutex protection
     with_kb_mutex((
         % Create entity URIs
@@ -2047,40 +2044,34 @@ kb_assert_audit_event_with_timestamp(TS, Operation, EntityId, Data, Index) :-
 
 %% validate_strict_lane_pairing(+RelType, +FromId, +ToId)
 % Validate that constrains/requires_property relationships target facts
-% with the correct fact_kind for strict-lane semantics.
-% constrains targets must be subject facts (or legacy facts without fact_kind);
-% requires_property targets must be property_value, observation, or meta facts
-% (or legacy facts without fact_kind).
+% with the correct fact_kind for strict-lane semantics: constrains targets
+% must be subject, observation or meta facts, requires_property targets
+% property_value, observation or meta facts.  A legacy fact without a
+% fact_kind is accepted for either.  Every relationship write runs it, so a
+% write that breaks the pairing is refused with a validation_error.
 % implements REQ-011
-validate_strict_lane_pairing(constrains, _FromId, ToId) :-
-    !,
-    (   % Allow: no fact_kind (legacy), subject, observation, or meta
-        kb_entity(ToId, fact, Props),
-        (   \+ memberchk(fact_kind=_, Props)
-        ->  true  % Legacy fact without fact_kind - allowed
-        ;   memberchk(fact_kind=KindRaw, Props),
-            normalize_term_atom(KindRaw, Kind),
-            memberchk(Kind, [subject, observation, meta])
+validate_strict_lane_pairing(RelType, _FromId, ToId) :-
+    (   strict_lane_target_kinds(RelType, Kinds, Description)
+    ->  (   strict_lane_target(ToId, Kinds)
+        ->  true
+        ;   format(atom(Msg), '~w target ~w must be ~w', [RelType, ToId, Description]),
+            throw(error(validation_error(Msg), Msg))
         )
-    ->  true
-    ;   format(atom(Msg), 'constrains target ~w must be a subject, observation, or meta fact', [ToId]),
-        throw(error(validation_error(Msg), Msg))
+    ;   true
     ).
-validate_strict_lane_pairing(requires_property, _FromId, ToId) :-
-    !,
-    (   % Allow: no fact_kind (legacy), property_value, observation, or meta
-        kb_entity(ToId, fact, Props),
-        (   \+ memberchk(fact_kind=_, Props)
-        ->  true  % Legacy fact without fact_kind - allowed
-        ;   memberchk(fact_kind=KindRaw, Props),
-            normalize_term_atom(KindRaw, Kind),
-            memberchk(Kind, [property_value, observation, meta])
-        )
-    ->  true
-    ;   format(atom(Msg), 'requires_property target ~w must be a property_value, observation, or meta fact', [ToId]),
-        throw(error(validation_error(Msg), Msg))
+
+strict_lane_target_kinds(constrains, [subject, observation, meta],
+                         'a subject, observation, or meta fact').
+strict_lane_target_kinds(requires_property, [property_value, observation, meta],
+                         'a property_value, observation, or meta fact').
+
+strict_lane_target(ToId, Kinds) :-
+    kb_entity(ToId, fact, Props),
+    (   memberchk(fact_kind=KindRaw, Props)
+    ->  normalize_term_atom(KindRaw, Kind),
+        memberchk(Kind, Kinds)
+    ;   true
     ).
-validate_strict_lane_pairing(_, _, _).
 
 %% kb_relationship(?Type, ?From, ?To)
 % Query relationships from the KB.

@@ -5508,11 +5508,12 @@ test(constrains_to_property_value_fact_fails, [setup(setup_kb), cleanup(cleanup_
         source="test://kb.plt"
     ]),
     % This should fail - constrains target cannot be property_value
-    catch(
-        kb_assert_relationship(constrains, 'REQ-CONSTRAINS-FAIL', 'FACT-PROP-WRONG-KIND', []),
-        error(validation_error(Msg), _),
-        sub_string(Msg, _, _, _, "subject")
-    ).
+    catch(kb_assert_relationship(constrains, 'REQ-CONSTRAINS-FAIL', 'FACT-PROP-WRONG-KIND', []),
+          error(validation_error(Msg), _),
+          true),
+    assertion(nonvar(Msg)),
+    assertion(sub_atom(Msg, _, _, _, subject)),
+    assertion(\+ kb_relationship(constrains, 'REQ-CONSTRAINS-FAIL', 'FACT-PROP-WRONG-KIND')).
 
 test(requires_property_to_subject_fact_fails, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(fact, [
@@ -5534,11 +5535,12 @@ test(requires_property_to_subject_fact_fails, [setup(setup_kb), cleanup(cleanup_
         source="test://kb.plt"
     ]),
     % This should fail - requires_property target cannot be subject fact
-    catch(
-        kb_assert_relationship(requires_property, 'REQ-REQUIRES-FAIL', 'FACT-SUBJECT-WRONG-KIND', []),
-        error(validation_error(Msg), _),
-        sub_string(Msg, _, _, _, "property_value")
-    ).
+    catch(kb_assert_relationship(requires_property, 'REQ-REQUIRES-FAIL', 'FACT-SUBJECT-WRONG-KIND', []),
+          error(validation_error(Msg), _),
+          true),
+    assertion(nonvar(Msg)),
+    assertion(sub_atom(Msg, _, _, _, property_value)),
+    assertion(\+ kb_relationship(requires_property, 'REQ-REQUIRES-FAIL', 'FACT-SUBJECT-WRONG-KIND')).
 
 :- end_tests(kb_strict_lane_pairing).
 

@@ -34,6 +34,18 @@ sqx_req(Id) :- sqx_entity(req, Id, [status=open]).
 
 sqx_subject(Id, Key) :- sqx_entity(fact, Id, [fact_kind=subject, subject_key=Key]).
 
+%% sqx_stored_rel(+Type, +From, +To)
+% A relationship already in the store, written straight to RDF: a store
+% saved before the strict-lane pairing was enforced on writes can still hold
+% a requires_property link to a subject fact.
+sqx_stored_rel(Type, From, To) :-
+    kb:kb_graph(Graph),
+    kb:kb_uri(Base),
+    atom_concat(Base, Type, Predicate),
+    kb:entity_id_to_uri(From, FromURI),
+    kb:entity_id_to_uri(To, ToURI),
+    rdf_db:rdf_assert(FromURI, Predicate, ToURI, Graph).
+
 %% sqx_property(+Id, +Subject, +Property, +Operator, +Type, +Value, +Extra)
 sqx_property(Id, Subject, Property, Operator, Type, Value, Extra) :-
     memberchk(Type-Field, [int-value_int, number-value_number, string-value_string, bool-value_bool, set-value_set]),
@@ -166,8 +178,8 @@ test(a_shared_fact_without_a_signature) :-
         sqx_subject('F-SUBJ', "session.life"),
         sqx_req('REQ-a'),
         sqx_req('REQ-b'),
-        fixture_rel(requires_property, 'REQ-a', 'F-SUBJ'),
-        fixture_rel(requires_property, 'REQ-b', 'F-SUBJ'),
+        sqx_stored_rel(requires_property, 'REQ-a', 'F-SUBJ'),
+        sqx_stored_rel(requires_property, 'REQ-b', 'F-SUBJ'),
         check_domain_redundancy_witnesses([Witness]),
         get_dict(signature, Witness, ""),
         check_domain_redundancy([violation(_, _, Description, _, _, _)]),
@@ -421,8 +433,8 @@ test(live_facts_follow_their_requirements) :-
                sqx_subject(Id, "web.upload")),
         fixture_rel(constrains, 'REQ-new', 'F-CURRENT'),
         fixture_rel(constrains, 'REQ-old', 'F-OLD'),
-        fixture_rel(requires_property, 'REQ-old', 'F-MIXED'),
-        fixture_rel(requires_property, 'REQ-new', 'F-MIXED'),
+        sqx_stored_rel(requires_property, 'REQ-old', 'F-MIXED'),
+        sqx_stored_rel(requires_property, 'REQ-new', 'F-MIXED'),
         fixture_rel(constrains, 'REQ-replaced', 'F-REPLACED'),
         fixture_rel(requires_predicate, 'REQ-old', 'F-PRED'),
         fixture_rel(requires_rule, 'REQ-old', 'F-RULE'),
