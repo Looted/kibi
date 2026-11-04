@@ -120,7 +120,7 @@ relationships:
     id: rel-8e7c8702d79c
   - type: implements
     from: SYM-taskFinalStateRequests
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-08-23T23:20:40.982Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -195,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b64d9a281f86
-  - type: implements
-    from: SYM-cli-mutation-serialization-buildPropertyList
-    to: REQ-kibi-conservative-requirement-proof
-    created_at: 2026-09-18T07:02:28.106Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d10f0da383b4
   - type: implements
     from: SYM-cli-mutation-serialization-buildPropertyList
     to: REQ-kibi-logical-requirement-coverage

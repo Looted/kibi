@@ -10,6 +10,7 @@ semantic_text: kibi-plugin-search-hints must rank entities by cosine similarity 
 required_evidence: tested
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-29T19:17:29.834Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

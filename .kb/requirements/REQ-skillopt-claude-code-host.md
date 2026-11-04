@@ -14,6 +14,7 @@ semantic_text: When the operator sets KIBI_SKILLOPT_HOST to claude-code, SkillOp
 origin:
   kind: agent
   ref: 'Operator request 2026-10-20: run the SkillOpt campaign, revise included, on the Claude Code CLI'
+  approved_by: maintainer
   recorded_at: '2026-10-20T13:04:27.802Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

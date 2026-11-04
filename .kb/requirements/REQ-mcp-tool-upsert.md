@@ -76,6 +76,7 @@ origin:
   recorded_at: '2026-11-03T11:35:21.000Z'
 firmness: default
 required_evidence: tested
+rationale: "Upsert is how agents write the KB, so it must validate relationships and refuse silent contradictions of existing requirements unless the write says what it supersedes."
 ---
 - The kb_upsert MCP tool must create or update a single entity with its metadata.
 - The kb_upsert MCP tool must create relationships to other existing entities in the same call.

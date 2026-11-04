@@ -3,7 +3,7 @@ title: A schema upgrade is applied with an approved hash that is not the hash of
 status: active
 fact_kind: property_value
 subject_key: kibi.migration.schema_version
-property_key: clause_01_the_cli_must_provide_an_idempotent_migration_pat
+property_key: idempotent_schema_migration
 operator: eq
 value_type: bool
 value_bool: false

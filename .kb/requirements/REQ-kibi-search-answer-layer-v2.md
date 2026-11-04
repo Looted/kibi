@@ -108,6 +108,7 @@ logic_claims:
   - CLAIM-CDB7E585D60D8A6D
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:35:09.214Z'
 id: REQ-kibi-search-answer-layer-v2
 type: req

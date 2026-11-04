@@ -69,13 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99fe570678f8
-  - type: constrains
-    from: REQ-kibi-predicate-suggestion-relevance-v1
-    to: FACT-SUBJECT-79C92ADA34274409
-    created_at: 2026-08-20T22:05:24.885Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5e6b0d32fc3f
   - type: requires_rule
     from: REQ-kibi-predicate-suggestion-relevance-v1
     to: FACT-RULE-B4018810804C39BB
@@ -412,3 +405,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-123a69f741cf
+  - type: assumes
+    from: SCEN-kibi-happy-path-gap
+    to: FACT-kibi-happy-path-gap-success-only-not-tested
+    created_at: 2026-11-04T16:55:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2babf67a9a0

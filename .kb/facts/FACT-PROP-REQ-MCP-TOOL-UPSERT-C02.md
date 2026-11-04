@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.kb_upsert
-property_key: clause_02_the_kb_upsert_mcp_tool_must_create_relationships_to_other_ex
+property_key: creates_relationships_in_call
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_tool_upsert.clause_02_the_kb_upsert_mcp_tool_must_create_relationships_to_other_ex.eq.true
+canonical_key: req.req_mcp_tool_upsert.creates_relationships_in_call.eq.true
 claim_key: CLAIM-A3EE6046DD9A175A
 claim_text: The kb_upsert MCP tool must create relationships to other existing entities in the same call
 origin:

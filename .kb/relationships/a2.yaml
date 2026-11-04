@@ -64,7 +64,7 @@ relationships:
     id: rel-c3fb7eef9ebb
   - type: implements
     from: SYM-BRIDGE-BWRAP-EXECUTABLE-ENV
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-08-23T23:30:15.935Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -97,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc761c80740f
-  - type: executable_for
-    from: SYM-e2e-test-mcp-suggest-predicates
-    to: TEST-mcp-suggest-predicates
-    created_at: 2026-09-05T15:46:56.209Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ee3cbffc86bd
   - type: covered_by
     from: SYM-proof-contract-hash
     to: TEST-kibi-verification-evidence-contract

@@ -55,20 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92ea671d54cc
-  - type: requires_property
-    from: REQ-cli-status-pre-first-sync
-    to: FACT-PROP-REQ-CLI-STATUS-PRE-FIRST-SYNC-C02
-    created_at: 2026-09-05T14:11:40.779Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3bfd8d4f6105
-  - type: executable_for
-    from: SYM-e2e-test-opencode-smart-enforcement-v1-coverage
-    to: TEST-opencode-smart-enforcement-v1-coverage
-    created_at: 2026-09-05T15:48:47.222Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6f795a0e351a
   - type: implements
     from: SYM-cli-loadEntitiesPaged
     to: REQ-kibi-verification-evidence-contract
@@ -244,3 +230,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cbfa22e2c8f2
+  - type: assumes
+    from: SCEN-kibi-symbol-link-guidance
+    to: FACT-symbol-link-guidance-refuses-coarse-link
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-631e44865b10
+  - type: assumes
+    from: SCEN-kibi-symbol-link-guidance
+    to: FACT-symbol-link-guidance-coverage-names-missing-link
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf9b8f933ffb
+  - type: assumes
+    from: SCEN-kibi-symbol-link-guidance
+    to: FACT-symbol-link-guidance-invalid-payload-error
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-298e463a574b

@@ -57,13 +57,6 @@ relationships:
     id: rel-aac9b3abba07
   - type: implements
     from: SYM-installGitHooks
-    to: REQ-cli-init
-    created_at: 2026-08-17T12:55:05.645Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8d487d8a4139
-  - type: implements
-    from: SYM-installGitHooks
     to: REQ-git-hook-sync-v2
     created_at: 2026-08-17T12:55:05.658Z
     created_by: kibi/upsert
@@ -316,7 +309,7 @@ relationships:
     id: rel-1096accd7a10
   - type: implements
     from: SYM-skillopt-runtime-case-signals-supersededrequirementids-338b9306
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-10-05T12:24:58.440Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

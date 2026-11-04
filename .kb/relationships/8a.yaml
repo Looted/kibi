@@ -176,7 +176,7 @@ relationships:
     id: rel-632ed8fcb3ee
   - type: implements
     from: SYM-skillopt-campaign-workflow-loadverifiedcampaignevaluation-63ad6370
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-10-05T12:23:28.946Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -328,6 +328,48 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8dbd9d60908b
+  - type: assumes
+    from: SCEN-bootstrap-intent-claim-accounting
+    to: FACT-bootstrap-intent-claim-accounting-intent-claims-uncapped
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24b92719bb0e
+  - type: assumes
+    from: SCEN-bootstrap-intent-claim-accounting
+    to: FACT-bootstrap-intent-claim-accounting-conflicting-entity-suppression
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-757d4ab624b7
+  - type: assumes
+    from: SCEN-bootstrap-intent-claim-accounting
+    to: FACT-bootstrap-intent-claim-accounting-planned-grounding-preflight
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d3aa4d9763e
+  - type: assumes
+    from: SCEN-bootstrap-intent-claim-accounting
+    to: FACT-bootstrap-intent-claim-accounting-per-source-claim-report
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fb4cd611884
+  - type: assumes
+    from: SCEN-bootstrap-intent-claim-accounting
+    to: FACT-bootstrap-intent-claim-accounting-authoritative-source-ready-gate
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-931d022c5cf9
+  - type: assumes
+    from: SCEN-bootstrap-intent-claim-accounting
+    to: FACT-bootstrap-intent-claim-accounting-not-planned-reason-report
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e8f32ea82ea
   - type: implements
     from: SYM-cli-is-closed-output-error
     to: REQ-kibi-operation-interface-parity

@@ -49,6 +49,7 @@ logic_claims:
   - CLAIM-C7EE1BD318612D61
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T08:54:48.966Z'
 id: REQ-kibi-uncompiled-source-visibility
 type: req

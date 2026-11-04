@@ -1,6 +1,6 @@
 ---
 title: Packed runtime engine daemon consumer proof
-status: open
+status: passing
 tags:
   - runtime
   - engine
@@ -20,18 +20,18 @@ proof_contract:
 id: TEST-runtime-packed-engine-daemon
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-0f0880c6a04fe0ad0cda8bc9
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-c4589595a59b0303aea6ca8d
     test_id: TEST-runtime-packed-engine-daemon
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 7ed5ab55b3c5d386434b8837b93f63ec6797d0dd5bf2b248a10008d63b41039a
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-04T13:32:13.285Z'
+    finished_at: '2026-11-04T13:32:15.421Z'
+    artifact_digest: 5dffb78f32c0e893952a04f879680101d36dbf15e0fb3ce2e5eba9c5ce437c7c
     contract_hash: ec8538cede0c497fbd808316e461fbd35bbfa5bd13aca63444a8eb8affe6c8a3
-    binding_hash: 1a2af0aa12910a849308870ce33b8bc38ad16b817b7292bb77759474a74cf618
+    binding_hash: f7178b907b93b4dfbe0419da3c03e9c8b405c067f2ff14fe6c5a49b8953c8762
     fingerprint: 76e8e28be0080a3523df987dfd0fd913a3938502845df485e52a8ca7b04e3b6a
     fingerprint_components:
       contract: ec8538cede0c497fbd808316e461fbd35bbfa5bd13aca63444a8eb8affe6c8a3
@@ -53,6 +53,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

@@ -124,7 +124,7 @@ relationships:
     id: rel-8025387b1bcc
   - type: implements
     from: SYM-BRIDGE-ARTIFACT-ROOT-ENV
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-08-23T23:30:10.648Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -136,13 +136,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-795af7fd1067
-  - type: executable_for
-    from: SYM-e2e-test-cli-doctor-packed-provenance
-    to: TEST-cli-doctor-packed-provenance
-    created_at: 2026-09-05T15:08:23.720Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-661ef75ae50f
   - type: covered_by
     from: SYM-canonical-StorageMigrationPlan
     to: TEST-cli-canonical-status
@@ -262,13 +255,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cd4f47536466
-  - type: implements
-    from: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T16:59:00.580Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-634d4145041d
   - type: covered_by
     from: SYM-treesitter-normalize-language
     to: TEST-source-analysis-v2-contract

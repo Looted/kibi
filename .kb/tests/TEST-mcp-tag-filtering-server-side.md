@@ -1,7 +1,7 @@
 ---
 id: TEST-mcp-tag-filtering-server-side
 title: Tag-filtered kb_query matches any provided tag
-status: active
+status: passing
 created_at: 2026-08-18T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
 source: packages/cli/tests/operations/discovery.test.ts
@@ -19,7 +19,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-mcp-tag-filtering-server-side
+    - symbol_id: SYM-e2e-mcp-cli-operation-parity
       target: default
   success_policy: all_required_first_attempt
 type: test

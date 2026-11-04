@@ -183,7 +183,7 @@ relationships:
     id: rel-ad821d4993fb
   - type: implements
     from: SYM-cli-GeneratedRules
-    to: REQ-006
+    to: REQ-core-validation-rules
     created_at: 2026-09-07T11:46:45.861Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

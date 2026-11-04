@@ -80,6 +80,7 @@ origin:
   recorded_at: '2026-11-03T11:38:31.000Z'
 firmness: firm
 required_evidence: tested
+rationale: "Changing the canonical skill affects every user, so only an independently verified external verdict, not local or fake evidence, may adopt a candidate."
 ---
 Local or fake SkillOpt evidence stays review-only. Production mutation of the canonical skill and mirrors is allowed only after an independently verified external verdict binds the source root, candidate hash, immutable root authorization, supervisor parent, invocation and matrix identity, and terminal evidence. This requirement does not assume any repository-hosted signer or authority service.
 

@@ -72,6 +72,7 @@ failure_side_waiver: "Structural tree rendering in the VS Code sidebar; nothing 
 failure_side_waiver_approved_by: Piotr Franczyk
 firmness: firm
 required_evidence: tested
+rationale: "People need to browse the requirement, scenario and test chain where they write code, not only through the CLI."
 ---
 - The VS Code extension must provide a TreeView in the sidebar to browse Kibi entities.
 - The Kibi tree must group entities by type.

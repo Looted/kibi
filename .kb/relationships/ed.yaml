@@ -85,7 +85,7 @@ relationships:
     id: rel-c7e441171e00
   - type: implements
     from: SYM-skillopt-run-cli-with-retry
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-08-29T01:01:11.418Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -97,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-40d9e7bd0069
-  - type: executable_for
-    from: SYM-e2e-test-cli-sync-discovery-readme-ignore
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:22:44.520Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fc476621149e
   - type: covered_by
     from: SYM-auto-1B73A7391533
     to: TEST-kibi-operation-interface-parity
@@ -181,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f2278830ea0a
-  - type: implements
-    from: SYM-doctor-package-migration-actions
-    to: REQ-cli-doctor-packed-provenance
-    created_at: 2026-09-22T11:35:30.692Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b09ac254a6d4
   - type: covered_by
     from: SYM-doctor-package-migration-actions
     to: TEST-001
@@ -351,7 +337,7 @@ relationships:
     id: rel-ec2eb421858f
   - type: implements
     from: SYM-skillopt-fixtures-task-definitions-supplemental-supplemental-cases-8e8546d2
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-10-05T12:24:52.026Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

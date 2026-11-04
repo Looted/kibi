@@ -253,7 +253,7 @@ function unquoted(value: unknown): string {
  * predicate tuple stated in other words).
  */
 // implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-grounding-guards
-async function existingClaimGrounding(
+export async function existingClaimGrounding(
   prolog: PrologPort | null,
   requirementId: string | undefined,
   claimKey: string,
@@ -767,7 +767,7 @@ export async function handleKbSuggestPredicates(
  * "unknown" when the requirement or its ledger is not readable.
  */
 // implements REQ-model-predicates-grounding-guards
-function ledgerState(
+export function ledgerState(
   stored: Record<string, unknown> | null,
   claimKey: string,
 ): "present" | "missing" | "unknown" {
@@ -789,7 +789,7 @@ function ledgerState(
  * the domain-contradictions rule would report once the candidate is linked.
  */
 // implements REQ-model-predicates-grounding-guards
-async function candidateDecisionConflicts(
+export async function candidateDecisionConflicts(
   prolog: PrologPort | null,
   candidate: PredicateSuggestion,
   warnings: string[],
@@ -1060,7 +1060,7 @@ async function storedRequirementProperties(
  * after the last step is not clean.
  */
 // implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-plan-roundtrip, REQ-model-predicates-replacement-diagnostics
-function buildGroundingReplacementPlan(
+export function buildGroundingReplacementPlan(
   requirementId: string,
   factId: string,
   predicatePlan: ReadonlyArray<Record<string, unknown>>,

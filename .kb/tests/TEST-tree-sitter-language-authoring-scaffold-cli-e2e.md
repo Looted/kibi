@@ -1,6 +1,6 @@
 ---
 title: Scaffold CLI creates a draft without modifying live language support
-status: active
+status: passing
 text_ref: scripts/tests/scaffold-tree-sitter-language.test.mjs
 verification_scope: end_to_end
 verification_perspective: consumer

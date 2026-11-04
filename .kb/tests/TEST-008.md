@@ -1,7 +1,7 @@
 ---
 id: TEST-008
 title: End-to-end init then sync then query then check pipeline passes
-status: active
+status: passing
 created_at: 2026-02-18T13:12:25.000Z
 updated_at: 2026-02-18T13:12:25.000Z
 priority: must
@@ -18,7 +18,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-008
+    - symbol_id: SYM-e2e-init-sync-check
       target: default
   success_policy: all_required_first_attempt
 type: test

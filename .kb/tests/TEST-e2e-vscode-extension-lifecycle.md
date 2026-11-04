@@ -1,6 +1,6 @@
 ---
 title: The built VS Code extension activates against a real Kibi workspace
-status: active
+status: passing
 verification_scope: end_to_end
 verification_perspective: internal
 proof_contract:

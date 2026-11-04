@@ -302,7 +302,7 @@ relationships:
     id: rel-81c62d1c7b9c
   - type: implements
     from: SYM-skillopt-runtime-fixture-kb-setup-setupseededconsistencykb-6edad3d3
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-10-05T13:18:46.476Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -349,90 +349,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cefb0823e204
-  - type: implements
-    from: SYM-upsert-validation-type
-    to: REQ-kibi-truthful-consistency
-    created_at: 2026-10-14T10:14:29.171Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4342347c236e
-  - type: covered_by
-    from: SYM-upsert-validation-type
-    to: TEST-kibi-truthful-consistency
-    created_at: 2026-10-14T10:14:29.204Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4433d4b58508
-  - type: implements
-    from: SYM-upsert-validation-type
-    to: REQ-kibi-uncompiled-source-visibility
-    created_at: 2026-10-14T10:14:29.229Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-488722835869
-  - type: covered_by
-    from: SYM-upsert-validation-type
-    to: TEST-kibi-uncompiled-source-visibility
-    created_at: 2026-10-14T10:14:29.251Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a41da901623c
-  - type: implements
-    from: SYM-upsert-assertrelationshipshardcontained
-    to: REQ-core-atomic-upsert-persistence
-    created_at: 2026-10-14T08:10:12.128Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a51b8b5ee7c3
-  - type: covered_by
-    from: SYM-upsert-assertrelationshipshardcontained
-    to: TEST-core-atomic-upsert-persistence
-    created_at: 2026-10-14T08:10:12.163Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-93f5789680de
-  - type: implements
-    from: SYM-upsert-validateupsertforcommit
-    to: REQ-kibi-truthful-consistency
-    created_at: 2026-10-14T08:10:35.341Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eb4e4bbb1702
-  - type: covered_by
-    from: SYM-upsert-validateupsertforcommit
-    to: TEST-kibi-truthful-consistency
-    created_at: 2026-10-14T08:10:35.374Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-604be36eecb7
-  - type: implements
-    from: SYM-upsert-validateupsertforcommit
-    to: REQ-kb-firm-decision-edit
-    created_at: 2026-10-14T08:10:35.395Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3fd8b7e44c1e
-  - type: covered_by
-    from: SYM-upsert-validateupsertforcommit
-    to: TEST-kb-decision-firmness
-    created_at: 2026-10-14T08:30:26.011Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-775b9a66133f
-  - type: implements
-    from: SYM-upsert-validateupsertforcommit
-    to: REQ-kb-upsert-keeps-omitted-proof-receipts
-    created_at: 2026-10-14T17:28:50.703Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-66174286a421
-  - type: covered_by
-    from: SYM-upsert-validateupsertforcommit
-    to: TEST-kibi-fresh-verification-receipts
-    created_at: 2026-10-14T17:28:50.735Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-762235bdbd87
   - type: validates
     from: TEST-proof-cursor-manifest-fields
     to: SCEN-cursor-kibi-plugin-v1
@@ -524,3 +440,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5dcc627a8275
+  - type: assumes
+    from: SCEN-bootstrap-claim-kinds-and-conflicts
+    to: FACT-bootstrap-claim-kinds-and-conflicts-no-requirements
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af59cdba1050
+  - type: assumes
+    from: SCEN-bootstrap-claim-kinds-and-conflicts
+    to: FACT-bootstrap-claim-kinds-and-conflicts-observation-facts
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dea52b3e556a
+  - type: assumes
+    from: SCEN-bootstrap-claim-kinds-and-conflicts
+    to: FACT-bootstrap-claim-kinds-and-conflicts-conflict-facts
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8c056270ce2
+  - type: assumes
+    from: SCEN-bootstrap-claim-kinds-and-conflicts
+    to: FACT-bootstrap-claim-kinds-and-conflicts-hash-bound
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0f7e36df093

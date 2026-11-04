@@ -1,6 +1,6 @@
 ---
 title: A composed description candidate is frozen and is what the target reads, through the CLIs with a stub model
-status: active
+status: passing
 priority: should
 tags:
   - skillopt

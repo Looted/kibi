@@ -146,20 +146,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8d126528899
-  - type: implements
-    from: SYM-projectStagedEntities
-    to: REQ-kibi-logical-requirement-coverage
-    created_at: 2026-09-18T07:28:47.321Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c9b86e274544
-  - type: implements
-    from: SYM-projectStagedEntities
-    to: REQ-kibi-proposition-complete-ingestion
-    created_at: 2026-09-18T07:28:47.327Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bd02f08ab023
   - type: covered_by
     from: SYM-projectStagedEntities
     to: TEST-e2e-coverage-proof-status
@@ -337,7 +323,7 @@ relationships:
     id: rel-729fa05ad04e
   - type: implements
     from: SYM-core-valid-claim-provenance
-    to: REQ-kibi-review-observation-claim-text
+    to: REQ-kibi-review-observation-claim-text-v2
     created_at: 2026-10-06T20:44:48.998Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-15T22:16:10.746Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-auto-7EA45A5BE416
-    to: REQ-core-atomic-upsert-persistence
-    created_at: 2026-08-16T07:49:57.637Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6a8820a605f4
   - type: covered_by
     from: SYM-auto-7EA45A5BE416
     to: TEST-kibi-operation-interface-parity
@@ -57,7 +50,7 @@ relationships:
     id: rel-5cadd6866363
   - type: implements
     from: SYM-canonical-refreshSymbolCoordinates
-    to: REQ-cli-sync
+    to: REQ-cli-canonical-runtime
     created_at: 2026-08-18T17:35:48.836Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -146,13 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3d245a769ce5
-  - type: executable_for
-    from: SYM-e2e-test-mcp-skills-resource-discoverability
-    to: TEST-mcp-skills-resource-discoverability
-    created_at: 2026-09-05T15:46:43.710Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ced1497e9bc1
   - type: covered_by
     from: SYM-predicate-usage-hints-part-1
     to: TEST-mcp-suggest-predicates
@@ -295,7 +281,7 @@ relationships:
     id: rel-df05236e9b2b
   - type: constrains
     from: REQ-kibi-predicate-suggestion-thresholds
-    to: FACT-SUBJECT-79C92ADA34274409
+    to: FACT-SUBJ-REQ-MCP-SUGGEST-PREDICATES
     created_at: 2026-10-27T08:08:13.141Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_02_the_opencode_plugin_must_invalidate_its_guidance_cache_on_a_
+property_key: cache_invalidated_on_branch_switch
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_guidance_caching.clause_02_the_opencode_plugin_must_invalidate_its_guidance_cache_on_a_.eq.true
+canonical_key: req.req_opencode_guidance_caching.cache_invalidated_on_branch_switch.eq.true
 claim_key: CLAIM-23FE612FBC06A7F2
 claim_text: The OpenCode plugin must invalidate its guidance cache on a branch switch
 origin:

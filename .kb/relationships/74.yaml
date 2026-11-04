@@ -36,13 +36,6 @@ relationships:
     id: rel-60c57c1859fd
   - type: implements
     from: SYM-kb-status-json
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-08-16T19:57:56.318Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6b2d9173e25b
-  - type: implements
-    from: SYM-kb-status-json
     to: REQ-mcp-search-discovery
     created_at: 2026-08-16T19:57:56.323Z
     created_by: kibi/upsert
@@ -358,7 +351,7 @@ relationships:
     id: rel-742047c662d1
   - type: implements
     from: SYM-skillopt-campaign-artifacts-readpublicfeedback-2d59d416
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-10-05T12:20:25.677Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

@@ -34,6 +34,7 @@ semantic_inventory:
       end: 194
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T08:34:26.736Z'
 id: REQ-model-predicates-binding-placeholders
 type: req

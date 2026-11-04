@@ -50,7 +50,7 @@ relationships:
     id: rel-8b430890db43
   - type: implements
     from: SYM-skillopt-cursor-usage-error-name
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-cursor-compat
     created_at: 2026-08-24T17:29:01.635Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -146,13 +146,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d425dffad992
-  - type: implements
-    from: SYM-kibi-doctor-command
-    to: REQ-capability-plugin-configuration-v1
-    created_at: 2026-09-22T19:33:38.174Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6ccdc594bf97
   - type: covered_by
     from: SYM-cap-plugin-detectsignals-644b5a33
     to: TEST-e2e-capability-plugins
@@ -167,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f6470b42031
-  - type: implements
-    from: SYM-kibi-doctor-command
-    to: REQ-kibi-env-bootstrap
-    created_at: 2026-09-23T10:45:23.503Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-35df08a8a1f3
   - type: covered_by
     from: SYM-kibi-doctor-command
     to: TEST-e2e-kibi-env-bootstrap
@@ -216,13 +202,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f05b883455b7
-  - type: implements
-    from: SYM-kibi-doctor-command
-    to: REQ-engine-daemon-package-versions
-    created_at: 2026-10-08T21:27:12.945Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d00b9873f913
   - type: covered_by
     from: SYM-kibi-doctor-command
     to: TEST-engine-daemon-package-versions
@@ -230,13 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3336180b35c
-  - type: implements
-    from: SYM-kibi-doctor-command
-    to: REQ-legacy-kb-first-step-migrate
-    created_at: 2026-10-14T21:23:58.767Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e930a81e51f0
   - type: covered_by
     from: SYM-kibi-doctor-command
     to: TEST-cli-legacy-kb-first-migrate
@@ -293,13 +265,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-35d5da0168ce
-  - type: covered_by
-    from: SYM-cli-ENTITY_QUERY_CHUNK_SIZE
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-10-28T17:22:37.107Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d508376fb178
   - type: executable_for
     from: SYM-proof-proof-contract-page-size
     to: TEST-proof-proof-contract-page-size
@@ -358,7 +323,7 @@ relationships:
     id: rel-2dd70d60eb43
   - type: constrains
     from: REQ-kibi-logical-requirement-coverage
-    to: FACT-SUBJECT-C8D6ADF7EFA7EDF0
+    to: FACT-SUBJ-REQ-CLI-STAGED-IMPACT-ENFORCEMENT
     created_at: 2026-10-30T12:24:44.076Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -503,13 +468,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f19eca17a0e6
-  - type: implements
-    from: SYM-kibi-doctor-command
-    to: REQ-kibi-release-version
-    created_at: 2026-11-04T05:31:11.990Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6aa7783cabfb
   - type: covered_by
     from: SYM-kibi-doctor-command
     to: TEST-kibi-release-version

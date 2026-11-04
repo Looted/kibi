@@ -3,6 +3,7 @@ title: A store-backed operation leaves the never-compiled branch store empty wit
 status: active
 fact_kind: predicate
 predicate_name: fresh_clone_setup_policy
+predicate_namespace: kibi.setup
 predicate_args:
   - kibi_operations
   - branch_store_never_compiled_and_auto_sync_on

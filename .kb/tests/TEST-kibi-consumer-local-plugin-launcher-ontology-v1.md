@@ -1,6 +1,6 @@
 ---
 title: Reusable Consumer-Local Plugin Launcher End-to-End Contract
-status: active
+status: passing
 priority: must
 text_ref: documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts
 tags:

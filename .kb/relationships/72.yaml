@@ -127,14 +127,14 @@ relationships:
     id: rel-9b6bce457a76
   - type: implements
     from: SYM-skillopt-cursor-qualification-error-name
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-cursor-compat
     created_at: 2026-08-24T17:25:40.269Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-219c3550f2d2
   - type: implements
     from: SYM-BRIDGE-CODEX-EXECUTABLE-ENV
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-08-23T23:30:21.158Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -169,7 +169,7 @@ relationships:
     id: rel-eeca571383d6
   - type: constrains
     from: REQ-cursor-stop-job-vs-plan
-    to: FACT-SUBJ-REQ-CURSOR-STOP-JOB-VS-PLAN
+    to: FACT-SUBJ-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1
     created_at: 2026-09-05T14:30:49.651Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -293,13 +293,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1b944704ffa
-  - type: implements
-    from: SYM-resolveBoundSymbolScope
-    to: REQ-kibi-verification-receipts-v2
-    created_at: 2026-09-28T18:20:22.196Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-05551908824f
   - type: covered_by
     from: SYM-resolveBoundSymbolScope
     to: TEST-kibi-verification-receipts-v2
@@ -321,13 +314,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f5ead54b7b00
-  - type: implements
-    from: SYM-resolveBoundSymbolScope
-    to: REQ-generated-coordinate-persistence
-    created_at: 2026-09-28T18:20:22.272Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-544131803c81
   - type: implements
     from: SYM-prolog-release-populate-platform-package
     to: REQ-prolog-bundled-release
@@ -615,3 +601,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75227ec4bb05
+  - type: implements
+    from: SYM-resolveBoundSymbolScope
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-16T14:10:41.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db46edf45b41
+  - type: covered_by
+    from: SYM-resolveBoundSymbolScope
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-16T15:42:33.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e055b57c1dc7

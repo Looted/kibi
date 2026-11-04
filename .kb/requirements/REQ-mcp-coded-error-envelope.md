@@ -11,6 +11,7 @@ priority: must
 origin:
   kind: agent
   ref: Onboarding test finding on MCP error codes (2026-10-14)
+  approved_by: maintainer
   recorded_at: '2026-10-14T08:57:09.019Z'
 semantic_text: The MCP server must answer a tool call that fails with a Kibi error code with an error envelope that carries the code, the message and the retryability. The MCP server must report the same error code, message and retryability for that failure as the CLI JSON route.
 logic_claims:

@@ -3,6 +3,7 @@ title: Kibi init runs in a repository whose Git hooks lefthook already owns and 
 status: active
 fact_kind: predicate
 predicate_name: git_hook_installation_policy
+predicate_namespace: kibi.git
 predicate_args:
   - kibi_init_and_doctor
   - hooks_owned_by_lefthook_husky_or_pre_commit

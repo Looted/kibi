@@ -1,7 +1,7 @@
 ---
 id: TEST-zcode-kibi-plugin-v1
 title: Verify ZCode Kibi plugin manifest, hooks, skills, and opt-in behavior
-status: active
+status: passing
 created_at: 2026-09-15T00:00:00.000Z
 updated_at: 2026-09-16T00:00:00.000Z
 priority: must

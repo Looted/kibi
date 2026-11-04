@@ -44,6 +44,7 @@ logic_claims:
 rationale: The search-lane round-1 A10 trace failed on a guessed claim_key; the key is derivable from claim_text, so Kibi derives it and only checks a supplied key.
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-12T10:28:02.663Z'
 id: REQ-kibi-review-observation-claim-text-v2
 type: req

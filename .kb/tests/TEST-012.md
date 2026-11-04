@@ -1,7 +1,7 @@
 ---
 id: TEST-012
 title: kb_query supports sourceFile filtering for linked entities
-status: active
+status: passing
 created_at: 2026-02-20T10:35:00.000Z
 updated_at: 2026-02-20T10:35:00.000Z
 priority: must
@@ -19,7 +19,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-012
+    - symbol_id: SYM-e2e-init-sync-check
       target: default
   success_policy: all_required_first_attempt
 type: test

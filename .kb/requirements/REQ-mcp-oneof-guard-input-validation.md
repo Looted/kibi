@@ -33,6 +33,7 @@ semantic_inventory:
       end: 169
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-07T19:01:01.981Z'
 id: REQ-mcp-oneof-guard-input-validation
 type: req

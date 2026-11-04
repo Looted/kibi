@@ -67,6 +67,7 @@ origin:
   recorded_at: '2026-11-03T11:35:21.000Z'
 firmness: default
 required_evidence: tested
+rationale: "The KB must stay current while the agent edits, without making the agent wait on sync."
 ---
 - The OpenCode plugin must run kibi sync debounced and non-blocking after file edits that can change the KB.
 - The OpenCode plugin must not block the OpenCode session while sync runs.

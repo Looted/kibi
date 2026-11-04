@@ -1,6 +1,6 @@
 ---
 title: Packed runtime TypeScript symbol analysis remains portable
-status: active
+status: passing
 verification_scope: end_to_end
 verification_perspective: consumer
 id: TEST-e2e-runtime-symbol-portability

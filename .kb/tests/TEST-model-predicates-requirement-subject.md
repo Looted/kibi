@@ -1,6 +1,6 @@
 ---
 title: Predicate requirement subject tests
-status: active
+status: passing
 priority: must
 tags:
   - modeling

@@ -62,6 +62,7 @@ origin:
   recorded_at: '2026-11-03T11:35:21.000Z'
 firmness: default
 required_evidence: tested
+rationale: "Maintained Prolog libraries give graph capabilities without new custom code, and keeping CHR and SPARQL isolated and opt-in protects the validation path and the default security posture."
 ---
 - Kibi must keep CHR-derived facts isolated from the existing validation path.
 - Kibi must keep SPARQL support remote-only and opt-in.

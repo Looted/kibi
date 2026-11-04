@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_02_the_opencode_kibi_plugin_s_guidance_must_stay_non_blocking_a
+property_key: guidance_non_blocking_in_budget
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_smart_enforcement_v1.clause_02_the_opencode_kibi_plugin_s_guidance_must_stay_non_blocking_a.eq.true
+canonical_key: req.req_opencode_smart_enforcement_v1.guidance_non_blocking_in_budget.eq.true
 claim_key: CLAIM-CBC32FC4EFA3154F
 claim_text: The OpenCode Kibi plugin's guidance must stay non-blocking and within its token budget
 origin:

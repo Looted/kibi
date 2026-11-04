@@ -1,7 +1,7 @@
 ---
 id: TEST-cli-status-pre-first-sync
 title: CLI status is valid before first sync in workspace and packed installs
-status: active
+status: passing
 created_at: 2026-04-17T12:00:00.000Z
 updated_at: 2026-04-17T12:00:00.000Z
 tags:
@@ -17,7 +17,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-cli-status-pre-first-sync
+    - symbol_id: SYM-e2e-cli-status-pre-first-sync
       target: default
   success_policy: all_required_first_attempt
 type: test

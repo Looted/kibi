@@ -64,7 +64,7 @@ relationships:
     id: rel-d63c5c36ee63
   - type: implements
     from: SYM-skillopt-cursor-run-qualification
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-cursor-compat
     created_at: 2026-08-24T17:24:41.174Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -155,7 +155,7 @@ relationships:
     id: rel-8de73161c4d4
   - type: implements
     from: SYM-skillopt-answer-contract
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-10-04T12:49:55.706Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ed7bbec8026
+  - type: assumes
+    from: SCEN-docs-site-terminal-demo
+    to: FACT-docs-site-terminal-demo-shared
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cd457a63a51
+  - type: assumes
+    from: SCEN-docs-site-terminal-demo
+    to: FACT-docs-site-terminal-demo-generated
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-358600e96028

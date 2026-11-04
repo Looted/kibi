@@ -90,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1388b81b02bc
-  - type: executable_for
-    from: SYM-e2e-test-014
-    to: TEST-014
-    created_at: 2026-09-05T14:53:33.258Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-33d25206f841
   - type: covered_by
     from: SYM-syncPluginManifestVersions
     to: TEST-014
@@ -146,20 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-86bf19e96637
-  - type: implements
-    from: SYM-quality-staged-manifestRecordSourcePath
-    to: REQ-cli-staged-impact-enforcement
-    created_at: 2026-09-15T01:06:58.508Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-11983766a524
-  - type: covered_by
-    from: SYM-quality-staged-manifestRecordSourcePath
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-15T01:06:58.529Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c56c206127e2
   - type: executable_for
     from: SYM-e2e-test-cli-strict-modeling-surface
     to: TEST-e2e-strict-modeling-surface

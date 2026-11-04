@@ -195,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c6c1efa1ef56
-  - type: implements
-    from: SYM-cli-impact-analyzeChangedFileImpact
-    to: REQ-kb-unowned-file-candidates
-    created_at: 2026-10-14T09:47:20.326Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-89d73de0b047
   - type: covered_by
     from: SYM-cli-impact-analyzeChangedFileImpact
     to: TEST-search-answer-hygiene
@@ -407,7 +400,7 @@ relationships:
     id: rel-49abba16c41b
   - type: constrains
     from: REQ-kibi-bundled-skill-catalog
-    to: FACT-SUBJ-REQ-REUSABLE-SKILL-SUBSYSTEM
+    to: FACT-SUBJ-REQ-MCP-SKILLS-RESOURCE-DISCOVERABILITY
     created_at: 2026-11-03T10:48:35.006Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

@@ -9,7 +9,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-generated-coordinate-repair
+    - symbol_id: SYM-e2e-source-relationship-parity
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:

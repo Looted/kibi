@@ -1,6 +1,6 @@
 ---
 title: Packed CLI doctor workflow diagnostics
-status: active
+status: passing
 tags:
   - cli
   - doctor

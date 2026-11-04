@@ -77,6 +77,7 @@ origin:
   recorded_at: '2026-11-03T12:03:44.000Z'
 firmness: default
 required_evidence: tested
+rationale: "Paid model launches spend real money, so each launch is bound to one approved request and ledgered, and anything unverified fails closed."
 ---
 Paid SkillOpt model launches must fail closed unless the external trust boundary validates immutable authority and supervisor-parent bindings; binds the one-use capability to the exact request ID, request hash, approved pricing, model, and lease; enforces pinned TLS, CA, SNI, IP, egress, request, invoice, and authorization ceilings; and preserves same-request idempotency without cross-request attribution.
 

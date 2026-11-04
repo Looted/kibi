@@ -176,7 +176,7 @@ relationships:
     id: rel-b74cd50fe047
   - type: implements
     from: SYM-skillopt-replace-campaign-body
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-10-05T12:01:50.918Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -300,3 +300,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a4f785ed80b2
+  - type: assumes
+    from: SCEN-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c01
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-694075284023
+  - type: assumes
+    from: SCEN-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c02
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1f629e4a725
+  - type: assumes
+    from: SCEN-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c03
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb9903d1f4a9
+  - type: assumes
+    from: SCEN-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c04
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d3151288cb0
+  - type: assumes
+    from: SCEN-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c05
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3b7a3313173
+  - type: assumes
+    from: SCEN-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c06
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cfcf2e929c4
+  - type: assumes
+    from: SCEN-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c07
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83038bd6b900
+  - type: assumes
+    from: SCEN-skillopt-host-neutral-optimization
+    to: FACT-prop-skillopt-host-neutral-optimization-c08
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12f38fb17656

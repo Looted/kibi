@@ -1,7 +1,7 @@
 relationships:
   - type: implements
     from: SYM-skillopt-operator-base-resolution-options
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-cursor-compat
     created_at: 2026-08-15T23:11:23.395Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -104,13 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e5ca35cbfa1
-  - type: executable_for
-    from: SYM-e2e-test-mcp-relationship-preflight
-    to: TEST-mcp-relationship-preflight
-    created_at: 2026-09-05T15:46:07.592Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1eaa336286b9
   - type: covered_by
     from: SYM-producer-kinds
     to: TEST-kibi-verification-evidence-contract
@@ -211,7 +204,7 @@ relationships:
     id: rel-2aba1dd4a6e4
   - type: implements
     from: SYM-skillopt-mcp-model-modes
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-10-04T20:37:02.840Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

@@ -139,13 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-521baa1208f5
-  - type: implements
-    from: SYM-cli-check-generated-manifests
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:32:35.397Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5fe7183d385e
   - type: covered_by
     from: SYM-impact-stage-e-type-impactpolicy
     to: TEST-impact-policy-stage-e-installed-e2e
@@ -174,13 +167,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-63fec4f98a15
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-buildintentclaimcandidates
-    to: REQ-kibi-bootstrap-knowledge-sources
-    created_at: 2026-10-02T07:40:32.303Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-85faff57bdb0
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-buildintentclaimcandidates
     to: TEST-kibi-bootstrap-knowledge-sources

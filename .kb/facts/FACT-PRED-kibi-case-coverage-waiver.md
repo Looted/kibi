@@ -3,6 +3,7 @@ title: A case waiver counts only once a person approves it
 status: active
 fact_kind: predicate
 predicate_name: proof_gate_policy
+predicate_namespace: kibi.proof
 predicate_args:
   - uncovered_case
   - case_waiver

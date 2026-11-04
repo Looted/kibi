@@ -115,27 +115,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-48deac378618
-  - type: implements
-    from: SYM-suggest-predicates-core-handler
-    to: REQ-kibi-logical-requirement-coverage
-    created_at: 2026-08-22T20:23:14.143Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-14cea5a79906
-  - type: implements
-    from: SYM-suggest-predicates-core-handler
-    to: REQ-kibi-ontology-convergence-witnesses
-    created_at: 2026-08-22T20:23:14.160Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d18f9e41434b
-  - type: implements
-    from: SYM-suggest-predicates-core-handler
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:23:14.171Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-26d8b1bf986f
   - type: covered_by
     from: SYM-suggest-predicates-core-handler
     to: TEST-kibi-logical-requirement-coverage
@@ -248,13 +227,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2765165aa0a3
-  - type: implements
-    from: SYM-suggest-predicates-core-handler
-    to: REQ-model-predicates-plan-roundtrip
-    created_at: 2026-10-08T08:35:43.971Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9ac4a593edf5
   - type: covered_by
     from: SYM-suggest-predicates-core-handler
     to: TEST-model-predicates-plan-roundtrip
@@ -262,13 +234,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d207bd59ec9d
-  - type: implements
-    from: SYM-suggest-predicates-core-handler
-    to: REQ-model-predicates-binding-placeholders
-    created_at: 2026-10-08T08:35:44.003Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ab3927887c20
   - type: covered_by
     from: SYM-suggest-predicates-core-handler
     to: TEST-model-predicates-binding-placeholders
@@ -283,20 +248,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-541aa4e04201
-  - type: implements
-    from: SYM-suggest-predicates-core-handler
-    to: REQ-model-predicates-requirement-subject-v2
-    created_at: 2026-10-08T21:26:33.708Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2f256bec07e4
-  - type: implements
-    from: SYM-suggest-predicates-core-handler
-    to: REQ-model-what-if-planned-facts
-    created_at: 2026-10-12T23:37:39.230Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-95b9b55f01fc
   - type: covered_by
     from: SYM-suggest-predicates-core-handler
     to: TEST-model-what-if-planned-facts
@@ -423,3 +374,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-027ed6922755
+  - type: assumes
+    from: SCEN-upsert-unknown-field-guidance
+    to: FACT-upsert-unknown-field-guidance-properties-named
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c64dec573ed1
+  - type: assumes
+    from: SCEN-upsert-unknown-field-guidance
+    to: FACT-upsert-unknown-field-guidance-prose-hint
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a0565ccd788
+  - type: assumes
+    from: SCEN-upsert-unknown-field-guidance
+    to: FACT-upsert-unknown-field-guidance-skill-example
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82ba721aa0eb

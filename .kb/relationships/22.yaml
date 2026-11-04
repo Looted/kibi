@@ -245,13 +245,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0dcc67498205
   - type: implements
-    from: SYM-checkCommand
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:32:07.852Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8902db109484
-  - type: implements
     from: SYM-auto-532D065248B0
     to: REQ-branch-store-recovery-v4
     created_at: 2026-10-04T02:56:32.206Z
@@ -259,15 +252,8 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-512fd580e584
   - type: implements
-    from: SYM-currentProofBindingMode
-    to: REQ-kibi-fresh-verification-receipts-v2
-    created_at: 2026-10-04T02:59:45.408Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-18cc306cb08a
-  - type: implements
     from: SYM-skillopt-user-mode
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-10-05T16:55:48.836Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -328,13 +314,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90f74120f611
-  - type: implements
-    from: SYM-checkCommand
-    to: REQ-cli-migration-first-commit
-    created_at: 2026-10-14T08:48:23.928Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9d3d11d5d594
   - type: covered_by
     from: SYM-checkCommand
     to: TEST-cli-migration-first-commit

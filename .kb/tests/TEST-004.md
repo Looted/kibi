@@ -1,7 +1,7 @@
 ---
 id: TEST-004
 title: kibi check detects must-priority coverage violations
-status: active
+status: passing
 created_at: 2026-02-18T13:12:25.000Z
 updated_at: 2026-02-18T13:12:25.000Z
 priority: must

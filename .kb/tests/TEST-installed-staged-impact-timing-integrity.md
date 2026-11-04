@@ -1,6 +1,6 @@
 ---
 title: Installed staged-impact timing observations remain bounded and fail closed
-status: active
+status: passing
 text_ref: scripts/benchmark-installed-staged-impact.test.mjs
 tags:
   - multilingual

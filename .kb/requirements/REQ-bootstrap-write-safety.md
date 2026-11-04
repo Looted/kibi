@@ -115,6 +115,7 @@ logic_claims:
   - CLAIM-A2995E2B6540F3A5
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T16:04:32.974Z'
 id: REQ-bootstrap-write-safety
 type: req

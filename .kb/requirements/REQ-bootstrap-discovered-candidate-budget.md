@@ -23,6 +23,7 @@ logic_claims:
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-10-06: separate bootstrap budget for discovered candidates after a test project rerun'
+  approved_by: maintainer
   recorded_at: '2026-10-06T15:22:14.002Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

@@ -125,20 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c503ea9ba96
-  - type: implements
-    from: SYM-jsonSchemaToZod
-    to: REQ-kibi-logical-requirement-coverage
-    created_at: 2026-08-22T20:07:26.511Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7c973cd7e868
-  - type: implements
-    from: SYM-jsonSchemaToZod
-    to: REQ-kibi-proposition-complete-ingestion
-    created_at: 2026-08-22T20:07:26.519Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b720a2595988
   - type: covered_by
     from: SYM-jsonSchemaToZod
     to: TEST-005
@@ -239,7 +225,7 @@ relationships:
     id: rel-1ba905f3c314
   - type: implements
     from: SYM-skillopt-setup-seeded-stale-kb
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-08-26T18:07:20.997Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -258,13 +244,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d63303da25bb
-  - type: executable_for
-    from: SYM-e2e-test-mcp-cli-help
-    to: TEST-mcp-cli-help
-    created_at: 2026-09-05T15:45:37.730Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8ceffc217093
   - type: covered_by
     from: SYM-evaluate-contract-against-run
     to: TEST-kibi-verification-evidence-contract
@@ -622,3 +601,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77ae40c933aa
+  - type: implements
+    from: SYM-jsonSchemaToZod
+    to: REQ-mcp-oneof-guard-input-validation
+    created_at: 2026-10-07T19:01:17.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04ef51d5e7f5
+  - type: covered_by
+    from: SYM-jsonSchemaToZod
+    to: TEST-mcp-oneof-guard-input-validation
+    created_at: 2026-10-07T19:01:18.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-537be7921908

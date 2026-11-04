@@ -3,7 +3,7 @@ title: An objectively invalid relationship would be reported only as an advisory
 status: active
 fact_kind: property_value
 subject_key: kibi.checks.quality_diagnostics
-property_key: clause_01_kibi_check_surfaces_must_keep_objectively_invali
+property_key: invalid_states_in_violations_lane
 operator: eq
 value_type: bool
 value_bool: false

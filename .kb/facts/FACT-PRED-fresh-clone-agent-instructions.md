@@ -7,6 +7,7 @@ tags:
   - predicate:hooks
 fact_kind: predicate
 predicate_name: fresh_clone_setup_policy
+predicate_namespace: kibi.setup
 predicate_args:
   - kibi_init
   - agent_instructions_on

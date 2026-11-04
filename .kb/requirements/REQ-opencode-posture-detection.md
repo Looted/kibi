@@ -85,6 +85,7 @@ origin:
   recorded_at: '2026-11-03T12:03:44.000Z'
 firmness: default
 required_evidence: tested
+rationale: "The plugin's behaviour depends on whether a usable KB exists, so it must classify the workspace reliably before enforcing anything."
 ---
 - The OpenCode plugin must classify the workspace as root_active when .kb/manifest.json exists at the repository root and the canonical KB targets resolve.
 - The OpenCode plugin must classify the workspace as root_partial when the root .kb/manifest.json exists but some canonical KB targets are missing.

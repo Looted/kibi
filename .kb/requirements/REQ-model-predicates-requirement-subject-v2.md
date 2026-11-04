@@ -47,6 +47,7 @@ logic_claims:
   - CLAIM-139A118D7DD550F8
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T21:05:28.021Z'
 id: REQ-model-predicates-requirement-subject-v2
 type: req

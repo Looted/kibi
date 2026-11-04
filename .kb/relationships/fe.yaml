@@ -1,7 +1,7 @@
 relationships:
   - type: implements
     from: SYM-skillopt-load-seed-candidate
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-08-15T22:44:09.162Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -153,13 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-11693750ed80
-  - type: executable_for
-    from: SYM-e2e-test-vscode-traceability-coverage
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T15:51:05.490Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1345a25c4037
   - type: covered_by
     from: SYM-modeling-predicate-inference-3-inferReconciliationRuleArgs
     to: TEST-mcp-suggest-predicates
@@ -223,13 +216,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e1e2fcd0acc3
-  - type: implements
-    from: SYM-doctor-next-ancestor-directory
-    to: REQ-agent-guided-migration-orchestration
-    created_at: 2026-09-22T11:36:17.413Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c8f039d30719
   - type: implements
     from: SYM-doctor-next-ancestor-directory
     to: REQ-cli-doctor-packed-provenance

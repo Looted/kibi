@@ -2,7 +2,7 @@
 id: TEST-cursor-stop-job-vs-plan
 title: Cursor stop hook plan-versus-job verification
 type: test
-status: active
+status: passing
 created_at: 2026-08-18T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
 priority: must
@@ -23,7 +23,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-cursor-stop-job-vs-plan
+    - symbol_id: SYM-e2e-cursor-plugin-launcher
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:

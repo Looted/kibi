@@ -9,6 +9,7 @@ tags:
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-10-09: UI design plugin'
+  approved_by: maintainer
   recorded_at: '2026-10-09T12:12:48.441Z'
 rationale: An opt-in plugin must be able to make kb_check stricter for the projects that want it, while kb_check, a maintenance path, never runs third-party plugin code.
 semantic_text: The kb_check operation must read an activated check policy as JSON data without importing plugin code. The kb_check operation must report a production symbol in an ownership rule file set that implements no current requirement grounded in one of the rule predicates. The kb_check operation must report an implementing file that lacks a pattern marker declared for its requirement pattern. The kb_check operation must block when an activated check policy cannot be read.

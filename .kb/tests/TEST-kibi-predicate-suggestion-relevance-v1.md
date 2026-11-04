@@ -1,6 +1,6 @@
 ---
 title: Predicate Suggestion Relevance End-to-End Contract
-status: active
+status: passing
 priority: must
 text_ref: packages/mcp/tests/tools/suggest-predicates.test.ts
 tags:

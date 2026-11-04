@@ -1,6 +1,6 @@
 ---
 title: Branded requirement health report and badge tests
-status: active
+status: passing
 tags:
   - cli
   - report

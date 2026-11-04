@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_04_the_opencode_plugin_must_classify_edits_to_kb_entity_front_m
+property_key: risk_kb_doc_structural
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_risk_classification.clause_04_the_opencode_plugin_must_classify_edits_to_kb_entity_front_m.eq.true
+canonical_key: req.req_opencode_risk_classification.risk_kb_doc_structural.eq.true
 claim_key: CLAIM-5C34332B3EF8E877
 claim_text: The OpenCode plugin must classify edits to KB entity front matter or relationships as kb_doc_structural
 origin:

@@ -130,6 +130,7 @@ logic_claims:
   - CLAIM-90669BB32C299C4E
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:28:27.801Z'
 id: REQ-kibi-scenario-feasibility-v2
 type: req

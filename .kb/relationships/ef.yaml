@@ -1,7 +1,7 @@
 relationships:
   - type: implements
     from: SYM-skillopt-write-bridge-result
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-08-16T07:14:22.485Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -134,7 +134,7 @@ relationships:
     id: rel-791d2feaf4bc
   - type: implements
     from: SYM-skillopt-user-profile
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-10-05T16:56:37.409Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -279,3 +279,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-06b4af0ecd0f
+  - type: assumes
+    from: SCEN-kibi-review-observation-claim-text
+    to: FACT-kibi-review-observation-claim-text-review-note-claim-text-without-key
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89fc5258a986
+  - type: assumes
+    from: SCEN-kibi-review-observation-claim-text
+    to: FACT-kibi-review-observation-claim-text-v2-grounding-fact-claim-key-derived
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40280f26336c
+  - type: assumes
+    from: SCEN-kibi-review-observation-claim-text
+    to: FACT-kibi-review-observation-claim-text-v2-mismatched-claim-key-rejected
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1fe0bcdde74

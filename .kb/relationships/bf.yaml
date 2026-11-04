@@ -38,13 +38,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5bba8852bbb2
-  - type: implements
-    from: 86c21fecd3d7b203
-    to: REQ-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T10:45:34.872Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-49b8fec9267e
   - type: covered_by
     from: 86c21fecd3d7b203
     to: TEST-kibi-predicate-suggestion-relevance-v1
@@ -66,13 +59,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb0c6a4f16ad
-  - type: implements
-    from: SYM-cli-search-command
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-08-22T20:26:36.587Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ca61292d5a65
   - type: covered_by
     from: SYM-cli-search-command
     to: TEST-kibi-operation-interface-parity
@@ -215,7 +201,7 @@ relationships:
     id: rel-9436bcd99f82
   - type: implements
     from: SYM-skillopt-campaign-artifacts-campaignsourcesurface-98d09abf
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-10-05T12:21:14.230Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -229,7 +215,7 @@ relationships:
     id: rel-32042599ac39
   - type: implements
     from: SYM-skillopt-runtime-fixture-kb-setup-setupseededpartialkb-6a846f9e
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-10-05T13:18:14.213Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -243,7 +229,7 @@ relationships:
     id: rel-d805a06c24f6
   - type: implements
     from: SYM-skillopt-runtime-fixture-kb-setup-semanticledger-236a7fda
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-external-adoption-verdict
     created_at: 2026-10-05T13:18:25.590Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

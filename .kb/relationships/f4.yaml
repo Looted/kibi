@@ -176,7 +176,7 @@ relationships:
     id: rel-95ed292d214f
   - type: implements
     from: SYM-skillopt-cursor-run-command
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-cursor-compat
     created_at: 2026-08-24T17:28:27.058Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -209,13 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d74ed1bac883
-  - type: requires_property
-    from: REQ-cli-gc
-    to: FACT-PROP-REQ-CLI-GC-C02
-    created_at: 2026-09-05T14:30:04.782Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9b8115c6dded
   - type: covered_by
     from: SYM-cli-impact-isModuleOrConfig
     to: TEST-audit-quality-diagnostics-v1
@@ -258,27 +251,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b235a91c316
-  - type: implements
-    from: SYM-quality-inventory-19e4335e4a46
-    to: REQ-cli-check
-    created_at: 2026-09-14T20:24:47.355Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dda75ed2c44a
-  - type: covered_by
-    from: SYM-quality-inventory-19e4335e4a46
-    to: TEST-cli-check-integrity
-    created_at: 2026-09-14T20:24:47.382Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7e862400dd43
-  - type: covered_by
-    from: SYM-quality-inventory-19e4335e4a46
-    to: TEST-004
-    created_at: 2026-09-18T07:35:07.740Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2c2d09d032f2
   - type: covered_by
     from: SYM-resolveSkillFilePathRuntime
     to: TEST-mcp-skills-resource-discoverability
@@ -428,7 +400,7 @@ relationships:
     id: rel-4f4463d692fc
   - type: implements
     from: SYM-skillopt-mcp-call-arguments
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-10-04T20:35:25.960Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

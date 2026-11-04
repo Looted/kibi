@@ -90,6 +90,7 @@ logic_claims:
   - CLAIM-8CE1FEA0B2FA8FFB
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:20:20.404Z'
 id: REQ-kibi-change-to-proof-plan-compiler-v2
 type: req

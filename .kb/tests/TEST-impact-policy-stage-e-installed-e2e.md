@@ -1,6 +1,6 @@
 ---
 title: Installed staged impact review, derived coordinate cache and trusted aggregate gate lifecycle
-status: active
+status: passing
 tags:
   - multilingual
   - impact-policy

@@ -1,6 +1,6 @@
 ---
 title: Installed multilingual catalog and exact-index ownership behavior
-status: active
+status: passing
 text_ref: documentation/tests/e2e/packed/multilingual-language-catalog.test.ts
 tags:
   - multilingual

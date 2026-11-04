@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-15T22:16:44.371Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-auto-5E0D46927248
-    to: REQ-core-atomic-upsert-persistence
-    created_at: 2026-08-16T07:50:26.151Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b1043680874d
   - type: covered_by
     from: SYM-auto-5E0D46927248
     to: TEST-kibi-operation-interface-parity
@@ -167,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76e02cb074c7
-  - type: implements
-    from: SYM-auto-5E0D46927248
-    to: REQ-kibi-verification-receipts-v2
-    created_at: 2026-10-14T17:12:49.931Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d1c93bce72e4
   - type: implements
     from: SYM-auto-5E0D46927248
     to: REQ-kb-upsert-keeps-omitted-proof-receipts

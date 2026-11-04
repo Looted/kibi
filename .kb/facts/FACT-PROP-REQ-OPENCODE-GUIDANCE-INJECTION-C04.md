@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_04_the_opencode_plugin_s_guidance_must_include_file_lifecycle_c
+property_key: guidance_has_lifecycle_context
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_guidance_injection.clause_04_the_opencode_plugin_s_guidance_must_include_file_lifecycle_c.eq.true
+canonical_key: req.req_opencode_guidance_injection.guidance_has_lifecycle_context.eq.true
 claim_key: CLAIM-E52D39A5AB954E15
 claim_text: The OpenCode plugin's guidance must include file lifecycle context for created, edited and deleted files
 origin:

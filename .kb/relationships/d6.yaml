@@ -25,27 +25,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-67c90b0e8deb
   - type: implements
-    from: SYM-scripts-runUnitCoverage
-    to: REQ-014
-    created_at: 2026-08-22T20:14:38.527Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6e77cc19dbcf
-  - type: covered_by
-    from: SYM-scripts-runUnitCoverage
-    to: TEST-scripts-unit-coverage-runner
-    created_at: 2026-08-22T20:14:38.539Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-798ad1eaf306
-  - type: covered_by
-    from: SYM-scripts-runUnitCoverage
-    to: TEST-006
-    created_at: 2026-08-22T20:14:38.544Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c0bcd8a9974f
-  - type: implements
     from: SYM-operation-model-requirement-spec
     to: REQ-kibi-operation-interface-parity
     created_at: 2026-08-22T20:29:44.551Z
@@ -94,13 +73,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23f2f2b70699
-  - type: covered_by
-    from: SYM-scripts-runUnitCoverage
-    to: TEST-011
-    created_at: 2026-09-05T14:52:46.048Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f5893c3f8050
   - type: covered_by
     from: SYM-NpmFixtureLive
     to: TEST-014

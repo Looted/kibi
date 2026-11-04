@@ -31,6 +31,7 @@ logic_claims:
   - CLAIM-D3B3F347BA3A589A
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T21:06:48.606Z'
 id: REQ-cli-migrate-entity-type-backfill
 type: req

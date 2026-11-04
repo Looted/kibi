@@ -1,6 +1,6 @@
 ---
 title: Proof receipt maintenance operations run end to end against a packed CLI
-status: active
+status: passing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:

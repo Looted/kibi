@@ -1,7 +1,7 @@
 ---
 id: TEST-vscode-traceability
 title: VS Code extension traceability feature tests
-status: active
+status: passing
 created_at: 2026-02-18T00:00:00.000Z
 updated_at: 2026-03-19T00:00:00.000Z
 priority: must
@@ -20,7 +20,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-vscode-traceability
+    - symbol_id: SYM-e2e-traceability-gate
       target: default
   success_policy: all_required_first_attempt
 type: test

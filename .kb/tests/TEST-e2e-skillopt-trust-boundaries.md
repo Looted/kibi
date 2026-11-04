@@ -1,6 +1,6 @@
 ---
 title: SkillOpt external trust boundaries fail closed through the real CLIs
-status: active
+status: passing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:

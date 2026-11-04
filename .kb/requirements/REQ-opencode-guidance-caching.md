@@ -76,6 +76,7 @@ origin:
   recorded_at: '2026-11-03T11:35:21.000Z'
 firmness: default
 required_evidence: tested
+rationale: "Recomputing guidance on every turn is slow, but stale guidance from another branch or worktree is wrong, so the cache is invalidated on exactly those changes."
 ---
 - The OpenCode plugin must cache enforcement state and guidance context.
 - The OpenCode plugin must invalidate its guidance cache on a branch switch.

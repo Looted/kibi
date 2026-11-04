@@ -1,6 +1,6 @@
 ---
 title: SWI-Prolog pipeline validates artifact boundaries with behavioral controls
-status: active
+status: passing
 tags:
   - prolog
   - build

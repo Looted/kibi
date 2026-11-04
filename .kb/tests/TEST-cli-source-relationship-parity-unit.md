@@ -1,6 +1,6 @@
 ---
 title: CLI source relationship parity unit contract
-status: active
+status: passing
 tags:
   - cli
   - relationships

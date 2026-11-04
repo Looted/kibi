@@ -435,13 +435,6 @@ relationships:
     id: rel-b99cf86fa76d
   - type: requires_predicate
     from: REQ-kibi-happy-path-gap
-    to: FACT-PRED-kibi-happy-path-gap-tested
-    created_at: 2026-10-29T21:56:04.528Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-df95abe38de5
-  - type: requires_predicate
-    from: REQ-kibi-happy-path-gap
     to: FACT-PRED-kibi-happy-path-gap-waiver
     created_at: 2026-10-29T21:56:04.580Z
     created_by: kibi/upsert
@@ -489,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-128fb98582fd
+  - type: requires_property
+    from: REQ-kibi-happy-path-gap
+    to: FACT-kibi-happy-path-gap-success-only-not-tested
+    created_at: 2026-11-04T16:55:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ed430912417
+  - type: constrains
+    from: REQ-kibi-happy-path-gap
+    to: FACT-SUBJ-kibi-proof-gate-failure-side
+    created_at: 2026-11-04T17:05:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac4b6803eab1

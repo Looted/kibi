@@ -930,6 +930,16 @@
     ]
   },
   {
+    "test_id": "TEST-e2e-opencode-v2-plugin-load",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/opencode-plugin.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-opencode-kibi-plugin-v1",
     "steps": [
       [
@@ -2162,6 +2172,16 @@
         "bun",
         "run",
         "documentation/tests/e2e/skillopt-host-neutral-optimization.e2e.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-skillopt-optimizer-toolchain",
+    "steps": [
+      [
+        "bun",
+        "run",
+        "documentation/tests/e2e/skillopt-optimizer-toolchain.e2e.ts"
       ]
     ]
   },

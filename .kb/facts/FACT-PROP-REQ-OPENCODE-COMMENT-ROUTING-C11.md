@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_10_the_opencode_plugin_must_respect_the_guidance_commentdetecti
+property_key: respects_comment_detection_settings
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_comment_routing.clause_10_the_opencode_plugin_must_respect_the_guidance_commentdetecti.eq.true
+canonical_key: req.req_opencode_comment_routing.respects_comment_detection_settings.eq.true
 claim_key: CLAIM-0EFEC9D907D58B65
 claim_text: The OpenCode plugin must respect the guidance.commentDetection.enabled and guidance.commentDetection.minLines settings
 origin:
