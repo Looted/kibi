@@ -165,7 +165,7 @@ describe("main", () => {
     const envFile = path.join(root, "custom.env");
     fs.writeFileSync(envFile, "KIBI_CLI_PURE_PROBE=loaded\n");
     process.env.KIBI_ENV_FILE = envFile;
-    delete process.env.KIBI_CLI_PURE_PROBE;
+    Reflect.deleteProperty(process.env, "KIBI_CLI_PURE_PROBE");
     process.chdir(root);
     process.argv = ["node", "kibi", "status"];
     let during: string | undefined;

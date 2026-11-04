@@ -173,9 +173,9 @@ describe("kibi proof subcommands", () => {
       .find((command) => command.name() === "proof")
       ?.commands.find((command) => command.name() === "prune");
     pruneCommand?.setOptionValue("keep", undefined);
-    pruneCommand?.options.forEach((option) => {
+    for (const option of pruneCommand?.options ?? []) {
       if (option.long === "--keep") option.defaultValue = undefined;
-    });
+    }
     await program.parseAsync(["proof", "prune"], { from: "user" });
     expect(plainCalls(pruneSpy)).toStrictEqual([[{}]]);
   });
