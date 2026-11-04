@@ -2,11 +2,14 @@ import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import * as fs from "node:fs";
 import { mkdirSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import * as agentInstructions from "../../src/commands/agent-instructions.js";
 import * as githubInit from "../../src/commands/github-init.js";
 import * as hookManagers from "../../src/commands/hook-managers.js";
+import * as hooksInstall from "../../src/commands/hooks-install.js";
 import * as initHelpers from "../../src/commands/init-helpers.js";
 import { MANAGED_HOOK_NAMES } from "../../src/commands/init-helpers.js";
 import { initCommand } from "../../src/commands/init.js";
+import * as setupChoices from "../../src/commands/setup-choices.js";
 import * as activation from "../../src/operations/bootstrap/activation.js";
 import * as languageNote from "../../src/plugins/reference-language-suggestion.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
@@ -75,6 +78,9 @@ let state = "root_empty";
 let plugin: string | null = null;
 let legacy = "none";
 let failOn = "";
+let recordedChoices: setupChoices.ResolvedSetupChoices;
+let written: string | null = null;
+let prepare = "present";
 const failure = new Error("disk full");
 
 beforeEach(() => {
@@ -86,6 +92,16 @@ beforeEach(() => {
   plugin = null;
   legacy = "none";
   failOn = "";
+  recordedChoices = {
+    autoSync: true,
+    prepareHooks: true,
+    agentInstructions: false,
+    ciGate: false,
+    source: "setup.json",
+    recorded: {},
+  } as setupChoices.ResolvedSetupChoices;
+  written = null;
+  prepare = "present";
   track(
     spyOn(console, "log").mockImplementation((...args) => {
       logs.push(args.map(String).join(" "));
@@ -114,6 +130,12 @@ beforeEach(() => {
       if (failOn === name) throw failure;
     });
   record(githubInit, "scaffoldGitHubIntegration");
+  record(githubInit, "scaffoldCheckWorkflow");
+  record(setupChoices, "readSetupChoices", () => recordedChoices);
+  record(setupChoices, "writeSetupChoices", () => written);
+  record(hooksInstall, "syncPrepareScript", () => prepare);
+  record(agentInstructions, "writeAgentInstructions", () => "instructions");
+  record(agentInstructions, "reportAgentInstructions");
   record(nodeFilesystem, "glob", async () => ["a.md"]);
   record(activation, "classifyActivation", async () => ({
     activationState: state,
@@ -303,6 +325,8 @@ describe("initCommand infrastructure", () => {
       "updateGitIgnore",
       "copySchemaFiles",
       "ensureSymbolsManifestFile",
+      "readSetupChoices",
+      "writeSetupChoices",
       "glob",
       "classifyActivation",
       "workspaceReferenceLanguageNote",
@@ -354,6 +378,7 @@ describe("initCommand infrastructure", () => {
     expect(errorLines()).toStrictEqual([
       "Warning: No git repository found, skipping hooks",
     ]);
+    expect(named("syncPrepareScript")).toStrictEqual([[root, true]]);
   });
 
   test("completes an existing workspace and keeps its manifest", async () => {
@@ -705,5 +730,166 @@ describe("initCommand hooks directory containment", () => {
     denyRealpath = "*";
     denyLstat = "*";
     expect(await install(context(root))).toBe("refused");
+  });
+});
+
+describe("initCommand setup choices", () => {
+  const RECORDED =
+    "✓ Recorded Kibi setup choices in .kb/setup.json (autoSync: false, prepareHooks: true, agentInstructions: false, ciGate: true)";
+
+  test("explicit flags win over recorded choices and only they are recorded", async () => {
+    const root = tempRoot();
+    resolveTo({ status: "ok", context: context(root) });
+    written = ".kb/setup.json";
+    await initCommand({ autoSync: false, ciGate: true });
+    expect(named("readSetupChoices")).toStrictEqual([[root]]);
+    expect(named("writeSetupChoices")).toStrictEqual([
+      [root, { autoSync: false, ciGate: true }],
+    ]);
+    expect(logs).toContain(RECORDED);
+    expect(named("scaffoldCheckWorkflow")).toStrictEqual([[root]]);
+    expect(named("writeAgentInstructions")).toStrictEqual([]);
+  });
+
+  test("each explicit flag overrides its own recorded choice", async () => {
+    const root = tempRoot();
+    resolveTo({ status: "ok", context: context(root) });
+    recordedChoices = {
+      ...recordedChoices,
+      autoSync: false,
+      prepareHooks: false,
+      ciGate: true,
+    };
+    written = ".kb/setup.json";
+    await initCommand({ prepareHooks: true, agentInstructions: true });
+    expect(named("writeSetupChoices")).toStrictEqual([
+      [root, { prepareHooks: true, agentInstructions: true }],
+    ]);
+    expect(logs).toContain(
+      "✓ Recorded Kibi setup choices in .kb/setup.json (autoSync: false, prepareHooks: true, agentInstructions: true, ciGate: true)",
+    );
+    expect(named("writeAgentInstructions")).toStrictEqual([[root]]);
+    expect(named("reportAgentInstructions")).toStrictEqual([["instructions"]]);
+    expect(named("scaffoldCheckWorkflow")).toStrictEqual([[root]]);
+  });
+
+  test("recorded choices apply when no flag is given", async () => {
+    const root = tempRoot();
+    resolveTo({ status: "ok", context: context(root) });
+    recordedChoices = {
+      ...recordedChoices,
+      agentInstructions: true,
+      ciGate: false,
+    };
+    await initCommand({});
+    expect(named("writeSetupChoices")).toStrictEqual([[root, {}]]);
+    expect(logs.some((line) => line.startsWith("✓ Recorded"))).toBe(false);
+    expect(named("writeAgentInstructions")).toStrictEqual([[root]]);
+    expect(named("scaffoldCheckWorkflow")).toStrictEqual([]);
+  });
+
+  test("a repository with no recorded choices records every choice", async () => {
+    const root = tempRoot();
+    resolveTo({ status: "ok", context: context(root) });
+    recordedChoices = {
+      ...recordedChoices,
+      source: "defaults",
+    } as setupChoices.ResolvedSetupChoices;
+    await initCommand({ ciGate: true });
+    expect(named("writeSetupChoices")).toStrictEqual([
+      [
+        root,
+        {
+          autoSync: true,
+          prepareHooks: true,
+          agentInstructions: false,
+          ciGate: true,
+        },
+      ],
+    ]);
+  });
+
+  test("a failed write is a warning and the run continues", async () => {
+    const root = tempRoot();
+    resolveTo({ status: "ok", context: context(root) });
+    record(setupChoices, "writeSetupChoices", () => {
+      throw new Error("read-only");
+    });
+    expect(await initCommand({ ciGate: true })).toStrictEqual({ exitCode: 0 });
+    expect(errorLines()).toStrictEqual([
+      "Warning: could not record Kibi setup choices (read-only); this run used them without recording.",
+    ]);
+    expect(logs.some((line) => line.startsWith("✓ Recorded"))).toBe(false);
+    expect(named("scaffoldCheckWorkflow")).toStrictEqual([[root]]);
+  });
+});
+
+describe("initCommand prepare script", () => {
+  const ADDED =
+    "✓ Added Kibi's hook install to the package.json prepare script, so every install of this repository's dependencies installs the hooks";
+  const REMOVED =
+    "✓ Removed Kibi's hook install from the package.json prepare script (prepareHooks: false)";
+  const NO_PACKAGE =
+    "  No package.json at the repository root: each clone installs Kibi's hooks with 'kibi init'.";
+  const UNREADABLE =
+    "Warning: package.json could not be parsed; Kibi's hook install was not added to its prepare script.";
+
+  test("reports each prepare script outcome", async () => {
+    const root = tempRoot();
+    resolveTo({ status: "ok", context: context(root) });
+    record(hookManagers, "detectHookManager", () => null);
+    const cases: Array<[string, boolean, string[], string[]]> = [
+      ["added", true, [ADDED], []],
+      ["appended", true, [ADDED], []],
+      ["removed", false, [REMOVED], []],
+      ["no-package-json", true, [NO_PACKAGE], []],
+      ["no-package-json", false, [], []],
+      ["unreadable-package-json", true, [], [UNREADABLE]],
+      ["present", true, [], []],
+      ["absent", false, [], []],
+    ];
+    for (const [outcome, enabled, extraLogs, extraErrors] of cases) {
+      logs = [];
+      errors = [];
+      calls.length = 0;
+      prepare = outcome;
+      recordedChoices = { ...recordedChoices, prepareHooks: enabled };
+      await initCommand({ hooks: true });
+      expect(named("syncPrepareScript")).toStrictEqual([[root, enabled]]);
+      expect(logs).toStrictEqual([...extraLogs, ...DONE, BOOTSTRAP, DOCTOR]);
+      expect(errorLines()).toStrictEqual(extraErrors);
+    }
+  });
+
+  test("runs after a refused hooks directory", async () => {
+    const outside = tempRoot();
+    const root = tempRoot();
+    resolveTo({
+      status: "ok",
+      context: context(root, { effectiveHooksDir: path.join(outside, "h") }),
+    });
+    record(hookManagers, "detectHookManager", () => null);
+    await initCommand({ hooks: true });
+    expect(named("installGitHooks")).toStrictEqual([]);
+    expect(named("syncPrepareScript")).toStrictEqual([[root, true]]);
+  });
+
+  test("leaves the prepare script to a hook manager", async () => {
+    const root = tempRoot();
+    resolveTo({ status: "ok", context: context(root) });
+    record(hookManagers, "detectHookManager", () => ({
+      name: "husky",
+      configPath: ".husky",
+    }));
+    record(hookManagers, "hookManagerCoverage", () => []);
+    await initCommand({ hooks: true });
+    expect(named("syncPrepareScript")).toStrictEqual([]);
+  });
+
+  test("is untouched unless hooks are requested", async () => {
+    const root = tempRoot();
+    resolveTo({ status: "ok", context: context(root) });
+    await initCommand({});
+    expect(named("syncPrepareScript")).toStrictEqual([]);
   });
 });

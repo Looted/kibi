@@ -57,6 +57,7 @@ import {
   updateGitIgnore,
 } from "./init-helpers.js";
 import {
+  SETUP_CHOICE_NAMES,
   type SetupChoices,
   readSetupChoices,
   writeSetupChoices,
@@ -89,12 +90,7 @@ function settleSetupChoices(
   options: InitOptions,
 ): SetupChoices {
   const explicit: Partial<Record<keyof SetupChoices, boolean>> = {};
-  for (const name of [
-    "autoSync",
-    "prepareHooks",
-    "agentInstructions",
-    "ciGate",
-  ] as const) {
+  for (const name of SETUP_CHOICE_NAMES) {
     if (options[name] !== undefined) explicit[name] = options[name];
   }
   const recorded = readSetupChoices(projectRoot);
@@ -153,9 +149,6 @@ function reconcilePrepareScript(
       console.error(
         "Warning: package.json could not be parsed; Kibi's hook install was not added to its prepare script.",
       );
-      return;
-    default:
-      return;
   }
 }
 
