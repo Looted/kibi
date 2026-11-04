@@ -76,7 +76,11 @@ describe("initCommand repository refusals", () => {
       reason: "dubious ownership",
     } as never);
     const io = captureConsole();
-    expect(await initCommand({})).toStrictEqual({ exitCode: 1 });
+    // From a scratch workspace: an init that ignored the refusal must not
+    // write into the checkout running the tests.
+    expect(await withCwd(workspace(), () => initCommand({}))).toStrictEqual({
+      exitCode: 1,
+    });
     expect(io.errors).toStrictEqual([
       "Error: dubious ownership",
       "Kibi cannot verify this directory's Git context; refusing to create workspace state.",
@@ -89,7 +93,11 @@ describe("initCommand repository refusals", () => {
       reason: "bare repository",
     } as never);
     const io = captureConsole();
-    expect(await initCommand({})).toStrictEqual({ exitCode: 1 });
+    // From a scratch workspace: an init that ignored the refusal must not
+    // write into the checkout running the tests.
+    expect(await withCwd(workspace(), () => initCommand({}))).toStrictEqual({
+      exitCode: 1,
+    });
     expect(io.errors).toStrictEqual([
       "Error: bare repository",
       "Kibi requires a working-tree checkout; refusing to create workspace state.",

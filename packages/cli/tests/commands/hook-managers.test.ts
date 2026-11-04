@@ -84,7 +84,11 @@ describe("existing git hook managers", () => {
   async function printHook(hook: string, format?: string) {
     const io = captureIo({ stdio: true });
     try {
-      const result = await initCommand({ printHook: hook, format });
+      // A scratch workspace, so a run that does not stop at --print-hook
+      // (a mutant, say) cannot write into the checkout running the tests.
+      const result = await withCwd(workspace(), () =>
+        initCommand({ printHook: hook, format }),
+      );
       return { result, out: io.stdout.join(""), err: io.errorText() };
     } finally {
       io.restore();
@@ -181,7 +185,9 @@ describe("existing git hook managers", () => {
 
       const io = captureIo();
       restores.push(io.restore);
-      const orphan = await initCommand({ format: "lefthook" });
+      const orphan = await withCwd(workspace(), () =>
+        initCommand({ format: "lefthook" }),
+      );
       expect(orphan.exitCode).toBe(1);
       expect(io.errorText()).toContain("--format applies only to --print-hook");
     });
