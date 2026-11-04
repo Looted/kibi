@@ -607,6 +607,65 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/commands/hooks-install.ts": [
     "packages/cli/tests/commands/hooks-install-mutation.test.ts",
   ],
+  "packages/cli/src/traceability/staged-consistency.ts": [
+    "packages/cli/tests/traceability/staged-consistency-mutation.test.ts",
+  ],
+  "packages/cli/src/traceability/validate.ts": [
+    "packages/cli/tests/traceability/validate.test.ts",
+  ],
+  "packages/cli/src/plugins/resolve-package.ts": [
+    "packages/cli/tests/plugins/resolve-package.test.ts",
+  ],
+  "packages/cli/src/plugins/maintenance-source-analysis.ts": [
+    "packages/cli/tests/plugins/maintenance-source-analysis-mutation.test.ts",
+    "packages/cli/tests/plugins/maintenance-source-analysis.test.ts",
+    "packages/cli/tests/plugins/maintenance-source-closure.test.ts",
+  ],
+  "packages/cli/src/plugins/compose-ontology-packs.ts": [
+    "packages/cli/tests/plugins/compose-ontology-packs.test.ts",
+  ],
+  "packages/cli/src/traceability/staged-file-coverage.ts": [
+    "packages/cli/tests/traceability/staged-file-coverage-mutation.test.ts",
+  ],
+  "packages/cli/src/traceability/git-staged.ts": [
+    "packages/cli/tests/traceability/git-staged-mutation.test.ts",
+  ],
+  "packages/cli/src/traceability/impact-evaluator.ts": [
+    "packages/cli/tests/traceability/impact-evaluator-mutation.test.ts",
+  ],
+  "packages/cli/src/traceability/symbol-extract.ts": [
+    "packages/cli/tests/traceability/symbol-extract-mutation.test.ts",
+  ],
+  "packages/cli/src/plugins/reference-language-suggestion.ts": [
+    "packages/cli/tests/plugins/language-pack-relevance.test.ts",
+    "packages/cli/tests/plugins/language-pack-suggestion.test.ts",
+    "packages/cli/tests/plugins/reference-language-suggestion-mutation.test.ts",
+    "packages/cli/tests/plugins/reference-language-suggestion-units.test.ts",
+    "packages/cli/tests/plugins/reference-language-workspace.test.ts",
+  ],
+  "packages/cli/src/traceability/impact-review.ts": [
+    "packages/cli/tests/traceability/impact-review-parse.test.ts",
+  ],
+  "packages/cli/src/plugins/source-classification.ts": [
+    "packages/cli/tests/plugins/source-classification.test.ts",
+    "packages/cli/tests/plugins/source-classification-cases.test.ts",
+  ],
+  "packages/cli/src/traceability/staged-symbols-manifest.ts": [
+    "packages/cli/tests/traceability/staged-symbols-manifest-mutation.test.ts",
+  ],
+  "packages/cli/src/plugins/registry.ts": [
+    "packages/cli/tests/plugins/registry-mutation.test.ts",
+  ],
+  "packages/cli/src/plugins/source-analysis-service.ts": [
+    "packages/cli/tests/plugins/source-analysis-service-units.test.ts",
+    "packages/cli/tests/plugins/source-analysis-service-mutation.test.ts",
+  ],
+  "packages/cli/src/traceability/temp-kb.ts": [
+    "packages/cli/tests/traceability/temp-kb-mutation.test.ts",
+  ],
+  "packages/cli/src/traceability/git-change-snapshot.ts": [
+    "packages/cli/tests/traceability/git-change-snapshot-mutation.test.ts",
+  ],
 };
 
 // Plugin package modules gated the same way: each with the hermetic tests of
