@@ -44,9 +44,10 @@ function captureConsole(): { logs: string[]; errors: string[] } {
 describe("initCommand --print-hook", () => {
   test("rejects an unknown hook", async () => {
     const io = captureConsole();
-    expect(await initCommand({ printHook: "pre-push" })).toStrictEqual({
-      exitCode: 1,
-    });
+    const root = workspace();
+    expect(
+      await withCwd(root, () => initCommand({ printHook: "pre-push" })),
+    ).toStrictEqual({ exitCode: 1 });
     expect(io.errors).toStrictEqual([
       "Error: unknown hook 'pre-push' for --print-hook. Expected one of: post-checkout, post-merge, post-rewrite, pre-commit, all.",
     ]);
@@ -58,7 +59,10 @@ describe("initCommand --print-hook", () => {
       out.push(String(chunk));
       return true;
     });
-    const result = await initCommand({ printHook: "post-merge" });
+    const root = workspace();
+    const result = await withCwd(root, () =>
+      initCommand({ printHook: "post-merge" }),
+    );
     mock.restore();
     expect(result).toStrictEqual({ exitCode: 0 });
     expect(out.join("")).toContain("sync");

@@ -102,6 +102,8 @@ beforeEach(() => {
   } as setupChoices.ResolvedSetupChoices;
   written = null;
   prepare = "present";
+  // A mutant that skips an early return must not reach the real checkout.
+  track(spyOn(process, "cwd").mockReturnValue(tempRoot()));
   track(
     spyOn(console, "log").mockImplementation((...args) => {
       logs.push(args.map(String).join(" "));
