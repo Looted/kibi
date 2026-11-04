@@ -11302,6 +11302,16 @@ test(a_decision_witness_names_the_project_schema, [setup(setup_kb), cleanup(clea
         argument_types=[atom, atom, atom, atom],
         key_arguments=[role, action, resource]
     ]),
+    % A schema of the same name with another arity is not this predicate's.
+    assert_fixture_entity(fact, 'FACT-PERMISSION-SCHEMA-3', "Permission schema of arity 3", active, [
+        fact_kind=predicate_schema,
+        predicate_name="permission_rule",
+        predicate_namespace="default",
+        predicate_arity=3,
+        argument_names=[role, action, resource],
+        argument_types=[atom, atom, atom],
+        key_arguments=[role, action]
+    ]),
     ks_decision_req('REQ-SCHEMA-ALLOW', ["coach", "read", "schema_request", "allow"], assert, "CLAIM-FFFFFFFFFFFFFFF3"),
     ks_decision_req('REQ-SCHEMA-DENY', ["coach", "read", "schema_request", "deny"], deny, "CLAIM-FFFFFFFFFFFFFFF4"),
     req_conflict_witness('REQ-SCHEMA-ALLOW', 'REQ-SCHEMA-DENY', Witness),
@@ -12379,6 +12389,24 @@ test(a_journaled_audit_event_records_its_time, [setup(cleanup_test_kb), cleanup(
     parse_time(Text, iso_8601, Stamp),
     assertion(Stamp >= floor(Before)),
     assertion(Stamp =< ceiling(After)).
+
+test(a_reopened_journaled_store_continues_its_audit_numbering, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(Dir),
+    ks_assert(req, 'REQ-AUDIT-SEQ-1'),
+    ks_assert(req, 'REQ-AUDIT-SEQ-2'),
+    kb_detach,
+    kb_attach(Dir),
+    ks_assert(req, 'REQ-AUDIT-SEQ-3'),
+    kb:kb_graph(Graph),
+    findall(Sequence,
+            ( rdf(Audit, 'urn:kibi:audit/operation', _, Graph),
+              atomic_list_concat(Parts, '-', Audit),
+              last(Parts, Last),
+              atom_number(Last, Sequence)
+            ),
+            Sequences0),
+    msort(Sequences0, Sequences),
+    assertion(Sequences == [1, 2, 3]).
 
 test(saving_a_journaled_store_needs_no_attachment) :-
     assertion(\+ kb:kb_attached(_)),
