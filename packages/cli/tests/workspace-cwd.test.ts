@@ -62,6 +62,11 @@ describe("resolveWorkspaceCwd", () => {
     ).toBe(sub);
   });
 
+  test("a .kb directory without a manifest is not a KB root", () => {
+    fs.mkdirSync(path.join(sub, ".kb"));
+    expect(resolveWorkspaceCwd(argv("status"), sub, {}).cwd).toBe(root);
+  });
+
   test("outside any KB nothing changes", () => {
     const outside = fs.realpathSync(
       fs.mkdtempSync(path.join(os.tmpdir(), "kibi-cwd-none-")),
