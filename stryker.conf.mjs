@@ -392,7 +392,6 @@ export const CLI_MUTATION_MODULES = {
   ],
   "packages/cli/src/prolog/codec.ts": [
     "packages/cli/tests/prolog/codec-mutation.test.ts",
-    "packages/cli/tests/prolog-codec.test.ts",
     "packages/cli/tests/prolog/codec.test.ts",
     "packages/cli/tests/prolog/codec-literal-edges.test.ts",
     "packages/cli/tests/prolog/codec-coverage.test.ts",
