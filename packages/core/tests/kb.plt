@@ -11011,7 +11011,9 @@ test(structured_fields_decode_once) :-
            ( deterministic(kb:literal_to_value(Key, "[1]"^^String, Value)),
              assertion(Value == "[1]") )),
     deterministic(kb:literal_to_value(title, "[1]"^^String, Parsed)),
-    assertion(Parsed == [1]).
+    assertion(Parsed == [1]),
+    kb:literal_to_value(title, '[2]'^^String, FromAtom),
+    assertion(FromAtom == [2]).
 
 test(structured_literal_values_unwrap_once) :-
     forall(member(Literal-Expected,
