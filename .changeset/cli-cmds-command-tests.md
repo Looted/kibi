@@ -25,3 +25,5 @@ Source discovery reads pending receipts through one parser and lets errors in a 
 `kibi init --github` derives workflow paths from one table and simplifies README badge placement; the README output is unchanged.
 
 The sync cache reader shares one empty-cache shape and one optional-field list, and the manifest fingerprint reads symbol sources with fewer redundant guards; fingerprints and cache files are unchanged.
+
+Hook manager detection reads lefthook and pre-commit configuration through one parser and drops stage aliases no managed hook uses; detection and coverage results are unchanged.
