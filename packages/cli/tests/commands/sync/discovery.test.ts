@@ -1,5 +1,12 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 
+// mock.module replaces these modules for every later test file in the same
+// process too, so the real ones are put back after this file's tests.
+const realFastGlob = { ...(await import("fast-glob")) };
+const realRelationships = {
+  ...(await import("../../../src/extractors/relationships.js")),
+};
+
 const fgMock = mock(
   async (
     ..._args: [
@@ -66,6 +73,11 @@ describe("discoverSourceFiles", () => {
 
   afterAll(() => {
     mock.restore();
+    mock.module("fast-glob", () => realFastGlob);
+    mock.module(
+      "../../../src/extractors/relationships.js",
+      () => realRelationships,
+    );
   });
 
   test("globs canonical .kb/ lanes regardless of leftover path arguments", async () => {
