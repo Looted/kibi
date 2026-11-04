@@ -1,6 +1,21 @@
-import { describe, expect, mock, test } from "bun:test";
+import { afterEach, describe, expect, mock, test } from "bun:test";
+import { execFileSync } from "node:child_process";
+import {
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
-import type { PrologPort, RuntimeOperationSpec } from "kibi-runtime";
+import {
+  type PrologPort,
+  type RuntimeOperationSpec,
+  ensureBranchStoreCompiled,
+  resolveBranchAttachment,
+} from "kibi-runtime";
 import {
   type McpSession,
   createMcpRuntime,
@@ -19,7 +34,7 @@ const writeSpec: RuntimeOperationSpec<Record<string, never>, void> = {
   effects: ["kb-write"],
 };
 
-function createSession(): {
+function createSession(workspaceRoot = "/workspace"): {
   readonly session: McpSession;
   readonly prolog: PrologPort;
   readonly ensureProlog: ReturnType<typeof mock>;
@@ -35,7 +50,7 @@ function createSession(): {
   const refreshAttachedBranchStamp = mock(async () => undefined);
   const requestCleanup = mock(async () => undefined);
   const session: McpSession = {
-    workspaceRoot: "/workspace",
+    workspaceRoot,
     activeBranchName: () => "feature/runtime",
     attachedBranchKbPath: () => "/workspace/.kb/branches/feature/runtime",
     ensureProlog,
@@ -110,4 +125,73 @@ describe("MCP operation runtime", () => {
     expect(fixture.requestCleanup).toHaveBeenCalledTimes(1);
     expect(fixture.ensureProlog).toHaveBeenCalledTimes(1);
   });
+});
+
+const KIBI_CLI = path.resolve(import.meta.dir, "../../../cli/bin/kibi");
+const workspaces: string[] = [];
+afterEach(() => {
+  for (const dir of workspaces.splice(0)) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+/** A committed main branch with one requirement, then a hook-less branch. */
+function freshBranchWorkspace(): string {
+  const dir = realpathSync(
+    mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-runtime-fresh-")),
+  );
+  workspaces.push(dir);
+  const run = (command: string, args: string[]) =>
+    execFileSync(command, args, { cwd: dir, stdio: "pipe", timeout: 120_000 });
+  const git = (...args: string[]) =>
+    run("git", [
+      "-c",
+      "user.email=runtime@example.com",
+      "-c",
+      "user.name=Runtime",
+      "-c",
+      "commit.gpgsign=false",
+      "-c",
+      "core.hooksPath=/dev/null",
+      ...args,
+    ]);
+  git("init", "-q", "-b", "main");
+  run("node", [KIBI_CLI, "init", "--no-prepare-hooks"]);
+  mkdirSync(path.join(dir, ".kb", "requirements"), { recursive: true });
+  writeFileSync(
+    path.join(dir, ".kb", "requirements", "REQ-demo.md"),
+    "---\nid: REQ-demo\ntitle: Demo\nstatus: open\n---\n## Context\n\nA demo requirement.\n",
+  );
+  run("node", [KIBI_CLI, "sync"]);
+  git("add", "-A");
+  git("commit", "-qm", "kb");
+  git("checkout", "-q", "-b", "feature/fresh");
+  return dir;
+}
+
+/** Whether this branch's store still needs compiling, without compiling it. */
+async function storeState(root: string): Promise<string> {
+  const attachment = resolveBranchAttachment(root);
+  if ("error" in attachment) throw new Error(attachment.error);
+  return ensureBranchStoreCompiled(
+    root,
+    attachment,
+    { name: "kb_query" },
+    {
+      KIBI_AUTO_SYNC: "0",
+    },
+  );
+}
+
+describe("MCP operation runtime on a never-compiled branch store", () => {
+  // implements REQ-kibi-fresh-clone-setup
+  test("compiles the store before a Prolog-backed operation", async () => {
+    const root = freshBranchWorkspace();
+    expect(await storeState(root)).toBe("disabled");
+
+    const fixture = createSession(root);
+    await createMcpRuntime(fixture.session).open(readSpec);
+
+    expect(await storeState(root)).toBe("not-needed");
+  }, 240_000);
 });

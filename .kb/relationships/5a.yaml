@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75b27e1d32fb
+  - type: implements
+    from: SYM-checkout-hooks-has-kibi-pre-commit-gate
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:21.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2091a93541e4
+  - type: covered_by
+    from: SYM-checkout-hooks-has-kibi-pre-commit-gate
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:21.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f72aaf8d01cc

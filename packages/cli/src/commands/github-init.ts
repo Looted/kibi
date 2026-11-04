@@ -33,6 +33,8 @@ const __dirname = path.dirname(__filename);
 export const GITHUB_REPORT_WORKFLOW_RELPATH =
   ".github/workflows/kibi-report.yml";
 export const GITHUB_BADGE_WORKFLOW_RELPATH = ".github/workflows/kibi-badge.yml";
+// implements REQ-kibi-fresh-clone-setup
+export const GITHUB_CHECK_WORKFLOW_RELPATH = ".github/workflows/kibi-check.yml";
 export const GITHUB_PAGES_NAMESPACE = "kibi-report";
 export const KIBI_BADGE_ALT = "Kibi requirement health";
 export const KIBI_METRIC_DOCS_URL =
@@ -59,7 +61,7 @@ export type GitHubPagesUrls = Readonly<{
   badgeUrl: string;
 }>;
 
-export type GitHubWorkflowKind = "report" | "badge";
+export type GitHubWorkflowKind = "report" | "badge" | "check";
 
 export type WorkflowWriteStatus = "created" | "unchanged" | "conflict";
 export type ReadmeWriteStatus =
@@ -88,6 +90,17 @@ export type GitHubScaffoldResult = Readonly<{
   repo: GitHubRepo | undefined;
 }>;
 
+function workflowRelativePath(kind: GitHubWorkflowKind): string {
+  switch (kind) {
+    case "badge":
+      return GITHUB_BADGE_WORKFLOW_RELPATH;
+    case "check":
+      return GITHUB_CHECK_WORKFLOW_RELPATH;
+    case "report":
+      return GITHUB_REPORT_WORKFLOW_RELPATH;
+  }
+}
+
 // implements REQ-kibi-github-report-integration
 export function githubTemplateDir(): string {
   return path.resolve(__dirname, "..", "..", "templates", "github");
@@ -96,7 +109,7 @@ export function githubTemplateDir(): string {
 export function githubWorkflowTemplateFileName(
   kind: GitHubWorkflowKind,
 ): string {
-  return kind === "badge" ? "kibi-badge.yml" : "kibi-report.yml";
+  return path.basename(workflowRelativePath(kind));
 }
 
 export function loadGitHubWorkflowTemplate(kind: GitHubWorkflowKind): string {
@@ -264,11 +277,7 @@ export function writeGitHubWorkflow(
   kind: GitHubWorkflowKind,
   template: string,
 ): WorkflowWriteStatus {
-  const relativePath =
-    kind === "badge"
-      ? GITHUB_BADGE_WORKFLOW_RELPATH
-      : GITHUB_REPORT_WORKFLOW_RELPATH;
-  const dest = path.join(cwd, relativePath);
+  const dest = path.join(cwd, workflowRelativePath(kind));
   const normalizedTemplate = normalizeNewlines(template);
   if (existsSync(dest)) {
     const existing = normalizeNewlines(readFileSync(dest, "utf8"));
@@ -465,4 +474,33 @@ function insertLine(
     ...suffixBlank,
     ...after,
   ].join(newline);
+}
+
+/**
+ * The pull-request gate workflow (`kibi init --ci-gate`): `kibi check` on
+ * every pull request, the one gate that does not depend on what a
+ * contributor's checkout has installed. Never overwrites a workflow the
+ * project changed.
+ */
+// implements REQ-kibi-fresh-clone-setup
+export function scaffoldCheckWorkflow(
+  cwd: string,
+  deps: Pick<GitHubInitDeps, "log" | "error"> = {},
+): WorkflowWriteStatus {
+  const log = deps.log ?? ((message: string) => console.log(message));
+  const error = deps.error ?? ((message: string) => console.error(message));
+  const status = writeGitHubWorkflow(
+    cwd,
+    "check",
+    loadGitHubWorkflowTemplate("check"),
+  );
+  if (status === "created")
+    log(
+      `✓ Added ${GITHUB_CHECK_WORKFLOW_RELPATH}: pull requests must pass kibi check`,
+    );
+  else if (status === "conflict")
+    error(
+      `Warning: ${GITHUB_CHECK_WORKFLOW_RELPATH} already exists and differs from the Kibi template; left untouched.`,
+    );
+  return status;
 }

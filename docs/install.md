@@ -186,6 +186,16 @@ After installing the packages, use this short path:
 3. After approval, the agent passes the unchanged returned plan to `kb_apply_plan`, then runs `kb_check` and `kb_status`.
 4. Continue normal work with the seeded Kibi context. Use `kibi doctor` only when typed status says infrastructure is degraded.
 
+### Fresh clones and new machines
+
+`kibi init` runs once per repository, but `.git/hooks`, the compiled branch store and agent plugins never travel with a clone. So that a teammate's or an agent's fresh clone still uses Kibi, `kibi init` also:
+
+- writes a Kibi section into `AGENTS.md` and an `@AGENTS.md` import into `CLAUDE.md`, so every coding agent, with or without a Kibi plugin, is told the knowledge base exists and how to query it;
+- adds `kibi hooks install --quiet` to the root `package.json` `prepare` script, so installing dependencies installs the hooks (without a root `package.json`, run `kibi hooks install` after cloning);
+- records these choices in `package.json` `kibi.setup` (or `.kb/setup.json`).
+
+The first Kibi query, check or write in a clone compiles the branch store from the committed sources, and agent plugins tell the agent at session start when the hooks are missing. Each piece can be turned off; see [setup choices](cli-reference.md#setup-choices). An optional pull-request gate (`kibi init --ci-gate`) runs `kibi check` in CI, where no local hook can.
+
 ### Existing Git hooks and hook managers
 
 Git runs one script per hook, so Kibi and another tool cannot both own

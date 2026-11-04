@@ -1,0 +1,43 @@
+# Kibi pull-request gate: the same validation the pre-commit hook runs,
+# for every pull request, whatever the contributor's machine had installed.
+#
+# Copy this file to .github/workflows/kibi-check.yml (kibi init --ci-gate
+# writes it). It fails a pull request whose KB does not pass kibi check, so
+# run `kibi check` locally first: an existing violation fails the first run.
+# Use the unprivileged pull_request event so untrusted PR code cannot
+# inherit secrets.
+#
+# Package manager: this example uses npm (`cache: npm` and `npm ci`).
+# For pnpm, Yarn, or Bun, change those two values; see
+# https://github.com/Looted/kibi/blob/develop/docs/github-integration.md
+
+name: Kibi check
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# GitHub Actions checkouts are detached. Kibi requires an exact branch
+# identity, so this must be set before kibi sync and kibi check.
+env:
+  KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}
+
+concurrency:
+  group: kibi-check-${{ github.event.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm exec -- kibi sync
+      - run: npm exec -- kibi check

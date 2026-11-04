@@ -7303,5 +7303,20 @@
         "retries a front-matter relationship"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-fresh-clone-setup",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "180000",
+        "./packages/cli/tests/commands/fresh-clone-setup.test.ts",
+        "./packages/cli/tests/consumer/fresh-branch-store.test.ts",
+        "./packages/agent-core/tests/checkout-hooks.test.ts",
+        "./packages/mcp/tests/server/fresh-branch-store-consumer.test.ts"
+      ]
+    ]
   }
 ]

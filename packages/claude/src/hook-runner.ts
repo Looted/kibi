@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 // implements REQ-claude-code-kibi-plugin-v1
-import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { spawnSync } from "node:child_process";
 import {
   commandEditPaths,
   commandFilePaths,
@@ -15,6 +13,10 @@ import {
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import type { HookInput } from "./hook-input.js";
 
+import {
+  hasKibiPreCommitGate,
+  missingHooksNote,
+} from "kibi-agent-core/checkout-hooks";
 import {
   CONFIRM_FIRM_EDITS_ENV,
   confirmFirmEdits,
@@ -720,26 +722,6 @@ function recordKbUsage(
   }
 }
 
-/** True when the repository's pre-commit hook runs Kibi's staged check. */
-function hasKibiPreCommitGate(workspaceRoot: string): boolean {
-  const resolved = spawnSync(
-    "git",
-    ["rev-parse", "--git-path", "hooks/pre-commit"],
-    { cwd: workspaceRoot, encoding: "utf8", timeout: 2000 },
-  );
-  // A successful rev-parse always prints the path.
-  const hookPath =
-    resolved.status === 0
-      ? path.resolve(workspaceRoot, resolved.stdout.trim())
-      : path.join(workspaceRoot, ".git", "hooks", "pre-commit");
-  try {
-    return /kibi[^\n]*\bcheck\b/.test(String(fs.readFileSync(hookPath)));
-  } catch {
-    // No hook file.
-  }
-  return false;
-}
-
 function postToolUse(
   input: HookInput,
   workspace: Workspace,
@@ -959,9 +941,15 @@ function dispatchHook(
       if (input.source === "compact" || input.source === "clear") {
         appendSessionEvents(workspace.stateDir, [{ kind: "context_reset" }]);
       }
+      // implements REQ-kibi-fresh-clone-setup
       return context(
         "SessionStart",
-        sessionStartContext(linkedFileCount(workspace.index())),
+        [
+          sessionStartContext(linkedFileCount(workspace.index())),
+          missingHooksNote(workspace.root),
+        ]
+          .filter((line): line is string => line !== null)
+          .join("\n"),
       );
     case "UserPromptSubmit":
       return userPromptSubmit(input, workspace, trace);

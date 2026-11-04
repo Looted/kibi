@@ -3,6 +3,7 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   captureReminder,
@@ -371,7 +372,13 @@ export async function runHook(
     switch (input.event) {
       case "SessionStart":
         trace.action = "session_start";
-        return contextResult(input.event, SESSION_START_CONTEXT);
+        // implements REQ-kibi-fresh-clone-setup
+        return contextResult(
+          input.event,
+          [SESSION_START_CONTEXT, missingHooksNote(workspace.root)]
+            .filter((line): line is string => line !== null)
+            .join("\n"),
+        );
 
       // implements REQ-agent-hosts-decision-guard
       case "UserPromptSubmit": {

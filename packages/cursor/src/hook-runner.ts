@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   captureReminder,
@@ -326,7 +327,11 @@ export async function runHook(
             initialState.mcpState,
             workspaceTrusted,
           );
-          return advisory ? { additional_context: advisory } : emptyResult();
+          // implements REQ-kibi-fresh-clone-setup
+          const context = [advisory, missingHooksNote(cwd)]
+            .filter((line): line is string => Boolean(line))
+            .join("\n");
+          return context ? { additional_context: context } : emptyResult();
         }
 
       case "preToolUse": {

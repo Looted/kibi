@@ -92,16 +92,14 @@ export function recordMcpToolTelemetry(input: {
         : input.status === "error"
           ? resultErrorCode(input.result)
           : undefined,
-    errorClass:
-      input.error !== undefined
-        ? (telemetryErrorClass(input.error) ?? undefined)
-        : undefined,
+    // No thrown error has no class.
+    errorClass: telemetryErrorClass(input.error) ?? undefined,
     // implements REQ-kibi-telemetry-agent-signals
     signals: operationTelemetrySignals({
       operation: input.operation,
       args: input.args,
       result: input.result,
-      ...(input.error !== undefined ? { error: input.error } : {}),
+      error: input.error,
     }),
   });
 }
