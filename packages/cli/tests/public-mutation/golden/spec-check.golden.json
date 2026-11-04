@@ -1,0 +1,114 @@
+{
+  "name": "kb_check",
+  "cliName": "check",
+  "description": "Run KB validation rules and return violations, quality diagnostics, and typed kibi.migration-plan.v2 actions. Use before or after mutations and after source edits; checks remain read-only and never infer or apply actions from prose suggestions.",
+  "businessInputSchema": {
+    "type": "object",
+    "properties": {
+      "rules": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "must-priority-coverage",
+            "symbol-coverage",
+            "symbol-traceability",
+            "symbol-granularity",
+            "symbol-coordinates-missing",
+            "no-dangling-refs",
+            "source-relationship-parity",
+            "branch-store-not-compiled",
+            "source-path-dangling",
+            "no-cycles",
+            "required-fields",
+            "deprecated-adr-no-successor",
+            "superseded-requirement-open",
+            "scenario-feasibility",
+            "scenario-feasibility-unknown",
+            "scenario-outcome-mismatch",
+            "exception-claim-keys",
+            "numeric-string-value",
+            "rule-key-arguments-missing",
+            "domain-contradictions",
+            "logic-coverage",
+            "rule-safety",
+            "rule-verifiability",
+            "query-plan-safety",
+            "req-status-vocabulary",
+            "strict-fact-shape",
+            "strict-req-fact-pairing",
+            "predicate-verifiability",
+            "strict-readiness",
+            "semantic-completeness",
+            "related-requirement-unmodeled",
+            "proof-contract-symbols",
+            "entity-id-style",
+            "domain-redundancy",
+            "domain-implication",
+            "subject-key-identity",
+            "subject-key-shape",
+            "ontology-quality",
+            "exception-unapproved",
+            "exception-approval-self-attested",
+            "agent-requirement-unapproved",
+            "requirement-rationale-missing",
+            "symbol-owner-superseded",
+            "adr-unlinked",
+            "adr-proposed",
+            "predicate-schema-conformance",
+            "entity-context-missing",
+            "entity-context-acknowledged",
+            "decision-firm-unreferenced",
+            "decision-firm-superseded",
+            "decision-firm-edited",
+            "supersedes-reason-missing",
+            "supersedes-reason-acknowledged",
+            "policy-ownership",
+            "policy-markers",
+            "kb-consistency",
+            "kb-consistency-unresolved",
+            "evidence-floor",
+            "proof-contract-claims"
+          ]
+        },
+        "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, symbol-coordinates-missing, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, scenario-outcome-mismatch, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved, evidence-floor, proof-contract-claims. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan."
+      },
+      "sourceFiles": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Optional repo-relative source files to inspect for early impact diagnostics. Use with includeImpactDiagnostics after meaningful source edits."
+      },
+      "staged": {
+        "type": "boolean",
+        "description": "When true, inspect staged source changes for impact diagnostics using the shared CLI impact analyzer without shelling out to kibi check."
+      },
+      "includeWorkingTreeDiff": {
+        "type": "boolean",
+        "description": "When true, inspect current unstaged working-tree diffs for impact diagnostics. Pair with sourceFiles to scope the analysis."
+      },
+      "includeImpactDiagnostics": {
+        "type": "boolean",
+        "description": "When true, include changed-file impact diagnostics such as symbol_granularity_violation, symbol_semantic_review_needed, source_file_unowned and requirement_statement_unverified (each current requirement the changed code implements, with its statement and firmness, since the check never compares code with a statement) in structured output."
+      },
+      "maxDiagnostics": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Optional maximum number of impact diagnostics to return. Graph validation violations are not capped by this value."
+      },
+      "workspaceRoot": {
+        "type": "string",
+        "description": "Optional workspace root for impact diagnostics. Defaults to the MCP server workspace."
+      },
+      "async": {
+        "type": "boolean",
+        "default": false,
+        "description": "When true, start the check as a background job and return a kibi.job.v1 receipt immediately instead of holding the request until the tool timeout. Poll kb_job_status with the returned jobId. Use for full checks on large KBs that exceed the configured tool timeout. The MCP server registers kb_job_status only when KIBI_MCP_OPTIONAL_TOOLS includes it; otherwise async runs the check synchronously."
+      }
+    }
+  },
+  "requiresProlog": true,
+  "effects": ["kb-read", "workspace-read"],
+  "execute": "[function executeCheck]"
+}
