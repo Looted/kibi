@@ -57,7 +57,7 @@ relationships:
     id: rel-e69834eeaabf
   - type: implements
     from: SYM-skillopt-python-env-adapter
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-09-10T15:00:27.605Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

@@ -2166,6 +2166,16 @@
     ]
   },
   {
+    "test_id": "TEST-e2e-skillopt-optimizer-toolchain",
+    "steps": [
+      [
+        "bun",
+        "run",
+        "documentation/tests/e2e/skillopt-optimizer-toolchain.e2e.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-e2e-skillopt-description-candidates",
     "steps": [
       [
