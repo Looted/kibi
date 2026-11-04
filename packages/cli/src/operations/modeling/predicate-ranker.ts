@@ -58,17 +58,10 @@ const BROAD_TERMS = new Set([
   "system",
   "value",
 ]);
-const NORMATIVE_CUES = new Set([
-  "allowed",
-  "can",
-  "cannot",
-  "denied",
-  "forbidden",
-  "may",
-  "only",
-  "prohibited",
-  "required",
-]);
+// Modal stop words that still count as keyword evidence. Other normative
+// cues (allowed, forbidden, only, ...) are neither stop words nor broad
+// terms, so they count without being listed.
+const NORMATIVE_CUES = new Set(["can", "may"]);
 
 const EXACT_SCORERS = [
   scoreExactPredicates1,
@@ -129,8 +122,8 @@ function meaningfulKeywordHits(
     const keywordTokens = tokens(keyword).filter(
       (token) => !STOPWORDS.has(token) || NORMATIVE_CUES.has(token),
     );
+    // A keyword of stop words only has no token for some() to accept.
     return (
-      keywordTokens.length > 0 &&
       matchesKeyword(text, lower, keyword) &&
       keywordTokens.some(
         (token) => !BROAD_TERMS.has(token) || NORMATIVE_CUES.has(token),
@@ -172,7 +165,8 @@ export function rankSchema(
   schema: PredicateSchemaCandidate,
   text: string,
 ): RankedPredicateSchema {
-  const exact = exactScore(schema, text);
+  // No exact scorer for this predicate counts as a miss.
+  const exact = exactScore(schema, text) ?? 0;
   const keywordHits = meaningfulKeywordHits(schema, text);
   const textTokens = meaningfulTokens(text);
   const descriptors = [
@@ -212,7 +206,7 @@ export function rankSchema(
   const specificity = specificityBonus(schema);
 
   let total: number;
-  if (exact !== null && exact > 0) {
+  if (exact > 0) {
     // Exact structural matches retain the established deterministic score.
     // An exact score of 0 means the predicate's rigid pattern did not match;
     // it is a miss, not a veto: lexical evidence still competes for
@@ -240,7 +234,7 @@ export function rankSchema(
   }
   if (schema.predicate_name === "plugin_launcher_contract") total -= 0.06;
   const components: PredicateScoreComponents = {
-    exact_pattern: roundScore(exact ?? 0),
+    exact_pattern: roundScore(exact),
     keyword_hits: keywordHits,
     descriptor_overlap: roundScore(descriptorOverlap),
     usage_match: roundScore(usageMatch),

@@ -1,0 +1,413 @@
+{
+  "no normative intent": {
+    "eligible": false,
+    "reasons": [
+      "prose does not express normative or validity intent",
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "a leading no is intent": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "no must stand alone": {
+    "eligible": false,
+    "reasons": [
+      "prose does not express normative or validity intent",
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "baseline must": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "high lexical score": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.42 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.42
+  },
+  "zero lexical score": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.00 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0
+  },
+  "exact pattern at the threshold": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.43 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.43
+  },
+  "exact pattern below the threshold": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "negative ranking evidence": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.32 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.32
+  },
+  "negative ranking evidence capped": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.18 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.18
+  },
+  "positive hint by two cues": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.30 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.3
+  },
+  "positive hint needs two cues": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "positive hint by its only cue": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.30 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.3
+  },
+  "positive hint by exact phrase": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.30 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.3
+  },
+  "positive hint for phrase": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.30 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.3
+  },
+  "hint of short words only": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "two positive hints": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.40 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.4
+  },
+  "hint stop word when": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.30 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.3
+  },
+  "hint stop word this": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.30 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.3
+  },
+  "hint stop word that": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.30 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.3
+  },
+  "hint stop word with": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.30 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.3
+  },
+  "hint stop word from": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.30 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.3
+  },
+  "negative hint by coverage": {
+    "eligible": false,
+    "reasons": [
+      "usage guidance says this schema is not for the supplied intent",
+      "applicability score 0.12 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.12
+  },
+  "negative hint needs coverage": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "negative hint coverage rounds up": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "negative hint coverage met": {
+    "eligible": false,
+    "reasons": [
+      "usage guidance says this schema is not for the supplied intent",
+      "applicability score 0.12 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.12
+  },
+  "negative hint by exact phrase": {
+    "eligible": false,
+    "reasons": [
+      "usage guidance says this schema is not for the supplied intent",
+      "applicability score 0.12 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.12
+  },
+  "negative hint phrase with when": {
+    "eligible": false,
+    "reasons": [
+      "usage guidance says this schema is not for the supplied intent",
+      "applicability score 0.12 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.12
+  },
+  "catalog hints apply": {
+    "eligible": true,
+    "reasons": [],
+    "applicabilityScore": 0.71
+  },
+  "specificity from every descriptor": {
+    "eligible": true,
+    "reasons": [],
+    "applicabilityScore": 0.79
+  },
+  "specificity over many descriptors": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.47 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.47
+  },
+  "short cues are no specificity": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "allOf satisfied": {
+    "eligible": true,
+    "reasons": [],
+    "applicabilityScore": 0.77
+  },
+  "allOf one group missing": {
+    "eligible": false,
+    "reasons": [
+      "required semantic cue absent for offline_behavior_rule",
+      "applicability score 0.53 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.53
+  },
+  "allOf every group missing": {
+    "eligible": false,
+    "reasons": [
+      "required semantic cue absent for offline_behavior_rule",
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "anyOf satisfied": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.36 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.36
+  },
+  "anyOf missing": {
+    "eligible": false,
+    "reasons": [
+      "intent cues do not describe exception_rule",
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "one prohibited cue": {
+    "eligible": false,
+    "reasons": [
+      "prohibited or contradictory cue: upload|download|payload|attachment|file\\s+size",
+      "applicability score 0.61 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.61
+  },
+  "explicit schema named by the claim": {
+    "eligible": true,
+    "reasons": [],
+    "applicabilityScore": 0.62
+  },
+  "explicit schema missing an argument word": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.19 is below conservative threshold 0.62",
+      "the claim does not name route_name from the selected schema route_access"
+    ],
+    "applicabilityScore": 0.19
+  },
+  "explicit schema missing the predicate": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.00 is below conservative threshold 0.62",
+      "the claim does not name route_access from the selected schema route_access"
+    ],
+    "applicabilityScore": 0
+  },
+  "explicit schema with short predicate words": {
+    "eligible": true,
+    "reasons": [],
+    "applicabilityScore": 0.62
+  },
+  "explicit schema words need a word start": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.19 is below conservative threshold 0.62",
+      "the claim does not name route_access from the selected schema route_access"
+    ],
+    "applicabilityScore": 0.19
+  },
+  "explicit schema above the floor": {
+    "eligible": true,
+    "reasons": [],
+    "applicabilityScore": 0.83
+  },
+  "explicit schema still rejected by a prohibited cue": {
+    "eligible": false,
+    "reasons": [
+      "prohibited or contradictory cue: upload|download|payload|attachment|file\\s+size"
+    ],
+    "applicabilityScore": 0.62
+  },
+  "not explicit": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.19 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.19
+  },
+  "strong evidence is eligible": {
+    "eligible": true,
+    "reasons": [],
+    "applicabilityScore": 0.96
+  },
+  "a schema without usage hints": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "a hint or keyword without words": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "short and stop words are no hint cues": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "a negative hint counts on its exact phrase": {
+    "eligible": false,
+    "reasons": [
+      "usage guidance says this schema is not for the supplied intent",
+      "applicability score 0.12 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.12
+  },
+  "a negative hint phrase is not the whole cue set": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.21 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.21
+  },
+  "a negative hint prefix allows repeated spaces": {
+    "eligible": false,
+    "reasons": [
+      "usage guidance says this schema is not for the supplied intent",
+      "applicability score 0.03 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.03
+  },
+  "a negative hint without a prefix": {
+    "eligible": false,
+    "reasons": [
+      "usage guidance says this schema is not for the supplied intent",
+      "applicability score 0.12 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.12
+  },
+  "a negative hint phrase joins words with one space": {
+    "eligible": false,
+    "reasons": [
+      "usage guidance says this schema is not for the supplied intent",
+      "applicability score 0.12 is below conservative threshold 0.62"
+    ],
+    "applicabilityScore": 0.12
+  },
+  "explicit schema words match any case": {
+    "eligible": true,
+    "reasons": [],
+    "applicabilityScore": 0.62
+  },
+  "explicit schema needs only one predicate word": {
+    "eligible": true,
+    "reasons": [],
+    "applicabilityScore": 0.62
+  },
+  "explicit schema argument without words": {
+    "eligible": true,
+    "reasons": [],
+    "applicabilityScore": 0.62
+  },
+  "explicit schema names what the claim does not state": {
+    "eligible": false,
+    "reasons": [
+      "applicability score 0.00 is below conservative threshold 0.62",
+      "the claim does not name route_access, role, route_name from the selected schema route_access"
+    ],
+    "applicabilityScore": 0
+  }
+}

@@ -236,7 +236,8 @@ export async function alignRequirementVocabulary(
         decision: "reuse_existing",
         subjectKey: chosen.subjectKey,
         existingFactId: chosen.factId,
-        confidence: decision?.confidence ?? 0,
+        // Only a decision can choose an existing subject.
+        confidence: (decision as NonNullable<typeof decision>).confidence,
         candidates,
       }
     : {
@@ -269,8 +270,9 @@ export async function alignRequirementVocabulary(
     );
     const claimsById = new Map(claims.map((claim) => [claim.factId, claim]));
     redundancyCandidates = comparison.results.flatMap((judgment) => {
-      const claim = claimsById.get(judgment.pairKey);
-      if (!judgment.sameObligation || claim === undefined) return [];
+      // The composition rejects a judgment whose pairKey was not supplied.
+      const claim = claimsById.get(judgment.pairKey) as SubjectClaim;
+      if (!judgment.sameObligation) return [];
       return [
         {
           factId: claim.factId,

@@ -1,8 +1,9 @@
 import type { BindingProvenance } from "./predicate-types.js";
 
+// `requirement.*` keys and the launcher `*_policy` placeholders are matched
+// by pattern in isGenericPlaceholder.
 const PLACEHOLDER_VALUES = new Set([
   "unknown",
-  "requirement.subject",
   "domain_event",
   "true",
   "false",
@@ -26,50 +27,40 @@ const PLACEHOLDER_VALUES = new Set([
   "failure_condition",
   "required_outcome",
   "ordered_sources",
-  "executable_policy",
-  "cwd_policy",
-  "environment_policy",
-  "stdio_policy",
-  "termination_policy",
   "normal_behavior",
 ]);
 
+// Cue words for a derived value besides the value's own spelling, which
+// textContainsValue matches first: an alias that contains the value (or a
+// shorter alias of it) adds nothing and is left out.
 const DERIVED_CUE_ALIASES: Readonly<Record<string, readonly string[]>> = {
-  navigation: ["navigate", "navigates", "navigation"],
-  draft: ["draft", "drafts"],
+  navigation: ["navigate"],
   active_annotation: ["annotation", "active"],
-  editor: ["editor"],
   editor_annotation: ["editor", "annotation"],
-  consumer_local: ["consumer-local", "consumer local", "project-local"],
-  no_download: ["no download", "without downloading", "not download"],
-  no_global_fallback: ["no global fallback", "without global fallback"],
-  package_manager_exception: ["package-manager", "package manager"],
+  consumer_local: ["project-local"],
+  no_download: ["without downloading", "not download"],
+  no_global_fallback: ["without global fallback"],
+  package_manager_exception: ["package manager"],
   missing_candidate: ["missing", "unusable", "candidate"],
   cwd_unusable: ["cwd", "working directory", "current directory"],
   invalid_input: ["invalid", "unresolved", "placeholder"],
-  invalid_placeholder: ["invalid placeholder", "unresolved placeholder"],
+  invalid_placeholder: ["unresolved placeholder"],
   ambiguous_root: ["ambiguous", "usable root", "roots"],
-  clear_error: ["clear error", "fail clearly", "actionable error"],
-  resolved_executable: ["executable", "command", "binary", "bin"],
+  clear_error: ["fail clearly", "actionable error"],
+  resolved_executable: ["executable", "command", "bin"],
   consumer_cwd: ["cwd", "working directory", "consumer"],
-  inherited_environment: ["environment", "env"],
-  consumer_workspace_environment: [
-    "environment",
-    "env",
-    "kibi_workspace",
-    "workspace",
-  ],
+  inherited_environment: ["env"],
+  consumer_workspace_environment: ["env", "workspace"],
   inherited_stdio: ["stdio", "stdin", "stdout", "stderr", "pipe"],
   propagate_termination: ["terminate", "termination", "exit", "signal"],
   missing_dependency: [
-    "missing dependency",
     "missing kibi-mcp",
     "missing project-local",
     "project-local kibi-mcp",
     "missing module",
   ],
-  actionable_error: ["actionable", "clear error", "report", "error"],
-  exception: ["exception", "except", "package-manager", "package manager"],
+  actionable_error: ["actionable", "report", "error"],
+  exception: ["except", "package manager"],
   // Wording that names a closed-vocabulary constant without spelling it.
   deny: [
     "denied",
@@ -80,10 +71,10 @@ const DERIVED_CUE_ALIASES: Readonly<Record<string, readonly string[]>> = {
     "not allowed",
     "not be allowed",
   ],
-  allow: ["is allowed", "are allowed", "permitted"],
-  on_demand: ["on demand", "on request"],
+  allow: ["permitted"],
+  on_demand: ["on request"],
   timeout: ["times out", "timed out", "time out"],
-  submit: ["submission", "submits", "submitted"],
+  submit: ["submission"],
 };
 
 function textContainsValue(text: string, value: string): boolean {
@@ -102,11 +93,16 @@ function textContainsValue(text: string, value: string): boolean {
     /missing(?:\s+\S+){0,4}\s+dependenc/i.test(normalizedText)
   )
     return true;
-  const aliases = DERIVED_CUE_ALIASES[value.toLowerCase().replace(/\./g, "_")];
+  // A value such as `constructor` must not read an Object.prototype member.
+  const key = value.toLowerCase().replace(/\./g, "_");
+  const aliases = Object.hasOwn(DERIVED_CUE_ALIASES, key)
+    ? DERIVED_CUE_ALIASES[key]
+    : undefined;
   return (
     aliases?.some((alias) =>
-      normalizedText.includes(alias.toLowerCase().replace(/[_.-]+/g, " ")),
-    ) ?? false
+      // Aliases are lowercase and never repeat a separator.
+      normalizedText.includes(alias.replace(/[_.-]/g, " ")),
+    ) === true
   );
 }
 
@@ -114,7 +110,6 @@ export function isGenericPlaceholder(value: string): boolean {
   const normalized = value.trim().toLowerCase();
   return (
     PLACEHOLDER_VALUES.has(normalized) ||
-    normalized === "unknown" ||
     normalized.startsWith("requirement.") ||
     (normalized.endsWith("_policy") &&
       ["executable", "cwd", "environment", "stdio", "termination"].some(
@@ -187,11 +182,12 @@ const STOP_WORD_BINDINGS = new Set([
 
 /** A binding value in the snake_case form argument names use. */
 export function bindingToken(value: string): string {
+  // Every run of other characters (whitespace included) becomes one "_",
+  // so at most one "_" sits at either end.
   return value
-    .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+    .replace(/^_|_$/g, "");
 }
 
 /** The schema context a binding is judged against. */
@@ -220,7 +216,7 @@ export type BindingContext = Readonly<{
 }>;
 
 function claimNames(text: string | undefined, token: string): boolean {
-  if (!text || !token) return false;
+  if (!text) return false;
   const words = token.split("_").filter(Boolean);
   if (words.length === 0) return false;
   return new RegExp(`\\b${words.join("[\\s_-]+")}\\b`, "i").test(text);
@@ -248,10 +244,11 @@ export function nameOrStopWordReason(
   if (token === "true" || token === "false") return null;
   if (matchesConstant(value, context)) return null;
   if (STOP_WORD_BINDINGS.has(token)) return `"${token}" is a stop word`;
-  const own = context.argumentName ? bindingToken(context.argumentName) : "";
+  const own = bindingToken(context.argumentName ?? "");
   const repeatsName =
     (own !== "" && token === own) ||
-    (context.argumentNames ?? []).some((name) => bindingToken(name) === token);
+    context.argumentNames?.some((name) => bindingToken(name) === token) ===
+      true;
   if (repeatsName && !claimNames(context.text, token))
     return `it repeats the argument name ${token} and the claim does not name it`;
   return null;
@@ -285,7 +282,9 @@ const PARTICIPANT_ARGUMENT_TYPES = new Set([
 /** Whether an argument type names a participant (who acts or owns). */
 // implements REQ-model-predicates-participant-not-subject
 export function isParticipantArgumentType(type: string | undefined): boolean {
-  return PARTICIPANT_ARGUMENT_TYPES.has(type ? bindingToken(type) : "");
+  return (
+    type !== undefined && PARTICIPANT_ARGUMENT_TYPES.has(bindingToken(type))
+  );
 }
 
 /**
@@ -303,7 +302,7 @@ export function subjectKeyParticipantReason(
   if (matchesConstant(value, context)) return null;
   const token = bindingToken(value);
   if (token === "") return null;
-  const subject = (context.constrainedSubjects ?? []).find(
+  const subject = context.constrainedSubjects?.find(
     (key) => bindingToken(key) === token,
   );
   if (subject === undefined) return null;
@@ -326,10 +325,12 @@ export function clauseBindingReason(
   value: string,
   context: BindingContext = {},
 ): string | null {
-  const type = context.argumentType ? bindingToken(context.argumentType) : "";
+  if (context.argumentType === undefined) return null;
+  const type = bindingToken(context.argumentType);
   if (!NAMING_ARGUMENT_TYPES.has(type)) return null;
   if (matchesConstant(value, context)) return null;
-  const words = bindingToken(value).split("_").filter(Boolean);
+  // A token has no empty words, except "" itself, which counts as one.
+  const words = bindingToken(value).split("_");
   if (words.length <= MAX_NAMING_BINDING_WORDS) return null;
   return `it is a ${words.length}-word clause of the claim, not a short name for this ${type}`;
 }
@@ -369,8 +370,8 @@ export function classifyBinding(
   return "inferred";
 }
 
+// From best to worst after "explicit", which ranks below all of them (-1).
 const PROVENANCE_ORDER: readonly BindingProvenance[] = [
-  "explicit",
   "requirement",
   "extracted",
   "inferred",
@@ -380,13 +381,11 @@ const PROVENANCE_ORDER: readonly BindingProvenance[] = [
 export function aggregateBindingProvenance(
   values: readonly BindingProvenance[],
 ): BindingProvenance {
-  return values.reduce<BindingProvenance>(
-    (worst, value) =>
-      PROVENANCE_ORDER.indexOf(value) > PROVENANCE_ORDER.indexOf(worst)
-        ? value
-        : worst,
-    "explicit",
+  const worst = Math.max(
+    -1,
+    ...values.map((value) => PROVENANCE_ORDER.indexOf(value)),
   );
+  return PROVENANCE_ORDER[worst] ?? "explicit";
 }
 
 export function bindingCanBeApplied(value: BindingProvenance): boolean {
