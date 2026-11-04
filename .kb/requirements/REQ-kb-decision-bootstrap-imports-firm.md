@@ -24,6 +24,8 @@ origin:
 priority: must
 firmness: default
 required_evidence: tested
+failure_side_waiver: "Bootstrap only writes reviewed plans, so there is no run-time input or attempt for Kibi to refuse when a cited rule is planned with the wrong firmness; unit tests check that cited rules come out firm. Maintainer decision, 2026-11-04: \"Yes\"."
+failure_side_waiver_approved_by: Piotr Franczyk
 tags:
   - kb
   - decisions
