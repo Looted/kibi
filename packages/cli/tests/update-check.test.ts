@@ -329,19 +329,23 @@ describe("parseLatestManifest", () => {
   test("omits a missing or malformed KB schema", () => {
     expect(parseLatestManifest({ version: "2.42.0" })).toEqual({
       latest: "2.42.0",
+      latestKbSchema: undefined,
     });
     expect(parseLatestManifest({ version: "2.42.0", kibi: null })).toEqual({
       latest: "2.42.0",
+      latestKbSchema: undefined,
     });
     expect(
       parseLatestManifest({ version: "2.42.0", kibi: { kbSchema: "14" } }),
     ).toEqual({
       latest: "2.42.0",
+      latestKbSchema: undefined,
     });
     expect(
       parseLatestManifest({ version: "2.42.0", kibi: { kbSchema: 1.5 } }),
     ).toEqual({
       latest: "2.42.0",
+      latestKbSchema: undefined,
     });
   });
 
