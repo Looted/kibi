@@ -321,3 +321,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6dce88720a7a
+  - type: constrains
+    from: REQ-kb-decision-bootstrap-imports-firm
+    to: FACT-SUBJECT-KIBI-DECISION-FIRMNESS
+    created_at: 2026-11-04T14:59:16.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1044dec2805e
+  - type: requires_property
+    from: REQ-kb-decision-bootstrap-imports-firm
+    to: FACT-kb-decision-firmness-bootstrap-imports-firm
+    created_at: 2026-11-04T14:59:17.020Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcbb6c64f6b9
+  - type: specified_by
+    from: REQ-kb-decision-bootstrap-imports-firm
+    to: SCEN-kb-decision-firmness-from-origin
+    created_at: 2026-11-04T14:59:17.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31d5f3d07f21
+  - type: verified_by
+    from: REQ-kb-decision-bootstrap-imports-firm
+    to: TEST-kb-decision-firmness
+    created_at: 2026-11-04T14:59:17.063Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c46820457198
+  - type: supersedes
+    from: REQ-kb-decision-bootstrap-imports-firm
+    to: REQ-kb-decision-firmness-from-origin
+    created_at: 2026-11-04T14:59:17.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5546200db842

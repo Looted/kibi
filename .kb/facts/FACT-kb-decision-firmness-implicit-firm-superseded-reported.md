@@ -9,7 +9,7 @@ value_type: bool
 value_bool: true
 claim_key: CLAIM-180A4C19E8A34EBE
 claim_text: Kibi must report a decision that is not firm and supersedes a decision that reads as firm from its origin as a decision-firm-superseded violation unless the schema 10 migration acknowledged that supersede
-text_ref: REQ-kb-decision-firmness-from-origin
+text_ref: REQ-kb-decision-implicit-supersede-reported
 tags:
   - strict-modeling
   - lane:strict

@@ -40940,12 +40940,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-12T22:25:56.027Z
     relationships:
+      - type: implements
+        target: REQ-kb-decision-firmness-default-from-origin
       - type: covered_by
         target: TEST-kb-decision-firmness
       - type: implements
         target: REQ-kb-decision-firmness
-      - type: implements
-        target: REQ-kb-decision-firmness-from-origin
   - id: SYM-kb-decision-firmness-firmnessref
     title: firmnessRef
     status: active
@@ -40981,12 +40981,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-12T22:26:17.458Z
     relationships:
+      - type: implements
+        target: REQ-kb-decision-implicit-supersede-reported
       - type: covered_by
         target: TEST-kb-decision-firmness
       - type: implements
         target: REQ-kb-decision-firmness
-      - type: implements
-        target: REQ-kb-decision-firmness-from-origin
   - id: SYM-kb-decision-firmness-collectdecisionfirmnessviolations
     title: collectDecisionFirmnessViolations
     status: active
@@ -42157,10 +42157,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T20:12:54.084Z
     relationships:
+      - type: implements
+        target: REQ-kb-decision-implicit-supersede-reported
       - type: covered_by
         target: TEST-kb-decision-firmness
-      - type: implements
-        target: REQ-kb-decision-firmness-from-origin
   - id: SYM-kb-decision-firmness-applyfirmsupersedeacknowledgement
     title: applyFirmSupersedeAcknowledgement
     status: active
@@ -42170,10 +42170,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T20:12:57.077Z
     relationships:
+      - type: implements
+        target: REQ-kb-decision-implicit-supersede-reported
       - type: covered_by
         target: TEST-kb-decision-firmness
-      - type: implements
-        target: REQ-kb-decision-firmness-from-origin
   - id: SYM-kb-decision-firmness-mergefirmsupersedeacknowledgements
     title: mergeFirmSupersedeAcknowledgements
     status: active
@@ -42183,10 +42183,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T20:13:00.286Z
     relationships:
+      - type: implements
+        target: REQ-kb-decision-implicit-supersede-reported
       - type: covered_by
         target: TEST-kb-decision-firmness
-      - type: implements
-        target: REQ-kb-decision-firmness-from-origin
   - id: SYM-kb-decision-firmness-implicitfirmsupersedes
     title: implicitFirmSupersedes
     status: active
@@ -42196,10 +42196,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T20:13:03.854Z
     relationships:
+      - type: implements
+        target: REQ-kb-decision-implicit-supersede-reported
       - type: covered_by
         target: TEST-kb-decision-firmness
-      - type: implements
-        target: REQ-kb-decision-firmness-from-origin
   - id: SYM-kb-decision-firmness-firmnessisimplicit
     title: firmnessIsImplicit
     status: active
@@ -42209,10 +42209,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T20:13:08.214Z
     relationships:
+      - type: implements
+        target: REQ-kb-decision-firmness-default-from-origin
       - type: covered_by
         target: TEST-kb-decision-firmness
-      - type: implements
-        target: REQ-kb-decision-firmness-from-origin
   - id: SYM-kb-decision-firmness-originkind
     title: originKind
     status: active
@@ -42222,10 +42222,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T20:13:12.311Z
     relationships:
+      - type: implements
+        target: REQ-kb-decision-firmness-default-from-origin
       - type: covered_by
         target: TEST-kb-decision-firmness
-      - type: implements
-        target: REQ-kb-decision-firmness-from-origin
   - id: SYM-kb-decision-firmness-asimportedrule
     title: asImportedRule
     status: active
@@ -42235,10 +42235,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T20:13:15.481Z
     relationships:
+      - type: implements
+        target: REQ-kb-decision-bootstrap-imports-firm
       - type: covered_by
         target: TEST-kb-decision-firmness
-      - type: implements
-        target: REQ-kb-decision-firmness-from-origin
   - id: SYM-test-cli-migrate-legacy-requirement-status
     title: Legacy requirement status and uncompiled source CLI suite
     status: active

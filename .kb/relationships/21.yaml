@@ -426,3 +426,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b33d07538a70
+  - type: constrains
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: FACT-SUBJECT-KIBI-DECISION-FIRMNESS
+    created_at: 2026-11-04T14:58:24.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccde3610a8a2
+  - type: requires_property
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: FACT-kb-decision-firmness-implicit-firm-superseded-reported
+    created_at: 2026-11-04T14:58:24.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-373e7a329da3
+  - type: specified_by
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: SCEN-kb-decision-firmness-from-origin
+    created_at: 2026-11-04T14:58:24.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca5e7aaf8d80
+  - type: verified_by
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: TEST-kb-decision-firmness
+    created_at: 2026-11-04T14:58:24.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77552823177b
+  - type: relates_to
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: REQ-kb-decision-firmness
+    created_at: 2026-11-04T14:58:24.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbd9ab429f20
+  - type: supersedes
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: REQ-kb-decision-firmness-from-origin
+    created_at: 2026-11-04T14:58:24.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1703e4a068ab
