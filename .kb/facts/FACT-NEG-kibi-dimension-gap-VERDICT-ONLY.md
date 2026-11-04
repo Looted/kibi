@@ -3,6 +3,7 @@ title: A requirement whose quantified claim is grounded only on a boolean is put
 status: active
 fact_kind: predicate
 predicate_name: proof_gate_policy
+predicate_namespace: kibi.proof
 predicate_args:
   - tested_status
   - quantified_claim_grounded_on_a_boolean

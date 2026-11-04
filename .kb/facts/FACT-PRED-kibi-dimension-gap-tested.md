@@ -3,6 +3,7 @@ title: A requirement with a quantified claim grounded only on its verdict is not
 status: active
 fact_kind: predicate
 predicate_name: proof_gate_policy
+predicate_namespace: kibi.proof
 predicate_args:
   - tested_status
   - quantified_claim_grounded_on_a_boolean

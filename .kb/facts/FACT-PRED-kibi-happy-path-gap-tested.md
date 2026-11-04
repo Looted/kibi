@@ -3,6 +3,7 @@ title: A requirement that grounds a claim needs a rejection scenario assuming an
 status: active
 fact_kind: predicate
 predicate_name: proof_gate_policy
+predicate_namespace: kibi.proof
 predicate_args:
   - tested_status
   - requirement_grounding_a_claim
