@@ -6655,6 +6655,10 @@ test(coverage_gap_reports_missing_test_when_only_scenario_exists, [setup(setup_k
     kb_assert_relationship(specified_by, 'REQ-MISSING-TEST', 'SCEN-ONLY', []),
     coverage_gap('REQ-MISSING-TEST', missing_test).
 
+test(a_must_requirement_without_a_status_still_owes_coverage, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_raw_entity(req, 'REQ-NO-STATUS', [title="No status", priority=must]),
+    assertion(coverage_gap('REQ-NO-STATUS', missing_scenario_and_test)).
+
 test(symbol_has_req_coverage_wraps_production_symbol_coverage, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(req, 'REQ-COVERED', "Covered req", active, [priority=must]),
     assert_fixture_entity(test, 'TEST-COVERED', "Covered test", active, []),
@@ -10062,8 +10066,10 @@ test(a_commit_without_commit_state_starts_the_first_generation, [setup(cleanup_t
     ks_assert(req, 'REQ-FIRST-GENERATION'),
     kb_save,
     ks_read_file(Head, HeadText),
+    findall(Generation, kb:kb_generation(Generation), Generations),
     kb_detach,
-    assertion(HeadText == "generation-1:1\n").
+    assertion(HeadText == "generation-1:1\n"),
+    assertion(Generations == ['generation-1']).
 
 test(a_new_journaled_store_ignores_an_empty_graph, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
     rdf_create_graph('urn:kibi:test:empty'),
@@ -10091,6 +10097,16 @@ test(detach_needs_no_owner_file, [setup(cleanup_test_kb), cleanup(cleanup_test_k
     delete_file(Owner),
     assertion(kb_detach),
     assertion(\+ kb:kb_attached(_)).
+
+test(a_journaled_save_records_the_commit_it_publishes, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(_),
+    ks_assert(req, 'REQ-SAVED-SNAPSHOT'),
+    kb_save,
+    kb:kb_generation(Generation),
+    kb:kb_commit_sequence(Sequence),
+    findall(Snapshot, kb:kb_attached_snapshot(Snapshot), Snapshots),
+    assertion(Sequence == 1),
+    assertion(Snapshots == [journal_snapshot(Generation, Sequence)]).
 
 test(compaction_threshold_is_sixteen_mebibytes) :-
     assertion(\+ kb:journal_needs_compaction(16777215)),
@@ -11321,7 +11337,7 @@ test(journaled_save_rejects_a_replaced_sentinel, [setup(cleanup_test_kb), cleanu
     atom_concat(Dir, '/kb.rdf', Sentinel),
     ks_write_file(Sentinel, "replaced"),
     catch(kb_save, Error, true),
-    assertion(ks_caught(Error, error(permission_error(save, kb, stale_snapshot), _))).
+    assertion(Error == error(permission_error(save, kb, stale_snapshot), kb_save/0)).
 
 test(a_dirty_index_is_rebuilt_even_when_counts_agree, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     ks_assert(req, 'REQ-DIRTY-OLD'),

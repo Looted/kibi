@@ -460,6 +460,7 @@ kb_save_journaled_locked(Directory) :-
     ensure_journal_sentinel_current(Directory),
     (   kb_dirty
     ->  kb_stage(journal_flush),
+        % mutalog-disable-next-line goal_true,literal: this only folds a journal of 16 MiB or more into a snapshot; the store holds the same triples either way
         rdf_flush_journals([min_size(16384)]),
         next_journal_commit(Generation, Sequence),
         write_journal_head(Directory, Generation, Sequence),
@@ -513,28 +514,27 @@ kb_remove_entity_index(Id) :-
     ;   true
     ).
 
+% A journaled attach records the sentinel stamp, and only an attached store
+% is saved.
 ensure_journal_sentinel_current(Directory) :-
     atom_concat(Directory, '/kb.rdf', SentinelFile),
     current_data_stamp(SentinelFile, CurrentStamp),
-    (   kb_legacy_sentinel_stamp(ExpectedStamp)
-    ->  (   CurrentStamp == ExpectedStamp
-        ->  true
-        ;   throw(error(permission_error(save, kb, stale_snapshot), kb_save/0))
-        )
-    ;   true
+    kb_legacy_sentinel_stamp(ExpectedStamp),
+    (   CurrentStamp == ExpectedStamp
+    ->  true
+    ;   throw(error(permission_error(save, kb, stale_snapshot), kb_save/0))
     ).
 
 next_journal_commit(Generation, Sequence) :-
-    (   kb_generation(CurrentGeneration)
-    ->  Generation = CurrentGeneration
-    ;   Generation = 'generation-1'
+    (   kb_generation(Generation)
+    ->  true
+    ;   Generation = 'generation-1',
+        assert(kb_generation(Generation))
     ),
     (   kb_commit_sequence(CurrentSequence)
     ->  Sequence is CurrentSequence + 1
     ;   Sequence = 1
     ),
-    retractall(kb_generation(_)),
-    assert(kb_generation(Generation)),
     retractall(kb_commit_sequence(_)),
     assert(kb_commit_sequence(Sequence)).
 
