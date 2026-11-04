@@ -196,8 +196,8 @@ kb_attach_journaled(Directory) :-
     % ownership journal (if any) so callers can surface the holder or take
     % over when the holder is provably dead.
     % mutalog-disable-next-line literal: the load concurrency changes how fast the store loads, not what it holds
-    catch(rdf_attach_db(PersistencyDirectory,
-                        [access(read_write), silent(true), concurrency(4)]),
+    AttachOptions = [access(read_write), silent(true), concurrency(4)],
+    catch(rdf_attach_db(PersistencyDirectory, AttachOptions),
           error(permission_error(_, _, _), Original),
           kb_throw_store_locked(PersistencyDirectory, Directory, Original)),
     catch(kb_write_lock_owner(Directory), _, true),
@@ -3388,7 +3388,8 @@ values_conflict(neq, ValA, eq, ValB, Type) :-
 % conflicts and eq/neq is handled above.
 % implements REQ-kibi-truthful-consistency
 values_conflict(OpA, ValA, OpB, ValB, Type) :-
-    is_numeric_type(Type),
+    % Only the numeric types have integer variables to name.
+    type_integer_variables(Type, IntegerVariables),
     numeric_operator(OpA),
     numeric_operator(OpB),
     \+ ( OpA == eq, OpB == eq ),
@@ -3397,7 +3398,6 @@ values_conflict(OpA, ValA, OpB, ValB, Type) :-
     % mutalog-disable-next-line goal_true: neq against one numeric comparison never conflicts
     \+ ( OpA == neq, OpB == eq ),
     number(ValA), number(ValB),
-    type_integer_variables(Type, IntegerVariables),
     \+ numeric_constraints_satisfiable([c(OpA, X, ValA), c(OpB, X, ValB)], IntegerVariables).
 
 type_integer_variables(int, all).

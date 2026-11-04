@@ -56,18 +56,23 @@ fixture_kb_open(LegacyEntities, Dir) :-
 % recorded, and a graph can be loaded before it is recorded as the KB's. So
 % this also releases both databases unconditionally, drops every RDF graph,
 % and clears every fact of the kb module (attachment state, read indexes and
-% memos).
+% memos). A release step that fails or raises (kb_detach/0 fails on a
+% journaled store whose RDF journal was never attached) does not stop the
+% steps after it.
 detach_leftover_kb :-
-    catch(kb_detach, _, true),
-    catch(rdf_detach_db, _, true),
+    release(kb_detach),
+    release(rdf_detach_db),
     (   kb:db_attached(_)
-    ->  catch(kb:db_detach, _, true)
+    ->  release(kb:db_detach)
     ;   true
     ),
     % rdf_reset_db/0 refuses while the RDF store is busy (an open snapshot,
     % say); unloading the graphs one by one still drops their triples.
     catch(rdf_reset_db, _, forall(rdf_graph(Graph), rdf_unload_graph(Graph))),
     forall(kb_state(Head), retractall(Head)).
+
+release(Goal) :-
+    ignore(catch(Goal, _, true)).
 
 kb_state(kb:Head) :-
     predicate_property(kb:Head, dynamic),
