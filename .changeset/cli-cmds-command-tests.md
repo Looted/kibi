@@ -13,3 +13,5 @@ Simplify the manifest merge driver's record bookkeeping and the untracked-docume
 `kibi gc` and the engine maintenance commands drop redundant guards (unused legacy flags, default stdio options, duplicate workspace resolution); behaviour is unchanged.
 
 The report command reads its output target and certificate option once, and its commit lookup and badge share no longer carry redundant fallbacks.
+
+Fix the staged generated-manifest check failing with "Could not parse staged Git tree" when any staged path contains a newline.
