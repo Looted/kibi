@@ -55,20 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d628cd1f6c2c
-  - type: implements
-    from: SYM-skillopt-cursor-cell-receipt
-    to: REQ-skillopt-cursor-compat
-    created_at: 2026-08-24T17:22:33.006Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-41f1e91bdcdc
-  - type: covered_by
-    from: SYM-skillopt-cursor-cell-receipt
-    to: TEST-skillopt-cursor-compat
-    created_at: 2026-08-25T19:51:02.344Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8b06d0947991
   - type: covered_by
     from: SYM-cli-PrologProcess-terminateProcessTree
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -97,13 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b330e923cf24
-  - type: covered_by
-    from: SYM-HeldOutGateOutcomes
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:08:25.727Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a826ca2f2536
   - type: covered_by
     from: SYM-resolveSymbolsManifestPath-2
     to: TEST-vscode-traceability
@@ -154,20 +133,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-29cfec2cfaf4
   - type: implements
-    from: SYM-HeldOutGateOutcomes
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:36:01.989Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-aa08cdd67f53
-  - type: covered_by
-    from: SYM-cap-plugin-semanticclassifierresult-45488800
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:45:39.387Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-faa2b247b499
-  - type: implements
     from: SYM-mcp-resolve-env-file-path
     to: REQ-kibi-env-bootstrap
     created_at: 2026-09-23T11:20:20.530Z
@@ -202,20 +167,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7b6ca706b1b
-  - type: covered_by
-    from: SYM-impact-stage-e-type-impactreviewdiagnostic
-    to: TEST-impact-policy-stage-e-installed-e2e
-    created_at: 2026-09-27T17:51:10.796Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8600668f615b
-  - type: implements
-    from: SYM-impact-stage-e-type-impactreviewdiagnostic
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:51:10.872Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-46d3e8b6542c
   - type: implements
     from: SYM-performance-trace-dir-env
     to: REQ-installed-staged-impact-timing-integrity
@@ -300,41 +251,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a671ba7ed58a
-  - type: implements
-    from: SYM-mutation-stored-entity-lookup-type
-    to: REQ-kibi-upsert-preserves-requirement-semantics
-    created_at: 2026-10-14T10:14:00.212Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b2f506b2f069
-  - type: covered_by
-    from: SYM-mutation-stored-entity-lookup-type
-    to: TEST-kibi-upsert-review-lanes
-    created_at: 2026-10-14T10:14:00.240Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-515812427ef4
-  - type: implements
-    from: SYM-mutation-stored-entity-lookup-type
-    to: REQ-kibi-uncompiled-source-visibility
-    created_at: 2026-10-14T10:14:00.260Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-225c1eeb8c1a
-  - type: covered_by
-    from: SYM-mutation-stored-entity-lookup-type
-    to: TEST-kibi-uncompiled-source-visibility
-    created_at: 2026-10-14T10:14:00.281Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6d3c7de97695
-  - type: implements
-    from: SYM-mutation-stored-entity-lookup-type
-    to: REQ-kibi-uncompiled-source-semantic-baseline
-    created_at: 2026-10-14T17:49:51.446Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b118725b8b73
   - type: implements
     from: SYM-agent-core-decision-guard-firmrequirementstouched
     to: REQ-claude-firm-edit-confirmation

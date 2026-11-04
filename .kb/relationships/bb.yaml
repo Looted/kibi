@@ -90,20 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aacde46c15ac
-  - type: implements
-    from: SYM-RelationshipParityRecord
-    to: REQ-kibi-source-relationship-parity
-    created_at: 2026-08-17T13:10:32.317Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e2bd8cd91d91
-  - type: covered_by
-    from: SYM-RelationshipParityRecord
-    to: TEST-cli-source-relationship-parity-unit
-    created_at: 2026-08-17T13:10:32.330Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3434895ef7dd
   - type: constrains
     from: REQ-KIBI-BOOTSTRAP-PLAN
     to: FACT-KIBI-BOOTSTRAP-SUBJECT
@@ -230,13 +216,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c3ff28ca55ca
-  - type: covered_by
-    from: SYM-operation-name-type
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:38:29.070Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ff0169527e34
   - type: implements
     from: SYM-auto-F6E934B6698C
     to: REQ-kibi-operation-interface-parity
@@ -251,20 +230,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9109fb57016e
-  - type: implements
-    from: SYM-operation-name-type
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:03:41.432Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e29a9d4733a8
-  - type: covered_by
-    from: SYM-operation-name-type
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:03:41.439Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0d90f70fb289
   - type: relates_to
     from: FACT-cli-query-3BA695
     to: REQ-cli-query
@@ -301,48 +266,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-7c16c4013e01
   - type: implements
-    from: SYM-x-oc-KibiEventEnv
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-09-13T20:11:25.216Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fff375f375bd
-  - type: covered_by
-    from: SYM-x-oc-KibiEventEnv
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-09-13T20:11:25.234Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-aa91009ffd6a
-  - type: covered_by
-    from: SYM-x-oc-KibiEventEnv
-    to: TEST-opencode-kibi-plugin-v1-coverage
-    created_at: 2026-09-14T04:44:53.938Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-977c6c8326b2
-  - type: covered_by
-    from: SYM-x-oc-KibiEventEnv
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-09-14T06:25:05.542Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-720bae7050bf
-  - type: implements
-    from: SYM-store-lock-retry-context
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:54:53.371Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-67d13d4a103a
-  - type: covered_by
-    from: SYM-store-lock-retry-context
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:54:53.415Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5e53072bda73
-  - type: implements
     from: SYM-quality-inventory-57b01c22b501
     to: REQ-014
     created_at: 2026-09-14T20:36:59.018Z
@@ -377,13 +300,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec2f195e7e7f
-  - type: covered_by
-    from: SYM-cap-plugin-projectpluginentry-5d305c06
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:47:01.530Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-507d26e16dc9
   - type: implements
     from: SYM-prolog-release-archive-name
     to: REQ-prolog-bundled-release
@@ -412,20 +328,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-da4c32479393
-  - type: implements
-    from: SYM-skillopt-campaign-workflow-campaigndependencies-fb8ccf38
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T12:24:05.694Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f35b79bc8d40
-  - type: covered_by
-    from: SYM-skillopt-campaign-workflow-campaigndependencies-fb8ccf38
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:24:05.725Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0239e82864ae
   - type: implements
     from: SYM-claude-statedRule
     to: REQ-claude-decision-capture-nudges

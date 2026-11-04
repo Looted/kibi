@@ -1,11 +1,4 @@
 relationships:
-  - type: covered_by
-    from: SYM-auto-2847B9215642
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T07:54:54.055Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-850387fd0c4e
   - type: validates
     from: TEST-kibi-conservative-requirement-proof
     to: SCEN-kibi-conservative-requirement-proof
@@ -90,20 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09f52a94e855
-  - type: implements
-    from: SYM-auto-2847B9215642
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:51:43.390Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9ff7d4be5efb
-  - type: covered_by
-    from: SYM-auto-2847B9215642
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:51:43.394Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b2e728536f25
   - type: executable_for
     from: SYM-e2e-test-codex-kibi-plugin-v1
     to: TEST-codex-kibi-plugin-v1
@@ -202,13 +181,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7764e9fe434
-  - type: implements
-    from: SYM-decision-firmness-firmness-from-origin-schema-version
-    to: REQ-kb-decision-firmness-from-origin
-    created_at: 2026-10-14T08:10:46.709Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7a462d0f26b7
   - type: covered_by
     from: SYM-decision-firmness-firmness-from-origin-schema-version
     to: TEST-kb-decision-firmness

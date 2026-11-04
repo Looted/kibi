@@ -188,13 +188,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6b951e13e141
-  - type: implements
-    from: SYM-impact-stage-e-impact-evaluator-version
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:40:45.389Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d9f741236882
   - type: validates
     from: TEST-skillopt-claude-code-host
     to: SCEN-skillopt-claude-code-host

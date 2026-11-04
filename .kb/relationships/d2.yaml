@@ -132,27 +132,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c2fc88c77396
-  - type: covered_by
-    from: SYM-operation-effect-type
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:38:24.830Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-67a3fe00f23d
-  - type: implements
-    from: SYM-operation-effect-type
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:03:27.056Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0f5e900cf31f
-  - type: covered_by
-    from: SYM-operation-effect-type
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:03:27.094Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d6be65b0f918
   - type: implements
     from: SYM-skillopt-migration-apply-objectives
     to: REQ-skillopt-host-neutral-optimization
@@ -181,20 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55a5324f213f
-  - type: covered_by
-    from: SYM-ExtractedRelationship
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:15:19.667Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f762ad3f5da1
-  - type: covered_by
-    from: SYM-ExtractedRelationship
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:23:06.974Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5a64a2f799b2
   - type: covered_by
     from: SYM-cli-engine-client-export-storage
     to: TEST-core-journaled-engine-delta-sync

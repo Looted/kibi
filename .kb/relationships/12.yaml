@@ -1,53 +1,4 @@
 relationships:
-  - id: rel-09d3b33ad0cd
-    type: implements
-    from: SYM-canonical-SemanticAdvisorBackfill
-    to: REQ-cli-init-canonical
-    created_at: "2026-08-18T17:02:26.847Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-canonical-SemanticAdvisorBackfill
-    to: TEST-cli-canonical-init
-    created_at: 2026-08-18T17:02:26.848Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d60607b5f952
-  - type: implements
-    from: SYM-cli-report-view-query
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T20:42:22.352Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c380768c213a
-  - type: covered_by
-    from: SYM-cli-report-view-query
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-18T20:42:22.361Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9e7c36978727
-  - type: implements
-    from: SYM-StrictModelInput
-    to: REQ-011
-    created_at: 2026-08-22T20:14:10.244Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23f400b52d1a
-  - type: covered_by
-    from: SYM-StrictModelInput
-    to: TEST-cli-strict-modeling
-    created_at: 2026-08-22T20:14:10.255Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b9fc451de109
-  - type: covered_by
-    from: SYM-StrictModelInput
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:14:10.259Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8b430890db43
   - type: implements
     from: SYM-skillopt-cursor-usage-error-name
     to: REQ-skillopt-cursor-compat
@@ -97,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce38bf6aa2bb
-  - type: covered_by
-    from: SYM-StrictModelInput
-    to: TEST-001
-    created_at: 2026-09-05T14:50:46.689Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a7baa0d43b47
   - type: covered_by
     from: SYM-kibi-doctor-command
     to: TEST-agent-guided-migration-orchestration
@@ -167,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f0f9e2244e0d
-  - type: implements
-    from: SYM-cli-ENTITY_QUERY_CHUNK_SIZE
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-09-27T22:11:30.512Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8d253b39ac69
   - type: covered_by
     from: SYM-cli-ENTITY_QUERY_CHUNK_SIZE
     to: TEST-kibi-operation-interface-parity

@@ -13,13 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-14d93e61811f
-  - type: covered_by
-    from: SYM-kibi-script-change-to-proof-eval-ts-compileevaluator
-    to: TEST-kibi-change-to-proof-evaluation
-    created_at: 2026-08-16T19:43:54.870Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b79d02a03bc7
   - type: implements
     from: SYM-createSyncScheduler
     to: REQ-opencode-kibi-plugin-v1
@@ -69,20 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e24a95b25a2
-  - type: implements
-    from: SYM-kibi-script-change-to-proof-eval-ts-compileevaluator
-    to: REQ-kibi-change-to-proof-evaluation
-    created_at: 2026-09-18T07:20:52.174Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3d66bcc69321
-  - type: covered_by
-    from: SYM-kibi-script-change-to-proof-eval-ts-compileevaluator
-    to: TEST-kibi-change-to-proof-evaluation-live
-    created_at: 2026-09-18T07:20:52.183Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7ae750ae51b3
   - type: covered_by
     from: SYM-mcp-env-is-mcp-debug-enabled
     to: TEST-001
@@ -146,20 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0984e05279e9
-  - type: implements
-    from: SYM-skillopt-ordering-contract
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-04T12:50:23.623Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-25f81355d91b
-  - type: covered_by
-    from: SYM-skillopt-ordering-contract
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-04T12:50:23.638Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-038d68fcabe9
   - type: implements
     from: SYM-kb-firm-decision-edit-assertfirmdecisionunchanged
     to: REQ-kb-firm-decision-edit

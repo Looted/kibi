@@ -56,48 +56,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0d3a0039b563
   - type: implements
-    from: SYM-AuditEntityPayload
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:44:43.986Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-832ae83cceb4
-  - type: covered_by
-    from: SYM-AuditEntityPayload
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:44:44.002Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9f2b0bb49b64
-  - type: covered_by
-    from: SYM-AuditEntityPayload
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:44:44.015Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-98a335010a7d
-  - type: implements
-    from: SYM-Plugin
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:53:08.339Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6199c0be1019
-  - type: covered_by
-    from: SYM-Plugin
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:53:08.352Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fe6a3f4c3ecd
-  - type: covered_by
-    from: SYM-Plugin
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:53:08.360Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-19ca4f4219f4
-  - type: implements
     from: SYM-runBunInstallForOpenCodePlugin
     to: REQ-opencode-kibi-plugin-v1
     created_at: 2026-08-22T20:54:36.264Z
@@ -146,13 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e10ad9e979b
-  - type: covered_by
-    from: SYM-SymbolCompilerLockFileSystem
-    to: TEST-generated-coordinate-repair
-    created_at: 2026-09-05T16:56:19.740Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-adf15ddbe087
   - type: covered_by
     from: SYM-cli-mutation-serialization-buildPropertyList
     to: TEST-kibi-logical-requirement-coverage

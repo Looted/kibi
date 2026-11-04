@@ -7,13 +7,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: covered_by
-    from: SYM-reqcompiler-mcp-coverage-result
-    to: TEST-kibi-dependency-ordered-repair-plan
-    created_at: 2026-08-16T18:51:39.501Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4ad5be08988f
-  - type: covered_by
     from: SYM-cli-engine-client-get-pid
     to: TEST-core-journaled-engine-lifecycle
     created_at: 2026-08-16T19:47:37.128Z
@@ -161,13 +154,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-7abaa601ff5d
   - type: covered_by
-    from: SYM-cap-plugin-symbolextractorv1-870b7d37
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:46:18.678Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-955fc6676bd6
-  - type: covered_by
     from: SYM-cap-plugin-validatesourceanalysisresult-7f251be2
     to: TEST-e2e-capability-plugins
     created_at: 2026-09-22T19:48:01.812Z
@@ -209,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55182065df3d
-  - type: covered_by
-    from: SYM-reqcompiler-mcp-coverage-result
-    to: TEST-kibi-legacy-migration-preview-v2
-    created_at: 2026-10-04T04:19:13.161Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fb2d27f21ab9
   - type: implements
     from: SYM-createKbDirectoryStructure
     to: REQ-cli-init-canonical
@@ -307,13 +286,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c81176b8fcb2
-  - type: implements
-    from: SYM-cli-signoff-signoff-markdown-limit
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:52:10.829Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-af561c64acdf
   - type: covered_by
     from: SYM-cli-signoff-signoff-markdown-limit
     to: TEST-kibi-signoff-views

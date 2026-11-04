@@ -74,27 +74,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-f0a0f2529975
   - type: covered_by
-    from: SYM-mcp-status-StatusArgs
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:37:48.069Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e61f19b7dea1
-  - type: implements
-    from: SYM-mcp-status-StatusArgs
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:01:53.438Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5b44aafc2d66
-  - type: covered_by
-    from: SYM-mcp-status-StatusArgs
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:01:53.442Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7b8538c84a2d
-  - type: covered_by
     from: SYM-collectStagedKibiDiagnostics
     to: TEST-cli-staged-impact-enforcement
     created_at: 2026-09-05T15:17:10.939Z
@@ -122,20 +101,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7811b71c42e0
-  - type: implements
-    from: SYM-skillopt-fixtures-case-contracts-requiredcall-0d6de131
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T12:24:34.198Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-be740ccb4373
-  - type: covered_by
-    from: SYM-skillopt-fixtures-case-contracts-requiredcall-0d6de131
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:24:34.208Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4d103252faec
   - type: validates
     from: TEST-kibi-hooks-flow-manifest
     to: SCEN-kibi-hooks-flow-manifest

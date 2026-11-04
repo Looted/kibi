@@ -20,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b34ef37473f1
-  - type: covered_by
-    from: SYM-kibi-cli-src-intent-search-ts-intentsearchanalysis
-    to: TEST-kibi-intent-aware-source-discovery
-    created_at: 2026-08-16T19:46:36.844Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-665cd52a0f10
   - type: implements
     from: SYM-cli-init-command
     to: REQ-kibi-github-report-integration
@@ -49,41 +42,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-15d0c4a3754c
   - type: implements
-    from: d36577498a152edf
-    to: REQ-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T10:54:23.309Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fd268f2a4b2c
-  - type: covered_by
-    from: d36577498a152edf
-    to: TEST-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T12:54:02.021Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-86929af55c6a
-  - type: implements
-    from: SYM-RuntimeDegradedOverlay
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:54:53.960Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4683f415f624
-  - type: covered_by
-    from: SYM-RuntimeDegradedOverlay
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:54:53.974Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f1bddd09b004
-  - type: covered_by
-    from: SYM-RuntimeDegradedOverlay
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:54:53.982Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-37980d3f6746
-  - type: implements
     from: SYM-auto-9C1F333AEDAA
     to: REQ-kibi-operation-interface-parity
     created_at: 2026-08-23T21:54:49.676Z
@@ -104,13 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0216ae6529a
-  - type: covered_by
-    from: SYM-VerificationHarnessCliOptions
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:10:37.459Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a48d5475b363
   - type: implements
     from: SYM-sweep-store-lock
     to: REQ-core-journaled-engine-persistence
@@ -146,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e1ced74bd109
-  - type: covered_by
-    from: SYM-VerificationHarnessCliOptions
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:24:25.975Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ff66f9ed1c00
   - type: implements
     from: SYM-skillopt-fake-provider-configuration
     to: REQ-skillopt-paid-matrix-infrastructure
@@ -237,20 +181,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7dca4a36a7d
-  - type: implements
-    from: SYM-cursor-dts-nextAncestorDirectory
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:04.328Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6ea1f5ca2b93
-  - type: covered_by
-    from: SYM-cursor-dts-nextAncestorDirectory
-    to: TEST-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:04.345Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4093f013c8ca
   - type: constrains
     from: REQ-kibi-contradiction-review-candidates
     to: FACT-SUBJ-kibi-contradiction-review

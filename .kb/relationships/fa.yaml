@@ -133,20 +133,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0907277cd2b1
   - type: implements
-    from: SYM-claude-PathKind
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:23:35.032Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-09306dab7dd0
-  - type: covered_by
-    from: SYM-claude-PathKind
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:23:35.083Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b7f46031b678
-  - type: implements
     from: SYM-modeling-suggest-predicates-candidateDecisionConflicts
     to: REQ-model-predicates-grounding-guards
     created_at: 2026-10-12T19:24:31.641Z
@@ -160,20 +146,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce2fc58fd688
-  - type: implements
-    from: SYM-cli-migration-MigrationCoordinateRefresh
-    to: REQ-cli-migration-first-commit
-    created_at: 2026-10-14T08:47:27.253Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2d58c748ab09
-  - type: covered_by
-    from: SYM-cli-migration-MigrationCoordinateRefresh
-    to: TEST-cli-migration-first-commit
-    created_at: 2026-10-14T08:47:27.270Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b38a820c3cf8
   - type: validates
     from: TEST-kibi-evidence-levels-exhaustive
     to: SCEN-kibi-evidence-levels

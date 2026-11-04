@@ -21,27 +21,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-fff0e5450c07
   - type: implements
-    from: SYM-setToolsServerDepsForTests
-    to: REQ-002
-    created_at: 2026-08-22T20:09:41.594Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ba0319a8e3b9
-  - type: covered_by
-    from: SYM-setToolsServerDepsForTests
-    to: TEST-005
-    created_at: 2026-08-22T20:09:41.606Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ad9d94600bab
-  - type: covered_by
-    from: SYM-setToolsServerDepsForTests
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:09:41.611Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dff3e6100060
-  - type: implements
     from: SYM-resetClient
     to: REQ-opencode-kibi-plugin-v1
     created_at: 2026-08-22T20:54:07.323Z
@@ -63,27 +42,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-bef7d88b2ae6
   - type: covered_by
-    from: SYM-runtime-FilesystemStat
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:39:58.137Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-11c7a33061c5
-  - type: implements
-    from: SYM-runtime-FilesystemStat
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:07:22.809Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-67213c3ce804
-  - type: covered_by
-    from: SYM-runtime-FilesystemStat
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:07:22.842Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-73dd95430883
-  - type: covered_by
     from: SYM-cli-engine-client-stop
     to: TEST-core-journaled-engine-delta-sync
     created_at: 2026-09-05T15:29:35.440Z
@@ -97,41 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-85bb8893a7b4
-  - type: covered_by
-    from: SYM-KibiTreeItem
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:26:31.780Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f3a31f72fe62
-  - type: covered_by
-    from: SYM-setToolsServerDepsForTests
-    to: TEST-agent-kibi-interface-selection
-    created_at: 2026-09-18T15:26:29.196Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c912b2927e0d
-  - type: covered_by
-    from: SYM-KibiTreeItem
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:30:29.639Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d32cc3d2b2da
-  - type: covered_by
-    from: SYM-cap-plugin-predicaterule-4bd14e84
-    to: TEST-capability-plugin-host-resolution-v1
-    created_at: 2026-09-22T19:42:38.615Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0f2c4c8e4f8e
-  - type: covered_by
-    from: SYM-cap-plugin-ontologymatchcontext-d744ea2f
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:45:13.539Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e65c17cbc700
   - type: covered_by
     from: SYM-prolog-ci-without-run-binding
     to: TEST-prolog-bundled-ci

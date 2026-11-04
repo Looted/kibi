@@ -245,34 +245,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-2458d5ba3b81
   - type: implements
-    from: SYM-migration-delivered-status-mapping-result
-    to: REQ-cli-migrate-legacy-requirement-status
-    created_at: 2026-10-14T10:12:50.262Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-201330eabfa2
-  - type: covered_by
-    from: SYM-migration-delivered-status-mapping-result
-    to: TEST-cli-migrate-legacy-requirement-status
-    created_at: 2026-10-14T10:12:50.282Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7db8a82be33a
-  - type: implements
-    from: SYM-diagnostics-Diagnostic
-    to: REQ-cli-sync-summary-kb-totals
-    created_at: 2026-10-14T21:22:04.418Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-54e4d11ebd6a
-  - type: covered_by
-    from: SYM-diagnostics-Diagnostic
-    to: TEST-cli-migrated-kb-type-backfill-sync-totals
-    created_at: 2026-10-14T21:22:04.452Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e55f82b116fc
-  - type: implements
     from: SYM-mcp-normalizeRepoRelativePath
     to: REQ-symbol-sourcefile-workspace-confinement
     created_at: 2026-10-19T12:28:32.541Z

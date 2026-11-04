@@ -108,27 +108,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5033601e47e2
-  - type: implements
-    from: SYM-upsert-execution-options
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-09-08T00:34:28.656Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-973caddaaeb6
-  - type: covered_by
-    from: SYM-upsert-execution-options
-    to: TEST-mcp-upsert-coverage
-    created_at: 2026-09-09T03:37:28.755Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-174c64f7232e
-  - type: covered_by
-    from: SYM-upsert-execution-options
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-09T06:04:06.617Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1080f8f30f69
   - type: validates
     from: TEST-cli-check-integrity
     to: SCEN-005
@@ -150,41 +129,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ad411d2e6373
-  - type: covered_by
-    from: SYM-cap-plugin-symbolcoordinates-7686ab9b
-    to: TEST-capability-plugin-host-resolution-v1
-    created_at: 2026-09-22T19:43:39.321Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-052c200d83a1
-  - type: implements
-    from: SYM-env-bootstrap-reset-state-for-tests
-    to: REQ-kibi-env-bootstrap
-    created_at: 2026-09-23T11:19:53.737Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-77e63cd3afb5
-  - type: covered_by
-    from: SYM-env-bootstrap-reset-state-for-tests
-    to: TEST-cli-env-bootstrap
-    created_at: 2026-09-23T11:19:53.743Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9ebbce18c8aa
-  - type: covered_by
-    from: SYM-env-bootstrap-reset-state-for-tests
-    to: TEST-e2e-kibi-env-bootstrap
-    created_at: 2026-09-23T15:04:33.930Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-836e2919b11a
-  - type: implements
-    from: SYM-cli-discovery-proof-contract-page-size
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-09-26T08:57:40.651Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d93c8e0cb990
   - type: covered_by
     from: SYM-cli-discovery-proof-contract-page-size
     to: TEST-kibi-operation-interface-parity

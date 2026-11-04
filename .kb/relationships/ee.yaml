@@ -14,20 +14,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8024a56d1878
   - type: covered_by
-    from: SYM-reqcompiler-parity-report
-    to: TEST-kibi-distribution-parity-matrix
-    created_at: 2026-08-16T18:51:45.118Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6ff886244a6a
-  - type: covered_by
-    from: SYM-reqcompiler-remediation-item
-    to: TEST-kibi-telemetry-remediation-evidence
-    created_at: 2026-08-16T18:52:17.736Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-690937cafc20
-  - type: covered_by
     from: SYM-cli-engine-client-query-entities
     to: TEST-core-journaled-engine-lifecycle
     created_at: 2026-08-16T19:47:37.161Z
@@ -175,27 +161,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-11e8a6a399b4
   - type: covered_by
-    from: SYM-runtime-McpOperationRuntime
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:40:11.233Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9d9e7ebff645
-  - type: implements
-    from: SYM-runtime-McpOperationRuntime
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:07:48.584Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1c2ccc365733
-  - type: covered_by
-    from: SYM-runtime-McpOperationRuntime
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:07:48.620Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8df641df5919
-  - type: covered_by
     from: SYM-canonical-WorkspaceHealth
     to: TEST-opencode-bootstrap-paths
     created_at: 2026-08-24T06:19:20.939Z
@@ -209,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f1842a0a0d05
-  - type: covered_by
-    from: SYM-TempKbContext
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:15:11.999Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12a451920164
   - type: covered_by
     from: SYM-markdown-FrontmatterError
     to: TEST-cli-sync-discovery-readme-ignore
@@ -349,13 +307,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e01eb6279a0
-  - type: covered_by
-    from: SYM-reqcompiler-legacy-migration-proposition
-    to: TEST-kibi-legacy-migration-preview-v2
-    created_at: 2026-10-04T04:19:00.631Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6567f70da141
   - type: implements
     from: SYM-docs-site-terminal-demo-terminalDemoHtml
     to: REQ-docs-site-terminal-demo

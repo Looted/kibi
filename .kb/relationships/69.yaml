@@ -84,34 +84,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-f3bf14127616
   - type: covered_by
-    from: SYM-ModelRequirementResult
-    to: TEST-005
-    created_at: 2026-08-23T12:39:07.973Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2efae2a9a24f
-  - type: implements
-    from: SYM-ModelRequirementResult
-    to: REQ-002
-    created_at: 2026-08-23T22:10:00.165Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b40700eccca0
-  - type: covered_by
-    from: SYM-ModelRequirementResult
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:10:00.195Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5393d726b703
-  - type: covered_by
-    from: SYM-cli-rule-registry-Violation
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-26T07:15:37.448Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-271d672745de
-  - type: covered_by
     from: SYM-kibi-migration-coverage-actions
     to: TEST-agent-guided-migration-orchestration
     created_at: 2026-09-05T15:00:56.169Z
@@ -132,27 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de80596e8b3a
-  - type: covered_by
-    from: SYM-cli-rule-registry-Violation
-    to: TEST-004
-    created_at: 2026-09-18T07:06:25.854Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0d9a3c224440
-  - type: implements
-    from: SYM-cli-rule-registry-Violation
-    to: REQ-core-validation-rules
-    created_at: 2026-09-18T07:06:25.877Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-56c78490d6a1
-  - type: covered_by
-    from: SYM-cli-rule-registry-Violation
-    to: TEST-rule-registry-single-source
-    created_at: 2026-09-18T07:06:25.888Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1dbc17e51b99
   - type: implements
     from: SYM-core-requirement-proof
     to: REQ-kibi-conservative-requirement-proof
@@ -209,20 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3387fe6aa370
-  - type: implements
-    from: SYM-cap-plugin-sourceanalysisdiagnosticv2
-    to: REQ-capability-plugin-protocol-v1
-    created_at: 2026-09-30T15:24:05.578Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5a35e47511f9
-  - type: covered_by
-    from: SYM-cap-plugin-sourceanalysisdiagnosticv2
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-30T15:24:05.593Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f7a068593c17
   - type: implements
     from: SYM-proof-prepush-check
     to: REQ-kibi-local-proof-parity
@@ -357,13 +294,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b108755c9c53
   - type: implements
-    from: SYM-ingest-proof-test-result
-    to: REQ-kibi-fresh-verification-receipts-v2
-    created_at: 2026-10-04T03:00:45.869Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c457489dbd58
-  - type: implements
     from: SYM-model-predicates-bindings-bindingtoken
     to: REQ-model-predicates-binding-placeholders
     created_at: 2026-10-08T08:35:26.399Z
@@ -377,27 +307,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb22bc79d8f3
-  - type: implements
-    from: SYM-migration-entity-type-backfill-target
-    to: REQ-cli-migrate-entity-type-backfill
-    created_at: 2026-10-14T21:21:01.514Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4dd28afd3113
-  - type: covered_by
-    from: SYM-migration-entity-type-backfill-target
-    to: TEST-cli-legacy-kb-first-migrate
-    created_at: 2026-10-14T21:21:01.546Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-121a45b19438
-  - type: covered_by
-    from: SYM-migration-entity-type-backfill-target
-    to: TEST-cli-migrated-kb-type-backfill-sync-totals
-    created_at: 2026-10-14T21:21:01.574Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9e86a1d09cad
   - type: implements
     from: SYM-core-requirement-proof
     to: REQ-kibi-evidence-levels

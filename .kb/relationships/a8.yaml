@@ -7,13 +7,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: covered_by
-    from: SYM-sync-semantic-cache
-    to: TEST-kibi-proposition-complete-ingestion
-    created_at: 2026-08-16T18:52:06.544Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a7ac501cd24c
-  - type: covered_by
     from: SYM-cli-run-json-invocation
     to: TEST-kibi-telemetry-remediation-evidence
     created_at: 2026-08-16T18:52:17.697Z
@@ -42,20 +35,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0d45598afa45
   - type: implements
-    from: SYM-cli-report-git-remote
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T20:42:26.827Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-20e38a983101
-  - type: covered_by
-    from: SYM-cli-report-git-remote
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-18T20:42:26.838Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-79384a12dc59
-  - type: implements
     from: SYM-cli-run-json-invocation
     to: REQ-kibi-operation-interface-parity
     created_at: 2026-08-22T20:26:29.110Z
@@ -83,13 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-152f88abd433
-  - type: covered_by
-    from: SYM-ManifestSymbolRecord
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:15:42.497Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-62274df73d8a
   - type: constrains
     from: REQ-opencode-guidance-injection
     to: FACT-SUBJ-OPENCODE-PLUGIN
@@ -111,13 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-21c55f8b8f7d
-  - type: covered_by
-    from: SYM-ManifestSymbolRecord
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:23:27.708Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-72d2c813f7a9
   - type: covered_by
     from: SYM-proof-result-schema
     to: TEST-kibi-verification-evidence-contract

@@ -221,13 +221,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b03755ccf8e9
   - type: implements
-    from: SYM-skillopt-fake-provider-debit-receipt
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:41:07.030Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a8f5cf4a6325
-  - type: implements
     from: SYM-cli-EngineSession-needsRecycle
     to: REQ-core-journaled-engine-persistence
     created_at: 2026-09-26T22:32:39.374Z
@@ -290,13 +283,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-47c9ec5d6d97
-  - type: implements
-    from: SYM-cli-signoff-model-signoff-brief-dir
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:52:15.331Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4e96da8f698f
   - type: covered_by
     from: SYM-cli-signoff-model-signoff-brief-dir
     to: TEST-kibi-signoff-views

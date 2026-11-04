@@ -6,20 +6,6 @@ relationships:
     created_at: "2026-08-19T20:54:58.758Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-SourceAnalysisResult
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:16:06.104Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-988eb625f58b
-  - type: covered_by
-    from: SYM-SourceAnalysisResult
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:23:48.622Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9a169be8ef48
   - type: implements
     from: SYM-janitor-finding
     to: REQ-core-journaled-engine-persistence
@@ -118,20 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b1a7d4c3649
-  - type: implements
-    from: SYM-cli-PruneReceiptsArgs
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-26T23:18:42.437Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-13719731bd13
-  - type: covered_by
-    from: SYM-cli-PruneReceiptsArgs
-    to: TEST-e2e-proof-maintenance-ops
-    created_at: 2026-09-26T23:18:42.452Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d3762825df9a
   - type: covered_by
     from: SYM-cli-check-generated-manifests
     to: TEST-impact-policy-stage-e-installed-e2e
@@ -139,20 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-521baa1208f5
-  - type: covered_by
-    from: SYM-impact-stage-e-type-impactpolicy
-    to: TEST-impact-policy-stage-e-installed-e2e
-    created_at: 2026-09-27T17:50:45.926Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8e0e5cf31bd7
-  - type: implements
-    from: SYM-impact-stage-e-type-impactpolicy
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:50:45.949Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-574561f5c01d
   - type: implements
     from: SYM-prolog-swipl-swiplgoalrunner-src
     to: REQ-prolog-bundled-runtime
@@ -174,13 +132,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-141ad9c84d7c
-  - type: implements
-    from: SYM-BranchRecoverOptions
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:55:04.621Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-14b074bb3530
   - type: implements
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-buildintentclaimcandidates
     to: REQ-bootstrap-claim-kinds-and-conflicts

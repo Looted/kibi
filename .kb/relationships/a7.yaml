@@ -32,26 +32,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-781d80265d7a
   - type: covered_by
-    from: SYM-auto-20020A915D46
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T07:52:57.837Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0bd1740ebb5e
-  - type: covered_by
     from: SYM-telemetry-acceptance-parse-log
     to: TEST-kibi-telemetry-acceptance-gate
     created_at: 2026-08-16T18:52:12.199Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28d885fc400a
-  - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-16T19:45:30.468Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-acc6a09b92de
   - type: covered_by
     from: SYM-cli-engine-client-is-running
     to: TEST-core-journaled-engine-lifecycle
@@ -122,41 +108,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8ab414c6ebd2
-  - type: implements
-    from: SYM-PluginInput
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:53:23.489Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b4221d5b8944
-  - type: covered_by
-    from: SYM-PluginInput
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:53:23.516Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-553a264fc161
-  - type: covered_by
-    from: SYM-PluginInput
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:53:23.525Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-352e075e011a
-  - type: implements
-    from: SYM-auto-20020A915D46
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:51:23.522Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e5ee45208bfa
-  - type: covered_by
-    from: SYM-auto-20020A915D46
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:51:23.528Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-44c01b74eddb
   - type: covered_by
     from: SYM-kibi-migration-plan-status-actions
     to: TEST-agent-guided-migration-orchestration
@@ -186,20 +137,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-7601f189341c
   - type: covered_by
-    from: SYM-PredicateVariant
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:09:24.290Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e22ef6e1bd74
-  - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft
-    to: TEST-e2e-plan-compiler-hash
-    created_at: 2026-09-18T07:18:48.403Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-329995176848
-  - type: covered_by
     from: SYM-extractToolCallPayload
     to: TEST-kibi-telemetry-acceptance-gate
     created_at: 2026-09-18T15:10:39.221Z
@@ -213,27 +150,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e5bb7145e8a2
-  - type: implements
-    from: SYM-PredicateVariant
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:36:48.530Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-646417b754d3
-  - type: implements
-    from: SYM-skillopt-fake-provider-configuration-schema
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:41:03.451Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c2348c8eb554
-  - type: covered_by
-    from: SYM-cap-plugin-jevchoiceanswer-f3f17b79
-    to: TEST-capability-plugin-jev-mocked-v1
-    created_at: 2026-09-22T19:44:45.947Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1c9af5294ebf
   - type: verified_by
     from: SCEN-kibi-local-proof-parity
     to: TEST-kibi-local-proof-parity
@@ -276,13 +192,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-44dbbf2292e1
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft
-    to: REQ-kibi-change-to-proof-plan-compiler-v2
-    created_at: 2026-10-04T03:02:32.443Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-52b266f7f78b
   - type: implements
     from: SYM-telemetry-acceptance-parse-log
     to: REQ-claude-hook-usage-telemetry-v2

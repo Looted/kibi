@@ -21,20 +21,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3b208163c166
   - type: covered_by
-    from: SYM-auto-92638075C834
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-16T07:54:10.597Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dc01f42e40d1
-  - type: covered_by
-    from: SYM-reqcompiler-usage-report
-    to: TEST-kibi-telemetry-acceptance-gate
-    created_at: 2026-08-16T18:52:12.209Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-43859dfcb5ae
-  - type: covered_by
     from: SYM-cli-engine-client-checkpoint
     to: TEST-core-journaled-engine-delta-sync
     created_at: 2026-08-16T19:49:09.970Z
@@ -83,20 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a15337033db9
-  - type: implements
-    from: SYM-auto-92638075C834
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:54:09.055Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d4cdda46d5a4
-  - type: covered_by
-    from: SYM-auto-92638075C834
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:54:09.059Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f8844a041db8
   - type: covered_by
     from: SYM-cli-PrologProcess-signalProcessTree
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -168,13 +140,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-706900829bbb
   - type: covered_by
-    from: SYM-auto-92638075C834
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-18T06:56:27.897Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cfd862677c1c
-  - type: covered_by
     from: SYM-skillopt-external-trust-client-main
     to: TEST-e2e-skillopt-trust-boundaries
     created_at: 2026-09-19T19:27:14.900Z
@@ -188,20 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b5214e303a3
-  - type: implements
-    from: SYM-auto-92638075C834
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:56:58.578Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2f2826b14fa5
-  - type: implements
-    from: SYM-reqcompiler-usage-report
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T03:06:35.564Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-998edd5b4daf
   - type: constrains
     from: REQ-skillopt-host-neutral-optimization
     to: FACT-subject-skillopt-host-neutral-optimization

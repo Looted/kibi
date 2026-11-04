@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-16T18:51:34.270Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-SemanticAdvisorReceipt
-    to: TEST-kibi-proposition-complete-ingestion
-    created_at: 2026-08-16T18:52:06.523Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-33cfdf60c1a8
   - type: implements
     from: SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions
     to: REQ-KIBI-BOOTSTRAP-PLAN
@@ -41,20 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce631d2b4073
-  - type: implements
-    from: SYM-BrokerRawCall
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-08-23T23:19:54.455Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5411ddaa9004
-  - type: covered_by
-    from: SYM-BrokerRawCall
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-23T23:19:54.466Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-33a41b3ed06f
   - type: covered_by
     from: SYM-skillopt-cursor-run-compat-gate
     to: TEST-skillopt-cursor-compat
@@ -76,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-da288ee63ba0
-  - type: covered_by
-    from: SYM-FixtureAuthorizationClaim
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:07:30.278Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bce233c57786
   - type: relates_to
     from: REQ-003
     to: FACT-CLI-COMMAND-SET-CORE
@@ -90,41 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b845d8387f7
-  - type: implements
-    from: SYM-coordinate-repair-evidence-type
-    to: REQ-kibi-dependency-ordered-repair-plan
-    created_at: 2026-09-15T07:40:54.334Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8762917300f7
-  - type: covered_by
-    from: SYM-coordinate-repair-evidence-type
-    to: TEST-coordinate-repair-capability
-    created_at: 2026-09-15T07:40:54.343Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9c1fa43c6c28
-  - type: covered_by
-    from: SYM-coordinate-repair-evidence-type
-    to: TEST-kibi-dependency-ordered-repair-plan
-    created_at: 2026-09-15T07:40:54.348Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d1866d376460
-  - type: implements
-    from: SYM-staged-file-coverage-result
-    to: REQ-AUTO-941B0CE68BAF3331
-    created_at: 2026-09-15T07:44:37.074Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e90c70b7cdb3
-  - type: covered_by
-    from: SYM-staged-file-coverage-result
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-15T07:44:37.082Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-26497843d97e
   - type: implements
     from: SYM-core-discovery-requirementCoverageRow
     to: REQ-kibi-conservative-requirement-proof
@@ -160,20 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5506cdd9ccde
-  - type: implements
-    from: SYM-FixtureAuthorizationClaim
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:35:17.291Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7a05e049ece3
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-knowledge-source-authorities
-    to: REQ-kibi-bootstrap-knowledge-sources
-    created_at: 2026-10-02T07:40:16.329Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2279dff35cbe
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-knowledge-source-authorities
     to: TEST-kibi-bootstrap-knowledge-sources

@@ -20,41 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a9959331f954
-  - type: implements
-    from: SYM-canonical-MarkdownValidationResult
-    to: REQ-cli-staged-impact-enforcement
-    created_at: 2026-08-18T17:36:45.217Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1d24a7c52ca7
-  - type: covered_by
-    from: SYM-canonical-MarkdownValidationResult
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-08-18T17:36:45.226Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eaaf4de266fb
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:26.917Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e13b0dcd2fdb
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:26.924Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5001382a9fcd
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:18:48.478Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9bfdd5106bde
   - type: covered_by
     from: SYM-auto-5E0D46927248
     to: TEST-kibi-change-to-proof-plan-compiler

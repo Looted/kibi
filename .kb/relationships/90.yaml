@@ -104,27 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb05d0fff3de
-  - type: covered_by
-    from: SYM-runtime-RuntimeOptions
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:40:50.840Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6ff553a994eb
-  - type: implements
-    from: SYM-runtime-RuntimeOptions
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:09:28.939Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30b5fe7bcc64
-  - type: covered_by
-    from: SYM-runtime-RuntimeOptions
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:09:28.966Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-82c24466864a
   - type: constrains
     from: REQ-core-extractors
     to: FACT-SUBJ-REQ-CORE-EXTRACTORS
@@ -146,20 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b78417867861
-  - type: covered_by
-    from: SYM-KibiImpactDiagnostic
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:13:17.994Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cab819be84ad
-  - type: covered_by
-    from: SYM-KibiImpactSourceChange
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:14:20.420Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2cafba00a313
   - type: covered_by
     from: SYM-cli-engine-client-next-solution
     to: TEST-core-journaled-engine-delta-sync

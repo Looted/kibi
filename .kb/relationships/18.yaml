@@ -77,27 +77,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-c5d17e16b4c2
   - type: implements
-    from: SYM-FileOperationState
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:48:49.689Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-43a24cf2375e
-  - type: covered_by
-    from: SYM-FileOperationState
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:48:49.703Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-624d84596259
-  - type: covered_by
-    from: SYM-FileOperationState
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:48:49.709Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b3bd0156a2f7
-  - type: implements
     from: SYM-computeEnforcementPolicy
     to: REQ-opencode-kibi-plugin-v1
     created_at: 2026-08-22T20:57:30.851Z
@@ -140,13 +119,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-d0351102c6e4
   - type: covered_by
-    from: SYM-SourceAnalysisMode
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:15:53.738Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-55acecbc5df1
-  - type: covered_by
     from: SYM-computeEnforcementPolicy
     to: TEST-agent-kibi-interface-selection
     created_at: 2026-09-05T15:02:03.129Z
@@ -160,13 +132,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-39f6b5c1d214
-  - type: covered_by
-    from: SYM-SourceAnalysisMode
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:23:38.080Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-828344b66171
   - type: covered_by
     from: SYM-isPathOutOfBounds
     to: TEST-skill-cli-load-validate
@@ -223,20 +188,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-be6498310b01
-  - type: implements
-    from: SYM-cap-plugin-jev-provider-error-model
-    to: REQ-capability-plugin-jev-fallback-v1
-    created_at: 2026-09-21T15:26:41.416Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-893c16b822ea
-  - type: covered_by
-    from: SYM-cap-plugin-jev-provider-error-model
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:49:06.046Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e0475124a4c2
   - type: covered_by
     from: SYM-claude-unownedSourceNote
     to: TEST-claude-code-kibi-plugin-v1
@@ -244,20 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8ac25f4a8674
-  - type: implements
-    from: SYM-agent-core-KbMcpToolCall
-    to: REQ-cursor-kibi-plugin-v1
-    created_at: 2026-09-27T16:46:51.434Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f62539f40e4c
-  - type: covered_by
-    from: SYM-agent-core-KbMcpToolCall
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-27T16:46:51.515Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ef80c4b0dd7a
   - type: executable_for
     from: SYM-installed-impact-SandboxOptions
     to: TEST-installed-staged-impact-timing-integrity
@@ -307,20 +244,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d7ae60bc4a0
-  - type: implements
-    from: SYM-bootstrap-restatement-match-type
-    to: REQ-bootstrap-claim-restatement
-    created_at: 2026-10-14T09:06:24.266Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-73c96ba32af7
-  - type: covered_by
-    from: SYM-bootstrap-restatement-match-type
-    to: TEST-kibi-bootstrap-knowledge-sources
-    created_at: 2026-10-14T09:06:24.275Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4411e25fc7b5
   - type: implements
     from: SYM-claude-unownedSourceNote
     to: REQ-kb-unowned-file-candidates

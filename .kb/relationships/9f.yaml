@@ -179,20 +179,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-9b1014aea491
   - type: implements
-    from: SYM-prolog-swipl-swiplsource-src
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T23:35:26.370Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12d5d034b44c
-  - type: covered_by
-    from: SYM-prolog-swipl-swiplsource-src
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T23:35:26.386Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-83aaabef7645
-  - type: implements
     from: SYM-prolog-swipl-manifest-file-js
     to: REQ-prolog-bundled-runtime
     created_at: 2026-09-30T23:36:27.618Z
@@ -220,13 +206,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba9e2b6cd154
-  - type: implements
-    from: SYM-migration-entity-type-backfill-code
-    to: REQ-cli-migrate-entity-type-backfill
-    created_at: 2026-10-14T21:20:52.060Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7cb69e83ce12
   - type: covered_by
     from: SYM-migration-entity-type-backfill-code
     to: TEST-cli-migrated-kb-type-backfill-sync-totals

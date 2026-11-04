@@ -63,13 +63,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-cfe1bcd10ce8
   - type: covered_by
-    from: SYM-PrepareArtifactPathOptions
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:09:29.646Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-70a6139eb9d7
-  - type: covered_by
     from: SYM-canonical-KibiTreeDataProvider-refresh
     to: TEST-vscode-traceability-coverage
     created_at: 2026-09-05T18:27:42.837Z
@@ -83,13 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cf2131ca0275
-  - type: covered_by
-    from: SYM-PrepareArtifactPathOptions
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:23:12.384Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f0885ea522e
   - type: covered_by
     from: SYM-canonical-KibiTreeDataProvider-refresh
     to: TEST-e2e-vscode-extension-lifecycle
@@ -132,20 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c5b01638a5f0
-  - type: implements
-    from: SYM-agent-core-IndexedSymbol
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:50:31.692Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7b7728cdcca1
-  - type: covered_by
-    from: SYM-agent-core-IndexedSymbol
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:50:31.719Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ffb1c7637fbf
   - type: verified_by
     from: SCEN-kibi-telemetry-lookup-before-first-edit
     to: TEST-kibi-telemetry-lookup-before-first-edit
@@ -167,13 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e7067d12f097
-  - type: implements
-    from: SYM-agent-core-candidates-max-requirement-candidates
-    to: REQ-kb-unowned-file-candidates
-    created_at: 2026-10-14T09:46:33.336Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7f0e668475b2
   - type: covered_by
     from: SYM-agent-core-candidates-max-requirement-candidates
     to: TEST-claude-edit-snippet-hook

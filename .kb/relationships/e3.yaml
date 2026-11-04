@@ -13,13 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8eb023fcefc4
-  - type: covered_by
-    from: SYM-reqcompiler-repair-plan-shape
-    to: TEST-kibi-dependency-ordered-repair-plan
-    created_at: 2026-08-16T18:51:39.490Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e1ae7e63bc11
   - type: executable_for
     from: SYM-mcp-clear-host-kibi-branch
     to: TEST-test-journaled-engine-harness
@@ -153,20 +146,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8de73161c4d4
-  - type: implements
-    from: SYM-skillopt-answer-contract
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-04T12:49:55.706Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-44e8802d91e9
-  - type: covered_by
-    from: SYM-skillopt-answer-contract
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-04T12:49:55.741Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dc0608ac0da3
   - type: verified_by
     from: SCEN-docs-site-terminal-demo
     to: TEST-docs-site-pages

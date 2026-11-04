@@ -63,20 +63,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0a4bf6d803ce
   - type: covered_by
-    from: SYM-cli-github-remote
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-28T10:09:44.639Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c9cda9867279
-  - type: covered_by
-    from: SYM-KibiImpactDiagnosticId-contract
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:13:33.544Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eba8b26ff85d
-  - type: covered_by
     from: SYM-cli-impact-createImpactManifestLookup
     to: TEST-cli-staged-impact-enforcement
     created_at: 2026-09-05T15:16:10.086Z
@@ -90,20 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-100efb99443d
-  - type: covered_by
-    from: SYM-StoredHeldOutTerminalReceipt
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:10:22.070Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-962aa501a575
-  - type: implements
-    from: SYM-StoredHeldOutTerminalReceipt
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:36:57.472Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e3ef7498c4d0
   - type: implements
     from: SYM-cli-listSearchCandidates
     to: REQ-mcp-search-discovery

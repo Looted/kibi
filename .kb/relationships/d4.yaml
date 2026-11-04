@@ -42,41 +42,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-e1168b24ede7
   - type: covered_by
-    from: SYM-mcp-status-StatusResult
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:37:52.588Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1e4f2a6025b9
-  - type: implements
-    from: SYM-mcp-status-StatusResult
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:02:06.123Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-524b70f5c14d
-  - type: covered_by
-    from: SYM-mcp-status-StatusResult
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:02:06.126Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-976bcd8d4db0
-  - type: implements
-    from: SYM-skillopt-cursor-candidate-type
-    to: REQ-skillopt-cursor-compat
-    created_at: 2026-08-24T17:26:57.419Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1acb69cc0b59
-  - type: covered_by
-    from: SYM-skillopt-cursor-candidate-type
-    to: TEST-skillopt-cursor-compat
-    created_at: 2026-08-25T19:50:46.043Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0cabf4ca4a12
-  - type: covered_by
     from: SYM-mcp-collectQueryPlanSafetyViolations
     to: TEST-kibi-change-to-proof-plan-compiler
     created_at: 2026-08-26T07:16:04.627Z
@@ -126,26 +91,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b567263350fc
   - type: covered_by
-    from: SYM-HeldOutEligibilityReceipt
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:07:56.014Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cf79b94214f7
-  - type: covered_by
     from: SYM-DefaultRuntimeProlog
     to: TEST-agent-kibi-interface-selection
     created_at: 2026-09-18T14:51:19.150Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eecec1718971
-  - type: implements
-    from: SYM-HeldOutEligibilityReceipt
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:35:38.067Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b0b131319117
   - type: implements
     from: SYM-cap-plugin-analyzewithresolution-658eaabe
     to: REQ-capability-plugin-three-capabilities-v1

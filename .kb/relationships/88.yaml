@@ -69,13 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a023fc927143
-  - type: implements
-    from: SYM-staged-file-coverage-version
-    to: REQ-AUTO-941B0CE68BAF3331
-    created_at: 2026-09-15T07:44:51.892Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a68f3779c759
   - type: covered_by
     from: SYM-staged-file-coverage-version
     to: TEST-cli-staged-impact-enforcement
@@ -118,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-abf65e5125a1
-  - type: implements
-    from: SYM-skillopt-fake-provider-request-schema
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:41:38.332Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d5d5cf374aff
   - type: covered_by
     from: SYM-cap-plugin-builtinsemanticclassifier-be7eb013
     to: TEST-e2e-capability-plugins
@@ -196,13 +182,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8654762615ee
   - type: implements
-    from: SYM-zcode-ZcodeHookEvent
-    to: REQ-zcode-kibi-plugin-v1
-    created_at: 2026-09-28T07:55:58.797Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-18d23c838a95
-  - type: implements
     from: SYM-impact-stage-e-recordfromcapturedtree
     to: REQ-impact-policy-stage-e-content-bound-review
     created_at: 2026-09-30T15:23:28.615Z
@@ -216,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1440b896ffc
-  - type: implements
-    from: SYM-agent-core-KIBI_WORKSPACE_ARGUMENT
-    to: REQ-mcp-workspace-routing
-    created_at: 2026-10-02T14:47:24.813Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4afd486954d5
   - type: covered_by
     from: SYM-agent-core-KIBI_WORKSPACE_ARGUMENT
     to: TEST-mcp-workspace-routing
@@ -335,13 +307,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37eb4b6bc5e8
-  - type: implements
-    from: SYM-search-hint-limit
-    to: REQ-kibi-search-hints-host
-    created_at: 2026-10-29T21:28:01.652Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cb0788a019fa
   - type: covered_by
     from: SYM-search-hint-limit
     to: TEST-proof-search-hint-shown-limit

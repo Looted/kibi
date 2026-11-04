@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-5ebaca3f62d7
-    type: covered_by
-    from: SYM-kibi-cli-src-intent-search-ts-intentsearchfacetname
-    to: TEST-kibi-intent-aware-source-discovery
-    created_at: "2026-08-16T19:46:36.837Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-cli-engine-client-invalidate-cache
     to: TEST-core-journaled-engine-lifecycle
@@ -34,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55ca1a6c7e63
-  - type: covered_by
-    from: SYM-KibiImpactKbArtifact
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:13:53.829Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-32009f9ba084
   - type: covered_by
     from: SYM-cli-engine-client-invalidate-cache
     to: TEST-core-journaled-engine-delta-sync
@@ -167,20 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce98eb8efa00
-  - type: implements
-    from: SYM-skillopt-runtime-case-signals-casesignalcontext-904a60d2
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T12:25:14.531Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-766db109c0ec
-  - type: covered_by
-    from: SYM-skillopt-runtime-case-signals-casesignalcontext-904a60d2
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:14.541Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b5531488a654
   - type: implements
     from: SYM-agent-core-snippets-createentitysummarizer
     to: REQ-agent-core-edit-snippets

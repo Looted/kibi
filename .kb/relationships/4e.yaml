@@ -98,20 +98,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-ab50a1c3c5f1
   - type: implements
-    from: SYM-quality-eval-SearchSourceMatch
-    to: REQ-kibi-change-to-proof-evaluation
-    created_at: 2026-09-14T19:18:04.448Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-71282e1b4d5f
-  - type: covered_by
-    from: SYM-quality-eval-SearchSourceMatch
-    to: TEST-kibi-change-to-proof-evaluation
-    created_at: 2026-09-14T19:18:04.460Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-654ffa7f8bfb
-  - type: implements
     from: SYM-ALLOWED_GRANULARITY_REASONS_PROSE
     to: REQ-symbol-behavioral-anchors
     created_at: 2026-09-16T02:44:43.133Z
@@ -146,13 +132,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92af9452f4fc
-  - type: covered_by
-    from: SYM-quality-eval-SearchSourceMatch
-    to: TEST-kibi-change-to-proof-evaluation-live
-    created_at: 2026-09-18T07:29:36.215Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3390c3031fbc
   - type: covered_by
     from: SYM-ArtifactPath-appendText
     to: TEST-e2e-skillopt-trust-boundaries
@@ -286,17 +265,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f6330dea76b
-  - type: implements
-    from: SYM-hook-managers-hook-manager-coverage-type
-    to: REQ-git-hook-manager-integration
-    created_at: 2026-10-29T18:39:32.538Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-debad62d94a8
-  - type: covered_by
-    from: SYM-hook-managers-hook-manager-coverage-type
-    to: TEST-git-hook-manager-integration
-    created_at: 2026-10-29T18:39:32.560Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f15bb091aef8

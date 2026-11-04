@@ -1,25 +1,4 @@
 relationships:
-  - id: rel-6f6dc0039b57
-    type: covered_by
-    from: SYM-reqcompiler-telemetry-metric-status
-    to: TEST-kibi-telemetry-acceptance-gate
-    created_at: 2026-08-16T18:52:12.219Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-reqcompiler-telemetry-metric-id
-    to: TEST-kibi-telemetry-acceptance-gate
-    created_at: 2026-08-16T18:52:12.220Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7f83468a9f51
-  - type: covered_by
-    from: SYM-cli-prolog-entity-query-result
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.157Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f225df69859e
   - type: executable_for
     from: SYM-test-journaled-engine-benchmark
     to: TEST-core-journaled-engine-delta-sync
@@ -132,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c79aeafe5c4
-  - type: implements
-    from: SYM-impact-stage-e-impact-review-version
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:42:00.289Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-05d06f4c552a
   - type: verified_by
     from: SCEN-claude-hook-usage-telemetry
     to: TEST-claude-code-kibi-plugin-v1
@@ -294,20 +266,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-5f79abba766b
   - type: implements
-    from: SYM-reqcompiler-telemetry-metric-id
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T03:05:54.196Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d7cc92d0b25b
-  - type: implements
-    from: SYM-reqcompiler-telemetry-metric-status
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T03:05:58.472Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e855b715fb44
-  - type: implements
     from: SYM-cli-plugins-readactivecheckpolicies
     to: REQ-capability-check-policy
     created_at: 2026-10-09T12:13:05.538Z
@@ -321,20 +279,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b76c9db5faea
-  - type: implements
-    from: SYM-kb-firm-decision-edit-decisionclaimfield
-    to: REQ-kb-firm-decision-edit
-    created_at: 2026-10-14T08:00:52.514Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d84bddbd2c39
-  - type: covered_by
-    from: SYM-kb-firm-decision-edit-decisionclaimfield
-    to: TEST-kb-decision-firmness
-    created_at: 2026-10-14T08:00:52.543Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4485379bdaa7
   - type: executable_for
     from: SYM-test-requirement-statements
     to: TEST-search-answer-hygiene

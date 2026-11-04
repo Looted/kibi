@@ -55,27 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92de8bed3ae6
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapdeclaredcontext
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:02.882Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7da15a74b8b2
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapdeclaredcontext
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:02.889Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-77302205d00c
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapdeclaredcontext
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:18:53.417Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5ffec8dfb283
   - type: covered_by
     from: SYM-kibi-bootstrap-plan-presentation
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -83,13 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-57b49518d75e
-  - type: implements
-    from: SYM-skillopt-cursor-cell-options
-    to: REQ-skillopt-cursor-compat
-    created_at: 2026-08-24T17:27:37.806Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-90fa9b89fe76
   - type: implements
     from: SYM-FIXTURE_BRANCH
     to: REQ-skillopt-external-adoption-verdict
@@ -104,13 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-86467a9215d2
-  - type: covered_by
-    from: SYM-skillopt-cursor-cell-options
-    to: TEST-skillopt-cursor-compat
-    created_at: 2026-08-25T19:50:54.662Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b9d7a798b046
   - type: covered_by
     from: SYM-cli-rule-registry-ChecksConfig
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -188,13 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6a2a2aec0d4
-  - type: covered_by
-    from: SYM-cap-plugin-pluginpermissions-a636fdb4
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:46:35.061Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c63d0099d838
   - type: implements
     from: SYM-env-bootstrap-secret-source-from-bootstrap
     to: REQ-kibi-env-bootstrap
@@ -237,20 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-10630b4938df
-  - type: implements
-    from: SYM-source-analysis-v2-type-gateanalysis
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-30T15:24:32.005Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b03a84ae1da4
-  - type: covered_by
-    from: SYM-source-analysis-v2-type-gateanalysis
-    to: TEST-source-analysis-v2-contract
-    created_at: 2026-09-30T15:24:32.016Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-39a70d862db2
   - type: constrains
     from: REQ-prolog-bundled-release
     to: FACT-prolog-bundled-release-subject

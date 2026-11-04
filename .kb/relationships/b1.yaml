@@ -13,13 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d640ab668620
-  - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-scenariodraft
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-16T19:45:30.455Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-66ef7e754a54
   - type: implements
     from: SYM-canonical-missingCanonicalLanes
     to: REQ-cli-init-canonical
@@ -147,26 +140,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-dc082e1c7e3a
   - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-scenariodraft
-    to: TEST-e2e-plan-compiler-hash
-    created_at: 2026-09-18T07:18:22.964Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c74e3a4077c3
-  - type: covered_by
     from: SYM-cap-plugin-policy-predicate-rules-67c10eed
     to: TEST-e2e-capability-plugins
     created_at: 2026-09-22T19:42:58.618Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-593ea1f492ef
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-scenariodraft
-    to: REQ-kibi-change-to-proof-plan-compiler-v2
-    created_at: 2026-10-04T03:02:25.337Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-93d45dfab819
   - type: verified_by
     from: SCEN-bootstrap-advisor-proposition-roles
     to: TEST-kibi-bootstrap-knowledge-sources
@@ -181,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38dee1c807e8
-  - type: implements
-    from: SYM-decision-firmness-firm-unreferenced-rule
-    to: REQ-kb-decision-firmness
-    created_at: 2026-10-13T12:57:52.811Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-19824cb506fb
   - type: covered_by
     from: SYM-decision-firmness-firm-unreferenced-rule
     to: TEST-kb-decision-firmness

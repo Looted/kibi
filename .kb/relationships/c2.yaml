@@ -81,27 +81,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8541aa94037e
   - type: implements
-    from: SYM-KibiCheckpointRequestResult
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:51:08.501Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0fbf23547bf8
-  - type: covered_by
-    from: SYM-KibiCheckpointRequestResult
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:51:08.520Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e2e139659d94
-  - type: covered_by
-    from: SYM-KibiCheckpointRequestResult
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:51:08.528Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4ca26075d508
-  - type: implements
     from: SYM-skillopt-write-safe-mutation-evidence
     to: REQ-skillopt-logical-evidence-fidelity
     created_at: 2026-08-22T20:58:22.737Z
@@ -122,27 +101,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fe98bc2a629
-  - type: covered_by
-    from: SYM-runtime-McpSession
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:40:15.764Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f454bee9c3fe
-  - type: implements
-    from: SYM-runtime-McpSession
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:07:58.050Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-96e649ae77ae
-  - type: covered_by
-    from: SYM-runtime-McpSession
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:07:58.084Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-34c4afc3c91e
   - type: implements
     from: SYM-skillopt-cursor-sha256-text
     to: REQ-skillopt-cursor-compat
@@ -276,13 +234,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d7d624a2bbd7
-  - type: covered_by
-    from: SYM-cap-plugin-sourceanalysisprovider-977ee540
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:46:21.973Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1efcb6a52f0a
   - type: implements
     from: SYM-collect-predicate-schema-conformance
     to: REQ-kibi-predicate-schema-conformance
@@ -297,20 +248,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b10d3c1a43f4
-  - type: implements
-    from: SYM-agent-core-WorkspacePath
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:54:00.227Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8ab95c7ccd63
-  - type: covered_by
-    from: SYM-agent-core-WorkspacePath
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:54:00.273Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a59a2a0e1828
   - type: implements
     from: SYM-impact-stage-e-semanticknowledgefingerprint
     to: REQ-impact-policy-stage-e-content-bound-review
@@ -346,13 +283,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ff1fd66d3617
-  - type: implements
-    from: SYM-agent-core-confirm-firm-edits-env
-    to: REQ-agent-hosts-decision-guard
-    created_at: 2026-10-23T10:51:53.139Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e827b47e0b07
   - type: covered_by
     from: SYM-agent-core-confirm-firm-edits-env
     to: TEST-zcode-kibi-plugin-v1

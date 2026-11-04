@@ -48,20 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-24223e509c1c
-  - type: implements
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-_resetkibibootstrapcapabilitycachefortests
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-09-05T20:43:10.741Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f13bed2c5274
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-_resetkibibootstrapcapabilitycachefortests
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-09-05T20:43:10.746Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-78ba4139c79e
   - type: covered_by
     from: SYM-PreparedRootError-name
     to: TEST-e2e-skillopt-trust-boundaries
@@ -76,20 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df4b2d45c443
-  - type: implements
-    from: SYM-claude-LineRange
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:26:44.085Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-891ad069336a
-  - type: covered_by
-    from: SYM-claude-LineRange
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:26:44.098Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ba8a8c3a6569
   - type: covered_by
     from: SYM-treesitter-language-for-path
     to: TEST-source-analysis-v2-contract
@@ -118,34 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dd0afef6734e
-  - type: implements
-    from: SYM-source-analysis-timing-event
-    to: REQ-installed-staged-impact-timing-integrity
-    created_at: 2026-09-28T09:40:01.090Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9f6ffc84928e
-  - type: covered_by
-    from: SYM-source-analysis-timing-event
-    to: TEST-installed-staged-impact-timing-integrity
-    created_at: 2026-09-28T09:40:01.125Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-862691ce8320
-  - type: implements
-    from: SYM-source-analysis-timing-limits
-    to: REQ-installed-staged-impact-timing-integrity
-    created_at: 2026-09-28T09:40:06.516Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c3b7c89ed4db
-  - type: covered_by
-    from: SYM-source-analysis-timing-limits
-    to: TEST-installed-staged-impact-timing-integrity
-    created_at: 2026-09-28T09:40:06.539Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b7b2ee1a1a46
   - type: implements
     from: SYM-source-analysis-v2-assertsourceanalysisgate
     to: REQ-source-analysis-v2

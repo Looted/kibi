@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-6cbd71972555
-    type: covered_by
-    from: SYM-reqcompiler-parity-options
-    to: TEST-kibi-distribution-parity-matrix
-    created_at: "2026-08-16T18:51:45.120Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-modeling-predicate-loader-loadExistingPredicateSchemas
     to: TEST-kibi-ontology-convergence-witnesses
@@ -35,13 +28,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b7b7a54fc421
   - type: covered_by
-    from: SYM-KibiImpactEvidenceKind
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:13:48.704Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dd6925c561ba
-  - type: covered_by
     from: SYM-modeling-predicate-loader-loadExistingPredicateSchemas
     to: TEST-mcp-suggest-predicates
     created_at: 2026-09-05T17:44:45.327Z
@@ -62,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4752c9d7c04c
-  - type: covered_by
-    from: SYM-mcp-CheckArgs
-    to: TEST-mcp-tool-check-coverage
-    created_at: 2026-09-06T09:06:04.853Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-650ecb586e56
   - type: implements
     from: SYM-x-oc-handleKbToolEvent
     to: REQ-opencode-kibi-plugin-v1
@@ -118,20 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8285c4d6a7f1
-  - type: covered_by
-    from: SYM-impact-public-preparation-prepareimpactreviewinput
-    to: TEST-impact-public-preparation-parity
-    created_at: 2026-09-27T17:33:46.975Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4dc9b1ac2b16
-  - type: implements
-    from: SYM-impact-public-preparation-prepareimpactreviewinput
-    to: REQ-impact-review-public-preparation
-    created_at: 2026-09-27T17:33:47.019Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8b6677ec8ecb
   - type: requires_property
     from: REQ-branch-store-recovery-v4
     to: FACT-EXACT-BRANCH-IDENTITY-SOURCE
@@ -230,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d82b3c58e197
-  - type: covered_by
-    from: SYM-reqcompiler-legacy-migration-plan
-    to: TEST-kibi-legacy-migration-preview-v2
-    created_at: 2026-10-04T04:18:48.504Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a30fedd0356f
   - type: executable_for
     from: SYM-test-model-predicates-plan-roundtrip
     to: TEST-model-predicates-plan-roundtrip

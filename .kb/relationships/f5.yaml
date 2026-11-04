@@ -7,34 +7,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: implements
-    from: SYM-cli-report-repository-type
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T20:42:37.276Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-141c1a99d082
-  - type: covered_by
-    from: SYM-cli-report-repository-type
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-18T20:42:37.284Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-43d99eeb089b
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanv1
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:21.708Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2e0ae5083f13
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanv1
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:21.713Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e2a924abae5f
-  - type: implements
     from: SYM-shared-npm-cache-type
     to: REQ-test-journaled-engine-harness
     created_at: 2026-08-21T21:07:34.240Z
@@ -48,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a954d201e76
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanv1
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:19:30.982Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-78b904546e3e
   - type: implements
     from: SYM-refreshSymbolCoordinatesForManifest
     to: REQ-generated-coordinate-persistence
@@ -146,34 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8a2f063e6648
-  - type: implements
-    from: SYM-plugin-configured-diagnostic
-    to: REQ-capability-plugin-configuration-v1
-    created_at: 2026-09-22T19:49:32.637Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2d2fa231794e
-  - type: covered_by
-    from: SYM-plugin-configured-diagnostic
-    to: TEST-capability-plugin-host-resolution-v1
-    created_at: 2026-09-22T19:49:32.642Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-57c22ecfdcef
-  - type: implements
-    from: SYM-cli-PruneReceiptsResult
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-26T23:18:53.905Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ba87e0a6985a
-  - type: covered_by
-    from: SYM-cli-PruneReceiptsResult
-    to: TEST-e2e-proof-maintenance-ops
-    created_at: 2026-09-26T23:18:53.920Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5f0f681bdde0
   - type: implements
     from: SYM-performance-trace-event-kind
     to: REQ-installed-staged-impact-timing-integrity

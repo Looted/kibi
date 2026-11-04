@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-db3492b26dd2
-    type: covered_by
-    from: SYM-reqcompiler-parity-runtime-adapter
-    to: TEST-kibi-distribution-parity-matrix
-    created_at: "2026-08-16T18:51:45.112Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: implements
     from: SYM-sendToast
     to: REQ-opencode-kibi-plugin-v1
@@ -27,27 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f8d4ea726fd
-  - type: covered_by
-    from: SYM-operation-sparql-remote-input
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:38:39.129Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3a01789ad376
-  - type: implements
-    from: SYM-operation-sparql-remote-input
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:04:09.491Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0dceed3b7790
-  - type: covered_by
-    from: SYM-operation-sparql-remote-input
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:04:09.493Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-608fdfd335d3
   - type: covered_by
     from: SYM-core-kb-commit-upsert
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -132,20 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f20cba6a5e69
-  - type: implements
-    from: SYM-claude-HookOutput
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:19:32.862Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-20e8c9c4f28b
-  - type: covered_by
-    from: SYM-claude-HookOutput
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:19:32.920Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ac3c680b4009
   - type: covered_by
     from: SYM-impact-stage-e-hasvalidbaseimpactpolicy
     to: TEST-impact-policy-stage-e-installed-e2e

@@ -77,41 +77,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-f330d2256584
   - type: implements
-    from: 6bbf244479d3b27f
-    to: REQ-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T10:54:30.843Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-616b23778cf1
-  - type: covered_by
-    from: 6bbf244479d3b27f
-    to: TEST-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T12:52:34.645Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-153dc6842592
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-candidatebuildresult
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-21T19:37:57.983Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9ee61f198bcf
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-candidatebuildresult
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-21T19:37:58.014Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fddf98eeb377
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-candidatebuildresult
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:15:29.111Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-248f0b205e73
-  - type: implements
     from: SYM-buildEnforcementScopeKey
     to: REQ-opencode-kibi-plugin-v1
     created_at: 2026-08-22T20:45:42.388Z
@@ -133,13 +98,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-31f01b8b5a2a
   - type: covered_by
-    from: SYM-StagedAuthoredSymbolsManifestEvidence
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:15:01.610Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-31058eb99f73
-  - type: covered_by
     from: SYM-sync-agent-skills-locked
     to: TEST-skillopt-external-adoption-verdict
     created_at: 2026-09-05T18:15:53.100Z
@@ -153,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c70764c357b7
-  - type: covered_by
-    from: SYM-resetWorkspaceFsDepsForTests
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:28:17.623Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-43895f720217
   - type: implements
     from: SYM-quality-eval-runLiveHeldOutEvaluation
     to: REQ-kibi-change-to-proof-evaluation
@@ -224,33 +175,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-2f7a38f93979
   - type: covered_by
-    from: SYM-resetWorkspaceFsDepsForTests
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:32:58.838Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-37127fa9f92b
-  - type: covered_by
     from: SYM-cap-plugin-validatepermissions-aa84267e
     to: TEST-e2e-capability-plugins
     created_at: 2026-09-22T19:47:34.751Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4bf9391752d
-  - type: covered_by
-    from: SYM-source-analysis-v2-sourcechangeanalysis-89f0dd10
-    to: TEST-source-analysis-v2-contract
-    created_at: 2026-09-26T16:58:17.971Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-80cc7874b9e0
-  - type: implements
-    from: SYM-source-analysis-v2-sourcechangeanalysis-89f0dd10
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T16:58:17.988Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f0059196522e
   - type: implements
     from: SYM-docs-site-catalog-SITE_TAGLINE
     to: REQ-docs-readme-published-links
@@ -349,20 +279,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b1daa68c2c9
-  - type: implements
-    from: SYM-StagedAuthoredSymbolsManifestEvidence
-    to: REQ-cli-migration-first-commit
-    created_at: 2026-10-14T08:48:18.969Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d7105c13a94c
-  - type: covered_by
-    from: SYM-StagedAuthoredSymbolsManifestEvidence
-    to: TEST-cli-migration-first-commit
-    created_at: 2026-10-14T08:48:18.995Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4df462881b10
   - type: implements
     from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-executecompileintent
     to: REQ-kibi-contradiction-review-candidates

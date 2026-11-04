@@ -18,13 +18,6 @@ relationships:
     created_by: migration/adr-017
     source: documentation/adr/ADR-007.md
   - type: implements
-    from: SYM-auto-5D3498497C5F
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-15T22:20:07.470Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c8538a0cb4cd
-  - type: implements
     from: SYM-auto-6AE190B50290
     to: REQ-kibi-html-health-report
     created_at: 2026-08-15T22:20:11.223Z
@@ -46,26 +39,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3092a39d0b8b
   - type: covered_by
-    from: SYM-auto-5D3498497C5F
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-16T07:53:41.894Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c16b83240555
-  - type: covered_by
     from: SYM-auto-6AE190B50290
     to: TEST-kibi-html-health-report
     created_at: 2026-08-16T07:53:44.329Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c49b79b8bb88
-  - type: covered_by
-    from: SYM-reqcompiler-parity-capability-result
-    to: TEST-kibi-distribution-parity-matrix
-    created_at: 2026-08-16T18:51:45.108Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eb88851e6d88
   - type: covered_by
     from: SYM-cli-engine-status-command
     to: TEST-core-journaled-engine-lifecycle
@@ -129,13 +108,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3418d08fddba
-  - type: covered_by
-    from: SYM-cap-plugin-capabilityproviderbinding-cb2f3476
-    to: TEST-capability-plugin-host-resolution-v1
-    created_at: 2026-09-22T19:40:19.777Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-89fa231a6504
   - type: implements
     from: SYM-cli-receiptCodeScopeSymbolIds
     to: REQ-kibi-verification-evidence-contract
@@ -213,20 +185,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2d0b143ba0f
-  - type: implements
-    from: SYM-cli-unowned-files-requirementcandidate
-    to: REQ-kb-unowned-file-candidates
-    created_at: 2026-10-14T09:46:44.271Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a576ed02c7fe
-  - type: covered_by
-    from: SYM-cli-unowned-files-requirementcandidate
-    to: TEST-search-answer-hygiene
-    created_at: 2026-10-14T09:46:44.288Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eb0b6d71386b
   - type: requires_property
     from: REQ-codex-kibi-plugin-v1
     to: FACT-codex-adapter-optional

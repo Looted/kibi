@@ -21,27 +21,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-5e74f2b4252c
   - type: implements
-    from: SYM-SkillsLoadArgs
-    to: REQ-002
-    created_at: 2026-08-22T20:09:59.259Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a6b10dc20594
-  - type: covered_by
-    from: SYM-SkillsLoadArgs
-    to: TEST-005
-    created_at: 2026-08-22T20:09:59.271Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2e0e240e8047
-  - type: covered_by
-    from: SYM-SkillsLoadArgs
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:09:59.274Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-98a1a11edfd8
-  - type: implements
     from: SYM-DEFAULT-CONFIG
     to: REQ-011
     created_at: 2026-08-22T20:12:23.241Z
@@ -83,20 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3adcf545e19a
-  - type: implements
-    from: SYM-DOC-RESOURCES
-    to: REQ-002
-    created_at: 2026-08-22T21:00:07.056Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7b681d5981ee
-  - type: implements
-    from: SYM-DOC-RESOURCES
-    to: REQ-mcp-suggest-predicates
-    created_at: 2026-08-22T21:00:07.072Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f7fe0126f554
   - type: implements
     from: SYM-DOC-RESOURCES
     to: REQ-agent-kibi-interface-selection
@@ -203,40 +168,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-ee01889afd2d
   - type: covered_by
-    from: SYM-SkillsLoadArgs
-    to: TEST-mcp-skills-resource-discoverability
-    created_at: 2026-09-18T14:57:20.823Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4534520f7e47
-  - type: implements
-    from: SYM-skillopt-python-public-task-claim
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:40:07.416Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7867630f6af4
-  - type: covered_by
     from: SYM-cap-plugin-mapjeverror-5602f2ab
     to: TEST-e2e-capability-plugins
     created_at: 2026-09-22T19:44:29.479Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ffcec0f477fa
-  - type: implements
-    from: SYM-cap-plugin-pluginmode-87d5bb1c
-    to: REQ-capability-plugin-three-capabilities-v1
-    created_at: 2026-09-22T19:46:54.975Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-900b5dd8872b
-  - type: covered_by
-    from: SYM-cap-plugin-pluginmode-87d5bb1c
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:46:54.981Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ec6b7e31df2b
   - type: covered_by
     from: SYM-zcode-HookEvent
     to: TEST-zcode-kibi-plugin-v1
@@ -300,13 +237,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4762eb719028
-  - type: implements
-    from: SYM-init-helpers-kibi-hook-begin
-    to: REQ-git-hook-effective-install
-    created_at: 2026-10-13T12:57:11.019Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-62f3e160b38d
   - type: covered_by
     from: SYM-init-helpers-kibi-hook-begin
     to: TEST-git-hook-effective-install

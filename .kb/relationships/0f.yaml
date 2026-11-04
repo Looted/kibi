@@ -14,20 +14,6 @@ relationships:
     created_by: migration/adr-017
     source: documentation/events/EVT-005.md
   - type: covered_by
-    from: SYM-reqcompiler-parity-runtime-provenance
-    to: TEST-kibi-distribution-parity-matrix
-    created_at: 2026-08-16T18:51:45.100Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c45a6d9fa83d
-  - type: covered_by
-    from: SYM-reqcompiler-parity-observation
-    to: TEST-kibi-distribution-parity-matrix
-    created_at: 2026-08-16T18:51:45.113Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-15f05f2ef991
-  - type: covered_by
     from: SYM-cli-sync-retract-entity-relationships
     to: TEST-core-journaled-engine-delta-sync
     created_at: 2026-08-16T19:49:09.981Z
@@ -202,13 +188,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-caff36a7d3c2
-  - type: implements
-    from: SYM-decision-firmness-supersedes-reason-missing-rule
-    to: REQ-kb-decision-firmness
-    created_at: 2026-10-13T12:58:02.726Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6ff197e284d8
   - type: covered_by
     from: SYM-decision-firmness-supersedes-reason-missing-rule
     to: TEST-kb-decision-firmness

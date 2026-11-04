@@ -13,13 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8e16700d8223
-  - type: covered_by
-    from: SYM-kibi-cli-src-intent-search-ts-intentsearchoptions
-    to: TEST-kibi-intent-aware-source-discovery
-    created_at: 2026-08-16T19:46:36.839Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-55f2e9f9227b
   - type: implements
     from: SYM-installHook
     to: REQ-git-hook-sync-v2
@@ -279,13 +272,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-63eaab6314dc
-  - type: implements
-    from: SYM-cli-signoff-signoff-format-env
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:52:04.029Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d67ad14afa19
   - type: covered_by
     from: SYM-cli-signoff-signoff-format-env
     to: TEST-kibi-signoff-views

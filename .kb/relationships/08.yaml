@@ -98,13 +98,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-a7d875e06047
   - type: covered_by
-    from: SYM-StagedSymbolsManifestAssessment
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:15:06.861Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8a6853349436
-  - type: covered_by
     from: SYM-cli-persistEntities
     to: TEST-kibi-logical-requirement-coverage
     created_at: 2026-09-05T17:11:53.831Z
@@ -202,20 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cbd2f28fbf09
-  - type: covered_by
-    from: SYM-impact-stage-e-type-trustedpullrequestsnapshot
-    to: TEST-impact-policy-stage-e-installed-e2e
-    created_at: 2026-09-27T17:52:30.373Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-032f4bcff8f8
-  - type: implements
-    from: SYM-impact-stage-e-type-trustedpullrequestsnapshot
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:52:30.432Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fc9cbc380aa6
   - type: verified_by
     from: SCEN-kibi-search-answer-verdicts
     to: TEST-kibi-search-answer-verdicts

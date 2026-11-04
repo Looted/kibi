@@ -97,27 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-514eb07856f5
-  - type: covered_by
-    from: SYM-operation-check-options
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:38:03.031Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eafe43d6dcf4
-  - type: implements
-    from: SYM-operation-check-options
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:02:33.461Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6afc4ed0a24e
-  - type: covered_by
-    from: SYM-operation-check-options
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:02:33.492Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c7979871bd0b
   - type: requires_predicate
     from: REQ-core-prolog-process-management
     to: FACT-core-prolog-process-management-00ED72
@@ -160,20 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-513746b64a47
-  - type: covered_by
-    from: SYM-markdown-ExtractedRelationship
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:18:44.808Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9979c541cb03
-  - type: covered_by
-    from: SYM-codex-HookInput
-    to: TEST-codex-kibi-plugin-v1
-    created_at: 2026-09-05T15:20:09.230Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-691038000d3a
   - type: implements
     from: SYM-injectPrompt
     to: REQ-opencode-guidance-injection
@@ -209,27 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-be2d0d274486
-  - type: covered_by
-    from: SYM-markdown-ExtractedRelationship
-    to: TEST-007
-    created_at: 2026-09-18T07:26:17.623Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9636aea557af
-  - type: implements
-    from: SYM-markdown-ExtractedRelationship
-    to: REQ-core-extractors
-    created_at: 2026-09-18T07:26:17.638Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12486df9ba7b
-  - type: covered_by
-    from: SYM-markdown-ExtractedRelationship
-    to: TEST-coordinate-repair-capability
-    created_at: 2026-09-18T07:26:17.647Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f1c45b01e223
   - type: executable_for
     from: SYM-e2e-test-cli-check-gate-enforcement
     to: TEST-e2e-check-gate-enforcement

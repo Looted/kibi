@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-f9fd6fd12fa4
-    type: covered_by
-    from: SYM-reqcompiler-usage-log-row
-    to: TEST-kibi-telemetry-acceptance-gate
-    created_at: "2026-08-16T18:52:12.209Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-cli-engine-durable-fsync
     to: TEST-core-journaled-engine-persistence
@@ -147,13 +140,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-1e7971fe6d80
   - type: covered_by
-    from: SYM-cli-github-scaffold-options
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-28T10:10:11.040Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cfef4bd1304f
-  - type: covered_by
     from: SYM-kibi-mcp-bin-entrypoint
     to: TEST-005
     created_at: 2026-09-05T14:47:03.586Z
@@ -258,13 +244,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-97128ada8171
-  - type: implements
-    from: SYM-reqcompiler-usage-log-row
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T03:06:14.070Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c8c90f5252bc
   - type: implements
     from: SYM-cli-kibi-package-versions
     to: REQ-engine-daemon-package-versions

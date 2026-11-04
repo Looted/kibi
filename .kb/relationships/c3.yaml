@@ -1,18 +1,4 @@
 relationships:
-  - id: rel-b78785dc3d43
-    type: implements
-    from: SYM-auto-02C5362C86BE
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:20:14.867Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-auto-02C5362C86BE
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-16T07:53:46.787Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-24da9e84d5a3
   - type: specified_by
     from: REQ-branch-store-recovery-v2
     to: SCEN-branch-store-recovery
@@ -111,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-88f1366b3399
-  - type: covered_by
-    from: SYM-auto-02C5362C86BE
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:41:20.209Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7168eac3ecf6
   - type: implements
     from: SYM-runPluginStartup
     to: REQ-opencode-kibi-plugin-v1
@@ -160,13 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a2432e2870bf
-  - type: covered_by
-    from: SYM-auto-02C5362C86BE
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-05T17:15:17.160Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6728cff2722b
   - type: covered_by
     from: SYM-skillopt-bridge-cli-options-error-code
     to: TEST-skillopt-external-adoption-verdict
@@ -237,48 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7890b5615ea
-  - type: covered_by
-    from: SYM-docs-site-theme-Section
-    to: TEST-docs-site-pages
-    created_at: 2026-09-29T08:29:43.913Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4fcfad4b0527
-  - type: implements
-    from: SYM-docs-site-theme-Section
-    to: REQ-docs-site-root-pages
-    created_at: 2026-09-30T07:33:07.755Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7b243ba8db47
-  - type: implements
-    from: SYM-prolog-swipl-platformkey-dts
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:07.517Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-53b482570a31
-  - type: covered_by
-    from: SYM-prolog-swipl-platformkey-dts
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:07.533Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-aa8e85ad411b
-  - type: implements
-    from: SYM-cursor-dts-packageJsonForResolvedFile
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:08.245Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b0bc62bfb2c1
-  - type: covered_by
-    from: SYM-cursor-dts-packageJsonForResolvedFile
-    to: TEST-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:08.261Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-501379085972
   - type: verified_by
     from: SCEN-kibi-schema6-migration
     to: TEST-kibi-schema6-migration
@@ -286,13 +216,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8679392a6d4c
-  - type: implements
-    from: SYM-auto-02C5362C86BE
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:55:44.231Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-45c0e9b5add8
   - type: implements
     from: SYM-docs-site-terminal-demo-TERMINAL_SCENES
     to: REQ-docs-site-terminal-demo
@@ -307,20 +230,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4aa291b600e4
-  - type: implements
-    from: SYM-cli-sync-store-totals
-    to: REQ-cli-sync-summary-kb-totals
-    created_at: 2026-10-14T21:21:24.558Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d2d4d55fc15c
-  - type: covered_by
-    from: SYM-cli-sync-store-totals
-    to: TEST-cli-migrated-kb-type-backfill-sync-totals
-    created_at: 2026-10-14T21:21:24.586Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a4b819aae970
   - type: validates
     from: TEST-proof-cursor-peer-dependencies
     to: SCEN-cursor-kibi-plugin-v1

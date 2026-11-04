@@ -1,25 +1,4 @@
 relationships:
-  - id: rel-22b2d05adf32
-    type: implements
-    from: SYM-skillopt-operator-dependencies
-    to: REQ-skillopt-codex-optimization
-    created_at: "2026-08-15T23:11:39.476Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-skillopt-operator-dependencies
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-15T23:11:39.477Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-adcbc4f82f3d
-  - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-contradictionwitness
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-16T19:45:30.464Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ce15f064822b
   - type: constrains
     from: REQ-codex-consumer-local-mcp-registration-v1
     to: FACT-SUBJ-REQ-CODEX-KIBI-PLUGIN-V1
@@ -83,13 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1c673570850
-  - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-contradictionwitness
-    to: TEST-e2e-plan-compiler-hash
-    created_at: 2026-09-18T07:16:38.967Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5ad8f281c537
   - type: verified_by
     from: SCEN-opencode-guidance-caching
     to: TEST-e2e-opencode-enforcement-surface
@@ -146,13 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c4960f03ce2
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-contradictionwitness
-    to: REQ-kibi-change-to-proof-plan-compiler-v2
-    created_at: 2026-10-04T03:01:54.001Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e60dc86dc953
   - type: validates
     from: TEST-model-predicates-participant-not-subject
     to: SCEN-model-predicates-participant-not-subject
@@ -160,20 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-851ee2b1c6f2
-  - type: implements
-    from: SYM-agent-core-candidates-requirementhead
-    to: REQ-kb-unowned-file-candidates
-    created_at: 2026-10-14T09:46:16.941Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d03467172c11
-  - type: covered_by
-    from: SYM-agent-core-candidates-requirementhead
-    to: TEST-claude-edit-snippet-hook
-    created_at: 2026-10-14T09:46:16.961Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-df88b2cd2fd8
   - type: executable_for
     from: SYM-proof-exception-unapproved-review-code
     to: TEST-proof-exception-unapproved-review-code

@@ -35,20 +35,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-03b250b81cfa
   - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoveryresult
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:16.546Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7219aa5c4dd7
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoveryresult
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:16.552Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f3e779744f9e
-  - type: implements
     from: SYM-normalizeSchemaVersion
     to: REQ-011
     created_at: 2026-08-22T20:13:31.697Z
@@ -69,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b22fe2dbbdec
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoveryresult
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:19:10.052Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-13c00bcc3943
   - type: implements
     from: SYM-reqcompiler-find-gaps-execute
     to: REQ-kibi-operation-interface-parity
@@ -356,20 +335,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f87b68d28ca9
-  - type: implements
-    from: SYM-cursor-dts-launchKibiMcp
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:48.695Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-612ef511daa0
-  - type: covered_by
-    from: SYM-cursor-dts-launchKibiMcp
-    to: TEST-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:48.712Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-54d299b3b328
   - type: validates
     from: TEST-mcp-workspace-routing
     to: SCEN-mcp-workspace-routing
@@ -377,13 +342,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b50c221924a4
-  - type: implements
-    from: SYM-mcp-session-resetSessionStateForTests
-    to: REQ-core-prolog-process-management
-    created_at: 2026-10-04T03:04:09.956Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c217f9ed90fa
   - type: implements
     from: SYM-schema6-check-actions-sourcePathRewriteActionInput
     to: REQ-kibi-kb-lifecycle-integrity

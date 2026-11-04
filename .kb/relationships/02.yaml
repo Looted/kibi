@@ -13,48 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c500ab1706ff
-  - type: implements
-    from: SYM-SkillsListArgs
-    to: REQ-002
-    created_at: 2026-08-22T20:09:47.921Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-854963f50aab
-  - type: covered_by
-    from: SYM-SkillsListArgs
-    to: TEST-005
-    created_at: 2026-08-22T20:09:47.930Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-da17dba591c3
-  - type: covered_by
-    from: SYM-SkillsListArgs
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:09:47.934Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8b71e90f9c52
-  - type: implements
-    from: SYM-EntitySpec
-    to: REQ-011
-    created_at: 2026-08-22T20:12:37.063Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7aafdddc45b4
-  - type: covered_by
-    from: SYM-EntitySpec
-    to: TEST-cli-strict-modeling
-    created_at: 2026-08-22T20:12:37.076Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4aa649b744d9
-  - type: covered_by
-    from: SYM-EntitySpec
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:12:37.080Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-69b59a17b014
   - type: covered_by
     from: SYM-validateUpsertInput
     to: TEST-kibi-operation-interface-parity
@@ -84,47 +42,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-d8175deb85ee
   - type: covered_by
-    from: SYM-runtime-NetworkPort
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:40:20.295Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-92277e12fb5b
-  - type: implements
-    from: SYM-runtime-NetworkPort
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:08:07.843Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-06ab422dfc9b
-  - type: covered_by
-    from: SYM-runtime-NetworkPort
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:08:07.874Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b0f099a34e10
-  - type: covered_by
-    from: SYM-EntitySpec
-    to: TEST-001
-    created_at: 2026-09-05T14:50:11.557Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-350732cd3071
-  - type: covered_by
     from: SYM-semantic-advisor-normalizeSubjectKey
     to: TEST-mcp-semantic-advisor-preflight
     created_at: 2026-09-05T17:39:35.834Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aaa7eecdcd82
-  - type: covered_by
-    from: SYM-SkillsListArgs
-    to: TEST-mcp-skills-resource-discoverability
-    created_at: 2026-09-18T14:56:06.432Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d56ebd43cf79
   - type: covered_by
     from: SYM-cap-plugin-kibiplugin-1d58a6dc
     to: TEST-e2e-capability-plugins
@@ -146,20 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d4e3c8cdd9c2
-  - type: covered_by
-    from: SYM-source-analysis-v2-sourceanalysisstatusv2-cd22533e
-    to: TEST-source-analysis-v2-contract
-    created_at: 2026-09-26T16:58:02.683Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-026026ec7831
-  - type: implements
-    from: SYM-source-analysis-v2-sourceanalysisstatusv2-cd22533e
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T16:58:02.696Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-86008c5c58a5
   - type: implements
     from: SYM-validateUpsertInput
     to: REQ-upsert-unknown-field-guidance

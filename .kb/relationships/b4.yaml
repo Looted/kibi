@@ -27,55 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46431d05c651
-  - type: implements
-    from: SYM-SessionEditEntry
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:55:19.708Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1038cd72a0fc
-  - type: covered_by
-    from: SYM-SessionEditEntry
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:55:19.719Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-af9ba13fa4b4
-  - type: covered_by
-    from: SYM-SessionEditEntry
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:55:19.724Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-571a6ec7ef2d
-  - type: covered_by
-    from: SYM-discovery-search-input
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:37:13.625Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-de1959fc1dbe
-  - type: implements
-    from: SYM-discovery-search-input
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:00:48.691Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-412909020b49
-  - type: covered_by
-    from: SYM-discovery-search-input
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:00:48.694Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f378102a8b73
-  - type: covered_by
-    from: SYM-markdown-ExtractionResult
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:18:50.155Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-03d19769031e
   - type: covered_by
     from: SYM-loadConfig
     to: TEST-001
@@ -104,27 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-30bed19c8186
-  - type: covered_by
-    from: SYM-markdown-ExtractionResult
-    to: TEST-007
-    created_at: 2026-09-18T07:26:44.853Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9240d0f6ac54
-  - type: implements
-    from: SYM-markdown-ExtractionResult
-    to: REQ-core-extractors
-    created_at: 2026-09-18T07:26:44.865Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9edb48a8b607
-  - type: covered_by
-    from: SYM-markdown-ExtractionResult
-    to: TEST-coordinate-repair-capability
-    created_at: 2026-09-18T07:26:44.875Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-93b90e154328
   - type: covered_by
     from: SYM-prepareArtifact
     to: TEST-e2e-skillopt-trust-boundaries

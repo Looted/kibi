@@ -35,20 +35,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-f13fd9da5cf0
   - type: implements
-    from: SYM-canonical-setSymbolRefreshForTests
-    to: REQ-cli-canonical-runtime
-    created_at: 2026-08-18T17:35:53.192Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-67c269b62afd
-  - type: covered_by
-    from: SYM-canonical-setSymbolRefreshForTests
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-08-18T17:35:53.201Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1b6dc4fa75dd
-  - type: implements
     from: SYM-canonical-validateStagedMarkdown
     to: REQ-cli-staged-impact-enforcement
     created_at: 2026-08-18T17:36:49.413Z
@@ -83,62 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee04040d2ecb
-  - type: covered_by
-    from: SYM-cli-prepared-input-result-type
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:36:30.772Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-316867926665
-  - type: implements
-    from: SYM-cli-prepared-input-result-type
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:59:27.547Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a582241f1d1e
-  - type: covered_by
-    from: SYM-cli-prepared-input-result-type
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:59:27.551Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4606790c4e77
-  - type: implements
-    from: SYM-skillopt-cursor-qualification-check
-    to: REQ-skillopt-cursor-compat
-    created_at: 2026-08-24T17:25:10.928Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-97fc346a01e1
-  - type: covered_by
-    from: SYM-skillopt-cursor-qualification-check
-    to: TEST-skillopt-cursor-compat
-    created_at: 2026-08-25T19:51:43.726Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ba1f8349a71d
-  - type: covered_by
-    from: SYM-SymbolCoordinatesArtifact
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:16:34.538Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2cd405e0570e
-  - type: covered_by
-    from: SYM-KibiImpactSymbolsManifest
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:14:25.484Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-86223fde8d17
-  - type: covered_by
-    from: SYM-SymbolCoordinatesArtifact
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:24:15.009Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5ee691cc9bad
   - type: covered_by
     from: SYM-semantic-advisor-CORE_PREDICATE_RULES
     to: TEST-mcp-semantic-advisor-preflight
@@ -188,13 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc6077928307
-  - type: covered_by
-    from: SYM-cap-plugin-jevclient-9ad53cbc
-    to: TEST-capability-plugin-jev-mocked-v1
-    created_at: 2026-09-22T19:44:39.462Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-94ec8562233f
   - type: implements
     from: SYM-core-domain-implication-witnesses
     to: REQ-kibi-domain-redundancy

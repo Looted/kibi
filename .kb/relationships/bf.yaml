@@ -101,34 +101,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aa89e57e1cfc
-  - type: covered_by
-    from: SYM-mcp-Diagnostic
-    to: TEST-mcp-tool-check-coverage
-    created_at: 2026-09-06T09:06:12.470Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f78664d6ec6e
-  - type: covered_by
-    from: SYM-cap-plugin-semanticclassifierproposition-00b0b710
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:45:29.750Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-67e7000f78a4
-  - type: implements
-    from: SYM-claude-KbUsage
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:36:17.968Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-85d6e2bc8c0f
-  - type: covered_by
-    from: SYM-claude-KbUsage
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:36:17.985Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2cd3cce37b3f
   - type: implements
     from: SYM-agent-core-scanSymbolsManifest
     to: REQ-claude-code-kibi-plugin-v1
@@ -165,20 +137,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-37432cf4edd0
   - type: implements
-    from: SYM-cursor-dts-resolveProjectLocalMcp
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:19.467Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1f32f2189558
-  - type: covered_by
-    from: SYM-cursor-dts-resolveProjectLocalMcp
-    to: TEST-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:19.478Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-50a85424f391
-  - type: implements
     from: SYM-cli-dispatch-composite
     to: REQ-kibi-mcp-tool-consolidation
     created_at: 2026-10-03T09:26:16.369Z
@@ -199,20 +157,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9436bcd99f82
-  - type: implements
-    from: SYM-skillopt-campaign-artifacts-campaignsourcesurface-98d09abf
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-10-05T12:21:14.230Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-93424ecb336c
-  - type: covered_by
-    from: SYM-skillopt-campaign-artifacts-campaignsourcesurface-98d09abf
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:21:14.244Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-32042599ac39
   - type: implements
     from: SYM-skillopt-runtime-fixture-kb-setup-setupseededpartialkb-6a846f9e
     to: REQ-skillopt-external-adoption-verdict

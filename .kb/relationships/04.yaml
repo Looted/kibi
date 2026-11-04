@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-cd4144da5d68
-    type: implements
-    from: SYM-auto-2AED513565C7
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:22:09.313Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: implements
     from: SYM-skillopt-bridge-cli-execution-run
     to: REQ-skillopt-codex-optimization
@@ -27,20 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-986f3926b470
-  - type: covered_by
-    from: SYM-auto-2AED513565C7
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T07:54:57.862Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b7040e50ee24
-  - type: covered_by
-    from: SYM-reqcompiler-parity-comparison
-    to: TEST-kibi-distribution-parity-matrix
-    created_at: 2026-08-16T18:51:45.129Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-db90e312761d
   - type: covered_by
     from: SYM-executeValidateUpsert
     to: TEST-kibi-proposition-complete-ingestion
@@ -69,20 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec2404f67ff7
-  - type: implements
-    from: SYM-TrainerRequestPayload
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-08-23T23:34:12.035Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5dbb7905f037
-  - type: covered_by
-    from: SYM-TrainerRequestPayload
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-23T23:34:12.047Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ea9bb4443b39
   - type: constrains
     from: REQ-mcp-semantic-advisor-preflight
     to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
@@ -98,13 +63,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-23482b494a34
   - type: covered_by
-    from: SYM-KibiImpactMode
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:14:10.326Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-31d9e178ee1c
-  - type: covered_by
     from: SYM-HeldOutTerminalReceiptSchema
     to: TEST-skillopt-external-adoption-verdict
     created_at: 2026-09-05T18:09:02.677Z
@@ -118,20 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eea9d6b7a282
-  - type: covered_by
-    from: SYM-SymbolIndex
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:26:41.977Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7fb32c4afc7b
-  - type: covered_by
-    from: SYM-SymbolIndex
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:30:46.234Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ececc9fae6a5
   - type: implements
     from: SYM-HeldOutTerminalReceiptSchema
     to: REQ-skillopt-paid-matrix-infrastructure

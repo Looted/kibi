@@ -77,13 +77,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-ffbd9be08851
   - type: covered_by
-    from: SYM-cli-rule-registry-RuleDefinition
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-26T07:15:25.323Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23138089f00a
-  - type: covered_by
     from: SYM-SourceSymbolKind
     to: TEST-kibi-change-to-proof-plan-compiler
     created_at: 2026-08-28T13:16:22.367Z
@@ -111,27 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-410e20241fbb
-  - type: covered_by
-    from: SYM-cli-rule-registry-RuleDefinition
-    to: TEST-004
-    created_at: 2026-09-18T07:05:03.256Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f5d46a21ab29
-  - type: implements
-    from: SYM-cli-rule-registry-RuleDefinition
-    to: REQ-core-validation-rules
-    created_at: 2026-09-18T07:05:03.299Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-236e1137bb2a
-  - type: covered_by
-    from: SYM-cli-rule-registry-RuleDefinition
-    to: TEST-rule-registry-single-source
-    created_at: 2026-09-18T07:05:03.311Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a6fa75084c92
   - type: covered_by
     from: SYM-deactivate
     to: TEST-e2e-vscode-extension-lifecycle

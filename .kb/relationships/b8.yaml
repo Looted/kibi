@@ -105,13 +105,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-14e283a682d1
   - type: covered_by
-    from: SYM-cap-plugin-matchgroups-f8bcd46e
-    to: TEST-capability-plugin-host-resolution-v1
-    created_at: 2026-09-22T19:42:41.900Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f42cb98cf303
-  - type: covered_by
     from: SYM-cap-plugin-createjevplugin-a2c5a4bf
     to: TEST-e2e-capability-plugins
     created_at: 2026-09-22T19:44:21.067Z
@@ -189,13 +182,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b150f16ee8ed
   - type: implements
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version
-    to: REQ-kibi-change-to-proof-plan-compiler-v2
-    created_at: 2026-10-04T03:01:26.704Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4802129ff595
-  - type: implements
     from: SYM-skillopt-validate-candidate-description
     to: REQ-skillopt-description-candidates
     created_at: 2026-10-06T00:22:53.415Z
@@ -237,20 +223,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-93d831cda728
-  - type: implements
-    from: SYM-cli-signoff-model-signoff-firmness
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:53:39.624Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bde6223a4db7
-  - type: covered_by
-    from: SYM-cli-signoff-model-signoff-firmness
-    to: TEST-kibi-signoff-views
-    created_at: 2026-10-23T10:53:39.651Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0ad349ba91ad
   - type: covered_by
     from: SYM-claim-binding-verdicts
     to: TEST-kibi-claim-bound-proofs-exhaustive
@@ -363,17 +335,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aafbf0d72b0d
-  - type: implements
-    from: SYM-setup-choices-setup-choices-source
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:53:20.911Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23f0f4a2e015
-  - type: covered_by
-    from: SYM-setup-choices-setup-choices-source
-    to: TEST-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:53:20.970Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2ad48c2504ca
