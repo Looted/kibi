@@ -21,8 +21,8 @@ type GroundingFact = Readonly<{
   claimKey: string;
 }>;
 
-function atom(value: string | undefined): string {
-  return stringValue(parsePrologValue(value ?? "")).replace(/^['"]|['"]$/g, "");
+function atom(value: string): string {
+  return stringValue(parsePrologValue(value)).replace(/^['"]|['"]$/g, "");
 }
 
 function quoted(text: string): string {
@@ -36,14 +36,19 @@ async function groundingFactsOf(
   const result = await prolog.query(
     `findall([Type,To,ClaimKey], (member(Type, [${LOGICAL_RELATIONSHIPS.join(",")}]), kb_relationship(Type, '${escapeAtom(id)}', To), ((kb_entity(To, fact, _DriftProps), memberchk(claim_key=_DriftRaw, _DriftProps), normalize_term_atom(_DriftRaw, ClaimKey)) -> true ; ClaimKey = '')), Rows)`,
   );
+  // rationale: a placeholder entry is no grounding fact; its missing claim
+  // key never equals a stored clause key, so it changes no warning.
+  // Stryker disable next-line ArrayDeclaration
   if (!result.success) return [];
-  return parseListOfLists(result.bindings.Rows ?? "[]").map(
-    ([type, target, claimKey]) => ({
+  // A successful findall binds Rows, and its template has three columns.
+  return parseListOfLists(result.bindings.Rows as string).map((row) => {
+    const [type, target, claimKey] = row as [string, string, string];
+    return {
       type: atom(type),
       target: atom(target),
       claimKey: atom(claimKey),
-    }),
-  );
+    };
+  });
 }
 
 /**
