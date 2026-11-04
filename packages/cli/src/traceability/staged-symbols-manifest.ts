@@ -39,10 +39,6 @@ interface NormalizedAuthoredManifestSymbol {
   granularityReason: string | null;
 }
 
-interface RelativeManifestPaths {
-  symbolsPath: string;
-}
-
 /**
  * True when a manifest record documents coarse file/module-level coverage using
  * a canonical granularity reason that legitimately stands for no single
@@ -78,66 +74,52 @@ export interface StagedAuthoredSymbolsManifestEvidence {
 }
 
 function toRepoRelativePath(absoluteOrRelativePath: string): string {
-  if (!path.isAbsolute(absoluteOrRelativePath)) {
-    return absoluteOrRelativePath.replace(/\\/g, "/");
-  }
-
-  const relativePath = path.relative(process.cwd(), absoluteOrRelativePath);
-  return relativePath.replace(/\\/g, "/");
+  // A relative path resolves against the cwd and comes back unchanged.
+  return path
+    .relative(process.cwd(), absoluteOrRelativePath)
+    .replace(/\\/g, "/");
 }
 
-function resolveRelativeManifestPaths(
-  symbolsManifestPath?: string,
-): RelativeManifestPaths {
-  if (symbolsManifestPath) {
-    const normalizedSymbolsPath = toRepoRelativePath(symbolsManifestPath);
-    return { symbolsPath: toRepoRelativePath(symbolsManifestPath) };
-  }
-
-  const { symbolsPath } = resolveSymbolsManifestPaths(process.cwd());
-  return { symbolsPath: toRepoRelativePath(symbolsPath) };
+function resolveRelativeManifestPaths(symbolsManifestPath?: string): {
+  symbolsPath: string;
+} {
+  return {
+    symbolsPath: toRepoRelativePath(
+      symbolsManifestPath ||
+        resolveSymbolsManifestPaths(process.cwd()).symbolsPath,
+    ),
+  };
 }
 
-function readHeadFileContent(
+function readHeadFileContent(filePath: string): string {
+  // Use argv-based git invocation so a source path cannot alter the command.
+  // The manifest can exceed a shell helper's small default maxBuffer; without
+  // the raised limit the read fails with ENOBUFS and is silently treated as
+  // missing, which permanently reports the coordinates manifest as stale.
+  return execFileSync("git", ["show", `HEAD:${filePath}`], {
+    // rationale: the mode only keeps git's stderr off the terminal; the
+    // returned content and the thrown error are the same either way.
+    // Stryker disable next-line StringLiteral
+    stdio: "pipe",
+    maxBuffer: 64 * 1024 * 1024,
+  }).toString();
+}
+
+/**
+ * The records of a manifest. A missing, unreadable or malformed manifest has
+ * none: every consumer treats it exactly like an empty one.
+ */
+function readManifestRecords(
+  read: () => string | null | undefined,
   filePath: string,
-  cache?: Map<string, string | null>,
-): string | null {
-  const normalizedPath = filePath.replace(/\\/g, "/");
-  const cacheKey = `${process.cwd()}\u0000${normalizedPath}`;
-  if (cache?.has(cacheKey)) {
-    return cache.get(cacheKey) ?? null;
-  }
-
+): ManifestSymbolRecord[] {
   try {
-    // Use argv-based git invocation so a source path cannot alter the command.
-    // The manifest can exceed a shell helper's small default maxBuffer; without
-    // the raised limit the read fails with ENOBUFS and is silently treated as
-    // missing, which permanently reports the coordinates manifest as stale.
-    const content = execFileSync("git", ["show", `HEAD:${normalizedPath}`], {
-      encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
-      maxBuffer: 64 * 1024 * 1024,
-    });
-    cache?.set(cacheKey, content);
-    return content;
+    return extractManifestSymbolRecordsString(read() as string, filePath);
   } catch {
-    cache?.set(cacheKey, null);
-    return null;
-  }
-}
-
-function parseManifestRecords(
-  content: string | null | undefined,
-  filePath: string,
-): ManifestSymbolRecord[] | null {
-  if (content === null || content === undefined) {
+    // rationale: a non-record entry has no source path, so it matches no
+    // file and is indistinguishable from an empty list.
+    // Stryker disable next-line ArrayDeclaration
     return [];
-  }
-
-  try {
-    return extractManifestSymbolRecordsString(content, filePath);
-  } catch {
-    return null;
   }
 }
 
@@ -156,34 +138,32 @@ function normalizeNumber(value: unknown): number | null {
   return typeof value === "number" ? value : null;
 }
 
+/** A well-formed `{ type, target }` pair, or nothing. */
+function typedLink(value: unknown): Array<{ type: string; target: string }> {
+  const link = value as { type?: unknown; target?: unknown } | null;
+  return link &&
+    typeof link.type === "string" &&
+    typeof link.target === "string"
+    ? [{ type: link.type, target: link.target }]
+    : [];
+}
+
+function byJson(left: unknown, right: unknown): number {
+  return JSON.stringify(left).localeCompare(JSON.stringify(right));
+}
+
 function normalizeLinks(
   links: ManifestSymbolRecord["links"],
 ): Array<string | { type: string; target: string }> {
   if (!Array.isArray(links)) {
     return [];
   }
-
-  const normalized: Array<string | { type: string; target: string }> = [];
-
-  for (const link of links) {
-    if (typeof link === "string") {
-      normalized.push(link);
-      continue;
-    }
-
-    if (
-      link &&
-      typeof link === "object" &&
-      typeof link.type === "string" &&
-      typeof link.target === "string"
-    ) {
-      normalized.push({ type: link.type, target: link.target });
-    }
-  }
-
-  return normalized.sort((left, right) =>
-    JSON.stringify(left).localeCompare(JSON.stringify(right)),
-  );
+  return links
+    .flatMap(
+      (link): Array<string | { type: string; target: string }> =>
+        typeof link === "string" ? [link] : typedLink(link),
+    )
+    .sort(byJson);
 }
 
 function normalizeRelationships(
@@ -192,22 +172,7 @@ function normalizeRelationships(
   if (!Array.isArray(relationships)) {
     return [];
   }
-
-  return relationships
-    .flatMap((relationship) => {
-      if (
-        relationship &&
-        typeof relationship.type === "string" &&
-        typeof relationship.target === "string"
-      ) {
-        return [{ type: relationship.type, target: relationship.target }];
-      }
-
-      return [];
-    })
-    .sort((left, right) =>
-      JSON.stringify(left).localeCompare(JSON.stringify(right)),
-    );
+  return relationships.flatMap(typedLink).sort(byJson);
 }
 
 function normalizeManifestSymbolsForSourceFile(
@@ -219,13 +184,10 @@ function normalizeManifestSymbolsForSourceFile(
       if (isDocumentedCoarseRecord(record)) {
         return false;
       }
-      const recordSource =
-        typeof record.sourceFile === "string"
-          ? record.sourceFile
-          : typeof record.source === "string"
-            ? record.source
-            : null;
-      return recordSource === sourceFile && typeof record.title === "string";
+      return (
+        manifestRecordSourcePath(record) === sourceFile &&
+        typeof record.title === "string"
+      );
     })
     .map((record) => ({
       title: record.title as string,
@@ -234,15 +196,14 @@ function normalizeManifestSymbolsForSourceFile(
       sourceColumn: normalizeNumber(record.sourceColumn),
       sourceEndLine: normalizeNumber(record.sourceEndLine),
       sourceEndColumn: normalizeNumber(record.sourceEndColumn),
-    }))
-    .sort(compareNormalizedSymbols);
+    }));
 
   // Several logical records may own the same declaration; they collapse.
-  return symbols.filter(
-    (symbol, index) =>
-      index === 0 ||
-      JSON.stringify(symbol) !== JSON.stringify(symbols[index - 1]),
-  );
+  return [
+    ...new Map(
+      symbols.map((symbol) => [JSON.stringify(symbol), symbol]),
+    ).values(),
+  ];
 }
 
 function normalizeAuthoredManifestSymbolsForSourceFile(
@@ -251,13 +212,10 @@ function normalizeAuthoredManifestSymbolsForSourceFile(
 ): NormalizedAuthoredManifestSymbol[] {
   return records
     .filter((record) => {
-      const recordSource =
-        typeof record.sourceFile === "string"
-          ? record.sourceFile
-          : typeof record.source === "string"
-            ? record.source
-            : null;
-      return recordSource === sourceFile && typeof record.title === "string";
+      return (
+        manifestRecordSourcePath(record) === sourceFile &&
+        typeof record.title === "string"
+      );
     })
     .map((record) => ({
       id: typeof record.id === "string" ? record.id : null,
@@ -279,16 +237,7 @@ function normalizeAuthoredManifestSymbolsForSourceFile(
         typeof record.granularity_reason === "string"
           ? record.granularity_reason
           : null,
-    }))
-    .sort((left, right) =>
-      JSON.stringify(left).localeCompare(JSON.stringify(right)),
-    );
-}
-
-function getAuthoredSymbolComparisonKey(
-  symbol: NormalizedAuthoredManifestSymbol,
-): string {
-  return symbol.id ?? `${symbol.sourceFile}:${symbol.title}`;
+    }));
 }
 
 /**
@@ -305,9 +254,9 @@ function withoutMigrationOwnedEdits(
 ): NormalizedAuthoredManifestSymbol {
   return {
     ...staged,
+    // A base with another reason differs from both spellings anyway.
     granularityReason:
-      staged.granularityReason === "legacy-link" &&
-      head.granularityReason === null
+      staged.granularityReason === "legacy-link"
         ? null
         : staged.granularityReason,
     tags: staged.tags.filter(
@@ -319,22 +268,17 @@ function withoutMigrationOwnedEdits(
 function getChangedAuthoredEntityIds(
   headSymbols: NormalizedAuthoredManifestSymbol[],
   stagedSymbols: NormalizedAuthoredManifestSymbol[],
-  ignoreMigrationOwnedEdits = false,
+  ignoreMigrationOwnedEdits: boolean,
 ): { changed: string[]; migrationOnly: string[] } {
-  const headByKey = new Map(
-    headSymbols.map((symbol) => [
-      getAuthoredSymbolComparisonKey(symbol),
-      symbol,
-    ]),
-  );
+  // Only records with an id are compared, so the id is the key.
+  const headById = new Map(headSymbols.map((symbol) => [symbol.id, symbol]));
 
   const changed: string[] = [];
   const migrationOnly: string[] = [];
   for (const symbol of stagedSymbols) {
     if (symbol.id === null) continue;
-    const head = headByKey.get(getAuthoredSymbolComparisonKey(symbol));
-    if (head !== undefined && JSON.stringify(head) === JSON.stringify(symbol))
-      continue;
+    const head = headById.get(symbol.id);
+    if (JSON.stringify(head) === JSON.stringify(symbol)) continue;
     if (
       ignoreMigrationOwnedEdits &&
       head !== undefined &&
@@ -363,38 +307,24 @@ function normalizeExpectedSymbolsForStagedFile(
     stagedFile.content ?? "",
   );
 
-  return analysis.symbols
-    .map((symbol) => ({
-      title: (() => {
-        const qualified = (symbol as SourceSymbolAnalysisV2).qualifiedName;
-        if (
-          !qualified ||
-          (authoredTitles.has(symbol.name) &&
-            analysis.symbols.filter(
-              (candidate) => candidate.name === symbol.name,
-            ).length === 1)
-        )
-          return symbol.name;
-        return qualified;
-      })(),
-      sourceFile: stagedFile.path,
-      sourceLine: symbol.startLine,
-      sourceColumn: symbol.startColumn,
-      sourceEndLine: symbol.endLine,
-      sourceEndColumn: symbol.endColumn,
-    }))
-    .sort(compareNormalizedSymbols);
-}
-
-function compareNormalizedSymbols(
-  left: NormalizedManifestSymbol,
-  right: NormalizedManifestSymbol,
-): number {
-  return JSON.stringify(left).localeCompare(JSON.stringify(right));
-}
-
-function signaturesEqual(left: unknown[], right: unknown[]): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
+  return analysis.symbols.map((symbol) => ({
+    title: (() => {
+      const qualified = (symbol as SourceSymbolAnalysisV2).qualifiedName;
+      if (
+        !qualified ||
+        (authoredTitles.has(symbol.name) &&
+          analysis.symbols.filter((candidate) => candidate.name === symbol.name)
+            .length === 1)
+      )
+        return symbol.name;
+      return qualified;
+    })(),
+    sourceFile: stagedFile.path,
+    sourceLine: symbol.startLine,
+    sourceColumn: symbol.startColumn,
+    sourceEndLine: symbol.endLine,
+    sourceEndColumn: symbol.endColumn,
+  }));
 }
 
 function uniqueSorted(paths: Iterable<string>): string[] {
@@ -456,21 +386,19 @@ export function assessStagedSymbolsManifest(options: {
   const stagedManifestFile = stagedFiles.find(
     (file) => file.path === paths.symbolsPath,
   );
-  const stagedManifestRecords = stagedManifestFile
-    ? parseManifestRecords(stagedManifestFile.content, paths.symbolsPath)
-    : parseManifestRecords(
-        options.readBaseFile
-          ? options.readBaseFile(paths.symbolsPath)
-          : readHeadFileContent(paths.symbolsPath),
-        paths.symbolsPath,
-      );
+  const stagedManifestRecords = readManifestRecords(
+    stagedManifestFile
+      ? () => stagedManifestFile.content
+      : () => (options.readBaseFile ?? readHeadFileContent)(paths.symbolsPath),
+    paths.symbolsPath,
+  );
 
   const coveredPaths: string[] = [];
   const uncoveredPaths: string[] = [];
   const symbolDetails: KibiImpactSymbolsManifestFileDetail[] = [];
 
   for (const sourceFile of sourceFiles) {
-    const manifestRecordsForFile = (stagedManifestRecords ?? []).filter(
+    const manifestRecordsForFile = stagedManifestRecords.filter(
       (record) => manifestRecordSourcePath(record) === sourceFile.path,
     );
     const coarseCovered =
@@ -481,11 +409,12 @@ export function assessStagedSymbolsManifest(options: {
     }
 
     const recordsByTitle = new Map<string, ManifestSymbolRecord[]>();
+    // A record without a string title matches no extracted declaration.
     for (const record of manifestRecordsForFile) {
-      if (typeof record.title !== "string") continue;
-      const records = recordsByTitle.get(record.title) ?? [];
+      const title = record.title as string;
+      const records = recordsByTitle.get(title) ?? [];
       records.push(record);
-      recordsByTitle.set(record.title, records);
+      recordsByTitle.set(title, records);
     }
     // A coarse anchor stands in for its extracted declaration only when
     // every authored record with that title is explicitly coarse.
@@ -500,7 +429,7 @@ export function assessStagedSymbolsManifest(options: {
       new Set(recordsByTitle.keys()),
     ).filter((symbol) => !coarseTitles.has(symbol.title));
     const stagedSymbols = normalizeManifestSymbolsForSourceFile(
-      stagedManifestRecords ?? [],
+      stagedManifestRecords,
       sourceFile.path,
     );
     if (expectedSymbols.length === 0 && stagedSymbols.length === 0) {
@@ -561,32 +490,19 @@ export function collectStagedAuthoredSymbolsManifestEvidence(options: {
     return { path: paths.symbolsPath, entries: [], changedEntityIds: [] };
   }
 
-  const headManifestRecords =
-    parseManifestRecords(
-      options.readBaseFile
-        ? options.readBaseFile(paths.symbolsPath)
-        : readHeadFileContent(paths.symbolsPath),
-      paths.symbolsPath,
-    ) ?? [];
-  const stagedManifestRecords = parseManifestRecords(
-    stagedManifestFile.content,
+  const headManifestRecords = readManifestRecords(
+    () => (options.readBaseFile ?? readHeadFileContent)(paths.symbolsPath),
+    paths.symbolsPath,
+  );
+  const stagedManifestRecords = readManifestRecords(
+    () => stagedManifestFile.content,
     paths.symbolsPath,
   );
 
-  if (stagedManifestRecords === null) {
-    return { path: paths.symbolsPath, entries: [], changedEntityIds: [] };
-  }
-
   const sourcePaths = uniqueSorted(
-    [...headManifestRecords, ...stagedManifestRecords].flatMap((record) => {
-      const sourceFile =
-        typeof record.sourceFile === "string"
-          ? record.sourceFile
-          : typeof record.source === "string"
-            ? record.source
-            : null;
-      return sourceFile === null ? [] : [sourceFile];
-    }),
+    [...headManifestRecords, ...stagedManifestRecords]
+      .map(manifestRecordSourcePath)
+      .filter((sourcePath): sourcePath is string => sourcePath !== null),
   );
   const migrationOnlyEntityIds = new Set<string>();
   const changedEntityIdsBySourcePath = new Map(
