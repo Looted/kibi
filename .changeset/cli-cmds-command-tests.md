@@ -35,3 +35,5 @@ The usage-metrics tables are drawn by one helper, and the zero-result tool table
 `kibi branch restore --apply` now restores stores that `kibi gc` quarantined. Quarantine entries are named by time, and restore compared that directory name with the branch store key, so every restore of a garbage-collected store was refused as an identity mismatch; it now checks the identity recorded in the store manifest.
 
 The symbol coordinate refresh builds the artifact publication in one place, reads files without encoding arguments, and skips extraction when an incremental refresh reuses every record; manifests and coordinate artifacts are unchanged.
+
+The legacy storage migration no longer plans a coordinates move for a configured symbols manifest whose name is not `symbols.yaml` or `symbols.yml`. Such a manifest was planned twice, once as the manifest and once as `.kb/symbol-coordinates.yaml`, and a `custom.yml` manifest picked up an unrelated `custom.yaml` as its coordinates. Listing tracked files also keeps Git's error output off the terminal outside a repository.
