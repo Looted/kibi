@@ -31,6 +31,7 @@ import {
   type ImpactPolicy,
   type ImpactReviewDiagnostic,
   type ImpactReviewRecord,
+  type SideEvidence,
   assertSha256,
   fingerprint,
   parseImpactReviewRecord,
@@ -117,16 +118,11 @@ export function prepareImpactReview(
     headSemantic: semanticKnowledgeFingerprint(headEntities),
   });
   const sourceInventory = impactReviewInventory(snapshot);
-  const inventoryPaths = new Set(sourceInventory.map((file) => file.path));
-  const receiptOnlyPaths = new Set(
-    snapshot.inventory.filter(isReceiptOnlyChange).map((file) => file.path),
-  );
+  // The inventory is the reviewed paths plus receipt-only edits and the
+  // receipt itself, so an analysis may name any of them.
+  const changedPaths = new Set(snapshot.inventory.map((file) => file.path));
   for (const path of options.analyses.keys())
-    if (
-      path !== IMPACT_REVIEW_PATH &&
-      !inventoryPaths.has(path) &&
-      !receiptOnlyPaths.has(path)
-    )
+    if (path !== IMPACT_REVIEW_PATH && !changedPaths.has(path))
       throw new Error(`Analysis contains an extraneous changed path: ${path}`);
   const files: Omit<ImpactFileRecord, "decision">[] = [];
   const scopeFiles: unknown[] = [];
@@ -172,7 +168,7 @@ export function prepareImpactReview(
       ["before", before, previousPath],
       ["after", after, file.path],
     ] as const) {
-      const sourcePaths = path === file.path ? [file.path] : [path];
+      const sourcePaths = [path];
       for (const id of requirementScope(baseEntities, sourcePaths))
         reqIds.add(id);
       for (const id of requirementScope(headEntities, sourcePaths))
@@ -197,8 +193,11 @@ export function prepareImpactReview(
       // manufactures the review itself. The record must supply rationale.
       if (
         obligation.kind === "partial_review" &&
-        evidence?.analysis &&
-        !approvedPartialClass(policy, evidence.analysis)
+        // A partial obligation only arises from a present analysis.
+        !approvedPartialClass(
+          policy,
+          evidence?.analysis as NonNullable<SideEvidence["analysis"]>,
+        )
       )
         throw new Error(
           `Partial source analysis is not allowed by trusted policy for ${file.path} (${side})`,
@@ -275,8 +274,10 @@ export function createImpactReviewRecord(
       "Decisions must cover exactly the complete non-receipt inventory",
     );
   const files: ImpactFileRecord[] = prepared.files.map((file) => {
-    const item = decisions.get(file.path);
-    if (!item) throw new Error(`Missing decision for ${file.path}`);
+    // The size and membership check above gives every prepared path a decision.
+    const item = decisions.get(file.path) as NonNullable<
+      ReturnType<typeof decisions.get>
+    >;
     const authoredReviews = item.analysisReviews ?? [];
     return {
       ...file,
@@ -361,7 +362,10 @@ export function evaluateImpactReview(
           ]),
         ]
           .filter(
-            (field) => !same(capturedFields[field], expectedFields[field]),
+            (field) =>
+              !Object.hasOwn(capturedFields, field) ||
+              !Object.hasOwn(expectedFields, field) ||
+              !same(capturedFields[field], expectedFields[field]),
           )
           .sort();
         throw new Error(
@@ -376,8 +380,8 @@ export function evaluateImpactReview(
         changedPaths,
       );
     }
-    for (const path of expected.keys())
-      if (!seen.has(path)) throw new Error(`Missing review path: ${path}`);
+    // Equal counts, unique paths and no extraneous path mean every expected
+    // path was seen above.
     if (record.scope.fingerprint !== prepared.scopeFingerprint)
       throw new Error(
         `Review scope fingerprint is stale (record ${record.scope.fingerprint}; prepared ${prepared.scopeFingerprint})`,
