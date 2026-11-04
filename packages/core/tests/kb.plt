@@ -734,6 +734,13 @@ test(indexed_search_materializes_only_matching_page, [setup(setup_kb), cleanup(c
     assertion(Count == 1),
     Rows = [['REQ-SEARCH-UNIQUE', req, _]].
 
+test(search_matches_the_words_of_an_entity_id, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ZEPHYR-QUOTA', "Unrelated cache policy", active, []),
+    assert_fixture_entity(req, 'REQ-SEARCH-OTHER', "Unrelated cache policy", active, []),
+    kb_search_entities(req, "zephyr", 10, 0, Rows, Count),
+    assertion(Count == 1),
+    assertion(Rows = [['REQ-ZEPHYR-QUOTA', req, _]]).
+
 test(proof_contract_projection_pages_without_receipt_histories, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     Contract = _{
         version: 'kibi.proof-contract.v1',
@@ -10044,6 +10051,28 @@ test(compaction_head_defaults_without_commit_state, [setup(cleanup_test_kb), cle
     ks_read_file(Head, HeadText),
     kb_detach,
     assertion(HeadText == "generation-1:0\n").
+
+test(a_commit_without_commit_state_starts_the_first_generation, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_store(Dir),
+    atom_concat(Dir, '/CURRENT', Head),
+    ks_write_file(Head, 'generation-7:4\n'),
+    kb_attach(Dir),
+    retractall(kb:kb_generation(_)),
+    retractall(kb:kb_commit_sequence(_)),
+    ks_assert(req, 'REQ-FIRST-GENERATION'),
+    kb_save,
+    ks_read_file(Head, HeadText),
+    kb_detach,
+    assertion(HeadText == "generation-1:1\n").
+
+test(a_new_journaled_store_ignores_an_empty_graph, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    rdf_create_graph('urn:kibi:test:empty'),
+    ks_journaled_attached(Dir),
+    kb:kb_graph(Graph),
+    kb_detach,
+    rdf_unload_graph('urn:kibi:test:empty'),
+    kb:journal_expected_graph_uri(Dir, Expected),
+    assertion(Graph == Expected).
 
 test(compaction_threshold_is_sixteen_mebibytes) :-
     assertion(\+ kb:journal_needs_compaction(16777215)),

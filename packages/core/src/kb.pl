@@ -195,6 +195,7 @@ kb_attach_journaled(Directory) :-
     % A failed attach throws a structured store_locked term carrying the
     % ownership journal (if any) so callers can surface the holder or take
     % over when the holder is provably dead.
+    % mutalog-disable-next-line literal: the load concurrency changes how fast the store loads, not what it holds
     catch(rdf_attach_db(PersistencyDirectory,
                         [access(read_write), silent(true), concurrency(4)]),
           error(permission_error(_, _, _), Original),
@@ -542,8 +543,9 @@ next_journal_commit(Generation, Sequence) :-
 
 read_journal_metadata(Directory, Generation, Sequence) :-
     atom_concat(Directory, '/CURRENT', HeadFile),
+    % A head that exists but cannot be read is an error, not a fresh store.
     (   exists_file(HeadFile),
-        catch(read_file_to_string(HeadFile, Contents, []), _, fail),
+        read_file_to_string(HeadFile, Contents, []),
         split_string(Contents, ':\n\r', ' \t', Parts),
         Parts = [GenerationString, SequenceString|_],
         atom_string(Generation, GenerationString),
