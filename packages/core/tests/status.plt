@@ -5,7 +5,9 @@
 :- use_module('../src/kb.pl').
 :- use_module('../src/status.pl').
 :- use_module(test_helpers).
-:- use_module(kb_fixture, [detach_leftover_kb/0]).
+:- use_module(kb_fixture, [detach_leftover_kb/0, fixture_setups_fail_tests/0]).
+
+:- fixture_setups_fail_tests.
 
 % Each test attaches a fresh legacy store at <Root>/.kb/branches/<Branch>
 % in a temporary workspace and sets file times explicitly: the snapshot
@@ -23,6 +25,8 @@ workspace(Branch, Root, Kb) :-
     atomic_list_concat([Root, '/.kb/branches/', Branch], Kb),
     make_directory_path(Kb),
     detach_leftover_kb,
+    % The memo outlives a reload of status.pl; start each store without it.
+    retractall(status:workspace_root_memo(_, _)),
     kb_attach(Kb).
 
 workspace(Root, Kb) :-
@@ -122,7 +126,7 @@ state(Dirty, State) :-
     Dirty = Dict.dirty,
     State = Dict.syncState.
 
-:- begin_tests(status_detached).
+:- begin_tests(status_detached, [setup(detach_leftover_kb)]).
 
 test(reports_unknown_when_no_kb_is_attached) :-
     \+ kb:kb_attached(_),
