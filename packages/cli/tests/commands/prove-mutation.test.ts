@@ -385,14 +385,24 @@ describe("producer process", () => {
 
 describe("producer environment", () => {
   test("adds the proof run variables to the process environment", () => {
-    const env = commandEnvironment(
-      { id: "web", producer: "command", command: [] },
-      ["a", "b"],
-      SNAPSHOT,
-      "/ws",
-      ["T-1", "T-2"],
-      "/ws/out.json",
+    // Earlier tests in the same process may leave proof variables behind.
+    const inherited = Object.entries(process.env).filter(([key]) =>
+      key.startsWith("KIBI_PROOF_"),
     );
+    for (const [key] of inherited) Reflect.deleteProperty(process.env, key);
+    let env: NodeJS.ProcessEnv;
+    try {
+      env = commandEnvironment(
+        { id: "web", producer: "command", command: [] },
+        ["a", "b"],
+        SNAPSHOT,
+        "/ws",
+        ["T-1", "T-2"],
+        "/ws/out.json",
+      );
+    } finally {
+      for (const [key, value] of inherited) process.env[key] = value;
+    }
     expect(env.PATH).toBe(process.env.PATH);
     expect(
       Object.fromEntries(
