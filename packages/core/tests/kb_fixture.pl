@@ -13,7 +13,7 @@
 % its own temporary directory, removed afterwards with the store detached.
 
 :- use_module(library(filesex)).
-:- use_module(library(semweb/rdf_db), [rdf_reset_db/0]).
+:- use_module(library(semweb/rdf_db), [rdf_reset_db/0, rdf_graph/1, rdf_unload_graph/1]).
 :- use_module(library(semweb/rdf_persistency), [rdf_detach_db/0]).
 :- use_module('../src/kb.pl').
 
@@ -64,7 +64,9 @@ detach_leftover_kb :-
     ->  catch(kb:db_detach, _, true)
     ;   true
     ),
-    rdf_reset_db,
+    % rdf_reset_db/0 refuses while the RDF store is busy (an open snapshot,
+    % say); unloading the graphs one by one still drops their triples.
+    catch(rdf_reset_db, _, forall(rdf_graph(Graph), rdf_unload_graph(Graph))),
     forall(kb_state(Head), retractall(Head)).
 
 kb_state(kb:Head) :-
