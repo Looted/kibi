@@ -20,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2d835de326a5
-  - type: implements
-    from: SYM-auto-6B36EF51595B
-    to: REQ-mcp-relationship-preflight
-    created_at: 2026-08-16T07:53:28.086Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2ace236d2b07
   - type: covered_by
     from: SYM-auto-6B36EF51595B
     to: TEST-mcp-relationship-preflight

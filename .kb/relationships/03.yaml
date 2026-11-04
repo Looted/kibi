@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-15T22:19:33.979Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-auto-5EDA4085C185
-    to: REQ-mcp-relationship-preflight
-    created_at: 2026-08-16T07:53:20.660Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-255321587f1f
   - type: covered_by
     from: SYM-auto-5EDA4085C185
     to: TEST-mcp-relationship-preflight

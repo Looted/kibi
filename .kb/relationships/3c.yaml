@@ -230,13 +230,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1741fd22cf31
-  - type: implements
-    from: SYM-cli-package-versions-cli-version
-    to: REQ-kibi-release-version
-    created_at: 2026-11-04T05:30:47.894Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b86a7be5df92
   - type: covered_by
     from: SYM-cli-package-versions-cli-version
     to: TEST-engine-daemon-package-versions

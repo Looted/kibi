@@ -21,27 +21,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-5e74f2b4252c
   - type: implements
-    from: SYM-DEFAULT-CONFIG
-    to: REQ-011
-    created_at: 2026-08-22T20:12:23.241Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-55d6036198c1
-  - type: covered_by
-    from: SYM-DEFAULT-CONFIG
-    to: TEST-cli-config-schema
-    created_at: 2026-08-22T20:12:23.253Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dcaa52efb9eb
-  - type: covered_by
-    from: SYM-DEFAULT-CONFIG
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:12:23.258Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8c22edc2c4e6
-  - type: implements
     from: SYM-parseSymbolsYaml
     to: REQ-opencode-kibi-plugin-v1
     created_at: 2026-08-22T20:52:47.055Z
@@ -97,13 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-65fdaa08b7be
-  - type: covered_by
-    from: SYM-DEFAULT-CONFIG
-    to: TEST-001
-    created_at: 2026-09-05T14:50:01.568Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e9c7b7cf3185
   - type: covered_by
     from: SYM-DOC-RESOURCES
     to: TEST-agent-kibi-interface-selection

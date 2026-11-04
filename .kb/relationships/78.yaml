@@ -55,27 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-560142600034
-  - type: implements
-    from: SYM-loadSyncConfig
-    to: REQ-011
-    created_at: 2026-08-22T20:13:03.311Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fdc2e4d50115
-  - type: covered_by
-    from: SYM-loadSyncConfig
-    to: TEST-cli-config-schema
-    created_at: 2026-08-22T20:13:03.325Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4471aa1af08a
-  - type: covered_by
-    from: SYM-loadSyncConfig
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:13:03.330Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6c4c8229f95e
   - type: constrains
     from: REQ-cli-init-canonical
     to: FACT-SUBJ-REQ-CLI-CANONICAL-RUNTIME
@@ -111,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df2af6adfb10
-  - type: covered_by
-    from: SYM-loadSyncConfig
-    to: TEST-001
-    created_at: 2026-09-05T14:51:17.034Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2f29bec8156a
   - type: covered_by
     from: SYM-validateKbUpsertArgs
     to: TEST-mcp-upsert-coverage

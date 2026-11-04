@@ -76,20 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d80c8676e5fa
-  - type: covered_by
-    from: SYM-deactivate
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:27:47.425Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-410e20241fbb
-  - type: covered_by
-    from: SYM-deactivate
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:32:12.585Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4b59b0f956bf
   - type: verified_by
     from: SCEN-kibi-conditional-feasibility
     to: TEST-kibi-conditional-feasibility

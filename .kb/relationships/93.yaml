@@ -55,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-84e2b64dac12
-  - type: covered_by
-    from: SYM-cap-plugin-createstubbuiltinplugin-ccd291f8
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T09:27:25.685Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0d208af775cd
   - type: executable_for
     from: SYM-packed-mcp-tool-payload
     to: TEST-e2e-mcp-freshness-external-replace

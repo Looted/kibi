@@ -83,13 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb308d936a3c
-  - type: implements
-    from: SYM-cap-plugin-plugin-modes-52a9d01a
-    to: REQ-capability-plugin-three-capabilities-v1
-    created_at: 2026-09-22T19:47:21.740Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4ce2f39b110d
   - type: covered_by
     from: SYM-cap-plugin-plugin-modes-52a9d01a
     to: TEST-e2e-capability-plugins

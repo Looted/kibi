@@ -6,34 +6,6 @@ relationships:
     created_at: "2026-08-16T18:52:06.554Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-loadConfig
-    to: REQ-011
-    created_at: 2026-08-22T20:12:57.224Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-96aebb24e0f7
-  - type: covered_by
-    from: SYM-loadConfig
-    to: TEST-cli-config-schema
-    created_at: 2026-08-22T20:12:57.232Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f36afc28ccc3
-  - type: covered_by
-    from: SYM-loadConfig
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:12:57.236Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-46431d05c651
-  - type: covered_by
-    from: SYM-loadConfig
-    to: TEST-001
-    created_at: 2026-09-05T14:51:11.764Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ab6321273e78
   - type: covered_by
     from: SYM-modeling-predicate-inference-2-inferPlatformConsistencyRuleArgs
     to: TEST-mcp-suggest-predicates

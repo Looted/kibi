@@ -112,13 +112,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-82ea8f029606
   - type: covered_by
-    from: SYM-mcp-setupTransportHandlers
-    to: TEST-mcp-search-discovery
-    created_at: 2026-09-05T17:37:22.342Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d0c5b361c09d
-  - type: covered_by
     from: SYM-modeling-predicate-inference-1-inferConsentRuleArgs
     to: TEST-mcp-suggest-predicates
     created_at: 2026-09-05T17:41:34.479Z

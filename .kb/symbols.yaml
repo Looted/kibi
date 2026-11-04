@@ -571,8 +571,6 @@ symbols:
       - type: covered_by
         target: TEST-proof-plan-apply-result-version
       - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler-v2
-      - type: implements
         target: REQ-kibi-plan-document-versions
   - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-executecompileintent
     title: executeCompileIntent
@@ -1191,8 +1189,6 @@ symbols:
       - type: covered_by
         target: TEST-mcp-tool-check-coverage
       - type: implements
-        target: REQ-core-validation-rules
-      - type: implements
         target: REQ-mcp-tool-check
   - id: SYM-010
     title: startServer
@@ -1210,8 +1206,6 @@ symbols:
         target: TEST-kibi-release-version
       - type: implements
         target: REQ-002
-      - type: implements
-        target: REQ-kibi-release-version
   - id: SYM-activate
     title: activate
     sourceFile: packages/vscode/src/extension.ts
@@ -2163,8 +2157,6 @@ symbols:
         target: TEST-cli-symbol-quality-diagnostics
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
-      - type: implements
-        target: REQ-symbol-behavioral-anchors
   - id: SYM-cli-impact-formatExtractedSymbols
     title: formatExtractedSymbols
     sourceFile: packages/cli/src/public/impact/summaries.ts
@@ -2420,30 +2412,6 @@ symbols:
         target: REQ-core-extractors
       - type: implements
         target: REQ-kibi-uncompiled-source-visibility
-  - id: SYM-cli-PrologProcess-getPid
-    title: PrologProcess.getPid
-    sourceFile: packages/cli/src/prolog.ts
-    granularity_reason: legacy-link
-    status: active
-    relationships:
-      - type: covered_by
-        target: TEST-001
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-core-prolog-process-management
-  - id: SYM-cli-PrologProcess-isRunning
-    title: PrologProcess.isRunning
-    sourceFile: packages/cli/src/prolog.ts
-    granularity_reason: legacy-link
-    status: active
-    relationships:
-      - type: covered_by
-        target: TEST-001
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologProcess-query
     title: PrologProcess.query
     sourceFile: packages/cli/src/prolog.ts
@@ -2846,8 +2814,6 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-mcp-tool-check-coverage
-      - type: implements
-        target: REQ-core-validation-rules
       - type: implements
         target: REQ-mcp-tool-check
   - id: SYM-cli-run-json-invocation
@@ -4120,56 +4086,6 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
-  - id: SYM-deactivate
-    title: deactivate
-    sourceFile: packages/vscode/src/extension.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-vscode-extension-lifecycle
-      - type: covered_by
-        target: TEST-vscode-traceability
-      - type: covered_by
-        target: TEST-vscode-traceability-coverage
-      - type: implements
-        target: REQ-vscode-traceability
-  - id: SYM-DEFAULT-CONFIG
-    title: DEFAULT_CONFIG
-    status: active
-    sourceFile: packages/cli/src/utils/config.ts
-    granularity_reason: extractor-miss
-    relationships:
-      - type: covered_by
-        target: TEST-001
-      - type: covered_by
-        target: TEST-cli-config-schema
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-011
-  - id: SYM-DEFAULT-SYMBOLS-PATH
-    title: DEFAULT_SYMBOLS_PATH
-    sourceFile: packages/cli/src/utils/manifest-paths.ts
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-001
-  - id: SYM-DEFAULT-SYNC-PATHS
-    title: DEFAULT_SYNC_PATHS
-    status: active
-    sourceFile: packages/cli/src/utils/config.ts
-    granularity_reason: extractor-miss
-    relationships:
-      - type: covered_by
-        target: TEST-001
-      - type: covered_by
-        target: TEST-cli-config-schema
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-011
   - id: SYM-DEFAULT-TOOLS-RUNTIME
     title: DEFAULT_TOOLS_RUNTIME
     status: active
@@ -4911,20 +4827,6 @@ symbols:
         target: TEST-mcp-upsert-symbol-behavioral-anchors
       - type: implements
         target: REQ-symbol-behavioral-anchors
-  - id: SYM-getSchemaVersionStatus
-    title: getSchemaVersionStatus
-    status: active
-    sourceFile: packages/cli/src/utils/schema-version.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-001
-      - type: covered_by
-        target: TEST-cli-config-schema
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-011
   - id: SYM-getSourceLinkedRequirementIds
     title: getSourceLinkedRequirementIds
     status: active
@@ -4937,20 +4839,6 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
-  - id: SYM-getWorkspaceFolderUri
-    title: getWorkspaceFolderUri
-    sourceFile: packages/vscode/src/activation/workspace.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-vscode-extension-lifecycle
-      - type: covered_by
-        target: TEST-vscode-traceability
-      - type: covered_by
-        target: TEST-vscode-traceability-coverage
-      - type: implements
-        target: REQ-vscode-traceability
   - id: SYM-getWorkspaceMigrationWarning
     title: getWorkspaceMigrationWarning
     status: active
@@ -5513,20 +5401,6 @@ symbols:
         target: REQ-cli-status-pre-first-sync
       - type: implements
         target: REQ-mcp-search-discovery
-  - id: SYM-KbConfig
-    title: KbConfig
-    status: active
-    sourceFile: packages/cli/src/utils/config.ts
-    granularity_reason: extractor-miss
-    relationships:
-      - type: covered_by
-        target: TEST-001
-      - type: covered_by
-        target: TEST-cli-config-schema
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-011
   - id: SYM-KIBI-CONTAINER-ID
     title: KIBI_CONTAINER_ID
     sourceFile: packages/vscode/src/extensionIds.ts
@@ -5543,8 +5417,6 @@ symbols:
         target: TEST-vscode-traceability-coverage
       - type: implements
         target: REQ-vscode-extension-ids
-      - type: implements
-        target: REQ-vscode-traceability
   - id: SYM-KIBI-ENTITY-SCHEMA-DOC
     title: KIBI_ENTITY_SCHEMA_DOC
     sourceFile: packages/cli/src/traceability/evidence-model.ts
@@ -5575,8 +5447,6 @@ symbols:
         target: TEST-vscode-traceability-coverage
       - type: implements
         target: REQ-vscode-extension-ids
-      - type: implements
-        target: REQ-vscode-traceability
   - id: SYM-KIBI-IMPACT-DIAGNOSTIC-IDS
     title: KIBI_IMPACT_DIAGNOSTIC_IDS
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
@@ -5646,8 +5516,6 @@ symbols:
         target: TEST-vscode-traceability-coverage
       - type: implements
         target: REQ-vscode-extension-ids
-      - type: implements
-        target: REQ-vscode-traceability
   - id: SYM-KIBI-STAGED-IMPACT-EVIDENCE-DOC
     title: KIBI_STAGED_IMPACT_EVIDENCE_DOC
     sourceFile: packages/cli/src/traceability/evidence-model.ts
@@ -5733,8 +5601,6 @@ symbols:
         target: TEST-vscode-traceability-coverage
       - type: implements
         target: REQ-vscode-extension-ids
-      - type: implements
-        target: REQ-vscode-traceability
   - id: SYM-KibiCheckpointRunner
     title: KibiCheckpointRunner
     status: active
@@ -5864,20 +5730,6 @@ symbols:
         target: REQ-kibi-bundled-skill-catalog
       - type: implements
         target: REQ-reusable-skill-subsystem
-  - id: SYM-loadConfig
-    title: loadConfig
-    status: active
-    sourceFile: packages/cli/src/utils/config.ts
-    granularity_reason: extractor-miss
-    relationships:
-      - type: covered_by
-        target: TEST-001
-      - type: covered_by
-        target: TEST-cli-config-schema
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-011
   - id: SYM-loadMarkdownBody
     title: loadMarkdownBody
     sourceFile: packages/cli/src/search-ranking.ts
@@ -5899,20 +5751,6 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-e2e-skillopt-trust-boundaries
-  - id: SYM-loadSyncConfig
-    title: loadSyncConfig
-    status: active
-    sourceFile: packages/cli/src/utils/config.ts
-    granularity_reason: extractor-miss
-    relationships:
-      - type: covered_by
-        target: TEST-001
-      - type: covered_by
-        target: TEST-cli-config-schema
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-011
   - id: SYM-ManifestError
     title: ManifestError
     sourceFile: packages/cli/src/extractors/manifest.ts
@@ -6333,8 +6171,6 @@ symbols:
         target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-core-prolog-process-management
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-mcp-session-updateAttachedBranchStamp
     title: updateAttachedBranchStamp
     sourceFile: packages/mcp/src/server/session.ts
@@ -6368,17 +6204,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
-  - id: SYM-mcp-setupTransportHandlers
-    title: setupTransportHandlers
-    sourceFile: packages/mcp/src/server/transport.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-search-discovery
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-mcp-startIntegrationProlog
     title: startIntegrationProlog
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
@@ -6540,8 +6365,6 @@ symbols:
         target: TEST-kibi-schema6-migration-cli
       - type: covered_by
         target: TEST-symbol-coordinates-derived-locally
-      - type: implements
-        target: REQ-011
       - type: implements
         target: REQ-cli-migrate-entity-type-backfill
       - type: implements
@@ -7432,20 +7255,6 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
-  - id: SYM-modelRequirementClaims
-    title: modelRequirementClaims
-    status: active
-    sourceFile: packages/cli/src/utils/strict-modeling.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-001
-      - type: covered_by
-        target: TEST-cli-strict-modeling
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-011
   - id: SYM-mutation-entity-properties-schema
     title: ENTITY_PROPERTIES_SCHEMA
     status: active
@@ -8982,14 +8791,6 @@ symbols:
         target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
-  - id: SYM-resolveSymbolsManifestPath
-    title: resolveSymbolsManifestPath
-    sourceFile: packages/cli/src/utils/manifest-paths.ts
-    relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-001
   - id: SYM-resolveSymbolsManifestPaths-2
     title: resolveSymbolsManifestPaths
     sourceFile: packages/vscode/src/shared/manifestResolver.ts
@@ -14444,6 +14245,8 @@ symbols:
     granularity_reason: legacy-link
     status: active
     relationships:
+      - type: implements
+        target: REQ-011
       - type: covered_by
         target: TEST-mcp-upsert-coverage
       - type: implements
@@ -16847,8 +16650,6 @@ symbols:
         target: TEST-mcp-relationship-preflight
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-mcp-relationship-preflight
   - id: SYM-auto-B4EA84AAACA8
     title: removeRelationshipsFromShards
     status: active
@@ -16864,8 +16665,6 @@ symbols:
         target: TEST-mcp-relationship-preflight
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-mcp-relationship-preflight
   - id: SYM-auto-5EDA4085C185
     title: appendRelationship
     status: active
@@ -16881,8 +16680,6 @@ symbols:
         target: TEST-mcp-relationship-preflight
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-mcp-relationship-preflight
   - id: SYM-auto-C77E34E6931A
     title: readAllShards
     status: active
@@ -16898,8 +16695,6 @@ symbols:
         target: TEST-mcp-relationship-preflight
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-mcp-relationship-preflight
   - id: SYM-auto-6B36EF51595B
     title: pruneDangling
     status: active
@@ -16915,8 +16710,6 @@ symbols:
         target: TEST-mcp-relationship-preflight
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-mcp-relationship-preflight
   - id: SYM-auto-7AE5927FBDB9
     title: mergeRecords
     status: active
@@ -16932,8 +16725,6 @@ symbols:
         target: TEST-mcp-relationship-preflight
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-mcp-relationship-preflight
   - id: SYM-auto-F45AD8A9E2FF
     title: resolveBranchAttachment
     status: active
@@ -19759,45 +19550,6 @@ symbols:
         target: REQ-root-suite-batch-diagnostics
       - type: implements
         target: REQ-scripts-coverage-shard-isolation
-  - id: SYM-skillopt-fixture-assert-coordinates-present
-    title: assertSymbolCoordinatesPresent
-    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-generated-coordinate-repair
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-generated-coordinate-persistence
-  - id: SYM-skillopt-fixture-assert-coordinates-absent
-    title: assertSymbolCoordinatesAbsent
-    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-generated-coordinate-repair
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-generated-coordinate-persistence
-  - id: SYM-skillopt-fixture-symbol-id
-    title: fixtureSymbolId
-    sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-generated-coordinate-repair
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-writeLegacyCoordinateArtifact
     title: writeLegacyCoordinateArtifact
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
@@ -20022,8 +19774,6 @@ symbols:
         target: TEST-generated-coordinate-repair
       - type: covered_by
         target: TEST-proof-generated-symbol-fields
-      - type: implements
-        target: REQ-generated-coordinate-persistence
       - type: implements
         target: REQ-generated-coordinate-settings
   - id: SYM-SYMBOL_COORDINATES_FORMAT_VERSION
@@ -21345,30 +21095,6 @@ symbols:
         target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-001
-  - id: SYM-cli-SelectableRuleNames
-    title: SELECTABLE_RULE_NAMES
-    status: active
-    sourceFile: packages/cli/src/public/operations/specs/check-rules.generated.ts
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: covered_by
-        target: TEST-rule-registry-single-source
-      - type: implements
-        target: REQ-core-validation-rules
-      - type: covered_by
-        target: TEST-001
-  - id: SYM-cli-SelectableRulesAllowed
-    title: SELECTABLE_RULES_ALLOWED
-    status: active
-    sourceFile: packages/cli/src/public/operations/specs/check-rules.generated.ts
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: covered_by
-        target: TEST-rule-registry-single-source
-      - type: implements
-        target: REQ-core-validation-rules
-      - type: covered_by
-        target: TEST-001
   - id: SYM-cli-mutation-saga-test
     title: mutation-saga.test.ts
     status: active
@@ -21402,18 +21128,6 @@ symbols:
         target: TEST-mcp-session-state
       - type: implements
         target: REQ-mcp-kb-freshness
-  - id: SYM-mcp-getIsShuttingDown
-    title: getIsShuttingDown
-    status: active
-    sourceFile: packages/mcp/src/server/session.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-mcp-session-state
-      - type: implements
-        target: REQ-core-prolog-process-management
   - id: SYM-mcp-getActiveBranchName
     title: getActiveBranchName
     status: active
@@ -21690,8 +21404,6 @@ symbols:
       - type: covered_by
         target: TEST-mcp-upsert-coverage
       - type: implements
-        target: REQ-011
-      - type: implements
         target: REQ-kibi-source-relationship-parity
   - id: SYM-quality-inventory-8cc996295a6e
     title: executeRelationshipDelete
@@ -21707,8 +21419,6 @@ symbols:
         target: TEST-kibi-source-relationship-parity
       - type: covered_by
         target: TEST-mcp-upsert-coverage
-      - type: implements
-        target: REQ-011
       - type: implements
         target: REQ-kibi-source-relationship-parity
   - id: SYM-quality-inventory-8c7b67a029ac
@@ -22166,46 +21876,6 @@ symbols:
         target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-e2e-skillopt-trust-boundaries
-  - id: SYM-ROLE_INFERENCE
-    title: ROLE_INFERENCE
-    status: active
-    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: covered_by
-        target: TEST-cli-symbol-behavioral-anchors
-      - type: implements
-        target: REQ-symbol-behavioral-anchors
-  - id: SYM-ALLOWED_GRANULARITY_REASONS_PROSE
-    title: ALLOWED_GRANULARITY_REASONS_PROSE
-    status: active
-    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: covered_by
-        target: TEST-cli-symbol-behavioral-anchors
-      - type: implements
-        target: REQ-symbol-behavioral-anchors
-  - id: SYM-COARSE_GRANULARITY_REASONS_PROSE
-    title: COARSE_GRANULARITY_REASONS_PROSE
-    status: active
-    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: covered_by
-        target: TEST-cli-symbol-behavioral-anchors
-      - type: implements
-        target: REQ-symbol-behavioral-anchors
-  - id: SYM-COARSE_GRANULARITY_REASONS_PARENTHESIZED
-    title: COARSE_GRANULARITY_REASONS_PARENTHESIZED
-    status: active
-    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: covered_by
-        target: TEST-cli-symbol-behavioral-anchors
-      - type: implements
-        target: REQ-symbol-behavioral-anchors
   - id: SYM-current-proof-binding-mode
     title: currentProofBindingMode
     status: active
@@ -22654,8 +22324,6 @@ symbols:
       - type: covered_by
         target: TEST-proof-external-classifier-operations
       - type: implements
-        target: REQ-capability-plugin-observable-behavior-v1
-      - type: implements
         target: REQ-capability-plugin-vocabulary
   - id: SYM-cap-plugin-loadpluginpackage-007aa5b1
     title: loadPluginPackage
@@ -22670,16 +22338,6 @@ symbols:
   - id: SYM-cap-plugin-readprojectkibiconfig-a3a4195c
     title: readProjectKibiConfig
     sourceFile: packages/cli/src/plugins/project-config.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-activation-disclosure-v1
-  - id: SYM-cap-plugin-createstubbuiltinplugin-ccd291f8
-    title: createStubBuiltinPlugin
-    sourceFile: packages/cli/src/plugins/registry.ts
     status: active
     symbol_role: behavioral
     relationships:
@@ -22757,36 +22415,6 @@ symbols:
         target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-three-capabilities-v1
-  - id: SYM-cap-plugin-capabilityregistrycache-get-27109bcb
-    title: CapabilityRegistryCache.get
-    sourceFile: packages/cli/src/plugins/registry.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-activation-disclosure-v1
-  - id: SYM-cap-plugin-capabilityregistrycache-set-024b556e
-    title: CapabilityRegistryCache.set
-    sourceFile: packages/cli/src/plugins/registry.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-activation-disclosure-v1
-  - id: SYM-cap-plugin-capabilityregistrycache-clear-b9641d16
-    title: CapabilityRegistryCache.clear
-    sourceFile: packages/cli/src/plugins/registry.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-activation-disclosure-v1
   - id: SYM-cap-plugin-assertbarepackagename-4a211175
     title: assertBarePackageName
     sourceFile: packages/cli/src/plugins/resolve-package.ts
@@ -22829,16 +22457,6 @@ symbols:
         target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-resolveprojectlocalpackage-03c57c42
     title: resolveProjectLocalPackage
-    sourceFile: packages/cli/src/plugins/resolve-package.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-activation-disclosure-v1
-  - id: SYM-cap-plugin-pluginresolutionerror-code-17bded4e
-    title: PluginResolutionError.code
     sourceFile: packages/cli/src/plugins/resolve-package.ts
     status: active
     symbol_role: behavioral
@@ -23275,8 +22893,6 @@ symbols:
         target: TEST-proof-ontology-pack-capability-id
       - type: implements
         target: REQ-capability-plugin-protocol-identifiers
-      - type: implements
-        target: REQ-capability-plugin-three-capabilities-v1
   - id: SYM-cap-plugin-plugin-modes-52a9d01a
     title: PLUGIN_MODES
     sourceFile: packages/plugin-sdk/src/protocol.ts
@@ -23287,8 +22903,6 @@ symbols:
         target: TEST-e2e-capability-plugins
       - type: covered_by
         target: TEST-proof-plugin-modes
-      - type: implements
-        target: REQ-capability-plugin-three-capabilities-v1
       - type: implements
         target: REQ-capability-plugin-vocabulary
   - id: SYM-cap-plugin-validatekibiplugin-ca84fa32
@@ -24097,8 +23711,6 @@ symbols:
         target: TEST-proof-search-candidate-page-size
       - type: implements
         target: REQ-kibi-operation-page-sizes
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-registerJobStatusTool
     title: registerJobStatusTool
     status: active
@@ -26795,16 +26407,6 @@ symbols:
         target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-root-pages
-  - id: SYM-docs-site-catalog-SITE_TAGLINE
-    title: SITE_TAGLINE
-    status: active
-    sourceFile: docs-site/catalog.ts
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-docs-readme-published-links
-      - type: implements
-        target: REQ-docs-readme-published-links
   - id: SYM-docs-site-page-meta-pageMeta
     title: pageMeta
     status: active
@@ -26815,8 +26417,6 @@ symbols:
         target: TEST-docs-readme-published-links
       - type: covered_by
         target: TEST-docs-site-pages
-      - type: implements
-        target: REQ-docs-readme-published-links
       - type: implements
         target: REQ-docs-site-root-pages
   - id: SYM-cli-github-skip-blank-lines
@@ -27001,8 +26601,6 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-cli-canonical-runtime
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler-v2
   - id: SYM-test-cli-engine-runtime-paths
     title: engine runtime paths tests
     status: active
@@ -35865,8 +35463,6 @@ symbols:
       - type: covered_by
         target: TEST-proof-proof-contract-kinds
       - type: implements
-        target: REQ-kibi-code-proof-kinds
-      - type: implements
         target: REQ-kibi-proof-kind-vocabulary
   - id: SYM-cli-evidence-levels
     title: EVIDENCE_LEVELS
@@ -35955,21 +35551,6 @@ symbols:
         target: TEST-kibi-code-proof-kinds
       - type: implements
         target: REQ-kibi-code-proof-kinds
-  - id: SYM-cli-read-certificate-dir
-    title: readCertificateDir
-    status: active
-    sourceFile: packages/cli/src/commands/prove.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-    origin:
-      kind: agent
-      recorded_at: 2026-10-24T19:33:08.497Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-code-proof-kinds
-      - type: implements
-        target: REQ-kibi-code-proof-kinds
   - id: SYM-cli-exhaustive-certificate
     title: exhaustiveCertificate
     status: active
@@ -36030,8 +35611,6 @@ symbols:
         target: TEST-kibi-code-proof-kinds
       - type: covered_by
         target: TEST-kibi-claim-bound-proofs
-      - type: implements
-        target: REQ-kibi-code-proof-kinds
       - type: implements
         target: REQ-kibi-claim-bound-proofs
   - id: SYM-core-receipt-kind-evidence
@@ -36334,8 +35913,6 @@ symbols:
         target: TEST-kibi-non-numeric-proof-kinds-rule
       - type: implements
         target: REQ-kibi-non-numeric-certificate-kinds
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-regular-language-equal
     title: languagesEqual
     status: active
@@ -44209,8 +43786,6 @@ symbols:
         target: TEST-kibi-non-numeric-proof-kinds
       - type: implements
         target: REQ-kibi-multilingual-code-proofs
-      - type: implements
-        target: REQ-kibi-non-numeric-proof-kinds
   - id: SYM-code-scope-contract-code-symbol-ids
     title: contractCodeSymbolIds
     status: active
@@ -45084,8 +44659,6 @@ symbols:
         target: TEST-kibi-release-version
       - type: implements
         target: REQ-engine-daemon-package-versions
-      - type: implements
-        target: REQ-kibi-release-version
   - id: SYM-cli-built-package-versions
     title: KIBI_BUILT_PACKAGE_VERSIONS
     status: active
