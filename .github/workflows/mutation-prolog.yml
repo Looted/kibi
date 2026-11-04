@@ -68,6 +68,8 @@ on:
       - 'packages/core/tests/discovery.plt'
       - 'packages/core/src/checks.pl'
       - 'packages/core/tests/checks.plt'
+      - 'packages/core/src/requirement_proof.pl'
+      - 'packages/core/tests/requirement_proof.plt'
       - 'packages/core/tests/proof_fixture.pl'
       - 'packages/core/src/kb.pl'
       - 'packages/core/tests/kb.plt'

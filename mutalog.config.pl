@@ -7,7 +7,7 @@
 % KB consistency findings, certificates, requirement edge cases, the rule
 % registry, status freshness, the entity and relationship schema, code
 % certificates and their independent checker, model checks, claim
-% obligations, semantic quality, discovery and the KB checks.
+% obligations, semantic quality, discovery, the KB checks and the requirement proof ladder.
 % Like the Stryker lanes it gates at 100%: every mutant is killed or
 % suppressed as an equivalent.
 
@@ -32,7 +32,8 @@ mutate([
     "packages/core/src/claim_obligations.pl",
     "packages/core/src/semantic_quality.pl",
     "packages/core/src/discovery.pl",
-    "packages/core/src/checks.pl"
+    "packages/core/src/checks.pl",
+    "packages/core/src/requirement_proof.pl"
 ]).
 tests([
     "packages/core/tests/logic_ir.plt",
@@ -55,7 +56,11 @@ tests([
     "packages/core/tests/claim_obligations.plt",
     "packages/core/tests/semantic_quality.plt",
     "packages/core/tests/discovery.plt",
-    "packages/core/tests/checks.plt"
+    "packages/core/tests/checks.plt",
+    "packages/core/tests/requirement_proof.plt",
+    % kb.plt drives requirement_proof.pl through whole KB fixtures; kb.pl
+    % itself is still mutated only in the report-only backlog lane.
+    "packages/core/tests/kb.plt"
 ]).
 
 % Equivalent mutants are suppressed in the source, with a

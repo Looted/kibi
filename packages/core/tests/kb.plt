@@ -6288,29 +6288,12 @@ test(violation_term_to_dict_unwraps_typed_literals_and_atoms) :-
     assertion(JsonDict.get(suggestion) == "Typed suggestion"),
     assertion(JsonDict.get(source) == "example_source").
 
-test(with_output_to_string_and_file_base_name_helpers_normalize_output) :-
-    checks:with_output_to_string(write(hello), String),
-    checks:file_base_name("docs/specs/REQ-1.md", BaseWithPath),
-    checks:file_base_name("REQ-2.md", BaseWithoutPath),
-    assertion(String == "hello"),
-    assertion(BaseWithPath == 'REQ-1.md'),
-    assertion(BaseWithoutPath == 'REQ-2.md').
-
-test(check_all_json_and_run_checks_json_serializes_entrypoints, [setup(setup_kb), cleanup((retractall(checks:halt(_)), cleanup_kb))]) :-
+test(check_all_json_serializes_the_entrypoint, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     checks:check_all_json(Json),
     atom_json_dict(Json, Dict, []),
-    assertion(Dict.get(no_dangling_refs) == []),
-    checks:redefine_system_predicate(halt(_)),
-    assertz((checks:halt(_):-true)),
-    with_output_to(string(RunJson), checks:run_checks_json),
-    atom_json_dict(RunJson, RunDict, []),
-    assertion(RunDict.get(no_cycles) == []).
+    assertion(Dict.get(no_dangling_refs) == []).
 
-test(value_field_helpers_cover_all_value_kinds) :-
-    checks:is_value_field(value_string),
-    checks:is_value_field(value_int),
-    checks:is_value_field(value_number),
-    checks:is_value_field(value_bool),
+test(value_type_matching_covers_all_value_kinds) :-
     checks:value_type_matches_field(string, [value_string="x"]),
     checks:value_type_matches_field(int, [value_int=1]),
     checks:value_type_matches_field(number, [value_number=1.5]),

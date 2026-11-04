@@ -23,7 +23,7 @@ the repository root:
 
 | Config | Modules | Gate | Mutants | Run time |
 | --- | --- | --- | --- | --- |
-| `mutalog.config.pl` | `logic_ir.pl`, `intervals.pl`, `units.pl`, `symbol_classification.pl`, `derived_chr.pl`, `sparql_client.pl`, `kb_consistency.pl`, `certificates.pl`, `cases.pl`, `rule_registry.pl`, `status.pl`, `code_certificates.pl`, `certificate_check.pl`, `model_check.pl`, `claim_obligations.pl`, `semantic_quality.pl`, `discovery.pl`, `checks.pl` and the `schema/` `entities.pl`, `relationships.pl` and `validation.pl`, each tested by its own `.plt` | `break(100)` | ~20,300 | about 40 minutes on 4 cores |
+| `mutalog.config.pl` | `logic_ir.pl`, `intervals.pl`, `units.pl`, `symbol_classification.pl`, `derived_chr.pl`, `sparql_client.pl`, `kb_consistency.pl`, `certificates.pl`, `cases.pl`, `rule_registry.pl`, `status.pl`, `code_certificates.pl`, `certificate_check.pl`, `model_check.pl`, `claim_obligations.pl`, `semantic_quality.pl`, `discovery.pl`, `checks.pl`, `requirement_proof.pl` and the `schema/` `entities.pl`, `relationships.pl` and `validation.pl`, each tested by its own `.plt` (`requirement_proof.pl` also by `kb.plt`) | `break(100)` | ~25,000 | about 50 minutes on 4 cores |
 | `mutalog.backlog.config.pl` | `kb.pl` (tested by `logic_ir.plt` and `kb.plt`) | `break(0)`, report only | 4,840, 32.1% | about 10 minutes on 3 workers |
 
 - Like the Stryker gate, `mutalog.config.pl` **gates at 100%**: any
