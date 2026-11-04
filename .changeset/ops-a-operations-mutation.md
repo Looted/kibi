@@ -13,3 +13,4 @@ Fix several `kibi migrate` and semantic advisor edge cases found while tightenin
 - Strict suggestions now read a retention period in a singular unit ("retained for 1 day") as `retention_days`, like expiry periods, instead of `retention_day`.
 - Source-shape suggestions now accept relative module names (`./local`, `../shared`) as members, and "property" in the singular as a field word ("every object must declare a non-null property id").
 - A workspace file whose name starts with two dots (`..notes.md`) is no longer treated as outside the workspace when `kibi migrate` checks whether an authored `source` path exists.
+- Re-deriving the semantic inventory of a requirement whose current prose has only context claims (rationale, examples) now removes `logic_claims` instead of writing an empty list the schema rejects. Before, `kibi migrate` stopped with a schema error for such a requirement.
