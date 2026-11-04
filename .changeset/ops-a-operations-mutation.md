@@ -8,3 +8,4 @@ Fix several `kibi migrate` and semantic advisor edge cases found while tightenin
 - Clauses that normalize to the same claim are reported once, not as repeated claim keys.
 - A front matter list written at the key's own indentation (`tags:` then `- a`) is now read as that list, so a tag already present is not added a second time.
 - Front matter edits now accept a key whose value line is followed only by an indented comment.
+- The case preview for a set property claim without a list of members now shows no cases, matching what the proof ladder derives, instead of a value-outside-the-set case.
