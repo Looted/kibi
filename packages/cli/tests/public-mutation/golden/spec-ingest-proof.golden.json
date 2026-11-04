@@ -258,5 +258,193 @@
   },
   "requiresProlog": true,
   "effects": ["kb-read", "kb-write", "workspace-read"],
-  "execute": "[function executeIngestProof]"
+  "execute": "[function executeIngestProof]",
+  "resultVersion": "kibi.kb_ingest_proof.v1",
+  "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "kibiProtocol",
+      "operation",
+      "resultVersion",
+      "status",
+      "data",
+      "effects",
+      "diagnostics",
+      "nextActions"
+    ],
+    "properties": {
+      "kibiProtocol": {
+        "const": 1
+      },
+      "operation": {
+        "const": "kb_ingest_proof"
+      },
+      "resultVersion": {
+        "const": "kibi.kb_ingest_proof.v1"
+      },
+      "status": {
+        "enum": ["success", "committed_with_repairs", "error"]
+      },
+      "data": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "artifactDigest": {
+            "type": "string"
+          },
+          "environmentHash": {
+            "type": "string"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "passed": {
+            "type": "integer"
+          },
+          "failed": {
+            "type": "integer"
+          },
+          "unchanged": {
+            "type": "integer"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "effectFailures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "nextActions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "effects": {
+        "type": "array",
+        "minItems": 3,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "status"],
+          "properties": {
+            "kind": {
+              "type": "string"
+            },
+            "status": {
+              "enum": ["completed", "failed", "not_applicable"]
+            },
+            "detail": {},
+            "errorCode": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "diagnostics": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["message"],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "severity": {
+              "enum": ["info", "warning", "error"]
+            },
+            "message": {
+              "type": "string"
+            },
+            "detail": {},
+            "category": {
+              "type": "string"
+            },
+            "suggestion": {
+              "type": "string"
+            },
+            "file": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "nextActions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation", "reason", "required"],
+          "properties": {
+            "operation": {
+              "type": "string"
+            },
+            "input": {},
+            "reason": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message", "retryable"],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "details": {}
+        }
+      }
+    }
+  },
+  "declaredEffects": [
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ]
 }

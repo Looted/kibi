@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { withContractDefaults } from "../../../../src/public/operations/catalog.js";
 import type { OperationContext } from "../../../../src/public/operations/runtime-types.js";
 import {
   type SparqlRemoteInput,
@@ -42,7 +43,7 @@ const ENDPOINT = "https://example.test/sparql";
 
 describe("kb_sparql_remote spec", () => {
   test("declares its contract", () => {
-    expectGolden("spec-sparql-remote", sparqlRemoteSpec);
+    expectGolden("spec-sparql-remote", withContractDefaults(sparqlRemoteSpec));
   });
 });
 

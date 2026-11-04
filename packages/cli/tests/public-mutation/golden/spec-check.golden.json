@@ -110,5 +110,241 @@
   },
   "requiresProlog": true,
   "effects": ["kb-read", "workspace-read"],
-  "execute": "[function executeCheck]"
+  "execute": "[function executeCheck]",
+  "resultVersion": "kibi.kb_check.v1",
+  "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "kibiProtocol",
+      "operation",
+      "resultVersion",
+      "status",
+      "data",
+      "effects",
+      "diagnostics",
+      "nextActions"
+    ],
+    "properties": {
+      "kibiProtocol": {
+        "const": 1
+      },
+      "operation": {
+        "const": "kb_check"
+      },
+      "resultVersion": {
+        "const": "kibi.kb_check.v1"
+      },
+      "status": {
+        "enum": ["success", "committed_with_repairs", "error"]
+      },
+      "data": {
+        "description": "Synchronous check payload, or a kibi.job.v1 receipt when async:true detached the check into a background job (poll kb_job_status with the jobId).",
+        "anyOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "violations": {
+                "type": "array",
+                "items": {}
+              },
+              "count": {
+                "type": "integer"
+              },
+              "evaluated": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "diagnostics": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "qualityDiagnostics": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "impactDiagnostics": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "sourceFiles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "extractedSymbols": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "linkedEntities": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "nextActions": {
+                "type": "array",
+                "items": {}
+              },
+              "migrationPlan": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kibiProtocol",
+              "jobVersion",
+              "jobId",
+              "tool",
+              "status",
+              "pollWith"
+            ],
+            "properties": {
+              "kibiProtocol": {
+                "const": 1
+              },
+              "jobVersion": {
+                "const": "kibi.job.v1"
+              },
+              "jobId": {
+                "type": "string"
+              },
+              "tool": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "pollWith": {
+                "const": "kb_job_status"
+              }
+            }
+          }
+        ]
+      },
+      "effects": {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "status"],
+          "properties": {
+            "kind": {
+              "type": "string"
+            },
+            "status": {
+              "enum": ["completed", "failed", "not_applicable"]
+            },
+            "detail": {},
+            "errorCode": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "diagnostics": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["message"],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "severity": {
+              "enum": ["info", "warning", "error"]
+            },
+            "message": {
+              "type": "string"
+            },
+            "detail": {},
+            "category": {
+              "type": "string"
+            },
+            "suggestion": {
+              "type": "string"
+            },
+            "file": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "nextActions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation", "reason", "required"],
+          "properties": {
+            "operation": {
+              "type": "string"
+            },
+            "input": {},
+            "reason": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message", "retryable"],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "details": {}
+        }
+      }
+    }
+  },
+  "declaredEffects": [
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ]
 }

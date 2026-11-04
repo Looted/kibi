@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { withContractDefaults } from "../../../../src/public/operations/catalog.js";
 import type { OperationContext } from "../../../../src/public/operations/runtime-types.js";
 import {
   skillsListSpec,
@@ -44,11 +45,14 @@ function skillsDir(withSkills: boolean): string {
 
 describe("skills operation specs", () => {
   test("declare their contracts", () => {
-    expectGolden("spec-skills", [
-      skillsListSpec,
-      skillsLoadSpec,
-      skillsReadSpec,
-    ]);
+    // The catalog resolves each spec's result contract in place, so the
+    // golden holds the resolved form whether or not the catalog loaded first.
+    expectGolden(
+      "spec-skills",
+      [skillsListSpec, skillsLoadSpec, skillsReadSpec].map(
+        withContractDefaults,
+      ),
+    );
   });
 
   test("list reports bundled skills", async () => {

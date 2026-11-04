@@ -1338,5 +1338,250 @@
   },
   "requiresProlog": true,
   "effects": ["kb-write", "workspace-write"],
-  "execute": "[function executeUpsert]"
+  "execute": "[function executeUpsert]",
+  "resultVersion": "kibi.kb_upsert.v1",
+  "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "kibiProtocol",
+      "operation",
+      "resultVersion",
+      "status",
+      "data",
+      "effects",
+      "diagnostics",
+      "nextActions"
+    ],
+    "properties": {
+      "kibiProtocol": {
+        "const": 1
+      },
+      "operation": {
+        "const": "kb_upsert"
+      },
+      "resultVersion": {
+        "const": "kibi.kb_upsert.v1"
+      },
+      "status": {
+        "enum": ["success", "committed_with_repairs", "error"]
+      },
+      "data": {
+        "description": "Committed upsert payload, or the validation preview when dryRun:true wrote nothing.",
+        "anyOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "created": {
+                "type": "integer"
+              },
+              "updated": {
+                "type": "integer"
+              },
+              "relationships_created": {
+                "type": "integer"
+              },
+              "warnings": {
+                "type": "array",
+                "items": {}
+              },
+              "semanticAdvisor": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "claimKey": {
+                "type": "string",
+                "description": "For a fact with claim_text: the stored claim_key, derived from claim_text when the payload did not supply it."
+              },
+              "status": {
+                "type": "string"
+              },
+              "effectFailures": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "nextActions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "sourceWrites": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "contradictionCheck": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["valid", "dryRun", "skippedEffects"],
+            "properties": {
+              "valid": {
+                "type": "boolean"
+              },
+              "errors": {
+                "type": "array",
+                "items": {}
+              },
+              "warnings": {
+                "type": "array",
+                "items": {}
+              },
+              "semanticAdvisor": {
+                "type": ["object", "null"],
+                "additionalProperties": true
+              },
+              "normalizedPreview": {
+                "type": ["object", "null"],
+                "additionalProperties": true
+              },
+              "errorCode": {
+                "type": "string"
+              },
+              "rejection": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "stagedFacts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "whatIf": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "dryRun": {
+                "const": true
+              },
+              "skippedEffects": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "effects": {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "status"],
+          "properties": {
+            "kind": {
+              "type": "string"
+            },
+            "status": {
+              "enum": ["completed", "failed", "not_applicable"]
+            },
+            "detail": {},
+            "errorCode": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "diagnostics": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["message"],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "severity": {
+              "enum": ["info", "warning", "error"]
+            },
+            "message": {
+              "type": "string"
+            },
+            "detail": {},
+            "category": {
+              "type": "string"
+            },
+            "suggestion": {
+              "type": "string"
+            },
+            "file": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "nextActions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation", "reason", "required"],
+          "properties": {
+            "operation": {
+              "type": "string"
+            },
+            "input": {},
+            "reason": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message", "retryable"],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "details": {}
+        }
+      }
+    }
+  },
+  "declaredEffects": [
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    }
+  ]
 }
