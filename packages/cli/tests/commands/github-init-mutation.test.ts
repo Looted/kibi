@@ -11,6 +11,7 @@ import {
   listGitRemotes,
   loadGitHubWorkflowTemplate,
   parseGitHubRemote,
+  scaffoldCheckWorkflow,
   scaffoldGitHubIntegration,
   skipBlankLines,
   writeGitHubWorkflow,
@@ -217,6 +218,9 @@ describe("workflow and .gitignore files", () => {
     );
     expect(loadGitHubWorkflowTemplate("badge")).toBe(
       readFileSync(path.join(githubTemplateDir(), "kibi-badge.yml")).toString(),
+    );
+    expect(loadGitHubWorkflowTemplate("check")).toBe(
+      readFileSync(path.join(githubTemplateDir(), "kibi-check.yml")).toString(),
     );
     const missing = path.join(githubTemplateDir(), "kibi-badge.yml");
     track(
@@ -425,5 +429,52 @@ describe("scaffoldGitHubIntegration", () => {
     expect(errors[0]).toBe(
       "Warning: Could not determine a github.com owner/repository from git remotes.",
     );
+  });
+});
+
+describe("scaffoldCheckWorkflow", () => {
+  const FILE = ".github/workflows/kibi-check.yml";
+
+  test("adds the gate once and keeps a changed one", () => {
+    const root = tempRoot();
+    const logs: string[] = [];
+    const errors: string[] = [];
+    const deps = {
+      log: (m: string) => logs.push(m),
+      error: (m: string) => errors.push(m),
+    };
+    expect(scaffoldCheckWorkflow(root, deps)).toBe("created");
+    expect(readFileSync(path.join(root, FILE)).toString()).toBe(
+      loadGitHubWorkflowTemplate("check"),
+    );
+    expect(scaffoldCheckWorkflow(root, deps)).toBe("unchanged");
+    writeFileSync(path.join(root, FILE), "name: mine\n");
+    expect(scaffoldCheckWorkflow(root, deps)).toBe("conflict");
+    expect(readFileSync(path.join(root, FILE)).toString()).toBe(
+      "name: mine\n",
+    );
+    expect(logs).toStrictEqual([
+      `✓ Added ${FILE}: pull requests must pass kibi check`,
+    ]);
+    expect(errors).toStrictEqual([
+      `Warning: ${FILE} already exists and differs from the Kibi template; left untouched.`,
+    ]);
+  });
+
+  test("prints to the console by default", () => {
+    const root = tempRoot();
+    const logs: unknown[] = [];
+    const errors: unknown[] = [];
+    track(spyOn(console, "log").mockImplementation((m) => logs.push(m)));
+    track(spyOn(console, "error").mockImplementation((m) => errors.push(m)));
+    scaffoldCheckWorkflow(root);
+    writeFileSync(path.join(root, FILE), "x\n");
+    scaffoldCheckWorkflow(root);
+    expect(logs).toStrictEqual([
+      `✓ Added ${FILE}: pull requests must pass kibi check`,
+    ]);
+    expect(errors).toStrictEqual([
+      `Warning: ${FILE} already exists and differs from the Kibi template; left untouched.`,
+    ]);
   });
 });

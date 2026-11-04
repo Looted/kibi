@@ -509,6 +509,35 @@ describe("installGitHooks", () => {
     ]);
   });
 
+  test("sends every note to the given log instead of the console", () => {
+    mkdirSync(hooksDir());
+    writeFileSync(path.join(hooksDir(), "post-checkout"), "echo mine\n");
+    symlinkSync(
+      path.join(root, "target"),
+      path.join(hooksDir(), "post-rewrite"),
+    );
+    mkdirSync(path.join(hooksDir(), "pre-commit"));
+    const notes: string[] = [];
+    installGitHooks(hooksDir(), {
+      hooksPathOrigin: "local config",
+      log: (message) => notes.push(message),
+    });
+    expect(logs).toEqual([]);
+    expect(notes.map((note) => note.slice(0, 16))).toEqual([
+      "! post-checkout:",
+      "! post-rewrite: ",
+      "! pre-commit: ho",
+      "✓ Installed/upda",
+      "! core.hooksPath",
+    ]);
+    const quiet: string[] = [];
+    installGitHooks(hooksDir(), { log: (message) => quiet.push(message) });
+    expect(quiet.at(-1)).toBe(
+      `✓ Installed/updated Kibi git hooks at ${hooksDir()} (post-merge)`,
+    );
+    expect(logs).toEqual([]);
+  });
+
   test("names the pre-commit checks for a foreign pre-commit hook", () => {
     mkdirSync(hooksDir());
     writeFileSync(path.join(hooksDir(), "pre-commit"), "echo mine\n");
