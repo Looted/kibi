@@ -18,7 +18,7 @@
 
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import Ajv, { type ValidateFunction } from "ajv";
+import Ajv, { type ErrorObject, type ValidateFunction } from "ajv";
 import { load as yamlLoad } from "js-yaml";
 import {
   FIRMNESS_VALUES,
@@ -255,14 +255,11 @@ type FrontmatterData = Record<string, unknown> &
   };
 
 const DEFAULT_STATUS_BY_TYPE: Record<string, string> = {
+  // Every other type defaults to "active".
   req: "open",
   scenario: "draft",
   test: "pending",
   adr: "proposed",
-  flag: "active",
-  event: "active",
-  symbol: "active",
-  fact: "active",
 };
 
 type RelationshipType =
@@ -440,7 +437,7 @@ function validateRelationshipDirection(
 export class FrontmatterError extends Error {
   public classification: string;
   public hint: string;
-  public originalError?: string;
+  public originalError: string | undefined;
 
   constructor(
     message: string,
@@ -456,16 +453,12 @@ export class FrontmatterError extends Error {
     this.name = "FrontmatterError";
     this.classification = options?.classification || "Generic Error";
     this.hint = options?.hint || "Check the file for syntax errors.";
-    if (options?.originalError !== undefined) {
-      this.originalError = options.originalError;
-    }
+    this.originalError = options?.originalError;
   }
 
   override toString() {
-    let msg = `${this.filePath}: [${this.classification}] ${this.message}`;
-    if (this.hint) {
-      msg += `\nHow to fix:\n- ${this.hint}`;
-    }
+    // The constructor always gives the error a non-empty hint.
+    let msg = `${this.filePath}: [${this.classification}] ${this.message}\nHow to fix:\n- ${this.hint}`;
     if (this.originalError) {
       msg += `\n\nOriginal error: ${this.originalError}`;
     }
@@ -503,7 +496,9 @@ function splitFrontmatter(
     return null;
   }
   const rest = trimmedStart.slice(opening[0].length);
-  const closing = /^---[^\S\r\n]*(?:\r?\n|$)/m.exec(rest);
+  // The newline after the closing delimiter stays at the start of the body,
+  // which is only ever read trimmed.
+  const closing = /^---[^\S\r\n]*$/m.exec(rest);
   if (!closing) {
     return "unclosed";
   }
@@ -513,12 +508,15 @@ function splitFrontmatter(
   };
 }
 
-function parseFrontmatter(content: string): {
+/** The front matter mapping and body of a document with a closed block or none. */
+function parseFrontmatter(
+  content: string,
+  split: { frontmatter: string; body: string } | null,
+): {
   data: FrontmatterData;
   content: string;
 } {
-  const split = splitFrontmatter(content);
-  if (split === null || split === "unclosed") {
+  if (split === null) {
     return { data: {}, content };
   }
 
@@ -541,7 +539,7 @@ export function legacyRequirementSemanticText(body: string): string {
   return body
     .replace(/\r\n?/g, "\n")
     .split("\n")
-    .filter((line) => !/^\s{0,3}#{1,6}(?:\s+|$)/.test(line))
+    .filter((line) => !/^\s{0,3}#{1,6}(?:\s|$)/.test(line))
     .map((line) => line.replace(/^\s*(?:(?:[-*+]|\d+[.)])\s+|>\s*)/, ""))
     .join("\n")
     .trim();
@@ -558,17 +556,10 @@ export function requirementSemanticText(body: string): string {
   return legacyRequirementSemanticText(withoutContextSections(body));
 }
 
-function hasLikelyUnquotedColonInTitle(content: string): boolean {
-  const split = splitFrontmatter(content);
-  const frontmatter =
-    split === null
-      ? undefined
-      : split === "unclosed"
-        ? content
-        : split.frontmatter;
-  return frontmatter
-    ? /^\s*title:\s*(?!["'])(?![>|])[^#\n]*:\s+\S.*$/m.test(frontmatter)
-    : false;
+// The lookahead also refuses whitespace so the blanks after `title:` cannot
+// backtrack and hide an opening quote or block indicator.
+function hasLikelyUnquotedColonInTitle(frontmatter: string): boolean {
+  return /^\s*title:\s*(?![\s"'>|])[^#\n]*:\s+\S/m.test(frontmatter);
 }
 
 export function detectEmbeddedEntities(
@@ -581,12 +572,9 @@ export function detectEmbeddedEntities(
   }
 
   const detected: string[] = [];
+  // Arrays are objects; undefined and other primitives are not embedded.
   const hasEmbeddedValue = (value: unknown): boolean =>
-    value !== null &&
-    value !== undefined &&
-    (Array.isArray(value) ||
-      typeof value === "object" ||
-      typeof value === "string");
+    value !== null && (typeof value === "object" || typeof value === "string");
 
   const scenarioFields = [
     "scenario",
@@ -598,9 +586,7 @@ export function detectEmbeddedEntities(
   ];
   for (const field of scenarioFields) {
     if (hasEmbeddedValue(data[field])) {
-      if (!detected.includes("scenario")) {
-        detected.push("scenario");
-      }
+      detected.push("scenario");
       break;
     }
   }
@@ -617,9 +603,7 @@ export function detectEmbeddedEntities(
   ];
   for (const field of testFields) {
     if (hasEmbeddedValue(data[field])) {
-      if (!detected.includes("test")) {
-        detected.push("test");
-      }
+      detected.push("test");
       break;
     }
   }
@@ -632,15 +616,16 @@ function extractFromMarkdownContent(
   content: string,
   filePath: string,
 ): ExtractionResult {
+  const split = splitFrontmatter(content);
   try {
-    if (splitFrontmatter(content) === "unclosed") {
+    if (split === "unclosed") {
       throw new FrontmatterError("Missing closing --- delimiter", filePath, {
         classification: "Missing closing ---",
         hint: "Ensure the frontmatter is enclosed between two '---' delimiter lines; a '---' appended to the last value does not close it.",
       });
     }
 
-    const { data, content: body } = parseFrontmatter(content);
+    const { data, content: body } = parseFrontmatter(content, split);
 
     const type = data.type || inferTypeFromPath(filePath);
 
@@ -690,9 +675,10 @@ function extractFromMarkdownContent(
           continue;
         }
 
+        // Strings were handled above; any other truthy value is read as a
+        // typed link, and a primitive has no string type or target.
         if (
           link &&
-          typeof link === "object" &&
           typeof link.type === "string" &&
           typeof link.target === "string"
         ) {
@@ -935,6 +921,50 @@ function extractFromMarkdownContent(
           },
         );
       }
+    } else {
+      // Typed fact fields, copied only onto facts.
+      //
+      // INTENTIONAL DYNAMIC CAST: The casts below assign parsed markdown frontmatter
+      // values to ExtractedEntity fields. TypeScript cannot verify that a runtime string
+      // from a const array (e.g., FACT_STRING_FIELDS) is a valid key of ExtractedEntity,
+      // even though all fields are declared as optional properties on the interface.
+      // Fields are validated against the JSON Schema (via validateExtractedEntity) below,
+      // so any invalid field will be caught at runtime before the entity is returned.
+
+      // String fields
+      for (const field of FACT_STRING_FIELDS) {
+        if (data[field] !== undefined) {
+          // Normalize date fields
+          if (field === "valid_from" || field === "valid_to") {
+            (entity as unknown as Record<string, unknown>)[field] =
+              normalizeDateLike(data[field]);
+          } else {
+            (entity as unknown as Record<string, unknown>)[field] = data[field];
+          }
+        }
+      }
+
+      // Number fields
+      for (const field of FACT_NUMBER_FIELDS) {
+        if (data[field] !== undefined) {
+          (entity as unknown as Record<string, unknown>)[field] = data[field];
+        }
+      }
+
+      // Boolean fields
+      for (const field of FACT_BOOLEAN_FIELDS) {
+        if (data[field] !== undefined) {
+          (entity as unknown as Record<string, unknown>)[field] = data[field];
+        }
+      }
+
+      for (const field of FACT_STRING_ARRAY_FIELDS) {
+        if (Array.isArray(data[field])) {
+          (entity as unknown as Record<string, unknown>)[field] = data[
+            field
+          ].filter((value): value is string => typeof value === "string");
+        }
+      }
     }
 
     if (type !== "test") {
@@ -951,9 +981,7 @@ function extractFromMarkdownContent(
           },
         );
       }
-    }
-
-    if (type === "test") {
+    } else {
       if (data.verification_scope !== undefined) {
         if (!isVerificationScope(data.verification_scope)) {
           throw new FrontmatterError(
@@ -1051,14 +1079,13 @@ function extractFromMarkdownContent(
           ) {
             return value;
           }
+          // A receipt without date-like timestamps is rejected below, so only
+          // YAML dates need rewriting.
           return {
             ...value,
-            ...(normalizeDateLike(value.started_at) !== undefined
-              ? { started_at: normalizeDateLike(value.started_at) }
-              : {}),
-            ...(normalizeDateLike(value.finished_at) !== undefined
-              ? { finished_at: normalizeDateLike(value.finished_at) }
-              : {}),
+            started_at: normalizeDateLike(value.started_at) ?? value.started_at,
+            finished_at:
+              normalizeDateLike(value.finished_at) ?? value.finished_at,
           };
         });
         entity.proof_receipts = normalizedReceipts;
@@ -1081,51 +1108,6 @@ function extractFromMarkdownContent(
       }
     }
 
-    // Add typed fact fields only for fact entities
-    //
-    // INTENTIONAL DYNAMIC CAST: The casts below assign parsed markdown frontmatter
-    // values to ExtractedEntity fields. TypeScript cannot verify that a runtime string
-    // from a const array (e.g., FACT_STRING_FIELDS) is a valid key of ExtractedEntity,
-    // even though all fields are declared as optional properties on the interface.
-    // Fields are validated against the JSON Schema (via validateExtractedEntity) below,
-    // so any invalid field will be caught at runtime before the entity is returned.
-    if (type === "fact") {
-      // String fields
-      for (const field of FACT_STRING_FIELDS) {
-        if (data[field] !== undefined) {
-          // Normalize date fields
-          if (field === "valid_from" || field === "valid_to") {
-            (entity as unknown as Record<string, unknown>)[field] =
-              normalizeDateLike(data[field]);
-          } else {
-            (entity as unknown as Record<string, unknown>)[field] = data[field];
-          }
-        }
-      }
-
-      // Number fields
-      for (const field of FACT_NUMBER_FIELDS) {
-        if (data[field] !== undefined) {
-          (entity as unknown as Record<string, unknown>)[field] = data[field];
-        }
-      }
-
-      // Boolean fields
-      for (const field of FACT_BOOLEAN_FIELDS) {
-        if (data[field] !== undefined) {
-          (entity as unknown as Record<string, unknown>)[field] = data[field];
-        }
-      }
-
-      for (const field of FACT_STRING_ARRAY_FIELDS) {
-        if (Array.isArray(data[field])) {
-          (entity as unknown as Record<string, unknown>)[field] = data[
-            field
-          ].filter((value): value is string => typeof value === "string");
-        }
-      }
-    }
-
     if (type === "req" && Array.isArray(data.semantic_inventory)) {
       entity.semantic_inventory = data.semantic_inventory.filter(
         (value): value is Record<string, unknown> => isObjectRecord(value),
@@ -1134,7 +1116,8 @@ function extractFromMarkdownContent(
 
     const validateEntity = validateExtractedEntity();
     if (!validateEntity(entity)) {
-      const messages = (validateEntity.errors || [])
+      // Ajv always sets errors when validation fails.
+      const messages = (validateEntity.errors as ErrorObject[])
         .map((e) => `${e.instancePath || "root"}: ${e.message}`)
         .join("; ");
       throw new FrontmatterError(
@@ -1148,12 +1131,10 @@ function extractFromMarkdownContent(
     }
 
     deriveFactClaimKey(entity as unknown as Record<string, unknown>);
-    if (
-      entity.type === "fact" &&
-      entity.claim_key !== undefined &&
-      entity.claim_text !== undefined
-    ) {
-      const expectedClaimKey = semanticClaimKey(entity.claim_text);
+    // claim_key is a fact-only field, and the schema requires claim_text
+    // beside it.
+    if (entity.claim_key !== undefined) {
+      const expectedClaimKey = semanticClaimKey(entity.claim_text as string);
       if (entity.claim_key !== expectedClaimKey) {
         throw new FrontmatterError(
           `Entity validation failed: claim_key must equal the stable key derived from claim_text (expected '${expectedClaimKey}')`,
@@ -1175,42 +1156,39 @@ function extractFromMarkdownContent(
       throw error;
     }
 
-    if (error instanceof Error) {
-      const message = error.message;
-      let classification = "Frontmatter YAML syntax error";
-      let hint = "Check the YAML syntax in your frontmatter.";
+    // Only js-yaml throws anything else, so a closed front matter block was
+    // being parsed: an unclosed one was rejected above, and without one
+    // nothing is parsed.
+    const message = (error as Error).message;
+    let classification = "Frontmatter YAML syntax error";
+    let hint = "Check the YAML syntax in your frontmatter.";
 
-      if (
-        (message.includes("incomplete explicit mapping pair") &&
-          message.includes(":")) ||
-        hasLikelyUnquotedColonInTitle(content)
-      ) {
-        classification = "Unquoted colon likely in title";
-        hint =
-          'Wrap values containing colons in quotes (e.g., title: "Foo: Bar").';
-      } else if (splitFrontmatter(content) === null) {
-        // No front matter block: keep the generic classification.
-      } else if (
-        message.includes("unexpected end of the stream") ||
-        message.includes("flow collection") ||
-        message.includes("end of the stream")
-      ) {
-        classification = "Generic YAML mapping error";
-        hint = "Check for unclosed brackets, braces, or quotes in your YAML.";
-      }
-
-      throw new FrontmatterError(
-        `Failed to parse frontmatter: ${message}`,
-        filePath,
-        {
-          classification,
-          hint,
-          originalError: message,
-        },
-      );
+    if (
+      message.includes("incomplete explicit mapping pair") ||
+      hasLikelyUnquotedColonInTitle(
+        (split as { frontmatter: string }).frontmatter,
+      )
+    ) {
+      classification = "Unquoted colon likely in title";
+      hint =
+        'Wrap values containing colons in quotes (e.g., title: "Foo: Bar").';
+    } else if (
+      message.includes("flow collection") ||
+      message.includes("end of the stream")
+    ) {
+      classification = "Generic YAML mapping error";
+      hint = "Check for unclosed brackets, braces, or quotes in your YAML.";
     }
 
-    throw error;
+    throw new FrontmatterError(
+      `Failed to parse frontmatter: ${message}`,
+      filePath,
+      {
+        classification,
+        hint,
+        originalError: message,
+      },
+    );
   }
 }
 
@@ -1229,7 +1207,7 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
     content = readFileSync(filePath, "utf8");
   } catch (error) {
     throw new FrontmatterError(
-      `Failed to read file: ${error instanceof Error ? error.message : String(error)}`,
+      `Failed to read file: ${(error as Error).message}`,
       filePath,
       { classification: "File Read Error" },
     );

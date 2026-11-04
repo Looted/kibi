@@ -53,7 +53,13 @@ export function installFakeSwipl(spec: FakeSwiplSpec): () => void {
     process.env.KIBI_SWIPL = script;
   }
   resetSwiplResolverCache();
+  let restored = false;
   return () => {
+    // Idempotent: a test may restore early and again in afterEach. A second
+    // decrement would leave the counter below zero and stop every later
+    // install from restoring KIBI_SWIPL.
+    if (restored) return;
+    restored = true;
     activeInstalls -= 1;
     if (activeInstalls === 0 && savedEnv !== null) {
       restoreVar("KIBI_SWIPL", savedEnv.KIBI_SWIPL);

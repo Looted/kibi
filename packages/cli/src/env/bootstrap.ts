@@ -154,8 +154,8 @@ export function resolveEnvFilePath(
 // implements REQ-kibi-env-bootstrap
 export function resolveKibiUserEnvPath(
   options: Readonly<{
-    homedir?: string;
-    xdgConfigHome?: string;
+    homedir?: string | undefined;
+    xdgConfigHome?: string | undefined;
     env?: NodeJS.ProcessEnv;
   }> = {},
 ): string {
@@ -193,7 +193,8 @@ export function parseEnvContent(content: string): EnvEntry[] {
     ) {
       value = value.slice(1, -1);
     }
-    if (!key) continue;
+    // The line is trimmed and does not start with "=", so the key is never
+    // empty.
     entries.push({ key, value });
   }
   return entries;
@@ -201,7 +202,6 @@ export function parseEnvContent(content: string): EnvEntry[] {
 
 function readEnvFileEntries(filePath: string): Map<string, string> {
   const map = new Map<string, string>();
-  if (!fs.existsSync(filePath)) return map;
   try {
     for (const { key, value } of parseEnvContent(
       fs.readFileSync(filePath, "utf8"),
@@ -209,7 +209,7 @@ function readEnvFileEntries(filePath: string): Map<string, string> {
       map.set(key, value);
     }
   } catch {
-    // Unreadable files are treated as absent for bootstrap/inspect.
+    // Missing and unreadable files are treated as absent for bootstrap/inspect.
   }
   return map;
 }
@@ -272,10 +272,8 @@ export function bootstrapKibiEnvironment(
   }
 
   const userEnvPath = resolveKibiUserEnvPath({
-    ...(options.homedir !== undefined ? { homedir: options.homedir } : {}),
-    ...(options.xdgConfigHome !== undefined
-      ? { xdgConfigHome: options.xdgConfigHome }
-      : {}),
+    homedir: options.homedir,
+    xdgConfigHome: options.xdgConfigHome,
     env,
   });
   const projectEnvPath = resolveKibiProjectEnvPath(workspaceRoot, env);
@@ -314,14 +312,9 @@ export function bootstrapKibiEnvironment(
   for (const [key, value] of projectEntries) {
     if (!nonEmpty(value)) continue;
     if (initialNonEmpty.has(key)) continue;
-    const previousSource = sources[key];
+    // Each key appears once in a file's entries.
     env[key] = value;
-    if (
-      previousSource !== "project_env" &&
-      !keysLoadedFromProject.includes(key)
-    ) {
-      keysLoadedFromProject.push(key);
-    }
+    keysLoadedFromProject.push(key);
     sources[key] = "project_env";
   }
 
@@ -407,12 +400,9 @@ export function inspectSecretSource(
   const initial =
     options.initialNonEmptyProcessKeys ??
     options.initialProcessKeys ??
+    // The bootstrap drops the keys that are blank in the copy.
     (options.env === undefined && rememberedInitialNonEmptyKeys
-      ? new Set(
-          [...rememberedInitialNonEmptyKeys].filter((key) =>
-            nonEmpty(envCopy[key]),
-          ),
-        )
+      ? rememberedInitialNonEmptyKeys
       : snapshotNonEmptyKeys(envCopy));
 
   const result = bootstrapKibiEnvironment({

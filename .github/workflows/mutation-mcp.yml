@@ -1,8 +1,7 @@
 name: Mutation (kibi-mcp)
 
 # Stryker gate for kibi-mcp (stryker.mcp.conf.mjs, see
-# docs/mutation-testing.md). It runs nightly on develop and on pull requests
-# that touch the package or this mutation setup.
+# docs/mutation-testing.md). It runs only when dispatched by hand.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,18 +16,6 @@ permissions:
   contents: read
 
 on:
-  schedule:
-    - cron: '47 4 * * *'
-  pull_request:
-    branches: [develop]
-    paths:
-      - 'packages/mcp/src/**'
-      - 'packages/mcp/tests/**'
-      - 'stryker.mcp.conf.mjs'
-      - 'bunfig.toml'
-      - 'scripts/mutation-sandbox-setup.sh'
-      - '.github/workflows/mutation-mcp.yml'
-      - 'bun.lock'
   workflow_dispatch:
 
 jobs:
@@ -51,7 +38,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event_name == 'schedule' && 'develop' || '' }}
           fetch-depth: 1
 
       - name: Setup Bun

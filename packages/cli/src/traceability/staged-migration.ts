@@ -22,13 +22,14 @@ const KB_MANIFEST_PATH = ".kb/manifest.json";
 const LEGACY_CONFIG_PATH = ".kb/config.json";
 
 function schemaVersionOf(text: string | null): number | null {
-  if (text === null) return null;
   try {
-    const parsed = JSON.parse(text) as { schemaVersion?: unknown } | null;
-    const raw = parsed?.schemaVersion;
-    return typeof raw === "number" || typeof raw === "string"
-      ? normalizeSchemaVersion(raw)
-      : null;
+    // String(null) parses to null, whose destructuring throws, and
+    // normalizeSchemaVersion throws on anything but a number or a string, so
+    // the catch maps every missing or malformed version to null.
+    const { schemaVersion } = JSON.parse(String(text)) as {
+      schemaVersion?: number | string;
+    };
+    return normalizeSchemaVersion(schemaVersion);
   } catch {
     return null;
   }

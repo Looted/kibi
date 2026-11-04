@@ -1,4 +1,4 @@
-import Ajv from "ajv";
+import Ajv, { type ErrorObject } from "ajv";
 import type { RejectionIssue } from "kibi-agent-core/usage-telemetry";
 
 import { schemaIssues } from "./telemetry-details.js";
@@ -31,7 +31,8 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 // One validator per operation schema. Building an Ajv instance compiles the
 // JSON Schema meta-schema, and a CLI call validates its input more than once.
-const inputValidator = new Ajv({ allErrors: true, strict: false });
+const newInputAjv = (): Ajv => new Ajv({ allErrors: true, strict: false });
+const inputValidator = newInputAjv();
 const compiledInputSchemas = new WeakMap<object, ReturnType<Ajv["compile"]>>();
 
 function compileInputSchema(schema: object): ReturnType<Ajv["compile"]> {
@@ -43,20 +44,19 @@ function compileInputSchema(schema: object): ReturnType<Ajv["compile"]> {
     } catch {
       // A schema whose $id the shared instance already holds for another
       // schema object compiles on an instance of its own.
-      validator = new Ajv({ allErrors: true, strict: false }).compile(exact);
+      validator = newInputAjv().compile(exact);
     }
     compiledInputSchemas.set(schema, validator);
   }
   return validator;
 }
 
-function formatValidationErrors(
-  errors: NonNullable<ReturnType<Ajv["compile"]>["errors"]>,
-): string[] {
+// Ajv runs with its default `messages: true`, so every error has a message.
+function formatValidationErrors(errors: readonly ErrorObject[]): string[] {
   return errors.map((error) => {
     const location = error.instancePath.length > 0 ? error.instancePath : "/";
     const parameters = Object.values(error.params).join(", ");
-    return `${location} ${error.message ?? "is invalid"}${parameters.length > 0 ? `: ${parameters}` : ""}`;
+    return `${location} ${error.message}${parameters.length > 0 ? `: ${parameters}` : ""}`;
   });
 }
 
@@ -84,9 +84,8 @@ export function prepareOperationInput(
   if (!validator(businessInput)) {
     return {
       valid: false,
-      errors: validator.errors
-        ? formatValidationErrors(validator.errors)
-        : ["input is invalid"],
+      // A failed Ajv validation always sets `errors`.
+      errors: formatValidationErrors(validator.errors as ErrorObject[]),
       issues: schemaIssues(validator.errors),
     };
   }

@@ -143,3 +143,50 @@ verification_perspective: consumer
     ).toThrow(FrontmatterError);
   });
 });
+
+describe("validateStagedMarkdown embedded entity report", () => {
+  const hint = (types: string) =>
+    `Move ${types} to separate entity files and link them using 'links' with relationship types like 'specified_by' or 'verified_by'.`;
+
+  it("names both embedded entity kinds in one error", () => {
+    const result = validateStagedMarkdown(
+      ".kb/requirements/REQ-9.md",
+      "---\ntitle: Both\ngiven: a user\ntests: [one]\n---\n",
+    );
+    expect(result.errors.length).toBe(1);
+    const [error] = result.errors;
+    expect(error?.message).toBe(
+      "Invalid embedded entity: requirement contains scenario and test fields",
+    );
+    expect(error?.filePath).toBe(".kb/requirements/REQ-9.md");
+    expect(error?.classification).toBe("Embedded Entity Violation");
+    expect(error?.hint).toBe(hint("scenario and test"));
+  });
+
+  it("checks an explicit req type outside the requirements lane", () => {
+    const result = validateStagedMarkdown(
+      "docs/notes/REQ-10.md",
+      "---\ntype: req\nscenario: inline\n---\n",
+    );
+    expect(result.errors.map((e) => e.hint)).toStrictEqual([hint("scenario")]);
+  });
+
+  it("accepts a requirement without embedded fields", () => {
+    expect(
+      validateStagedMarkdown(
+        ".kb/requirements/REQ-11.md",
+        "---\ntitle: Clean\n---\n",
+      ),
+    ).toStrictEqual({ filePath: ".kb/requirements/REQ-11.md", errors: [] });
+  });
+
+  it("ignores embedded fields in the scenario and test lanes", () => {
+    for (const filePath of [".kb/scenarios/S-1.md", ".kb/tests/T-1.md"]) {
+      const result = validateStagedMarkdown(
+        filePath,
+        "---\ntitle: X\nscenario: inline\ntest: inline\n---\n",
+      );
+      expect(result).toStrictEqual({ filePath, errors: [] });
+    }
+  });
+});

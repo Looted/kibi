@@ -1,7 +1,6 @@
 import { constants } from "node:fs";
 import {
   closeSync,
-  existsSync,
   lstatSync,
   openSync,
   realpathSync,
@@ -33,16 +32,19 @@ interface TraceState {
 }
 
 const states = new Map<string, TraceState>();
+
+/** The trace file is no longer the one this process has been appending to. */
+class TraceFileChanged extends Error {}
 const MAX_DURATION_MS = 60_000;
 const TRACE_LIMIT_RESERVE_BYTES = 96;
 
 function isWithin(parent: string, candidate: string): boolean {
   const relative = path.relative(parent, candidate);
+  // The same directory gives "", which passes every test below.
   return (
-    relative === "" ||
-    (relative !== ".." &&
-      !relative.startsWith(`..${path.sep}`) &&
-      !path.isAbsolute(relative))
+    relative !== ".." &&
+    !relative.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(relative)
   );
 }
 
@@ -51,24 +53,22 @@ function privateTraceFile(): {
   readonly state: TraceState;
 } | null {
   if (process.env[KIBI_PERF_TIMINGS_ENV] !== "1") return null;
-  const configuredDirectory = process.env[KIBI_PERF_TRACE_DIR_ENV];
-  if (!configuredDirectory || !path.isAbsolute(configuredDirectory))
-    return null;
+  const configuredDirectory = process.env[KIBI_PERF_TRACE_DIR_ENV] as string;
 
   try {
-    const directoryInfo = lstatSync(configuredDirectory);
-    if (!directoryInfo.isDirectory() || directoryInfo.isSymbolicLink()) {
-      return null;
-    }
+    // An unset variable is no absolute path (Node throws for it instead,
+    // which the catch below answers the same way).
+    if (!path.isAbsolute(configuredDirectory)) return null;
+    // A symbolic link anywhere in the path makes the real path differ. A
+    // configured path that is not a directory fails at the first append,
+    // which disables the trace.
     const directory = realpathSync(configuredDirectory);
     if (path.resolve(configuredDirectory) !== directory) return null;
     const directoryStats = statSync(directory);
-    if (
-      typeof process.getuid !== "function" ||
-      directoryStats.uid !== process.getuid()
-    ) {
-      return null;
-    }
+    // rationale: Windows has no process.getuid; the call throws there and
+    // the catch below turns the trace off.
+    // biome-ignore lint/style/noNonNullAssertion: getuid exists off Windows
+    if (directoryStats.uid !== process.getuid!()) return null;
     if ((directoryStats.mode & 0o077) !== 0) {
       return null;
     }
@@ -78,21 +78,27 @@ function privateTraceFile(): {
     const file = path.join(directory, `kibi-performance-${process.pid}.jsonl`);
     let state = states.get(file);
     if (!state) {
-      if (existsSync(file)) return null;
+      // A file this process did not create fails the O_EXCL first append.
       state = { bytes: 0, events: 0, disabled: false };
       states.set(file, state);
     }
     if (state.disabled) return null;
     return { file, state };
   } catch {
-    return null;
+    // Any unreadable directory leaves the trace off.
   }
+  return null;
 }
 
-function writeAll(fd: number, bytes: Buffer): void {
+/** Write every byte of `bytes` to `fd`, however many calls `write` takes. */
+export function writeAllBytes(
+  fd: number,
+  bytes: Buffer,
+  write: typeof writeSync = writeSync,
+): void {
   let offset = 0;
   while (offset < bytes.length) {
-    const written = writeSync(fd, bytes, offset, bytes.length - offset);
+    const written = write(fd, bytes, offset, bytes.length - offset);
     if (written <= 0)
       throw new Error("Performance trace write made no progress");
     offset += written;
@@ -105,26 +111,26 @@ function appendLine(
   line: string,
   exclusive: boolean,
 ): void {
-  const fileInfo = existsSync(file) ? lstatSync(file) : null;
-  if (
-    (exclusive && fileInfo !== null) ||
-    (!exclusive &&
-      (!fileInfo?.isFile() ||
-        fileInfo.isSymbolicLink() ||
-        fileInfo.size !== state.bytes))
-  ) {
-    throw new Error("Performance trace file changed unexpectedly");
+  // The first line creates the file with O_EXCL, which fails when it exists.
+  // Every later line expects the file exactly as this process left it: lstat
+  // throws for a vanished file and reports a symbolic link as no file. Any
+  // failure here disables the trace (see the caller).
+  if (!exclusive) {
+    const fileInfo = lstatSync(file);
+    if (!fileInfo.isFile() || fileInfo.size !== state.bytes)
+      throw new TraceFileChanged();
   }
+  // O_NOFOLLOW is undefined on Windows, and `| undefined` adds no bits.
   const flags =
     constants.O_WRONLY |
     constants.O_CREAT |
     constants.O_APPEND |
-    (constants.O_NOFOLLOW ?? 0) |
+    constants.O_NOFOLLOW |
     (exclusive ? constants.O_EXCL : 0);
   const fd = openSync(file, flags, 0o600);
   try {
     const bytes = Buffer.from(line, "utf8");
-    writeAll(fd, bytes);
+    writeAllBytes(fd, bytes);
     state.bytes += bytes.length;
   } finally {
     closeSync(fd);
@@ -136,12 +142,11 @@ function appendLimitMarker(
   state: TraceState,
   limit: "events" | "bytes",
 ): void {
-  const marker = `${JSON.stringify({ kind: "trace-limit", pid: process.pid, limit })}\n`;
-  const byteLength = Buffer.byteLength(marker, "utf8");
-  if (state.bytes + byteLength <= KIBI_PERF_TRACE_MAX_BYTES) {
-    appendLine(file, state, marker, state.events === 0);
-  }
+  // Events stop TRACE_LIMIT_RESERVE_BYTES short of the byte limit, which
+  // leaves room for this marker.
   state.disabled = true;
+  const marker = `${JSON.stringify({ kind: "trace-limit", pid: process.pid, limit })}\n`;
+  appendLine(file, state, marker, state.events === 0);
 }
 
 /**
@@ -165,7 +170,7 @@ export function writePerformanceTraceEvent(event: PerformanceTraceEvent): void {
     durationMs,
     pid: process.pid,
   })}\n`;
-  const byteLength = Buffer.byteLength(line, "utf8");
+  const byteLength = Buffer.byteLength(line);
 
   try {
     if (

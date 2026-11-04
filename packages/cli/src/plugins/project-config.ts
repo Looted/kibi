@@ -19,7 +19,6 @@
 import * as fs from "node:fs";
 import { join } from "node:path";
 import {
-  type CapabilityId,
   PluginValidationError,
   type ProjectKibiConfig,
   validateProjectKibiConfig,
@@ -48,7 +47,8 @@ export function readProjectPackageJson(
   }
   let parsed: unknown;
   try {
-    parsed = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+    // String(buffer) decodes UTF-8.
+    parsed = JSON.parse(String(fs.readFileSync(packageJsonPath)));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new PluginValidationError(
@@ -121,11 +121,9 @@ export function describeConfiguredCapabilityPlugins(
   const rows: ConfiguredCapabilityPluginDiagnostic[] = [];
   for (const plugin of plugins) {
     const declared = dependencyDeclared(manifest, plugin.package);
-    for (const capability of Object.keys(
-      plugin.capabilities,
-    ) as CapabilityId[]) {
-      const entry = plugin.capabilities[capability];
-      if (!entry) continue;
+    // validateProjectKibiConfig keeps only the capabilities it validated, so
+    // every listed entry is present.
+    for (const [capability, entry] of Object.entries(plugin.capabilities)) {
       rows.push({
         package: plugin.package,
         capability,

@@ -18,7 +18,14 @@ mutalog_version('0.3.2').
 
 pack_dir('.cache/prolog-packs').
 
+% The dry run's reply carries the coverage of every test on one line, which
+% the client parses as a code list. With the gated lane's 1,600 tests that
+% line is over 3 MB and needs more than the default 1 GB stack to parse.
+mutation_stack_limit(8_000_000_000).
+
 main(Argv) :-
+    mutation_stack_limit(Limit),
+    set_prolog_flag(stack_limit, Limit),
     use_mutalog,
     set_prolog_flag(argv, Argv),
     mutalog:main.

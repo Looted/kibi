@@ -19,12 +19,12 @@
 import { execFileSync } from "node:child_process";
 import {
   existsSync,
+  readFileSync,
   realpathSync,
   rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
-import { readFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import type { QueryResult } from "../prolog.js";
 import { escapeAtom } from "./codec.js";
@@ -42,28 +42,36 @@ import type { PrologErrorRecord, PrologStoreLockOwner } from "./error-terms.js";
  */
 // implements REQ-core-journaled-engine-persistence
 
-let cachedBootId: string | null | undefined;
+/** The Linux boot id read through `read`; null on other platforms. */
+export function readBootId(
+  platform: NodeJS.Platform = process.platform,
+  read: (path: string) => string | Buffer = readFileSync,
+): string | null {
+  if (platform !== "linux") return null;
+  try {
+    return String(read("/proc/sys/kernel/random/boot_id")).trim();
+  } catch {
+    return null;
+  }
+}
+
+let cachedBootId: { readonly value: string | null } | undefined;
 
 /** Linux boot id; guards against PID reuse across reboots. Null elsewhere. */
 export function currentBootId(): string | null {
-  if (cachedBootId !== undefined) return cachedBootId;
-  if (process.platform !== "linux") {
-    cachedBootId = null;
-    return cachedBootId;
-  }
-  try {
-    const raw = readFileSync("/proc/sys/kernel/random/boot_id", "utf8");
-    cachedBootId = raw.trim();
-  } catch {
-    cachedBootId = null;
-  }
-  return cachedBootId;
+  cachedBootId ??= { value: readBootId() };
+  return cachedBootId.value;
 }
 
-export function isProcessAlive(pid: number): boolean {
+export function isProcessAlive(
+  pid: number,
+  kill: (pid: number, signal: number) => void = (target, signal) => {
+    process.kill(target, signal);
+  },
+): boolean {
   if (!Number.isInteger(pid) || pid <= 0) return false;
   try {
-    process.kill(pid, 0);
+    kill(pid, 0);
     return true;
   } catch (error) {
     const code = (error as NodeJS.ErrnoException | null)?.code;
@@ -72,11 +80,22 @@ export function isProcessAlive(pid: number): boolean {
   }
 }
 
-function processInfo(pid: number): { parent: number; command: string } | null {
+export type ProcessInfo = { parent: number; command: string };
+
+/** The parent pid and command name of `pid`, or null when it cannot be read. */
+export function processInfo(
+  pid: number,
+  platform: NodeJS.Platform = process.platform,
+  run: (
+    file: string,
+    args: readonly string[],
+    options: { stdio: ["ignore", "pipe", "ignore"]; timeout: number },
+  ) => string | Buffer = execFileSync,
+): ProcessInfo | null {
   try {
-    if (process.platform === "linux") {
+    if (platform === "linux") {
       // `comm` is in parentheses; the fields after it are state, ppid, ...
-      const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
+      const stat = String(readFileSync(`/proc/${pid}/stat`));
       const open = stat.indexOf("(");
       const close = stat.lastIndexOf(")");
       return {
@@ -84,11 +103,12 @@ function processInfo(pid: number): { parent: number; command: string } | null {
         parent: Number(stat.slice(close + 2).split(" ")[1]),
       };
     }
-    if (process.platform === "win32") return null;
-    const [parent, ...command] = execFileSync(
-      "ps",
-      ["-o", "ppid=,comm=", "-p", String(pid)],
-      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 2000 },
+    if (platform === "win32") return null;
+    const [parent, ...command] = String(
+      run("ps", ["-o", "ppid=,comm=", "-p", String(pid)], {
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 2000,
+      }),
     )
       .trim()
       .split(/\s+/);
@@ -104,11 +124,13 @@ function processInfo(pid: number): { parent: number; command: string } | null {
  * the session) is what a user ends or stops.
  */
 // implements REQ-core-journaled-engine-persistence
-export function lockHolderProcess(pid: number): {
+export function lockHolderProcess(
+  pid: number,
+  info: ProcessInfo | null = processInfo(pid),
+): {
   pid: number;
   prologPid?: number;
 } {
-  const info = processInfo(pid);
   if (
     info === null ||
     !/^swipl/.test(info.command) ||
@@ -132,12 +154,11 @@ export type StoreLockHolderState = "self" | "alive" | "dead" | "unknown";
 
 export function classifyStoreLockHolder(
   owner: PrologStoreLockOwner | null,
+  bootId: string | null = currentBootId(),
 ): StoreLockHolderState {
   if (owner === null || typeof owner.pid !== "number") return "unknown";
   if (owner.pid === process.pid) return "self";
-  const alive = isProcessAlive(owner.pid);
-  if (!alive) return "dead";
-  const bootId = currentBootId();
+  if (!isProcessAlive(owner.pid)) return "dead";
   // A recorded boot id that differs from ours means the holder ran before a
   // reboot: the PID cannot be trusted as a sign of life.
   if (bootId !== null && owner.bootId !== undefined && owner.bootId !== "") {
@@ -161,12 +182,11 @@ export function readStoreLockOwner(
     join(storePath, "rdf", ".kibi-lock-owner.json"),
   ];
   for (const journalPath of candidates) {
-    if (!existsSync(journalPath)) continue;
     let parsed: unknown;
     try {
-      parsed = JSON.parse(readFileSync(journalPath, "utf8"));
+      parsed = JSON.parse(String(readFileSync(journalPath)));
     } catch {
-      continue;
+      // Unreadable or not JSON: skipped like any other non-object below.
     }
     if (parsed === null || typeof parsed !== "object") continue;
     const record = parsed as Record<string, unknown>;
@@ -196,11 +216,7 @@ export function breakStoreLock(rdfDirectory: string): void {
     join(rdfDirectory, ".kibi-lock-owner.json"),
     join(dirname(rdfDirectory), ".kibi-lock-owner.json"),
   ];
-  for (const candidate of candidates) {
-    if (existsSync(candidate)) {
-      rmSync(candidate, { force: true });
-    }
-  }
+  for (const candidate of candidates) rmSync(candidate, { force: true });
 }
 
 /** Store-root record of the last stale-lock takeover (see below). */
@@ -249,9 +265,8 @@ export function readStoreLockTakeover(
   storePath: string,
 ): StoreLockTakeoverRecord | null {
   const recordPath = join(storePath, STORE_LOCK_TAKEOVER_FILE);
-  if (!existsSync(recordPath)) return null;
   try {
-    const parsed = JSON.parse(readFileSync(recordPath, "utf8")) as Record<
+    const parsed = JSON.parse(String(readFileSync(recordPath))) as Record<
       string,
       unknown
     >;
@@ -272,9 +287,12 @@ export function readStoreLockTakeover(
 // implements REQ-core-journaled-engine-persistence
 export function readRdfLockPid(lockPath: string): number | null {
   try {
-    const match = /pid\((\d+)\)/.exec(readFileSync(lockPath, "utf8"));
-    const pid = Number.parseInt(match?.[1] ?? "", 10);
-    return Number.isInteger(pid) && pid > 0 ? pid : null;
+    // A file without a pid throws on the null match and reads as no pid.
+    const match = /pid\((\d+)\)/.exec(
+      String(readFileSync(lockPath)),
+    ) as RegExpExecArray;
+    const pid = Number(match[1]);
+    return pid > 0 ? pid : null;
   } catch {
     return null;
   }
@@ -302,15 +320,15 @@ export function noteDeadHolderBeforeAttach(kbPath: string): () => void {
   if (!existsSync(lockPath)) return () => undefined;
   const lockPid = readRdfLockPid(lockPath);
   const journal = readStoreLockOwner(kbPath)?.owner ?? null;
-  const owner: PrologStoreLockOwner | null =
+  // Without a journal or a recorded pid the owner has a null pid, which
+  // classifies as unknown just like a missing owner.
+  const owner: PrologStoreLockOwner =
     journal !== null && (lockPid === null || journal.pid === lockPid)
       ? journal
-      : lockPid !== null
-        ? { pid: lockPid }
-        : null;
+      : { pid: lockPid as number };
   const decision = decideStoreLockTakeover(owner, { storePath: kbPath });
   if (decision.action !== "break") return () => undefined;
-  const brokenPid = owner?.pid ?? null;
+  const brokenPid = owner.pid ?? null;
   return () => recordStoreLockTakeover(kbPath, brokenPid, decision.reason);
 }
 
@@ -323,19 +341,24 @@ export interface StoreLockTakeoverDecision {
 export const FOREIGN_STORE_LOCK_REASON_PREFIX =
   "journal belongs to another workspace";
 
-function existingRealPath(pathname: string): string | null {
+/** The real path of `pathname`, or null when it is missing or not a path. */
+function existingRealPath(pathname: string | undefined): string | null {
   try {
-    return realpathSync(pathname);
+    return realpathSync(pathname as string);
   } catch {
     return null;
   }
 }
 
-function sameDirectory(left: string, right: string): boolean {
+function directoryIdentity(pathname: string): string {
+  const { dev, ino } = statSync(pathname);
+  return `${dev}:${ino}`;
+}
+
+/** Whether two paths name the same directory (a bind mount, for one). */
+export function sameDirectory(left: string, right: string): boolean {
   try {
-    const a = statSync(left);
-    const b = statSync(right);
-    return a.dev === b.dev && a.ino === b.ino;
+    return directoryIdentity(left) === directoryIdentity(right);
   } catch {
     return false;
   }
@@ -346,7 +369,7 @@ function sameDirectory(left: string, right: string): boolean {
  * legacy key may span several segments) is owned by `<root>`. Null for a
  * path outside that layout.
  */
-function owningWorkspaceRoot(storePath: string): string | null {
+export function owningWorkspaceRoot(storePath: string): string | null {
   let current = storePath;
   for (;;) {
     const parent = dirname(current);
@@ -378,21 +401,24 @@ function owningWorkspaceRoot(storePath: string): string | null {
 // implements REQ-core-journaled-engine-persistence
 export function foreignStoreLockJournalRoot(
   owner: PrologStoreLockOwner | null,
-  storePath: string,
+  storePath: string | undefined,
+  same: (left: string, right: string) => boolean = sameDirectory,
 ): string | null {
-  const recorded = owner?.workspaceRoot;
-  if (recorded === undefined || recorded === "") return null;
+  const { pid, workspaceRoot: recorded } = owner ?? {};
+  // An empty path would resolve to the working directory. A missing path
+  // (no recorded root, no store) has no real path and is never foreign.
+  if (recorded === "") return null;
+  const recordedPath = existingRealPath(recorded);
   const store = existingRealPath(storePath);
-  if (store === null) return null;
+  if (recordedPath === null || store === null) return null;
   const ownWorkspace = owningWorkspaceRoot(store);
   if (ownWorkspace === null) return null;
-  const lockPid = readRdfLockPid(join(storePath, "rdf", "lock"));
-  if (lockPid !== null && lockPid !== owner?.pid) return null;
-  const recordedPath = existingRealPath(recorded);
-  if (recordedPath === null || recordedPath === store) return null;
-  if (sameDirectory(recordedPath, store)) return null;
+  const lockPid = readRdfLockPid(join(store, "rdf", "lock"));
+  if (lockPid !== null && lockPid !== pid) return null;
+  // The store itself, under the same path or another, is not foreign.
+  if (same(recordedPath, store)) return null;
   const recordedWorkspace = owningWorkspaceRoot(recordedPath) ?? recordedPath;
-  return recordedWorkspace === ownWorkspace ? null : recorded;
+  return recordedWorkspace === ownWorkspace ? null : (recorded as string);
 }
 
 /**
@@ -408,35 +434,31 @@ export function decideStoreLockTakeover(
   options: { readonly storePath?: string } = {},
 ): StoreLockTakeoverDecision {
   const state = classifyStoreLockHolder(owner);
+  // A dead, self or alive holder always has a pid.
+  const { pid, workspaceRoot } = owner ?? {};
   if (state === "dead") {
     return {
       action: "break",
-      reason: `recorded holder pid ${owner?.pid ?? "?"} is no longer running`,
+      reason: `recorded holder pid ${pid} is no longer running`,
     };
   }
-  const foreignRoot =
-    options.storePath === undefined
-      ? null
-      : foreignStoreLockJournalRoot(owner, options.storePath);
+  const foreignRoot = foreignStoreLockJournalRoot(owner, options.storePath);
   if (foreignRoot !== null) {
     return {
       action: "break",
       reason: `${FOREIGN_STORE_LOCK_REASON_PREFIX} ${foreignRoot}`,
     };
   }
-  switch (state) {
-    case "unknown":
-      return {
-        action: "surface",
-        reason: "no ownership journal; the holder cannot be verified",
-      };
-    case "self":
-    case "alive":
-      return {
-        action: "surface",
-        reason: `holder pid ${owner?.pid ?? "?"} is still running${owner?.workspaceRoot !== undefined ? ` for ${owner.workspaceRoot}` : ""}`,
-      };
+  if (state === "unknown") {
+    return {
+      action: "surface",
+      reason: "no ownership journal; the holder cannot be verified",
+    };
   }
+  return {
+    action: "surface",
+    reason: `holder pid ${pid} is still running${workspaceRoot === undefined ? "" : ` for ${workspaceRoot}`}`,
+  };
 }
 
 export interface StoreLockRetryContext {
@@ -477,11 +499,9 @@ Store lock holder: ${holderSummary}. Close that session, or run 'kibi engine sto
     storeLocked.lockDirectory !== ""
       ? storeLocked.lockDirectory
       : join(kbPath, "rdf");
-  recordStoreLockTakeover(
-    kbPath,
-    storeLocked.owner?.pid ?? null,
-    decision.reason,
-  );
+  // A break always names an owner: a dead pid or a foreign journal.
+  const { pid: brokenPid = null } = storeLocked.owner as PrologStoreLockOwner;
+  recordStoreLockTakeover(kbPath, brokenPid, decision.reason);
   breakStoreLock(lockDirectory);
   const retried = await prolog.query(`kb_attach('${escapeAtom(kbPath)}')`);
   if (retried.success) {

@@ -65,6 +65,27 @@ function walkTsFiles(
   return files.sort();
 }
 
+/**
+ * A mutation workflow's text, checked to run only when dispatched by hand:
+ * mutation runs never start on a schedule, a push or a pull request.
+ */
+function manualOnlyWorkflow(file: string): string {
+  const workflow = readFileSync(
+    join(ROOT, ".github", "workflows", file),
+    "utf8",
+  );
+  const on = /^on:\n((?:[ \t]+.*\n|\n)*)/m.exec(workflow)?.[1] ?? "";
+  expect(on.trim()).toBe("workflow_dispatch:");
+  for (const trigger of [
+    "schedule:",
+    "pull_request:",
+    "push:",
+    "github.event_name",
+  ]) {
+    expect(workflow).not.toContain(trigger);
+  }
+  return workflow;
+}
 describe("mutation testing workflow contract", () => {
   test("the gate is absolute: any surviving mutant fails the run", () => {
     expect(config.thresholds).toEqual({ high: 100, low: 100, break: 100 });
@@ -146,31 +167,10 @@ describe("mutation testing workflow contract", () => {
     expect(gitignore).toContain("reports/mutation/");
   });
 
-  test("CI runs the suite and triggers on every mutated package", () => {
-    const workflow = readFileSync(
-      join(ROOT, ".github", "workflows", "mutation.yml"),
-      "utf8",
-    );
+  test("the suite runs only when dispatched by hand", () => {
+    const workflow = manualOnlyWorkflow("mutation.yml");
     expect(workflow).toContain("run: bun run build");
     expect(workflow).toContain("run: bun run test:mutation");
-    expect(workflow).toContain("schedule:");
-    for (const pkg of MUTATION_PACKAGES) {
-      expect(workflow).toContain(`- '${pkg}/src/**'`);
-      expect(workflow).toContain(`- '${pkg}/tests/**'`);
-    }
-    expect(workflow).toContain("- 'stryker.conf.mjs'");
-    for (const [module, tests] of Object.entries(PLUGIN_MUTATION_MODULES)) {
-      const pkg = module.split("/").slice(0, 2).join("/");
-      const covered = (path: string, leaf: string) =>
-        workflow.includes(`- '${path}'`) ||
-        workflow.includes(`- '${pkg}/${leaf}/**'`);
-      expect(covered(module, "src")).toBe(true);
-      for (const test of tests) expect(covered(test, "tests")).toBe(true);
-    }
-    for (const [module, tests] of Object.entries(CLI_MUTATION_MODULES)) {
-      expect(workflow).toContain(`- '${module}'`);
-      for (const test of tests) expect(workflow).toContain(`- '${test}'`);
-    }
   });
 
   test("every kibi-cli module in scope is mutated and has its own tests", () => {
@@ -270,7 +270,7 @@ describe("tree-sitter reader mutation contract", () => {
     expect(script).toContain("scripts/mutation-treesitter-inprocess.mjs");
   });
 
-  test("CI runs the reader gate on reader changes", () => {
+  test("the reader gate runs only when dispatched by hand", () => {
     const pkg = JSON.parse(
       readFileSync(join(ROOT, "package.json"), "utf8"),
     ) as {
@@ -279,22 +279,8 @@ describe("tree-sitter reader mutation contract", () => {
     expect(pkg.scripts?.["test:mutation:treesitter"]).toBe(
       "stryker run stryker.treesitter.conf.mjs",
     );
-    const workflow = readFileSync(
-      join(ROOT, ".github/workflows/mutation-treesitter.yml"),
-      "utf8",
-    );
-    expect(workflow).toContain("schedule:");
+    const workflow = manualOnlyWorkflow("mutation-treesitter.yml");
     expect(workflow).toContain("run: bun run test:mutation:treesitter");
-    for (const path of [
-      "packages/plugin-treesitter/src/**",
-      "packages/plugin-treesitter/tests/**",
-      "stryker.treesitter.conf.mjs",
-      "scripts/mutation-sandbox-treesitter.sh",
-      "scripts/mutation-treesitter-inprocess.mjs",
-      "scripts/mutation-sandbox-setup.sh",
-    ]) {
-      expect(workflow).toContain(`- '${path}'`);
-    }
   });
 });
 
@@ -344,31 +330,15 @@ describe("editor host mutation contract", () => {
     ).toBe(true);
   });
 
-  test("CI runs the editor gate on host changes", () => {
+  test("the editor gate runs only when dispatched by hand", () => {
     const pkg = JSON.parse(
       readFileSync(join(ROOT, "package.json"), "utf8"),
     ) as { scripts?: Record<string, string> };
     expect(pkg.scripts?.["test:mutation:editors"]).toBe(
       "stryker run stryker.editors.conf.mjs",
     );
-    const workflow = readFileSync(
-      join(ROOT, ".github/workflows/mutation-editors.yml"),
-      "utf8",
-    );
-    expect(workflow).toContain("schedule:");
+    const workflow = manualOnlyWorkflow("mutation-editors.yml");
     expect(workflow).toContain("run: bun run test:mutation:editors");
-    for (const path of [
-      "packages/opencode/src/**",
-      "packages/opencode/tests/**",
-      "packages/vscode/src/**",
-      "packages/vscode/tests/**",
-      "stryker.editors.conf.mjs",
-      "bunfig.mutation-editors.toml",
-      "bunfig.toml",
-      "scripts/mutation-sandbox-setup.sh",
-    ]) {
-      expect(workflow).toContain(`- '${path}'`);
-    }
   });
 });
 
@@ -424,18 +394,14 @@ describe("kibi-mcp mutation contract", () => {
     expect(mcp.bun?.testFiles).toEqual(onDisk.map((test) => `./${test}`));
   });
 
-  test("CI runs the mcp gate with SWI-Prolog on mcp changes", () => {
+  test("the mcp gate runs with SWI-Prolog only when dispatched by hand", () => {
     const pkg = JSON.parse(
       readFileSync(join(ROOT, "package.json"), "utf8"),
     ) as { scripts?: Record<string, string> };
     expect(pkg.scripts?.["test:mutation:mcp"]).toBe(
       "stryker run stryker.mcp.conf.mjs",
     );
-    const workflow = readFileSync(
-      join(ROOT, ".github/workflows/mutation-mcp.yml"),
-      "utf8",
-    );
-    expect(workflow).toContain("schedule:");
+    const workflow = manualOnlyWorkflow("mutation-mcp.yml");
     expect(workflow).toContain("run: bun run test:mutation:mcp");
     const shards = Array.from(
       { length: MCP_MUTATION_SHARDS.length + 1 },
@@ -444,14 +410,12 @@ describe("kibi-mcp mutation contract", () => {
     expect(workflow).toContain(`shard: [${shards.join(", ")}]`);
     expect(workflow).toContain("MCP_MUTATION_SHARD: ${{ matrix.shard }}");
     expect(workflow).toContain("uses: ./.github/actions/use-bundled-swipl");
-    for (const path of [
-      "packages/mcp/src/**",
-      "packages/mcp/tests/**",
-      "stryker.mcp.conf.mjs",
-      "bunfig.toml",
-      "scripts/mutation-sandbox-setup.sh",
-    ]) {
-      expect(workflow).toContain(`- '${path}'`);
-    }
+  });
+});
+
+describe("Prolog mutation workflow", () => {
+  test("the Mutalog lane runs only when dispatched by hand", () => {
+    const workflow = manualOnlyWorkflow("mutation-prolog.yml");
+    expect(workflow).toContain("test:mutation:prolog");
   });
 });

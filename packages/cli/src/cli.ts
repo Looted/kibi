@@ -35,7 +35,7 @@ import { resolveWorkspaceCwd } from "./workspace-cwd.js";
 export type { CommandResult } from "./cli-command.js";
 
 const packageJson: unknown = JSON.parse(
-  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+  String(readFileSync(new URL("../package.json", import.meta.url))),
 );
 
 export function packageVersion(value: unknown): string {
@@ -105,7 +105,8 @@ export async function main(): Promise<never> {
     process.cwd(),
     process.env,
   );
-  if (workspace.cwd !== process.cwd()) process.chdir(workspace.cwd);
+  // Unchanged when no enclosing workspace applies; changing to it is a no-op.
+  process.chdir(workspace.cwd);
   bootstrapKibiEnvironment();
   const startedAt = new Date();
   const program = buildProgram();
@@ -152,7 +153,7 @@ export async function main(): Promise<never> {
     stdoutClosed = true;
     void finish(Number(process.exitCode ?? 0));
   });
-  let exitCode = process.exitCode ?? 0;
+  let exitCode: number | string;
   let failure: unknown;
   try {
     await program.parseAsync(workspace.argv);
