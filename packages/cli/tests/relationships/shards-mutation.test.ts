@@ -95,6 +95,26 @@ describe("shard locations", () => {
     fs.writeFileSync(path.join(dir, "bb.yml"), "x");
     expect(listShards(kb)).toEqual([path.join(dir, "aa.yaml")]);
   });
+
+  test("listShards returns shards in name order whatever readdir returns", () => {
+    const kb = fresh();
+    const dir = getRelationshipsDir(kb);
+    fs.mkdirSync(dir);
+    const readdir = spyOn(fs, "readdirSync").mockReturnValue([
+      "cc.yaml",
+      "aa.yaml",
+      "bb.yaml",
+    ] as unknown as ReturnType<typeof fs.readdirSync>);
+    try {
+      expect(listShards(kb)).toEqual([
+        path.join(dir, "aa.yaml"),
+        path.join(dir, "bb.yaml"),
+        path.join(dir, "cc.yaml"),
+      ]);
+    } finally {
+      readdir.mockRestore();
+    }
+  });
 });
 
 describe("parseShardText", () => {

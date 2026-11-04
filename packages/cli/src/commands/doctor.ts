@@ -27,7 +27,12 @@ import {
   bootstrapKibiEnvironment,
   secretSourceFromBootstrap,
 } from "../env/bootstrap.js";
-import { kibiPackageVersions } from "../package-versions.js";
+import {
+  type KibiReleaseManifest,
+  readKibiRelease,
+  releaseMismatches,
+} from "../kibi-release.js";
+import { cliVersion, kibiPackageVersions } from "../package-versions.js";
 import { pluginInstallProblems } from "../plugins/plugin-install-check.js";
 import {
   describeConfiguredCapabilityPlugins,
@@ -151,6 +156,10 @@ export async function doctorCommand(
   // between runs, without introducing another ambient cache.
   cachedRepositoryContext = undefined;
   const checks: DoctorCheck[] = [
+    {
+      name: "Kibi release",
+      check: () => checkKibiRelease(),
+    },
     {
       name: "SWI-Prolog",
       check: checkSWIProlog,
@@ -402,6 +411,7 @@ async function runtimeProvenance(): Promise<Record<string, unknown>> {
     executeApplyPlanExported,
     entrypoint: process.argv[1] ?? "unknown",
     packageVersions: kibiPackageVersions(),
+    release: readKibiRelease() ?? null,
     locations: {
       cli: packagePath,
       cliEntrypoint: process.argv[1] ?? "unknown",
@@ -756,6 +766,68 @@ function formatJevStaticConfigParts(
     return [`jev.model=${model}`, "jev.timeoutMs=invalid"];
   }
   return [`jev.model=${model}`, `jev.timeoutMs=${String(timeoutMs)}`];
+}
+
+/**
+ * The Kibi release this install belongs to, from the release manifest the
+ * installed kibi-core ships, and any installed Kibi package whose version
+ * differs from what that release lists. A mixed install still works when the
+ * semver ranges allow it, so it is a warning, not a failure.
+ */
+// implements REQ-kibi-release-version
+export function checkKibiRelease(
+  release: KibiReleaseManifest | null = readKibiRelease() ?? null,
+  installedVersion: (name: string) => string | undefined = (name) => {
+    if (name === "kibi-cli") return cliVersion();
+    const version = resolveInstalledPackageInfo(name).version;
+    return version === "unresolved" || version === "unknown"
+      ? undefined
+      : version;
+  },
+): DoctorCheckResult {
+  if (release === null) {
+    return {
+      passed: true,
+      warning: true,
+      message:
+        "No release manifest: the installed kibi-core predates Kibi release versions or is damaged",
+      remediation:
+        "Install the kibi-cli, kibi-mcp and kibi-core versions of one Kibi release (see the kibi@<release> GitHub releases).",
+      details: { release: null },
+    };
+  }
+  const installed: Record<string, string | undefined> = {};
+  for (const name of Object.keys(release.packages)) {
+    installed[name] = installedVersion(name);
+  }
+  const mismatches = releaseMismatches(release, installed);
+  const { kbSchema, operationProtocol, pluginApi } = release.compatibility;
+  const details = {
+    release: release.release,
+    date: release.date,
+    compatibility: release.compatibility,
+    installed: Object.fromEntries(
+      Object.entries(installed).filter(([, version]) => version !== undefined),
+    ),
+    mismatches,
+  };
+  const compat = `KB schema ${kbSchema.current}, protocol ${operationProtocol}, ${pluginApi}`;
+  if (mismatches.length === 0) {
+    return {
+      passed: true,
+      message: `Kibi ${release.release} (${compat})`,
+      details,
+    };
+  }
+  return {
+    passed: true,
+    warning: true,
+    message: `Mixed install for Kibi ${release.release}: ${mismatches
+      .map((m) => `${m.name} ${m.installed} (release lists ${m.listed})`)
+      .join(", ")}`,
+    remediation: `Install the package versions Kibi ${release.release} lists, or upgrade all Kibi packages together.`,
+    details,
+  };
 }
 
 /**

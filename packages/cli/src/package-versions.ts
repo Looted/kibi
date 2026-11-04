@@ -50,7 +50,8 @@ function manifestVersion(
   }
 }
 
-function cliVersion(): string {
+// implements REQ-engine-daemon-package-versions
+export function cliVersion(): string {
   if (typeof __KIBI_CLI_VERSION__ === "string") return __KIBI_CLI_VERSION__;
   // src/ and dist/ both sit directly under the package root.
   return (

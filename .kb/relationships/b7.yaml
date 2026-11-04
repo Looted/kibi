@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d7486e54b315
+  - type: verified_by
+    from: SCEN-NEG-kibi-release-version-MANIFEST-DRIFT
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:46:52.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e718059c35ee
+  - type: assumes
+    from: SCEN-NEG-kibi-release-version-MANIFEST-DRIFT
+    to: FACT-NEG-kibi-release-version-MANIFEST-DRIFT
+    created_at: 2026-11-04T05:46:52.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4de7d4035d77

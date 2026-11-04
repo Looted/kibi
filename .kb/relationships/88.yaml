@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-231f9feb18a3
+  - type: implements
+    from: SYM-cli-kibi-release-matches-listed-version
+    to: REQ-kibi-release-version
+    created_at: 2026-11-04T05:30:27.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9534b7d152db
+  - type: covered_by
+    from: SYM-cli-kibi-release-matches-listed-version
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:30:27.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a86c2bef8948
