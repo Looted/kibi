@@ -18,6 +18,7 @@
 :- use_module(library(plunit)).
 :- use_module(test_helpers, [deterministic/1]).
 :- use_module(kb_fixture, [detach_leftover_kb/0]).
+:- use_module(kb_isolation_child, [wait_for_isolation_files/2]).
 :- use_module(library(yall)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(filesex)).
@@ -113,7 +114,7 @@ test(two_process_stores_are_isolated, [setup(cleanup_test_kb), cleanup(cleanup_t
     test_kb_root(Root),
     make_directory_path(Root),
     test_source_directory(TestDirectory),
-    directory_file_path(TestDirectory, 'kb.plt', TestSource),
+    directory_file_path(TestDirectory, 'kb_isolation_child.pl', TestSource),
     directory_file_path(Root, ready_a, ReadyA),
     directory_file_path(Root, ready_b, ReadyB),
     directory_file_path(Root, done_a, DoneA),
@@ -8835,42 +8836,6 @@ start_isolation_writer(TestSource, EntityId, Ready, Done, Release, Cleanup, Pid)
         [process(Pid), stdout(null), stderr(null)]),
     assertz(isolation_child_process(Pid)).
 
-isolation_child_writer(EntityId, Ready, Done, Release, Cleanup) :-
-    tmp_file(kibi_isolation_child, ChildRoot),
-    make_directory_path(ChildRoot),
-    directory_file_path(ChildRoot, store, Store),
-    catch(
-        setup_call_cleanup(
-            kb_attach(Store),
-            (
-                write_isolation_store(Ready, ChildRoot),
-                wait_for_isolation_file(Release, 1000),
-                kb_assert_entity(fact, [
-                    id=EntityId,
-                    title="isolated process marker",
-                    status=active,
-                    created_at="2026-09-14T00:00:00Z",
-                    updated_at="2026-09-14T00:00:00Z",
-                    source="test://process-isolation"
-                ]),
-                kb_save,
-                write_isolation_store(Done, ChildRoot),
-                wait_for_isolation_file(Cleanup, 1000)
-            ),
-            kb_detach
-        ),
-        Error,
-        (delete_directory_and_contents(ChildRoot), throw(Error))
-    ),
-    delete_directory_and_contents(ChildRoot).
-
-write_isolation_store(Path, Store) :-
-    setup_call_cleanup(
-        open(Path, write, Stream, [encoding(utf8)]),
-        format(Stream, '~w~n', [Store]),
-        close(Stream)
-    ).
-
 read_isolation_store(Path, Store) :-
     read_file_to_string(Path, Contents, []),
     split_string(Contents, "\n", " \t\r", [StoreString|_]),
@@ -8879,24 +8844,6 @@ read_isolation_store(Path, Store) :-
 
 write_isolation_barrier(Path) :-
     setup_call_cleanup(open(Path, write, Stream), true, close(Stream)).
-
-wait_for_isolation_files(Paths, Attempts) :-
-    (   isolation_files_exist(Paths)
-    ->  true
-    ;   Attempts > 0
-    ->  sleep(0.01),
-        NextAttempts is Attempts - 1,
-        wait_for_isolation_files(Paths, NextAttempts)
-    ;   throw(error(timeout_error(isolation_barrier, Paths), wait_for_isolation_files/2))
-    ).
-
-wait_for_isolation_file(Path, Attempts) :-
-    wait_for_isolation_files([Path], Attempts).
-
-isolation_files_exist([]).
-isolation_files_exist([Path|Rest]) :-
-    exists_file(Path),
-    isolation_files_exist(Rest).
 
 wait_isolation_child(Pid) :-
     process_wait(Pid, Status),
@@ -9831,7 +9778,7 @@ ks_with_locked_file(File, Mode, Goal) :-
     process_create(path(swipl), ['-q', '-g', ChildGoal, '-t', halt],
                    [process(Pid), stdin(null), stdout(null), stderr(null)]),
     setup_call_cleanup(
-        wait_for_isolation_file(Ready, 1000),
+        wait_for_isolation_files([Ready], 1000),
         once(Goal),
         ( ks_write_file(Release, ''),
           process_wait(Pid, _),
@@ -11091,7 +11038,12 @@ test(structured_fields_decode_once) :-
            ( kb:literal_to_value(title, Spaced^^String, Kept),
              assertion(Kept == Spaced^^String),
              kb:literal_to_value(title, literal(type(String, Spaced)), KeptText),
-             assertion(KeptText == Spaced) )).
+             assertion(KeptText == Spaced) )),
+    % Neither is a term that is not text.
+    kb:literal_to_value(title, f([1])^^String, Typed),
+    assertion(Typed == f([1])^^String),
+    kb:literal_to_value(title, literal(type(String, f([1]))), Plain),
+    assertion(Plain == f([1])).
 
 test(structured_literal_values_unwrap_once) :-
     forall(member(Literal-Expected,

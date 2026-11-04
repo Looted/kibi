@@ -46,6 +46,7 @@ on:
       - 'packages/core/src/status.pl'
       - 'packages/core/tests/status.plt'
       - 'packages/core/tests/kb_fixture.pl'
+      - 'packages/core/tests/kb_isolation_child.pl'
       - 'packages/core/tests/cert_fixture.pl'
       - 'packages/core/tests/test_helpers.pl'
       - 'packages/core/schema/validation.pl'
