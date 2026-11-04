@@ -1,5 +1,52 @@
 # kibi-runtime
 
+## 2.30.0
+
+### Minor Changes
+
+- dd11641: A fresh clone of a Kibi repository now uses Kibi without anyone running `kibi init` in it. Before, a clone had the knowledge but no git hooks, an empty branch store (so queries answered nothing) and, without a per-user plugin, nothing telling an agent the knowledge base existed, so agents in new clones and cloud sessions ignored it. Now `kibi init` writes a Kibi section into `AGENTS.md` (imported from `CLAUDE.md`), adds a `package.json` `prepare` step that installs the hooks on every dependency install, and the first query, check or write in a clone compiles the branch store itself. Re-run `kibi init` in an existing repository to get the `AGENTS.md` section and the `prepare` step; `kibi doctor` reports them as missing until then.
+  - New setup choices `autoSync`, `prepareHooks`, `agentInstructions` (on by default) and `ciGate` (off), recorded on the first `kibi init` in `package.json` `kibi.setup`, or `.kb/setup.json` without a root `package.json`. `kibi init` takes `--[no-]auto-sync`, `--[no-]prepare-hooks`, `--[no-]agent-instructions` and `--[no-]ci-gate`, and the `kibi-bootstrap` skill (3.20.0) asks about them once.
+  - Auto-sync: CLI routes, `kibi check` and MCP tools that find this branch's store never compiled compile it first, with a compile that writes nothing Git tracks (no symbol-manifest layout rewrite, no adoption receipt), progress on stderr only, and a fallback to the previous `branch_store_not_compiled` answer when it fails. `kb_status` stays read-only and `kb_apply_plan` never pre-empts a plan. `KIBI_AUTO_SYNC=0` turns it off for one environment.
+  - New `kibi hooks install [--quiet]`. The `prepare` step is a Node one-liner that does nothing when `kibi-cli` is not installed (for example `npm ci --omit=dev`), in CI or outside a Git work tree, works under Windows `cmd.exe`, and is not added when a hook manager owns the hooks or there is no root `package.json`. `kibi-cli` exports `./bin/kibi` for it.
+  - `AGENTS.md` and `CLAUDE.md` get a marker-delimited section; text outside it is never changed, a link between the two files is written once, and a symlink that leaves the repository is not written through.
+  - `kibi init --ci-gate` adds `.github/workflows/kibi-check.yml`, which runs `kibi check` on pull requests (template in `docs/examples/github/kibi-check.yml`).
+  - `kibi doctor` has a "Fresh-clone setup" check against the recorded choices, and its missing-hooks remediation is now `kibi hooks install`.
+  - The Claude Code, Codex, Cursor, ZCode and OpenCode plugins tell the agent at session start when Kibi's hooks are not installed in the checkout (not where a hook manager or `core.hooksPath` owns them). The check lives in `kibi-agent-core/checkout-hooks`.
+
+### Patch Changes
+
+- 2924762: Every Kibi release now has one release version, such as `2026.11.0`, that names its exact package set. `kibi --version` prints it next to the CLI version (`Kibi 2026.11.0 (kibi-cli 2.41.0)`), the MCP server title names it, and `kibi doctor` gains a "Kibi release" check that warns when installed Kibi packages come from different releases. The release also declares its compatibility versions (KB schema, operation result protocol, plugin API), so compatibility questions no longer depend on individual package versions.
+  - kibi-core ships `release.json`: the release version (`YYYY.M.N`, counting releases within a month), every publishable package's version, and the compatibility versions. `releases/history.json` keeps every release.
+  - `bun run version-packages` assigns the next release version, patch-bumps kibi-core when no pending changeset does (so the manifest always ships), and rewrites the manifest and history. `bun run release:check` (CI and the publish workflow) fails when a package version drifts from the manifest.
+  - The publish workflow creates a `kibi@<release>` GitHub release that lists the package set, with `release.json` attached.
+  - `kibi doctor --format json` carries the manifest under `runtime.release`. A local pack stamped `<version>-dev.<suffix>` counts as its base version.
+  - Relationship shards are now read in file-name order on every filesystem, so readers and removal plans no longer depend on directory listing order.
+
+- Updated dependencies [b12a8cf]
+- Updated dependencies [64a1563]
+- Updated dependencies [5d33486]
+- Updated dependencies [43cf20f]
+- Updated dependencies [8e858fb]
+- Updated dependencies [2924762]
+- Updated dependencies [ac907ed]
+- Updated dependencies [85cc4d9]
+- Updated dependencies [015376e]
+- Updated dependencies [e3328ea]
+- Updated dependencies [0d20a9a]
+- Updated dependencies [e3328ea]
+- Updated dependencies [44f2265]
+- Updated dependencies [529a3f1]
+- Updated dependencies [50e0d5c]
+- Updated dependencies [529a3f1]
+- Updated dependencies [5de5af7]
+- Updated dependencies [653a8d7]
+- Updated dependencies [3ce342f]
+- Updated dependencies [d1207be]
+- Updated dependencies [4d7c099]
+  - kibi-core@0.31.0
+  - kibi-swipl@1.0.2
+  - kibi-plugin-builtin@0.5.6
+
 ## 2.29.0
 
 ### Minor Changes

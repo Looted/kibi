@@ -1,5 +1,11 @@
 # kibi-swipl
 
+## 1.0.2
+
+### Patch Changes
+
+- 8e858fb: Build-manifest validation drops a redundant empty-string check on the bundle's home path; an empty home is still rejected, now by the normalized-path rule.
+
 ## 1.0.1
 
 ### Patch Changes
