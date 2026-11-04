@@ -84,10 +84,11 @@ export function failedEffectStatus(
   };
 }
 
+// null: the operation completed.
 type EffectOutcome =
-  | { readonly kind: "completed" }
   | { readonly kind: "failed"; readonly errorCode?: string }
-  | { readonly kind: "not_attempted" };
+  | { readonly kind: "not_attempted" }
+  | null;
 
 function effectOutcome(
   status: KibiResult["status"],
@@ -96,7 +97,7 @@ function effectOutcome(
     readonly error?: KibiResult["error"];
   },
 ): EffectOutcome {
-  if (status !== "error") return { kind: "completed" };
+  if (status !== "error") return null;
   if (options.attempted === false) return { kind: "not_attempted" };
   return options.error
     ? { kind: "failed", errorCode: options.error.code }
@@ -124,10 +125,10 @@ function effectStatus(
   }
   // An error envelope must never claim a declared effect completed: the
   // operation either never ran or stopped before reporting its effects.
-  if (outcome.kind === "not_attempted") {
+  if (outcome?.kind === "not_attempted") {
     return { kind: effect, status: "not_applicable" };
   }
-  if (outcome.kind === "failed") {
+  if (outcome?.kind === "failed") {
     return {
       kind: effect,
       status: "failed",
@@ -177,10 +178,11 @@ export function resultVersion(spec: {
 }
 
 function refusalDetail(row: Record<string, unknown>): string {
-  const results = Array.isArray(row.actionResults) ? row.actionResults : [];
-  const failure = results.find(
-    (entry) => record(entry) && entry.outcome === "failed",
-  );
+  const failure = Array.isArray(row.actionResults)
+    ? row.actionResults.find(
+        (entry) => record(entry) && entry.outcome === "failed",
+      )
+    : undefined;
   return record(failure) && typeof failure.detail === "string"
     ? failure.detail
     : "";
