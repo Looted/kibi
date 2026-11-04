@@ -1,6 +1,6 @@
 ---
 title: Tree-sitter language scaffold emits disconnected unqualified draft output
-status: active
+status: passing
 text_ref: scripts/tests/scaffold-tree-sitter-language.test.mjs
 tags:
   - multilingual

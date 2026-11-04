@@ -1,7 +1,7 @@
 ---
 id: TEST-005
 title: MCP server responds to the curated public tools with valid JSON-RPC format
-status: active
+status: passing
 created_at: 2026-02-18T13:12:25.000Z
 updated_at: 2026-08-02T00:00:00.000Z
 priority: must

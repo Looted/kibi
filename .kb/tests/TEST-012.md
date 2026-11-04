@@ -1,7 +1,7 @@
 ---
 id: TEST-012
 title: kb_query supports sourceFile filtering for linked entities
-status: active
+status: passing
 created_at: 2026-02-20T10:35:00.000Z
 updated_at: 2026-02-20T10:35:00.000Z
 priority: must

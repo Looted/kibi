@@ -1,6 +1,6 @@
 ---
 title: Packed CLI GitHub report workflow and badge E2E
-status: active
+status: passing
 tags:
   - cli
   - github

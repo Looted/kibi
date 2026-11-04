@@ -1,6 +1,6 @@
 ---
 title: Daemon handshake and replacement controls
-status: active
+status: passing
 verification_scope: end_to_end
 verification_perspective: internal
 tags:

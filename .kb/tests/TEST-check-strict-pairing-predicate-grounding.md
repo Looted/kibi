@@ -1,6 +1,6 @@
 ---
 title: Strict pairing predicate grounding tests
-status: active
+status: passing
 priority: must
 tags:
   - check

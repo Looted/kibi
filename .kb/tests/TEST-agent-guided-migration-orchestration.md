@@ -1,7 +1,7 @@
 ---
 id: TEST-agent-guided-migration-orchestration
 title: Migration plan hashing, safety gates, and post-apply readback
-status: active
+status: passing
 created_at: 2026-08-14T00:00:00.000Z
 updated_at: 2026-08-14T00:00:00.000Z
 priority: must

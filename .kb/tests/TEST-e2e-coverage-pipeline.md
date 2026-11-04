@@ -1,6 +1,6 @@
 ---
 title: CI coverage pipeline runs end to end over real Bun coverage
-status: active
+status: passing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:

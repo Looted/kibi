@@ -1,6 +1,6 @@
 ---
 title: CI workflow contract, proof workflow contract, and cached-build population controls
-status: active
+status: passing
 tags:
   - prolog
   - bundle

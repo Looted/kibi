@@ -1,7 +1,7 @@
 ---
 id: TEST-008
 title: End-to-end init then sync then query then check pipeline passes
-status: active
+status: passing
 created_at: 2026-02-18T13:12:25.000Z
 updated_at: 2026-02-18T13:12:25.000Z
 priority: must

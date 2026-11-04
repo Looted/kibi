@@ -1,7 +1,7 @@
 ---
 id: TEST-003
 title: kibi query returns correct entities and outgoing relationships
-status: active
+status: passing
 created_at: 2026-02-18T13:12:25.000Z
 updated_at: 2026-03-20T17:45:00.000Z
 priority: must

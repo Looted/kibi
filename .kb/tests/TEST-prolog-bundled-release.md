@@ -1,6 +1,6 @@
 ---
 title: Platform package population, symlink materialization, release workflow, and publish-metadata controls
-status: active
+status: passing
 tags:
   - prolog
   - bundle

@@ -1,6 +1,6 @@
 ---
 title: Cursor Consumer-Local MCP Launcher Verification
-status: active
+status: passing
 tags:
   - test
   - cursor

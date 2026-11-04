@@ -1,7 +1,7 @@
 ---
 id: TEST-vscode-traceability
 title: VS Code extension traceability feature tests
-status: active
+status: passing
 created_at: 2026-02-18T00:00:00.000Z
 updated_at: 2026-03-19T00:00:00.000Z
 priority: must

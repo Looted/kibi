@@ -1,6 +1,6 @@
 ---
 title: Snapshot-bound source analysis and installed multilingual ownership checks
-status: active
+status: passing
 tags:
   - multilingual
   - source-analysis

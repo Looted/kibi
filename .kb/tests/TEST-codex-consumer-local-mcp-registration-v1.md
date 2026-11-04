@@ -1,6 +1,6 @@
 ---
 title: Packed Codex Plugin Resolves Consumer-Local MCP
-status: active
+status: passing
 priority: must
 text_ref: documentation/tests/e2e/packed/codex-plugin.test.ts
 tags:

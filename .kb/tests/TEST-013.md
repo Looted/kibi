@@ -1,7 +1,7 @@
 ---
 id: TEST-013
 title: supersedes relationship traversal and current_adr inference
-status: active
+status: passing
 created_at: 2026-02-20T10:35:09.000Z
 updated_at: 2026-02-20T10:35:09.000Z
 source: brief.md

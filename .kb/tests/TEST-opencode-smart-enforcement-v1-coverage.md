@@ -1,7 +1,7 @@
 ---
 id: TEST-opencode-smart-enforcement-v1-coverage
 title: Verify posture-aware OpenCode smart enforcement
-status: active
+status: passing
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-21T00:00:00.000Z
 priority: must

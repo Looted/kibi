@@ -1,6 +1,6 @@
 ---
 title: Install guidance contract and README quick-start walkthrough controls
-status: active
+status: passing
 tags:
   - prolog
   - bundle

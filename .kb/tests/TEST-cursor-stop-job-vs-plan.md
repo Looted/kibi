@@ -2,7 +2,7 @@
 id: TEST-cursor-stop-job-vs-plan
 title: Cursor stop hook plan-versus-job verification
 type: test
-status: active
+status: passing
 created_at: 2026-08-18T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
 priority: must

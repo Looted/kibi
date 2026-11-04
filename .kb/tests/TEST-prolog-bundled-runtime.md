@@ -1,6 +1,6 @@
 ---
 title: Resolver, package metadata, and launch environment controls
-status: active
+status: passing
 verification_scope: end_to_end
 verification_perspective: internal
 tags:

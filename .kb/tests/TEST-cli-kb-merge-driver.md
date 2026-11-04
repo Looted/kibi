@@ -1,6 +1,6 @@
 ---
 title: KB manifest merge driver behavior and real git merge
-status: active
+status: passing
 verification_scope: end_to_end
 verification_perspective: internal
 tags:

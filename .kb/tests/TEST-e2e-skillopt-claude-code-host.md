@@ -1,6 +1,6 @@
 ---
 title: A real SkillOpt cell runs on the Claude Code host through the CLIs with a stub model
-status: active
+status: passing
 priority: should
 tags:
   - skillopt

@@ -1,6 +1,6 @@
 ---
 title: Installed public prove-all excludes large unrelated archived test metadata
-status: active
+status: passing
 tags:
   - proof
   - consumer

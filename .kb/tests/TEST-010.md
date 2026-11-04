@@ -1,7 +1,7 @@
 ---
 id: TEST-010
 title: Core MCP surface excludes internal inference tools
-status: active
+status: passing
 created_at: 2026-02-20T08:10:00.000Z
 updated_at: 2026-04-24T08:12:00.000Z
 priority: must

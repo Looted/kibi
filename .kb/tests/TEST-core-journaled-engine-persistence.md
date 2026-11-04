@@ -1,7 +1,7 @@
 ---
 id: TEST-core-journaled-engine-persistence
 title: Journal replay, rollback, migration, audit atomicity, and compaction
-status: active
+status: passing
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
 priority: must

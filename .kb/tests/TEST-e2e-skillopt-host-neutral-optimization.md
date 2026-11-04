@@ -1,6 +1,6 @@
 ---
 title: A SkillOpt campaign keeps evidence with the harness chosen for the run, through the CLIs and without a model
-status: active
+status: passing
 priority: should
 tags:
   - skillopt

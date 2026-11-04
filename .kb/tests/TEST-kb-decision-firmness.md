@@ -1,6 +1,6 @@
 ---
 title: Decision firmness checks, migration, upsert guard and display tests
-status: active
+status: passing
 priority: must
 tags:
   - kb

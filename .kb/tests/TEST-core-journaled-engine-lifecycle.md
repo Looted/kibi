@@ -1,7 +1,7 @@
 ---
 id: TEST-core-journaled-engine-lifecycle
 title: Engine daemon serialization, recovery, and protocol fencing
-status: active
+status: passing
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
 priority: must

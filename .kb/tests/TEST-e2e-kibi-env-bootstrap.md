@@ -1,6 +1,6 @@
 ---
 title: 'Packed e2e: harness-independent Kibi env bootstrap'
-status: active
+status: passing
 tags:
   - env
   - bootstrap
