@@ -7,6 +7,14 @@ tests against each mutant. A mutant that survives means no test asserts the
 behavior it changed. The gate in this repo is absolute: **any surviving mutant
 fails `bun run test:mutation`**.
 
+## When mutation testing runs
+
+No mutation lane runs on a schedule, on a push or for a pull request: every
+`.github/workflows/mutation*.yml` workflow only has a `workflow_dispatch`
+trigger. Run a lane locally with the commands below, or start its workflow by
+hand from the Actions tab (pick the branch to test). The contract test in
+`scripts/tests/mutation-workflow-contract.test.ts` keeps it that way.
+
 ## Quick start
 
 | Task | Command |
@@ -49,14 +57,13 @@ the repository root:
   into `.cache/prolog-packs` (gitignored), leaving the user's own packs
   alone. Set `MUTALOG_HOME` to a
   Mutalog checkout to run that instead.
-- `.github/workflows/mutation-prolog.yml` runs both configs nightly on
-  `develop`, on demand, and on pull requests that touch the mutated modules,
-  their tests or the lane's setup, on the bundled SWI-Prolog. Only the gated
+- `.github/workflows/mutation-prolog.yml` runs both configs on the bundled
+  SWI-Prolog when dispatched by hand from the Actions tab. Only the gated
   run can fail the job. Both reports are uploaded as the
   `prolog-mutation-report` artifact.
 
 To add a module, add it to `mutate` and its plunit file to `tests` in
-`mutalog.backlog.config.pl`, and both paths to the workflow's `paths`.
+`mutalog.backlog.config.pl`.
 Measure the module's run time first and raise the job's `timeout-minutes` if
 needed.
 
@@ -66,8 +73,7 @@ needed.
 `stryker.treesitter.conf.mjs`, over kibi-plugin-treesitter's PHP, C, Bash and
 HCL reference readers and the helpers they share (`preprocessor-idioms.ts`,
 `reference-nodes.ts`). Like the main gate it fails on any surviving mutant.
-`.github/workflows/mutation-treesitter.yml` runs it nightly on `develop`, on
-demand, and on pull requests that touch the plugin or this setup. It takes
+`.github/workflows/mutation-treesitter.yml` runs it when dispatched by hand. It takes
 about an hour on 4 cores (roughly 10,000 mutants).
 
 Two things differ from the main gate:
@@ -92,8 +98,7 @@ listed in `TREESITTER_MUTATION_TESTS`; the contract test checks both.
 `bun run test:mutation:editors` runs a third Stryker gate,
 `stryker.editors.conf.mjs`, over every `src/**/*.ts` file of kibi-opencode and
 kibi-vscode, tested by every `*.test.ts` under their `tests/` directories.
-`.github/workflows/mutation-editors.yml` runs it nightly on `develop`, on
-demand, and on pull requests that touch either package or this setup. Like
+`.github/workflows/mutation-editors.yml` runs it when dispatched by hand. Like
 the other gates it fails on any surviving mutant.
 
 The vscode sources import the `vscode` module, which only exists inside the

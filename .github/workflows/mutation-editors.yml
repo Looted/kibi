@@ -1,8 +1,7 @@
 name: Mutation (editor hosts)
 
 # Stryker gate for kibi-opencode and kibi-vscode (stryker.editors.conf.mjs,
-# see docs/mutation-testing.md). It runs nightly on develop and on pull
-# requests that touch either package or this mutation setup.
+# see docs/mutation-testing.md). It runs only when dispatched by hand.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,22 +16,6 @@ permissions:
   contents: read
 
 on:
-  schedule:
-    - cron: '17 4 * * *'
-  pull_request:
-    branches: [develop]
-    paths:
-      - 'packages/opencode/src/**'
-      - 'packages/opencode/tests/**'
-      - 'packages/vscode/src/**'
-      - 'packages/vscode/tests/**'
-      - 'packages/agent-core/src/**'
-      - 'stryker.editors.conf.mjs'
-      - 'bunfig.mutation-editors.toml'
-      - 'bunfig.toml'
-      - 'scripts/mutation-sandbox-setup.sh'
-      - '.github/workflows/mutation-editors.yml'
-      - 'bun.lock'
   workflow_dispatch:
 
 jobs:
@@ -48,7 +31,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event_name == 'schedule' && 'develop' || '' }}
           fetch-depth: 1
 
       - name: Setup Bun
