@@ -3397,3 +3397,27 @@ test(cases_report_a_fact_over_the_case_limit) :-
     )).
 
 :- end_tests(requirement_proof_receipt_fields).
+
+:- begin_tests(requirement_proof_fact_and_symbol_lookups, [setup(rqp_forget_memo)]).
+
+% Only a predicate fact, or a property fact with a boolean value, has no
+% dimension; another fact kind with a boolean value type still does.
+test(only_predicate_and_boolean_property_facts_are_dimensionless) :-
+    rqp_kb((
+        pf_entity(fact, 'F-PRED', [fact_kind=predicate]),
+        pf_entity(fact, 'F-BOOL', [fact_kind=property_value, value_type=bool]),
+        pf_entity(fact, 'F-INT', [fact_kind=property_value, value_type=int]),
+        pf_entity(fact, 'F-RULE', [fact_kind=rule, value_type=bool]),
+        findall(F, (member(F, ['F-PRED', 'F-BOOL', 'F-INT', 'F-RULE']),
+                    requirement_proof:dimensionless_fact(F)), Dimensionless),
+        Dimensionless == ['F-PRED', 'F-BOOL']
+    )).
+
+test(a_missing_symbol_resolves_to_an_unresolved_ref) :-
+    rqp_kb((
+        findall(R, requirement_proof:symbol_resolution_ref('SYM-NONE', R), [Ref]),
+        same(Ref, _{id: 'SYM-NONE', sourceFile: '', sourceLine: 0, sourceColumn: 0, sourceEndLine: 0,
+                    sourceEndColumn: 0, role: unresolved, exists: false})
+    )).
+
+:- end_tests(requirement_proof_fact_and_symbol_lookups).
