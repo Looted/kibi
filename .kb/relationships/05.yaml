@@ -360,13 +360,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d4a6545b6fdf
-  - type: covered_by
-    from: SYM-cli-discovery-proof-contract-page-size
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-10-28T17:22:59.355Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c179e0c91d58
   - type: executable_for
     from: SYM-proof-rule-entity-context-acknowledged
     to: TEST-proof-rule-entity-context-acknowledged

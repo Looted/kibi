@@ -412,13 +412,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0d8031626b9
-  - type: covered_by
-    from: SYM-cli-discovery-search-candidate-page-size
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-10-28T17:23:21.092Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a17d40ff8b55
   - type: validates
     from: TEST-proof-migration-sync-action
     to: SCEN-kibi-kb-lifecycle-integrity

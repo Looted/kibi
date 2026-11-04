@@ -43,7 +43,7 @@ relationships:
     id: rel-652a6cd70153
   - type: constrains
     from: REQ-opencode-posture-detection
-    to: FACT-SUBJ-REQ-OPENCODE-POSTURE-DETECTION
+    to: FACT-SUBJ-OPENCODE-PLUGIN
     created_at: 2026-09-05T14:14:04.153Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

@@ -92,7 +92,7 @@ relationships:
     id: rel-eeb4578bc4e2
   - type: constrains
     from: REQ-skillopt-predicate-first-requirements
-    to: FACT-SUBJ-REQ-SKILLOPT-PREDICATE-FIRST-REQUIREMENTS
+    to: FACT-SUBJ-REQ-MCP-SUGGEST-PREDICATES
     created_at: 2026-09-05T14:36:27.011Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

@@ -50,7 +50,7 @@ relationships:
     id: rel-75be46401101
   - type: constrains
     from: REQ-reusable-skill-subsystem
-    to: FACT-SUBJ-REQ-REUSABLE-SKILL-SUBSYSTEM
+    to: FACT-SUBJ-REQ-MCP-SKILLS-RESOURCE-DISCOVERABILITY
     created_at: 2026-09-05T14:14:37.171Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

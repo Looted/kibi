@@ -155,7 +155,7 @@ relationships:
     id: rel-cf14b90015e8
   - type: constrains
     from: REQ-AUTO-941B0CE68BAF3331
-    to: FACT-SUBJECT-C8D6ADF7EFA7EDF0
+    to: FACT-SUBJ-REQ-CLI-STAGED-IMPACT-ENFORCEMENT
     created_at: 2026-09-14T14:36:37.670Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

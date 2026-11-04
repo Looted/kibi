@@ -29,7 +29,7 @@ relationships:
     id: rel-94700b2aa551
   - type: constrains
     from: REQ-opencode-smart-enforcement-v1
-    to: FACT-SUBJ-REQ-OPENCODE-SMART-ENFORCEMENT-V1
+    to: FACT-SUBJ-OPENCODE-PLUGIN
     created_at: 2026-09-05T14:14:17.227Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -370,13 +370,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e503fe8b311d
-  - type: covered_by
-    from: SYM-discovery-query-body-max-chars
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-10-28T17:23:43.264Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8b4550968f50
   - type: executable_for
     from: SYM-proof-rule-supersedes-reason-missing
     to: TEST-proof-rule-supersedes-reason-missing

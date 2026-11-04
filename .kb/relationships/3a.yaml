@@ -71,7 +71,7 @@ relationships:
     id: rel-e8c423d2a11b
   - type: constrains
     from: REQ-mcp-tool-upsert
-    to: FACT-SUBJ-REQ-MCP-TOOL-UPSERT
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
     created_at: 2026-09-05T14:13:29.719Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -85,7 +85,7 @@ relationships:
     id: rel-3b31e1f18029
   - type: constrains
     from: REQ-opencode-file-context-guidance-v1
-    to: FACT-SUBJ-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1
+    to: FACT-SUBJ-OPENCODE-PLUGIN
     created_at: 2026-09-05T14:36:14.548Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

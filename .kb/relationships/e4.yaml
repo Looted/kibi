@@ -407,7 +407,7 @@ relationships:
     id: rel-49abba16c41b
   - type: constrains
     from: REQ-kibi-bundled-skill-catalog
-    to: FACT-SUBJ-REQ-REUSABLE-SKILL-SUBSYSTEM
+    to: FACT-SUBJ-REQ-MCP-SKILLS-RESOURCE-DISCOVERABILITY
     created_at: 2026-11-03T10:48:35.006Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

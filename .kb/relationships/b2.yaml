@@ -295,7 +295,7 @@ relationships:
     id: rel-df05236e9b2b
   - type: constrains
     from: REQ-kibi-predicate-suggestion-thresholds
-    to: FACT-SUBJECT-79C92ADA34274409
+    to: FACT-SUBJ-REQ-MCP-SUGGEST-PREDICATES
     created_at: 2026-10-27T08:08:13.141Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

@@ -48,7 +48,7 @@ links:
   - type: specified_by
     target: SCEN-kibi-ontology-convergence-witnesses
   - type: constrains
-    target: FACT-SUBJECT-79C92ADA34274409
+    target: FACT-SUBJ-REQ-MCP-SUGGEST-PREDICATES
   - type: requires_predicate
     target: FACT-ONTOLOGY-SCHEMA-DISCOVERY
   - type: requires_property

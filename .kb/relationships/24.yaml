@@ -190,7 +190,7 @@ relationships:
     id: rel-6f90fc25242d
   - type: constrains
     from: REQ-opencode-sync-feedback
-    to: FACT-SUBJ-REQ-OPENCODE-SYNC-FEEDBACK
+    to: FACT-SUBJ-OPENCODE-PLUGIN
     created_at: 2026-09-05T14:14:24.016Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

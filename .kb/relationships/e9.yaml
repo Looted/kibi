@@ -260,7 +260,7 @@ relationships:
     id: rel-5ade89e4d539
   - type: constrains
     from: REQ-kibi-review-observation-claim-text-v2
-    to: FACT-SUBJ-REQ-MCP-TOOL-UPSERT
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
     created_at: 2026-10-12T10:28:02.672Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

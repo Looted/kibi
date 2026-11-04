@@ -57,7 +57,7 @@ relationships:
     id: rel-33246378f84e
   - type: constrains
     from: REQ-vscode-source-to-kb
-    to: FACT-SUBJ-REQ-VSCODE-SOURCE-TO-KB
+    to: FACT-SUBJ-REQ-VSCODE-KB-TO-SOURCE
     created_at: 2026-09-05T14:15:25.963Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

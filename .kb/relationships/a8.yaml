@@ -99,7 +99,7 @@ relationships:
     id: rel-62274df73d8a
   - type: constrains
     from: REQ-opencode-guidance-injection
-    to: FACT-SUBJ-REQ-OPENCODE-GUIDANCE-INJECTION
+    to: FACT-SUBJ-OPENCODE-PLUGIN
     created_at: 2026-09-05T14:13:57.630Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

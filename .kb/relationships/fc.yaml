@@ -162,7 +162,7 @@ relationships:
     id: rel-0da30eb10e00
   - type: constrains
     from: REQ-opencode-comment-routing
-    to: FACT-SUBJ-REQ-OPENCODE-COMMENT-ROUTING
+    to: FACT-SUBJ-OPENCODE-PLUGIN
     created_at: 2026-09-05T14:18:49.203Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

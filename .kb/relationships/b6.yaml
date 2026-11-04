@@ -43,7 +43,7 @@ relationships:
     id: rel-0237c72527e6
   - type: constrains
     from: REQ-mcp-tool-query
-    to: FACT-SUBJ-REQ-MCP-TOOL-QUERY
+    to: FACT-SUBJ-REQ-MCP-TAG-FILTERING-SERVER-SIDE
     created_at: 2026-09-05T14:13:23.215Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
