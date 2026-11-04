@@ -1,0 +1,51 @@
+[
+  [
+    {
+      "id": "verification-snapshot-unavailable",
+      "code": "proof_snapshot_unavailable",
+      "category": "proof",
+      "state": "ready",
+      "safety": "operator",
+      "invocation": {
+        "kind": "review",
+        "instruction": "Use a runtime that can compute a workspace verification snapshot before claiming proof."
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "proofSnapshotAvailable": false
+      },
+      "autoApplicable": false,
+      "dispositionRequired": true,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    }
+  ],
+  [
+    {
+      "id": "verification-snapshot-dirty",
+      "code": "proof_snapshot_dirty",
+      "category": "proof",
+      "state": "ready",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "Resolve or intentionally record the listed dirty workspace paths before reusing or creating proof receipts."
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "proofSnapshotDirty": true
+      },
+      "autoApplicable": false,
+      "dispositionRequired": true,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    }
+  ],
+  []
+]
