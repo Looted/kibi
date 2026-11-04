@@ -90,12 +90,12 @@ function isRepositoryManagedHooksDir(context: GitRepositoryContext): boolean {
   };
 
   const isWithin = (candidate: string, root: string) => {
+    // The root itself is "" relative to it, which passes every test below.
     const relative = path.relative(root, candidate);
     return (
-      relative === "" ||
-      (relative !== ".." &&
-        !relative.startsWith(`..${path.sep}`) &&
-        !path.isAbsolute(relative))
+      relative !== ".." &&
+      !relative.startsWith(`..${path.sep}`) &&
+      !path.isAbsolute(relative)
     );
   };
 
@@ -147,10 +147,7 @@ function reportHookManager(
   );
 }
 
-async function initNextAction(projectRoot: string): Promise<{
-  readonly operation: string;
-  readonly message: string;
-}> {
+async function initNextAction(projectRoot: string): Promise<string> {
   const sourceFiles = await nodeFilesystem.glob(
     [
       ".kb/requirements/**/*.md",
@@ -175,23 +172,11 @@ async function initNextAction(projectRoot: string): Promise<{
   );
   switch (activation.activationState) {
     case "root_active_seeded":
-      return {
-        operation: "continue-kibi-workflow",
-        message:
-          "  Next: your repository already has seeded Kibi knowledge; continue working with your coding agent.",
-      };
+      return "  Next: your repository already has seeded Kibi knowledge; continue working with your coding agent.";
     case "root_partial":
-      return {
-        operation: "kibi doctor",
-        message:
-          "  Next: run 'kibi doctor' to repair degraded Kibi infrastructure before bootstrapping.",
-      };
+      return "  Next: run 'kibi doctor' to repair degraded Kibi infrastructure before bootstrapping.";
     default:
-      return {
-        operation: "kb_plan_bootstrap",
-        message:
-          "  Next: ask your coding agent “Bootstrap Kibi for this repository.”",
-      };
+      return "  Next: ask your coding agent “Bootstrap Kibi for this repository.”";
   }
 }
 
@@ -260,7 +245,10 @@ export async function initCommand(
     );
     return { exitCode: 1 };
   }
-  const repoContext = resolution.status === "ok" ? resolution.context : null;
+  // Only a resolved repository carries a context.
+  const { context: repoContext = null } = resolution as {
+    context?: GitRepositoryContext;
+  };
   const projectRoot = repoContext?.worktreeRoot ?? process.cwd();
   const kbDir = path.join(projectRoot, ".kb");
   const kbExists = existsSync(kbDir);
@@ -367,7 +355,7 @@ export async function initCommand(
     console.log(
       legacyConfig
         ? "  Next: run 'kibi migrate --yes' to move the legacy knowledge into .kb/."
-        : (await initNextAction(projectRoot)).message,
+        : await initNextAction(projectRoot),
     );
     const plugins = workspaceReferenceLanguageNote(projectRoot);
     if (plugins !== null) console.log(`  Suggested plugin: ${plugins}`);

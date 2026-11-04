@@ -19,3 +19,5 @@ Fix the staged generated-manifest check failing with "Could not parse staged Git
 Fix a failed `kibi sync --rebuild` publication deleting the live journal database or CURRENT pointer when the step that moves it aside is the one that fails; the rollback now undoes only the moves that happened.
 
 Source discovery reads pending receipts through one parser and lets errors in a well-formed receipt surface instead of swallowing them; behaviour for valid and malformed receipts is unchanged.
+
+`kibi init` drops an unused next-step identifier and a redundant containment check; its output is unchanged.
