@@ -53495,10 +53495,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-29T19:22:26.032Z
     relationships:
+      - type: implements
+        target: REQ-kibi-search-hints-shown
       - type: covered_by
         target: TEST-kibi-search-hints-host
-      - type: implements
-        target: REQ-kibi-search-hints-host
   - id: SYM-compose-search-hints
     title: composeSearchHints
     status: active
@@ -53508,10 +53508,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-29T19:22:33.597Z
     relationships:
+      - type: implements
+        target: REQ-kibi-search-hints-advisory
       - type: covered_by
         target: TEST-kibi-search-hints-host
-      - type: implements
-        target: REQ-kibi-search-hints-host
   - id: SYM-rank-by-meaning
     title: rankByMeaning
     status: active
@@ -53547,10 +53547,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-29T19:22:53.400Z
     relationships:
+      - type: implements
+        target: REQ-kibi-search-hints-when-asked
       - type: covered_by
         target: TEST-kibi-search-hints-host
-      - type: implements
-        target: REQ-kibi-search-hints-host
   - id: SYM-validate-search-hints-result
     title: validateSearchHintsResult
     status: active

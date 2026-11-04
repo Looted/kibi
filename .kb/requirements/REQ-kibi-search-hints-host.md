@@ -1,6 +1,6 @@
 ---
 title: kb_search adds advisory search hints to weak answers without changing the answer
-status: open
+status: closed
 priority: should
 tags:
   - search

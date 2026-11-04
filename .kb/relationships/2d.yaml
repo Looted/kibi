@@ -398,3 +398,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8c958daa8697
+  - type: constrains
+    from: REQ-kibi-search-hints-shown
+    to: FACT-search-hints-host-subject
+    created_at: 2026-11-04T14:55:45.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44952368583c
+  - type: requires_property
+    from: REQ-kibi-search-hints-shown
+    to: FACT-search-hints-host-lifted
+    created_at: 2026-11-04T14:55:45.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2ac43659120
+  - type: requires_property
+    from: REQ-kibi-search-hints-shown
+    to: FACT-search-hints-host-max-shown
+    created_at: 2026-11-04T14:55:45.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57274edab8a3
+  - type: requires_property
+    from: REQ-kibi-search-hints-shown
+    to: FACT-search-hints-host-omit-governing
+    created_at: 2026-11-04T14:55:45.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63afd66f1ac2
+  - type: specified_by
+    from: REQ-kibi-search-hints-shown
+    to: SCEN-CASE-kibi-search-hints-host-ELEVEN-SHOWN
+    created_at: 2026-11-04T14:55:45.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e71421cef8c3
+  - type: specified_by
+    from: REQ-kibi-search-hints-shown
+    to: SCEN-CASE-kibi-search-hints-host-TWO-GOVERNING-OMITTED
+    created_at: 2026-11-04T14:55:45.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed0d160d9a96
+  - type: specified_by
+    from: REQ-kibi-search-hints-shown
+    to: SCEN-CASE-kibi-search-hints-host-FOURTH-GOVERNING-OMITTED
+    created_at: 2026-11-04T14:55:45.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ebb7beaf328
+  - type: supersedes
+    from: REQ-kibi-search-hints-shown
+    to: REQ-kibi-search-hints-host
+    created_at: 2026-11-04T14:55:45.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-960bb7c02a57
