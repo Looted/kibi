@@ -208,6 +208,10 @@ function asRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
 function asString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
 }
@@ -264,9 +268,7 @@ function asSymbolBlock(value: unknown): ProofExplainSymbolBlock {
     ...(typeof row.reasonText === "string"
       ? { reasonText: row.reasonText }
       : {}),
-    coverageCandidates: Array.isArray(row.coverageCandidates)
-      ? row.coverageCandidates.map(asCandidate)
-      : [],
+    coverageCandidates: asArray(row.coverageCandidates).map(asCandidate),
   };
 }
 
@@ -278,19 +280,16 @@ export function projectRequirementExplain(
   const scenarioStage = asRecord(stages.scenarios);
   const scenarioTestStage = asRecord(stages.scenarioTests);
   const production = asRecord(stages.productionSymbols);
-  const obligations = Array.isArray(scenarioTestStage.obligations)
-    ? scenarioTestStage.obligations.map(asRecord)
-    : [];
-  const resolutions = Array.isArray(
+  const obligations = asArray(scenarioTestStage.obligations).map(asRecord);
+  const resolutions = asArray(
     proof.testResolutions ?? scenarioTestStage.resolutions,
-  )
-    ? ((proof.testResolutions ?? scenarioTestStage.resolutions) as unknown[])
-    : [];
+  );
   const resolutionByTest = new Map<string, ProofExplainTestBlock>();
   for (const item of resolutions) {
     const row = asRecord(item);
     const testId = asString(row.testId);
-    if (testId === "") continue;
+    // A resolution without a test id is stored under "", which no listed
+    // test (asStringArray drops empty ids) ever looks up.
     resolutionByTest.set(testId, {
       testId,
       requiredProofs: Array.isArray(row.requiredProofs)
@@ -881,8 +880,8 @@ async function proofQueryContext(context: OperationContext): Promise<{
     : "unknown";
   const checkedAt = context.clock().toISOString();
   const bindingsDict = await perContractTestBindings(context);
-  const bindingMode =
-    bindingsDict !== null ? "per_contract" : currentProofBindingMode();
+  // Bindings exist only in per-contract mode, so the mode is the current one.
+  const bindingMode = currentProofBindingMode();
   const bindings = bindingsDict ?? "_{}";
   return {
     snapshot,
