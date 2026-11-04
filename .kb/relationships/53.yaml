@@ -335,3 +335,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-42951bf81c89
+  - type: constrains
+    from: REQ-kibi-env-bootstrap-doctor-attribution
+    to: FACT-SUBJECT-KIBI-ENV-BOOTSTRAP
+    created_at: 2026-11-04T15:05:11.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcb8811b278a
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap-doctor-attribution
+    to: FACT-PROP-ENV-BOOTSTRAP-SECRET-ATTR
+    created_at: 2026-11-04T15:05:11.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18984414ad1f
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap-doctor-attribution
+    to: FACT-PROP-ENV-BOOTSTRAP-DOCTOR-REPORT
+    created_at: 2026-11-04T15:05:11.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8243e17db6d
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap-doctor-attribution
+    to: FACT-PROP-ENV-BOOTSTRAP-JEV-STATIC
+    created_at: 2026-11-04T15:05:11.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6920af3a63a
+  - type: specified_by
+    from: REQ-kibi-env-bootstrap-doctor-attribution
+    to: SCEN-kibi-env-bootstrap
+    created_at: 2026-11-04T15:05:11.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39b645a51cc8
+  - type: verified_by
+    from: REQ-kibi-env-bootstrap-doctor-attribution
+    to: TEST-cli-doctor-env-bootstrap
+    created_at: 2026-11-04T15:05:11.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e45ea41f1c1
+  - type: supersedes
+    from: REQ-kibi-env-bootstrap-doctor-attribution
+    to: REQ-kibi-env-bootstrap
+    created_at: 2026-11-04T15:05:11.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43f28e878938
+  - type: specified_by
+    from: REQ-kibi-env-bootstrap-doctor-attribution
+    to: SCEN-NEG-kibi-env-bootstrap-PROCESS-ONLY
+    created_at: 2026-11-04T15:08:18.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e63be25a957

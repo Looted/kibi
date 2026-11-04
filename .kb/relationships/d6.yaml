@@ -108,13 +108,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7615894ab71
-  - type: implements
-    from: SYM-env-bootstrap-get-last-result
-    to: REQ-kibi-env-bootstrap
-    created_at: 2026-09-23T11:19:45.544Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-81bdfa311222
   - type: covered_by
     from: SYM-env-bootstrap-get-last-result
     to: TEST-cli-env-bootstrap

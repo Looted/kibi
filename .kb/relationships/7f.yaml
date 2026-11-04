@@ -440,3 +440,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a9aad3bd4366
+  - type: constrains
+    from: REQ-kibi-env-bootstrap-shared
+    to: FACT-SUBJECT-KIBI-ENV-BOOTSTRAP
+    created_at: 2026-11-04T15:03:55.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c414b86e70a1
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap-shared
+    to: FACT-PROP-ENV-BOOTSTRAP-SHARED
+    created_at: 2026-11-04T15:03:55.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfe2c14c8d1d
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap-shared
+    to: FACT-PROP-ENV-BOOTSTRAP-PRECEDENCE
+    created_at: 2026-11-04T15:03:55.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff29e5ea9b37
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap-shared
+    to: FACT-PROP-ENV-BOOTSTRAP-BLANK
+    created_at: 2026-11-04T15:03:55.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18632eb99129
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap-shared
+    to: FACT-PROP-ENV-BOOTSTRAP-SOURCE-LABELS
+    created_at: 2026-11-04T15:03:55.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29956df38b79
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap-shared
+    to: FACT-PROP-ENV-BOOTSTRAP-LEGACY-LABEL
+    created_at: 2026-11-04T15:03:55.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5099056912b
+  - type: specified_by
+    from: REQ-kibi-env-bootstrap-shared
+    to: SCEN-kibi-env-bootstrap
+    created_at: 2026-11-04T15:03:55.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eead1a2231f8
+  - type: specified_by
+    from: REQ-kibi-env-bootstrap-shared
+    to: SCEN-NEG-kibi-env-bootstrap-blank-overwrite
+    created_at: 2026-11-04T15:03:55.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2853eeb0b72
+  - type: verified_by
+    from: REQ-kibi-env-bootstrap-shared
+    to: TEST-cli-env-bootstrap
+    created_at: 2026-11-04T15:03:56.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1704d992f6c
+  - type: supersedes
+    from: REQ-kibi-env-bootstrap-shared
+    to: REQ-kibi-env-bootstrap
+    created_at: 2026-11-04T15:03:56.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d83803fc4127
