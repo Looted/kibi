@@ -287,6 +287,17 @@ describe("assertAuthoredWriteCompiles", () => {
     expect(
       assertAuthoredWriteCompiles(sourceWith(), input(), entity("open")),
     ).toStrictEqual([]);
+    const linked = COMPILES.replace(
+      "status: open\n",
+      "status: open\nlinks:\n  - type: depends_on\n    target: REQ-b\n",
+    );
+    expect(
+      assertAuthoredWriteCompiles(
+        sourceWith({ content: linked }),
+        input(),
+        entity("open"),
+      ),
+    ).toStrictEqual([{ type: "depends_on", from: "REQ-a", to: "REQ-b" }]);
   });
 
   test("refuses a write that leaves the file uncompilable", () => {

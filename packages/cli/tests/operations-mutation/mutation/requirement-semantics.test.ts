@@ -104,6 +104,32 @@ describe("withStoredRequirementSemantics", () => {
     }
   });
 
+  test("a payload with any ledger field is validated as given", async () => {
+    const stored = { id: "REQ-1", type: "req", ...LEDGER };
+    for (const properties of [
+      { status: "open", semantic_text: TEXT },
+      { logic_claims: [] },
+    ]) {
+      expect(await merged(req(properties), stored)).toStrictEqual({
+        same: true,
+        properties,
+        calls: [],
+      });
+    }
+    expect(
+      (await merged(req({ status: "open", x_semantic_: 1 }), stored))
+        .properties,
+    ).toStrictEqual({ ...LEDGER, status: "open", x_semantic_: 1 });
+  });
+
+  test("an unchanged title keeps the stored ledger", async () => {
+    const stored = { id: "REQ-1", type: "req", title: "T", ...LEDGER };
+    expect(
+      (await merged(req({ title: "T" }), stored)).properties,
+    ).toStrictEqual({ ...LEDGER, title: "T" });
+    expect((await merged(req({ title: "U" }), stored)).same).toBe(true);
+  });
+
   test("a changed text_ref is prose unless the ledger reads semantic_text", async () => {
     const change = req({ text_ref: "spec:other" });
     expect(
@@ -255,6 +281,9 @@ describe("assertStoredRequirementBoundary", () => {
       expect(outcome.seen).toBe(0);
       expect((outcome.result as { code: string }).code).toBe(
         "INCOMPLETE_PROPOSITIONS",
+      );
+      expect((outcome.result as { message: string }).message).toStartWith(
+        "Proposition-complete ingestion failed: REQ-1 would be written",
       );
     }
   });
