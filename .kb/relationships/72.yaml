@@ -293,13 +293,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1b944704ffa
-  - type: implements
-    from: SYM-resolveBoundSymbolScope
-    to: REQ-kibi-verification-receipts-v2
-    created_at: 2026-09-28T18:20:22.196Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-05551908824f
   - type: covered_by
     from: SYM-resolveBoundSymbolScope
     to: TEST-kibi-verification-receipts-v2
@@ -321,13 +314,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f5ead54b7b00
-  - type: implements
-    from: SYM-resolveBoundSymbolScope
-    to: REQ-generated-coordinate-persistence
-    created_at: 2026-09-28T18:20:22.272Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-544131803c81
   - type: implements
     from: SYM-prolog-release-populate-platform-package
     to: REQ-prolog-bundled-release

@@ -57,20 +57,6 @@ relationships:
     id: rel-439789d735c2
   - type: implements
     from: SYM-buildUpsertTransaction
-    to: REQ-core-atomic-upsert-persistence
-    created_at: 2026-08-22T20:20:38.453Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6530a1961ca2
-  - type: implements
-    from: SYM-buildUpsertTransaction
-    to: REQ-core-persistence
-    created_at: 2026-08-22T20:20:38.467Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4d2f90cbce41
-  - type: implements
-    from: SYM-buildUpsertTransaction
     to: REQ-core-audit-logging
     created_at: 2026-08-22T20:20:38.474Z
     created_by: kibi/upsert
@@ -78,32 +64,11 @@ relationships:
     id: rel-54e1e8fecc6b
   - type: implements
     from: SYM-buildUpsertTransaction
-    to: REQ-core-prolog-process-management
-    created_at: 2026-08-22T20:20:38.479Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-273b58e56db2
-  - type: implements
-    from: SYM-buildUpsertTransaction
     to: REQ-mcp-tool-upsert
     created_at: 2026-08-22T20:20:38.485Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e4eae19f8240
-  - type: implements
-    from: SYM-buildUpsertTransaction
-    to: REQ-kibi-logical-requirement-coverage
-    created_at: 2026-08-22T20:20:38.490Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-be42ecff3535
-  - type: implements
-    from: SYM-buildUpsertTransaction
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:20:38.495Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-afad78b16f2c
   - type: covered_by
     from: SYM-buildUpsertTransaction
     to: TEST-kibi-logical-requirement-coverage

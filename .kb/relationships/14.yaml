@@ -174,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-08291ad87a1c
-  - type: implements
-    from: SYM-doctor-detect-execute-apply-plan
-    to: REQ-cli-doctor-packed-provenance
-    created_at: 2026-09-22T11:34:43.896Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b23ee2afd8a1
   - type: covered_by
     from: SYM-doctor-detect-execute-apply-plan
     to: TEST-001
@@ -370,13 +363,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4fbbb912e7e0
-  - type: implements
-    from: SYM-cli-evidence-levels
-    to: REQ-kibi-evidence-floors
-    created_at: 2026-10-24T19:32:42.609Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fe199c54da8f
   - type: covered_by
     from: SYM-cli-evidence-levels
     to: TEST-kibi-evidence-levels

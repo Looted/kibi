@@ -251,21 +251,9 @@ symbols:
       - type: covered_by
         target: TEST-kibi-release-version
       - type: implements
-        target: REQ-agent-guided-migration-orchestration
-      - type: implements
-        target: REQ-capability-plugin-configuration-v1
-      - type: implements
         target: REQ-cli-doctor
       - type: implements
         target: REQ-cli-doctor-packed-provenance
-      - type: implements
-        target: REQ-engine-daemon-package-versions
-      - type: implements
-        target: REQ-kibi-env-bootstrap
-      - type: implements
-        target: REQ-kibi-release-version
-      - type: implements
-        target: REQ-legacy-kb-first-step-migrate
   - id: SYM-kibi-check-diagnostic
     title: CheckDiagnostic
     sourceFile: packages/cli/src/public/operations/check-format-shared.ts
@@ -766,8 +754,6 @@ symbols:
       - type: implements
         target: REQ-kibi-intent-aware-source-discovery
       - type: implements
-        target: REQ-kibi-search-answer-layer-v2
-      - type: implements
         target: REQ-search-answer-hygiene
   - id: SYM-kibi-cli-src-intent-search-ts-executeintentsearch
     title: executeIntentSearch
@@ -904,14 +890,6 @@ symbols:
         target: REQ-agent-guided-migration-orchestration
       - type: implements
         target: REQ-bootstrap-write-safety
-      - type: implements
-        target: REQ-cli-canonical-runtime
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler-v2
-      - type: implements
-        target: REQ-kibi-predicate-vocabulary-migration
   - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
     title: ApplyPlanArgs
     sourceFile: packages/cli/src/operations/planning/apply-plan-types.d.ts
@@ -2122,8 +2100,6 @@ symbols:
         target: REQ-core-journaled-engine-persistence
       - type: implements
         target: REQ-engine-daemon-package-versions
-      - type: implements
-        target: REQ-test-journaled-engine-harness
   - id: SYM-cli-engine-attachment-identity
     title: EngineAttachmentIdentity
     sourceFile: packages/cli/src/engine-types.d.ts
@@ -2363,15 +2339,12 @@ symbols:
       - type: implements
         target: REQ-002
       - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: implements
         target: REQ-mcp-coded-error-envelope
   - id: SYM-ALLOWED_GRANULARITY_REASONS
     title: ALLOWED_GRANULARITY_REASONS
     sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
     symbol_role: config
     status: active
-    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
@@ -2396,8 +2369,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
-      - type: implements
-        target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
       - type: implements
@@ -2437,7 +2408,6 @@ symbols:
     status: active
     sourceFile: packages/core/src/checks.pl
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     origin:
       kind: agent
       recorded_at: 2026-10-07T13:40:00.000Z
@@ -2492,15 +2462,7 @@ symbols:
       - type: covered_by
         target: TEST-mcp-upsert-coverage
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
-      - type: implements
-        target: REQ-core-audit-logging
-      - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
       - type: implements
         target: REQ-mcp-tool-upsert
   - id: SYM-core-kb-attach-audit-store
@@ -2524,8 +2486,6 @@ symbols:
         target: REQ-core-audit-logging
       - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-persistence
   - id: SYM-core-kb-save-locked
     title: kb_save_locked
     status: active
@@ -2544,13 +2504,9 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
-      - type: implements
         target: REQ-core-audit-logging
       - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-persistence
   - id: SYM-core-kb-literal-to-value
     title: literal_to_value
     sourceFile: packages/core/src/kb.pl
@@ -3247,8 +3203,6 @@ symbols:
       - type: implements
         target: REQ-cli-check
       - type: implements
-        target: REQ-cli-migration-first-commit
-      - type: implements
         target: REQ-cli-staged-consistency
   - id: SYM-CheckOptions
     title: CheckOptions
@@ -3455,8 +3409,6 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-release-version
-      - type: implements
-        target: REQ-test-journaled-engine-harness
   - id: SYM-cli-command-result-type
     title: CommandResult
     status: active
@@ -3551,8 +3503,6 @@ symbols:
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
-      - type: implements
-        target: REQ-audit-quality-diagnostics-v1
       - type: implements
         target: REQ-kibi-conservative-requirement-proof
       - type: implements
@@ -3655,8 +3605,6 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: implements
         target: REQ-kb-check-unverified-requirement-statements
-      - type: implements
-        target: REQ-kb-unowned-file-candidates
   - id: SYM-cli-impact-buildNextActions
     title: buildNextActions
     sourceFile: packages/cli/src/public/impact/summaries.ts
@@ -3826,8 +3774,6 @@ symbols:
         target: TEST-cli-symbol-quality-diagnostics
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
       - type: implements
         target: REQ-symbol-behavioral-anchors
   - id: SYM-cli-impact-formatExtractedSymbols
@@ -4314,13 +4260,7 @@ symbols:
       - type: covered_by
         target: TEST-mcp-search-discovery
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
-      - type: implements
-        target: REQ-core-audit-logging
-      - type: implements
         target: REQ-core-prolog-process-management
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-cli-PrologProcess-start
     title: PrologProcess.start
     sourceFile: packages/cli/src/prolog.ts
@@ -4445,10 +4385,6 @@ symbols:
         target: REQ-015
       - type: implements
         target: REQ-cli-query
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-test-journaled-engine-harness
   - id: SYM-cli-register-foundation-commands
     title: registerFoundationCommands
     status: active
@@ -4978,8 +4914,6 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-telemetry-acceptance-gate-v2
-      - type: implements
-        target: REQ-test-journaled-engine-harness
   - id: SYM-cli-register-reporting-commands
     title: registerReportingCommands
     status: active
@@ -5199,8 +5133,6 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-telemetry-remediation-evidence
-      - type: implements
-        target: REQ-test-journaled-engine-harness
   - id: SYM-cli-Scenario
     title: Scenario
     sourceFile: packages/cli/src/types/entities.ts
@@ -5229,8 +5161,6 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-mcp-search-discovery
-      - type: implements
-        target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
     title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
@@ -5267,8 +5197,6 @@ symbols:
         target: REQ-cli-status-pre-first-sync
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-test-journaled-engine-harness
   - id: SYM-cli-Symbol
     title: Symbol
     sourceFile: packages/cli/src/types/entities.ts
@@ -6125,8 +6053,6 @@ symbols:
       - type: covered_by
         target: TEST-test-journaled-engine-harness
       - type: implements
-        target: REQ-audit-quality-diagnostics-v1
-      - type: implements
         target: REQ-opencode-background-sync
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
@@ -6843,10 +6769,6 @@ symbols:
       - type: covered_by
         target: TEST-cursor-stop-job-vs-plan
       - type: implements
-        target: REQ-agent-hosts-decision-guard
-      - type: implements
-        target: REQ-cli-canonical-runtime
-      - type: implements
         target: REQ-cursor-kibi-plugin-v1
       - type: implements
         target: REQ-cursor-stop-job-vs-plan
@@ -7101,8 +7023,6 @@ symbols:
         target: TEST-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
-      - type: implements
-        target: REQ-002
       - type: implements
         target: REQ-kibi-telemetry-acceptance-gate-v2
       - type: implements
@@ -7428,10 +7348,6 @@ symbols:
       - type: covered_by
         target: TEST-mcp-search-discovery
       - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: implements
         target: REQ-kibi-search-answer-layer-v2
       - type: implements
         target: REQ-mcp-search-discovery
@@ -7457,17 +7373,9 @@ symbols:
       - type: covered_by
         target: TEST-mcp-search-discovery
       - type: implements
-        target: REQ-branch-store-recovery-v4
-      - type: implements
         target: REQ-cli-status-pre-first-sync
       - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
-      - type: implements
         target: REQ-legacy-kb-first-step-migrate
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-discovery-query-input
     title: QueryInput
     status: active
@@ -7888,14 +7796,6 @@ symbols:
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
-      - type: implements
-        target: REQ-core-audit-logging
-      - type: implements
-        target: REQ-core-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
@@ -7917,8 +7817,6 @@ symbols:
         target: TEST-model-what-if-planned-facts
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-model-what-if-planned-facts
   - id: SYM-ExternalAdoptionVerdict
@@ -8254,17 +8152,7 @@ symbols:
       - type: covered_by
         target: TEST-mcp-upsert-coverage
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
-      - type: implements
         target: REQ-core-audit-logging
-      - type: implements
-        target: REQ-core-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: implements
-        target: REQ-kibi-logical-requirement-coverage
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-mcp-tool-upsert
   - id: SYM-formatInvalidRelationshipError
@@ -9166,8 +9054,6 @@ symbols:
       - type: covered_by
         target: TEST-006
       - type: implements
-        target: REQ-cli-init
-      - type: implements
         target: REQ-git-hook-sync-v2
       - type: implements
         target: REQ-git-hook-effective-install
@@ -9184,8 +9070,6 @@ symbols:
         target: TEST-001
       - type: covered_by
         target: TEST-006
-      - type: implements
-        target: REQ-cli-init
       - type: implements
         target: REQ-git-hook-sync-v2
       - type: implements
@@ -9255,7 +9139,6 @@ symbols:
     sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
     symbol_role: config
     status: active
-    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
@@ -9435,10 +9318,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-002
-      - type: implements
-        target: REQ-kibi-logical-requirement-coverage
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-KB_RELATIONSHIP_TYPES
     title: KB_RELATIONSHIP_TYPES
     sourceFile: packages/vscode/src/shared/rdf-parser.ts
@@ -9470,8 +9349,6 @@ symbols:
         target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-cli-status-pre-first-sync
-      - type: implements
-        target: REQ-core-journaled-engine-persistence
       - type: implements
         target: REQ-mcp-search-discovery
   - id: SYM-KbConfig
@@ -10068,19 +9945,31 @@ symbols:
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
       - type: covered_by
-        target: TEST-opencode-python-comment-routing
-      - type: covered_by
-        target: TEST-opencode-smart-enforcement-v1-coverage
-      - type: covered_by
         target: TEST-test-journaled-engine-harness
       - type: implements
-        target: REQ-opencode-comment-routing
-      - type: implements
         target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-opencode-analyzeCodeFile
+    title: analyzeCodeFile
+    status: active
+    sourceFile: packages/opencode/src/comment-analysis.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-python-comment-routing
+      - type: implements
+        target: REQ-opencode-comment-routing
+  - id: SYM-opencode-computeEffectiveMode
+    title: computeEffectiveMode
+    status: active
+    sourceFile: packages/opencode/src/smart-enforcement.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-opencode-enforcement-surface
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement-v1-coverage
       - type: implements
         target: REQ-opencode-smart-enforcement-v1
-      - type: implements
-        target: REQ-opencode-sync-feedback
   - id: SYM-KibiOpencodePluginEntry
     title: KibiOpencodePluginEntry
     status: active
@@ -10413,8 +10302,6 @@ symbols:
       - type: implements
         target: REQ-core-extractors
       - type: implements
-        target: REQ-kibi-logical-requirement-coverage
-      - type: implements
         target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-markdown-extractFromMarkdownString
     title: extractFromMarkdownString
@@ -10435,8 +10322,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-core-extractors
-      - type: implements
-        target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-markdown-ExtractionResult
@@ -11242,8 +11127,6 @@ symbols:
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-modeling-predicate-applyplan-buildGapApplyPlan
     title: buildGapApplyPlan
     status: active
@@ -11259,8 +11142,6 @@ symbols:
         target: TEST-mcp-suggest-predicates
       - type: covered_by
         target: TEST-model-predicates-plan-roundtrip
-      - type: implements
-        target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-mcp-suggest-predicates
       - type: implements
@@ -12542,8 +12423,6 @@ symbols:
       - type: implements
         target: REQ-kibi-conservative-requirement-proof
       - type: implements
-        target: REQ-kibi-dependency-ordered-repair-plan
-      - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-delete-spec
     title: deleteSpec
@@ -12588,8 +12467,6 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-telemetry-acceptance-gate-v2
-      - type: implements
-        target: REQ-search-answer-hygiene
   - id: SYM-operation-find-gaps-spec
     title: findGapsSpec
     status: active
@@ -13116,8 +12993,6 @@ symbols:
         target: REQ-core-journaled-engine-persistence
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-parity-save-atomic-mutation
     title: saveAtomicMutation
     status: active
@@ -13452,15 +13327,9 @@ symbols:
       - type: covered_by
         target: TEST-model-predicates-requirement-subject
       - type: implements
-        target: REQ-kibi-ontology-convergence-witnesses
-      - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
       - type: implements
         target: REQ-mcp-suggest-predicates
-      - type: implements
-        target: REQ-model-predicates-binding-clauses
-      - type: implements
-        target: REQ-model-predicates-requirement-subject-v2
   - id: SYM-predicate-catalog-part-1
     title: PREDICATE_CATALOG_1
     sourceFile: packages/cli/src/operations/modeling/predicate-catalog-1.ts
@@ -14006,10 +13875,6 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
       - type: implements
         target: REQ-kibi-conservative-requirement-proof
-      - type: implements
-        target: REQ-kibi-logical-requirement-coverage
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-PrologOptions
     title: PrologOptions
     sourceFile: packages/cli/src/prolog.ts
@@ -14428,12 +14293,6 @@ symbols:
         target: REQ-002
       - type: implements
         target: REQ-kibi-mcp-tool-consolidation
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-mcp-relationship-preflight
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
   - id: SYM-registerIndexCoverageTests
     title: registerIndexCoverageTests
     sourceFile: packages/opencode/tests/index.coverage.shared.ts
@@ -14711,11 +14570,7 @@ symbols:
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
       - type: implements
-        target: REQ-generated-coordinate-persistence
-      - type: implements
         target: REQ-kibi-fresh-verification-receipts-v2
-      - type: implements
-        target: REQ-kibi-verification-receipts-v2
   - id: SYM-resolveKbPlPath
     title: resolveKbPlPath
     sourceFile: packages/cli/src/prolog.ts
@@ -15206,8 +15061,6 @@ symbols:
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
       - type: implements
-        target: REQ-kibi-logical-requirement-coverage
-      - type: implements
         target: REQ-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
@@ -15687,6 +15540,8 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-sync-feedback
   - id: SYM-SendToastResult
     title: SendToastResult
     status: active
@@ -24523,23 +24378,9 @@ symbols:
       - type: covered_by
         target: TEST-model-what-if-planned-facts
       - type: implements
-        target: REQ-kibi-logical-requirement-coverage
-      - type: implements
-        target: REQ-kibi-ontology-convergence-witnesses
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
       - type: implements
-        target: REQ-model-predicates-binding-placeholders
-      - type: implements
         target: REQ-model-predicates-grounding-aware-v2
-      - type: implements
-        target: REQ-model-predicates-plan-roundtrip
-      - type: implements
-        target: REQ-model-predicates-requirement-subject-v2
-      - type: implements
-        target: REQ-model-what-if-planned-facts
   - id: SYM-SuggestPredicatesArgs
     title: SuggestPredicatesArgs
     status: active
@@ -24590,7 +24431,6 @@ symbols:
     sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
     symbol_role: config
     status: active
-    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
@@ -24813,19 +24653,9 @@ symbols:
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
       - type: implements
-        target: REQ-branch-store-recovery-v4
-      - type: implements
         target: REQ-cli-sync-summary-kb-totals
       - type: implements
         target: REQ-core-extractors
-      - type: implements
-        target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-uncompiled-source-semantic-baseline
   - id: SYM-branchMigrateCommand
     title: branchMigrateCommand
     status: active
@@ -25323,15 +25153,9 @@ symbols:
       - type: covered_by
         target: TEST-proof-mcp-default-tool-count
       - type: implements
-        target: REQ-002
-      - type: implements
         target: REQ-013
       - type: implements
         target: REQ-kibi-mcp-tool-catalog
-      - type: implements
-        target: REQ-kibi-mcp-tool-consolidation
-      - type: implements
-        target: REQ-mcp-suggest-predicates
   - id: SYM-ToolsRuntime
     title: ToolsRuntime
     status: active
@@ -25357,7 +25181,6 @@ symbols:
     sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
     symbol_role: config
     status: active
-    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
@@ -25554,10 +25377,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-upsert-unknown-field-guidance
-      - type: implements
-        target: REQ-kibi-logical-requirement-coverage
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-symbol-link-guidance
       - type: implements
@@ -26644,7 +26463,6 @@ symbols:
     status: active
     sourceFile: packages/cli/src/logic/ir.ts
     symbol_role: config
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
@@ -26661,7 +26479,6 @@ symbols:
     status: active
     sourceFile: packages/cli/src/logic/ir.ts
     symbol_role: config
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
@@ -26678,7 +26495,6 @@ symbols:
     status: active
     sourceFile: packages/cli/src/logic/ir.ts
     symbol_role: config
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
@@ -26695,7 +26511,6 @@ symbols:
     status: active
     sourceFile: packages/cli/src/logic/ir.ts
     symbol_role: config
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
@@ -27044,8 +26859,6 @@ symbols:
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
-        target: REQ-kibi-conservative-requirement-proof
-      - type: implements
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
@@ -27274,10 +27087,6 @@ symbols:
         target: REQ-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-dependency-ordered-repair-plan
-      - type: implements
-        target: REQ-kibi-evidence-levels
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-test-conservative-requirement-proof-chain
     title: requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain
     sourceFile: packages/core/tests/kb.plt
@@ -28644,8 +28453,6 @@ symbols:
       - type: implements
         target: REQ-kibi-branded-health-report
       - type: implements
-        target: REQ-kibi-evidence-levels
-      - type: implements
         target: REQ-kibi-html-health-report
   - id: SYM-cli-report-proof-gates
     title: proofGates
@@ -29086,8 +28893,6 @@ symbols:
       - type: implements
         target: REQ-cli-canonical-runtime
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
-      - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-2E8B94C6ABB2
     title: normalizeAuthoredSourcePath
@@ -29119,8 +28924,6 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-cli-canonical-runtime
-      - type: implements
-        target: REQ-core-atomic-upsert-persistence
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-897151BA8338
@@ -29230,13 +29033,9 @@ symbols:
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
-      - type: implements
         target: REQ-kb-upsert-keeps-omitted-proof-receipts
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-kibi-verification-receipts-v2
   - id: SYM-auto-F6E934B6698C
     title: EntityDeletionPlan
     status: active
@@ -30727,8 +30526,6 @@ symbols:
         target: TEST-mcp-upsert-coverage
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-symbol-link-guidance
       - type: implements
@@ -32347,7 +32144,6 @@ symbols:
     status: active
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-cursor-consumer-local-mcp-launcher-v1
@@ -32357,8 +32153,6 @@ symbols:
         target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
       - type: implements
         target: REQ-cursor-consumer-local-mcp-launcher-v1
-      - type: implements
-        target: REQ-cursor-kibi-plugin-v1
       - type: implements
         target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
   - id: SYM-cursor-packed-launcher-e2e
@@ -32379,7 +32173,6 @@ symbols:
     status: active
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-cursor-consumer-local-mcp-launcher-v1
@@ -32394,7 +32187,6 @@ symbols:
     status: active
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-cursor-consumer-local-mcp-launcher-v1
@@ -32409,7 +32201,6 @@ symbols:
     status: active
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-cursor-consumer-local-mcp-launcher-v1
@@ -32420,11 +32211,7 @@ symbols:
       - type: implements
         target: REQ-cursor-consumer-local-mcp-launcher-v1
       - type: implements
-        target: REQ-cursor-kibi-plugin-v1
-      - type: implements
         target: REQ-cursor-plugin-package
-      - type: implements
-        target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
   - id: SYM-codex-packed-plugin-e2e
     title: packed Codex plugin consumer-local MCP registration
     status: active
@@ -33009,8 +32796,6 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-agent-hosts-decision-guard
-      - type: implements
         target: REQ-zcode-advisory-enforcement-boundary-v1
       - type: implements
         target: REQ-zcode-kibi-plugin-v1
@@ -33234,8 +33019,6 @@ symbols:
       - type: covered_by
         target: TEST-model-predicates-binding-placeholders
       - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
-      - type: implements
         target: REQ-model-predicates-binding-clauses
       - type: implements
         target: REQ-model-predicates-binding-placeholders
@@ -33411,8 +33194,6 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
-        target: REQ-bootstrap-discovered-candidate-budget
-      - type: implements
         target: REQ-bootstrap-subject-fact-shared
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
@@ -33561,8 +33342,6 @@ symbols:
         target: REQ-bootstrap-discovered-candidate-budget
       - type: implements
         target: REQ-bootstrap-intent-claim-accounting
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-guidance-buildguidance
     title: buildGuidance
     status: active
@@ -34762,8 +34541,6 @@ symbols:
         target: TEST-scripts-coverage-shard-isolation
       - type: covered_by
         target: TEST-scripts-unit-coverage-runner
-      - type: implements
-        target: REQ-014
       - type: implements
         target: REQ-root-suite-batch-diagnostics
       - type: implements
@@ -37798,7 +37575,6 @@ symbols:
     title: PROLOG_ERROR_TERM_PREFIX
     status: active
     sourceFile: packages/cli/src/prolog/error-terms.ts
-    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-mcp-upsert-coverage
@@ -42225,8 +42001,6 @@ symbols:
         target: REQ-agent-guided-migration-orchestration
       - type: implements
         target: REQ-cli-doctor
-      - type: implements
-        target: REQ-cli-doctor-packed-provenance
   - id: SYM-doctor-package-migration-actions
     title: packageMigrationActions
     status: active
@@ -42245,8 +42019,6 @@ symbols:
         target: REQ-agent-guided-migration-orchestration
       - type: implements
         target: REQ-cli-doctor
-      - type: implements
-        target: REQ-cli-doctor-packed-provenance
   - id: SYM-doctor-next-ancestor-directory
     title: nextAncestorDirectory
     status: active
@@ -42261,8 +42033,6 @@ symbols:
         target: TEST-cli-doctor-packed-provenance
       - type: covered_by
         target: TEST-cli-doctor-workflows
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
       - type: implements
         target: REQ-cli-doctor
       - type: implements
@@ -42281,8 +42051,6 @@ symbols:
         target: TEST-cli-doctor-packed-provenance
       - type: covered_by
         target: TEST-cli-doctor-workflows
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
       - type: implements
         target: REQ-cli-doctor
       - type: implements
@@ -42890,8 +42658,6 @@ symbols:
       - type: covered_by
         target: TEST-proof-search-candidate-page-size
       - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: implements
         target: REQ-kibi-operation-page-sizes
       - type: implements
         target: REQ-mcp-search-discovery
@@ -43462,7 +43228,6 @@ symbols:
     status: active
     sourceFile: packages/core/src/semantic_quality.pl
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-kibi-vocabulary-convergence-e2e
@@ -43473,7 +43238,6 @@ symbols:
     status: active
     sourceFile: packages/core/src/semantic_quality.pl
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-kibi-vocabulary-convergence-e2e
@@ -43484,7 +43248,6 @@ symbols:
     status: active
     sourceFile: packages/core/src/semantic_quality.pl
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-kibi-vocabulary-convergence-e2e
@@ -43495,7 +43258,6 @@ symbols:
     status: active
     sourceFile: packages/core/src/units.pl
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-kibi-vocabulary-convergence-e2e
@@ -43757,13 +43519,7 @@ symbols:
       - type: implements
         target: REQ-claude-code-kibi-plugin-v1
       - type: implements
-        target: REQ-claude-decision-capture-nudges
-      - type: implements
-        target: REQ-claude-firm-edit-confirmation
-      - type: implements
         target: REQ-claude-hook-usage-telemetry-v2
-      - type: implements
-        target: REQ-claude-request-topic-candidates
   - id: SYM-claude-ContextEvent
     title: ContextEvent
     status: active
@@ -44005,8 +43761,6 @@ symbols:
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
       - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-      - type: implements
         target: REQ-claude-decision-capture-nudges
       - type: implements
         target: REQ-claude-firm-edit-confirmation
@@ -44096,8 +43850,6 @@ symbols:
         target: TEST-claude-code-kibi-plugin-v1
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
       - type: implements
         target: REQ-claude-request-topic-candidates
       - type: implements
@@ -44870,8 +44622,6 @@ symbols:
       - type: covered_by
         target: TEST-docs-site-pages
       - type: implements
-        target: REQ-docs-readme-published-links
-      - type: implements
         target: REQ-docs-site-analytics
       - type: implements
         target: REQ-docs-site-root-pages
@@ -45046,7 +44796,6 @@ symbols:
     tags:
       - installed-impact
       - performance-timing
-    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-installed-staged-impact-timing-integrity
@@ -45064,7 +44813,6 @@ symbols:
     tags:
       - installed-impact
       - performance-timing
-    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-installed-staged-impact-timing-integrity
@@ -45082,7 +44830,6 @@ symbols:
     tags:
       - installed-impact
       - performance-timing
-    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-installed-staged-impact-timing-integrity
@@ -45100,7 +44847,6 @@ symbols:
     tags:
       - installed-impact
       - performance-timing
-    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-installed-staged-impact-timing-integrity
@@ -45157,7 +44903,6 @@ symbols:
     tags:
       - installed-impact
       - performance-timing
-    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-installed-staged-impact-timing-integrity
@@ -45175,7 +44920,6 @@ symbols:
     tags:
       - installed-impact
       - performance-timing
-    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-installed-staged-impact-timing-integrity
@@ -45544,7 +45288,6 @@ symbols:
     status: active
     sourceFile: packages/cli/src/traceability/impact-review.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
@@ -45555,7 +45298,6 @@ symbols:
       - type: implements
         target: REQ-impact-review-identifiers
   - id: SYM-impact-stage-e-impact-policy-path
-    granularity_reason: config-artifact
     symbol_role: config
     tags:
       - multilingual
@@ -45580,7 +45322,6 @@ symbols:
       - impact-policy
       - stage-e
     symbol_role: config
-    granularity_reason: config-artifact
     sourceFile: packages/cli/src/traceability/impact-review.ts
     status: active
     relationships:
@@ -45600,7 +45341,6 @@ symbols:
       - stage-e
     sourceFile: packages/cli/src/traceability/impact-review.ts
     symbol_role: config
-    granularity_reason: config-artifact
     title: IMPACT_REVIEW_VERSION
     relationships:
       - type: covered_by
@@ -46110,7 +45850,6 @@ symbols:
         target: REQ-source-analysis-v2
   - id: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
     symbol_role: config
-    granularity_reason: config-artifact
     tags:
       - multilingual
       - catalog
@@ -46134,8 +45873,6 @@ symbols:
         target: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
       - type: implements
         target: REQ-multilingual-language-catalog
-      - type: implements
-        target: REQ-source-analysis-v2
       - type: implements
         target: REQ-tree-sitter-language-set
   - id: SYM-source-analysis-v2-validatesourceanalysisresultv2-213d878d
@@ -47100,8 +46837,6 @@ symbols:
       - type: implements
         target: REQ-cli-canonical-runtime
       - type: implements
-        target: REQ-core-journaled-engine-persistence
-      - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler-v2
   - id: SYM-test-cli-engine-runtime-paths
     title: engine runtime paths tests
@@ -47748,7 +47483,6 @@ symbols:
     status: active
     sourceFile: packages/cli/src/prolog/swipl-resolver.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-prolog-bundled-runtime
@@ -47763,7 +47497,6 @@ symbols:
     status: active
     sourceFile: packages/cli/src/prolog/swipl-resolver.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-prolog-bundled-runtime
@@ -48260,8 +47993,6 @@ symbols:
         target: REQ-bootstrap-claim-kinds-and-conflicts
       - type: implements
         target: REQ-bootstrap-claim-restatement
-      - type: implements
-        target: REQ-kibi-bootstrap-knowledge-sources
   - id: SYM-test-kibi-bootstrap-knowledge-sources
     title: Bootstrap knowledge sources suite
     status: active
@@ -48902,8 +48633,6 @@ symbols:
       - type: covered_by
         target: TEST-search-answer-hygiene
       - type: implements
-        target: REQ-kibi-query-fact-filters
-      - type: implements
         target: REQ-kibi-search-answer-layer-v2
       - type: implements
         target: REQ-search-answer-hygiene
@@ -49180,8 +48909,6 @@ symbols:
         target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-cli-migrate-entity-type-backfill
-      - type: implements
-        target: REQ-kibi-schema6-migration
       - type: implements
         target: REQ-kibi-schema6-migration-v2
   - id: SYM-semantic-advisor-detectConditionalRule
@@ -49947,8 +49674,6 @@ symbols:
         target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-cli-migrate-entity-type-backfill
-      - type: implements
-        target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-cli-schema-migration
   - id: SYM-migration-schema6-migration-fragment
@@ -52291,11 +52016,7 @@ symbols:
       - type: implements
         target: REQ-model-predicates-binding-clauses
       - type: implements
-        target: REQ-model-predicates-binding-placeholders
-      - type: implements
         target: REQ-model-predicates-closed-vocabularies
-      - type: implements
-        target: REQ-model-predicates-requirement-subject-v2
   - id: SYM-model-predicates-binding-hints-describebindinghints
     title: describeBindingHints
     status: active
@@ -52439,7 +52160,6 @@ symbols:
     status: active
     sourceFile: packages/core/src/checks.pl
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     origin:
       kind: agent
       recorded_at: 2026-10-08T15:36:34.746Z
@@ -52615,7 +52335,6 @@ symbols:
     title: buildGroundingReplacementPlan
     status: active
     sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
-    granularity_reason: extractor-miss
     symbol_role: behavioral
     origin:
       kind: agent
@@ -53009,7 +52728,6 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     origin:
       kind: agent
       recorded_at: 2026-10-12T19:24:21.806Z
@@ -53027,7 +52745,6 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     origin:
       kind: agent
       recorded_at: 2026-10-12T19:24:26.301Z
@@ -53041,7 +52758,6 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     origin:
       kind: agent
       recorded_at: 2026-10-12T19:24:30.588Z
@@ -53055,7 +52771,6 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     origin:
       kind: agent
       recorded_at: 2026-10-12T19:24:34.820Z
@@ -53345,8 +53060,6 @@ symbols:
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
-        target: REQ-cli-migrate-legacy-requirement-status
-      - type: implements
         target: REQ-cli-schema-migration
   - id: SYM-decision-firmness-firm-unreferenced-rule
     title: DECISION_FIRM_UNREFERENCED_RULE
@@ -53581,8 +53294,6 @@ symbols:
         target: TEST-cli-status-pre-first-sync
       - type: covered_by
         target: TEST-proof-freshness-resync-code
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
       - type: implements
         target: REQ-agent-migration-plan-codes
       - type: implements
@@ -55080,8 +54791,6 @@ symbols:
       - type: implements
         target: REQ-kb-upsert-statement-follows-semantic-text
       - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler-v2
-      - type: implements
         target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-source-authoring-republish-pending-source-receipt
     title: republishPendingSourceReceipt
@@ -55211,12 +54920,6 @@ symbols:
         target: TEST-kibi-truthful-consistency
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
-      - type: implements
-        target: REQ-kibi-symbol-link-guidance
-      - type: implements
-        target: REQ-kibi-truthful-consistency
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-discovery-query-body-type
     title: QueryBody
     status: active
@@ -57018,7 +56721,6 @@ symbols:
     tags:
       - symbols
     sourceFile: packages/cli/src/operations/mutation/symbol-granularity.ts
-    granularity_reason: config-artifact
     symbol_role: structural
     origin:
       kind: agent
@@ -58826,7 +58528,6 @@ symbols:
     status: active
     sourceFile: scripts/proof-gate.sh
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     text_ref: scripts/proof-gate.sh#run_proof_gate
     tags:
       - proof
@@ -58843,8 +58544,6 @@ symbols:
         target: REQ-ci-kb-merge-gate-order
       - type: implements
         target: REQ-ci-kb-merge-resolution
-      - type: implements
-        target: REQ-kibi-local-proof-parity
   - id: SYM-test-code-proof-kinds-exhaustive
     title: codeProofKindsCertificate
     status: active
@@ -58983,8 +58682,6 @@ symbols:
         target: REQ-kibi-code-proof-kinds
       - type: implements
         target: REQ-kibi-proof-kind-vocabulary
-      - type: implements
-        target: REQ-kibi-proof-vocabulary
   - id: SYM-cli-evidence-levels
     title: EVIDENCE_LEVELS
     status: active
@@ -59002,8 +58699,6 @@ symbols:
         target: TEST-kibi-evidence-levels
       - type: covered_by
         target: TEST-proof-evidence-level-vocabulary
-      - type: implements
-        target: REQ-kibi-evidence-floors
       - type: implements
         target: REQ-kibi-evidence-level-vocabulary
       - type: implements
@@ -59407,8 +59102,6 @@ symbols:
         target: TEST-proof-claim-binding-verdicts
       - type: implements
         target: REQ-kibi-claim-binding-verdicts
-      - type: implements
-        target: REQ-kibi-claim-bound-proofs
       - type: implements
         target: REQ-kibi-proof-vocabulary
   - id: SYM-e2e-packed-non-numeric-proof-kinds

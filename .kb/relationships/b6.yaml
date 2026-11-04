@@ -335,13 +335,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ce25cb60487
-  - type: implements
-    from: SYM-proof-kinds
-    to: REQ-kibi-proof-vocabulary
-    created_at: 2026-10-29T16:44:54.925Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-69d6628b05ce
   - type: covered_by
     from: SYM-proof-kinds
     to: TEST-proof-proof-contract-kinds

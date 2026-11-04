@@ -195,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6d89d7ebc20e
-  - type: implements
-    from: SYM-model-predicates-binding-hints-buildbindinghints
-    to: REQ-model-predicates-binding-placeholders
-    created_at: 2026-10-08T08:35:11.389Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-53005434eed2
   - type: covered_by
     from: SYM-model-predicates-binding-hints-buildbindinghints
     to: TEST-model-predicates-binding-placeholders
@@ -230,13 +223,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b9caa014029a
-  - type: implements
-    from: SYM-model-predicates-binding-hints-buildbindinghints
-    to: REQ-model-predicates-requirement-subject-v2
-    created_at: 2026-10-08T21:26:06.722Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-72cff097d6fb
   - type: implements
     from: SYM-model-predicates-binding-hints-buildbindinghints
     to: REQ-model-predicates-binding-clauses

@@ -225,13 +225,6 @@ relationships:
     id: rel-e1e2fcd0acc3
   - type: implements
     from: SYM-doctor-next-ancestor-directory
-    to: REQ-agent-guided-migration-orchestration
-    created_at: 2026-09-22T11:36:17.413Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c8f039d30719
-  - type: implements
-    from: SYM-doctor-next-ancestor-directory
     to: REQ-cli-doctor-packed-provenance
     created_at: 2026-09-22T11:36:17.421Z
     created_by: kibi/upsert

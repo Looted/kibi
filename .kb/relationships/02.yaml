@@ -55,20 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69b59a17b014
-  - type: implements
-    from: SYM-validateUpsertInput
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:21:02.311Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3b83fa339c0b
-  - type: implements
-    from: SYM-validateUpsertInput
-    to: REQ-kibi-logical-requirement-coverage
-    created_at: 2026-08-22T20:21:02.326Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5c8d4bebd27d
   - type: covered_by
     from: SYM-validateUpsertInput
     to: TEST-kibi-operation-interface-parity

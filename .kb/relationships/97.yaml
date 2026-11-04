@@ -71,13 +71,6 @@ relationships:
     id: rel-0ce7eba538c5
   - type: implements
     from: SYM-parity-run-operation-json-query
-    to: REQ-mcp-search-discovery
-    created_at: 2026-08-22T20:31:45.492Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-45482f84f4d9
-  - type: implements
-    from: SYM-parity-run-operation-json-query
     to: REQ-core-journaled-engine-persistence
     created_at: 2026-08-22T20:31:45.499Z
     created_by: kibi/upsert

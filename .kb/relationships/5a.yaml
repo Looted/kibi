@@ -111,20 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c104f50f528f
-  - type: implements
-    from: SYM-TOOLS
-    to: REQ-002
-    created_at: 2026-08-22T20:59:59.548Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d8859626cf54
-  - type: implements
-    from: SYM-TOOLS
-    to: REQ-mcp-suggest-predicates
-    created_at: 2026-08-22T20:59:59.563Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ce67b6d8ed71
   - type: covered_by
     from: SYM-TOOLS
     to: TEST-005
@@ -286,13 +272,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-155e150b628a
-  - type: implements
-    from: SYM-TOOLS
-    to: REQ-kibi-mcp-tool-consolidation
-    created_at: 2026-10-03T09:25:30.506Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-675d6d596b79
   - type: covered_by
     from: SYM-TOOLS
     to: TEST-kibi-mcp-tool-consolidation

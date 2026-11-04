@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-15T22:16:18.190Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-auto-44CE7BD0251E
-    to: REQ-core-atomic-upsert-persistence
-    created_at: 2026-08-16T07:50:02.760Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-84fb1eed50b4
   - type: covered_by
     from: SYM-auto-44CE7BD0251E
     to: TEST-kibi-operation-interface-parity
@@ -27,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55f2e9f9227b
-  - type: implements
-    from: SYM-installHook
-    to: REQ-cli-init
-    created_at: 2026-08-17T12:55:13.975Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1bbc0aeb634b
   - type: implements
     from: SYM-installHook
     to: REQ-git-hook-sync-v2

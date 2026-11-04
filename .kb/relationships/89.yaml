@@ -125,20 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9f346763c795
-  - type: implements
-    from: SYM-cli-query-command
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:25:41.515Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-15ce1614cc21
-  - type: implements
-    from: SYM-cli-query-command
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-08-22T20:25:41.530Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5b546b35fbc0
   - type: covered_by
     from: SYM-cli-query-command
     to: TEST-kibi-operation-interface-parity
