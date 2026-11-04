@@ -221,20 +221,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-23e7728c6b7c
   - type: implements
-    from: SYM-quality-inventory-19897951a119
-    to: REQ-014
-    created_at: 2026-09-14T20:37:23.069Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8c7d7ac87215
-  - type: covered_by
-    from: SYM-quality-inventory-19897951a119
-    to: TEST-scripts-unit-coverage-runner
-    created_at: 2026-09-14T20:37:23.092Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9958cf6a4c62
-  - type: implements
     from: SYM-quality-inventory-44a628f0ebf6
     to: REQ-020
     created_at: 2026-09-14T20:39:42.609Z
@@ -276,13 +262,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b1db22d661a
-  - type: covered_by
-    from: SYM-quality-inventory-19897951a119
-    to: TEST-e2e-coverage-pipeline
-    created_at: 2026-09-19T18:15:20.480Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6f21747a9fa9
   - type: implements
     from: SYM-cli-COVERAGE_ROW_PAGE_SIZE
     to: REQ-kibi-verification-evidence-contract

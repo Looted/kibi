@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-475e394c6649
+  - type: covered_by
+    from: SYM-checkDeprecatedAdrs
+    to: TEST-cli-check-integrity
+    created_at: 2026-09-14T20:25:35.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82035f5d8c2c

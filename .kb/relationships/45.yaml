@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dde018d97c63
+  - type: implements
+    from: SYM-ReceiptCodeScopeEntry
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-16T14:10:28.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37c7558a45aa
+  - type: covered_by
+    from: SYM-ReceiptCodeScopeEntry
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-16T15:42:22.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-476cf5910e2b

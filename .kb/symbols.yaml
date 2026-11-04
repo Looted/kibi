@@ -9420,6 +9420,10 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-mcp-oneof-guard-input-validation
+      - type: implements
+        target: REQ-mcp-oneof-guard-input-validation
+      - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-agent-kibi-interface-selection
@@ -14340,6 +14344,10 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
@@ -14692,6 +14700,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-generated-coordinate-repair
       - type: covered_by
@@ -15122,21 +15134,6 @@ symbols:
     title: mergeLcovContents
     status: active
     sourceFile: scripts/merge-lcov.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-006
-      - type: covered_by
-        target: TEST-011
-      - type: covered_by
-        target: TEST-scripts-unit-coverage-runner
-      - type: implements
-        target: REQ-014
-  - id: SYM-scripts-runUnitCoverage
-    title: runUnitCoverage
-    status: active
-    sourceFile: scripts/run-unit-coverage.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
@@ -18273,54 +18270,6 @@ symbols:
     sourceFile: scripts/skillopt-eval/training-setup.ts
     symbol_role: behavioral
     text_ref: scripts/skillopt-eval/training-setup.ts#trainerBridgeEnvironment
-    relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-e2e-skillopt-trust-boundaries
-  - id: SYM-skillopt-bridge-source-worktree-env
-    title: BRIDGE_SOURCE_WORKTREE_ENV
-    sourceFile: scripts/skillopt-eval/training-setup.ts
-    symbol_role: config
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-e2e-skillopt-trust-boundaries
-  - id: SYM-skillopt-bridge-artifact-root-env
-    title: BRIDGE_ARTIFACT_ROOT_ENV
-    sourceFile: scripts/skillopt-eval/training-setup.ts
-    symbol_role: config
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-e2e-skillopt-trust-boundaries
-  - id: SYM-skillopt-bridge-fixture-run-root-env
-    title: BRIDGE_FIXTURE_RUN_ROOT_ENV
-    sourceFile: scripts/skillopt-eval/training-setup.ts
-    symbol_role: config
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-e2e-skillopt-trust-boundaries
-  - id: SYM-skillopt-trainer-request-payload
-    title: TrainerRequestPayload
-    sourceFile: scripts/skillopt-eval/training-setup.ts
-    symbol_role: type-shape
-    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -22237,18 +22186,6 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
-  - id: SYM-skillopt-run-independent-final-state
-    title: runIndependentFinalState
-    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
-    symbol_role: behavioral
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-e2e-skillopt-trust-boundaries
   - id: SYM-skillopt-run-mcp-broker
     title: runMcpBroker
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker-process.ts
@@ -26076,32 +26013,6 @@ symbols:
         target: REQ-skillopt-host-neutral-optimization
       - type: covered_by
         target: TEST-e2e-skillopt-host-neutral-optimization
-  - id: SYM-skillopt-bridge-codex-executable-env
-    title: BRIDGE_CODEX_EXECUTABLE_ENV
-    sourceFile: scripts/skillopt-eval/training-setup.ts
-    symbol_role: config
-    granularity_reason: extractor-miss
-    text_ref: scripts/skillopt-eval/training-setup.ts#BRIDGE_CODEX_EXECUTABLE_ENV
-    relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-e2e-skillopt-trust-boundaries
-  - id: SYM-skillopt-bridge-bwrap-executable-env
-    title: BRIDGE_BWRAP_EXECUTABLE_ENV
-    sourceFile: scripts/skillopt-eval/training-setup.ts
-    symbol_role: config
-    granularity_reason: extractor-miss
-    text_ref: scripts/skillopt-eval/training-setup.ts#BRIDGE_BWRAP_EXECUTABLE_ENV
-    relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-e2e-skillopt-trust-boundaries
   - id: SYM-skillopt-fake-provider-hash-schema
     title: HashSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
@@ -35123,6 +35034,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: covered_by
         target: TEST-e2e-coverage-pipeline
       - type: implements
         target: REQ-014
@@ -35133,39 +35046,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-e2e-coverage-pipeline
-      - type: implements
-        target: REQ-014
-  - id: SYM-runUnitCoverageIfMain
-    title: runUnitCoverageIfMain
-    status: active
-    sourceFile: scripts/run-unit-coverage.ts
-    granularity_reason: legacy-link
-    relationships:
+        target: TEST-006
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
       - type: covered_by
         target: TEST-e2e-coverage-pipeline
       - type: implements
         target: REQ-014
-  - id: SYM-summarizeBranchCoverage
-    title: summarizeBranchCoverage
-    status: active
-    sourceFile: scripts/run-unit-coverage.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-coverage-pipeline
-      - type: implements
-        target: REQ-014
-  - id: SYM-currentProofBindingMode
-    title: currentProofBindingMode
-    status: active
-    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-coordinateIdentityKey
     title: coordinateIdentityKey
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
@@ -38599,149 +38488,6 @@ symbols:
         target: TEST-cli-check-integrity
       - type: implements
         target: REQ-cli-check
-  - id: SYM-quality-inventory-dd324a5a7d94
-    title: checkMustPriorityCoverage
-    sourceFile: packages/cli/src/commands/check.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-quality-inventory-8201a4e33563
-    title: findMustPriorityReqs
-    sourceFile: packages/cli/src/commands/check.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-quality-inventory-0a51c3fca351
-    title: getAllEntityIds
-    sourceFile: packages/cli/src/commands/check.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-quality-inventory-0dc924bdfedd
-    title: checkNoDanglingRefs
-    sourceFile: packages/cli/src/commands/check.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-quality-inventory-19e4335e4a46
-    title: checkNoCycles
-    sourceFile: packages/cli/src/commands/check.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-quality-inventory-63efea15346c
-    title: checkRequiredFields
-    sourceFile: packages/cli/src/commands/check.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-quality-inventory-171f2ce53251
-    title: checkDeprecatedAdrs
-    sourceFile: packages/cli/src/commands/check.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-quality-inventory-db28319fe3b6
-    title: checkDomainContradictions
-    sourceFile: packages/cli/src/commands/check.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-quality-inventory-0d95a3be9ce1
-    title: checkStrictFactShape
-    sourceFile: packages/cli/src/commands/check.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-quality-inventory-d98db976efac
-    title: checkStrictReqFactPairing
-    sourceFile: packages/cli/src/commands/check.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-quality-inventory-e70a67dadfef
-    title: checkStrictReadiness
-    sourceFile: packages/cli/src/commands/check.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: implements
-        target: REQ-cli-check
   - id: SYM-quality-inventory-ac085e9db51d
     title: missingManifestActivation
     sourceFile: packages/cli/src/operations/bootstrap/activation.ts
@@ -39006,18 +38752,6 @@ symbols:
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
-  - id: SYM-quality-inventory-19897951a119
-    title: BranchCoverageSummary
-    sourceFile: scripts/run-unit-coverage.ts
-    status: active
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-coverage-pipeline
-      - type: covered_by
-        target: TEST-scripts-unit-coverage-runner
-      - type: implements
-        target: REQ-014
   - id: SYM-quality-inventory-15404f76cfa0
     title: sandboxProbeFailureCode
     sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
@@ -39108,16 +38842,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-quality-diagnostics-contract
-  - id: SYM-quality-staged-manifestRecordSourcePath
-    title: manifestRecordSourcePath
-    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-analyze-staged-file-coverage
     title: analyzeStagedFileCoverage
     status: active
@@ -39137,6 +38861,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: covered_by
         target: TEST-004
       - type: implements
         target: REQ-cli-check
@@ -39147,6 +38873,8 @@ symbols:
     granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
       - type: covered_by
         target: TEST-004
       - type: implements
@@ -39159,6 +38887,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: covered_by
         target: TEST-004
       - type: implements
         target: REQ-cli-check
@@ -39169,6 +38899,8 @@ symbols:
     granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
       - type: covered_by
         target: TEST-004
       - type: implements
@@ -39181,6 +38913,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: covered_by
         target: TEST-004
       - type: implements
         target: REQ-cli-check
@@ -39191,6 +38925,8 @@ symbols:
     granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
       - type: covered_by
         target: TEST-004
       - type: implements
@@ -39203,6 +38939,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: covered_by
         target: TEST-004
       - type: implements
         target: REQ-cli-check
@@ -39214,6 +38952,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: covered_by
         target: TEST-004
       - type: implements
         target: REQ-cli-check
@@ -39224,6 +38964,8 @@ symbols:
     granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
       - type: covered_by
         target: TEST-004
       - type: implements
@@ -39297,6 +39039,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: covered_by
         target: TEST-004
       - type: implements
         target: REQ-cli-check
@@ -39318,6 +39062,8 @@ symbols:
     granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
       - type: covered_by
         target: TEST-004
       - type: implements
@@ -39342,17 +39088,6 @@ symbols:
         target: TEST-agent-guided-migration-orchestration
       - type: implements
         target: REQ-agent-guided-migration-orchestration
-  - id: SYM-requireActiveProlog
-    title: requireActiveProlog
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    granularity_reason: legacy-link
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
   - id: SYM-staged-analysis-depth
     title: StagedAnalysisDepth
     status: active
@@ -39509,41 +39244,6 @@ symbols:
         target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
-  - id: SYM-sweepRuntimeSockets
-    title: sweepRuntimeSockets
-    status: active
-    sourceFile: packages/cli/src/prolog/janitor.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-journaled-engine-persistence
-  - id: SYM-engineJanitorCommand
-    title: engineJanitorCommand
-    status: active
-    sourceFile: packages/cli/src/commands/engine.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-journaled-engine-persistence
-  - id: SYM-executeIngestProof
-    title: executeIngestProof
-    status: active
-    sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
-    granularity_reason: legacy-link
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-proof-ingest-batch-atomicity
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
-      - type: implements
-        target: REQ-kibi-verification-receipts-v2
   - id: SYM-sweep-runtime-sockets
     title: sweepRuntimeSockets
     status: active
@@ -39796,32 +39496,16 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: implements
         target: REQ-symbol-behavioral-anchors
-  - id: SYM-receipt-code-scope-entry
-    title: ReceiptCodeScopeEntry
-    status: active
-    sourceFile: packages/cli/src/extractors/manifest.ts
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-resolve-bound-symbol-scope
-    title: resolveBoundSymbolScope
-    status: active
-    sourceFile: packages/cli/src/extractors/manifest.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-current-proof-binding-mode
     title: currentProofBindingMode
     status: active
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts-v2
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: implements
@@ -42316,16 +42000,6 @@ symbols:
     status: active
     sourceFile: scripts/package-catalog.ts
     symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-014
-      - type: implements
-        target: REQ-020
-  - id: SYM-package-catalog-publishable-dirs
-    title: PUBLISHABLE_DIRS
-    status: active
-    sourceFile: scripts/package-catalog.ts
-    symbol_role: config
     relationships:
       - type: covered_by
         target: TEST-014
@@ -46142,20 +45816,6 @@ symbols:
         target: TEST-e2e-coverage-pipeline
       - type: implements
         target: REQ-014
-  - id: SYM-perContractTestBindings
-    title: perContractTestBindings
-    status: active
-    tags:
-      - verification
-      - proof
-      - reporting
-    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-source-analysis-v2-analyzesourcechanges-94b9974e
     title: analyzeSourceChanges
     status: active
@@ -51327,21 +50987,6 @@ symbols:
         target: REQ-skillopt-host-neutral-optimization
       - type: covered_by
         target: TEST-e2e-skillopt-host-neutral-optimization
-  - id: SYM-skillopt-runtime-codex-cell-runner-readworkspacesources-18d23e22
-    title: readWorkspaceSources
-    status: active
-    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:25:16.923Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
-      - type: covered_by
-        target: TEST-e2e-skillopt-trust-boundaries
   - id: SYM-skillopt-runtime-fixture-kb-setup-setupseededpartialkb-6a846f9e
     title: setupSeededPartialKb
     status: active
@@ -52502,19 +52147,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-oneof-guard-input-validation
-  - id: SYM-mcp-oneof-guard-input-validation-jsonschematozod
-    title: jsonSchemaToZod
-    status: active
-    sourceFile: packages/mcp/src/server/json-schema-to-zod.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-07T19:01:16.540Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-oneof-guard-input-validation
-      - type: implements
-        target: REQ-mcp-oneof-guard-input-validation
   - id: SYM-test-mcp-apply-plan-async-preflight
     title: Asynchronous plan apply preflight suite
     status: active
@@ -55510,36 +55142,6 @@ symbols:
         target: TEST-mcp-semantic-advisor-preflight
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
-  - id: SYM-upsert-validation-type
-    title: UpsertValidation
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-10-14T10:14:27.987Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-truthful-consistency
-      - type: covered_by
-        target: TEST-kibi-uncompiled-source-visibility
-      - type: implements
-        target: REQ-kibi-truthful-consistency
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
-  - id: SYM-upsert-validation-options-type
-    title: UpsertValidationOptions
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-10-14T10:14:33.518Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-truthful-consistency
-      - type: implements
-        target: REQ-kibi-truthful-consistency
   - id: SYM-upsert-validate-upsert-for-commit
     title: validateUpsertForCommit
     status: active
@@ -55549,6 +55151,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T10:14:39.483Z
     relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+      - type: implements
+        target: REQ-kb-upsert-keeps-omitted-proof-receipts
       - type: covered_by
         target: TEST-cli-symbol-link-guidance
       - type: covered_by
@@ -55812,47 +55422,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kb-decision-firmness
-  - id: SYM-upsert-analyzeupsertsemantics
-    title: analyzeUpsertSemantics
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-14T08:10:05.072Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
-  - id: SYM-upsert-assertrelationshipshardcontained
-    title: assertRelationshipShardContained
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-14T08:10:10.693Z
-    relationships:
-      - type: covered_by
-        target: TEST-core-atomic-upsert-persistence
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-  - id: SYM-upsert-upsertsemanticanalysis
-    title: UpsertSemanticAnalysis
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-14T08:10:17.004Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
   - id: SYM-upsert-upsertvalidation
     title: UpsertValidation
     status: active
@@ -55862,6 +55431,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T08:10:22.871Z
     relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
       - type: covered_by
         target: TEST-kibi-truthful-consistency
       - type: implements
@@ -55877,27 +55450,6 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-truthful-consistency
-      - type: implements
-        target: REQ-kibi-truthful-consistency
-  - id: SYM-upsert-validateupsertforcommit
-    title: validateUpsertForCommit
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-14T08:10:34.177Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-decision-firmness
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-truthful-consistency
-      - type: implements
-        target: REQ-kb-firm-decision-edit
-      - type: implements
-        target: REQ-kb-upsert-keeps-omitted-proof-receipts
       - type: implements
         target: REQ-kibi-truthful-consistency
   - id: SYM-decision-firmness-decision-firm-edited-rule

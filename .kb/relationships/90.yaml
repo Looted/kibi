@@ -168,13 +168,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-766ea7b8181b
   - type: covered_by
-    from: SYM-execute-ingest-proof
-    to: TEST-kibi-fresh-verification-receipts
-    created_at: 2026-09-05T17:04:23.132Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e7d521bc5ca2
-  - type: covered_by
     from: SYM-auto-61AB23FEF699
     to: TEST-kibi-operation-interface-parity
     created_at: 2026-09-05T17:17:52.088Z
@@ -237,13 +230,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37eed80e410c
-  - type: implements
-    from: SYM-execute-ingest-proof
-    to: REQ-kibi-verification-receipts-v2
-    created_at: 2026-09-26T10:36:25.128Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fab836b6a52d
   - type: covered_by
     from: SYM-execute-ingest-proof
     to: TEST-kibi-verification-receipts-v2
@@ -251,13 +237,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c98b7537af4b
-  - type: covered_by
-    from: SYM-execute-ingest-proof
-    to: TEST-kibi-proof-ingest-batch-atomicity
-    created_at: 2026-09-26T10:36:25.144Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a497570a42a4
   - type: implements
     from: SYM-claude-runHook
     to: REQ-claude-code-kibi-plugin-v1
@@ -321,13 +300,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ea66afb4aa2c
-  - type: implements
-    from: SYM-execute-ingest-proof
-    to: REQ-kibi-fresh-verification-receipts-v2
-    created_at: 2026-10-04T03:00:11.918Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ede8e010f8f5
   - type: implements
     from: SYM-copySchemaFiles
     to: REQ-cli-init-canonical
@@ -692,3 +664,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b4184b524cf
+  - type: implements
+    from: SYM-execute-ingest-proof
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-09-26T09:58:53.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2bad0f3de09e
+  - type: covered_by
+    from: SYM-execute-ingest-proof
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-09-26T09:58:53.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf34d0e7c036
+  - type: covered_by
+    from: SYM-execute-ingest-proof
+    to: TEST-kibi-proof-ingest-batch-atomicity
+    created_at: 2026-09-26T09:58:53.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ddf66a311c7
+  - type: implements
+    from: SYM-execute-ingest-proof
+    to: REQ-kibi-fresh-verification-receipts-v2
+    created_at: 2026-10-04T03:00:17.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b9c19c79d2e
+  - type: implements
+    from: SYM-runUnitCoverage
+    to: REQ-014
+    created_at: 2026-08-22T20:14:38.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e77cc19dbcf
+  - type: covered_by
+    from: SYM-runUnitCoverage
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-08-22T20:14:38.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-798ad1eaf306
+  - type: covered_by
+    from: SYM-runUnitCoverage
+    to: TEST-006
+    created_at: 2026-08-22T20:14:38.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0bcd8a9974f
+  - type: covered_by
+    from: SYM-runUnitCoverage
+    to: TEST-011
+    created_at: 2026-09-05T14:52:46.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5893c3f8050

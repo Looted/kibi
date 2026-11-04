@@ -209,20 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d8bb10b21ac
-  - type: implements
-    from: SYM-quality-inventory-63efea15346c
-    to: REQ-cli-check
-    created_at: 2026-09-14T20:25:11.973Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ce4a825b5443
-  - type: covered_by
-    from: SYM-quality-inventory-63efea15346c
-    to: TEST-cli-check-integrity
-    created_at: 2026-09-14T20:25:11.990Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7b12a88f485d
   - type: covered_by
     from: SYM-mcp-handle-sparql
     to: TEST-e2e-prolog-library-adoption
@@ -230,13 +216,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df796be6a7af
-  - type: covered_by
-    from: SYM-quality-inventory-63efea15346c
-    to: TEST-004
-    created_at: 2026-09-18T07:35:33.629Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-940d1555c7de
   - type: implements
     from: SYM-doctor-nearest-named-package-manifest
     to: REQ-cli-doctor
@@ -349,20 +328,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cfba1cf3ac8a
-  - type: implements
-    from: SYM-mcp-oneof-guard-input-validation-jsonschematozod
-    to: REQ-mcp-oneof-guard-input-validation
-    created_at: 2026-10-07T19:01:17.976Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-04ef51d5e7f5
-  - type: covered_by
-    from: SYM-mcp-oneof-guard-input-validation-jsonschematozod
-    to: TEST-mcp-oneof-guard-input-validation
-    created_at: 2026-10-07T19:01:18.014Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-537be7921908
   - type: implements
     from: SYM-upsert-validate-upsert-for-commit
     to: REQ-kibi-truthful-consistency
@@ -517,3 +482,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-88c56f2c6166
+  - type: implements
+    from: SYM-upsert-validate-upsert-for-commit
+    to: REQ-kb-firm-decision-edit
+    created_at: 2026-10-14T08:10:35.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fd8b7e44c1e
+  - type: covered_by
+    from: SYM-upsert-validate-upsert-for-commit
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-14T08:30:26.011Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-775b9a66133f
+  - type: implements
+    from: SYM-upsert-validate-upsert-for-commit
+    to: REQ-kb-upsert-keeps-omitted-proof-receipts
+    created_at: 2026-10-14T17:28:50.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66174286a421
+  - type: covered_by
+    from: SYM-upsert-validate-upsert-for-commit
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-14T17:28:50.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-762235bdbd87
