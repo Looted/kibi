@@ -106,11 +106,12 @@ export async function loadReviewRequirements(
     `findall([R,M], (member(R, [${idList}]), kb:current_req(R), (once((member(T, [${LOGICAL_RELATIONSHIPS.join(",")}]), kb_relationship(T, R, _))) -> M = modeled ; M = unmodeled)), Rows)`,
   );
   if (!result.success) return found;
+  // A successful findall binds Rows, and its template has two columns.
   const modeled = new Map(
-    parseListOfLists(result.bindings.Rows ?? "[]").map(([id, flag]) => [
-      atom(id),
-      atom(flag) === "modeled",
-    ]),
+    parseListOfLists(result.bindings.Rows as string).map((row) => {
+      const [id, flag] = row as [string, string];
+      return [atom(id), atom(flag) === "modeled"];
+    }),
   );
   const rows = await loadEntityRows(
     prolog,
@@ -130,13 +131,15 @@ export async function loadReviewRequirements(
   return found;
 }
 
-function atom(value: string | undefined): string {
-  return String(parsePrologValue(value ?? "")).replace(/^['"]|['"]$/g, "");
+function atom(value: string): string {
+  return String(parsePrologValue(value)).replace(/^['"]|['"]$/g, "");
 }
 
+// Pieces are trimmed and empty ones dropped, so one whitespace character is
+// enough to split on.
 function sentences(value: string): string[] {
   return value
-    .split(/(?<=[.!?])\s+|\n+/)
+    .split(/(?<=[.!?])\s|\n/)
     .map((sentence) => sentence.trim())
     .filter(Boolean);
 }
@@ -154,7 +157,7 @@ export function reviewSentence(
   const units = sentences(requirement.semanticText);
   if (units.length === 0) return requirement.title;
   const wanted = new Set(intentTokens(intent));
-  let best = units[0] ?? requirement.title;
+  let best = units[0] as string;
   let bestShared = -1;
   for (const unit of units) {
     const shared = intentTokens(unit).filter((token) =>

@@ -27,3 +27,17 @@ export function cleanupWorkspaces(): void {
     rmSync(root, { recursive: true, force: true });
   }
 }
+
+/** A fresh temporary workspace holding `files` (workspace-relative paths). */
+export function tempWorkspace(files: Record<string, string> = {}): string {
+  const root = workspace("kibi-ops-mutation-");
+  for (const [relative, content] of Object.entries(files)) {
+    writeIn(root, relative, content);
+  }
+  return root;
+}
+
+/** Remove every workspace created here; call from `afterEach`. */
+export function removeTempWorkspaces(): void {
+  cleanupWorkspaces();
+}

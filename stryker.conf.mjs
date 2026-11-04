@@ -875,6 +875,141 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/proofs/java-package-shadow-go.test.ts",
     "packages/cli/tests/operations-mutation/proof/java-package-shadow.test.ts",
   ],
+  "packages/cli/src/operations/bootstrap/candidate-helpers.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/candidate-helpers.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/candidates.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/candidates.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/claim-restatement.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/claim-restatement.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/conflict-review.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/conflict-review.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/discovery.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/discovery.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/guidance-actions.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/guidance-actions.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/guidance.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/guidance.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/plugin-offers.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/plugin-offers.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/types.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/types.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/validation.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/validation.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/activation.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/activation.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/discovery-evidence.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/discovery-evidence.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/markdown-candidates.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/markdown-candidates.test.ts",
+  ],
+  "packages/cli/src/operations/migration/entity-body-context.ts": [
+    "packages/cli/tests/operations-mutation/migration/entity-body-context.test.ts",
+  ],
+  "packages/cli/src/operations/migration/entity-type.ts": [
+    "packages/cli/tests/operations-mutation/migration/entity-type.test.ts",
+  ],
+  "packages/cli/src/operations/migration/evidence-floor.ts": [
+    "packages/cli/tests/operations-mutation/migration/evidence-floor.test.ts",
+  ],
+  "packages/cli/src/operations/migration/firm-supersede.ts": [
+    "packages/cli/tests/operations-mutation/migration/firm-supersede.test.ts",
+  ],
+  "packages/cli/src/operations/migration/kb-sources.ts": [
+    "packages/cli/tests/operations-mutation/migration/kb-sources.test.ts",
+  ],
+  "packages/cli/src/operations/migration/origin-backfill.ts": [
+    "packages/cli/tests/operations-mutation/migration/origin-backfill.test.ts",
+  ],
+  "packages/cli/src/operations/migration/polarity-values.ts": [
+    "packages/cli/tests/operations-mutation/migration/polarity-values.test.ts",
+  ],
+  "packages/cli/src/operations/migration/proof-contract-claims.ts": [
+    "packages/cli/tests/operations-mutation/migration/proof-contract-claims.test.ts",
+  ],
+  "packages/cli/src/operations/migration/requirement-status.ts": [
+    "packages/cli/tests/operations-mutation/migration/requirement-status.test.ts",
+  ],
+  "packages/cli/src/operations/migration/superseded-closure.ts": [
+    "packages/cli/tests/operations-mutation/migration/superseded-closure.test.ts",
+  ],
+  "packages/cli/src/operations/migration/supersedes-reason.ts": [
+    "packages/cli/tests/operations-mutation/migration/supersedes-reason.test.ts",
+  ],
+  "packages/cli/src/operations/migration/symbol-coordinates-refresh.ts": [
+    "packages/cli/tests/operations-mutation/migration/symbol-coordinates-refresh.test.ts",
+  ],
+  "packages/cli/src/operations/migration/untrack-symbol-coordinates.ts": [
+    "packages/cli/tests/operations-mutation/migration/untrack-symbol-coordinates.test.ts",
+  ],
+  "packages/cli/src/operations/planning/conflict-review.ts": [
+    "packages/cli/tests/operations-mutation/planning/conflict-review.test.ts",
+  ],
+  "packages/cli/src/operations/planning/migration-refusal.ts": [
+    "packages/cli/tests/operations-mutation/planning/migration-refusal.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/analysis-receipt.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/analysis-receipt.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/clauses.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/clauses.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/observation-plan.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/observation-plan.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/predicate-rule.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/predicate-rule.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/proposition-role.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/proposition-role.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/prose-coverage-evaluator.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/prose-coverage-evaluator.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/stored-ledger-drift.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/stored-ledger-drift.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/strict-count-rules.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/strict-count-rules.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/case-preview.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/case-preview.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/shared.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/shared.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/conditional-rules.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/conditional-rules.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/ingestion-boundary.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/predicate-rules-core.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/predicate-rules-reexports.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/predicate-rules-policy.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/predicate-rules-reexports.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/predicate-rules-product.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/predicate-rules-reexports.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/predicate-rules-product-tail.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/predicate-rules-reexports.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/predicate-rules-launcher.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/predicate-rules-reexports.test.ts",
+  ],
 };
 
 // Plugin package modules gated the same way: each with the hermetic tests of

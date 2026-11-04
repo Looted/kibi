@@ -51,7 +51,7 @@ export function planSupersedesReasonAcknowledgement(
 ): SupersedesReasonTarget[] {
   const entities = listDecisionEntities(workspaceRoot);
   const known = new Set(
-    readKbManifest(workspaceRoot)?.supersedesReasonAcknowledged ?? [],
+    readKbManifest(workspaceRoot)?.supersedesReasonAcknowledged,
   );
   const edges = authoredSupersedes(workspaceRoot, entities);
   return unexplainedSupersedes(entities, edges)

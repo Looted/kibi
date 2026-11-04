@@ -134,7 +134,8 @@ export async function discoverBootstrap(
       providerCounts,
       detectedLanguages: languages(evidence),
       detectedTestFrameworks: frameworks(evidence),
-      excludedRoots: [...EXCLUDED_ROOTS].sort(),
+      // EXCLUDED_ROOTS is written in sorted order.
+      excludedRoots: [...EXCLUDED_ROOTS],
       truncated: false,
       scanWarnings: [...new Set(scan.warnings)].sort(),
     },

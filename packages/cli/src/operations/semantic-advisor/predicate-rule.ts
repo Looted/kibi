@@ -54,7 +54,7 @@ export function commaList(
 ): string {
   return value
     .split(separator)
-    .map((part) => normalizeKey(part.trim()))
+    .map((part) => normalizeKey(part)) // normalizeKey trims
     .filter(Boolean)
     .join(",");
 }
