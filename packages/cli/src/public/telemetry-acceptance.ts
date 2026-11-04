@@ -194,8 +194,8 @@ function telemetryProvided(event: TelemetryUsageEvent): boolean {
 }
 
 function timestampMillis(timestamp: string | undefined): number | null {
-  if (timestamp === undefined) return null;
-  const parsed = Date.parse(timestamp);
+  // A missing timestamp parses as NaN, like a malformed one.
+  const parsed = Date.parse(String(timestamp));
   return Number.isFinite(parsed) ? parsed : null;
 }
 
@@ -372,11 +372,13 @@ function advisorBeforeRequirementWriteMetric(
   recentStart: number,
   policy: TelemetryAcceptancePolicy,
 ): MutableMetric {
+  // Advisor runs without a requirement id land under the undefined key,
+  // which no requirement upsert looks up.
   const advisors = new Map<
-    string,
+    string | undefined,
     Array<{
       readonly entry: TimedEvent;
-      readonly sourceHash?: string;
+      readonly sourceHash: string | undefined;
     }>
   >();
   let attempts = 0;
@@ -393,15 +395,12 @@ function advisorBeforeRequirementWriteMetric(
           : undefined;
     if (
       current.event.tool === "kb_semantic_advisor" &&
-      eventSucceeded(current.event) &&
-      id !== undefined
+      eventSucceeded(current.event)
     ) {
       const matches = advisors.get(id) ?? [];
       matches.push({
         entry: current,
-        ...(current.event.semantic_source_hash !== undefined
-          ? { sourceHash: current.event.semantic_source_hash }
-          : {}),
+        sourceHash: current.event.semantic_source_hash,
       });
       advisors.set(id, matches);
       continue;
@@ -667,7 +666,7 @@ function proofGapRecoveryMetric(recent: readonly TimedEvent[]): MutableMetric {
     return {
       id: "proof_gap_recovery",
       status: "passed",
-      numerator: previous === undefined ? 0 : Math.max(0, previous - latest),
+      numerator: Math.max(0, previous ?? 0),
       denominator: previous ?? latest,
       message:
         "The latest complete requirement coverage event has zero proof gaps.",
@@ -717,7 +716,8 @@ function receiptFreshnessMetric(recent: readonly TimedEvent[]): MutableMetric {
     id: "e2e_receipt_freshness",
     status: gapCount === 0 ? "passed" : "failed",
     numerator: gapCount,
-    denominator: Number(latest.coverage_proof_gap_count ?? gapCount),
+    // Complete coverage events always carry a numeric proof-gap count.
+    denominator: latest.coverage_proof_gap_count as number,
     threshold: { operator: "<=", value: 0 },
     message:
       gapCount === 0
