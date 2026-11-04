@@ -24,11 +24,7 @@ export function renderDiscoveryTable(structured: unknown): string | null {
     return renderGraphTable(payload);
   }
 
-  if (
-    Array.isArray(payload.rows) &&
-    payload.summary &&
-    typeof payload.summary === "object"
-  ) {
+  if (Array.isArray(payload.rows) && isFields(payload.summary)) {
     return renderCoverageTable(payload);
   }
 
@@ -40,7 +36,8 @@ export function renderDiscoveryTable(structured: unknown): string | null {
 }
 
 function renderSearchTable(payload: Readonly<Record<string, unknown>>): string {
-  const rows = Array.isArray(payload.results) ? payload.results : [];
+  // The dispatcher routes only payloads whose results are an array.
+  const rows = payload.results as readonly unknown[];
   const table = new Table({
     head: ["ID", "Type", "Title", "Score", "Reasons", "Snippet"],
     wordWrap: true,
@@ -89,7 +86,8 @@ function renderStatusTable(payload: Readonly<Record<string, unknown>>): string {
 }
 
 function renderGapsTable(payload: Readonly<Record<string, unknown>>): string {
-  const rows = Array.isArray(payload.rows) ? payload.rows : [];
+  // The dispatcher routes only payloads whose rows are an array.
+  const rows = payload.rows as readonly unknown[];
   const table = new Table({
     head: ["ID", "Type", "Status", "Missing", "Present", "Source"],
     colWidths: [20, 10, 12, 24, 24, 40],
@@ -306,16 +304,17 @@ function renderRepairPlanTable(
   });
   for (const rawBatch of displayedBatches) {
     const batch = fieldsFrom(rawBatch);
-    const repairs = Array.isArray(batch.repairs) ? batch.repairs : [];
     batchTable.push([
       stringifyCell(batch.order),
       stringifyCell(batch.requirementId),
       stringifyCell(batch.phase),
       stringifyCell(batch.state),
       joinCells(batch.dependsOn),
-      repairs
-        .map((repair) => stringifyCell(fieldsFrom(repair).gap))
-        .join(", ") || "-",
+      joinCells(
+        Array.isArray(batch.repairs)
+          ? batch.repairs.map((repair) => fieldsFrom(repair).gap)
+          : [],
+      ),
     ]);
   }
 
@@ -327,8 +326,9 @@ function renderRepairPlanTable(
 }
 
 function renderGraphTable(payload: Readonly<Record<string, unknown>>): string {
-  const nodes = Array.isArray(payload.nodes) ? payload.nodes : [];
-  const edges = Array.isArray(payload.edges) ? payload.edges : [];
+  // The dispatcher routes only payloads whose nodes and edges are arrays.
+  const nodes = payload.nodes as readonly unknown[];
+  const edges = payload.edges as readonly unknown[];
 
   const nodeTable = new Table({
     head: ["Node ID", "Type", "Title", "Status"],
@@ -385,9 +385,6 @@ function stringifyCell(value: unknown): string {
   if (value === null || value === undefined || value === "") {
     return "-";
   }
-  if (typeof value === "string") {
-    return value;
-  }
   return String(value);
 }
 
@@ -396,8 +393,8 @@ function stringifyCell(value: unknown): string {
 function evidenceCell(item: Record<string, unknown>): string {
   const level = stringifyCell(item.evidenceLevel);
   const summary = item.claimSummary;
-  if (summary === null || typeof summary !== "object") return level;
-  const { applicable, proved } = summary as Record<string, unknown>;
+  if (!isFields(summary)) return level;
+  const { applicable, proved } = summary;
   if (typeof applicable !== "number" || applicable === 0) return level;
   return `${level}\n${typeof proved === "number" ? proved : 0}/${applicable} claims proved`;
 }
@@ -406,15 +403,17 @@ function evidenceCell(item: Record<string, unknown>): string {
 // The evidence floor and whether the level reaches it; empty without a floor.
 function floorCell(item: Record<string, unknown>): string {
   const floor = item.evidenceFloor;
-  if (floor === null || typeof floor !== "object") return "";
-  const { required, status } = floor as Record<string, unknown>;
+  if (!isFields(floor)) return "";
+  const { required, status } = floor;
   if (typeof required !== "string" || required === "unverified") return "";
-  return `${required} ${typeof status === "string" ? status.replaceAll("_", " ") : ""}`.trim();
+  return typeof status === "string"
+    ? `${required} ${status.replaceAll("_", " ")}`
+    : required;
 }
 
 // A nested summary count, such as evidenceLevels, reads as key=value pairs.
 function summaryCell(value: unknown): string {
-  if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+  if (isFields(value) && !Array.isArray(value)) {
     return Object.entries(value)
       .map(([key, count]) => `${key}=${stringifyCell(count)}`)
       .join(" ");
