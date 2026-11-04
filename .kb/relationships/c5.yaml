@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1543013cb522
+  - type: implements
+    from: SYM-cli-update-check-write-update-cache
+    to: REQ-kibi-update-notice
+    created_at: 2026-11-04T13:24:15.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e352f6410c85
+  - type: covered_by
+    from: SYM-cli-update-check-write-update-cache
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:24:15.308Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-012fa6e0d739

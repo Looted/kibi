@@ -594,3 +594,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-61cd33cbb079
+  - type: assumes
+    from: SCEN-NEG-kibi-update-notice-SCHEMA-CHANGE-HIDDEN
+    to: FACT-NEG-kibi-update-notice-SCHEMA-CHANGE-HIDDEN
+    created_at: 2026-11-04T13:26:27.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f53d8de41421
+  - type: verified_by
+    from: SCEN-NEG-kibi-update-notice-SCHEMA-CHANGE-HIDDEN
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:26:27.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92490e70b666

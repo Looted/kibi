@@ -454,3 +454,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-300c91fc2e74
+  - type: executable_for
+    from: SYM-test-kibi-update-notice-cli
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:25:59.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cce88eae0ced

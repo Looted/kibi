@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4a4b3763642
+  - type: implements
+    from: SYM-cli-update-check-has-machine-output
+    to: REQ-kibi-update-notice
+    created_at: 2026-11-04T13:25:23.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-433eab7041e3
+  - type: covered_by
+    from: SYM-cli-update-check-has-machine-output
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:25:23.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30e505958399
