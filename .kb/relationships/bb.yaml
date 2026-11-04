@@ -566,3 +566,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-286d2b105bd8
+  - type: specified_by
+    from: REQ-005
+    to: SCEN-kibi-entity-relationship-schema-roundtrip
+    created_at: 2026-11-03T11:39:52.116Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0ae00dc5bfb
+  - type: verified_by
+    from: REQ-005
+    to: TEST-kibi-entity-relationship-schema-roundtrip
+    created_at: 2026-11-03T11:39:52.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6670bf242956

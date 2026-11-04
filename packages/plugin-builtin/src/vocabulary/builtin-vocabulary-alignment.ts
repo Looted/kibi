@@ -96,12 +96,14 @@ const NEGATIONS = new Set(["not", "never", "no", "without", "forbid"]);
  */
 // implements REQ-kibi-vocabulary-alignment-capability
 export function vocabularyTokens(text: string): string[] {
-  return text
-    .toLowerCase()
-    .replace(/['’]/g, "")
-    .split(/[^a-z0-9]+/)
-    .filter((token) => token.length > 0 && !STOPWORDS.has(token))
-    .map((token) => singularize(token));
+  return (
+    text
+      .toLowerCase()
+      .replace(/['’]/g, "")
+      .match(/[a-z0-9]+/g) ?? []
+  )
+    .filter((token) => !STOPWORDS.has(token))
+    .map(singularize);
 }
 
 function tokenSet(text: string): Set<string> {
@@ -136,7 +138,8 @@ function weightedMatch(
     if (clause.has(token)) matched += w;
     else missedTarget += w;
   }
-  if (matched === 0) return 0;
+  // No early return when nothing matched: the ratio is then 0 anyway, and the
+  // denominator cannot be 0 because the caller only ranks non-empty clauses.
   let unexplainedClause = 0;
   for (const token of clause) {
     if (!target.has(token)) unexplainedClause += weight(token);
@@ -160,16 +163,24 @@ export function rankSubjectCandidates(
   vocabulary: readonly SubjectVocabularyEntry[],
   options: Readonly<{ limit?: number }> = {},
 ): SubjectCandidate[] {
+  // An empty clause or vocabulary needs no shortcut: every score is then 0 and
+  // the score filter below drops it.
   const clause = tokenSet(clauseText);
-  if (clause.size === 0 || vocabulary.length === 0) return [];
-  const documents = vocabulary.map((entry) => ({
-    entry,
-    key: tokenSet(entry.subjectKey),
-    title: tokenSet(entry.title ?? ""),
-    requirements: (entry.requirements ?? []).map((requirement) =>
-      tokenSet(requirement.title ?? ""),
-    ),
-  }));
+  const documents = vocabulary.map((entry) => {
+    // Untitled requirements carry no tokens, so they neither score nor count
+    // towards document frequency and are left out up front.
+    const requirementTitles =
+      entry.requirements?.flatMap(({ title }) =>
+        title === undefined ? [] : [title],
+      ) ?? [];
+    return {
+      entry,
+      requirementTitles,
+      key: tokenSet(entry.subjectKey),
+      title: tokenSet(entry.title ?? ""),
+      requirements: requirementTitles.map(tokenSet),
+    };
+  });
   const documentFrequency = new Map<string, number>();
   for (const document of documents) {
     const tokens = new Set([
@@ -191,9 +202,7 @@ export function rankSubjectCandidates(
       0,
       ...document.requirements.map((set) => weightedMatch(clause, set, weight)),
     );
-    const requirementTitles = (document.entry.requirements ?? [])
-      .map((requirement) => requirement.title)
-      .filter((title): title is string => typeof title === "string");
+    const { requirementTitles } = document;
     return {
       subjectKey: document.entry.subjectKey,
       score: round3(0.5 * keyScore + 0.3 * titleScore + 0.2 * requirementScore),
@@ -217,10 +226,12 @@ export function rankSubjectCandidates(
  * Quantities as written: number plus the unit symbol that follows it, with the
  * unit's case preserved (3 MB and 3 Mb are different quantities).
  */
-function quantities(text: string): string[] {
-  return [...text.matchAll(/(\d+(?:\.\d+)?)\s*([A-Za-z%]+)?/g)]
-    .map((match) => `${Number(match[1])}|${match[2] ?? ""}`)
-    .sort();
+function quantities(text: string): string {
+  return JSON.stringify(
+    [...text.matchAll(/(\d+(?:\.\d+)?)\s*([A-Za-z%]+)?/g)]
+      .map((match) => JSON.stringify([Number(match[1]), match[2]]))
+      .sort(),
+  );
 }
 
 /**
@@ -234,25 +245,27 @@ function quantities(text: string): string[] {
 export function claimSimilarity(left: string, right: string): number {
   const a = tokenSet(left);
   const b = tokenSet(right);
-  if (a.size === 0 || b.size === 0) return 0;
-  if (quantities(left).join(" ") !== quantities(right).join(" ")) return 0;
+  if (quantities(left) !== quantities(right)) return 0;
   const negatedA = [...a].some((token) => NEGATIONS.has(token));
   const negatedB = [...b].some((token) => NEGATIONS.has(token));
   if (negatedA !== negatedB) return 0;
   let shared = 0;
   for (const token of a) if (b.has(token)) shared += 1;
-  return round3((2 * shared) / (a.size + b.size));
+  // Nothing shared (including an empty side) is 0; this also keeps two
+  // token-free texts from dividing 0 by 0.
+  return shared === 0 ? 0 : round3((2 * shared) / (a.size + b.size));
 }
 
 function normalizedKey(value: string): string {
+  // Each non-alphanumeric run (whitespace included) becomes one "_", and dot
+  // runs collapse after slashes become dots, so no trim, slash-run or
+  // underscore-run step is needed.
   return value
-    .trim()
     .toLowerCase()
-    .replace(/[\\/]+/g, ".")
+    .replace(/[\\/]/g, ".")
     .replace(/[^a-z0-9.]+/g, "_")
-    .replace(/_+/g, "_")
     .replace(/\.+/g, ".")
-    .replace(/(^[._]+|[._]+$)/g, "");
+    .replace(/^[._]+|[._]+$/g, "");
 }
 
 // implements REQ-kibi-vocabulary-alignment-capability

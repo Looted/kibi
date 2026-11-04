@@ -75,9 +75,8 @@ export async function handleKbSkillsRead(
 }
 
 function resourceListHint(id: string): string {
-  if (typeof id !== "string" || id.trim() === "") {
-    return "";
-  }
+  // An empty or non-text id names no bundled skill, so the lookup below
+  // throws and the hint is empty.
   try {
     const bundle = loadBundledSkill(id);
     const resources = bundle.manifest.resources ?? [];

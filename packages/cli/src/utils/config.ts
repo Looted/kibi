@@ -110,17 +110,10 @@ export function readLegacyKbConfig(
   | { kind: "present"; config: LegacyKbConfig } {
   const configPath = path.join(cwd, ".kb", "config.json");
   if (!existsSync(configPath)) return { kind: "none" };
-  let raw: string;
   try {
-    raw = readFileSync(configPath, "utf8");
-  } catch (error) {
-    return {
-      kind: "malformed",
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-  try {
-    const parsed = JSON.parse(raw) as unknown;
+    // Both a read failure (say, a directory at that path) and a JSON syntax
+    // error throw an Error, reported below.
+    const parsed = JSON.parse(readFileSync(configPath).toString()) as unknown;
     if (!isRecord(parsed)) {
       return {
         kind: "malformed",

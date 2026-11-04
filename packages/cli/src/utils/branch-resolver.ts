@@ -100,17 +100,19 @@ export interface BranchResolverDeps {
   execFileSync: typeof import("node:child_process").execFileSync;
 }
 
-const defaultDeps: BranchResolverDeps = {
-  execSync: rawExecSync,
-  execFileSync: rawExecFileSync,
-};
+function realBranchResolverDeps(): BranchResolverDeps {
+  return { execSync: rawExecSync, execFileSync: rawExecFileSync };
+}
+
+const defaultDeps: BranchResolverDeps = realBranchResolverDeps();
 
 export function _setBranchResolverDepsForTests(
   deps: Partial<BranchResolverDeps>,
 ): void {
   // implements REQ-branch-store-recovery-v4
-  defaultDeps.execSync = deps.execSync ?? rawExecSync;
-  defaultDeps.execFileSync = deps.execFileSync ?? rawExecFileSync;
+  const real = realBranchResolverDeps();
+  defaultDeps.execSync = deps.execSync ?? real.execSync;
+  defaultDeps.execFileSync = deps.execFileSync ?? real.execFileSync;
 }
 
 // Files to exclude when copying branch snapshots (volatile artifacts)
@@ -224,7 +226,7 @@ export function resolveActiveBranch(
         };
       }
 
-      if (!branch || branch === "") {
+      if (!branch) {
         return {
           error: getBranchDiagnostic(
             undefined,
@@ -286,8 +288,8 @@ export function resolveActiveBranch(
 function uniqueBranchAtHead(workspaceRoot: string): string | null {
   const names = branchesAtHead(workspaceRoot);
   if (names.length !== 1) return null;
-  const [name] = names;
-  return name !== undefined && isValidBranchName(name) ? name : null;
+  const name = names[0] as string;
+  return isValidBranchName(name) ? name : null;
 }
 
 /** Local branch names whose tip is HEAD, sorted; empty when Git cannot say. */
@@ -544,27 +546,24 @@ export function getBranchDiagnostic(
  * @returns true if valid, false otherwise
  */
 export function isValidBranchName(name: string): boolean {
-  if (!name || name.length === 0 || name.length > 255) return false;
+  if (!name || name.length > 255) return false;
 
   const hasControlCharacter = [...name].some((character) => {
     const codePoint = character.codePointAt(0) ?? 0;
     return codePoint <= 0x20 || codePoint === 0x7f;
   });
 
-  // Reject path traversal attempts
-  if (name.includes("..") || path.isAbsolute(name) || name.startsWith("/")) {
-    return false;
-  }
-
-  // Reject problematic patterns
+  // Reject path traversal and problematic patterns. A POSIX absolute path
+  // starts with "/"; a Windows one holds "\\" or ":", both rejected below.
   if (
+    name.includes("..") ||
+    name.startsWith("/") ||
     name.includes("//") ||
     name.endsWith("/") ||
     name.endsWith(".") ||
     name.includes("\\") ||
     name.startsWith("-") ||
     name.includes("@{") ||
-    name.includes("..") ||
     hasControlCharacter ||
     /[~^:?*\[\]]/.test(name)
   ) {
@@ -682,8 +681,9 @@ export function resolveDefaultBranch(
   // implements REQ-012
   // Try to get the remote default branch from origin/HEAD. This is only
   // informational; attachment always follows the active Git branch.
+  let remoteHead: string | undefined;
   try {
-    const remoteHead = defaultDeps
+    remoteHead = defaultDeps
       .execSync("git symbolic-ref refs/remotes/origin/HEAD", {
         cwd,
         encoding: "utf8",
@@ -691,17 +691,15 @@ export function resolveDefaultBranch(
         stdio: ["pipe", "pipe", "pipe"],
       })
       .trim();
-
-    // Parse refs/remotes/origin/BRANCH_NAME -> BRANCH_NAME
-    const match = remoteHead.match(/^refs\/remotes\/origin\/(.+)$/);
-    if (match) {
-      const branch = match[1];
-      if (branch && isValidBranchName(branch)) {
-        return { branch };
-      }
-    }
   } catch {
     // origin/HEAD doesn't exist or command failed, fall through to fallback
+  }
+
+  // Parse refs/remotes/origin/BRANCH_NAME -> BRANCH_NAME. String(undefined)
+  // names no remote ref.
+  const match = /^refs\/remotes\/origin\/(.+)$/.exec(String(remoteHead));
+  if (match !== null && isValidBranchName(match[1] as string)) {
+    return { branch: match[1] as string };
   }
 
   return {

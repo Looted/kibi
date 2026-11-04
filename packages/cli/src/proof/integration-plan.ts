@@ -85,31 +85,29 @@ export type ProofIntegrationPlanResult = Readonly<{
   reason: string;
 }>;
 
-function readPackageJson(root: string): Record<string, unknown> | null {
+/**
+ * The parsed package.json, or null when it is missing or not JSON. It may be
+ * any JSON value: callers only read optional properties through `?.`, and a
+ * primitive or array has no string `scripts.test`.
+ */
+// rationale: an emptied catch returns undefined, which the `?.` reads in
+// packageTestCommand treat exactly like null.
+// Stryker disable BlockStatement
+function readPackageJson(
+  root: string,
+): { scripts?: { test?: unknown } | null } | null {
   try {
-    const parsed: unknown = JSON.parse(
-      readFileSync(path.join(root, "package.json"), "utf8"),
-    );
-    return parsed !== null &&
-      typeof parsed === "object" &&
-      !Array.isArray(parsed)
-      ? (parsed as Record<string, unknown>)
-      : null;
+    return JSON.parse(
+      readFileSync(path.join(root, "package.json")).toString(),
+    ) as { scripts?: { test?: unknown } | null } | null;
   } catch {
     return null;
   }
 }
+// Stryker restore BlockStatement
 
 function packageTestCommand(root: string): readonly string[] | null {
-  const pkg = readPackageJson(root);
-  const scripts =
-    pkg !== null &&
-    pkg.scripts !== null &&
-    typeof pkg.scripts === "object" &&
-    !Array.isArray(pkg.scripts)
-      ? (pkg.scripts as Record<string, unknown>)
-      : {};
-  const test = scripts.test;
+  const test = readPackageJson(root)?.scripts?.test;
   if (typeof test !== "string" || test.trim() === "") return null;
   if (NPM_PLACEHOLDER_TEST.test(test)) return null;
   const has = (file: string) => existsSync(path.join(root, file));
@@ -244,7 +242,9 @@ export function proposeProofIntegration(
     contractDefaults: {
       version: PROOF_CONTRACT_VERSION,
       integration: id,
-      required_proofs: [{ symbol_id: "SYM-<symbol the test proves>", target: "default" }],
+      required_proofs: [
+        { symbol_id: "SYM-<symbol the test proves>", target: "default" },
+      ],
       success_policy: "all_required_first_attempt",
     },
   };
@@ -317,11 +317,11 @@ export function buildProofIntegrationPlan(
     };
   }
   if (update !== undefined && readIntegrationsFile(root) === null)
-      return {
-        plan: null,
-        proposal: null,
-        reason: `${PROOF_INTEGRATIONS_PATH} is not a valid ${PROOF_INTEGRATION_VERSION} file, so Kibi cannot update one integration in it. Run kibi prove for the validation error.`,
-      };
+    return {
+      plan: null,
+      proposal: null,
+      reason: `${PROOF_INTEGRATIONS_PATH} is not a valid ${PROOF_INTEGRATION_VERSION} file, so Kibi cannot update one integration in it. Run kibi prove for the validation error.`,
+    };
   const proposal = proposeProofIntegration(root, update, options.command);
   if (proposal === null) {
     return {
@@ -348,7 +348,8 @@ export function buildProofIntegrationPlan(
       integration: proposal.integration,
       runner: proposal.runner,
       contractDefaults: proposal.contractDefaults,
-      previousFileHash: update === undefined ? null : fileHash(filePath),
+      // A create plan exists only while the file does not, so its hash is null.
+      previousFileHash: fileHash(filePath),
       sourceHashes: sourceHashes(root),
     },
     postconditions: [
@@ -436,6 +437,6 @@ export function applyProofIntegrationAction(
     );
   mkdirSync(path.dirname(filePath), { recursive: true });
   const temporary = `${filePath}.${process.pid}.tmp`;
-  writeFileSync(temporary, `${JSON.stringify(file, null, 2)}\n`, "utf8");
+  writeFileSync(temporary, `${JSON.stringify(file, null, 2)}\n`);
   renameSync(temporary, filePath);
 }

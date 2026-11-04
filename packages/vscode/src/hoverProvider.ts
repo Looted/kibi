@@ -47,7 +47,8 @@ interface HoverProviderDeps {
 }
 
 const defaultDeps: HoverProviderDeps = {
-  execCli: (cmd, opts) => execSync(cmd, opts) as string,
+  // With a string encoding in the options, execSync returns a string.
+  execCli: execSync as HoverProviderDeps["execCli"],
   buildMarkdown: (sym, ents) => buildHoverMarkdown(sym, ents),
 };
 

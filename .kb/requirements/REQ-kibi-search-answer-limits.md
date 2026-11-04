@@ -2,7 +2,7 @@
 title: Search answer size limits
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: A search answer shall be at most 16384 bytes. A search answer shall load at most 70 entity rows. A search answer shall list at most 5 governing requirements. A search answer shall list at most 8 linked facts per governing requirement. A search answer shall keep at most 280 characters of an ADR decision excerpt.
 semantic_clauses:
   - A search answer shall be at most 16384 bytes.
@@ -14,7 +14,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T11:10:10.309Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -64,6 +64,7 @@ logic_claims:
   - CLAIM-779D56CBE5452DFC
 id: REQ-kibi-search-answer-limits
 type: req
+required_evidence: tested
 ---
 A search answer shall be at most 16384 bytes. A search answer shall load at most 70 entity rows. A search answer shall list at most 5 governing requirements. A search answer shall list at most 8 linked facts per governing requirement. A search answer shall keep at most 280 characters of an ADR decision excerpt.
 

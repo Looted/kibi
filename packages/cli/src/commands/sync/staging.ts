@@ -99,7 +99,8 @@ export async function cleanupAbandonedStagingDirectories(
   const resolved = resolveDeps(deps);
   const stagingDir = path.dirname(stagingPath);
   const stagingBase = path.basename(stagingPath);
-  const match = /^(?<branch>.*)\.staging\.(?<pid>\d+)\.(?<timestamp>\d+)$/.exec(
+  // The greedy branch group starts the match at the beginning of the name.
+  const match = /(?<branch>.*)\.staging\.(?<pid>\d+)\.(?<timestamp>\d+)$/.exec(
     stagingBase,
   );
 
@@ -133,12 +134,7 @@ export async function cleanupAbandonedStagingDirectories(
       continue;
     }
 
-    const candidatePidText = candidateMatch[1];
-    if (!candidatePidText) {
-      continue;
-    }
-
-    const candidatePid = Number.parseInt(candidatePidText, 10);
+    const candidatePid = Number.parseInt(candidateMatch[1] as string, 10);
     if (
       !Number.isFinite(candidatePid) ||
       resolved.isProcessAlive(candidatePid)
@@ -300,6 +296,7 @@ export function atomicPublishGeneration(
   }
 
   let oldRdfMoved = false;
+  let rdfPublished = false;
   let oldCurrentMoved = false;
   try {
     if (resolved.existsSync(liveRdf)) {
@@ -307,6 +304,7 @@ export function atomicPublishGeneration(
       oldRdfMoved = true;
     }
     resolved.renameSync(stagedRdf, liveRdf);
+    rdfPublished = true;
 
     if (resolved.existsSync(liveCurrent)) {
       resolved.renameSync(liveCurrent, oldCurrent);
@@ -314,18 +312,15 @@ export function atomicPublishGeneration(
     }
     resolved.renameSync(stagedCurrent, liveCurrent);
   } catch (error) {
-    // Restore the old pointer/database whenever publication fails.  If the
-    // process itself crashes, ensureJournaledBranchStoreAsync performs the
-    // same recovery from the `.old.<stamp>` siblings.
+    // Undo only the moves that happened: a live database or pointer that was
+    // never moved aside is still the published one.  If the process itself
+    // crashes, ensureJournaledBranchStoreAsync performs the same recovery
+    // from the `.old.<stamp>` siblings.  Moving the staged pointer is the
+    // last step, so it never needs undoing.
     try {
-      if (resolved.existsSync(liveCurrent))
-        resolved.rmSync(liveCurrent, { force: true });
-      if (oldCurrentMoved && resolved.existsSync(oldCurrent))
-        resolved.renameSync(oldCurrent, liveCurrent);
-      if (resolved.existsSync(liveRdf))
-        resolved.rmSync(liveRdf, { recursive: true, force: true });
-      if (oldRdfMoved && resolved.existsSync(oldRdf))
-        resolved.renameSync(oldRdf, liveRdf);
+      if (oldCurrentMoved) resolved.renameSync(oldCurrent, liveCurrent);
+      if (rdfPublished) resolved.rmSync(liveRdf, { recursive: true });
+      if (oldRdfMoved) resolved.renameSync(oldRdf, liveRdf);
     } catch {
       // Preserve the original publication error; startup recovery will report
       // the remaining sibling paths if the rollback itself was interrupted.
@@ -333,10 +328,8 @@ export function atomicPublishGeneration(
     throw error;
   }
 
-  if (resolved.existsSync(oldRdf))
-    resolved.rmSync(oldRdf, { recursive: true, force: true });
-  if (resolved.existsSync(oldCurrent))
-    resolved.rmSync(oldCurrent, { force: true });
+  if (oldRdfMoved) resolved.rmSync(oldRdf, { recursive: true });
+  if (oldCurrentMoved) resolved.rmSync(oldCurrent);
 }
 
 export function cleanupStaging(

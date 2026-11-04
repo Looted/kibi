@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   captureReminder,
@@ -326,7 +327,11 @@ export async function runHook(
             initialState.mcpState,
             workspaceTrusted,
           );
-          return advisory ? { additional_context: advisory } : emptyResult();
+          // implements REQ-kibi-fresh-clone-setup
+          const context = [advisory, missingHooksNote(cwd)]
+            .filter((line): line is string => Boolean(line))
+            .join("\n");
+          return context ? { additional_context: context } : emptyResult();
         }
 
       case "preToolUse": {
@@ -503,11 +508,12 @@ export async function runHook(
             markDecisionFlag(session, "source-edited");
           }
         }
-        if (
-          kbToolCall?.toolName === "kb_upsert" ||
-          kbUsageTrace(input.toolName, input.toolInput)?.kbOperation ===
-            "kb_upsert"
-        ) {
+        // An MCP call is judged by its parsed name, under which a dry-run
+        // upsert is a validation; other calls by the CLI route they ran.
+        const kbOperation = kbToolCall
+          ? kbToolCall.toolName
+          : kbUsageTrace(input.toolName, input.toolInput)?.kbOperation;
+        if (kbOperation === "kb_upsert") {
           markDecisionFlag(session, "kb-recorded");
           // implements REQ-kibi-signoff-views
           if (isRequirementUpsert(input.toolInput)) {

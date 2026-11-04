@@ -1,7 +1,7 @@
 ---
 title: KB merge workflow resolves PRs with the base branch driver and a proof-checked merge
 status: open
-firmness: firm
+firmness: default
 priority: should
 tags:
   - ci
@@ -43,19 +43,20 @@ id: REQ-ci-kb-merge-resolution
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T09:39:38.707Z'
 semantic_clauses:
   - The Kibi KB merge workflow must build the merge driver from the base branch.
   - The Kibi KB merge workflow must not install the pull request branch dependencies before merging.
   - When the proof gate fails, the Kibi KB merge workflow must not push the merge.
+required_evidence: tested
 ---
 The Kibi KB merge workflow must build the merge driver from the base branch. The Kibi KB merge workflow must not install the pull request branch dependencies before merging. When the proof gate fails, the Kibi KB merge workflow must not push the merge.
 
 ## Context
 
-The workflow builds Kibi from the base branch and checks the pull request out beside it, so a branch made before `kibi merge-driver` existed still merges and its stale lockfile is never installed; a lockfile that no longer matches the merged manifests is refreshed in the merge commit. Before pushing, it runs `scripts/proof-gate.sh`, the same evidence-floor gate as the proof workflow and the pre-push hook.
+The workflow builds Kibi from the base branch and checks the pull request out beside it, so a branch made before `kibi merge-driver` existed still merges and its stale lockfile is never installed; a lockfile that no longer matches the merged manifests is refreshed in the merge commit. Before pushing, it compiles the merged KB with `kibi sync` (the branch store and the symbol-coordinate cache are never committed, so a fresh checkout has neither) and stops if sync would change a tracked file, then runs `scripts/proof-gate.sh`, the same evidence-floor gate as the proof workflow and the pre-push hook.
 
 ## Why this changed
 

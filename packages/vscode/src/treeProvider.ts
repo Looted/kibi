@@ -100,64 +100,46 @@ const ENTITY_TYPE_PREFIXES: Record<SupportedEntityType, string[]> = {
   symbol: ["SYM-"],
 };
 
-const ENTITY_TYPE_META: Record<
-  string,
-  { name: string; icon: string; plural: string }
-> = {
-  req: { name: "Requirements", icon: "list-ordered", plural: "req" },
-  scenario: { name: "Scenarios", icon: "file-text", plural: "scenario" },
-  test: { name: "Tests", icon: "check", plural: "test" },
-  adr: { name: "ADRs", icon: "book", plural: "adr" },
-  flag: { name: "Flags", icon: "flag", plural: "flag" },
-  event: { name: "Events", icon: "calendar", plural: "event" },
-  symbol: { name: "Symbols", icon: "symbol-class", plural: "symbol" },
+const ENTITY_TYPE_META: Record<string, { name: string; icon: string }> = {
+  req: { name: "Requirements", icon: "list-ordered" },
+  scenario: { name: "Scenarios", icon: "file-text" },
+  test: { name: "Tests", icon: "check" },
+  adr: { name: "ADRs", icon: "book" },
+  flag: { name: "Flags", icon: "flag" },
+  event: { name: "Events", icon: "calendar" },
+  symbol: { name: "Symbols", icon: "symbol-class" },
 };
 
-/** Relationship type → readable label */
+/** Relationship type → readable label; other types read as they are. */
 const REL_LABELS: Record<string, string> = {
   depends_on: "depends on",
   specified_by: "specified by",
   verified_by: "verified by",
-  validates: "validates",
-  implements: "implements",
   covered_by: "covered by",
   executable_for: "executable for",
   constrained_by: "constrained by",
-  guards: "guards",
-  publishes: "publishes",
-  consumes: "consumes",
   relates_to: "relates to",
 };
 
 /**
- * Returns true when the string looks like a local filesystem path
- * (starts with / or Windows drive letter, or file:// URI) rather than an http/https URL.
+ * The local file a `kb:source` names: a `file://` URI, or an absolute POSIX
+ * or Windows path that exists. Other sources (http/https URLs, relative
+ * text) have none.
  */
-function isLocalPath(src: string): boolean {
-  return (
-    src.startsWith("/") ||
-    /^[A-Za-z]:[\\/]/.test(src) ||
-    src.startsWith("file://")
-  );
-}
-
-function resolveLocalPath(
-  src: string,
-  workspaceRoot: string,
-): string | undefined {
-  if (!src) return undefined;
+function localSourcePath(src: string): string | undefined {
   if (src.startsWith("file://")) {
     try {
       return new URL(src).pathname;
     } catch {
-      return undefined;
+      // A malformed URI names no file.
     }
+  } else if (
+    (src.startsWith("/") || /^[A-Za-z]:[\\/]/.test(src)) &&
+    fs.existsSync(src)
+  ) {
+    return src;
   }
-  if (src.startsWith("/")) return fs.existsSync(src) ? src : undefined;
-  if (/^[A-Za-z]:[\\/]/.test(src)) return fs.existsSync(src) ? src : undefined;
-  // Relative path — resolve against workspace root
-  const resolved = path.resolve(workspaceRoot, src);
-  return fs.existsSync(resolved) ? resolved : undefined;
+  return undefined;
 }
 
 // implements REQ-vscode-traceability
@@ -200,21 +182,13 @@ export class KibiTreeDataProvider
       element.collapsibleState,
     );
 
-    if (element.description) {
-      treeItem.description = element.description;
-    }
-
+    if (element.description) treeItem.description = element.description;
     if (element.iconPath) {
       treeItem.iconPath = new vscode.ThemeIcon(element.iconPath);
     }
-
-    if (element.contextValue) {
-      treeItem.contextValue = element.contextValue;
-    }
-
-    if (element.tooltip) {
-      treeItem.tooltip = element.tooltip;
-    }
+    // Both default to undefined on a TreeItem.
+    treeItem.contextValue = element.contextValue as string;
+    treeItem.tooltip = element.tooltip;
 
     // Attach open-file command for entity nodes with a known local path
     if (element.localPath) {
@@ -288,32 +262,29 @@ export class KibiTreeDataProvider
   // implements REQ-vscode-traceability
   private async loadEntities(): Promise<void> {
     this.loaded = true;
-    this.entities = [];
-    this.relationships = [];
-    {
-      const { symbolsPath, coordinatesPath } = resolveSymbolsManifestPaths(
-        this.workspaceRoot,
-      );
-      this.symbolIndex = buildIndex(
-        symbolsPath,
-        this.workspaceRoot,
-        coordinatesPath,
-      );
-    }
+    const { symbolsPath, coordinatesPath } = resolveSymbolsManifestPaths(
+      this.workspaceRoot,
+    );
+    const symbolIndex = buildIndex(
+      symbolsPath,
+      this.workspaceRoot,
+      coordinatesPath,
+    );
+    this.symbolIndex = symbolIndex;
 
-    const fallbackData = await this.loadFallbackData();
+    const fallbackData = await this.loadFallbackData(symbolIndex);
     let rdfEntities: KbEntity[] = [];
     let rdfRelationships: KbRelationship[] = [];
 
     const rdfPath = await this.getKbRdfPath();
-    if (rdfPath) {
-      try {
-        const content = await fs.promises.readFile(rdfPath, "utf8");
-        rdfEntities = this.parseRdf(content);
-        rdfRelationships = this.parseRdfRelationships(content);
-      } catch {
-        // silently fail — fallback data still populates the tree
-      }
+    try {
+      // Without a kb.rdf the path is null, and reading it rejects as an
+      // unreadable file does.
+      const content = await fs.promises.readFile(rdfPath as string, "utf8");
+      rdfEntities = this.parseRdf(content);
+      rdfRelationships = this.parseRdfRelationships(content);
+    } catch {
+      // silently fail — fallback data still populates the tree
     }
 
     this.entities = this.mergeEntities(fallbackData.entities, rdfEntities);
@@ -336,38 +307,28 @@ export class KibiTreeDataProvider
     const blockRe =
       /<rdf:Description rdf:about="(?:(?:urn:kibi:)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
 
-    while (true) {
-      const match = blockRe.exec(content);
-      if (!match) break;
-
-      const id = match[1];
-      const block = match[2];
-      if (id === undefined || block === undefined) {
-        continue;
-      }
-
+    for (const match of content.matchAll(blockRe)) {
+      // Both groups are mandatory, and the id group is never empty.
+      const [, id, block] = match as unknown as [string, string, string];
       const type = this.extractText(block, "kb:type");
       const title = this.extractText(block, "kb:title");
       const status = this.extractResourceSuffix(block, "kb:status");
       const tags = this.extractText(block, "kb:tags");
       const source = this.extractText(block, "kb:source");
 
-      if (id && type && title) {
+      if (type && title) {
         const symbolEntry =
           type === "symbol" ? this.symbolIndex?.byId.get(id) : undefined;
-        const documentationPath = this.getDocumentationPathForEntity(id, type);
+        // Only symbols have a symbol source; documentation paths exist only
+        // for documentation types.
         const symbolSourcePath =
           symbolEntry?.sourceFile && fs.existsSync(symbolEntry.sourceFile)
             ? symbolEntry.sourceFile
             : undefined;
         const localPath =
-          type === "symbol" && symbolSourcePath
-            ? symbolSourcePath
-            : documentationPath
-              ? documentationPath
-              : isLocalPath(source)
-                ? resolveLocalPath(source, this.workspaceRoot)
-                : undefined;
+          symbolSourcePath ??
+          this.getDocumentationPathForEntity(id, type) ??
+          localSourcePath(source);
         entities.push({
           id,
           type,
@@ -385,22 +346,20 @@ export class KibiTreeDataProvider
   }
 
   /**
-   * Parse relationships from kb.rdf.
-   *
-   * Relationships are stored as inline property triples inside entity blocks:
+   * Parse relationships from kb.rdf: the inline property triples inside
+   * entity blocks, such as
    *   <kb:depends_on rdf:resource="urn:kibi:entity/REQ-002"/>
-   *
-   * This method extracts all such triples by scanning entity blocks.
    */
   // implements REQ-vscode-traceability
   private parseRdfRelationships(content: string): KbRelationship[] {
     return parseRdfRelationshipsFromRdf(content);
   }
 
+  // The capture group always participates in a match.
   private extractText(block: string, tag: string): string {
     const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
     const m = block.match(re);
-    return m?.[1]?.trim() ?? "";
+    return m ? (m[1] as string).trim() : "";
   }
 
   private extractResourceSuffix(block: string, tag: string): string {
@@ -408,7 +367,7 @@ export class KibiTreeDataProvider
       `<${tag}[^>]*rdf:resource="[^"]*\/([^"\/]+)"[^>]*\/?>`,
     );
     const m = block.match(re);
-    return m?.[1] ?? "";
+    return m ? (m[1] as string) : "";
   }
 
   // implements REQ-vscode-traceability
@@ -418,6 +377,7 @@ export class KibiTreeDataProvider
       : path.resolve(this.workspaceRoot, configuredPath);
   }
 
+  /** Existing documentation directories, by entity type. */
   // implements REQ-vscode-traceability
   private getDocumentationEntityDirs(): Partial<
     Record<DocumentationEntityType, string>
@@ -426,16 +386,13 @@ export class KibiTreeDataProvider
       return this.documentationEntityDirs;
     }
 
-    const dirs: Partial<Record<DocumentationEntityType, string>> = {};
-    for (const type of Object.keys(
-      CANONICAL_ENTITY_PATHS,
-    ) as DocumentationEntityType[]) {
-      const canonical = this.resolveConfiguredPath(
-        CANONICAL_ENTITY_PATHS[type],
-      );
-      if (fs.existsSync(canonical)) {
-        dirs[type] = canonical;
-      }
+    // No prototype: a type read from kb.rdf such as "constructor" must not
+    // resolve to an inherited member.
+    const dirs: Partial<Record<DocumentationEntityType, string>> =
+      Object.create(null);
+    for (const [type, relativeDir] of Object.entries(CANONICAL_ENTITY_PATHS)) {
+      const dir = this.resolveConfiguredPath(relativeDir);
+      if (fs.existsSync(dir)) dirs[type as DocumentationEntityType] = dir;
     }
 
     this.documentationEntityDirs = dirs;
@@ -460,19 +417,11 @@ export class KibiTreeDataProvider
     id: string,
     type?: string,
   ): string | undefined {
-    const inferredType =
-      type === "symbol"
-        ? undefined
-        : ((type as DocumentationEntityType | undefined) ??
-          this.inferEntityTypeFromId(id));
-
-    if (!inferredType || inferredType === "symbol") {
-      return undefined;
-    }
-
+    // Only documentation types have a directory; symbols and unknown
+    // types have none.
     const dir =
       this.getDocumentationEntityDirs()[
-        inferredType as DocumentationEntityType
+        (type ?? this.inferEntityTypeFromId(id)) as DocumentationEntityType
       ];
     if (!dir) {
       return undefined;
@@ -483,11 +432,11 @@ export class KibiTreeDataProvider
   }
 
   // implements REQ-vscode-traceability
-  private async loadFallbackData(): Promise<{
+  private async loadFallbackData(symbolIndex: SymbolIndex): Promise<{
     entities: KbEntity[];
     relationships: KbRelationship[];
   }> {
-    const symbolFallback = this.buildSymbolFallbackData();
+    const symbolFallback = this.buildSymbolFallbackData(symbolIndex);
     const documentationFallback = await this.loadDocumentationFallbackData();
 
     return {
@@ -503,44 +452,42 @@ export class KibiTreeDataProvider
   }
 
   // implements REQ-vscode-traceability
-  private buildSymbolFallbackData(): {
+  private buildSymbolFallbackData(symbolIndex: SymbolIndex): {
     entities: KbEntity[];
     relationships: KbRelationship[];
   } {
-    const entities: KbEntity[] = [];
-    const relationships: KbRelationship[] = [];
-
-    for (const symbol of this.symbolIndex?.byId.values() ?? []) {
-      const localPath =
-        symbol.sourceFile && fs.existsSync(symbol.sourceFile)
-          ? symbol.sourceFile
-          : undefined;
-      entities.push({
-        id: symbol.id,
-        type: "symbol",
-        title: symbol.title,
-        status: "active",
-        tags: "",
-        source: localPath
-          ? this.toWorkspaceRelativePath(localPath)
-          : path.relative(
-              this.workspaceRoot,
-              resolveSymbolsManifestPaths(this.workspaceRoot).symbolsPath,
-            ),
-        localPath,
-        sourceLine: symbol.sourceLine,
-      });
-
-      for (const linkId of symbol.links ?? []) {
-        relationships.push({
+    const symbols = [...symbolIndex.byId.values()];
+    return {
+      entities: symbols.map((symbol) => {
+        const localPath =
+          symbol.sourceFile && fs.existsSync(symbol.sourceFile)
+            ? symbol.sourceFile
+            : undefined;
+        return {
+          id: symbol.id,
+          type: "symbol",
+          title: symbol.title,
+          status: "active",
+          tags: "",
+          source: localPath
+            ? this.toWorkspaceRelativePath(localPath)
+            : path.relative(
+                this.workspaceRoot,
+                resolveSymbolsManifestPaths(this.workspaceRoot).symbolsPath,
+              ),
+          localPath,
+          sourceLine: symbol.sourceLine,
+        };
+      }),
+      // buildIndex gives every entry a links list.
+      relationships: symbols.flatMap((symbol) =>
+        (symbol.links as string[]).map((toId) => ({
           relType: "relates_to",
           fromId: symbol.id,
-          toId: linkId,
-        });
-      }
-    }
-
-    return { entities, relationships };
+          toId,
+        })),
+      ),
+    };
   }
 
   // implements REQ-vscode-traceability
@@ -548,31 +495,30 @@ export class KibiTreeDataProvider
     entities: KbEntity[];
     relationships: KbRelationship[];
   }> {
-    const entities: KbEntity[] = [];
-    const relationships: KbRelationship[] = [];
-
-    for (const [type, dir] of Object.entries(
-      this.getDocumentationEntityDirs(),
-    ) as Array<[DocumentationEntityType, string]>) {
-      const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-      const markdownFiles = entries
-        .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
-        .map((entry) => path.join(dir, entry.name));
-
-      const parsed = await Promise.all(
-        markdownFiles.map((filePath) =>
-          this.parseDocumentationEntity(filePath, type),
-        ),
-      );
-
-      for (const item of parsed) {
-        if (!item) continue;
-        entities.push(item.entity);
-        relationships.push(...item.relationships);
-      }
-    }
-
-    return { entities, relationships };
+    const perType = await Promise.all(
+      Object.entries(this.getDocumentationEntityDirs()).map(
+        async ([type, dir]) => {
+          const entries = await fs.promises.readdir(dir, {
+            withFileTypes: true,
+          });
+          return Promise.all(
+            entries
+              .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+              .map((entry) =>
+                this.parseDocumentationEntity(
+                  path.join(dir, entry.name),
+                  type as DocumentationEntityType,
+                ),
+              ),
+          );
+        },
+      ),
+    );
+    const parsed = perType.flat().filter((item) => item !== null);
+    return {
+      entities: parsed.map((item) => item.entity),
+      relationships: parsed.flatMap((item) => item.relationships),
+    };
   }
 
   // implements REQ-vscode-traceability
@@ -580,52 +526,49 @@ export class KibiTreeDataProvider
     filePath: string,
     type: DocumentationEntityType,
   ): Promise<{ entity: KbEntity; relationships: KbRelationship[] } | null> {
+    let content: string;
     try {
-      const content = await fs.promises.readFile(filePath, "utf8");
-      const frontmatter = this.parseFrontmatter(content);
-      const id = String(frontmatter.id ?? path.basename(filePath, ".md"));
-      const title = String(frontmatter.title ?? id);
-      const status = String(frontmatter.status ?? "active");
-      const source = String(
-        frontmatter.source ?? this.toWorkspaceRelativePath(filePath),
-      );
-
-      return {
-        entity: {
-          id,
-          type,
-          title,
-          status,
-          tags: this.normalizeTags(frontmatter.tags),
-          source,
-          localPath: filePath,
-        },
-        relationships: this.parseFrontmatterLinks(id, frontmatter.links),
-      };
+      content = await fs.promises.readFile(filePath, "utf8");
     } catch {
+      // A file removed or unreadable since it was listed is skipped.
       return null;
     }
+    const frontmatter = this.parseFrontmatter(content);
+    const id = String(frontmatter.id ?? path.basename(filePath, ".md"));
+    const title = String(frontmatter.title ?? id);
+    const status = String(frontmatter.status ?? "active");
+    const source = String(
+      frontmatter.source ?? this.toWorkspaceRelativePath(filePath),
+    );
+
+    return {
+      entity: {
+        id,
+        type,
+        title,
+        status,
+        tags: this.normalizeTags(frontmatter.tags),
+        source,
+        localPath: filePath,
+      },
+      relationships: this.parseFrontmatterLinks(id, frontmatter.links),
+    };
   }
 
   // implements REQ-vscode-traceability
   private parseFrontmatter(content: string): Record<string, unknown> {
     const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-    if (!match) {
-      return {};
-    }
-
+    let parsed: unknown;
     try {
-      const frontmatterText = match[1];
-      if (frontmatterText === undefined) {
-        return {};
-      }
-      const parsed = loadYaml(frontmatterText);
-      return parsed && typeof parsed === "object"
-        ? (parsed as Record<string, unknown>)
-        : {};
+      // Without frontmatter there is no match and indexing it throws, as
+      // malformed YAML does; both leave nothing parsed.
+      parsed = loadYaml((match as RegExpMatchArray)[1] as string);
     } catch {
-      return {};
+      // parsed stays undefined
     }
+    // Scalars have none of the fields read from it; only null/undefined
+    // need replacing.
+    return (parsed ?? {}) as Record<string, unknown>;
   }
 
   // implements REQ-vscode-traceability
@@ -661,7 +604,8 @@ export class KibiTreeDataProvider
         continue;
       }
 
-      if (!link || typeof link !== "object") {
+      // Other non-objects have no target and are dropped below.
+      if (!link) {
         continue;
       }
 
@@ -753,7 +697,7 @@ export class KibiTreeDataProvider
           children.length > 0
             ? vscode.TreeItemCollapsibleState.Collapsed
             : vscode.TreeItemCollapsibleState.None,
-        children: children.length > 0 ? children : [],
+        children,
       };
     });
   }
@@ -781,7 +725,7 @@ export class KibiTreeDataProvider
         ? this.formatLocationDescription(e.localPath, e.sourceLine)
         : undefined;
 
-    if (e.type === "symbol" && description) {
+    if (description) {
       tooltipLines.push(`Code: ${description}`);
       tooltipLines.push(
         "Click to open source code. Expand to browse linked entities.",
@@ -816,18 +760,10 @@ export class KibiTreeDataProvider
     const children: KibiTreeItem[] = [];
 
     for (const rel of this.relationships) {
-      let direction: "out" | "in" | null = null;
-      let otherId: string | null = null;
-
-      if (rel.fromId === entityId) {
-        direction = "out";
-        otherId = rel.toId;
-      } else if (rel.toId === entityId) {
-        direction = "in";
-        otherId = rel.fromId;
-      }
-
-      if (!otherId || !direction) continue;
+      const direction =
+        rel.fromId === entityId ? "out" : rel.toId === entityId ? "in" : null;
+      if (!direction) continue;
+      const otherId = direction === "out" ? rel.toId : rel.fromId;
 
       const other = entityIndex.get(otherId);
       const otherLabel = other ? `${otherId}: ${other.title}` : otherId;

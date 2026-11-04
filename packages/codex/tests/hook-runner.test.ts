@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
 import { captureReminder } from "kibi-agent-core/decision-guard";
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
 import {
@@ -118,6 +119,25 @@ describe("Codex hook runner workspace opt-in", () => {
     expect(
       await runHook({ event: "SessionStart", cwd }, { pluginData }),
     ).toEqual({ continue: true });
+  });
+
+  // implements REQ-kibi-fresh-clone-setup
+  test("SessionStart tells the agent when the checkout has no Kibi hooks", async () => {
+    const cwd = createTempRoot("kibi-codex-cwd-");
+    optInWorkspace(cwd);
+    spawnSync("git", ["init", "-q"], { cwd });
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(cwd, pluginData);
+
+    expect(
+      await runHook({ event: "SessionStart", cwd }, { pluginData }),
+    ).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: MISSING_HOOKS_NOTE,
+      },
+    });
   });
 
   test("PreToolUse keeps the direct .kb edit warning in opted-in workspaces", async () => {
@@ -882,6 +902,43 @@ describe("Codex decision guard", () => {
     });
     expect(stop.reason).not.toContain("recorded nothing");
     expect(stop.reason).toContain("kb_check(");
+  });
+
+  test("a dry-run MCP upsert is no record; a CLI upsert is", async () => {
+    const dryRun = session();
+    await dryRun({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    await dryRun({
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_upsert",
+      tool_input: { type: "req", dryRun: true },
+    });
+    const asked = await dryRun({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(asked.reason).toContain("recorded nothing");
+    expect(asked.reason).not.toContain("kibi signoff");
+
+    const cli = session();
+    await cli({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    await cli({
+      hook_event_name: "PostToolUse",
+      tool_name: "Bash",
+      tool_input: { command: "kibi upsert --input req.json" },
+    });
+    const quiet = await cli({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(quiet.reason).not.toContain("recorded nothing");
   });
 
   test("Stop continues once with a signoff request after a requirement is written", async () => {

@@ -575,6 +575,8 @@ if (RUN_NODE_TEST_SUITE) {
         for (const required of [
           ".gitignore",
           ".kb/manifest.json",
+          "AGENTS.md",
+          "CLAUDE.md",
           ".kb/schema/entities.pl",
           ".kb/schema/relationships.pl",
           ".kb/schema/validation.pl",
@@ -609,6 +611,19 @@ if (RUN_NODE_TEST_SUITE) {
             {
               id: "staged_file_ownership_missing",
               path: ".gitignore",
+              severity: "warning",
+              blocking: false,
+            },
+            // The agent instructions kibi init writes for fresh clones.
+            {
+              id: "staged_file_ownership_missing",
+              path: "AGENTS.md",
+              severity: "warning",
+              blocking: false,
+            },
+            {
+              id: "staged_file_ownership_missing",
+              path: "CLAUDE.md",
               severity: "warning",
               blocking: false,
             },

@@ -25,7 +25,6 @@ export function markErrorReported(error: unknown): void {
 
 // implements REQ-kibi-operation-interface-parity
 export function errorWasReported(error: unknown): boolean {
-  return (
-    typeof error === "object" && error !== null && reportedErrors.has(error)
-  );
+  // WeakSet#has answers false for primitives, so no type guard is needed.
+  return reportedErrors.has(error as object);
 }

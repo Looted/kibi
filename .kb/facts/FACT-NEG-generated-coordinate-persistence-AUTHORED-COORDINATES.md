@@ -3,7 +3,7 @@ status: active
 title: A kb_upsert caller authors sourceLine and sourceColumn on a symbol
 fact_kind: property_value
 subject_key: kibi.symbols.coordinates
-property_key: clause_01_symbol_source_coordinates_are_generated_compiler
+property_key: clause_01_callers_must_not_author_symbol_coordinate_fields_through_kb_
 operator: eq
 value_type: bool
 value_bool: false

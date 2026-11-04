@@ -17,7 +17,7 @@ claim_key: CLAIM-F05A72F2A40AD831
 claim_text: Predicate suggestions must route UI pattern prose to the UI predicates instead of coding standard rules
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:13:21.700Z'
 id: FACT-predicate-catalog-routes-ui-prose
 type: fact

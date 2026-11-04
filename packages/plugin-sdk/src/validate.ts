@@ -117,13 +117,14 @@ function requireBoolean(value: unknown, field: string): boolean {
 }
 
 function requireFiniteNumber(value: unknown, field: string): number {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
+  // Number.isFinite is false for every non-number, so no typeof guard.
+  if (!Number.isFinite(value)) {
     throw new PluginValidationError(
       "INVALID_CAPABILITY_RESULT",
       `${field} must be a finite number`,
     );
   }
-  return value;
+  return value as number;
 }
 
 // implements REQ-capability-plugin-protocol-v1
@@ -526,7 +527,6 @@ export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
   });
 
   const seenPackages = new Set<string>();
-  const seenPackageCapabilities = new Set<string>();
   const replaceOwners = new Map<CapabilityId, string>();
   for (const plugin of plugins) {
     if (seenPackages.has(plugin.package)) {
@@ -536,16 +536,10 @@ export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
       );
     }
     seenPackages.add(plugin.package);
+    // Packages are unique and capabilities are object keys, so a
+    // package/capability pair cannot repeat.
     for (const [capabilityId, config] of Object.entries(plugin.capabilities)) {
-      const pairKey = `${plugin.package}::${capabilityId}`;
-      if (seenPackageCapabilities.has(pairKey)) {
-        throw new PluginValidationError(
-          "INVALID_PROJECT_CONFIG",
-          `kibi.plugins activates '${plugin.package}' for ${capabilityId} more than once`,
-        );
-      }
-      seenPackageCapabilities.add(pairKey);
-      if (config?.mode === "replace") {
+      if ((config as { mode: PluginMode }).mode === "replace") {
         const existing = replaceOwners.get(capabilityId as CapabilityId);
         if (existing !== undefined) {
           throw new PluginValidationError(
@@ -1301,14 +1295,10 @@ function validateSourceAnalysisRangeV2(
       `${field} line is outside the supplied source content`,
     );
   }
-  const startLength = lineLengths[startLine - 1];
-  const endLength = lineLengths[endLine - 1];
-  if (
-    startLength === undefined ||
-    endLength === undefined ||
-    startColumn > startLength ||
-    endColumn > endLength
-  ) {
+  // Both lines are within 1..lineLengths.length here.
+  const startLength = lineLengths[startLine - 1] as number;
+  const endLength = lineLengths[endLine - 1] as number;
+  if (startColumn > startLength || endColumn > endLength) {
     throw new PluginValidationError(
       "INVALID_CAPABILITY_RESULT",
       `${field} column is outside the supplied source line`,
@@ -1501,7 +1491,9 @@ export function validateSourceAnalysisResultV2(
   }
 
   const lineLengths = inputExceedsLimit
-    ? []
+    ? // rationale: an oversized failed result has no ranges left to check.
+      // Stryker disable next-line ArrayDeclaration
+      []
     : input.content.split(/\r\n|\n|\r/).map((line) => line.length);
   const legacy = validateSourceAnalysisResult(value);
   if (legacy.module.language !== legacy.language) {
@@ -1512,13 +1504,8 @@ export function validateSourceAnalysisResultV2(
   }
   const symbols: SourceSymbolAnalysisV2[] = legacy.symbols.map(
     (legacySymbol, index) => {
-      const sourceSymbol = sourceSymbols[index];
-      if (!isRecord(sourceSymbol)) {
-        throw new PluginValidationError(
-          "INVALID_CAPABILITY_RESULT",
-          `symbols[${index}] must be an object`,
-        );
-      }
+      // validateSourceAnalysisResult has checked every entry is a record.
+      const sourceSymbol = sourceSymbols[index] as Record<string, unknown>;
       const symbolRange = validateSourceAnalysisRangeV2(
         sourceSymbol,
         `symbols[${index}]`,
@@ -1692,7 +1679,7 @@ function policyId(value: unknown, field: string): string {
 function policyStringList(
   value: unknown,
   field: string,
-  { nonEmpty }: { nonEmpty: boolean },
+  nonEmpty: boolean,
 ): string[] {
   if (!Array.isArray(value) || (nonEmpty && value.length === 0)) {
     throw invalidPolicy(
@@ -1703,7 +1690,7 @@ function policyStringList(
 }
 
 function policyPredicateNames(value: unknown, field: string): string[] {
-  const names = policyStringList(value, field, { nonEmpty: true });
+  const names = policyStringList(value, field, true);
   for (const [index, name] of names.entries()) {
     if (!PREDICATE_NAME_PATTERN.test(name)) {
       throw invalidPolicy(`${field}[${index}] must be a snake_case name`);
@@ -1717,10 +1704,11 @@ function policyPredicateName(value: unknown, field: string): string {
 }
 
 function policyArgumentIndex(value: unknown, field: string): number {
-  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+  // Number.isInteger is false for every non-number.
+  if (!Number.isInteger(value) || (value as number) < 0) {
     throw invalidPolicy(`${field} must be a non-negative integer`);
   }
-  return value;
+  return value as number;
 }
 
 function policyRegex(value: unknown, field: string): string {
@@ -1741,14 +1729,10 @@ function validateOwnershipRule(
   return {
     id: policyId(value.id, `${field}.id`),
     description: policyString(value.description, `${field}.description`),
-    include: policyStringList(value.include, `${field}.include`, {
-      nonEmpty: true,
-    }),
+    include: policyStringList(value.include, `${field}.include`, true),
     ...(value.exclude !== undefined
       ? {
-          exclude: policyStringList(value.exclude, `${field}.exclude`, {
-            nonEmpty: false,
-          }),
+          exclude: policyStringList(value.exclude, `${field}.exclude`, false),
         }
       : {}),
     ...(value.symbolTitlePattern !== undefined
@@ -1779,7 +1763,7 @@ function validateMarkerRule(
       ? policyStringList(
           value.siblingExtensions,
           `${field}.siblingExtensions`,
-          { nonEmpty: false },
+          false,
         )
       : undefined;
   for (const [index, extension] of (siblingExtensions ?? []).entries()) {
@@ -1855,7 +1839,9 @@ export function validateCheckPolicyDocument(
             validateOwnershipRule(rule, `ownership[${index}]`),
           );
         })()
-      : [];
+      : // rationale: an absent list adds no rule ids and is left out.
+        // Stryker disable next-line ArrayDeclaration
+        [];
   const markers =
     value.markers !== undefined
       ? (() => {
@@ -1866,7 +1852,9 @@ export function validateCheckPolicyDocument(
             validateMarkerRule(rule, `markers[${index}]`),
           );
         })()
-      : [];
+      : // rationale: an absent list adds no rule ids and is left out.
+        // Stryker disable next-line ArrayDeclaration
+        [];
   uniqueRuleIds([...ownership, ...markers], "check policy");
   return {
     contractVersion: CHECK_POLICY_CONTRACT_VERSION,

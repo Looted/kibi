@@ -1,16 +1,18 @@
 import assert from "node:assert";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
   type Tarballs,
   type TestSandbox,
   checkPrologAvailable,
+  createInventoriedRequirement,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
   parseKibiResult,
+  run,
 } from "./helpers.js";
 
 const RUN_NODE_TEST_SUITE =
@@ -272,6 +274,68 @@ Service must retain audit records.
   );
 }
 
+// A requirement that pins semantic_text is modeled and proved from that text
+// alone, so the staged gate refuses a body edit that changes the statement
+// without restating it, and lets a context-only edit through.
+async function packedGateRejectsBodyEditBehindPinnedText(sandbox: TestSandbox) {
+  const statement = "Service must retain audit records.";
+  const path = ".kb/requirements/pinned.md";
+  await createInventoriedRequirement(
+    sandbox,
+    path,
+    {
+      id: "REQ-PINNED",
+      title: "Retain audit records",
+      type: "req",
+      status: "open",
+      semantic_text: statement,
+    },
+    `${statement}\n\n## Context\n\nAudit records support incident reviews after a security event.`,
+  );
+  const committed = await run(
+    "git",
+    ["commit", "--no-verify", "-m", "add pinned requirement"],
+    { cwd: sandbox.repoDir, env: sandbox.env },
+  );
+  assert.strictEqual(committed.exitCode, 0, committed.stderr);
+
+  const fullPath = join(sandbox.repoDir, path);
+  const original = readFileSync(fullPath, "utf8");
+  const stage = async (content: string) => {
+    writeFileSync(fullPath, content, "utf8");
+    const added = await run("git", ["add", "--", path], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
+    assert.strictEqual(added.exitCode, 0, added.stderr);
+    return kibi(sandbox, ["check", "--staged"]);
+  };
+
+  const reworded = await stage(
+    original.replace(
+      `\n${statement}\n`,
+      "\nService must retain audit records for seven years.\n",
+    ),
+  );
+  const rewordedText = `${reworded.stdout}${reworded.stderr}`;
+  assert.notStrictEqual(reworded.exitCode, 0, rewordedText);
+  assert.match(
+    rewordedText,
+    /REQ-PINNED .*the body's statement changed but the pinned semantic_text did not/,
+  );
+
+  const contextOnly = await stage(
+    original.replace(
+      "after a security event.",
+      "after a security event and during yearly audits.",
+    ),
+  );
+  assert.doesNotMatch(
+    `${contextOnly.stdout}${contextOnly.stderr}`,
+    /pinned semantic_text did not/,
+  );
+}
+
 if (RUN_NODE_TEST_SUITE) {
   describe("E2E: proposition-complete requirement ingestion", () => {
     let tarballs: Tarballs;
@@ -302,6 +366,14 @@ if (RUN_NODE_TEST_SUITE) {
         return;
       }
       await packedCliEnforcesPropositionCompleteIngestion(sandbox);
+    });
+
+    it("refuses a staged body edit that leaves pinned semantic_text behind", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      await packedGateRejectsBodyEditBehindPinnedText(sandbox);
     });
   });
 }

@@ -19,103 +19,63 @@ import { splitTopLevel } from "kibi-runtime";
 
 // implements REQ-002
 export function parseAtomList(raw: string): string[] {
-  const trimmed = raw.trim();
-  if (trimmed === "[]" || trimmed.length === 0) {
-    return [];
-  }
-
-  const content = unwrapList(trimmed);
-  if (content.length === 0) {
-    return [];
-  }
-
-  return splitTopLevel(content, ",")
+  // An empty list ("[]" or blank) splits into one empty token, which the
+  // filter drops, so it needs no early return.
+  return splitTopLevel(unwrapList(raw.trim()), ",")
     .map((token) => stripQuotes(token.trim()))
     .filter((token) => token.length > 0);
 }
 
 // implements REQ-002
 export function parsePairList(raw: string): Array<[string, string]> {
-  const rows = parseListRows(raw);
   const pairs: Array<[string, string]> = [];
-
-  for (const row of rows) {
+  for (const row of listRows(raw)) {
     const parts = splitTopLevel(row, ",").map((part) =>
       stripQuotes(part.trim()),
     );
     if (parts.length >= 2) {
-      const first = parts[0];
-      const second = parts[1];
-      if (first !== undefined && second !== undefined) {
-        pairs.push([first, second]);
-      }
+      pairs.push([parts[0] as string, parts[1] as string]);
     }
   }
-
   return pairs;
 }
 
-function parseListRows(raw: string): string[] {
-  const trimmed = raw.trim();
-  if (trimmed === "[]" || trimmed.length === 0) {
-    return [];
-  }
-
-  const content = unwrapList(trimmed);
-  if (content.length === 0) {
-    return [];
-  }
-
-  const rows: string[] = [];
+/**
+ * The inner lists of a list of lists. Whitespace around a row is left in
+ * place: every part of a row is trimmed when it is split.
+ */
+function* listRows(raw: string): Generator<string> {
   let depth = 0;
   let current = "";
-
-  for (let i = 0; i < content.length; i++) {
-    const ch = content[i];
+  for (const ch of unwrapList(raw.trim())) {
     if (ch === "[") {
       depth++;
-      if (depth > 1) {
-        current += ch;
-      }
-      continue;
-    }
-
-    if (ch === "]") {
+      if (depth > 1) current += ch;
+    } else if (ch === "]") {
       depth--;
       if (depth === 0) {
-        rows.push(current.trim());
+        yield current;
         current = "";
       } else {
         current += ch;
       }
-      continue;
+    } else if (ch !== "," || depth !== 0) {
+      current += ch;
     }
-
-    if (ch === "," && depth === 0) {
-      continue;
-    }
-
-    current += ch;
   }
-
-  return rows;
 }
 
 function unwrapList(value: string): string {
-  if (value.startsWith("[") && value.endsWith("]")) {
-    return value.slice(1, -1).trim();
-  }
-  return value;
+  return value.startsWith("[") && value.endsWith("]")
+    ? value.slice(1, -1)
+    : value;
 }
 
 function stripQuotes(value: string): string {
-  if (value.startsWith("'") && value.endsWith("'")) {
-    return value.slice(1, -1);
+  for (const quote of ["'", '"']) {
+    if (value.startsWith(quote) && value.endsWith(quote)) {
+      return value.slice(1, -1);
+    }
   }
-
-  if (value.startsWith('"') && value.endsWith('"')) {
-    return value.slice(1, -1);
-  }
-
   return value;
 }

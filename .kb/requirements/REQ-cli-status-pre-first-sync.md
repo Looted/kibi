@@ -44,10 +44,12 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "A capability claim: kibi status works right after init. Its opposite is only that the feature is missing."
 failure_side_waiver_approved_by: Piotr Franczyk
+firmness: default
+required_evidence: tested
 ---
 
 Kibi CLI must support `status` command immediately after `kibi init`, providing essential metadata about the repository's KB state even before the first `kibi sync` has been performed. This enables tools and agents to discover the KB presence and status programmatically in a fresh environment.

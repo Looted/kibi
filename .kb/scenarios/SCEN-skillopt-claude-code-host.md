@@ -8,7 +8,7 @@ tags:
 expects: success
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+  ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
   recorded_at: '2026-10-05T23:48:41.587Z'
 id: SCEN-skillopt-claude-code-host
 type: scenario

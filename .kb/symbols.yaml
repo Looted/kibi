@@ -248,6 +248,8 @@ symbols:
         target: TEST-e2e-kibi-env-bootstrap
       - type: covered_by
         target: TEST-engine-daemon-package-versions
+      - type: covered_by
+        target: TEST-kibi-release-version
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
@@ -260,6 +262,8 @@ symbols:
         target: REQ-engine-daemon-package-versions
       - type: implements
         target: REQ-kibi-env-bootstrap
+      - type: implements
+        target: REQ-kibi-release-version
       - type: implements
         target: REQ-legacy-kb-first-step-migrate
   - id: SYM-kibi-check-diagnostic
@@ -2319,8 +2323,12 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-release-version
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-kibi-release-version
   - id: SYM-activate
     title: activate
     sourceFile: packages/vscode/src/extension.ts
@@ -3436,9 +3444,13 @@ symbols:
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
+        target: TEST-kibi-release-version
+      - type: covered_by
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-release-version
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-command-result-type
@@ -4191,11 +4203,19 @@ symbols:
     title: persistRelationships
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     granularity_reason: legacy-link
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T11:17:51.870Z
     relationships:
-      - type: implements
-        target: REQ-core-persistence
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-sync-relationship-retry
+      - type: implements
+        target: REQ-core-persistence
+      - type: implements
+        target: REQ-sync-relationship-retry
   - id: SYM-cli-prepare-operation-input
     title: prepareOperationInput
     status: active
@@ -10124,7 +10144,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-proof-bundled-skill-catalog
+      - type: covered_by
         target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-kibi-bundled-skill-catalog
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-loadBundledSkill
@@ -50433,7 +50457,7 @@ symbols:
     granularity_reason: test-suite
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:05:48.622Z
     relationships:
       - type: executable_for
@@ -50445,7 +50469,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:05:55.669Z
     relationships:
       - type: covered_by
@@ -50461,7 +50485,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:02.962Z
     relationships:
       - type: covered_by
@@ -50477,7 +50501,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:10.428Z
     relationships:
       - type: covered_by
@@ -50493,7 +50517,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:17.441Z
     relationships:
       - type: covered_by
@@ -50509,7 +50533,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:24.411Z
     relationships:
       - type: covered_by
@@ -50525,7 +50549,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:31.215Z
     relationships:
       - type: covered_by
@@ -50541,7 +50565,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:38.330Z
     relationships:
       - type: covered_by
@@ -50557,7 +50581,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
       recorded_at: 2026-10-05T22:06:44.589Z
     relationships:
       - type: covered_by
@@ -50573,7 +50597,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks'
+      ref: 'Maintainer request, 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks'
       recorded_at: 2026-10-05T23:49:05.551Z
     relationships:
       - type: covered_by
@@ -50590,7 +50614,7 @@ symbols:
     granularity_reason: test-suite
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:22:46.550Z
     relationships:
       - type: executable_for
@@ -50602,7 +50626,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:22:52.206Z
     relationships:
       - type: covered_by
@@ -50616,7 +50640,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:22:57.435Z
     relationships:
       - type: covered_by
@@ -50630,7 +50654,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:23:03.655Z
     relationships:
       - type: covered_by
@@ -50644,7 +50668,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:23:09.932Z
     relationships:
       - type: covered_by
@@ -50658,7 +50682,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:23:15.811Z
     relationships:
       - type: covered_by
@@ -50672,7 +50696,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
       recorded_at: 2026-10-06T00:23:21.964Z
     relationships:
       - type: covered_by
@@ -50941,7 +50965,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:20.161Z
     sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
     symbol_role: behavioral
@@ -50957,7 +50981,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:28.035Z
     sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
     symbol_role: behavioral
@@ -50973,7 +50997,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:35.219Z
     sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
     symbol_role: behavioral
@@ -50987,7 +51011,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:41.464Z
     sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
     symbol_role: behavioral
@@ -51001,7 +51025,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T22:18:56.380Z
     sourceFile: packages/cli/src/operations/mutation/stored-entity.ts
     symbol_role: behavioral
@@ -51015,7 +51039,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:47.862Z
     sourceFile: packages/core/schema/validation.pl
     symbol_role: behavioral
@@ -51030,7 +51054,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:41:54.053Z
     sourceFile: packages/cli/tests/consumer/upsert-review-lanes.test.ts
     symbol_role: behavioral
@@ -51577,7 +51601,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:14:12.292Z
     relationships:
       - type: executable_for
@@ -51592,7 +51616,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:51.996Z
     relationships:
       - type: executable_for
@@ -51607,7 +51631,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:12:56.709Z
     relationships:
       - type: executable_for
@@ -51619,7 +51643,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:12:59.818Z
     relationships:
       - type: covered_by
@@ -51633,7 +51657,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:03.255Z
     relationships:
       - type: covered_by
@@ -51647,7 +51671,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:06.670Z
     relationships:
       - type: covered_by
@@ -51661,7 +51685,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:10.485Z
     relationships:
       - type: covered_by
@@ -51676,7 +51700,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:24.666Z
     relationships:
       - type: executable_for
@@ -51688,7 +51712,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:28.085Z
     relationships:
       - type: covered_by
@@ -51703,7 +51727,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:35.942Z
     relationships:
       - type: executable_for
@@ -51715,7 +51739,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:38.086Z
     relationships:
       - type: covered_by
@@ -51729,7 +51753,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:40.574Z
     relationships:
       - type: covered_by
@@ -51744,7 +51768,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:48.596Z
     relationships:
       - type: executable_for
@@ -51756,7 +51780,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:55.064Z
     relationships:
       - type: covered_by
@@ -51770,7 +51794,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:13:58.722Z
     relationships:
       - type: covered_by
@@ -51785,7 +51809,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:14:08.483Z
     relationships:
       - type: executable_for
@@ -51797,7 +51821,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      ref: 'Maintainer request, 2026-10-09: UI design plugin'
       recorded_at: 2026-10-09T12:14:15.195Z
     relationships:
       - type: covered_by
@@ -53474,6 +53498,45 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-staged-inventory-drift-STAGED_STATEMENT_DRIFT_RULE
+    title: STAGED_STATEMENT_DRIFT_RULE
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-inventory-drift.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T10:45:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-staged-inventory-drift-StagedStatementDriftViolation
+    title: StagedStatementDriftViolation
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-inventory-drift.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T10:45:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-staged-inventory-drift-stagedStatementDriftViolations
+    title: stagedStatementDriftViolations
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-inventory-drift.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T10:45:00.000Z
     relationships:
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
@@ -66621,3 +66684,1380 @@ symbols:
         target: TEST-kibi-tree-sitter-script-references
       - type: implements
         target: REQ-kibi-tree-sitter-script-references
+  - id: SYM-test-sync-relationship-retry
+    title: retriesRelationshipOnceTargetIsAdded
+    status: active
+    sourceFile: packages/cli/tests/commands/sync.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T11:17:46.561Z
+    relationships:
+      - type: executable_for
+        target: TEST-sync-relationship-retry
+  - id: SYM-proof-bundled-skill-catalog
+    title: canonicalSkillCatalogCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/skill-catalog.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T10:48:40.140Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-bundled-skill-catalog
+  - id: SYM-kibi-fresh-clone-setup-verifier
+    title: Fresh-clone setup verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/fresh-clone-setup.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:27:07.095Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-agent-instructions-result
+    title: AgentInstructionsResult
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:05.922Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-agents-file
+    title: AGENTS_FILE
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:11.403Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-claude-file
+    title: CLAUDE_FILE
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:16.557Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-claude-import-section
+    title: CLAUDE_IMPORT_SECTION
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:21.407Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-instruction-file-result
+    title: InstructionFileResult
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:26.304Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-kibi-agent-instructions
+    title: KIBI_AGENT_INSTRUCTIONS
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:31.434Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-kibi-instructions-begin
+    title: KIBI_INSTRUCTIONS_BEGIN
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:36.102Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-kibi-instructions-end
+    title: KIBI_INSTRUCTIONS_END
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:41.232Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-managed-section-state
+    title: managedSectionState
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:46.351Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-report-agent-instructions
+    title: reportAgentInstructions
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:51.437Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-upsert-managed-section
+    title: upsertManagedSection
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:50:56.572Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-agent-instructions-write-agent-instructions
+    title: writeAgentInstructions
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:01.621Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-auto-compile-auto-compile-outcome
+    title: AutoCompileOutcome
+    status: active
+    sourceFile: packages/cli/src/utils/auto-compile.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:07.061Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-auto-compile-ensure-branch-store-compiled
+    title: ensureBranchStoreCompiled
+    status: active
+    sourceFile: packages/cli/src/utils/auto-compile.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:13.567Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-checkout-hooks-has-kibi-pre-commit-gate
+    title: hasKibiPreCommitGate
+    status: active
+    sourceFile: packages/agent-core/src/checkout-hooks.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:19.814Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-checkout-hooks-kibi-hooks-missing
+    title: kibiHooksMissing
+    status: active
+    sourceFile: packages/agent-core/src/checkout-hooks.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:24.986Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-checkout-hooks-missing-hooks-note-text
+    title: MISSING_HOOKS_NOTE
+    status: active
+    sourceFile: packages/agent-core/src/checkout-hooks.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:30.807Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-checkout-hooks-missing-hooks-note
+    title: missingHooksNote
+    status: active
+    sourceFile: packages/agent-core/src/checkout-hooks.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:36.341Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-doctor-doctor-failure-category
+    title: doctorFailureCategory
+    status: active
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:41.622Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: implements
+        target: REQ-kibi-anonymous-usage-telemetry
+  - id: SYM-github-init-github-check-workflow-relpath
+    title: GITHUB_CHECK_WORKFLOW_RELPATH
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:48.563Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-github-init-scaffold-check-workflow
+    title: scaffoldCheckWorkflow
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:53.949Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-hooks-install-has-kibi-prepare-script
+    title: hasKibiPrepareScript
+    status: active
+    sourceFile: packages/cli/src/commands/hooks-install.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:51:59.506Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-hooks-install-hooks-install-command
+    title: hooksInstallCommand
+    status: active
+    sourceFile: packages/cli/src/commands/hooks-install.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:05.402Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-hooks-install-hooks-install-outcome
+    title: HooksInstallOutcome
+    status: active
+    sourceFile: packages/cli/src/commands/hooks-install.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:11.006Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-hooks-install-kibi-prepare-command
+    title: KIBI_PREPARE_COMMAND
+    status: active
+    sourceFile: packages/cli/src/commands/hooks-install.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:17.383Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-hooks-install-prepare-script-result
+    title: PrepareScriptResult
+    status: active
+    sourceFile: packages/cli/src/commands/hooks-install.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:23.634Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-hooks-install-sync-prepare-script
+    title: syncPrepareScript
+    status: active
+    sourceFile: packages/cli/src/commands/hooks-install.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:29.745Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-init-helpers-is-repository-managed-hooks-dir
+    title: isRepositoryManagedHooksDir
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:35.340Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-effective-install
+      - type: implements
+        target: REQ-git-hook-effective-install
+  - id: SYM-setup-choices-auto-sync-enabled
+    title: autoSyncEnabled
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:41.850Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-default-setup-choices
+    title: DEFAULT_SETUP_CHOICES
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:47.368Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-read-setup-choices
+    title: readSetupChoices
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:53.053Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-resolved-setup-choices
+    title: ResolvedSetupChoices
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:52:58.372Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-serialize-json
+    title: serializeJson
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:03.570Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-setup-choice-name
+    title: SetupChoiceName
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:08.308Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-setup-choice-names
+    title: SETUP_CHOICE_NAMES
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:13.418Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-setup-choices-source
+    title: SetupChoicesSource
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:19.326Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-setup-choices
+    title: SetupChoices
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:25.036Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-setup-file
+    title: SETUP_FILE
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:30.019Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-setup-choices-write-setup-choices
+    title: writeSetupChoices
+    status: active
+    sourceFile: packages/cli/src/commands/setup-choices.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T15:53:35.180Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-kibi-fresh-clone-setup
+  - id: SYM-test-kibi-telemetry-expected-outcomes-cli
+    title: kibi CLI telemetry outcomes end-to-end suite
+    status: active
+    sourceFile: packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:08.014Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+  - id: SYM-agent-core-usage-telemetry-telemetryoutcome
+    title: telemetryOutcome
+    status: active
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:15.277Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-agent-core-usage-telemetry-telemetryerrorclass
+    title: telemetryErrorClass
+    status: active
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:21.687Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-cli-errors-kbrejection
+    title: KbRejection
+    status: active
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:27.919Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-cli-errors-prefixedfailure
+    title: prefixedFailure
+    status: active
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:33.792Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-cli-usage-telemetry-noteclithrownerror
+    title: noteCliThrownError
+    status: active
+    sourceFile: packages/cli/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:39.962Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-cli-contradictions-upsertfailure
+    title: upsertFailure
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T13:39:46.601Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-expected-outcomes
+  - id: SYM-agent-core-telemetry-signals-countbucket
+    title: countBucket
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:22:50.132Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-telemetry-signals-telemetryfield
+    title: telemetryField
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:22:59.623Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-telemetry-signals-telemetryrule
+    title: telemetryRule
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:23:08.034Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-telemetry-signals-telemetrycrash
+    title: telemetryCrash
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:23:15.809Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-telemetry-signals-kibiskillload
+    title: kibiSkillLoad
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:23:24.697Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-telemetry-signals-recalloperation
+    title: recallOperation
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:23:33.451Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-telemetry-signals-rememberskillload
+    title: rememberSkillLoad
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:23:42.887Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-usage-telemetry-remembertelemetryskillload
+    title: rememberTelemetrySkillLoad
+    status: active
+    sourceFile: packages/agent-core/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:23:51.867Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-agent-core-hook-usage-log-skillloadtrace
+    title: skillLoadTrace
+    status: active
+    sourceFile: packages/agent-core/src/hook-usage-log.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:24:01.301Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-cli-telemetry-details-operationtelemetrysignals
+    title: operationTelemetrySignals
+    status: active
+    sourceFile: packages/cli/src/telemetry-details.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:24:10.680Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-cli-telemetry-details-schemaissues
+    title: schemaIssues
+    status: active
+    sourceFile: packages/cli/src/telemetry-details.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:24:20.426Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-cli-telemetry-details-schemafieldpath
+    title: schemaFieldPath
+    status: active
+    sourceFile: packages/cli/src/telemetry-details.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:24:29.410Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-cli-telemetry-details-kibischemafieldnames
+    title: kibiSchemaFieldNames
+    status: active
+    sourceFile: packages/cli/src/telemetry-details.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:24:39.063Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-cli-usage-telemetry-noteclioperationcall
+    title: noteCliOperationCall
+    status: active
+    sourceFile: packages/cli/src/usage-telemetry.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-03T14:24:48.282Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-test-kibi-release-version-script
+    title: Kibi release script suite
+    status: active
+    sourceFile: scripts/tests/kibi-release.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T05:50:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-release-version
+  - id: SYM-test-kibi-release-version-cli
+    title: Kibi release CLI and doctor suite
+    status: active
+    sourceFile: packages/cli/tests/kibi-release.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T05:50:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-release-version
+  - id: SYM-test-kibi-release-version-mcp
+    title: Kibi release MCP title suite
+    status: active
+    sourceFile: packages/mcp/tests/kibi-release.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T05:50:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-release-version
+  - id: SYM-cli-kibi-release-kibi-release-manifest
+    title: KibiReleaseManifest
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-kibi-release-kibi-release-mismatch
+    title: KibiReleaseMismatch
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-kibi-release-parse-kibi-release-manifest
+    title: parseKibiReleaseManifest
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-kibi-release-read-kibi-release
+    title: readKibiRelease
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-kibi-release-matches-listed-version
+    title: matchesListedVersion
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-kibi-release-release-mismatches
+    title: releaseMismatches
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-kibi-release-format-version-line
+    title: formatVersionLine
+    status: active
+    sourceFile: packages/cli/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-doctor-check-kibi-release
+    title: checkKibiRelease
+    status: active
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-package-versions-cli-version
+    title: cliVersion
+    status: active
+    sourceFile: packages/cli/src/package-versions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-daemon-package-versions
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-engine-daemon-package-versions
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-built-package-versions
+    title: KIBI_BUILT_PACKAGE_VERSIONS
+    status: active
+    sourceFile: packages/cli/src/package-versions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-daemon-package-versions
+      - type: implements
+        target: REQ-engine-daemon-package-versions
+  - id: SYM-cli-is-closed-output-error
+    title: isClosedOutputError
+    status: active
+    sourceFile: packages/cli/src/cli.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-mcp-kibi-release-for-mcp
+    title: kibiReleaseForMcp
+    status: active
+    sourceFile: packages/mcp/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-mcp-server-title
+    title: mcpServerTitle
+    status: active
+    sourceFile: packages/mcp/src/kibi-release.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T06:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-release-version
+      - type: implements
+        target: REQ-kibi-release-version
+  - id: SYM-cli-update-check-update-cache-file
+    title: UPDATE_CACHE_FILE
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:12.907Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-check-interval-ms
+    title: UPDATE_CHECK_INTERVAL_MS
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:19.326Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-notice-interval-ms
+    title: UPDATE_NOTICE_INTERVAL_MS
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:25.382Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-fetch-timeout-ms
+    title: UPDATE_FETCH_TIMEOUT_MS
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:31.764Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-default-npm-registry
+    title: DEFAULT_NPM_REGISTRY
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:38.578Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-cache
+    title: UpdateCache
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:45.323Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-check-off-reason
+    title: updateCheckOffReason
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:52.620Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-cache-path
+    title: updateCachePath
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:59.660Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-read-update-cache
+    title: readUpdateCache
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:06.519Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-write-update-cache
+    title: writeUpdateCache
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:13.397Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-is-newer-release
+    title: isNewerRelease
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:20.213Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-check-due
+    title: updateCheckDue
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:27.168Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-install-command
+    title: updateInstallCommand
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:33.679Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-format-update-notice
+    title: formatUpdateNotice
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:40.329Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-registry-url
+    title: registryUrl
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:47.102Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-parse-latest-manifest
+    title: parseLatestManifest
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:53.067Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-refresh-update-cache
+    title: refreshUpdateCache
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:59.730Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-spawn-update-refresh
+    title: spawnUpdateRefresh
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:06.690Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-command-context
+    title: UpdateCommandContext
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:13.903Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-has-machine-output
+    title: hasMachineOutput
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:21.040Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-track-update-command
+    title: trackUpdateCommand
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:28.063Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-finish-update-check
+    title: finishUpdateCheck
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:34.676Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-doctor-result
+    title: UpdateDoctorResult
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:40.834Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-check-kibi-updates
+    title: checkKibiUpdates
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:47.688Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-test-kibi-update-notice-cli
+    title: Kibi update notice suite
+    status: active
+    sourceFile: packages/cli/tests/update-check.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:57.258Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-update-notice
+  - id: SYM-cli-update-check-run-update-refresh-entrypoint
+    title: runUpdateRefreshEntrypoint
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:49:27.421Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-refresh-argument
+    title: UPDATE_REFRESH_ARGUMENT
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:49:34.047Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice

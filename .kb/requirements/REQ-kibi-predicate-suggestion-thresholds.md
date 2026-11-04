@@ -5,10 +5,10 @@ semantic_text: The applicability threshold shall be 0.62. The weak-candidate mar
 semantic_source_field: semantic_text
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof."'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-27T08:08:13.104Z'
-firmness: firm
+firmness: default
 semantic_clauses:
   - The applicability threshold shall be 0.62.
   - The weak-candidate margin shall be 0.06.
@@ -35,6 +35,7 @@ logic_claims:
   - CLAIM-85F4539DE7FF58E8
 id: REQ-kibi-predicate-suggestion-thresholds
 type: req
+required_evidence: tested
 ---
 The applicability threshold shall be 0.62. The weak-candidate margin shall be 0.06.
 

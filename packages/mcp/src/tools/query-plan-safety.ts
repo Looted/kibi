@@ -29,24 +29,28 @@ interface QueryPlanSafetyViolation {
 function analyzeSource(source: string): QueryPlanSafetyViolation[] {
   const lines = source.split(/\r?\n/);
   const violations: QueryPlanSafetyViolation[] = [];
-  let clauseStart = 0;
-  let predicate = "unknown";
-  let clauseLines: string[] = [];
+  let clause:
+    | { readonly start: number; readonly predicate: string; lines: string[] }
+    | undefined;
 
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index] ?? "";
-    if (clauseLines.length === 0 && line.trim().length === 0) {
-      continue;
+  for (const [index, line] of lines.entries()) {
+    if (clause === undefined) {
+      if (line.trim().length === 0) continue;
+      clause = {
+        start: index + 1,
+        predicate: predicateNameFrom(line) ?? "unknown",
+        lines: [],
+      };
     }
-    if (clauseLines.length === 0) {
-      clauseStart = index + 1;
-      predicate = predicateNameFrom(line) ?? "unknown";
-    }
-    clauseLines.push(line);
+    clause.lines.push(line);
     if (line.trim().endsWith(".")) {
-      const violation = analyzeClause(predicate, clauseStart, clauseLines);
+      const violation = analyzeClause(
+        clause.predicate,
+        clause.start,
+        clause.lines,
+      );
       if (violation) violations.push(violation);
-      clauseLines = [];
+      clause = undefined;
     }
   }
 

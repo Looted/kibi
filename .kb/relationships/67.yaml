@@ -538,3 +538,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7149223743f5
+  - type: implements
+    from: SYM-agent-instructions-kibi-instructions-end
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:50:42.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-430b007fce40
+  - type: covered_by
+    from: SYM-agent-instructions-kibi-instructions-end
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:50:42.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-feee59e0f97b
+  - type: implements
+    from: SYM-cli-kibi-release-kibi-release-mismatch
+    to: REQ-kibi-release-version
+    created_at: 2026-11-04T05:30:13.315Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c8e0998929b
+  - type: covered_by
+    from: SYM-cli-kibi-release-kibi-release-mismatch
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:30:13.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b95fb957bbe

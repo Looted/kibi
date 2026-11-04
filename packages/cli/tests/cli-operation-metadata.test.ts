@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { loadOperationSpec } from "../src/cli-operation-loader.js";
-import { CLI_OPERATION_METADATA } from "../src/cli-operation-metadata.js";
+import {
+  CLI_OPERATION_METADATA,
+  isOperationName,
+} from "../src/cli-operation-metadata.js";
 import { OPERATION_CATALOG } from "../src/public/operations/catalog.js";
 
 // executable_for TEST-test-journaled-engine-harness
@@ -26,5 +29,12 @@ describe("lightweight CLI operation metadata", () => {
       const loaded = await loadOperationSpec(authoritative.name);
       expect(loaded).toBe(authoritative);
     }
+  });
+
+  test("isOperationName accepts catalog names only", () => {
+    for (const { name } of OPERATION_CATALOG)
+      expect(isOperationName(name)).toBe(true);
+    expect(isOperationName("kb_unknown")).toBe(false);
+    expect(isOperationName("")).toBe(false);
   });
 });

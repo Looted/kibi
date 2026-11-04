@@ -3,6 +3,7 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   captureReminder,
@@ -104,7 +105,12 @@ export type HookEnvironment = {
   env?: NodeJS.ProcessEnv;
 };
 
-const editableTools = new Set(["Edit", "MultiEdit", "Write", "apply_patch"]);
+const editableTools = new Set<string | undefined>([
+  "Edit",
+  "MultiEdit",
+  "Write",
+  "apply_patch",
+]);
 
 /**
  * Tools that actually mutate files. Only these create dirty paths: a path
@@ -112,7 +118,7 @@ const editableTools = new Set(["Edit", "MultiEdit", "Write", "apply_patch"]);
  * evidence that the file changed.
  */
 function isMutatingTool(toolName: string | undefined): boolean {
-  return toolName !== undefined && editableTools.has(toolName);
+  return editableTools.has(toolName);
 }
 
 /** Canonical workspace-relative dirty paths for one mutation event. */
@@ -168,15 +174,14 @@ function preEditContext(
   trace: HookTrace = {},
 ): string | undefined {
   const targets = editTargets(workspaceRoot, input);
-  if (targets.length === 0) return undefined;
+  const [first] = targets;
+  // rationale: without a target the next lines throw on `first`, and the
+  // caller's catch turns that into the same missing context.
+  // Stryker disable next-line ConditionalExpression
+  if (first === undefined) return undefined;
   const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
-  const first = targets[0];
-  if (first) {
-    trace.pathKind = classifyPath(first.relative);
-    trace.requirementIds = implementedRequirementIds(
-      files[first.relative] ?? [],
-    );
-  }
+  trace.pathKind = classifyPath(first.relative);
+  trace.requirementIds = implementedRequirementIds(files[first.relative] ?? []);
   const summarize = createEntitySummarizer(workspaceRoot);
   const notice = firmNotice(
     targets,
@@ -199,10 +204,10 @@ function preEditContext(
       return target ? editFocus(target.absolute, input.toolInput) : undefined;
     },
   });
-  const parts = [notice, knowledge].filter(
-    (part): part is string => part !== undefined,
-  );
-  return parts.length > 0 ? parts.join("\n\n") : undefined;
+  // Empty when there is neither, which the caller treats as no context.
+  return [notice, knowledge]
+    .filter((part): part is string => part !== undefined)
+    .join("\n\n");
 }
 
 // implements REQ-agent-hosts-decision-guard
@@ -241,20 +246,10 @@ function firmNotice(
   return undefined;
 }
 
-let cachedPackageVersion: string | null | undefined;
-
-function packageVersion(): string | null {
-  // dist/hook-runner.js sits one level below the plugin root.
-  if (cachedPackageVersion !== undefined) return cachedPackageVersion;
-  cachedPackageVersion = readPackageVersion(
-    path.join(
-      path.dirname(fileURLToPath(import.meta.url)),
-      "..",
-      "package.json",
-    ),
-  );
-  return cachedPackageVersion;
-}
+// dist/hook-runner.js sits one level below the plugin root.
+const packageVersion = readPackageVersion(
+  path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "package.json"),
+);
 
 /**
  * Opt-in (`KIBI_DIAGNOSTIC_MODE`) hook rows for the lookup-before-first-edit
@@ -270,26 +265,28 @@ function recordToolTelemetry(
   env: NodeJS.ProcessEnv | undefined,
 ): void {
   if (!hookTracesWanted(env)) return;
+  const row = {
+    host: "zcode",
+    packageVersion,
+    workspaceRoot,
+    event: "PostToolUse",
+    sessionId: input.sessionId,
+    hostTool: input.toolName,
+    startedAt,
+  };
   const kbUsage = kbUsageTrace(input.toolName, input.toolInput);
-  let traces = kbUsage ? [kbUsage] : [];
-  if (!kbUsage && isMutatingTool(input.toolName)) {
-    const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
-    traces = editTraces(
+  if (kbUsage) {
+    appendHookUsageRows(row, [kbUsage], env);
+    return;
+  }
+  if (!isMutatingTool(input.toolName)) return;
+  const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
+  appendHookUsageRows(
+    row,
+    editTraces(
       editTargets(workspaceRoot, input).map((target) => target.relative),
       (relativePath) => implementedRequirementIds(files[relativePath] ?? []),
-    );
-  }
-  appendHookUsageRows(
-    {
-      host: "zcode",
-      packageVersion: packageVersion(),
-      workspaceRoot,
-      event: "PostToolUse",
-      sessionId: input.sessionId,
-      hostTool: input.toolName,
-      startedAt,
-    },
-    traces,
+    ),
     env,
   );
 }
@@ -310,31 +307,15 @@ export function canonicalizeCheckSourceFiles(
     .filter((candidate): candidate is string => candidate !== undefined);
 }
 
-const zcodeHookEvents: readonly ZcodeHookEvent[] = [
-  "SessionStart",
-  "UserPromptSubmit",
-  "PreToolUse",
-  "PostToolUse",
-  "Stop",
-];
-
-function isZcodeHookEvent(event: string): event is ZcodeHookEvent {
-  return zcodeHookEvents.includes(event as ZcodeHookEvent);
-}
-
 function defaultResult(): HookResult {
   return { continue: true };
 }
 
-function contextResult(event: string, message: string): HookResult {
-  if (isZcodeHookEvent(event)) {
-    return {
-      continue: true,
-      hookSpecificOutput: { hookEventName: event, additionalContext: message },
-    };
-  }
-
-  return { continue: true, systemMessage: message };
+function contextResult(event: ZcodeHookEvent, message: string): HookResult {
+  return {
+    continue: true,
+    hookSpecificOutput: { hookEventName: event, additionalContext: message },
+  };
 }
 
 function isEditLikeTool(toolName: string | undefined): boolean {
@@ -347,14 +328,11 @@ function isEditLikeTool(toolName: string | undefined): boolean {
  */
 function postEditContext(
   stateDir: string | undefined,
-  sessionId: string | undefined,
   sourcePaths: readonly string[],
 ): HookResult | undefined {
+  // The state directory is already per session, so the key names the file.
   const fresh = sourcePaths.filter((sourcePath) =>
-    claimSnippetSlot(
-      stateDir,
-      `${sessionId ?? ""}\u0000post-edit\u0000${sourcePath}`,
-    ),
+    claimSnippetSlot(stateDir, `post-edit\u0000${sourcePath}`),
   );
   return fresh.length > 0
     ? contextResult("PostToolUse", postEditImpactNote(fresh))
@@ -394,7 +372,13 @@ export async function runHook(
     switch (input.event) {
       case "SessionStart":
         trace.action = "session_start";
-        return contextResult(input.event, SESSION_START_CONTEXT);
+        // implements REQ-kibi-fresh-clone-setup
+        return contextResult(
+          input.event,
+          [SESSION_START_CONTEXT, missingHooksNote(workspace.root)]
+            .filter((line): line is string => line !== null)
+            .join("\n"),
+        );
 
       // implements REQ-agent-hosts-decision-guard
       case "UserPromptSubmit": {
@@ -453,9 +437,9 @@ export async function runHook(
         } catch {
           // Requirement context is advisory; an unreadable manifest or file
           // leaves the edit without it rather than reporting a hook error.
-          knowledge = undefined;
         }
-        if (isMutatingTool(input.toolName) && trace.pathKind !== undefined) {
+        // Only an edit's context sets the path kind.
+        if (trace.pathKind !== undefined) {
           trace.action = knowledge ? "edit_snippet" : "edit_silent";
         }
         if (knowledge) {
@@ -512,11 +496,12 @@ export async function runHook(
             markDecisionFlag(session, "source-edited");
           }
         }
-        if (
-          kbToolCall?.toolName === "kb_upsert" ||
-          kbUsageTrace(input.toolName, input.toolInput)?.kbOperation ===
-            "kb_upsert"
-        ) {
+        // An MCP call is judged by its parsed name, under which a dry-run
+        // upsert is a validation; other calls by the CLI route they ran.
+        const kbOperation = kbToolCall
+          ? kbToolCall.toolName
+          : kbUsageTrace(input.toolName, input.toolInput)?.kbOperation;
+        if (kbOperation === "kb_upsert") {
           markDecisionFlag(session, "kb-recorded");
           // implements REQ-kibi-signoff-views
           if (isRequirementUpsert(input.toolInput)) {
@@ -524,10 +509,7 @@ export async function runHook(
           }
         }
 
-        return (
-          postEditContext(stateDir, input.sessionId, editedSource) ??
-          defaultResult()
-        );
+        return postEditContext(stateDir, editedSource) ?? defaultResult();
       }
 
       case "Stop": {
@@ -547,10 +529,11 @@ export async function runHook(
           : undefined;
         // implements REQ-kibi-signoff-views
         // Requirements were written without a signoff view since: ask once.
-        const signoff =
-          capture === undefined && claimSignoffReminder(session, workspace.root)
-            ? signoffReminder()
-            : undefined;
+        // A recorded requirement also marks the KB as recorded, so this never
+        // claims the signoff reminder in a Stop that shows the capture one.
+        const signoff = claimSignoffReminder(session, workspace.root)
+          ? signoffReminder()
+          : undefined;
         if (
           capture !== undefined ||
           signoff !== undefined ||
@@ -587,7 +570,9 @@ export async function runHook(
           return contextResult(input.event, freshnessReminder(freshnessPaths));
         }
 
-        if (state.dirtyPaths.length > 0 || state.kbCheckRun) {
+        // Every dirty path left here is an impact-checked source path, so
+        // there is state to clear exactly when a kb_check ran.
+        if (state.kbCheckRun) {
           clearDirtyPaths(stateDir);
         }
 
@@ -601,7 +586,7 @@ export async function runHook(
     appendHookUsage(
       {
         host: "zcode",
-        packageVersion: packageVersion(),
+        packageVersion,
         workspaceRoot: workspace.root,
         event: input.event,
         sessionId: input.sessionId,
@@ -632,13 +617,14 @@ export function isInvokedAsCli(
   argv1: string | undefined,
   moduleUrl: string,
 ): boolean {
-  const invokedPath = argv1 ? pathToFileURL(path.resolve(argv1)).href : "";
-  return moduleUrl === invokedPath;
+  return (
+    argv1 !== undefined && moduleUrl === pathToFileURL(path.resolve(argv1)).href
+  );
 }
 
-export async function runHookCli(): Promise<void> {
+export async function runHookCli(run = main): Promise<void> {
   try {
-    await main();
+    await run();
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Unknown hook error";

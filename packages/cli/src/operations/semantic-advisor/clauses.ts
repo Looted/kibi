@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { KbRejection } from "../../cli-errors.js";
 
 export type SemanticClause = Readonly<{
   claim_key: string;
@@ -121,8 +122,10 @@ export function extractSemanticClauses(
   const raw = suppliedClauses ?? detectedClauses(text);
   const normalized = raw.map(normalizeSemanticClause).filter(Boolean);
   if (suppliedClauses !== undefined && normalized.length === 0) {
-    throw new Error(
+    throw new KbRejection(
+      "VALIDATION_FAILED",
       "Semantic advisor clauses must contain at least one non-empty atomic claim",
+      [{ rule: "min_items", field: "semantic_clauses" }],
     );
   }
   // A repeated sentence has one logical identity. Keep the first source

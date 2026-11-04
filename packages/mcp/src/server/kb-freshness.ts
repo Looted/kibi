@@ -38,19 +38,13 @@ export async function readBranchKbStamp(
     stamp.dirCtimeMs = dirStat.ctimeMs;
     stamp.dirMissing = false;
   } catch (error) {
-    stamp.dirMissing = true;
     errors.push(formatStatError(branchPath, error));
   }
 
   const markerPath = path.join(branchPath, "storage.json");
-  let journaled = false;
-  try {
-    journaled = (await readFile(markerPath, "utf8")).includes(
-      "kibi.rdf-journal.v1",
-    );
-  } catch {
-    journaled = false;
-  }
+  // A store without a readable marker is a legacy store.
+  const marker = await readFile(markerPath).catch(() => Buffer.alloc(0));
+  const journaled = marker.includes("kibi.rdf-journal.v1");
   // Journaled stores expose CURRENT as their cheap, atomic freshness marker;
   // legacy stores retain kb.rdf for compatibility.
   const rdfPath = path.join(branchPath, journaled ? "CURRENT" : "kb.rdf");
@@ -63,7 +57,6 @@ export async function readBranchKbStamp(
     stamp.rdfCtimeMs = rdfStat.ctimeMs;
     stamp.rdfMissing = false;
   } catch (error) {
-    stamp.rdfMissing = true;
     errors.push(formatStatError(rdfPath, error));
   }
 

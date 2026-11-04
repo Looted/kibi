@@ -475,3 +475,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0634133b2efd
+  - type: implements
+    from: SYM-cli-kibi-release-release-mismatches
+    to: REQ-kibi-release-version
+    created_at: 2026-11-04T05:30:32.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82d2facb75b6
+  - type: covered_by
+    from: SYM-cli-kibi-release-release-mismatches
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:30:32.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-128fb98582fd
+  - type: assumes
+    from: SCEN-NEG-kibi-update-notice-DOCTOR-SILENT
+    to: FACT-NEG-kibi-update-notice-DOCTOR-SILENT
+    created_at: 2026-11-04T13:26:28.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-daf5222c0d35
+  - type: verified_by
+    from: SCEN-NEG-kibi-update-notice-DOCTOR-SILENT
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:26:28.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c14b339540b3

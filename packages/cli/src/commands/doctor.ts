@@ -27,7 +27,12 @@ import {
   bootstrapKibiEnvironment,
   secretSourceFromBootstrap,
 } from "../env/bootstrap.js";
-import { kibiPackageVersions } from "../package-versions.js";
+import {
+  type KibiReleaseManifest,
+  readKibiRelease,
+  releaseMismatches,
+} from "../kibi-release.js";
+import { cliVersion, kibiPackageVersions } from "../package-versions.js";
 import { pluginInstallProblems } from "../plugins/plugin-install-check.js";
 import {
   describeConfiguredCapabilityPlugins,
@@ -45,6 +50,7 @@ import {
   buildMigrationPlan,
   migrationAction,
 } from "../public/operations/migration-plan.js";
+import { checkKibiUpdates } from "../update-check.js";
 import { noteCliErrorCategory } from "../usage-telemetry.js";
 import {
   resolveBranchAttachment,
@@ -71,11 +77,18 @@ import {
 } from "../utils/merge-driver-setup.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../utils/schema-version.js";
 import {
+  AGENTS_FILE,
+  KIBI_AGENT_INSTRUCTIONS,
+  managedSectionState,
+} from "./agent-instructions.js";
+import { GITHUB_CHECK_WORKFLOW_RELPATH } from "./github-init.js";
+import {
   type DetectedHookManager,
   detectHookManager,
   hookManagerCommands,
   missingKibiHookCommands,
 } from "./hook-managers.js";
+import { hasKibiPrepareScript } from "./hooks-install.js";
 import {
   KIBI_HOOK_BEGIN,
   type ManagedHookName,
@@ -83,6 +96,7 @@ import {
   outdatedManagedHooks,
 } from "./init-helpers.js";
 import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
+import { readSetupChoices } from "./setup-choices.js";
 
 /**
  * First-party plugin diagnostics known without importing the package.
@@ -119,6 +133,7 @@ export interface DoctorOptions {
 
 // implements REQ-kibi-anonymous-usage-telemetry
 /** `doctor:capability_plugins+git_hooks` for the checks that failed. */
+// implements REQ-kibi-anonymous-usage-telemetry
 export function doctorFailureCategory(
   results: readonly { name: string; passed: boolean }[],
 ): string | undefined {
@@ -142,6 +157,18 @@ export async function doctorCommand(
   // between runs, without introducing another ambient cache.
   cachedRepositoryContext = undefined;
   const checks: DoctorCheck[] = [
+    {
+      name: "Kibi release",
+      check: () => checkKibiRelease(),
+    },
+    {
+      name: "Kibi updates",
+      check: () =>
+        checkKibiUpdates({
+          currentVersion: cliVersion(),
+          currentKbSchema: LATEST_KB_SCHEMA_VERSION,
+        }),
+    },
     {
       name: "SWI-Prolog",
       check: checkSWIProlog,
@@ -181,6 +208,10 @@ export async function doctorCommand(
     {
       name: "Kibi-managed hook sections",
       check: checkManagedHookSections,
+    },
+    {
+      name: "Fresh-clone setup",
+      check: checkFreshCloneSetup,
     },
     {
       name: "Manifest merge driver",
@@ -389,6 +420,7 @@ async function runtimeProvenance(): Promise<Record<string, unknown>> {
     executeApplyPlanExported,
     entrypoint: process.argv[1] ?? "unknown",
     packageVersions: kibiPackageVersions(),
+    release: readKibiRelease() ?? null,
     locations: {
       cli: packagePath,
       cliEntrypoint: process.argv[1] ?? "unknown",
@@ -746,6 +778,68 @@ function formatJevStaticConfigParts(
 }
 
 /**
+ * The Kibi release this install belongs to, from the release manifest the
+ * installed kibi-core ships, and any installed Kibi package whose version
+ * differs from what that release lists. A mixed install still works when the
+ * semver ranges allow it, so it is a warning, not a failure.
+ */
+// implements REQ-kibi-release-version
+export function checkKibiRelease(
+  release: KibiReleaseManifest | null = readKibiRelease() ?? null,
+  installedVersion: (name: string) => string | undefined = (name) => {
+    if (name === "kibi-cli") return cliVersion();
+    const version = resolveInstalledPackageInfo(name).version;
+    return version === "unresolved" || version === "unknown"
+      ? undefined
+      : version;
+  },
+): DoctorCheckResult {
+  if (release === null) {
+    return {
+      passed: true,
+      warning: true,
+      message:
+        "No release manifest: the installed kibi-core predates Kibi release versions or is damaged",
+      remediation:
+        "Install the kibi-cli, kibi-mcp and kibi-core versions of one Kibi release (see the kibi@<release> GitHub releases).",
+      details: { release: null },
+    };
+  }
+  const installed: Record<string, string | undefined> = {};
+  for (const name of Object.keys(release.packages)) {
+    installed[name] = installedVersion(name);
+  }
+  const mismatches = releaseMismatches(release, installed);
+  const { kbSchema, operationProtocol, pluginApi } = release.compatibility;
+  const details = {
+    release: release.release,
+    date: release.date,
+    compatibility: release.compatibility,
+    installed: Object.fromEntries(
+      Object.entries(installed).filter(([, version]) => version !== undefined),
+    ),
+    mismatches,
+  };
+  const compat = `KB schema ${kbSchema.current}, protocol ${operationProtocol}, ${pluginApi}`;
+  if (mismatches.length === 0) {
+    return {
+      passed: true,
+      message: `Kibi ${release.release} (${compat})`,
+      details,
+    };
+  }
+  return {
+    passed: true,
+    warning: true,
+    message: `Mixed install for Kibi ${release.release}: ${mismatches
+      .map((m) => `${m.name} ${m.installed} (release lists ${m.listed})`)
+      .join(", ")}`,
+    remediation: `Install the package versions Kibi ${release.release} lists, or upgrade all Kibi packages together.`,
+    details,
+  };
+}
+
+/**
  * The package versions and SWI-Prolog of the engine daemon serving this
  * workspace and branch, read through its handshake without starting one. A
  * daemon with other versions is replaced by the next Kibi command, so it is
@@ -1055,6 +1149,73 @@ function checkBranchStore(): DoctorCheckResult {
   };
 }
 
+/**
+ * What a fresh clone of this repository gets without anyone running
+ * `kibi init`, against the setup choices the project recorded: the agent
+ * instructions every host reads, the prepare step that installs the hooks
+ * and the pull-request gate. Each gap is a warning; `kibi init` repairs it.
+ */
+// implements REQ-kibi-fresh-clone-setup
+function checkFreshCloneSetup(): DoctorCheckResult {
+  const root = doctorRepositoryContext()?.worktreeRoot ?? process.cwd();
+  if (!existsSync(path.join(root, ".kb", "manifest.json"))) {
+    return { passed: true, message: "Skipped: Kibi is not initialized here" };
+  }
+  const choices = readSetupChoices(root);
+  const gaps: string[] = [];
+  if (choices.agentInstructions) {
+    const state = managedSectionState(
+      path.join(root, AGENTS_FILE),
+      KIBI_AGENT_INSTRUCTIONS,
+    );
+    if (state !== "current")
+      gaps.push(
+        state === "missing"
+          ? "AGENTS.md has no Kibi section, so agents in a fresh clone are not told the KB exists"
+          : "the Kibi section of AGENTS.md is outdated",
+      );
+  }
+  if (
+    choices.prepareHooks &&
+    existsSync(path.join(root, "package.json")) &&
+    doctorHookManager() === null &&
+    !hasKibiPrepareScript(root)
+  ) {
+    gaps.push(
+      "package.json has no prepare step installing Kibi's git hooks, so a fresh clone has no commit gate",
+    );
+  }
+  if (
+    choices.ciGate &&
+    !existsSync(path.join(root, GITHUB_CHECK_WORKFLOW_RELPATH))
+  ) {
+    gaps.push(`${GITHUB_CHECK_WORKFLOW_RELPATH} is missing`);
+  }
+  const details = {
+    choices: {
+      autoSync: choices.autoSync,
+      prepareHooks: choices.prepareHooks,
+      agentInstructions: choices.agentInstructions,
+      ciGate: choices.ciGate,
+    },
+    source: choices.source,
+  };
+  if (gaps.length === 0) {
+    return {
+      passed: true,
+      message: `Matches the recorded choices (${choices.source === "defaults" ? "defaults; none recorded" : choices.source})`,
+      details,
+    };
+  }
+  return {
+    passed: true,
+    warning: true,
+    message: `${gaps.join("; ")}`,
+    remediation: "Run: kibi init (applies the recorded choices)",
+    details,
+  };
+}
+
 // Hook health must be diagnosed against the hooks directory Git actually
 // executes (resolved via git rev-parse --git-path hooks, honoring
 // core.hooksPath and linked worktrees), not against <cwd>/.git/hooks.
@@ -1221,7 +1382,7 @@ function checkGitHooks(): DoctorCheckResult {
       passed: true,
       warning: true,
       message: `Not installed: a new branch is not compiled on checkout and commits skip 'kibi check --staged'${hooksPathSuffix()}`,
-      remediation: "Run: kibi init (installs the git hooks)",
+      remediation: "Run: kibi hooks install",
     };
   }
 

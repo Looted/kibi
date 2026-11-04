@@ -3,7 +3,7 @@ title: An entity query names a type filter that is not a Kibi entity type
 status: active
 fact_kind: property_value
 subject_key: mcp.kb_query
-property_key: clause_01_the_kb_query_mcp_tool_must_n_nallow_agents_to_re
+property_key: clause_01_the_kb_query_mcp_tool_must_retrieve_entities_by_the_structur
 operator: eq
 value_type: bool
 value_bool: false

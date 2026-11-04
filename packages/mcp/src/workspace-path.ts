@@ -18,32 +18,41 @@
 import { realpathSync } from "node:fs";
 import path from "node:path";
 
+const DRIVE_PREFIX = /^[A-Za-z]:\//;
+
 /**
  * Canonical repository-relative form of a recorded path. Returns null when the
  * candidate escapes `workspaceRoot` (absolute foreign path, `..` segment).
  * Kept in lockstep with packages/cli/src/utils/repo-relative-path.ts.
+ * `paths` is the platform path module, replaceable so both platforms can be
+ * checked from either one.
  */
 export function normalizeRepoRelativePath(
   workspaceRoot: string,
   candidate: string,
+  paths: typeof path = path,
 ): string | null {
   if (candidate.trim() === "") return null;
   let slashed = candidate.replaceAll("\\", "/");
   const foreignAbsolute =
-    /^[A-Za-z]:\//.test(slashed) || slashed.startsWith("//");
+    DRIVE_PREFIX.test(slashed) || slashed.startsWith("//");
   if (slashed.startsWith("/") || foreignAbsolute) {
-    if (foreignAbsolute && path.sep === "/") return null;
-    const root = path.resolve(workspaceRoot);
-    const relative = path.relative(root, path.resolve(candidate));
-    if (relative === "" || path.isAbsolute(relative)) return null;
-    slashed = relative.replaceAll("\\", "/");
+    // Drive and UNC paths name another machine's files on POSIX.
+    if (foreignAbsolute && paths.sep === "/") return null;
+    slashed = paths
+      .relative(paths.resolve(workspaceRoot), paths.resolve(candidate))
+      .replaceAll("\\", "/");
   }
-  const normalized = path.posix.normalize(slashed).replace(/\/+$/, "");
+  // The root itself normalizes to ".", and a path on another drive or share
+  // stays absolute.
+  // normalize() has already collapsed repeated slashes.
+  const normalized = path.posix.normalize(slashed).replace(/\/$/, "");
   if (
-    normalized === "" ||
     normalized === "." ||
     normalized === ".." ||
-    normalized.startsWith("../")
+    normalized.startsWith("../") ||
+    normalized.startsWith("/") ||
+    DRIVE_PREFIX.test(normalized)
   ) {
     return null;
   }

@@ -580,3 +580,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4d1999d29c28
+  - type: specified_by
+    from: REQ-test-journaled-engine-harness
+    to: SCEN-test-journaled-engine-harness
+    created_at: 2026-11-03T11:47:13.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eecacd13777e
+  - type: constrains
+    from: REQ-test-journaled-engine-harness
+    to: FACT-SUBJ-REQ-ROOT-SUITE-BATCH-DIAGNOSTICS
+    created_at: 2026-11-03T11:47:13.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b485ca0bb44e
+  - type: constrains
+    from: REQ-test-journaled-engine-harness
+    to: FACT-SUBJECT-KIBI-CLI-STARTUP
+    created_at: 2026-11-03T11:47:13.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a6227ca696d
+  - type: relates_to
+    from: REQ-test-journaled-engine-harness
+    to: REQ-root-suite-batch-diagnostics
+    created_at: 2026-11-03T11:47:13.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-408db996c797
+  - type: requires_property
+    from: REQ-test-journaled-engine-harness
+    to: FACT-TEST-ENGINE-OWNED-TEARDOWN
+    created_at: 2026-11-03T11:47:13.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c8e79a7290e
+  - type: requires_predicate
+    from: REQ-test-journaled-engine-harness
+    to: FACT-TEST-ENGINE-PROCESS-REUSE
+    created_at: 2026-11-03T11:47:13.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46cef607d0e8
+  - type: requires_predicate
+    from: REQ-test-journaled-engine-harness
+    to: FACT-TEST-PACKED-SHARED-INSTALL
+    created_at: 2026-11-03T11:47:13.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea1323e8a5be
+  - type: requires_property
+    from: REQ-test-journaled-engine-harness
+    to: FACT-TEST-ROOT-BOUNDED-BATCHES
+    created_at: 2026-11-03T11:47:13.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-810c0b618a8b
+  - type: requires_property
+    from: REQ-test-journaled-engine-harness
+    to: FACT-CLI-LAZY-OPERATION-LOAD
+    created_at: 2026-11-03T11:47:13.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f81fb6c60f96

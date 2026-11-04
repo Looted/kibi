@@ -349,3 +349,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d4dce48abb0
+  - type: validates
+    from: TEST-sync-relationship-retry
+    to: SCEN-sync-relationship-retry
+    created_at: 2026-11-03T11:17:44.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-536bccdf71b6
+  - type: implements
+    from: SYM-hooks-install-kibi-prepare-command
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:52:18.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dee10260276e
+  - type: covered_by
+    from: SYM-hooks-install-kibi-prepare-command
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:52:18.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2792b94e34f
+  - type: covered_by
+    from: SYM-agent-core-telemetry-signals-countbucket
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T14:22:53.054Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0506366d70f0
+  - type: implements
+    from: SYM-agent-core-telemetry-signals-countbucket
+    to: REQ-kibi-telemetry-agent-signals
+    created_at: 2026-11-03T14:22:53.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-021fec4c23a8

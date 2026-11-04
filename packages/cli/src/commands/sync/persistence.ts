@@ -122,7 +122,7 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
   // Number fields (unquoted); value_int must be a true integer
   for (const field of NUMBER_FIELDS) {
     const value = getEntityField(entity, field);
-    if (value !== undefined && value !== null && typeof value === "number") {
+    if (typeof value === "number") {
       if (field === "value_int" && !Number.isInteger(value)) {
         continue; // silently drop non-integer value_int
       }
@@ -133,7 +133,7 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
   // Boolean fields (true/false atoms)
   for (const field of BOOLEAN_FIELDS) {
     const value = getEntityField(entity, field);
-    if (value !== undefined && value !== null && typeof value === "boolean") {
+    if (typeof value === "boolean") {
       fields.push(`${field}=${value}`);
     }
   }
@@ -159,17 +159,13 @@ export interface PersistenceResult {
 function parsePrologList(value: unknown): string[] {
   if (typeof value !== "string") return [];
   const text = value.trim();
-  if (text.length < 2 || !text.startsWith("[") || !text.endsWith("]")) {
-    return [];
-  }
-  const body = text.slice(1, -1).trim();
-  if (body.length === 0) return [];
+  if (!text.startsWith("[") || !text.endsWith("]")) return [];
   const values: string[] = [];
   // IDs are atoms in the Kibi schema. Keep the parser deliberately narrow so
-  // a malformed response cannot turn into a destructive path or goal.
-  for (const part of body.split(",")) {
+  // a malformed response cannot turn into a destructive path or goal; an
+  // empty part matches neither form below.
+  for (const part of text.slice(1, -1).split(",")) {
     const valuePart = part.trim();
-    if (!valuePart) continue;
     if (valuePart.startsWith("'") && valuePart.endsWith("'")) {
       values.push(valuePart.slice(1, -1).replaceAll("''", "'"));
     } else if (/^[A-Za-z0-9_.:/@+-]+$/.test(valuePart)) {
@@ -404,24 +400,19 @@ function isQueryFailedError(error: string): boolean {
   );
 }
 
-async function tryResetPrologProcess(prolog: PrologProcess): Promise<boolean> {
+async function tryResetPrologProcess(prolog: PrologProcess): Promise<void> {
+  // A process without terminate() fails the first call below and is left
+  // as it is; one that cannot start again is never stopped.
   const maybe = prolog as unknown as {
-    terminate?: () => Promise<void>;
+    terminate: () => Promise<void>;
     start?: () => Promise<void>;
   };
-  if (
-    typeof maybe.terminate !== "function" ||
-    typeof maybe.start !== "function"
-  ) {
-    return false;
-  }
-
+  if (typeof maybe.start !== "function") return;
   try {
     await maybe.terminate();
     await maybe.start();
-    return true;
   } catch {
-    return false;
+    // Best-effort; the next retry pass reports what still fails.
   }
 }
 
@@ -453,10 +444,9 @@ export async function queryStoreTotals(
   if (typeof counts !== "string" || !Number.isInteger(relationships))
     return undefined;
   const entities: Record<string, number> = {};
-  for (const [, type, count] of counts.matchAll(/([a-z]+)-(\d+)/g)) {
-    if (type !== undefined && count !== undefined)
-      entities[type] = Number(count);
-  }
+  // Both groups always take part in a match.
+  for (const [, type, count] of counts.matchAll(/([a-z]+)-(\d+)/g))
+    entities[String(type)] = Number(count);
   return { entities, relationships };
 }
 
@@ -486,13 +476,11 @@ export async function persistEntities(
     if (existingIdsResult.success && existingIdsResult.bindings?.ExistingIds) {
       const raw = existingIdsResult.bindings.ExistingIds as string;
       const cleaned = raw.trim().replace(/^\[/, "").replace(/\]$/, "");
-      if (cleaned) {
-        for (const atom of cleaned.split(",")) {
-          const id = atom.trim().replace(/^'|'$/g, "");
-          if (id) {
-            entityIds.add(id);
-            existingEntityIds.add(id);
-          }
+      for (const atom of cleaned.split(",")) {
+        const id = atom.trim().replace(/^'|'$/g, "");
+        if (id) {
+          entityIds.add(id);
+          existingEntityIds.add(id);
         }
       }
     }
@@ -711,8 +699,8 @@ export async function persistEntities(
     const chunk = pendingEntityGoals.slice(offset, offset + batchSize);
     const result = batchRunner
       ? await batchRunner(chunk.map(({ goal }) => goal))
-      : { success: false, error: "batch unsupported" };
-    if (result.success) {
+      : undefined;
+    if (result?.success) {
       entityCount += chunk.length;
       kbModified = true;
       continue;
@@ -725,7 +713,7 @@ export async function persistEntities(
         if (!single.success) {
           const detail =
             single.error ||
-            (batchRunner ? result.error : undefined) ||
+            result?.error ||
             `kb_assert_entity failed for ${item.entity.id}`;
           throw new Error(
             `Failed to upsert entity ${item.entity.id}: ${detail}${semanticEntityContext(item.entity, item.sourceFile)}`,
@@ -790,7 +778,17 @@ export async function persistRelationships(
   results: ExtractionResult[],
   shardRelationships: ExtractedRelationship[],
   options: { workspaceRoot?: string } = {},
-): Promise<{ relationshipCount: number; kbModified: boolean }> {
+): Promise<{
+  relationshipCount: number;
+  kbModified: boolean;
+  /**
+   * Source files whose own (front-matter) relationships could not be
+   * asserted. The caller keeps them out of the sync cache so the next sync
+   * extracts them again: an edge whose target failed to compile is otherwise
+   * never retried once only the target is fixed.
+   */
+  retrySources: string[];
+}> {
   // Distinct edges asserted: an edge stated in an entity's front matter and in
   // a relationship shard, or extracted twice, is asserted more than once but
   // stored once, so counting assert calls overstates what this sync added.
@@ -814,27 +812,33 @@ export async function persistRelationships(
     fromId: string;
     toId: string;
     error: string;
+    sourcePath?: string | undefined;
   }> = [];
   const pendingRelationships: Array<{
     readonly rel: ExtractedRelationship;
     readonly fromId: string;
     readonly toId: string;
     readonly goal: string;
+    readonly sourcePath?: string | undefined;
   }> = [];
 
-  for (const { relationships } of results) {
+  for (const { entity, relationships } of results) {
+    const sourcePath = entity.source;
     for (const rel of relationships) {
+      const fromId = idLookup.get(rel.from) || rel.from;
+      const toId = idLookup.get(rel.to) || rel.to;
       try {
-        const fromId = idLookup.get(rel.from) || rel.from;
-        const toId = idLookup.get(rel.to) || rel.to;
-
         const goal = `kb_assert_relationship(${toPrologAtom(rel.type)}, ${toPrologAtom(fromId)}, ${toPrologAtom(toId)}, [])`;
-        pendingRelationships.push({ rel, fromId, toId, goal });
+        pendingRelationships.push({ rel, fromId, toId, goal, sourcePath });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        const fromId = idLookup.get(rel.from) || rel.from;
-        const toId = idLookup.get(rel.to) || rel.to;
-        failedRelationships.push({ rel, fromId, toId, error: message });
+        failedRelationships.push({
+          rel,
+          fromId,
+          toId,
+          error: message,
+          sourcePath,
+        });
       }
     }
   }
@@ -880,8 +884,8 @@ export async function persistRelationships(
     );
     const batch = relationshipBatchRunner
       ? await relationshipBatchRunner(chunk.map(({ goal }) => goal))
-      : { success: false, error: "batch unsupported" };
-    if (batch.success) {
+      : undefined;
+    if (batch?.success) {
       for (const item of chunk)
         countEdge(item.rel.type, item.fromId, item.toId);
       kbModified = true;
@@ -916,10 +920,8 @@ export async function persistRelationships(
             rel: item.rel,
             fromId: item.fromId,
             toId: item.toId,
-            error: relationshipFailureMessage(
-              single.error,
-              relationshipBatchRunner ? batch.error : undefined,
-            ),
+            error: relationshipFailureMessage(single.error, batch?.error),
+            sourcePath: item.sourcePath,
           });
         }
       } catch (error) {
@@ -928,6 +930,7 @@ export async function persistRelationships(
           fromId: item.fromId,
           toId: item.toId,
           error: error instanceof Error ? error.message : String(error),
+          sourcePath: item.sourcePath,
         });
       }
     }
@@ -936,14 +939,12 @@ export async function persistRelationships(
   // Retry failed relationships
   const retryCount = 3;
   let resetAttempted = false;
-  for (
-    let pass = 0;
-    pass < retryCount && failedRelationships.length > 0;
-    pass++
-  ) {
+  // A pass with nothing left to retry does nothing.
+  for (let pass = 0; pass < retryCount; pass++) {
     const remainingFailed: typeof failedRelationships = [];
 
-    for (const { rel, fromId, toId } of failedRelationships) {
+    for (const failure of failedRelationships) {
+      const { rel, fromId, toId, sourcePath } = failure;
       try {
         const goal = `kb_assert_relationship(${toPrologAtom(rel.type)}, ${toPrologAtom(fromId)}, ${toPrologAtom(toId)}, [])`;
         const result = await prolog.query(goal);
@@ -955,12 +956,14 @@ export async function persistRelationships(
             rel,
             fromId,
             toId,
-            error: result.error || "Unknown error",
+            // An attempt without detail keeps the earlier explanation.
+            error: result.error || failure.error,
+            sourcePath,
           });
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        remainingFailed.push({ rel, fromId, toId, error: message });
+        remainingFailed.push({ rel, fromId, toId, error: message, sourcePath });
       }
     }
 
@@ -1008,7 +1011,7 @@ export async function persistRelationships(
       // Collect unique missing entity IDs from error messages
       const missingIds = new Set<string>();
       for (const { error } of missingEntities) {
-        const match = error.match(/does not exist: (.+)$/);
+        const match = error.match(/does not exist: (.+)/);
         const missingId = match?.[1];
         if (missingId !== undefined) {
           missingIds.add(missingId.trim());
@@ -1041,5 +1044,12 @@ export async function persistRelationships(
     }
   }
 
-  return { relationshipCount: assertedEdges.size, kbModified };
+  const retrySources = [
+    ...new Set(
+      failedRelationships.flatMap(({ sourcePath }) =>
+        sourcePath ? [sourcePath] : [],
+      ),
+    ),
+  ].sort();
+  return { relationshipCount: assertedEdges.size, kbModified, retrySources };
 }

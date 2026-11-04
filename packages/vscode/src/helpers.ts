@@ -95,6 +95,7 @@ export function formatLensTitle(
     flags: "flag",
     events: "event",
     symbols: "symbol",
+    other: "other",
   };
 
   const pluralMap: Record<string, string> = {

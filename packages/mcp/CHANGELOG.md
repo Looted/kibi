@@ -1,5 +1,59 @@
 # kibi-mcp
 
+## 3.26.0
+
+### Minor Changes
+
+- 43cf20f: Every relationship write now checks the strict-lane pairing of its target fact. A `constrains` link must point at a `subject`, `observation` or `meta` fact, and a `requires_property` link at a `property_value`, `observation` or `meta` fact; a fact without a `fact_kind` is still accepted for either. Before, the KB layer had the check but never ran it, so only the CLI and MCP upsert pre-checks refused the two obvious mismatches (`constrains` to a `property_value` fact, `requires_property` to a `subject` fact), and `kibi sync` or any other direct write stored any pairing. Now `kb_assert_relationship/4`, upserts, batch upserts, upsert dry runs and `kibi sync` all refuse a mismatched link with a `validation_error` naming the target and the fact kinds it needs, which also covers targets such as `predicate`, `rule` or `predicate_schema` facts. Links already stored are left as they are and still read back; `kibi sync` reports a refused link as a failed relationship of its source file.
+- dd11641: A fresh clone of a Kibi repository now uses Kibi without anyone running `kibi init` in it. Before, a clone had the knowledge but no git hooks, an empty branch store (so queries answered nothing) and, without a per-user plugin, nothing telling an agent the knowledge base existed, so agents in new clones and cloud sessions ignored it. Now `kibi init` writes a Kibi section into `AGENTS.md` (imported from `CLAUDE.md`), adds a `package.json` `prepare` step that installs the hooks on every dependency install, and the first query, check or write in a clone compiles the branch store itself. Re-run `kibi init` in an existing repository to get the `AGENTS.md` section and the `prepare` step; `kibi doctor` reports them as missing until then.
+  - New setup choices `autoSync`, `prepareHooks`, `agentInstructions` (on by default) and `ciGate` (off), recorded on the first `kibi init` in `package.json` `kibi.setup`, or `.kb/setup.json` without a root `package.json`. `kibi init` takes `--[no-]auto-sync`, `--[no-]prepare-hooks`, `--[no-]agent-instructions` and `--[no-]ci-gate`, and the `kibi-bootstrap` skill (3.20.0) asks about them once.
+  - Auto-sync: CLI routes, `kibi check` and MCP tools that find this branch's store never compiled compile it first, with a compile that writes nothing Git tracks (no symbol-manifest layout rewrite, no adoption receipt), progress on stderr only, and a fallback to the previous `branch_store_not_compiled` answer when it fails. `kb_status` stays read-only and `kb_apply_plan` never pre-empts a plan. `KIBI_AUTO_SYNC=0` turns it off for one environment.
+  - New `kibi hooks install [--quiet]`. The `prepare` step is a Node one-liner that does nothing when `kibi-cli` is not installed (for example `npm ci --omit=dev`), in CI or outside a Git work tree, works under Windows `cmd.exe`, and is not added when a hook manager owns the hooks or there is no root `package.json`. `kibi-cli` exports `./bin/kibi` for it.
+  - `AGENTS.md` and `CLAUDE.md` get a marker-delimited section; text outside it is never changed, a link between the two files is written once, and a symlink that leaves the repository is not written through.
+  - `kibi init --ci-gate` adds `.github/workflows/kibi-check.yml`, which runs `kibi check` on pull requests (template in `docs/examples/github/kibi-check.yml`).
+  - `kibi doctor` has a "Fresh-clone setup" check against the recorded choices, and its missing-hooks remediation is now `kibi hooks install`.
+  - The Claude Code, Codex, Cursor, ZCode and OpenCode plugins tell the agent at session start when Kibi's hooks are not installed in the checkout (not where a hook manager or `core.hooksPath` owns them). The check lives in `kibi-agent-core/checkout-hooks`.
+
+- 2924762: Every Kibi release now has one release version, such as `2026.11.0`, that names its exact package set. `kibi --version` prints it next to the CLI version (`Kibi 2026.11.0 (kibi-cli 2.41.0)`), the MCP server title names it, and `kibi doctor` gains a "Kibi release" check that warns when installed Kibi packages come from different releases. The release also declares its compatibility versions (KB schema, operation result protocol, plugin API), so compatibility questions no longer depend on individual package versions.
+  - kibi-core ships `release.json`: the release version (`YYYY.M.N`, counting releases within a month), every publishable package's version, and the compatibility versions. `releases/history.json` keeps every release.
+  - `bun run version-packages` assigns the next release version, patch-bumps kibi-core when no pending changeset does (so the manifest always ships), and rewrites the manifest and history. `bun run release:check` (CI and the publish workflow) fails when a package version drifts from the manifest.
+  - The publish workflow creates a `kibi@<release>` GitHub release that lists the package set, with `release.json` attached.
+  - `kibi doctor --format json` carries the manifest under `runtime.release`. A local pack stamped `<version>-dev.<suffix>` counts as its base version.
+  - Relationship shards are now read in file-name order on every filesystem, so readers and removal plans no longer depend on directory listing order.
+
+- 029f99b: Telemetry now shows where agents struggle, using fixed signals only. A refused payload names the rule it broke (a JSON Schema keyword or a Kibi check such as `inventory_missing`) and the Kibi schema field (an unknown field name is sent as `other`); an upsert reports whether it was a dry run, a bucketed relationship count and its attempt on the same entity; a search reports a bucketed result count, whether it abstained or showed hints, and whether it repeated a search from the last two minutes; events say whether a Kibi skill was loaded in the workspace in the last 30 minutes, which every host's hooks now detect; and a Kibi fault carries its top stack frame inside Kibi's own packages with a fingerprint, never a path, line or message. Retries, repeated searches and skill loads are matched from one-way hashes kept next to the local queue. A kb_validate_upsert or dry-run refusal also returns `rejection` with its code and issues. The Claude Code plugin's PreToolUse hook now also runs for the Skill tool.
+- 03d2308: Telemetry now tells refusals apart from faults. An operation that Kibi refused on purpose (an invalid upsert payload, check findings, a semantic contradiction, a firm decision, a missing entity) is sent with status `rejected` and its fixed error code, and `error` is kept for Kibi's own failures, which also carry the JavaScript class name of the thrown error but never its message. The CLI now keeps the code of mutation refusals instead of reporting them as `operation_failed`. Every event carries `telemetry_version: 2`.
+
+### Patch Changes
+
+- ca3f20f: Usage telemetry and diagnostics now name a `kb_model` or `kb_skills` call by its own tool when its `mode` or `action` is not a known one, including names such as `constructor` that were wrongly resolved through object properties. Internal MCP adapters were otherwise simplified with no change in behaviour, and their tests now pin exact outputs.
+- Updated dependencies [ad02757]
+- Updated dependencies [9684b7c]
+- Updated dependencies [b12a8cf]
+- Updated dependencies [64a1563]
+- Updated dependencies [5d33486]
+- Updated dependencies [43cf20f]
+- Updated dependencies [dd11641]
+- Updated dependencies [2924762]
+- Updated dependencies [015376e]
+- Updated dependencies [e3328ea]
+- Updated dependencies [0d20a9a]
+- Updated dependencies [e3328ea]
+- Updated dependencies [44f2265]
+- Updated dependencies [529a3f1]
+- Updated dependencies [50e0d5c]
+- Updated dependencies [529a3f1]
+- Updated dependencies [5de5af7]
+- Updated dependencies [653a8d7]
+- Updated dependencies [3ce342f]
+- Updated dependencies [d1207be]
+- Updated dependencies [4d7c099]
+- Updated dependencies [029f99b]
+- Updated dependencies [03d2308]
+  - kibi-agent-core@0.12.0
+  - kibi-core@0.31.0
+  - kibi-runtime@2.30.0
+
 ## 3.25.0
 
 ### Minor Changes

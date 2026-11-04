@@ -3,7 +3,7 @@ title: Strict enforcement is configured for a workspace whose posture is not aut
 status: active
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_01_the_opencode_kibi_plugin_implements_smart_postur
+property_key: clause_01_the_opencode_kibi_plugin_must_adjust_its_enforcement_to_the_
 operator: eq
 value_type: bool
 value_bool: false

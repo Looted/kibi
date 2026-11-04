@@ -63,15 +63,48 @@ async function gitTrackedPaths(cwd: string): Promise<Set<string>> {
   const result = await execFileAsync(
     "git",
     ["-C", cwd, "ls-files", "--cached", "-z", "--"],
-    { encoding: "buffer", maxBuffer: 64 * 1024 * 1024 },
+    { maxBuffer: 64 * 1024 * 1024 },
   );
-  return new Set(
-    result.stdout
-      .toString("utf8")
-      .split("\0")
-      .filter(Boolean)
-      .map((value) => value.replaceAll("\\", "/")),
-  );
+  // Git lists paths with forward slashes on every platform, each ended by a
+  // NUL, so the text after the last one names no file.
+  return new Set(result.stdout.split("\0").slice(0, -1));
+}
+
+type PendingReceipt = Readonly<{
+  raw: string;
+  path: string;
+  afterHash: string;
+}>;
+
+type ReceiptFile = Readonly<{
+  raw: string;
+  receipt: { path?: unknown; afterHash?: unknown } | null;
+}>;
+
+/** The receipt's text and JSON, or null when it cannot be read or parsed. */
+function readReceiptFile(receiptPath: string): ReceiptFile | null {
+  try {
+    const raw = readFileSync(receiptPath).toString();
+    return { raw, receipt: JSON.parse(raw) };
+  } catch {
+    return null;
+  }
+}
+
+/** A well-formed receipt, or null for one recovery diagnostics report. */
+function readPendingReceipt(receiptPath: string): PendingReceipt | null {
+  const file = readReceiptFile(receiptPath);
+  if (file === null) return null;
+  const recorded = file.receipt?.path;
+  const afterHash = file.receipt?.afterHash;
+  if (
+    typeof recorded !== "string" ||
+    recorded.length === 0 ||
+    typeof afterHash !== "string" ||
+    !/^[a-f0-9]{64}$/i.test(afterHash)
+  )
+    return null;
+  return { raw: file.raw, path: recorded, afterHash };
 }
 
 /**
@@ -84,96 +117,71 @@ async function gitTrackedPaths(cwd: string): Promise<Set<string>> {
 function pendingSourcePaths(
   cwd: string,
   recoverMissing: boolean,
-  tracked: ReadonlySet<string> = new Set(),
+  tracked: ReadonlySet<string>,
 ): {
   paths: Map<string, string>;
   recoveredReceipts: PendingSourceReceiptSnapshot[];
 } {
   const root = path.join(cwd, ".kb", "recovery", "pending-sources");
-  if (!existsSync(root)) {
-    return { paths: new Map(), recoveredReceipts: [] };
-  }
   const paths = new Map<string, string>();
   const recoveredReceipts: PendingSourceReceiptSnapshot[] = [];
+  if (!existsSync(root)) return { paths, recoveredReceipts };
   for (const name of readdirSync(root)) {
     if (!name.endsWith(".json")) continue;
     const receiptPath = path.join(root, name);
-    try {
-      const raw = readFileSync(receiptPath, "utf8");
-      const receipt = JSON.parse(raw) as {
-        path?: unknown;
-        afterHash?: unknown;
-      };
-      if (
-        typeof receipt.path === "string" &&
-        receipt.path.length > 0 &&
-        typeof receipt.afterHash === "string" &&
-        /^[a-f0-9]{64}$/i.test(receipt.afterHash)
-      ) {
-        const relative = receipt.path.replaceAll("\\", "/");
-        if (tracked.has(relative)) {
-          // Still an authored input; only the stale hash is ignored.
-          paths.set(relative, receipt.afterHash);
-          continue;
-        }
-        const absolute = path.resolve(cwd, relative);
-        if (!absolute.startsWith(`${path.resolve(cwd)}${path.sep}`)) {
-          throw new SyncError(
-            `Pending source receipt escapes workspace: ${relative}`,
-            "PENDING_SOURCE_ESCAPES_WORKSPACE",
-          );
-        }
-        if (!existsSync(absolute)) {
-          if (recoverMissing) {
-            recoveredReceipts.push({
-              receiptPath,
-              path: relative,
-              afterHash: receipt.afterHash,
-              rawHash: createHash("sha256").update(raw).digest("hex"),
-            });
-            continue;
-          }
-          throw pendingSourceMissingError(relative);
-        }
-        const actual = createHash("sha256")
-          .update(readFileSync(absolute))
-          .digest("hex");
-        if (actual !== receipt.afterHash) {
-          throw pendingSourceHashDriftError(
-            relative,
-            receipt.afterHash,
-            actual,
-          );
-        }
-        paths.set(relative, receipt.afterHash);
-      }
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        (/Pending source/.test(error.message) ||
-          /Pending source receipt/.test(error.message))
-      ) {
-        throw error;
-      }
-      // Malformed receipts are ignored; an operator can remove or repair the
-      // receipt through the normal recovery operation.
+    const receipt = readPendingReceipt(receiptPath);
+    if (receipt === null) continue;
+    const relative = receipt.path.replaceAll("\\", "/");
+    if (tracked.has(relative)) {
+      // Git now owns these bytes; the receipt is consumed below.
+      paths.set(relative, receipt.afterHash);
+      continue;
     }
+    const absolute = path.resolve(cwd, relative);
+    if (!absolute.startsWith(`${path.resolve(cwd)}${path.sep}`)) {
+      throw new SyncError(
+        `Pending source receipt escapes workspace: ${relative}`,
+        "PENDING_SOURCE_ESCAPES_WORKSPACE",
+      );
+    }
+    if (!existsSync(absolute)) {
+      if (recoverMissing) {
+        recoveredReceipts.push({
+          receiptPath,
+          path: relative,
+          afterHash: receipt.afterHash,
+          rawHash: createHash("sha256").update(receipt.raw).digest("hex"),
+        });
+        continue;
+      }
+      throw pendingSourceMissingError(relative);
+    }
+    let actual: string;
+    try {
+      actual = createHash("sha256")
+        .update(readFileSync(absolute))
+        .digest("hex");
+    } catch {
+      // An unreadable source (a directory, say) is left for recovery.
+      continue;
+    }
+    if (actual !== receipt.afterHash) {
+      throw pendingSourceHashDriftError(relative, receipt.afterHash, actual);
+    }
+    paths.set(relative, receipt.afterHash);
   }
   return { paths, recoveredReceipts };
 }
 
 export function isFsEnoent(error: unknown): boolean {
-  return (
-    error !== null &&
-    typeof error === "object" &&
-    "code" in error &&
-    error.code === "ENOENT"
-  );
+  // A thrown primitive has no code; only null and undefined need the guard.
+  return (error as { code?: unknown } | null | undefined)?.code === "ENOENT";
 }
 
 export function readTextOrEnoent(absolute: string): string | null {
   try {
-    return fs.readFileSync(absolute, "utf8");
+    // Buffer#toString decodes UTF-8.
+    return fs.readFileSync(absolute).toString();
   } catch (error) {
     if (isFsEnoent(error)) return null;
     throw new SyncError(
@@ -209,7 +217,6 @@ export function clearRecoveredPendingSourceReceipts(
         "PENDING_SOURCE_ESCAPES_WORKSPACE",
       );
     }
-    if (!existsSync(absolute)) continue;
 
     // Compare-and-delete: a receipt may have been replaced while the
     // recovery rebuild was running.  Never remove the replacement merely
@@ -250,24 +257,15 @@ export function clearRecoveredPendingSourceReceipts(
   }
 }
 
+/** The files Git tracks; pending sources are added back by the caller. */
 function filterTracked(
   cwd: string,
   files: readonly string[],
   tracked: ReadonlySet<string>,
-  pending: ReadonlySet<string>,
 ): string[] {
-  const retained: string[] = [];
-  for (const file of files) {
-    const relative = path.relative(cwd, file).replaceAll(path.sep, "/");
-    if (tracked.has(relative)) {
-      retained.push(file);
-      continue;
-    }
-    if (pending.has(relative)) {
-      retained.push(file);
-    }
-  }
-  return retained;
+  return files.filter((file) =>
+    tracked.has(path.relative(cwd, file).replaceAll(path.sep, "/")),
+  );
 }
 
 export function normalizeMarkdownPath(
@@ -287,32 +285,29 @@ export async function discoverSourceFiles(
   relationshipsDir: string;
   recoveredPendingReceiptPaths: PendingSourceReceiptSnapshot[];
 }> {
+  // Canonical lanes are never empty, so each yields a pattern.
   const markdownPatterns = [
-    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.requirements),
-    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.scenarios),
-    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.tests),
-    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.adr),
-    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.flags),
-    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.events),
-    normalizeMarkdownPath(CANONICAL_ENTITY_PATHS.facts),
-  ].filter((p): p is string => Boolean(p));
+    CANONICAL_ENTITY_PATHS.requirements,
+    CANONICAL_ENTITY_PATHS.scenarios,
+    CANONICAL_ENTITY_PATHS.tests,
+    CANONICAL_ENTITY_PATHS.adr,
+    CANONICAL_ENTITY_PATHS.flags,
+    CANONICAL_ENTITY_PATHS.events,
+    CANONICAL_ENTITY_PATHS.facts,
+  ].map((lane) => normalizeMarkdownPath(lane) as string);
 
   const markdownFiles = await fg(markdownPatterns, {
     cwd,
     absolute: true,
     ignore: [...MARKDOWN_DISCOVERY_IGNORE],
   });
-  let entityMarkdownFiles = (
-    Array.isArray(markdownFiles) ? markdownFiles : []
-  ).filter((file) => !file.endsWith("/README.md"));
+  // The ignore list already leaves every README.md out.
+  let entityMarkdownFiles = markdownFiles;
 
   let manifestFiles = await fg(CANONICAL_ENTITY_PATHS.symbols, {
     cwd,
     absolute: true,
   });
-  if (!Array.isArray(manifestFiles)) {
-    manifestFiles = [];
-  }
   const recoveredPendingReceiptPaths: PendingSourceReceiptSnapshot[] = [];
 
   if (options.trackedOnly) {
@@ -323,18 +318,8 @@ export async function discoverSourceFiles(
       tracked,
     );
     recoveredPendingReceiptPaths.push(...pending.recoveredReceipts);
-    entityMarkdownFiles = filterTracked(
-      cwd,
-      entityMarkdownFiles,
-      tracked,
-      new Set(pending.paths.keys()),
-    );
-    manifestFiles = filterTracked(
-      cwd,
-      manifestFiles,
-      tracked,
-      new Set(pending.paths.keys()),
-    );
+    entityMarkdownFiles = filterTracked(cwd, entityMarkdownFiles, tracked);
+    manifestFiles = filterTracked(cwd, manifestFiles, tracked);
     for (const relative of pending.paths.keys()) {
       const absolute = path.resolve(cwd, relative);
       if (!existsSync(absolute)) continue;
@@ -357,18 +342,20 @@ export async function discoverSourceFiles(
     ) {
       for (const name of readdirSync(pendingRoot)) {
         if (!name.endsWith(".json")) continue;
-        try {
-          const receipt = JSON.parse(
-            readFileSync(path.join(pendingRoot, name), "utf8"),
-          ) as { path?: unknown };
-          if (
-            typeof receipt.path === "string" &&
-            tracked.has(receipt.path.replaceAll("\\", "/"))
-          ) {
-            unlinkSync(path.join(pendingRoot, name));
+        const receiptPath = path.join(pendingRoot, name);
+        const file = readReceiptFile(receiptPath);
+        // Leave malformed receipts for explicit recovery diagnostics.
+        if (file === null) continue;
+        const recorded = file.receipt?.path;
+        if (
+          typeof recorded === "string" &&
+          tracked.has(recorded.replaceAll("\\", "/"))
+        ) {
+          try {
+            unlinkSync(receiptPath);
+          } catch {
+            // Best effort: a receipt removed meanwhile is already consumed.
           }
-        } catch {
-          // Leave malformed receipts for explicit recovery diagnostics.
         }
       }
     }

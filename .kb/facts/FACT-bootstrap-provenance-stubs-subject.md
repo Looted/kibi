@@ -6,7 +6,7 @@ tags:
   - bootstrap
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: onboarding evaluation round 9 finding K18, provider facts without a claim'
+  ref: 'Maintainer request, 2026-10-09: onboarding evaluation round 9 finding K18, provider facts without a claim'
   recorded_at: '2026-10-09T07:19:30.981Z'
 fact_kind: subject
 subject_key: bootstrap.provenance_stubs

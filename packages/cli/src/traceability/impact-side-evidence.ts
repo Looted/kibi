@@ -58,20 +58,29 @@ export function isReceiptOnlyChange(file: StagedPath): boolean {
   );
 }
 
-function normalizeHunks(
-  ranges: readonly Readonly<{ start: number; end: number }>[],
-  content: string | undefined,
-): { start: number; end: number }[] {
-  const lineCount = Math.max(1, (content ?? "").split(/\r?\n/).length);
-  return ranges.map((range) => ({
-    start: range.start,
-    end: range.end === Number.MAX_SAFE_INTEGER ? lineCount : range.end,
-  }));
-}
+/** Runs a command like `execFileSync` with a utf8 encoding. */
+// implements REQ-impact-policy-stage-e-content-bound-review
+export type ProjectedDiffExec = (
+  command: string,
+  args: readonly string[],
+  options: Readonly<{
+    encoding: "utf8";
+    maxBuffer: number;
+    stdio: ["ignore", "pipe", "ignore"];
+  }>,
+) => string;
+
+// implements REQ-impact-policy-stage-e-content-bound-review
+export const SYSTEM_PROJECTED_DIFF: ProjectedDiffExec = (
+  command,
+  args,
+  options,
+) => execFileSync(command, args, options);
 
 function projectedHunks(
   beforeContent: string | undefined,
   afterContent: string | undefined,
+  exec: ProjectedDiffExec,
 ): {
   oldHunkRanges: { start: number; end: number }[];
   hunkRanges: { start: number; end: number }[];
@@ -82,9 +91,9 @@ function projectedHunks(
     const afterPath = join(temporary, "after.md");
     writeFileSync(beforePath, beforeContent ?? "");
     writeFileSync(afterPath, afterContent ?? "");
-    let diffText = "";
+    let diffText: string;
     try {
-      diffText = execFileSync(
+      diffText = exec(
         "git",
         [
           "diff",
@@ -104,27 +113,20 @@ function projectedHunks(
         },
       );
     } catch (error) {
-      if (
-        typeof error !== "object" ||
-        error === null ||
-        !("status" in error) ||
-        error.status !== 1
-      )
-        throw error;
-      diffText =
-        "stdout" in error && typeof error.stdout === "string"
-          ? error.stdout
-          : "stdout" in error && Buffer.isBuffer(error.stdout)
-            ? error.stdout.toString("utf8")
-            : "";
+      // `git diff --no-index` exits 1 when the files differ; with a utf8
+      // encoding its stdout is then the diff text.
+      const failure = error as { status?: unknown; stdout: string };
+      if (failure.status !== 1) throw error;
+      diffText = failure.stdout;
     }
     const oldHunkRanges: { start: number; end: number }[] = [];
     const hunkRanges: { start: number; end: number }[] = [];
-    const regex = /^@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@/gm;
+    const regex = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/gm;
     for (const match of diffText.matchAll(regex)) {
-      const oldStart = Number.parseInt(match[1] ?? "0", 10);
+      // Starts always match; git omits a count of one.
+      const oldStart = Number.parseInt(match[1] as string, 10);
       const oldCount = Number.parseInt(match[2] ?? "1", 10);
-      const newStart = Number.parseInt(match[3] ?? "0", 10);
+      const newStart = Number.parseInt(match[3] as string, 10);
       const newCount = Number.parseInt(match[4] ?? "1", 10);
       if (oldCount > 0)
         oldHunkRanges.push({
@@ -134,17 +136,17 @@ function projectedHunks(
       if (newCount > 0)
         hunkRanges.push({ start: newStart, end: newStart + newCount - 1 });
     }
-    return {
-      oldHunkRanges: normalizeHunks(oldHunkRanges, beforeContent),
-      hunkRanges: normalizeHunks(hunkRanges, afterContent),
-    };
+    return { oldHunkRanges, hunkRanges };
   } finally {
-    rmSync(temporary, { recursive: true, force: true });
+    rmSync(temporary, { recursive: true });
   }
 }
 
 // implements REQ-impact-policy-stage-e-content-bound-review
-export function projectedPathEvidence(file: StagedPath): StagedPath {
+export function projectedPathEvidence(
+  file: StagedPath,
+  exec: ProjectedDiffExec = SYSTEM_PROJECTED_DIFF,
+): StagedPath {
   const previousPath = file.oldPath ?? file.copyFromPath ?? file.path;
   if (!isKnowledgeMarkdown(file.path) && !isKnowledgeMarkdown(previousPath))
     return file;
@@ -156,7 +158,7 @@ export function projectedPathEvidence(file: StagedPath): StagedPath {
     file.content === undefined
       ? undefined
       : projectedKnowledgeMarkdown(file.path, file.content);
-  const ranges = projectedHunks(previousContent, content);
+  const ranges = projectedHunks(previousContent, content, exec);
   const { diffText: _diffText, ...projected } = file;
   return {
     ...projected,
@@ -191,15 +193,18 @@ export function sideEvidence(
   )
     throw new Error(`Git mode/object type mismatch for ${path}`);
   const bytes = blobBytes(snapshot, entry);
+  // The checks above make mode 160000 and a commit object the same case, and
+  // every other entry a blob, so only a gitlink has no bytes.
   const kind =
-    entry.mode === "160000" || entry.type === "commit"
+    entry.mode === "160000"
       ? "gitlink"
       : entry.mode === "120000"
         ? "symlink"
         : "regular";
   const projected = bytes !== undefined && isKnowledgeMarkdown(path);
-  const evidenceBytes =
-    bytes && projected ? snapshotFileContent(path, bytes) : bytes;
+  const evidenceBytes = projected
+    ? snapshotFileContent(path, bytes as Buffer)
+    : bytes;
   const byteFingerprint = evidenceBytes
     ? fingerprintBytes(evidenceBytes)
     : fingerprint({
@@ -255,8 +260,6 @@ export function sideEvidence(
       })),
     };
   }
-  if (kind === "regular" && bytes === undefined)
-    throw new Error(`Regular tree entry has no blob: ${path}`);
   return {
     mode: entry.mode,
     objectId: projected ? null : entry.objectId,

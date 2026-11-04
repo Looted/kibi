@@ -1291,19 +1291,6 @@ function sourceReference(value: unknown): SourceReference | undefined {
   };
 }
 
-function sourceMap(
-  value: unknown,
-): Record<string, SourceReference> | undefined {
-  const row = record(value);
-  if (!row) return undefined;
-  const out: Record<string, SourceReference> = {};
-  for (const [key, entry] of Object.entries(row)) {
-    const reference = sourceReference(entry);
-    if (reference !== undefined) out[key] = reference;
-  }
-  return Object.keys(out).length > 0 ? out : undefined;
-}
-
 export function proofBindingsErrors(value: unknown): string[] {
   if (!Array.isArray(value))
     return ["proof_bindings must be an array of binding objects"];

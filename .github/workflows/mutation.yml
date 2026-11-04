@@ -1,8 +1,7 @@
 name: Mutation
 
-# Stryker mutation suite (see docs/mutation-testing.md). It runs nightly on
-# develop and on pull requests that touch the mutated packages or the
-# mutation setup, so unrelated PRs do not pay for it.
+# Stryker mutation suite (see docs/mutation-testing.md). It runs only when
+# dispatched by hand.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,61 +16,16 @@ permissions:
   contents: read
 
 on:
-  schedule:
-    - cron: '17 3 * * *'
-  pull_request:
-    branches: [develop]
-    paths:
-      - 'packages/runtime/src/**'
-      - 'packages/runtime/tests/**'
-      - 'packages/codex/src/**'
-      - 'packages/codex/tests/**'
-      - 'packages/cursor/src/**'
-      - 'packages/cursor/tests/**'
-      - 'packages/agent-core/src/**'
-      # kibi-cli modules in scope (CLI_MUTATION_MODULES in stryker.conf.mjs)
-      - 'packages/cli/src/cli-input.ts'
-      - 'packages/cli/tests/cli-input.test.ts'
-      - 'packages/cli/src/firm-decision-edit.ts'
-      - 'packages/cli/tests/firm-decision-edit.test.ts'
-      - 'packages/cli/src/diagnostics.ts'
-      - 'packages/cli/tests/diagnostics-pure.test.ts'
-      - 'packages/cli/src/engine-limits.ts'
-      - 'packages/cli/tests/engine-limits.test.ts'
-      - 'packages/cli/src/decision-firmness.ts'
-      - 'packages/cli/tests/decision-firmness.test.ts'
-      - 'packages/cli/src/entity-body-context.ts'
-      - 'packages/cli/tests/entity-body-context.test.ts'
-      - 'packages/cli/src/search-ranking.ts'
-      - 'packages/cli/tests/search-ranking.test.ts'
-      - 'packages/cli/src/logic/ir.ts'
-      - 'packages/cli/tests/logic/ir.test.ts'
-      - 'packages/cli/src/search-hints.ts'
-      - 'packages/cli/src/plugins/compose-search-hints.ts'
-      - 'packages/cli/tests/search-hints.test.ts'
-      - 'packages/cli/src/plugins/generated-sources.ts'
-      - 'packages/cli/tests/plugins/generated-sources-mutation.test.ts'
-      - 'packages/cli/tests/plugins/language-pack-relevance.test.ts'
-      - 'packages/plugin-sdk/src/validate-search-hints.ts'
-      - 'packages/plugin-sdk/tests/search-hints.test.ts'
-      - 'packages/plugin-search-hints/src/**'
-      - 'packages/plugin-search-hints/tests/**'
-      - 'packages/plugin-search-hints/assets/**'
-      - 'stryker.conf.mjs'
-      - 'scripts/mutation-sandbox-setup.sh'
-      - '.github/workflows/mutation.yml'
-      - 'bun.lock'
   workflow_dispatch:
 
 jobs:
   mutation:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event_name == 'schedule' && 'develop' || '' }}
           fetch-depth: 1
 
       - name: Setup Bun

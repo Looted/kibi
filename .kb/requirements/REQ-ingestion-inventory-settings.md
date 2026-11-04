@@ -2,7 +2,7 @@
 title: Semantic inventory and sync cache settings
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The semantic inventory version shall be kibi.semantic-inventory.v1. The staged inventory drift rule shall be semantic-inventory-drift. The sync cache version shall be 2. A sync cache entry shall live at most 2592000000 milliseconds.
 semantic_clauses:
   - The semantic inventory version shall be kibi.semantic-inventory.v1.
@@ -13,7 +13,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T19:05:13.148Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -55,6 +55,7 @@ logic_claims:
   - CLAIM-656E6AB2DED99BD6
 id: REQ-ingestion-inventory-settings
 type: req
+required_evidence: tested
 ---
 The semantic inventory version shall be kibi.semantic-inventory.v1. The staged inventory drift rule shall be semantic-inventory-drift. The sync cache version shall be 2. A sync cache entry shall live at most 2592000000 milliseconds.
 

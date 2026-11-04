@@ -74,10 +74,12 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "The claims govern how agents model requirements; there is no Kibi input to refuse, and the evaluation scores agent behaviour."
 failure_side_waiver_approved_by: Piotr Franczyk
+firmness: default
+required_evidence: tested
 ---
 
 Agents must preserve human-readable requirement prose while making its supported semantics queryable. Normative relational claims first go through `kb_semantic_advisor` and `kb_suggest_predicates`. When the returned built-in or project-local predicate is suitable, the agent creates the suggested `fact_kind: predicate` fact and links this requirement to it with `requires_predicate`.

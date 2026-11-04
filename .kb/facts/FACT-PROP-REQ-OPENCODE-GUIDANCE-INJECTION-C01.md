@@ -11,8 +11,8 @@ value_type: int
 value_int: 5
 canonical_key: opencode.kibi_plugin:guidance_bullets_per_injection:lte:5
 polarity: require
-claim_key: CLAIM-866ED9C456D0F81B
-claim_text: The plugin must inject context-aware Kibi guidance into the session flow:\n\nSurface relevant requirements and traceability context to agents.\nLimit guidance to at most one block per injection, capped at 5 bullets or 120 words.\nInclude targeted nudges for code traceability (`implements REQ-xxx`).\nProvide file lifecycle context (create, edit, delete guidance).\nAppend completion reminders (`Run kb_check before completing...`) for behavior candidates
+claim_key: CLAIM-16AAE1D6B82157CB
+claim_text: The OpenCode plugin must inject at most one guidance block per injection, capped at 5 bullets or 120 words
 id: FACT-PROP-REQ-OPENCODE-GUIDANCE-INJECTION-C01
 type: fact
 origin:

@@ -3,7 +3,7 @@ title: A remote SPARQL request carries a query that is not a SELECT
 status: active
 fact_kind: property_value
 operator: eq
-property_key: clause_01_kibi_should_adopt_maintained_swi_prolog_librarie
+property_key: clause_03_kibi_must_expose_the_remote_sparql_capability_through_the_cu
 subject_key: kibi.engine.prolog_libraries
 value_type: bool
 value_bool: false

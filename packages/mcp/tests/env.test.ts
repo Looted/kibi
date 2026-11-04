@@ -17,11 +17,12 @@ import {
   getKbPlPathOverride,
   isMcpDebugEnabled,
 } from "../src/env.js";
+import { restoreProcessEnv } from "./helpers/process-env.js";
 
 const originalEnv = { ...process.env };
 
 afterEach(() => {
-  process.env = { ...originalEnv };
+  restoreProcessEnv(originalEnv);
 });
 
 // Import the functions we need to test - parseEnvContent is private,

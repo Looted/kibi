@@ -1,6 +1,14 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -95,5 +103,146 @@ describe("signoff display hook", () => {
     );
     expect(result.status).toBe(0);
     expect(displayed(result.stdout.trim())).toBe("## Q\n");
+  });
+});
+
+describe("signoff display fences and state", () => {
+  let stateDir = "";
+  let originalTmp: string | undefined;
+  beforeEach(() => {
+    originalTmp = process.env.TMPDIR;
+    stateDir = mkdtempSync(path.join(os.tmpdir(), "kibi-signoff-state-"));
+    process.env.TMPDIR = stateDir;
+  });
+  afterEach(() => {
+    if (originalTmp === undefined)
+      Reflect.deleteProperty(process.env, "TMPDIR");
+    else process.env.TMPDIR = originalTmp;
+    rmSync(stateDir, { recursive: true, force: true });
+  });
+  const stateFiles = () => readdirSync(stateDir).sort();
+  const state = (name: string) =>
+    path.join(stateDir, `kibi-signoff-display-${name}`);
+
+  test("the switch is KIBI_SIGNOFF_DISPLAY", () => {
+    expect(SIGNOFF_DISPLAY_ENV).toBe("KIBI_SIGNOFF_DISPLAY");
+    const open = batch("off", "```kibi-signoff\nx\n```\n");
+    expect(handleDisplayBatch(open, { KIBI_SIGNOFF_DISPLAY: "0" })).toBe("");
+    expect(
+      displayed(handleDisplayBatch(open, { KIBI_SIGNOFF_DISPLAY: "1" })),
+    ).toBe("x\n");
+    expect(displayed(handleDisplayBatch(open, {}))).toBe("x\n");
+  });
+
+  test("fence lines may be indented and padded but hold nothing else", () => {
+    expect(
+      unwrapSignoffFences("  ```kibi-signoff  \r\nA\n \t```\t\r\nB\n", false),
+    ).toStrictEqual({ displayContent: "A\nB\n", open: false });
+    expect(unwrapSignoffFences("x```kibi-signoff\n", false)).toStrictEqual({
+      open: false,
+    });
+    expect(unwrapSignoffFences("```kibi-signoffx\n", false)).toStrictEqual({
+      open: false,
+    });
+    expect(unwrapSignoffFences("```kibi-other\n", false)).toStrictEqual({
+      open: false,
+    });
+    expect(unwrapSignoffFences("x```\n```ts\nA\n", true)).toStrictEqual({
+      open: true,
+    });
+    expect(unwrapSignoffFences("A\n```", true)).toStrictEqual({
+      displayContent: "A\n",
+      open: false,
+    });
+  });
+
+  test("an open fence is remembered per message until it closes", () => {
+    const id = "m-1";
+    expect(
+      displayed(handleDisplayBatch(batch(id, "```kibi-signoff\nA\n"))),
+    ).toBe("A\n");
+    expect(stateFiles()).toStrictEqual(["kibi-signoff-display-m-1"]);
+    expect(readFileSync(state("m-1"), "utf8")).toBe("1");
+    // A batch inside the open fence leaves the state alone.
+    writeFileSync(state("m-1"), "kept");
+    expect(handleDisplayBatch(batch(id, "B\n"))).toBe("");
+    expect(readFileSync(state("m-1"), "utf8")).toBe("kept");
+    expect(displayed(handleDisplayBatch(batch(id, "```\nC\n")))).toBe("C\n");
+    expect(stateFiles()).toStrictEqual([]);
+  });
+
+  test("no state is kept for a closed fence, a final batch or a message without an id", () => {
+    expect(
+      displayed(handleDisplayBatch(batch("m-2", "```kibi-signoff\nA\n```\n"))),
+    ).toBe("A\n");
+    expect(
+      displayed(handleDisplayBatch(batch("m-3", "```kibi-signoff\nA\n", true))),
+    ).toBe("A\n");
+    expect(
+      displayed(
+        handleDisplayBatch(JSON.stringify({ delta: "```kibi-signoff\nA\n" })),
+      ),
+    ).toBe("A\n");
+    expect(stateFiles()).toStrictEqual([]);
+  });
+
+  test("a message without an id never reads or removes state", () => {
+    writeFileSync(state("message"), "1");
+    expect(handleDisplayBatch(JSON.stringify({ delta: "```\nafter\n" }))).toBe(
+      "",
+    );
+    expect(stateFiles()).toStrictEqual(["kibi-signoff-display-message"]);
+  });
+
+  test("state file names keep only safe characters, at most 80", () => {
+    const long = `a/b.c${"x".repeat(100)}`;
+    handleDisplayBatch(batch(long, "```kibi-signoff\n"));
+    handleDisplayBatch(batch("/.:", "```kibi-signoff\n"));
+    expect(stateFiles()).toStrictEqual([
+      `kibi-signoff-display-${`abc${"x".repeat(100)}`.slice(0, 80)}`,
+      "kibi-signoff-display-message",
+    ]);
+  });
+
+  test("state that cannot be removed is ignored", () => {
+    mkdirSync(state("dir"));
+    expect(displayed(handleDisplayBatch(batch("dir", "```\nafter\n")))).toBe(
+      "after\n",
+    );
+  });
+
+  test("a final flag must be true", () => {
+    handleDisplayBatch(
+      JSON.stringify({ message_id: "f", delta: "```kibi-signoff\n", final: 1 }),
+    );
+    expect(stateFiles()).toStrictEqual(["kibi-signoff-display-f"]);
+  });
+
+  test("JSON null and a non-string delta are ignored", () => {
+    expect(handleDisplayBatch("null")).toBe("");
+    expect(
+      handleDisplayBatch(JSON.stringify({ delta: ["```kibi-signoff\n"] })),
+    ).toBe("");
+  });
+
+  test("the source module runs as the display hook when it is the entry point", () => {
+    const result = spawnSync(
+      process.execPath,
+      [path.join(packageRoot, "src", "signoff-display.ts")],
+      {
+        input: batch("src-entry", "```kibi-questions\n## Q\n```\n", true),
+        encoding: "utf8",
+        env: { ...process.env, TMPDIR: stateDir },
+      },
+    );
+    expect(result.status).toBe(0);
+    expect(result.stdout).toBe(
+      `${JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: "MessageDisplay",
+          displayContent: "## Q\n",
+        },
+      })}\n`,
+    );
   });
 });

@@ -5,7 +5,10 @@ import os from "node:os";
 import path from "node:path";
 import { Command } from "commander";
 import { isClosedOutputError, main } from "../src/cli";
+import * as updateCheck from "../src/update-check";
+import * as usageTelemetry from "../src/usage-telemetry";
 import { finishCliTelemetry } from "../src/usage-telemetry";
+import { LATEST_KB_SCHEMA_VERSION } from "../src/utils/schema-version";
 
 type Stream = NodeJS.WriteStream;
 
@@ -129,6 +132,64 @@ describe("the CLI entry", () => {
     expect(await settles(run)).toBe(false);
     expect(exits).toEqual([]);
     process.stdout.emit("drain");
+    await run;
+    expect(exits).toEqual([0]);
+  });
+
+  test("a telemetry failure never changes the exit code", async () => {
+    parseWith(async () => {
+      process.exitCode = 3;
+    });
+    const telemetry = spyOn(
+      usageTelemetry,
+      "finishCliTelemetry",
+    ).mockRejectedValue(new Error("disk full"));
+    restores.push(() => telemetry.mockRestore());
+    await main();
+    expect(telemetry).toHaveBeenCalledTimes(1);
+    expect(exits).toEqual([3]);
+  });
+
+  test("hands the command and this CLI's version to the update check", async () => {
+    const finish = spyOn(updateCheck, "finishUpdateCheck").mockReturnValue(
+      null,
+    );
+    restores.push(() => finish.mockRestore());
+    process.argv = [process.execPath, "kibi", "plan-bootstrap"];
+    await main();
+    const version = JSON.parse(
+      fs.readFileSync(path.join(import.meta.dir, "..", "package.json"), "utf8"),
+    ).version;
+    expect(finish).toHaveBeenCalledTimes(1);
+    expect(finish.mock.calls[0]?.[0]).toEqual({
+      context: { commandPath: "plan-bootstrap", machineOutput: false },
+      currentVersion: version,
+      currentKbSchema: LATEST_KB_SCHEMA_VERSION,
+    });
+    expect(exits).toEqual([2]);
+  });
+
+  test("an update check failure never changes the exit code", async () => {
+    parseWith(async () => {
+      process.exitCode = 4;
+    });
+    const finish = spyOn(updateCheck, "finishUpdateCheck").mockImplementation(
+      () => {
+        throw new Error("disk full");
+      },
+    );
+    restores.push(() => finish.mockRestore());
+    await main();
+    expect(finish).toHaveBeenCalledTimes(1);
+    expect(exits).toEqual([4]);
+  });
+
+  test("a stream that errors instead of draining still lets the run exit", async () => {
+    parseWith(async () => undefined);
+    needsDrain(process.stdout);
+    const run = main();
+    expect(await settles(run)).toBe(false);
+    process.stdout.emit("error", closed());
     await run;
     expect(exits).toEqual([0]);
   });

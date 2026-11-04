@@ -517,3 +517,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72dc1a59bbb8
+  - type: specified_by
+    from: REQ-prolog-library-adoption
+    to: SCEN-prolog-library-adoption
+    created_at: 2026-11-03T11:36:44.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb8b8f65489d
+  - type: verified_by
+    from: REQ-prolog-library-adoption
+    to: TEST-prolog-library-adoption-core
+    created_at: 2026-11-03T11:36:44.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d383c3b2fae
+  - type: verified_by
+    from: REQ-prolog-library-adoption
+    to: TEST-prolog-library-adoption-mcp
+    created_at: 2026-11-03T11:36:44.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8100243d23f
+  - type: requires_property
+    from: REQ-prolog-library-adoption
+    to: FACT-PROP-REQ-PROLOG-LIBRARY-ADOPTION-C02
+    created_at: 2026-11-03T11:36:44.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34e361f169e7
+  - type: requires_property
+    from: REQ-prolog-library-adoption
+    to: FACT-PROP-REQ-PROLOG-LIBRARY-ADOPTION-C03
+    created_at: 2026-11-03T11:36:44.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0ef27d5f817
+  - type: assumes
+    from: SCEN-NEG-sync-relationship-retry-NO-RETRY
+    to: FACT-NEG-sync-relationship-retry-NO-RETRY
+    created_at: 2026-11-03T11:22:50.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32714e831c5d
+  - type: verified_by
+    from: SCEN-NEG-sync-relationship-retry-NO-RETRY
+    to: TEST-sync-relationship-retry
+    created_at: 2026-11-03T11:22:50.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0793980fed8e
+  - type: covered_by
+    from: SYM-agent-core-telemetry-signals-kibiskillload
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T14:23:27.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8692c4028ad
+  - type: implements
+    from: SYM-agent-core-telemetry-signals-kibiskillload
+    to: REQ-kibi-telemetry-agent-signals
+    created_at: 2026-11-03T14:23:27.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e04da9b2af0
+  - type: implements
+    from: SYM-cli-update-check-update-notice-interval-ms
+    to: REQ-kibi-update-notice
+    created_at: 2026-11-04T13:23:27.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6671a8a6021
+  - type: covered_by
+    from: SYM-cli-update-check-update-notice-interval-ms
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:23:27.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-265805078a62

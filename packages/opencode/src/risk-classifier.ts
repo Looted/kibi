@@ -38,14 +38,15 @@ export interface RiskClassification {
 
 /**
  * Regex to detect exportable code constructs (functions, classes, variables).
+ * Unanchored, so one name character is as good as the whole name.
  */
 const BEHAVIOR_PATTERN =
-  /(?:export\s+(?:function|class|const|let|var)|\bclass\s+\w+|\bfunction\s+\w+|\bdef\s+\w+)/;
+  /(?:export\s+(?:function|class|const|let|var)|\bclass\s+\w|\bfunction\s+\w|\bdef\s+\w)/;
 
 /**
  * Regex to detect traceability annotations.
  */
-const TRACEABILITY_PATTERN = /implements\s+REQ-[A-Za-z0-9_-]+/i;
+const TRACEABILITY_PATTERN = /implements\s+REQ-[A-Za-z0-9_-]/i;
 
 /**
  * Classify a file edit into a deterministic risk class.

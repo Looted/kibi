@@ -28,14 +28,16 @@ export async function safeCleanupProlog(
     | undefined,
 ): Promise<void> {
   // implements REQ-003
-  if (!prolog) return;
+  // No null guard: a missing handle makes both calls below throw a TypeError,
+  // which the best-effort catches already swallow.
+  const handle = prolog as NonNullable<typeof prolog>;
   try {
-    await prolog.query("kb_detach");
+    await handle.query("kb_detach");
   } catch {
     // best-effort: process may already be dead or KB was never attached
   }
   try {
-    await prolog.terminate();
+    await handle.terminate();
   } catch {
     // best-effort: process may already be dead
   }

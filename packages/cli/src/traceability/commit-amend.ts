@@ -23,26 +23,55 @@ import { basename } from "node:path";
 /** How far up the process tree to look for the `git commit` running a hook. */
 const MAX_ANCESTORS = 8;
 
+/** The process and command access the amend check needs; tests replace it. */
+// implements REQ-kibi-proposition-complete-ingestion
+export type AmendProbe = Readonly<{
+  platform: NodeJS.Platform;
+  parentPid: number;
+  readFile: (filePath: string) => string;
+  /** Run a command and return its stdout; throws when it fails. */
+  run: (
+    command: string,
+    args: readonly string[],
+    options: { cwd?: string; timeout?: number },
+  ) => string;
+}>;
+
+/** The real process table and commands. */
+// implements REQ-kibi-proposition-complete-ingestion
+export const SYSTEM_AMEND_PROBE: AmendProbe = {
+  platform: process.platform,
+  parentPid: process.ppid,
+  readFile: (filePath) => readFileSync(filePath, "utf8"),
+  run: (command, args, options) =>
+    execFileSync(command, [...args], {
+      ...options,
+      encoding: "utf8",
+      // rationale: stdin and stderr are never read, so whether they are
+      // ignored or piped cannot be observed.
+      // Stryker disable next-line ArrayDeclaration,StringLiteral
+      stdio: ["ignore", "pipe", "ignore"],
+    }),
+};
+
 function processArguments(
+  probe: AmendProbe,
   pid: number,
 ): { parent: number; argv: string[] } | null {
   try {
-    if (process.platform === "linux") {
-      const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
+    if (probe.platform === "linux") {
+      const stat = probe.readFile(`/proc/${pid}/stat`);
       const parent = Number(
         stat.slice(stat.lastIndexOf(")") + 2).split(" ")[1],
       );
-      const argv = readFileSync(`/proc/${pid}/cmdline`, "utf8")
-        .split("\0")
-        .filter(Boolean);
+      // The trailing NUL leaves an empty last argument, which is neither git,
+      // commit nor --amend.
+      const argv = probe.readFile(`/proc/${pid}/cmdline`).split("\0");
       return { parent, argv };
     }
-    if (process.platform === "win32") return null;
-    const [parent, ...argv] = execFileSync(
-      "ps",
-      ["-o", "ppid=,args=", "-p", String(pid)],
-      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 2000 },
-    )
+    if (probe.platform === "win32") return null;
+    const [parent, ...argv] = probe
+      .run("ps", ["-o", "ppid=,args=", "-p", String(pid)], { timeout: 2000 })
       .trim()
       .split(/\s+/);
     return { parent: Number(parent), argv };
@@ -55,10 +84,10 @@ function processArguments(
  * Whether this process runs under `git commit --amend`. Git does not tell a
  * pre-commit hook that it is amending, so the hook's ancestors are read.
  */
-function runsUnderCommitAmend(): boolean {
-  let pid = process.ppid;
+function runsUnderCommitAmend(probe: AmendProbe): boolean {
+  let pid = probe.parentPid;
   for (let depth = 0; depth < MAX_ANCESTORS && pid > 1; depth += 1) {
-    const info = processArguments(pid);
+    const info = processArguments(probe, pid);
     if (info === null) return false;
     const [program, ...rest] = info.argv;
     if (program !== undefined && /^git(\.exe)?$/.test(basename(program)))
@@ -77,23 +106,19 @@ function runsUnderCommitAmend(): boolean {
 export function amendsRootCommit(
   workspaceRoot: string,
   headCommit: string | null,
+  probe: AmendProbe = SYSTEM_AMEND_PROBE,
 ): boolean {
   if (headCommit === null) return false;
   try {
-    const parents = execFileSync(
-      "git",
-      ["rev-list", "--parents", "-n", "1", headCommit],
-      {
+    // "<commit> <parent>..." names a parent after the first separator.
+    const line = probe
+      .run("git", ["rev-list", "--parents", "-n", "1", headCommit], {
         cwd: workspaceRoot,
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"],
-      },
-    )
-      .trim()
-      .split(/\s+/);
-    if (parents.length > 1) return false;
+      })
+      .trim();
+    if (/\s/.test(line)) return false;
   } catch {
     return false;
   }
-  return runsUnderCommitAmend();
+  return runsUnderCommitAmend(probe);
 }

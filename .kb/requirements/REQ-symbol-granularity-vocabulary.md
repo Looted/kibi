@@ -2,7 +2,7 @@
 title: Symbol roles and granularity reasons
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: A symbol role shall be behavioral, structural, type-shape, config, module or unknown. An allowed granularity reason shall be config-artifact, module-level-behavior, extractor-miss, legacy-link or test-suite. A coarse granularity reason shall be config-artifact, module-level-behavior, extractor-miss or test-suite. The granularity check shall cover implements, covered_by and executable_for links. The symbol granularity violation code shall be SYMBOL_GRANULARITY_VIOLATION.
 semantic_clauses:
   - A symbol role shall be behavioral, structural, type-shape, config, module or unknown.
@@ -14,7 +14,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T19:09:39.343Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -64,6 +64,7 @@ logic_claims:
   - CLAIM-117ABEF987E239AF
 id: REQ-symbol-granularity-vocabulary
 type: req
+required_evidence: tested
 ---
 A symbol role shall be behavioral, structural, type-shape, config, module or unknown. An allowed granularity reason shall be config-artifact, module-level-behavior, extractor-miss, legacy-link or test-suite. A coarse granularity reason shall be config-artifact, module-level-behavior, extractor-miss or test-suite. The granularity check shall cover implements, covered_by and executable_for links. The symbol granularity violation code shall be SYMBOL_GRANULARITY_VIOLATION.
 

@@ -34,37 +34,7 @@ interface EntityState {
   sawCreate: boolean;
   sawLegacyUpsert: boolean;
   deleted: boolean;
-  lastFingerprint?: string;
-  lastKnown?: EntityChangeItem;
-}
-
-function normalizeWhitespace(value: string): string {
-  return value.trim().replace(/\s+/g, " ");
-}
-
-function normalizeValue(value: unknown): unknown {
-  if (typeof value === "string") {
-    return normalizeWhitespace(value);
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((entry) => normalizeValue(entry));
-  }
-
-  if (value && typeof value === "object") {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>)
-        .filter(([key]) => key !== "created_at" && key !== "updated_at")
-        .sort(([left], [right]) => left.localeCompare(right))
-        .map(([key, entry]) => [key, normalizeValue(entry)]),
-    );
-  }
-
-  return value;
-}
-
-function fingerprintPayload(payload: AuditEntityPayload): string {
-  return JSON.stringify(normalizeValue(payload.properties));
+  lastKnown: EntityChangeItem;
 }
 
 function isEntityPayload(
@@ -121,34 +91,24 @@ export function reconcileAuditEntries(entries: AuditEntry[]): ReconcileResult {
       continue;
     }
 
-    const state = states.get(entry.entityId) ?? {
-      sawCreate: false,
-      sawLegacyUpsert: false,
-      deleted: false,
-    };
-
     if (entry.operation === "delete") {
-      state.deleted = true;
-      states.set(entry.entityId, state);
+      const state = states.get(entry.entityId);
+      if (state) state.deleted = true;
       continue;
     }
 
-    if (!isEntityPayload(entry.payload)) {
+    const payload = entry.payload;
+    if (!isEntityPayload(payload)) {
       continue;
     }
 
-    if (entry.payload.changeKind === "created") {
-      state.sawCreate = true;
-    }
-
-    if (!entry.payload.changeKind) {
-      state.sawLegacyUpsert = true;
-    }
-
-    state.lastKnown = toChangeItem(entry.payload, entry.entityId);
-    state.lastFingerprint = fingerprintPayload(entry.payload);
-    state.deleted = false;
-    states.set(entry.entityId, state);
+    const previous = states.get(entry.entityId);
+    states.set(entry.entityId, {
+      sawCreate: previous?.sawCreate || payload.changeKind === "created",
+      sawLegacyUpsert: previous?.sawLegacyUpsert || !payload.changeKind,
+      deleted: false,
+      lastKnown: toChangeItem(payload, entry.entityId),
+    });
   }
 
   const added: EntityChangeItem[] = [];
@@ -156,10 +116,6 @@ export function reconcileAuditEntries(entries: AuditEntry[]): ReconcileResult {
   const removed: EntityChangeItem[] = [];
 
   for (const state of states.values()) {
-    if (!state.lastKnown) {
-      continue;
-    }
-
     if (state.deleted) {
       if (state.sawCreate) {
         continue;

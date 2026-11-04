@@ -1103,7 +1103,7 @@ export function landingContent(args: {
     <div class="pm-tablist" role="tablist" aria-label="Setup method">${installTabs}</div>
     ${installPanels}
   </div>
-  <p class="fineprint">Requires Node.js 22+. SWI-Prolog is bundled on Linux (x64, arm64) and macOS; other platforms need <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. A system <code>swipl</code> is only a fallback; set <code>KIBI_SWIPL=system</code> to prefer it. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>. Kibi sends anonymous usage statistics; <a href="${root}guide/telemetry.html">see what is sent and how to turn it off</a>.</p>
+  <p class="fineprint">Requires Node.js 22+. SWI-Prolog is bundled on Linux (x64, arm64) and macOS; other platforms need <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. A system <code>swipl</code> is only a fallback; set <code>KIBI_SWIPL=system</code> to prefer it. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>. Each release has one version, such as Kibi 2026.11.0, that names its exact package set; <code>kibi --version</code> and <code>kibi doctor</code> show it (<a href="${root}guide/install.html#kibi-release-versions">release versions</a>), and the CLI tells you once a day when a newer one is out (<a href="${root}guide/install.html#update-notices">update notices</a>). Kibi sends anonymous usage statistics; <a href="${root}guide/telemetry.html">see what is sent and how to turn it off</a>.</p>
 </section>
 <section>
   <h2>Questions people ask first</h2>
@@ -1118,7 +1118,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>Which languages does Kibi understand?</summary>
-      <p>TypeScript and JavaScript work out of the box. Add the optional <code>kibi-plugin-treesitter</code> package for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, SWI-Prolog, and Terraform/HCL. It runs offline with pinned grammars, and each language is a small <code>kibi-lang-*</code> pack you install only if you use it. Generated files don't count toward a pack or need requirement links unless the KB uses them, and you can decline any pack. Code and source proofs read TypeScript, JavaScript, Python and SWI-Prolog directly, and through the plugin, source proofs read the imports, calls and environment reads of Go, Java, C# and Rust files without compiling them. Setup is in the <a href="${root}reference/plugins.html">plugin reference</a>.</p>
+      <p>TypeScript and JavaScript work out of the box. Add the optional <code>kibi-plugin-treesitter</code> package for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, SWI-Prolog, and Terraform/HCL. It runs offline with pinned grammars, and each language is a small <code>kibi-lang-*</code> pack you install only if you use it. Generated files don't count toward a pack or need requirement links unless the KB uses them, and you can decline any pack. Code and source proofs read TypeScript, JavaScript, Python and SWI-Prolog directly, and through the plugin, source proofs read the imports, calls and environment reads of Go, Java, C#, Rust, PHP, C and Bash files, and the property values of PHP, C and Terraform/HCL files, without compiling them. Setup is in the <a href="${root}reference/plugins.html">plugin reference</a>.</p>
     </details>
     <details>
       <summary>Can Kibi stop agents drifting from our UI design?</summary>
@@ -1155,7 +1155,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>Will Kibi decide the product for me?</summary>
-      <p>No. <code>kibi init</code> creates the directory and the Git hooks; it leaves hooks it did not write alone, and with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add (<code>kibi init --print-hook all --format lefthook</code>). What it commits is what you and the agent authored: symbol line positions are derived by every sync into a gitignored cache, so parallel branches do not conflict over them. It does not infer behavior. Checks prove what was encoded. Missing knowledge stays visible.</p>
+      <p>No. <code>kibi init</code> creates the directory and the Git hooks; it leaves hooks it did not write alone, and with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add (<code>kibi init --print-hook all --format lefthook</code>). It also tells agents in a fresh clone about Kibi through <code>AGENTS.md</code>, installs the hooks again from the <code>package.json</code> <code>prepare</code> script, and compiles a clone's store on its first query. What it commits is what you and the agent authored: symbol line positions are derived by every sync into a gitignored cache, so parallel branches do not conflict over them. It does not infer behavior. Checks prove what was encoded. Missing knowledge stays visible.</p>
     </details>
   </div>
 </section>

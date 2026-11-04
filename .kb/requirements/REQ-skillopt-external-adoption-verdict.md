@@ -20,20 +20,22 @@ links:
     target: TEST-skillopt-external-adoption-verdict
   - type: supersedes
     target: REQ-skillopt-automatic-adoption
-semantic_text: 'Local or fake SkillOpt evidence stays review-only. Production mutation of the canonical skill and mirrors is allowed only after an independently verified external verdict binds the source root, candidate hash, immutable root authorization, supervisor parent, invocation and matrix identity, and terminal evidence. This requirement does not assume any repository-hosted signer or authority service.\n\nIncomplete runtime configuration and infrastructure failures are not behavioral evidence: the bridge must reject missing or partial executable paths, and runtime, training, interruption, budget, or evidence-conflict failures must produce a structured exit-1 no-go without a terminal eligibility review. Only a complete matrix may reach external-verdict review.'
+semantic_text: 'Local or fake SkillOpt evidence stays review-only. Production mutation of the canonical skill and mirrors is allowed only after an independently verified external verdict binds the source root, candidate hash, immutable root authorization, supervisor parent, invocation and matrix identity, and terminal evidence. This requirement does not assume any repository-hosted signer or authority service. Incomplete runtime configuration and infrastructure failures are not behavioral evidence: the bridge must reject missing or partial executable paths, and runtime, training, interruption, budget, or evidence-conflict failures must produce a structured exit-1 no-go without a terminal eligibility review. Only a complete matrix may reach external-verdict review.'
 logic_claims:
   - CLAIM-B1E1D3BDCBA90F7F
   - CLAIM-65C263B803EC6E28
-  - CLAIM-B17D92322CD168A9
+  - CLAIM-41362CC2441EA53F
+  - CLAIM-B9D5C4F3DA7528E2
   - CLAIM-EE241F293DB8EE4F
 semantic_clauses:
-  - Local or fake SkillOpt evidence stays review-only
-  - Production mutation of the canonical skill and mirrors is allowed only after an independently verified external verdict binds the source root, candidate hash, immutable root authorization, supervisor parent, invocation and matrix identity, and terminal evidence
-  - 'This requirement does not assume any repository-hosted signer or authority service.\n\nIncomplete runtime configuration and infrastructure failures are not behavioral evidence: the bridge must reject missing or partial executable paths, and runtime, training, interruption, budget, or evidence-conflict failures must produce a structured exit-1 no-go without a terminal eligibility review'
-  - Only a complete matrix may reach external-verdict review
+  - Local or fake SkillOpt evidence stays review-only.
+  - Production mutation of the canonical skill and mirrors is allowed only after an independently verified external verdict binds the source root, candidate hash, immutable root authorization, supervisor parent, invocation and matrix identity, and terminal evidence.
+  - This requirement does not assume any repository-hosted signer or authority service.
+  - 'Incomplete runtime configuration and infrastructure failures are not behavioral evidence: the bridge must reject missing or partial executable paths, and runtime, training, interruption, budget, or evidence-conflict failures must produce a structured exit-1 no-go without a terminal eligibility review.'
+  - Only a complete matrix may reach external-verdict review.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 458117cb3bfd7c4845adaec2b2175fa6d78a02358b84062237f4875107b7bd92
+semantic_source_hash: 8cdfffd0c43753966a9aa2fbe6b1c7020c1cc997e684d98f4e5fc675ea4e9ff7
 semantic_inventory:
   - claim_key: CLAIM-B1E1D3BDCBA90F7F
     claim_text: Local or fake SkillOpt evidence stays review-only
@@ -49,27 +51,36 @@ semantic_inventory:
     span:
       start: 51
       end: 312
-  - claim_key: CLAIM-B17D92322CD168A9
-    claim_text: 'This requirement does not assume any repository-hosted signer or authority service.\n\nIncomplete runtime configuration and infrastructure failures are not behavioral evidence: the bridge must reject missing or partial executable paths, and runtime, training, interruption, budget, or evidence-conflict failures must produce a structured exit-1 no-go without a terminal eligibility review'
-    role: normative
+  - claim_key: CLAIM-41362CC2441EA53F
+    claim_text: This requirement does not assume any repository-hosted signer or authority service
+    role: descriptive
     status: modeled
     span:
       start: 314
-      end: 702
+      end: 396
+  - claim_key: CLAIM-B9D5C4F3DA7528E2
+    claim_text: 'Incomplete runtime configuration and infrastructure failures are not behavioral evidence: the bridge must reject missing or partial executable paths, and runtime, training, interruption, budget, or evidence-conflict failures must produce a structured exit-1 no-go without a terminal eligibility review'
+    role: normative
+    status: modeled
+    span:
+      start: 398
+      end: 699
   - claim_key: CLAIM-EE241F293DB8EE4F
     claim_text: Only a complete matrix may reach external-verdict review
     role: normative
     status: modeled
     span:
-      start: 704
-      end: 760
+      start: 701
+      end: 757
 type: req
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T11:38:31.000Z'
+firmness: firm
+required_evidence: tested
 ---
-
 Local or fake SkillOpt evidence stays review-only. Production mutation of the canonical skill and mirrors is allowed only after an independently verified external verdict binds the source root, candidate hash, immutable root authorization, supervisor parent, invocation and matrix identity, and terminal evidence. This requirement does not assume any repository-hosted signer or authority service.
 
 Incomplete runtime configuration and infrastructure failures are not behavioral evidence: the bridge must reject missing or partial executable paths, and runtime, training, interruption, budget, or evidence-conflict failures must produce a structured exit-1 no-go without a terminal eligibility review. Only a complete matrix may reach external-verdict review.

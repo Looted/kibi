@@ -53,8 +53,7 @@ export function buildIndex(
   const byFile = new Map<string, SymbolEntry[]>();
   const byId = new Map<string, SymbolEntry>();
 
-  if (!fs.existsSync(manifestPath)) return { byTitle, byFile, byId };
-
+  // A missing or unreadable manifest gives an empty index.
   let rawSymbols: Array<Record<string, unknown>>;
   try {
     rawSymbols = parseSymbolsManifest(fs.readFileSync(manifestPath, "utf8"));
@@ -68,13 +67,17 @@ export function buildIndex(
   );
 
   for (const sym of rawSymbols) {
-    const id = String(sym.id ?? "");
-    const title = String(sym.title ?? "");
+    // Every parsed item has an id; the title line is optional.
+    const id = sym.id as string;
+    const title = (sym.title as string | undefined) ?? "";
     if (!id || !title) continue;
 
-    const overlay = coordinateOverlay.get(id);
+    const overlay = coordinateOverlay[id];
     const rawSource = String(
-      overlay?.sourceFile ?? sym.sourceFile ?? sym.source ?? "",
+      (typeof overlay?.sourceFile === "string" ? overlay.sourceFile : null) ??
+        sym.sourceFile ??
+        sym.source ??
+        "",
     );
     let sourceFile: string | undefined;
     if (rawSource && !rawSource.startsWith("http")) {
@@ -83,17 +86,15 @@ export function buildIndex(
         : path.resolve(workspaceRoot, rawSource);
     }
 
+    // The manifest parser stores sourceLine only as a number.
     const sourceLine =
       typeof overlay?.sourceLine === "number"
         ? overlay.sourceLine
-        : typeof sym.sourceLine === "number"
-          ? sym.sourceLine
-          : undefined;
+        : (sym.sourceLine as number | undefined);
 
-    const rawLinks = overlay?.links ?? sym.links;
-    const links: string[] = Array.isArray(rawLinks)
-      ? rawLinks.map((l) => String(l))
-      : [];
+    // Parsed items always carry a links list.
+    const rawLinks = Array.isArray(overlay?.links) ? overlay.links : sym.links;
+    const links = (rawLinks as unknown[]).map((l) => String(l));
 
     const entry: SymbolEntry = { id, title, sourceFile, sourceLine, links };
     byId.set(id, entry);
@@ -113,44 +114,23 @@ export function buildIndex(
   return { byTitle, byFile, byId };
 }
 
+/**
+ * The `coordinates` map of symbol-coordinates.yaml: per symbol id, values
+ * that override the manifest. A missing or unreadable file has none.
+ */
 function loadCoordinatesOverlay(
   coordinatesPath: string,
-): Map<string, { sourceFile?: string; sourceLine?: number; links?: string[] }> {
-  const overlay = new Map<
-    string,
-    { sourceFile?: string; sourceLine?: number; links?: string[] }
-  >();
-  if (!fs.existsSync(coordinatesPath)) return overlay;
-
+): Record<string, Record<string, unknown> | null | undefined> {
   try {
-    const parsed = loadYaml(fs.readFileSync(coordinatesPath, "utf8")) as
-      | { coordinates?: Record<string, unknown> }
-      | undefined;
-    const coordinates =
-      parsed && typeof parsed === "object" ? parsed.coordinates : undefined;
-    if (!coordinates || typeof coordinates !== "object") return overlay;
-
-    for (const [id, raw] of Object.entries(coordinates)) {
-      if (!raw || typeof raw !== "object") continue;
-      const entry = raw as Record<string, unknown>;
-      const item: {
-        sourceFile?: string;
-        sourceLine?: number;
-        links?: string[];
-      } = {};
-      if (typeof entry.sourceFile === "string")
-        item.sourceFile = entry.sourceFile;
-      if (typeof entry.sourceLine === "number")
-        item.sourceLine = entry.sourceLine;
-      if (Array.isArray(entry.links))
-        item.links = entry.links.map((l) => String(l));
-      overlay.set(id, item);
-    }
+    // An empty file parses to undefined, and reading from it throws into the
+    // catch below.
+    const parsed = loadYaml(fs.readFileSync(coordinatesPath, "utf8")) as {
+      coordinates?: Record<string, Record<string, unknown> | null>;
+    };
+    return parsed.coordinates ?? {};
   } catch {
-    return overlay;
+    return {};
   }
-
-  return overlay;
 }
 
 function parseSymbolsManifest(content: string): Array<Record<string, unknown>> {
@@ -162,9 +142,7 @@ function parseSymbolsManifest(content: string): Array<Record<string, unknown>> {
   let inLinks = false;
 
   const pushCurrent = () => {
-    if (!current) return;
-    if (!Array.isArray(current.links)) current.links = [];
-    symbols.push(current);
+    if (current) symbols.push(current);
   };
 
   const unquote = (value: string): string => {

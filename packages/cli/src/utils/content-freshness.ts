@@ -4,7 +4,7 @@
 */
 
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
 import { hashManifestWithCoordinates } from "../commands/sync/cache.js";
@@ -23,18 +23,27 @@ function sha256(bytes: Buffer | string): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-function readJson(file: string): unknown {
-  try {
-    return JSON.parse(readFileSync(file, "utf8"));
-  } catch {
-    return null;
-  }
+/** A JSON object, or null; `typeof null` is "object" and returns null too. */
+function record(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
+    : null;
 }
 
-function record(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
+type ManifestState = { matches: boolean; sources: Set<string> };
+
+/** Every source path a parsed symbols manifest references, POSIX-slashed. */
+function referencedSources(parsed: unknown): Set<string> {
+  const sources = new Set<string>();
+  const symbols = record(parsed)?.symbols;
+  if (!Array.isArray(symbols)) return sources;
+  for (const symbol of symbols) {
+    const row = record(symbol);
+    const source = row?.sourceFile ?? row?.source;
+    // An empty path is harmless: it names the workspace root, never a file.
+    if (typeof source === "string") sources.add(source.replaceAll("\\", "/"));
+  }
+  return sources;
 }
 
 /**
@@ -46,23 +55,30 @@ function record(value: unknown): Record<string, unknown> | null {
  */
 class CompiledContentEvidence {
   private readonly hashes: Record<string, string>;
-  private coordinateHashes: Map<string, Set<string>> | null = null;
-  private manifestState = new Map<
-    string,
-    { matches: boolean; sources: Set<string> }
-  >();
+  private readonly coordinateHashes: Map<unknown, Set<string>>;
+  private readonly manifestState = new Map<string, ManifestState>();
 
   constructor(
     private readonly workspaceRoot: string,
     storePath: string,
   ) {
-    const cache = record(readJson(path.join(storePath, "sync-cache.json")));
+    let cache: Record<string, unknown> | null = null;
+    try {
+      cache = record(
+        JSON.parse(
+          readFileSync(path.join(storePath, "sync-cache.json")).toString(),
+        ),
+      );
+    } catch {
+      // No readable cache: no recorded hashes.
+    }
     const hashes = record(cache?.hashes) ?? {};
     this.hashes = Object.fromEntries(
       Object.entries(hashes).filter(
         (entry): entry is [string, string] => typeof entry[1] === "string",
       ),
     );
+    this.coordinateHashes = this.readCoordinates();
   }
 
   private fileHash(relative: string): string | null {
@@ -73,77 +89,64 @@ class CompiledContentEvidence {
     }
   }
 
-  private manifest(key: string): { matches: boolean; sources: Set<string> } {
-    const cached = this.manifestState.get(key);
-    if (cached) return cached;
-    const absolute = path.resolve(this.workspaceRoot, key);
-    let state = { matches: false, sources: new Set<string>() };
-    try {
-      const matches =
-        hashManifestWithCoordinates(
-          this.workspaceRoot,
-          absolute,
-          path.join(path.dirname(absolute), "symbol-coordinates.yaml"),
-        ) === this.hashes[key];
-      const parsed = record(parseYAML(readFileSync(absolute, "utf8")));
-      const sources = new Set<string>();
-      for (const symbol of Array.isArray(parsed?.symbols)
-        ? parsed.symbols
-        : []) {
-        const row = record(symbol);
-        const source = row?.sourceFile ?? row?.source;
-        if (typeof source === "string" && source.length > 0)
-          sources.add(source.replaceAll("\\", "/"));
-      }
-      state = { matches, sources };
-    } catch {
-      // An unreadable manifest proves nothing; keep the reason.
-    }
-    this.manifestState.set(key, state);
-    return state;
+  private manifest(key: string): ManifestState {
+    // rationale: memoization only; reading the manifest again gives the same
+    // answer, just more slowly.
+    // Stryker disable next-line ConditionalExpression
+    if (!this.manifestState.has(key))
+      this.manifestState.set(key, this.readManifest(key));
+    return this.manifestState.get(key) as ManifestState;
   }
 
-  private coordinates(): Map<string, Set<string>> {
-    if (this.coordinateHashes) return this.coordinateHashes;
-    const byFile = new Map<string, Set<string>>();
-    // The coordinate artifact is content evidence in its own right: kb_upsert
-    // and sync record each symbol's source hash there. Consult the canonical
-    // artifact even when its manifest was never hashed (an untracked,
-    // upsert-only `.kb/symbols.yaml` that sync could not see).
-    const artifacts = new Set<string>([
-      path.resolve(this.workspaceRoot, KB_PATHS.symbolCoordinates),
-    ]);
-    for (const key of Object.keys(this.hashes)) {
-      if (!isSymbolsManifestPath(key) || !key.endsWith("symbols.yaml"))
-        continue;
-      artifacts.add(
-        path.resolve(
-          this.workspaceRoot,
-          path.dirname(key),
-          "symbol-coordinates.yaml",
+  private readManifest(key: string): ManifestState {
+    const absolute = path.resolve(this.workspaceRoot, key);
+    try {
+      return {
+        matches:
+          hashManifestWithCoordinates(
+            this.workspaceRoot,
+            absolute,
+            path.join(path.dirname(absolute), "symbol-coordinates.yaml"),
+          ) === this.hashes[key],
+        sources: referencedSources(
+          parseYAML(readFileSync(absolute).toString()),
         ),
-      );
+      };
+    } catch {
+      // An unreadable manifest proves nothing; keep the reason.
+      return { matches: false, sources: new Set() };
     }
-    for (const artifact of artifacts) {
-      if (!existsSync(artifact)) continue;
-      try {
-        const parsed = record(parseYAML(readFileSync(artifact, "utf8")));
-        for (const value of Object.values(record(parsed?.coordinates) ?? {})) {
-          const row = record(value);
-          if (
-            typeof row?.sourceFile !== "string" ||
-            typeof row.sourceHash !== "string"
-          )
-            continue;
-          const hashes = byFile.get(row.sourceFile) ?? new Set<string>();
-          hashes.add(row.sourceHash);
-          byFile.set(row.sourceFile, hashes);
-        }
-      } catch {
-        // A malformed artifact proves nothing.
+  }
+
+  /**
+   * The coordinate artifact is content evidence in its own right: kb_upsert
+   * and sync record each symbol's source hash there. Consult the canonical
+   * artifact even when its manifest was never hashed (an untracked,
+   * upsert-only `.kb/symbols.yaml` that sync could not see). It is the only
+   * symbols manifest's artifact: isSymbolsManifestPath names that one file.
+   */
+  private readCoordinates(): Map<unknown, Set<string>> {
+    // Keyed by the recorded sourceFile as is: a non-string one never equals
+    // the string path it is looked up by.
+    const byFile = new Map<unknown, Set<string>>();
+    try {
+      // An empty artifact parses to undefined, and reading its coordinates
+      // throws into the catch below.
+      const parsed = parseYAML(
+        readFileSync(
+          path.resolve(this.workspaceRoot, KB_PATHS.symbolCoordinates),
+        ).toString(),
+      ) as { coordinates?: unknown };
+      for (const value of Object.values(record(parsed.coordinates) ?? {})) {
+        const row = record(value);
+        if (typeof row?.sourceHash !== "string") continue;
+        const hashes = byFile.get(row.sourceFile) ?? new Set<string>();
+        hashes.add(row.sourceHash);
+        byFile.set(row.sourceFile, hashes);
       }
+    } catch {
+      // A missing or malformed artifact proves nothing.
     }
-    this.coordinateHashes = byFile;
     return byFile;
   }
 
@@ -156,8 +159,9 @@ class CompiledContentEvidence {
     if (current === null) return false;
     const cached = this.hashes[key];
     if (cached !== undefined) return cached === current;
-    const coordinate = this.coordinates().get(key);
-    if (coordinate !== undefined && coordinate.size > 0)
+    // A recorded file always has at least one hash.
+    const coordinate = this.coordinateHashes.get(key);
+    if (coordinate !== undefined)
       return [...coordinate].every((hash) => hash === current);
     // A code file that is only referenced from a symbol manifest is covered
     // by that manifest's composite hash, which includes every referenced
@@ -185,8 +189,7 @@ export function confirmSourceNewerReasons(
   let evidence: CompiledContentEvidence | null = null;
   for (const reason of reasons) {
     if (
-      typeof reason.code !== "string" ||
-      !MTIME_SOURCE_REASON_CODES.has(reason.code) ||
+      !MTIME_SOURCE_REASON_CODES.has(reason.code as string) ||
       typeof reason.path !== "string"
     ) {
       kept.push(reason);

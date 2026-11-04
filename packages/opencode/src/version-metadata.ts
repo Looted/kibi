@@ -46,46 +46,29 @@ export function readKibiPackageVersions(
   }
 
   // Tier 2: workspace package.json files
-  try {
-    const entries: Array<[string, string]> = [
-      ["opencode", "../package.json"],
-      ["mcp", "../../mcp/package.json"],
-      ["cli", "../../cli/package.json"],
-      ["core", "../../core/package.json"],
-    ];
-
-    const versions: Record<string, string> = {};
-    const missing: string[] = [];
-
-    for (const [name, relPath] of entries) {
-      try {
-        const pkgUrl = new URL(relPath, baseUrl);
-        const raw = readFs(pkgUrl, "utf-8");
-        const pkg = JSON.parse(raw) as { version?: unknown };
-        versions[name] =
-          typeof pkg.version === "string" ? pkg.version : "unknown";
-        if (typeof pkg.version !== "string") {
-          missing.push(name);
-        }
-      } catch {
-        versions[name] = "unknown";
-        missing.push(name);
-      }
-    }
-
-    // Only claim workspace-packages if at least one resolved
-    if (Object.values(versions).some((v) => v !== "unknown")) {
-      return {
-        opencode: versions.opencode ?? "unknown",
-        mcp: versions.mcp ?? "unknown",
-        cli: versions.cli ?? "unknown",
-        core: versions.core ?? "unknown",
-        source: "workspace-packages",
-        missing: missing.length > 0 ? missing : [],
+  const missing: string[] = [];
+  const workspaceVersion = (name: string, relPath: string): string => {
+    try {
+      const pkg = JSON.parse(readFs(new URL(relPath, baseUrl), "utf-8")) as {
+        version?: unknown;
       };
+      if (typeof pkg.version === "string") return pkg.version;
+    } catch {
+      // unreadable or not JSON: unknown below
     }
-  } catch {
-    // fall through
+    missing.push(name);
+    return "unknown";
+  };
+  const versions = {
+    opencode: workspaceVersion("opencode", "../package.json"),
+    mcp: workspaceVersion("mcp", "../../mcp/package.json"),
+    cli: workspaceVersion("cli", "../../cli/package.json"),
+    core: workspaceVersion("core", "../../core/package.json"),
+  };
+
+  // Only claim workspace-packages if at least one resolved
+  if (missing.length < 4) {
+    return { ...versions, source: "workspace-packages", missing };
   }
 
   // Tier 3: all unknown — never throws

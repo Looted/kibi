@@ -49,7 +49,9 @@ id: REQ-prolog-bundled-release
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
+firmness: default
+required_evidence: tested
 ---
 Release packaging must populate each kibi-swipl platform package only from a SWI-Prolog archive whose SHA-256 sidecar, pinned provenance, and binary SHA-256 all verify. Release packaging must ship each platform package payload as regular files with no symbolic links. The release dry-run workflow must not be able to publish.

@@ -2,7 +2,7 @@
 title: The legacy KB first step is kibi migrate --yes
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The legacy KB migration command shall be kibi migrate --yes.
 semantic_clauses:
   - The legacy KB migration command shall be kibi migrate --yes.
@@ -10,7 +10,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T11:15:40.523Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -28,6 +28,7 @@ logic_claims:
   - CLAIM-B6CB9B3266E2A0A1
 id: REQ-legacy-kb-migrate-command
 type: req
+required_evidence: tested
 ---
 The legacy KB migration command shall be kibi migrate --yes.
 

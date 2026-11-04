@@ -58,3 +58,36 @@ describe("requirement titles from the semantic advisor", () => {
     );
   });
 });
+
+describe("firstSentence boundaries", () => {
+  test("trims surrounding whitespace", () => {
+    expect(firstSentence("  Hello world  ")).toBe("Hello world");
+  });
+
+  test("ends at ? and ! and keeps that mark", () => {
+    expect(firstSentence("Is it safe? Yes it is.")).toBe("Is it safe?");
+    expect(firstSentence("Stop! Go now.")).toBe("Stop!");
+  });
+
+  test("a sentence end needs whitespace then an uppercase letter", () => {
+    expect(firstSentence("One.  Two")).toBe("One");
+    expect(firstSentence('One. "Two" said')).toBe("One");
+    expect(firstSentence("One. two")).toBe("One. two");
+    expect(firstSentence("One.Two")).toBe("One.Two");
+  });
+
+  test("drops every closing dot and the space before it", () => {
+    expect(firstSentence("Wait... Next one")).toBe("Wait");
+    expect(firstSentence("Spaced . Next")).toBe("Spaced");
+  });
+
+  test("an abbreviation at the very start does not end the sentence", () => {
+    expect(firstSentence("etc. Then more")).toBe("etc. Then more");
+    expect(firstSentence("Use (e.g. Foo) here")).toBe("Use (e.g. Foo) here");
+    expect(firstSentence("Tetc. Then")).toBe("Tetc");
+  });
+
+  test("dots inside backticks are ignored until the quote closes", () => {
+    expect(firstSentence("Call `a. B` now. Then")).toBe("Call `a. B` now");
+  });
+});

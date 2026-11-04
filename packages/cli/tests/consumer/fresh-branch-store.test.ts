@@ -1,4 +1,4 @@
-// implements REQ-cli-status-pre-first-sync
+// implements REQ-cli-status-pre-first-sync, REQ-kibi-fresh-clone-setup
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,
@@ -15,7 +15,12 @@ import {
  * which creates an empty manifest), kb_check reported one
  * source-relationship-parity violation per authored relationship, and the
  * migration plan had no step that compiles the store.
+ *
+ * Store-backed operations now compile such a store on first use; the
+ * reporting below is what an opted-out checkout (KIBI_AUTO_SYNC=0) sees.
  */
+
+const NO_AUTO_SYNC = { ...process.env, KIBI_AUTO_SYNC: "0" };
 
 let workspace: ConsumerWorkspace | undefined;
 
@@ -51,7 +56,11 @@ function checkResult(ws: ConsumerWorkspace): Array<{
   description: string;
   suggestion: string;
 }> {
-  const result = ws.json(["check", "--format", "json"]);
+  const result = ws.json(
+    ["check", "--format", "json"],
+    undefined,
+    NO_AUTO_SYNC,
+  );
   return (result.structuredContent as Json).violations as Array<{
     rule: string;
     description: string;
@@ -159,7 +168,7 @@ describe("a new branch whose store was never compiled", () => {
       ["search", { query: "users log in" }],
       ["query", { id: "REQ-demo-login" }],
     ] as const) {
-      const result = ws.json([route], input) as Envelope;
+      const result = ws.json([route], input, NO_AUTO_SYNC) as Envelope;
       expect(result.data.count).toBe(0);
       expect(result.data.branchStore?.code).toBe("branch_store_not_compiled");
       expect(result.diagnostics).toContainEqual(
@@ -175,5 +184,46 @@ describe("a new branch whose store was never compiled", () => {
     const query = ws.json(["query"], { id: "REQ-demo-login" }) as Envelope;
     expect(query.data.count).toBe(1);
     expect(query.diagnostics).toEqual([]);
+  }, 240_000);
+
+  test("a store-backed operation compiles the store on first use without touching tracked files", () => {
+    const ws = createConsumerWorkspace("kibi-fresh-branch-auto-");
+    workspace = ws;
+    authorLinkedRequirement(ws);
+    ws.sync();
+    ws.git("add", "-A");
+    ws.git("commit", "-qm", "kb");
+    ws.git("checkout", "-q", "-b", "feature/login");
+    const symbolsBefore = ws.read(".kb/symbols.yaml");
+
+    type Envelope = {
+      data: { count: number; branchStore?: { code: string } };
+      diagnostics: Array<{ code?: string }>;
+    };
+    const query = ws.json(["query"], { id: "REQ-demo-login" }) as Envelope;
+    expect(query.data.count).toBe(1);
+    expect(query.data.branchStore).toBeUndefined();
+    expect(ws.read(".kb/symbols.yaml")).toBe(symbolsBefore);
+    expect(ws.git("status", "--porcelain", "--untracked-files=no")).toBe("");
+    expect(checkResult(ws).map((violation) => violation.rule)).not.toContain(
+      "branch-store-not-compiled",
+    );
+  }, 240_000);
+
+  test("a checkout that recorded autoSync false keeps the not-compiled answer", () => {
+    const ws = createConsumerWorkspace("kibi-fresh-branch-optout-");
+    workspace = ws;
+    authorLinkedRequirement(ws);
+    ws.write(".kb/setup.json", `${JSON.stringify({ autoSync: false })}\n`);
+    ws.sync();
+    ws.git("add", "-A");
+    ws.git("commit", "-qm", "kb");
+    ws.git("checkout", "-q", "-b", "feature/login");
+
+    const search = ws.json(["search"], { query: "users log in" }) as {
+      data: { count: number; branchStore?: { code: string } };
+    };
+    expect(search.data.count).toBe(0);
+    expect(search.data.branchStore?.code).toBe("branch_store_not_compiled");
   }, 240_000);
 });

@@ -31,10 +31,9 @@ type Event = Readonly<{
   kind: "describe" | "test";
   start: number;
   end: number;
-  title?: string;
-  dynamic: boolean;
+  /** The literal title; undefined when it is computed at runtime. */
+  title: string | undefined;
   braceDepth: number;
-  scopeEnd?: number;
 }>;
 
 function lineColumn(source: string, offset: number): [number, number] {
@@ -63,72 +62,78 @@ function braceDepthAt(source: string, offset: number): number {
   return depth;
 }
 
-function matchingBrace(source: string, open: number): number | undefined {
+/**
+ * The offset of the `}` closing the first `{` block at or after `from`, or
+ * undefined when there is none or it never closes.
+ */
+function blockEndAfter(source: string, from: number): number | undefined {
   let depth = 0;
-  for (let index = open; index < source.length; index += 1) {
-    if (source[index] === "{") depth += 1;
-    else if (source[index] === "}") {
+  for (const brace of source.slice(from).matchAll(/[{}]/g)) {
+    if (brace[0] === "{") depth += 1;
+    else if (depth > 0) {
       depth -= 1;
-      if (depth === 0) return index;
+      if (depth === 0) return from + (brace.index as number);
     }
   }
   return undefined;
 }
 
 function events(source: string): Event[] {
-  const output: Event[] = [];
   const importedAliases = [
     "test",
     ...[...source.matchAll(/\btest\s+as\s+([A-Za-z_$][\w$]*)/g)].map(
       (match) => match[1] as string,
     ),
   ];
+  // A declaration such as `function test(` is not a call. Aliases may hold
+  // `$`, which must match literally and is not a word character.
   const pattern = new RegExp(
-    `\\b(?:${importedAliases.join("|")})(?:\\.only|\\.skip)?\\s*\\.?(describe)?\\s*\\(`,
+    `(?<!function\\s+)(?<![\\w$])(?:${importedAliases.map((alias) => alias.replaceAll("$", "\\$")).join("|")})(?:\\.only|\\.skip)?\\s*\\.?(describe)?(?:\\.only|\\.skip)?\\s*\\(`,
     "g",
   );
-  for (const match of source.matchAll(pattern)) {
-    const start = match.index ?? 0;
-    if (/function\s+$/.test(source.slice(Math.max(0, start - 16), start))) {
-      continue;
-    }
+  return [...source.matchAll(pattern)].map((match) => {
+    const start = match.index as number;
     const open = start + match[0].lastIndexOf("(") + 1;
-    const remainder = source.slice(open);
-    const stringMatch = remainder.match(/^\s*(["'`])((?:\\.|(?!\1).)*)\1/s);
-    const dynamic = !stringMatch;
-    const title = stringMatch?.[2]?.replaceAll(/\\(["'`\\])/g, "$1");
-    const end = Math.min(source.length, open + (stringMatch?.[0].length ?? 1));
-    const callbackOpen = source.indexOf("{", end);
-    const scopeEnd =
-      match[1] === "describe" && callbackOpen >= 0
-        ? matchingBrace(source, callbackOpen)
-        : undefined;
-    output.push({
+    const stringMatch = source
+      .slice(open)
+      .match(/^\s*(["'`])((?:\\.|(?!\1).)*)\1/s);
+    return {
       kind: match[1] === "describe" ? "describe" : "test",
       start,
-      end,
-      ...(title === undefined ? {} : { title }),
-      dynamic,
+      end: open + (stringMatch?.[0].length ?? 1),
+      title:
+        stringMatch === null
+          ? undefined
+          : (stringMatch[2] as string).replaceAll(/\\(["'`\\])/g, "$1"),
       braceDepth: braceDepthAt(source, start),
-      ...(scopeEnd === undefined ? {} : { scopeEnd }),
-    });
-  }
-  return output;
+    };
+  });
 }
 
-function qualifiedTitle(event: Event, all: readonly Event[]): string {
+/** The test's title prefixed by the titles of the describes holding it. */
+function qualifiedTitle(
+  source: string,
+  event: Event,
+  all: readonly Event[],
+): string {
   const suites = all
+    .slice(0, all.indexOf(event))
     .filter(
       (candidate) =>
         candidate.kind === "describe" &&
-        candidate.start < event.start &&
-        (candidate.scopeEnd === undefined ||
-          event.start < candidate.scopeEnd) &&
+        candidate.title !== undefined &&
         candidate.braceDepth <= event.braceDepth &&
-        candidate.title !== undefined,
+        // A describe scopes its callback block; one whose block is missing
+        // or never closes scopes the rest of the module.
+        // rationale: a test call never starts on the `}` that closes a
+        // describe callback, so `<` and `<=` agree on every source.
+        // Stryker disable next-line EqualityOperator
+        event.start <
+          (blockEndAfter(source, candidate.end) ?? Number.POSITIVE_INFINITY),
     )
     .map((candidate) => candidate.title as string);
-  return [...suites, event.title ?? ""].join(" > ");
+  // Only statically titled tests are qualified.
+  return [...suites, event.title as string].join(" > ");
 }
 
 /** Extract statically named Playwright tests from a TS/JS source module. */
@@ -149,7 +154,7 @@ export function extractPlaywrightCases(
   const all = events(source);
   for (const event of all.filter(({ kind }) => kind === "test")) {
     const [line, column] = lineColumn(source, event.start);
-    if (event.dynamic) {
+    if (event.title === undefined) {
       diagnostics.push({
         code: "dynamic_test_case_unresolved",
         sourceFile,
@@ -159,7 +164,7 @@ export function extractPlaywrightCases(
       });
       continue;
     }
-    const title = qualifiedTitle(event, all);
+    const title = qualifiedTitle(source, event, all);
     const end = source.indexOf("\n", event.end);
     const [endLine, endColumn] = lineColumn(
       source,

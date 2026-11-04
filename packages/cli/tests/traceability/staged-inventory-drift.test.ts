@@ -8,7 +8,9 @@ import {
 import { semanticSourceHash } from "../../src/operations/semantic-advisor/shared.js";
 import {
   STAGED_INVENTORY_DRIFT_RULE,
+  STAGED_STATEMENT_DRIFT_RULE,
   stagedInventoryDriftViolations,
+  stagedStatementDriftViolations,
 } from "../../src/traceability/staged-inventory-drift.js";
 
 const PATH = ".kb/requirements/REQ-checkout-total.md";
@@ -134,5 +136,81 @@ describe("staged semantic inventory drift", () => {
 
   test("still fails a contract dropped from the staged file", () => {
     expect(drift(plain(edited), inventoried(original))).toHaveLength(1);
+  });
+});
+
+function pinned(semanticText: string, body: string, status = "open"): string {
+  return `---
+id: REQ-checkout-total
+title: Checkout total
+type: req
+status: ${status}
+semantic_text: ${semanticText}
+---
+
+${body}
+`;
+}
+
+function statementDrift(staged: string, base: string | null) {
+  return stagedStatementDriftViolations({
+    stagedFiles: [{ path: PATH, content: staged }],
+    readBase: () => base,
+  });
+}
+
+describe("staged requirement statement drift", () => {
+  const original = "The checkout total stays positive for every order.";
+  const edited = "The checkout total stays positive for every paid order.";
+
+  test("fails a body edit that leaves the pinned semantic_text behind", () => {
+    const violations = statementDrift(
+      pinned(original, edited),
+      pinned(original, original),
+    );
+    expect(violations).toHaveLength(1);
+    expect(violations[0]?.rule).toBe(STAGED_STATEMENT_DRIFT_RULE);
+    expect(violations[0]?.entityId).toBe("REQ-checkout-total");
+    expect(violations[0]?.message).toContain("pinned semantic_text did not");
+    expect(violations[0]?.message).toContain("kb_model mode analyze");
+  });
+
+  test("passes when semantic_text is restated with the body", () => {
+    expect(
+      statementDrift(pinned(edited, edited), pinned(original, original)),
+    ).toEqual([]);
+  });
+
+  test("passes context-only and whitespace-only body edits", () => {
+    const withContext = `${original}\n\n## Context\n\nAdded after a billing review.`;
+    expect(
+      statementDrift(pinned(original, withContext), pinned(original, original)),
+    ).toEqual([]);
+    expect(
+      statementDrift(
+        pinned(original, original.replace(" stays ", "\n  stays ")),
+        pinned(original, original),
+      ),
+    ).toEqual([]);
+  });
+
+  test("leaves unpinned, new, retired and non-requirement files alone", () => {
+    expect(statementDrift(plain(edited), plain(original))).toEqual([]);
+    expect(statementDrift(pinned(original, edited), null)).toEqual([]);
+    expect(
+      statementDrift(
+        pinned(original, edited, "superseded"),
+        pinned(original, original, "superseded"),
+      ),
+    ).toEqual([]);
+    const adr = (body: string) =>
+      `---\nid: ADR-checkout\ntitle: Checkout\ntype: adr\nstatus: accepted\nsemantic_text: x\n---\n\n${body}\n`;
+    expect(statementDrift(adr(edited), adr(original))).toEqual([]);
+    expect(
+      stagedStatementDriftViolations({
+        stagedFiles: [{ path: PATH }],
+        readBase: () => pinned(original, original),
+      }),
+    ).toEqual([]);
   });
 });

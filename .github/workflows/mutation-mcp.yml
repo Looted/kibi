@@ -1,0 +1,76 @@
+name: Mutation (kibi-mcp)
+
+# Stryker gate for kibi-mcp (stryker.mcp.conf.mjs, see
+# docs/mutation-testing.md). It runs only when dispatched by hand.
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Kibi's own CI never sends anonymous usage telemetry.
+  KIBI_TELEMETRY: "0"
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+
+jobs:
+  swipl-bundle:
+    uses: ./.github/workflows/swipl-ci-bundle.yml
+
+  mutation-mcp:
+    # The mcp tests start Kibi engines, which need SWI-Prolog.
+    needs: [swipl-bundle]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    # One job per MCP_MUTATION_SHARDS group in stryker.mcp.conf.mjs, plus one
+    # for the remaining files: a single job takes about two and a half hours.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5]
+    name: mutation-mcp (${{ matrix.shard }}/5)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.2'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
+      - name: Install JS deps
+        run: |
+          bun install --frozen-lockfile
+
+      - name: Use the pipeline-built SWI-Prolog
+        uses: ./.github/actions/use-bundled-swipl
+
+      # The mcp tests import the workspace packages' dist.
+      - name: Build packages
+        run: bun run build
+
+      - name: Run mutation suite
+        env:
+          MCP_MUTATION_SHARD: ${{ matrix.shard }}
+        run: bun run test:mutation:mcp
+
+      - name: Upload mutation report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mcp-mutation-report-${{ matrix.shard }}
+          path: reports/mutation/mcp/shard-${{ matrix.shard }}/
+          if-no-files-found: ignore
+          retention-days: 14

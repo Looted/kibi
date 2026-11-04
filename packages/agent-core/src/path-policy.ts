@@ -157,7 +157,7 @@ export function extractExplicitPathFields(input: unknown): string[] {
   return [...new Set(paths)];
 }
 
-const patchFileHeader = /^\*\*\* (?:Update|Add|Delete) File: (.+)$/;
+const patchFileHeader = /^\*\*\* (?:Update|Add|Delete) File: (.+)/;
 const patchTextKeys = ["command", "patch", "input", "patchText"] as const;
 
 /**
@@ -185,7 +185,7 @@ export function extractEditedPaths(toolInput: unknown): string[] {
   if (isRecord(toolInput)) {
     for (const key of patchTextKeys) {
       const value = toolInput[key];
-      if (typeof value === "string" && value.includes("*** ")) {
+      if (typeof value === "string") {
         paths.push(...extractPatchFilePaths(value));
       }
     }
@@ -201,16 +201,18 @@ export function canonicalizeWorkspacePath(
     rawPath: string;
   },
 ): CanonicalWorkspacePath | undefined {
+  // An empty path resolves to the base itself and is refused below.
   const trimmed = normalizeWorkspacePath(options.rawPath);
-  if (trimmed.length === 0) return undefined;
-
   const base = options.base ?? options.eventCwd ?? workspaceRoot;
   const absolute = path.isAbsolute(trimmed)
     ? path.resolve(trimmed)
     : path.resolve(base, trimmed);
+  // rationale: path.relative only emits backslashes on Windows.
+  // Stryker disable StringLiteral
   const workspaceRelative = path
     .relative(workspaceRoot, absolute)
     .replaceAll("\\", "/");
+  // Stryker restore StringLiteral
   if (
     workspaceRelative.length === 0 ||
     workspaceRelative === ".." ||
@@ -248,13 +250,16 @@ export function classifyPath(relativePath: string): PathKind {
     return "other";
   }
 
-  const basename = segments.at(-1) ?? "";
+  const basename = segments.at(-1);
+  if (basename === undefined) return "other";
   const extension = path.extname(basename).toLowerCase();
   if (!codeExtensions.has(extension)) return "other";
 
+  // A code file's own name never equals a test directory name, so the
+  // basename may take part in the segment check.
   if (
     testBasename.test(basename) ||
-    segments.slice(0, -1).some((segment) => testSegments.has(segment))
+    segments.some((segment) => testSegments.has(segment))
   ) {
     return "test";
   }
@@ -269,13 +274,11 @@ export function isRootKbPath(candidate: string): boolean {
   return pathSegments(candidate)[0] === ".kb";
 }
 
+/** Called only for paths with a `.kb` segment. */
 function isCanonicalKbKnowledgePath(segments: readonly string[]): boolean {
-  const kbIndex = segments.indexOf(".kb");
-  if (kbIndex < 0) return false;
-  const lane = segments[kbIndex + 1];
+  const lane = segments[segments.indexOf(".kb") + 1] as string;
   return (
-    lane !== undefined &&
-    (canonicalKbKnowledgeFiles.has(lane) || canonicalKbKnowledgeLanes.has(lane))
+    canonicalKbKnowledgeFiles.has(lane) || canonicalKbKnowledgeLanes.has(lane)
   );
 }
 
@@ -284,7 +287,8 @@ export function isMeaningfulTrackedPath(candidate: string): boolean {
   if (segments.some((segment) => ignoredSegments.has(segment))) return false;
   if (segments.includes(".kb")) return isCanonicalKbKnowledgePath(segments);
 
-  const basename = segments.at(-1) ?? "";
+  const basename = segments.at(-1);
+  if (basename === undefined) return false;
   const extension = path.extname(basename).toLowerCase();
   if (basename === "README.md") return true;
   if (segments.some((segment) => documentationSegments.has(segment))) {
@@ -292,7 +296,7 @@ export function isMeaningfulTrackedPath(candidate: string): boolean {
   }
   if (
     testBasename.test(basename) ||
-    segments.slice(0, -1).some((segment) => testSegments.has(segment))
+    segments.some((segment) => testSegments.has(segment))
   ) {
     return (
       codeExtensions.has(extension) || documentationExtensions.has(extension)
@@ -307,9 +311,10 @@ export function isSourceImpactRelevantPath(candidate: string): boolean {
 
 export function isDocumentationTrackedPath(candidate: string): boolean {
   const segments = pathSegments(candidate);
-  const basename = segments.at(-1) ?? "";
+  const basename = segments.at(-1);
+  if (basename === undefined) return false;
+  // README.md is covered by the .md extension.
   return (
-    basename === "README.md" ||
     segments.some((segment) => documentationSegments.has(segment)) ||
     documentationExtensions.has(path.extname(basename).toLowerCase())
   );

@@ -4,7 +4,6 @@ import {
   KIBI_SYMBOLS_MANIFEST_PATH,
   type KibiImpactEvidence,
   type KibiImpactSymbolsManifestFileDetail,
-  getBehaviorSourcePaths,
   getMissingBehaviorSourcePaths,
   hasOverrideRationale,
 } from "./evidence-model.js";
@@ -63,8 +62,10 @@ function symbolsManifestFileDetails(
   paths: readonly string[],
 ): KibiImpactSymbolsManifestFileDetail[] {
   const pathSet = new Set(paths);
-  return (evidence.symbolsManifest.fileDetails ?? []).filter((detail) =>
-    pathSet.has(detail.path),
+  return (
+    evidence.symbolsManifest.fileDetails?.filter((detail) =>
+      pathSet.has(detail.path),
+    ) ?? []
   );
 }
 
@@ -92,7 +93,7 @@ function manifestDetailLines(
 function createMissingEvidenceDiagnostic(
   paths: string[],
   symbolsManifestPath: string,
-  fileDetails: readonly KibiImpactSymbolsManifestFileDetail[] = [],
+  fileDetails: readonly KibiImpactSymbolsManifestFileDetail[],
 ): KibiImpactDiagnostic {
   const uncoveredByPath = new Map(
     fileDetails
@@ -138,7 +139,7 @@ function createMissingEvidenceDiagnostic(
 function createSymbolsManifestStaleDiagnostic(
   paths: string[],
   symbolsManifestPath: string,
-  fileDetails: readonly KibiImpactSymbolsManifestFileDetail[] = [],
+  fileDetails: readonly KibiImpactSymbolsManifestFileDetail[],
 ): KibiImpactDiagnostic {
   const hasMissingSymbols = fileDetails.some(
     (detail) => detail.missing.length > 0,
@@ -159,9 +160,10 @@ function createSymbolsManifestStaleDiagnostic(
         ]
       : []),
   ];
+  const stepText = steps.join(", and ");
   const suggestion = `${
     steps.length > 0
-      ? `${steps.join(", and ").replace(/^./, (first) => first.toUpperCase())}. `
+      ? `${stepText.charAt(0).toUpperCase()}${stepText.slice(1)}. `
       : ""
   }Stage ${symbolsManifestPath} with the behavior edit, then re-run kibi check --staged.`;
   return {
@@ -257,14 +259,6 @@ export function collectStagedKibiDiagnostics(
         symbolsManifestFileDetails(evidence, missingBehaviorPaths),
       ),
     );
-  }
-
-  if (
-    evidence.mode.kind === "no_impact_override" &&
-    evidence.mode.override.sourcePaths.length === 0 &&
-    getBehaviorSourcePaths(evidence).length === 0
-  ) {
-    return diagnostics;
   }
 
   return diagnostics;

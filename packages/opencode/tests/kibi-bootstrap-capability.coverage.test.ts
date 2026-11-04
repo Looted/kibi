@@ -118,6 +118,21 @@ describe("kibi-bootstrap capability remaining runtime branches", () => {
     expect(second).toBe(first);
   });
 
+  test("unset PWD and GITHUB_WORKSPACE are skipped, not probed", () => {
+    const plain = makeTempDir("kibi-bootstrap-plain-");
+    cleanup.push(plain);
+    process.chdir(plain);
+    process.env.PWD = plain;
+    process.env.GITHUB_WORKSPACE = plain;
+    _resetKibiBootstrapCapabilityCacheForTests();
+    const withEnv = getKibiBootstrapCommandCapability();
+
+    Reflect.deleteProperty(process.env, "PWD");
+    Reflect.deleteProperty(process.env, "GITHUB_WORKSPACE");
+    _resetKibiBootstrapCapabilityCacheForTests();
+    expect(getKibiBootstrapCommandCapability()).toStrictEqual(withEnv);
+  });
+
   test("dogfood host without version still reports support as unknown plugin version", () => {
     const root = makeTempDir("kibi-bootstrap-nover-");
     cleanup.push(root);

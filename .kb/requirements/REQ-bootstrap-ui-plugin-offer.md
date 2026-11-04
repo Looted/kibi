@@ -8,7 +8,7 @@ tags:
   - ui
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:14:07.254Z'
 rationale: Kibi aims to stay mostly configuration-less, so an optional plugin should be offered when the workspace shows it fits instead of requiring hand configuration.
 semantic_text: The bootstrap plan must offer kibi-plugin-ui when production React or Angular component files exist. The bootstrap plan must not offer a plugin that package.json activates or lists in kibi.declinedPlugins. Project configuration validation must reject a kibi.declinedPlugins entry that is not a bare package name.
@@ -60,4 +60,4 @@ The project owner suggested that UI support should be an init or bootstrap quest
 
 > So maybe this should be an init/bootstrap thing - html files detected in the proejct, do you want to enable the UI support kind of thing.
 
-Project owner, project thread on the UI design plugin, 2026-10-09.
+Project owner, UI design plugin discussion, 2026-10-09.

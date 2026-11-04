@@ -22,7 +22,7 @@ proof_bindings:
     native_id: documentation/tests/e2e/skillopt-claude-code-host.e2e.ts::skillopt Claude Code host e2e
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+  ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
   recorded_at: '2026-10-05T22:05:47.109Z'
 id: TEST-e2e-skillopt-claude-code-host
 type: test

@@ -2,7 +2,7 @@
 title: Health report filters and proof gates
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: A health report filter shall be all, proved, tested, attention, below_floor, pending_reproof, stale or contradiction. A health report proof gate shall be semantic, scenario, implementation, e2e, evidence or proved.
 semantic_clauses:
   - A health report filter shall be all, proved, tested, attention, below_floor, pending_reproof, stale or contradiction.
@@ -11,7 +11,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-29T10:24:57.457Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -37,6 +37,7 @@ logic_claims:
   - CLAIM-792537721948631C
 id: REQ-kibi-report-filters-and-gates
 type: req
+required_evidence: tested
 ---
 A health report filter shall be all, proved, tested, attention, below_floor, pending_reproof, stale or contradiction. A health report proof gate shall be semantic, scenario, implementation, e2e, evidence or proved.
 

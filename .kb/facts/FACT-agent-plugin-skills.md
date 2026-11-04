@@ -1,20 +1,21 @@
 ---
-title: The portable artifact packages the six Kibi skills
+title: The portable artifact packages the seven Kibi skills
 status: active
 fact_kind: property_value
 subject_key: cursor.kibi_plugin
 property_key: bundled_skills
-operator: includes
+operator: eq
 value_type: set
 value_set:
   - kibi-bootstrap
   - kibi-commit-review
   - kibi-decisions
   - kibi-freshness
+  - kibi-provable-code
   - kibi-traceability
   - kibi-usage
-claim_text: The kibi-cursor portable Agent Plugin artifact must package the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills under its skills directory
-claim_key: CLAIM-C57C6B8C72A91DE0
+claim_text: The kibi-cursor portable Agent Plugin artifact must package the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others under its skills directory
+claim_key: CLAIM-8AE72DEF7EF73CAE
 text_ref: REQ-cursor-agent-plugin-package
 origin:
   kind: agent

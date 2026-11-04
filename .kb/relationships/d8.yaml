@@ -566,3 +566,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a263b52ea88b
+  - type: executable_for
+    from: SYM-test-sync-relationship-retry
+    to: TEST-sync-relationship-retry
+    created_at: 2026-11-03T11:17:48.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70e8c9d62fda
+  - type: implements
+    from: SYM-github-init-scaffold-check-workflow
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:55.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61ace1bc80e3
+  - type: covered_by
+    from: SYM-github-init-scaffold-check-workflow
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:51:55.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9693e4e31be2

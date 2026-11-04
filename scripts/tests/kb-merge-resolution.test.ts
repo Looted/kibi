@@ -51,7 +51,8 @@ function stepsRunWhenFailing(steps: Step[], failing: RegExp): Step[] {
   const ran: Step[] = [];
   let failed = false;
   for (const step of steps) {
-    if (failed && !/\b(always|failure)\(\)/.test(String(step.if ?? ""))) continue;
+    if (failed && !/\b(always|failure)\(\)/.test(String(step.if ?? "")))
+      continue;
     ran.push(step);
     if (pattern(step, failing)) failed = true;
   }
@@ -100,6 +101,74 @@ describe("KB merge workflow", () => {
     for (const index of [commit, gate, push]) {
       expect(steps[index]?.["working-directory"]).toBe("pr");
     }
+  });
+
+  test("compiles the merged KB before the proof gate, from develop's build", () => {
+    const commit = indexOf(steps, /git commit/);
+    const compile = indexOf(steps, /\bsync\b/);
+    const gate = indexOf(steps, /scripts\/proof-gate\.sh/);
+    expect(commit).toBeLessThan(compile);
+    expect(compile).toBeLessThan(gate);
+    expect(steps[compile]?.["working-directory"]).toBe("pr");
+    expect(steps[compile]?.run).toContain('bun "$KIBI_CLI" sync');
+    expect(
+      (steps[compile] as Step & { env?: Record<string, string> }).env?.KIBI_CLI,
+    ).toBe("${{ github.workspace }}/packages/cli/bin/kibi");
+    // Coordinates are a local cache: nothing in the job handles them any more.
+    for (const step of steps) {
+      expect(step.run ?? "").not.toContain("symbol-coordinates");
+    }
+  });
+
+  // Runs the compile step with a fake Kibi whose sync either leaves the tree
+  // alone or rewrites a tracked file, the way a runner does (bash -e).
+  function runCompile(rewrites: boolean) {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-kb-merge-sync-"));
+    try {
+      const git = (...args: string[]) => {
+        const result = spawnSync("git", args, { cwd: root, encoding: "utf8" });
+        expect(result.status, `git ${args.join(" ")}: ${result.stderr}`).toBe(
+          0,
+        );
+      };
+      git("init", "-q", "-b", "feature/merged");
+      git("config", "user.email", "test@example.com");
+      git("config", "user.name", "Kibi Test");
+      writeFileSync(path.join(root, "symbols.yaml"), "symbols: []\n");
+      git("add", "symbols.yaml");
+      git("commit", "-q", "-m", "merged");
+      const fakeKibi = path.join(
+        os.tmpdir(),
+        `kibi-fake-sync-${process.pid}.mjs`,
+      );
+      writeFileSync(
+        fakeKibi,
+        `import { writeFileSync } from "node:fs";
+if (process.argv[2] !== "sync") process.exit(3);
+${rewrites ? 'writeFileSync("symbols.yaml", "symbols: [rewritten]\\n");' : ""}
+`,
+      );
+      const step = steps[indexOf(steps, /\bsync\b/)] as Step;
+      const result = spawnSync("bash", ["-e", "-c", step.run ?? ""], {
+        cwd: root,
+        encoding: "utf8",
+        env: { ...process.env, KIBI_CLI: fakeKibi },
+      });
+      rmSync(fakeKibi, { force: true });
+      return result;
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
+
+  test("a sync that rewrites a tracked file stops the job before the gate", () => {
+    const clean = runCompile(false);
+    expect(clean.status, clean.stderr).toBe(0);
+    const rewritten = runCompile(true);
+    expect(rewritten.status).not.toBe(0);
+    expect(rewritten.stdout).toContain(
+      "Kibi sync changed tracked files after the merge: symbols.yaml",
+    );
   });
 
   // Runs the workflow's own gate and push steps, in order, the way a runner

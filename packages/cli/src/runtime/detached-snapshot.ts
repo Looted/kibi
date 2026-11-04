@@ -101,12 +101,15 @@ export async function resolveOperationAttachment(
     return attachment;
   }
   const attachment = resolveReadBranchAttachment(workspaceRoot);
+  // A resolution error carries no read-only snapshot.
   if (
-    !("error" in attachment) &&
-    attachment.readOnly !== undefined &&
+    (attachment as BranchAttachment).readOnly !== undefined &&
     spec.effects.includes("kb-read")
   ) {
-    await refreshDetachedSnapshot(workspaceRoot, attachment);
+    await refreshDetachedSnapshot(
+      workspaceRoot,
+      attachment as BranchAttachment,
+    );
   }
   return attachment;
 }
@@ -117,7 +120,7 @@ export function detachedReadOnlyDiagnostic(
   attachment: BranchAttachment | undefined,
 ): DetachedReadOnlyDiagnostic | undefined {
   const readOnly = attachment?.readOnly;
-  if (attachment === undefined || readOnly === undefined) return undefined;
+  if (readOnly === undefined) return undefined;
   return {
     code: DETACHED_HEAD_READ_ONLY_CODE,
     severity: "warning",
@@ -125,8 +128,8 @@ export function detachedReadOnlyDiagnostic(
     detail: {
       head: readOnly.head,
       branchesAtHead: readOnly.branchesAtHead,
-      kbBranch: attachment.kbBranch,
-      storePath: attachment.storePath,
+      kbBranch: (attachment as BranchAttachment).kbBranch,
+      storePath: (attachment as BranchAttachment).storePath,
       writes: "refused",
     },
   };

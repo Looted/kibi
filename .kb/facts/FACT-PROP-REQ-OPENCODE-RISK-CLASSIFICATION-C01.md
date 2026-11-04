@@ -1,18 +1,18 @@
 ---
-title: 'Every proposed edit or action must be classified to determine enforcement level:'
+title: opencode.kibi_plugin clause 1
 status: active
 tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_01_every_proposed_edit_or_action_must_be_classified
+property_key: clause_01_the_opencode_plugin_must_classify_a_proposed_edit_into_a_ris
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_risk_classification.clause_01_every_proposed_edit_or_action_must_be_classified.eq.true
-claim_key: CLAIM-093542C105C70A84
-claim_text: 'Every proposed edit or action must be classified to determine enforcement level:\n\n`safe_docs_only`: Edits to non-KB documentation.\n`safe_test_only`: Edits to tests only.\n`kb_doc_structural`: Edits to KB entity frontmatter or relationships.\n`req_policy_candidate`: New requirements that may need policy alignment.\n`behavior_candidate`: Code changes requiring traceability.\n`traceability_candidate`: Symbol changes missing requirement links.\n`manual_kb_edit`: Direct edits to `.kb/**` internal files (maximum warning)'
+canonical_key: req.req_opencode_risk_classification.clause_01_the_opencode_plugin_must_classify_a_proposed_edit_into_a_ris.eq.true
+claim_key: CLAIM-93AAC229EC376A3A
+claim_text: The OpenCode plugin must classify a proposed edit into a risk class that sets its enforcement level
 id: FACT-PROP-REQ-OPENCODE-RISK-CLASSIFICATION-C01
 type: fact
 origin:

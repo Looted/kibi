@@ -321,3 +321,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-42847b1358eb
+  - type: specified_by
+    from: REQ-vscode-sidebar-kb-tree
+    to: SCEN-vscode-sidebar-kb-tree
+    created_at: 2026-11-03T11:37:04.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03cd587dbf04
+  - type: verified_by
+    from: REQ-vscode-sidebar-kb-tree
+    to: TEST-vscode-traceability
+    created_at: 2026-11-03T11:37:04.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16185e23f0c0
+  - type: supersedes
+    from: REQ-vscode-sidebar-kb-tree
+    to: REQ-010
+    created_at: 2026-11-03T11:37:04.648Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d87eecbccc1
+  - type: requires_property
+    from: REQ-vscode-sidebar-kb-tree
+    to: FACT-PROP-REQ-VSCODE-SIDEBAR-KB-TREE-C02
+    created_at: 2026-11-03T11:37:04.677Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-175635391e97
+  - type: requires_property
+    from: REQ-vscode-sidebar-kb-tree
+    to: FACT-PROP-REQ-VSCODE-SIDEBAR-KB-TREE-C03
+    created_at: 2026-11-03T11:37:04.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77ac745528e0
+  - type: requires_property
+    from: REQ-vscode-sidebar-kb-tree
+    to: FACT-PROP-REQ-VSCODE-SIDEBAR-KB-TREE-C04
+    created_at: 2026-11-03T11:37:04.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ab1917818c4

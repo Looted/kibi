@@ -255,26 +255,16 @@ function enforceNativeCaseBindings(
     }
     seenNativeIds.add(nativeId);
 
-    const matchingBindings = bindings.filter(
-      (binding) =>
-        binding.symbol_id === result.symbol_id &&
-        binding.target === result.target,
+    // parseBindings refuses two bindings for one target/symbol_id, so at
+    // most one binding matches.
+    const binding = bindings.find(
+      (candidate) =>
+        candidate.symbol_id === result.symbol_id &&
+        candidate.target === result.target,
     );
-    if (matchingBindings.length === 0) {
-      throw new Error(
-        `Proof ingest failed: test ${testId} native_case result ${resultLabel} has no matching proof_binding`,
-      );
-    }
-    if (matchingBindings.length !== 1) {
-      throw new Error(
-        `Proof ingest failed: test ${testId} native_case result ${resultLabel} has an ambiguous proof_binding`,
-      );
-    }
-
-    const binding = matchingBindings[0];
     if (binding === undefined) {
       throw new Error(
-        `Proof ingest failed: test ${testId} native_case result ${resultLabel} has an ambiguous proof_binding`,
+        `Proof ingest failed: test ${testId} native_case result ${resultLabel} has no matching proof_binding`,
       );
     }
     const boundNativeIds = [

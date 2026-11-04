@@ -2,7 +2,7 @@
 title: The default telemetry acceptance policy limits
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The telemetry acceptance report shall read at most 200 usage events. The maximum telemetry evidence age shall be 604800 seconds. The maximum validation preflight age shall be 3600 seconds. The maximum semantic-advisor age shall be 86400 seconds. The repeated mutation failure threshold shall be 3 failed upserts.
 semantic_clauses:
   - The telemetry acceptance report shall read at most 200 usage events.
@@ -16,7 +16,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T09:43:13.611Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -66,6 +66,7 @@ logic_claims:
   - CLAIM-7359B46424CC0BF4
 id: REQ-kibi-telemetry-acceptance-thresholds
 type: req
+required_evidence: tested
 ---
 The telemetry acceptance report shall read at most 200 usage events. The maximum telemetry evidence age shall be 604800 seconds. The maximum validation preflight age shall be 3600 seconds. The maximum semantic-advisor age shall be 86400 seconds. The repeated mutation failure threshold shall be 3 failed upserts.
 

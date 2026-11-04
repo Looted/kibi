@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
 import {
   hashTelemetryId,
@@ -57,6 +58,25 @@ describe("Cursor hook runner", () => {
     );
 
     expect(result.additional_context).toBeDefined();
+  });
+
+  // implements REQ-kibi-fresh-clone-setup
+  test("sessionStart adds the missing-hooks note after the advisory in a checkout without Kibi hooks", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(cwd, pluginData);
+    fs.mkdirSync(path.join(cwd, ".kb"));
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
+    spawnSync("git", ["init", "-q"], { cwd });
+
+    const result = await runHook(
+      { hook_event_name: "sessionStart", cwd },
+      { pluginData, workspaceTrusted: false },
+    );
+
+    const context = String(result.additional_context);
+    expect(context.endsWith(`\n${MISSING_HOOKS_NOTE}`)).toBe(true);
+    expect(context.length).toBeGreaterThan(MISSING_HOOKS_NOTE.length + 1);
   });
 
   test("sessionStart emits advisory output without executing a trusted CLI fallback", async () => {
@@ -976,6 +996,46 @@ describe("Cursor decision guard", () => {
     });
     const stop = await event({ hook_event_name: "stop", status: "completed" });
     expect(stop.followup_message ?? "").not.toContain(
+      "recorded nothing in the knowledge base",
+    );
+  });
+
+  test("a dry-run MCP upsert is no record; a CLI upsert is", async () => {
+    const dryRun = conversation();
+    await dryRun.event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(dryRun.workspace, "src/checkout.ts") },
+    });
+    await dryRun.event({
+      hook_event_name: "postToolUse",
+      tool_name: "CallMcpTool",
+      tool_input: { toolName: "kb_upsert", arguments: { dryRun: true } },
+    });
+    const asked = await dryRun.event({
+      hook_event_name: "stop",
+      status: "completed",
+    });
+    expect(asked.followup_message ?? "").toContain(
+      "recorded nothing in the knowledge base",
+    );
+
+    const cli = conversation();
+    await cli.event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(cli.workspace, "src/checkout.ts") },
+    });
+    await cli.event({
+      hook_event_name: "postToolUse",
+      tool_name: "Shell",
+      tool_input: { command: "kibi upsert --input req.json" },
+    });
+    const quiet = await cli.event({
+      hook_event_name: "stop",
+      status: "completed",
+    });
+    expect(quiet.followup_message ?? "").not.toContain(
       "recorded nothing in the knowledge base",
     );
   });

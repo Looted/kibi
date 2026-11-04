@@ -2,7 +2,7 @@
 title: Proof contract kind vocabulary
 status: open
 priority: should
-firmness: firm
+firmness: default
 semantic_text: A proof contract kind must be one of e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source.
 semantic_clauses:
   - A proof contract kind must be one of e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source.
@@ -10,7 +10,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T13:38:27.175Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -28,6 +28,7 @@ logic_claims:
   - CLAIM-AEDC5DE05A243DB4
 id: REQ-kibi-proof-kind-vocabulary
 type: req
+required_evidence: tested
 ---
 A proof contract kind must be one of e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex or source.
 

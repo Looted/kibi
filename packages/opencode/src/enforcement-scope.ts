@@ -15,8 +15,7 @@ function normalizeComponent(
   value: string | undefined,
   fallback: string,
 ): string {
-  const trimmed = value?.trim();
-  return trimmed && trimmed.length > 0 ? trimmed : fallback;
+  return value?.trim() || fallback;
 }
 
 /**

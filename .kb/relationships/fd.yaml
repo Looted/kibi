@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a99b43200ff8
+  - type: implements
+    from: SYM-cli-update-check-parse-latest-manifest
+    to: REQ-kibi-update-notice
+    created_at: 2026-11-04T13:24:55.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3d6c4fa5837
+  - type: covered_by
+    from: SYM-cli-update-check-parse-latest-manifest
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:24:55.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f02defa0e9d

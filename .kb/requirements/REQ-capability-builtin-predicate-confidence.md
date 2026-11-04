@@ -2,7 +2,7 @@
 title: Built-in predicate rule confidence
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: A built-in predicate rule match shall have confidence 0.84.
 semantic_clauses:
   - A built-in predicate rule match shall have confidence 0.84.
@@ -10,7 +10,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-29T17:00:17.559Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -28,6 +28,7 @@ logic_claims:
   - CLAIM-A645E9005AAD5364
 id: REQ-capability-builtin-predicate-confidence
 type: req
+required_evidence: tested
 ---
 A built-in predicate rule match shall have confidence 0.84.
 

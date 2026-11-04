@@ -37,8 +37,8 @@ logic_claims:
   - CLAIM-ABE3466C8068CB53
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-06: landing-page wow terminal demo'
-  approved_by: Piotr
+  ref: 'Maintainer request, 2026-10-06: landing-page wow terminal demo'
+  approved_by: maintainer
   recorded_at: '2026-10-06T21:26:34.223Z'
 id: REQ-docs-site-terminal-demo
 type: req

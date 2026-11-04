@@ -601,3 +601,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6117f64d7ba3
+  - type: implements
+    from: SYM-hooks-install-hooks-install-command
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:52:06.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8bb10d050ea
+  - type: covered_by
+    from: SYM-hooks-install-hooks-install-command
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:52:06.844Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75227ec4bb05

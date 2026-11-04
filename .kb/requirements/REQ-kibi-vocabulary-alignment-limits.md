@@ -2,7 +2,7 @@
 title: Vocabulary alignment thresholds
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The built-in aligner reuse threshold shall be 0.4. The Jev aligner shall rank at most 5 candidates. An aligner asking for a new key shall answer new_subject.
 semantic_clauses:
   - The built-in aligner reuse threshold shall be 0.4.
@@ -12,7 +12,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-29T16:54:19.987Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -46,6 +46,7 @@ logic_claims:
   - CLAIM-63A2B31CFFA715AD
 id: REQ-kibi-vocabulary-alignment-limits
 type: req
+required_evidence: tested
 ---
 The built-in aligner reuse threshold shall be 0.4. The Jev aligner shall rank at most 5 candidates. An aligner asking for a new key shall answer new_subject.
 

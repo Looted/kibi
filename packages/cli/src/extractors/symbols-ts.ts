@@ -54,13 +54,12 @@ export function createTsMorphSourceAnalysisProvider(): SourceAnalysisProvider {
         sourceFile: result.sourceFile,
         language: result.language,
         providerId: "ts-morph",
+        // The builtin ts-morph analysis never falls back, so a module carries
+        // no fallback reason.
         module: {
           title: result.module.title,
           language: result.module.language,
           analysisMode: result.module.analysisMode,
-          ...(result.module.fallbackReason
-            ? { fallbackReason: result.module.fallbackReason }
-            : {}),
         },
         symbols: result.symbols.map((symbol) => ({
           name: symbol.name,

@@ -20,7 +20,7 @@ export function claudePublishedPartsCertificate(): CodeCertificate {
   return sourceCertificate({ testId: "TEST-proof-claude-published-parts" });
 }
 
-/** The kibi-claude plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills. */
+/** The kibi-claude plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others. */
 export function claudeSkillsCertificate(): CodeCertificate {
   return sourceCertificate({ testId: "TEST-proof-claude-skills" });
 }
@@ -65,7 +65,7 @@ describe("What the published kibi-claude package contains", () => {
       [".claude-plugin", ".mcp.json", "bin", "hooks", "skills"],
     );
   });
-  test("The kibi-claude plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills", async () => {
+  test("The kibi-claude plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others", async () => {
     writeCodeCertificate(claudeSkillsCertificate());
     await expectSource(
       {
@@ -73,12 +73,13 @@ describe("What the published kibi-claude package contains", () => {
         pattern: "packages/claude/skills/*/SKILL.md",
         capture: true,
       },
-      "includes",
+      "eq",
       [
         "kibi-bootstrap",
         "kibi-commit-review",
         "kibi-decisions",
         "kibi-freshness",
+        "kibi-provable-code",
         "kibi-traceability",
         "kibi-usage",
       ],

@@ -1,6 +1,6 @@
 import {
   type GateAnalysis,
-  analysisObligation,
+  afterAnalysisObligation,
 } from "../traceability/analysis-gate.js";
 import type { StagedPath } from "../traceability/git-staged.js";
 import { partialAnalysisSymbolsUsable } from "../traceability/symbol-extract.js";
@@ -28,7 +28,7 @@ export async function analyzeSourceChanges(
   const files = inventory.filter(
     (file) => file.analysisDepth !== "metadata" && !file.skipReason,
   );
-  const results: SourceChangeAnalysis[] = new Array(files.length);
+  const results: SourceChangeAnalysis[] = [];
   let next = 0;
   const worker = async (): Promise<void> => {
     while (next < files.length) {
@@ -94,49 +94,49 @@ export function partialAnalysisReviews(
 ): PartialAnalysisReview[] {
   const reviews: PartialAnalysisReview[] = [];
   for (const file of inventory) {
-    const after = analyses.get(file.path)?.after ?? null;
-    const obligation = analysisObligation(
-      "after",
-      gateAnalysis(after),
+    const analysis = analyses.get(file.path)?.after ?? null;
+    const obligation = afterAnalysisObligation(
+      gateAnalysis(analysis),
       file.hunkRanges,
     );
-    if (obligation.kind !== "partial_review" || !after) continue;
-    const placed = partialAnalysisSymbolsUsable(after) ? after.symbols : [];
-    const ranges = obligation.ranges.filter((range) =>
-      file.hunkRanges.some(
-        (hunk) =>
-          linesOutside(
-            Math.max(range.startLine, hunk.start),
-            Math.min(range.endLine, hunk.end),
-            placed,
-          ).length > 0,
-      ),
-    );
-    if (ranges.length === 0) continue;
-    const lines = mergeLineRanges(
-      ranges.flatMap((range) =>
-        file.hunkRanges.flatMap((hunk) =>
-          linesOutside(
-            Math.max(range.startLine, hunk.start),
-            Math.min(range.endLine, hunk.end),
-            placed,
-          ),
+    if (obligation.kind !== "partial_review") continue;
+    // Only a present analysis can ask for a partial review.
+    const after = analysis as HostSourceAnalysisResultV2;
+    const usable = partialAnalysisSymbolsUsable(after);
+    // Declarations count only when the analysis placed them reliably.
+    const placed = after.symbols.filter(() => usable);
+    const outside = obligation.ranges.map((range) => ({
+      range,
+      lines: file.hunkRanges.flatMap((hunk) =>
+        uncoveredLines(
+          Math.max(range.startLine, hunk.start),
+          Math.min(range.endLine, hunk.end),
+          placed,
         ),
+      ),
+    }));
+    const touched = outside.filter((entry) => entry.lines.length > 0);
+    if (touched.length === 0) continue;
+    const ranges = touched.map((entry) => entry.range);
+    const lines = mergeLineRanges(
+      touched.flatMap((entry) =>
+        entry.lines.map((line) => ({ startLine: line, endLine: line })),
       ),
     );
     const detail = [
       ...new Set(
         after.diagnostics
-          .filter(
-            (item) =>
-              item.range === undefined ||
+          .filter((item) => {
+            const at = item.range;
+            return (
+              at === undefined ||
               ranges.some(
                 (range) =>
-                  item.range !== undefined &&
-                  item.range.startLine <= range.endLine &&
-                  range.startLine <= item.range.endLine,
-              ),
-          )
+                  at.startLine <= range.endLine &&
+                  range.startLine <= at.endLine,
+              )
+            );
+          })
           .map((item) => item.message),
       ),
     ].join(" ");
@@ -157,31 +157,16 @@ export function partialAnalysisReviews(
 
 type LineSpan = { startLine: number; endLine: number };
 
-/** The parts of the lines [start, end] that no span contains. */
-function linesOutside(
+/** The lines of [start, end] that no span contains, ascending. */
+function uncoveredLines(
   start: number,
   end: number,
   spans: readonly LineSpan[],
-): LineSpan[] {
-  const out: LineSpan[] = [];
-  let line = start;
-  while (line <= end) {
-    const cover = spans.find(
-      (span) => span.startLine <= line && line <= span.endLine,
-    );
-    if (cover) {
-      line = cover.endLine + 1;
-      continue;
-    }
-    const next = Math.min(
-      end + 1,
-      ...spans
-        .filter((span) => span.startLine > line)
-        .map((span) => span.startLine),
-    );
-    out.push({ startLine: line, endLine: next - 1 });
-    line = next;
-  }
+): number[] {
+  const out: number[] = [];
+  for (let line = start; line <= end; line++)
+    if (!spans.some((span) => span.startLine <= line && line <= span.endLine))
+      out.push(line);
   return out;
 }
 
@@ -208,17 +193,17 @@ export function assertSourceAnalysisGate(
   analyses: ReadonlyMap<string, SourceChangeAnalysis>,
 ): void {
   for (const file of inventory) {
-    const analysis = analyses.get(file.path);
-    const after = analysis?.after ?? null;
-    const obligation = analysisObligation(
-      "after",
-      gateAnalysis(after),
+    const analysis = analyses.get(file.path)?.after ?? null;
+    const obligation = afterAnalysisObligation(
+      gateAnalysis(analysis),
       file.hunkRanges,
     );
     if (obligation.kind !== "blocked") continue;
-    const detail = after?.diagnostics.map((d) => d.message).join("; ") ?? "";
+    // Only a present analysis can block.
+    const after = analysis as HostSourceAnalysisResultV2;
+    const detail = after.diagnostics.map((d) => d.message).join("; ");
     throw new Error(
-      `Source analysis ${after?.status} for ${file.path}: ${detail}`,
+      `Source analysis ${after.status} for ${file.path}: ${detail}`,
     );
   }
 }

@@ -66,10 +66,12 @@ links:
     target: FACT-INGESTION-SYNC-MIGRATION
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 semantic_text: Current requirement writes must reject any omitted assertive proposition. Ledger entries must bind to the exact semantic source field, SHA-256 hash, and UTF-8 span. Duplicate claim keys or spans must be rejected. Ambiguity, ontology gaps, or missing interpretations remain explicit unresolved states rather than evidence of consistency. Every modeled proposition must have exactly one logical grounding fact with the same claim key. Markdown sync must baseline existing legacy requirements once, then enforce complete ledgers for new or semantically changed requirements.
 type: req
+firmness: default
+required_evidence: tested
 ---
 
 Current requirement writes must reject any omitted assertive proposition. Ledger entries must bind to the exact semantic source field, SHA-256 hash, and UTF-8 span. Duplicate claim keys or spans must be rejected. Ambiguity, ontology gaps, or missing interpretations remain explicit unresolved states rather than evidence of consistency. Every modeled proposition must have exactly one logical grounding fact with the same claim key. Markdown sync must baseline existing legacy requirements once, then enforce complete ledgers for new or semantically changed requirements.

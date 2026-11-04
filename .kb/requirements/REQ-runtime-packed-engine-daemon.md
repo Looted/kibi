@@ -36,7 +36,9 @@ id: REQ-runtime-packed-engine-daemon
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
+firmness: default
+required_evidence: tested
 ---
 The published kibi-runtime package MUST ship a self-contained engine daemon entry point that the runtime engine client resolves without a nested kibi-cli install. A consumer installing only published kibi packages MUST be able to start the Kibi engine and serve typed queries from the installed runtime.

@@ -29,12 +29,15 @@ import { registerProofCommand } from "./cli-register-proof.js";
 import { registerReportingCommands } from "./cli-register-reporting.js";
 import { registerSkillsCommands } from "./cli-register-skills.js";
 import { bootstrapKibiEnvironment } from "./env/bootstrap.js";
+import { formatVersionLine, readKibiRelease } from "./kibi-release.js";
+import { finishUpdateCheck, trackUpdateCommand } from "./update-check.js";
 import { finishCliTelemetry, trackCommandPath } from "./usage-telemetry.js";
+import { LATEST_KB_SCHEMA_VERSION } from "./utils/schema-version.js";
 import { resolveWorkspaceCwd } from "./workspace-cwd.js";
 export type { CommandResult } from "./cli-command.js";
 
 const packageJson: unknown = JSON.parse(
-  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+  String(readFileSync(new URL("../package.json", import.meta.url))),
 );
 
 export function packageVersion(value: unknown): string {
@@ -71,7 +74,7 @@ export function buildProgram(): Command {
   const program = new Command()
     .name("kibi")
     .description("Prolog-based project knowledge base")
-    .version(packageVersion(packageJson))
+    .version(formatVersionLine(packageVersion(packageJson), readKibiRelease()))
     .option(
       "--diagnostic-mode",
       "Append diagnostic usage evidence for public JSON operations",
@@ -104,11 +107,13 @@ export async function main(): Promise<never> {
     process.cwd(),
     process.env,
   );
-  if (workspace.cwd !== process.cwd()) process.chdir(workspace.cwd);
+  // Unchanged when no enclosing workspace applies; changing to it is a no-op.
+  process.chdir(workspace.cwd);
   bootstrapKibiEnvironment();
   const startedAt = new Date();
   const program = buildProgram();
   const commandPath = trackCommandPath(program);
+  const updateCommand = trackUpdateCommand(program);
   let stdoutClosed = false;
   let finishing: Promise<never> | undefined;
   const finish = (exitCode: number, failure?: unknown): Promise<never> => {
@@ -123,6 +128,15 @@ export async function main(): Promise<never> {
         });
       } catch {
         // Telemetry is best effort and never changes the exit code.
+      }
+      try {
+        finishUpdateCheck({
+          context: updateCommand(),
+          currentVersion: packageVersion(packageJson),
+          currentKbSchema: LATEST_KB_SCHEMA_VERSION,
+        });
+      } catch {
+        // The update notice is best effort and never changes the exit code.
       }
       const streams = stdoutClosed
         ? [process.stderr]
@@ -151,7 +165,7 @@ export async function main(): Promise<never> {
     stdoutClosed = true;
     void finish(Number(process.exitCode ?? 0));
   });
-  let exitCode = process.exitCode ?? 0;
+  let exitCode: number | string;
   let failure: unknown;
   try {
     await program.parseAsync(workspace.argv);

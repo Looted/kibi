@@ -60,11 +60,10 @@ export function resolveSessionStateDir(
     return undefined;
   }
 
-  const trimmed = sessionId?.trim() ?? "";
-  const sessionKey =
-    trimmed.length > 0
-      ? createHash("sha256").update(trimmed).digest("hex").slice(0, 32)
-      : "unattributed";
+  const trimmed = sessionId?.trim();
+  const sessionKey = trimmed
+    ? createHash("sha256").update(trimmed).digest("hex").slice(0, 32)
+    : "unattributed";
   return path.join(workspaceDir, "sessions", sessionKey);
 }
 
@@ -88,12 +87,22 @@ function statePath(pluginData: string): string {
   return path.join(pluginData, stateFileName);
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+/** The non-empty string entries of a list, as normalized relative paths. */
+function pathEntries(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value
+        .filter((entry): entry is string => typeof entry === "string")
+        .map((entry) => entry.trim().replaceAll("\\", "/"))
+        .filter((entry) => entry.length > 0)
+    : [];
 }
 
-function normalizeDirtyPath(dirtyPath: string): string {
-  return dirtyPath.trim().replaceAll("\\", "/");
+/** Normalized path lists, deduplicated and bounded to the newest entries. */
+function mergePaths(
+  existingPaths: readonly string[],
+  addedPaths: readonly string[],
+): string[] {
+  return [...new Set([...existingPaths, ...addedPaths])].slice(-maxDirtyPaths);
 }
 
 function uniqueTempPath(pluginData: string): string {
@@ -103,85 +112,58 @@ function uniqueTempPath(pluginData: string): string {
   );
 }
 
-function mergeDirtyPaths(
-  existingPaths: readonly string[],
-  dirtyPaths: readonly string[],
-): HookState {
-  const merged = [...existingPaths, ...dirtyPaths]
-    .map(normalizeDirtyPath)
-    .filter((dirtyPath) => dirtyPath.length > 0);
-
-  return {
-    ...emptyHookState(),
-    dirtyPaths: [...new Set(merged)].slice(-maxDirtyPaths),
-  };
-}
-
 function coerceHookState(value: unknown): HookState {
-  if (!isRecord(value) || !Array.isArray(value.dirtyPaths)) {
+  // Optional chaining also covers `null` and primitives, which carry no list.
+  const record = value as Record<string, unknown> | null | undefined;
+  if (!Array.isArray(record?.dirtyPaths)) {
     return emptyHookState();
   }
 
-  const dirtyPaths = value.dirtyPaths
-    .filter((dirtyPath): dirtyPath is string => typeof dirtyPath === "string")
-    .map(normalizeDirtyPath)
-    .filter((dirtyPath) => dirtyPath.length > 0);
-
-  const impactCheckedPaths = Array.isArray(value.impactCheckedPaths)
-    ? value.impactCheckedPaths
-        .filter((entry): entry is string => typeof entry === "string")
-        .map(normalizeDirtyPath)
-        .filter((entry) => entry.length > 0)
-    : [];
-
   return {
-    dirtyPaths: [...new Set(dirtyPaths)].slice(-maxDirtyPaths),
-    kbCheckRun: value.kbCheckRun === true,
-    impactCheckRun: value.impactCheckRun === true,
-    impactCheckedPaths: [...new Set(impactCheckedPaths)].slice(-maxDirtyPaths),
+    dirtyPaths: mergePaths([], pathEntries(record.dirtyPaths)),
+    kbCheckRun: record.kbCheckRun === true,
+    impactCheckRun: record.impactCheckRun === true,
+    impactCheckedPaths: mergePaths([], pathEntries(record.impactCheckedPaths)),
   };
 }
 
 type JournalEvent =
   | { kind: "add_dirty_paths"; dirtyPaths: string[] }
   | { kind: "record_kb_check"; impactCheckRun: boolean; sourceFiles: string[] }
-  | { kind: "clear" }
   | { kind: "replace"; state: HookState };
 
 function journalPath(pluginData: string): string {
   return path.join(pluginData, journalFileName);
 }
 
-function applyJournalEvent(state: HookState, event: JournalEvent): HookState {
-  switch (event.kind) {
-    case "add_dirty_paths": {
-      // A later edit invalidates a previous impact check for that exact path:
-      // a check must not cover a newer edit merely because the filename
-      // matches. Path-specific invalidation keeps still-current checks for
-      // other files intact.
-      const editedPaths = event.dirtyPaths.map(normalizeDirtyPath);
-      return {
-        ...state,
-        dirtyPaths: mergeDirtyPathValues(state.dirtyPaths, editedPaths),
-        impactCheckedPaths: state.impactCheckedPaths.filter(
-          (checkedPath) => !editedPaths.includes(checkedPath),
-        ),
-      };
-    }
-    case "record_kb_check":
-      return {
-        ...state,
-        kbCheckRun: true,
-        impactCheckRun: state.impactCheckRun || event.impactCheckRun,
-        impactCheckedPaths: event.impactCheckRun
-          ? mergeDirtyPathValues(state.impactCheckedPaths, event.sourceFiles)
-          : state.impactCheckedPaths,
-      };
-    case "clear":
-      return emptyHookState();
-    case "replace":
-      return coerceHookState(event.state);
-  }
+function withDirtyPaths(state: HookState, dirtyPaths: unknown): HookState {
+  // A later edit invalidates a previous impact check for that exact path:
+  // a check must not cover a newer edit merely because the filename
+  // matches. Path-specific invalidation keeps still-current checks for
+  // other files intact.
+  const editedPaths = pathEntries(dirtyPaths);
+  return {
+    ...state,
+    dirtyPaths: mergePaths(state.dirtyPaths, editedPaths),
+    impactCheckedPaths: state.impactCheckedPaths.filter(
+      (checkedPath) => !editedPaths.includes(checkedPath),
+    ),
+  };
+}
+
+function withKbCheck(
+  state: HookState,
+  impactCheckRun: boolean,
+  sourceFiles: unknown,
+): HookState {
+  return {
+    ...state,
+    kbCheckRun: true,
+    impactCheckRun: state.impactCheckRun || impactCheckRun,
+    impactCheckedPaths: impactCheckRun
+      ? mergePaths(state.impactCheckedPaths, pathEntries(sourceFiles))
+      : state.impactCheckedPaths,
+  };
 }
 
 function readJournal(pluginData: string, initialState: HookState): HookState {
@@ -193,41 +175,29 @@ function readJournal(pluginData: string, initialState: HookState): HookState {
   }
 
   return contents.split("\n").reduce((state, line) => {
-    if (line.trim().length === 0) return state;
     try {
-      const value: unknown = JSON.parse(line);
-      if (!isRecord(value) || typeof value.kind !== "string") return state;
-      if (value.kind === "clear")
-        return applyJournalEvent(state, { kind: "clear" });
-      if (value.kind === "replace" && isRecord(value.state)) {
-        return applyJournalEvent(state, {
-          kind: "replace",
-          state: coerceHookState(value.state),
-        });
-      }
-      if (value.kind === "add_dirty_paths" && Array.isArray(value.dirtyPaths)) {
-        return applyJournalEvent(state, {
-          kind: "add_dirty_paths",
-          dirtyPaths: value.dirtyPaths.filter(
-            (entry): entry is string => typeof entry === "string",
-          ),
-        });
-      }
-      if (value.kind === "record_kb_check") {
-        return applyJournalEvent(state, {
-          kind: "record_kb_check",
-          impactCheckRun: value.impactCheckRun === true,
-          sourceFiles: Array.isArray(value.sourceFiles)
-            ? value.sourceFiles.filter(
-                (entry): entry is string => typeof entry === "string",
-              )
-            : [],
-        });
+      // Blank lines and a line torn by a process terminated mid-append fail
+      // to parse, and a `null` line fails on property access: each is skipped
+      // while later events remain readable and durable. Other non-object
+      // lines match no event kind.
+      const value = JSON.parse(line) as Record<string, unknown>;
+      switch (value.kind) {
+        // Earlier releases journaled a stateless `clear`, which coerces to
+        // the empty state exactly like the `replace` clearing writes now.
+        case "clear":
+        case "replace":
+          return coerceHookState(value.state);
+        case "add_dirty_paths":
+          return withDirtyPaths(state, value.dirtyPaths);
+        case "record_kb_check":
+          return withKbCheck(
+            state,
+            value.impactCheckRun === true,
+            value.sourceFiles,
+          );
       }
     } catch {
-      // A process can be terminated after opening the journal but before its
-      // complete line is visible. Ignore only that incomplete event; later
-      // events remain readable and durable.
+      // Skipped line; see above.
     }
     return state;
   }, initialState);
@@ -235,28 +205,26 @@ function readJournal(pluginData: string, initialState: HookState): HookState {
 
 function appendJournalEvent(pluginData: string, event: JournalEvent): void {
   fs.mkdirSync(pluginData, { recursive: true });
-  fs.appendFileSync(
-    journalPath(pluginData),
-    `${JSON.stringify(event)}\n`,
-    "utf8",
-  );
+  // appendFileSync writes strings as utf8 by default.
+  fs.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}\n`);
+}
+
+function readSnapshot(pluginData: string): HookState {
+  try {
+    // Without an encoding readFileSync returns a Buffer, which JSON.parse
+    // reads as its utf8 text.
+    return coerceHookState(
+      JSON.parse(fs.readFileSync(statePath(pluginData)).toString()),
+    );
+  } catch {
+    return emptyHookState();
+  }
 }
 
 export function loadHookState(pluginData: string | undefined): HookState {
-  if (!pluginData) {
-    return emptyHookState();
-  }
-
-  try {
-    return readJournal(
-      pluginData,
-      coerceHookState(
-        JSON.parse(fs.readFileSync(statePath(pluginData), "utf8")),
-      ),
-    );
-  } catch {
-    return readJournal(pluginData, emptyHookState());
-  }
+  return pluginData
+    ? readJournal(pluginData, readSnapshot(pluginData))
+    : emptyHookState();
 }
 
 export function saveHookState(
@@ -269,7 +237,6 @@ export function saveHookState(
 
   const boundedState = coerceHookState(state);
   appendJournalEvent(pluginData, { kind: "replace", state: boundedState });
-  fs.mkdirSync(pluginData, { recursive: true });
   const tempPath = uniqueTempPath(pluginData);
   fs.writeFileSync(tempPath, `${JSON.stringify(boundedState)}\n`);
   fs.renameSync(tempPath, statePath(pluginData));
@@ -279,18 +246,8 @@ export function addDirtyPaths(
   pluginData: string | undefined,
   dirtyPaths: readonly string[],
 ): HookState {
-  const initialState = loadHookState(pluginData);
-  const editedPaths = dirtyPaths.map(normalizeDirtyPath);
-  const fallbackState: HookState = {
-    ...initialState,
-    dirtyPaths: mergeDirtyPathValues(initialState.dirtyPaths, editedPaths),
-    impactCheckedPaths: initialState.impactCheckedPaths.filter(
-      (checkedPath) => !editedPaths.includes(checkedPath),
-    ),
-  };
-
   if (!pluginData) {
-    return fallbackState;
+    return withDirtyPaths(emptyHookState(), dirtyPaths);
   }
 
   appendJournalEvent(pluginData, {
@@ -300,68 +257,32 @@ export function addDirtyPaths(
   return loadHookState(pluginData);
 }
 
-function mergeDirtyPathValues(
-  existingPaths: readonly string[],
-  dirtyPaths: readonly string[],
-): string[] {
-  return mergeDirtyPaths(existingPaths, dirtyPaths).dirtyPaths;
-}
-
+/** Only `kb_check` changes hook state; other KB tools leave it as it is. */
 export function recordKbMcpTool(
   pluginData: string | undefined,
   toolName: string,
   options: { impactCheckRun?: boolean; sourceFiles?: readonly string[] } = {},
 ): HookState {
-  const normalized = toolName.trim();
-  if (normalized.length === 0) {
+  if (toolName.trim() !== "kb_check") {
     return loadHookState(pluginData);
   }
 
-  const initialState = loadHookState(pluginData);
-  const update = (state: HookState): HookState => {
-    if (normalized !== "kb_check") {
-      return state;
-    }
-
-    return {
-      ...state,
-      kbCheckRun: true,
-      impactCheckRun: state.impactCheckRun || options.impactCheckRun === true,
-      impactCheckedPaths:
-        options.impactCheckRun === true
-          ? mergeDirtyPathValues(
-              state.impactCheckedPaths,
-              options.sourceFiles ?? [],
-            )
-          : state.impactCheckedPaths,
-    };
-  };
-  const fallbackState = update(initialState);
-
+  const impactCheckRun = options.impactCheckRun === true;
+  const sourceFiles = [...(options.sourceFiles ?? [])];
   if (!pluginData) {
-    return fallbackState;
-  }
-
-  if (normalized !== "kb_check") {
-    return initialState;
+    return withKbCheck(emptyHookState(), impactCheckRun, sourceFiles);
   }
 
   appendJournalEvent(pluginData, {
     kind: "record_kb_check",
-    impactCheckRun: options.impactCheckRun === true,
-    sourceFiles: [...(options.sourceFiles ?? [])],
+    impactCheckRun,
+    sourceFiles,
   });
   return loadHookState(pluginData);
 }
 
 export function clearDirtyPaths(pluginData: string | undefined): HookState {
-  const clearedState = emptyHookState();
-
-  if (!pluginData) {
-    return clearedState;
-  }
-
-  appendJournalEvent(pluginData, { kind: "clear" });
-  saveHookState(pluginData, clearedState);
+  // The replace event saveHookState journals clears every earlier event.
+  saveHookState(pluginData, emptyHookState());
   return loadHookState(pluginData);
 }

@@ -496,3 +496,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d60b1012ed4
+  - type: specified_by
+    from: REQ-kibi-conservative-requirement-proof
+    to: SCEN-kibi-conservative-requirement-proof
+    created_at: 2026-11-03T11:43:14.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fa59c85e6ba
+  - type: requires_predicate
+    from: REQ-kibi-conservative-requirement-proof
+    to: FACT-REQ-PROOF-SEPARATE-STATUS
+    created_at: 2026-11-03T11:43:14.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e136ab526dab
+  - type: requires_predicate
+    from: REQ-kibi-conservative-requirement-proof
+    to: FACT-REQ-PROOF-COMPLETE-LEDGER
+    created_at: 2026-11-03T11:43:14.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cedef272be96
+  - type: requires_property
+    from: REQ-kibi-conservative-requirement-proof
+    to: FACT-REQ-PROOF-ONE-GROUNDING
+    created_at: 2026-11-03T11:43:14.593Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c955973e65e0
+  - type: requires_predicate
+    from: REQ-kibi-conservative-requirement-proof
+    to: FACT-REQ-PROOF-INCOMPLETE-CONTRADICTION
+    created_at: 2026-11-03T11:43:14.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c83eead00cf4
+  - type: requires_property
+    from: REQ-kibi-conservative-requirement-proof
+    to: FACT-REQ-PROOF-CONTRADICTION-BLOCKS
+    created_at: 2026-11-03T11:43:14.677Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b7e21f28d7b
+  - type: requires_predicate
+    from: REQ-kibi-conservative-requirement-proof
+    to: FACT-REQ-PROOF-SCENARIO-E2E
+    created_at: 2026-11-03T11:43:14.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8085e024a3d5
+  - type: requires_property
+    from: REQ-kibi-conservative-requirement-proof
+    to: FACT-REQ-PROOF-EXECUTABLE-SYMBOL
+    created_at: 2026-11-03T11:43:14.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68b63969e532
+  - type: requires_property
+    from: REQ-kibi-conservative-requirement-proof
+    to: FACT-REQ-PROOF-PRODUCTION-IMPLEMENTS
+    created_at: 2026-11-03T11:43:14.774Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16f4f119f2d2
+  - type: requires_property
+    from: REQ-kibi-conservative-requirement-proof
+    to: FACT-REQ-PROOF-PRODUCTION-COVERED
+    created_at: 2026-11-03T11:43:14.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54aece33abea
+  - type: requires_property
+    from: REQ-kibi-conservative-requirement-proof
+    to: FACT-REQ-PROOF-SOURCE-COORDINATES
+    created_at: 2026-11-03T11:43:14.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f148bdeec4d4
+  - type: requires_predicate
+    from: REQ-kibi-conservative-requirement-proof
+    to: FACT-REQ-PROOF-RANKED-REPAIRS
+    created_at: 2026-11-03T11:43:14.856Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8828942fc29a
+  - type: constrains
+    from: REQ-kibi-conservative-requirement-proof
+    to: FACT-SUBJECT-kibi-proof-requirement
+    created_at: 2026-11-03T11:43:14.895Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ad024adc67f

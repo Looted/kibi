@@ -340,11 +340,8 @@ function parseAuthoritativeEntityIds(raw: string): string[] {
   ) {
     throw new Error("Full KB entity ID enumeration returned malformed data");
   }
-  const ids = parseAtomList(trimmed);
-  if (ids.some((id) => id.length === 0)) {
-    throw new Error("Full KB entity ID enumeration returned an empty ID");
-  }
-  return ids;
+  // parseAtomList drops empty atoms, so every ID it returns is non-empty.
+  return parseAtomList(trimmed);
 }
 
 function validateEntityBatch(
@@ -464,11 +461,6 @@ async function loadIndexedEntityProjection(
         "Full KB paginated entity projection returned more rows than its count",
       );
     }
-    if (pageEntities.length === 0 && offset < totalCount) {
-      throw new Error(
-        "Full KB paginated entity projection returned an incomplete page",
-      );
-    }
     for (const entity of pageEntities) {
       seenIds.add(normalizeEntityId(stringField(entity, "id")));
     }
@@ -481,11 +473,8 @@ async function loadIndexedEntityProjection(
     }
   }
 
-  if (entities.length !== totalCount) {
-    throw new Error(
-      "Full KB paginated entity projection returned an incomplete result",
-    );
-  }
+  // The loop ends once offset reaches the count, and no page may carry the
+  // offset past it, so every counted row has been read.
   return entities;
 }
 

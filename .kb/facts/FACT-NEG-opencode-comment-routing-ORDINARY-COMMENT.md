@@ -3,7 +3,7 @@ title: An agent saves a Python file whose long comment block carries no durable 
 status: active
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_03_only_medium_high_confidence_suggestions_trigger_
+property_key: clause_03_the_opencode_plugin_must_only_extract_comment_blocks_that_re
 operator: eq
 value_type: bool
 value_bool: false

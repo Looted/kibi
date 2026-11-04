@@ -2,7 +2,7 @@
 title: Proof step and per-test report settings
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The default proof steps file shall be proof/steps.json. The per-test proof report environment variable shall be KIBI_PROOF_TEST_REPORT. The per-test proof report version shall be kibi.proof-test-report.v1. A per-test proof report outcome shall be passed, failed, timed_out, errored or interrupted.
 semantic_clauses:
   - The default proof steps file shall be proof/steps.json.
@@ -13,7 +13,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T11:06:32.168Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -55,6 +55,7 @@ logic_claims:
   - CLAIM-C11CA176D75C6530
 id: REQ-kibi-proof-step-settings
 type: req
+required_evidence: tested
 ---
 The default proof steps file shall be proof/steps.json. The per-test proof report environment variable shall be KIBI_PROOF_TEST_REPORT. The per-test proof report version shall be kibi.proof-test-report.v1. A per-test proof report outcome shall be passed, failed, timed_out, errored or interrupted.
 

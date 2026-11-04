@@ -2,7 +2,7 @@
 title: Proof protocol versions and run outcomes
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The proof contract version shall be kibi.proof-contract.v1. The proof receipt version shall be kibi.proof-receipt.v2. The proof run version shall be kibi.proof-run.v1. The proof integration version shall be kibi.proof-integration.v1. A proof run outcome shall be passed, failed, errored, cancelled, timed_out, interrupted or no_results.
 semantic_clauses:
   - The proof contract version shall be kibi.proof-contract.v1.
@@ -14,7 +14,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T12:02:42.988Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -64,6 +64,7 @@ logic_claims:
   - CLAIM-85C47F78B8ECB253
 id: REQ-kibi-proof-protocol-versions
 type: req
+required_evidence: tested
 ---
 The proof contract version shall be kibi.proof-contract.v1. The proof receipt version shall be kibi.proof-receipt.v2. The proof run version shall be kibi.proof-run.v1. The proof integration version shall be kibi.proof-integration.v1. A proof run outcome shall be passed, failed, errored, cancelled, timed_out, interrupted or no_results.
 

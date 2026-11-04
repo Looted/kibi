@@ -193,10 +193,8 @@ function isWithin(parent: string, candidate: string): boolean {
     realpathOrSelf(parent),
     realpathOrSelf(candidate),
   );
-  return (
-    relative === "" ||
-    (!relative.startsWith("..") && !path.isAbsolute(relative))
-  );
+  // The parent itself gives "", which neither test refuses.
+  return !relative.startsWith("..") && !path.isAbsolute(relative);
 }
 
 /** The repository's shared git directory, so worktrees compare equal. */
@@ -206,10 +204,9 @@ export function gitCommonDirectory(directory: string): string | null {
     encoding: "utf8",
     timeout: 5000,
   });
+  // A successful rev-parse always prints the directory.
   if (result.status !== 0) return null;
-  const common = result.stdout.trim();
-  if (!common) return null;
-  return realpathOrSelf(path.resolve(directory, common));
+  return realpathOrSelf(path.resolve(directory, result.stdout.trim()));
 }
 
 /**
@@ -243,20 +240,25 @@ function readDeclaredBin(packageJsonPath: string): string | null {
       bin?: unknown;
     };
     if (manifest.name !== KIBI_MCP_PACKAGE) return null;
+    // A missing or non-text bin fails to resolve below and reads as none.
     const bin =
       typeof manifest.bin === "string"
         ? manifest.bin
-        : isRecord(manifest.bin) &&
-            typeof manifest.bin[KIBI_MCP_PACKAGE] === "string"
-          ? (manifest.bin[KIBI_MCP_PACKAGE] as string)
-          : null;
+        : (manifest.bin as Record<string, unknown>)[KIBI_MCP_PACKAGE];
     if (!bin) return null;
-    const entry = path.resolve(path.dirname(packageJsonPath), bin);
+    const entry = path.resolve(path.dirname(packageJsonPath), bin as string);
     return fs.existsSync(entry) ? entry : null;
   } catch {
-    return null;
+    // Unreadable or unusable manifest.
   }
+  return null;
 }
+
+/** This server's own entry, then the bin packaged next to this module. */
+const OWN_ENTRIES = (): readonly (string | undefined)[] => [
+  process.argv[1],
+  fileURLToPath(new URL("../../bin/kibi-mcp", import.meta.url)),
+];
 
 /**
  * The kibi-mcp to run for a workspace: its own project-local install when it
@@ -266,6 +268,7 @@ function readDeclaredBin(packageJsonPath: string): string | null {
  */
 export function defaultResolveChildCommand(
   workspaceRoot: string,
+  ownEntries: readonly (string | undefined)[] = OWN_ENTRIES(),
 ): ChildCommand | null {
   const marker = path.join(workspaceRoot, "package.json");
   if (fs.existsSync(marker)) {
@@ -283,18 +286,8 @@ export function defaultResolveChildCommand(
       // No project-local install; fall through to this server's own entry.
     }
   }
-  const self = process.argv[1];
-  if (self && fs.existsSync(self)) {
-    return { command: process.execPath, args: [path.resolve(self)] };
-  }
-  try {
-    const entry = fileURLToPath(new URL("../../bin/kibi-mcp", import.meta.url));
-    if (fs.existsSync(entry))
-      return { command: process.execPath, args: [entry] };
-  } catch {
-    // Not resolvable from this module location.
-  }
-  return null;
+  const own = ownEntries.find((entry) => entry && fs.existsSync(entry));
+  return own ? { command: process.execPath, args: [path.resolve(own)] } : null;
 }
 
 function isPinned(env: NodeJS.ProcessEnv): boolean {
@@ -363,8 +356,8 @@ export class WorkspaceRouter {
   /** Routing is off for pinned servers, routed children, and by switch. */
   get enabled(): boolean {
     if (this.shutDown) return false;
-    if ((this.env[ROUTING_SWITCH_ENV] ?? "").trim() === "0") return false;
-    if ((this.env[ROUTED_CHILD_ENV] ?? "").trim() === "1") return false;
+    if (String(this.env[ROUTING_SWITCH_ENV]).trim() === "0") return false;
+    if (String(this.env[ROUTED_CHILD_ENV]).trim() === "1") return false;
     return !isPinned(this.env);
   }
 
@@ -381,7 +374,8 @@ export class WorkspaceRouter {
       const roots = await this.clientRoots();
       const desired = workspaceFromRoots(roots, this.resolveWorkspace);
       if (!desired) return { kind: "local", args };
-      return this.routeTo(desired, roots[0] ?? desired, toolName, args);
+      // A desired workspace comes from a root, so there is a first root.
+      return this.routeTo(desired, roots[0] as string, toolName, args);
     }
 
     const { [WORKSPACE_ROOT_ARGUMENT]: requestedRaw, ...rest } = args;
@@ -425,17 +419,15 @@ export class WorkspaceRouter {
     const roots = await this.clientRoots();
     const desired = workspaceFromRoots(roots, this.resolveWorkspace);
     if (!desired) return { kind: "local", args: rest };
-    return this.routeTo(desired, roots[0] ?? desired, toolName, rest);
+    return this.routeTo(desired, roots[0] as string, toolName, rest);
   }
 
   /** Polls for a job started in a child go to that child. */
   private async routeJobPoll(
     args: Record<string, unknown>,
   ): Promise<RoutingDecision> {
-    const owner =
-      typeof args.jobId === "string"
-        ? this.jobOwners.get(args.jobId)
-        : undefined;
+    // A non-text id is never a key of the owner map.
+    const owner = this.jobOwners.get(args.jobId as string);
     const child = owner ? this.children.get(owner) : undefined;
     if (child && !child.closed) {
       return this.callChild(child, "kb_job_status", args);
@@ -463,7 +455,7 @@ export class WorkspaceRouter {
         "no Kibi workspace (.kb/manifest.json) owns that directory",
       not_routable:
         "that workspace is neither a worktree of this server's repository nor under the client's MCP roots or KIBI_MCP_ROUTABLE_ROOTS",
-      unavailable: `kibi-mcp could not be started there${error ? `: ${error}` : ""}`,
+      unavailable: `kibi-mcp could not be started there: ${error}`,
     }[reason];
     return {
       code: "workspace_mismatch",
@@ -527,8 +519,9 @@ export class WorkspaceRouter {
     toolName: string,
     args: Record<string, unknown>,
   ): Promise<RoutingDecision> {
+    // The finally touch restarts the idle timer; a timer that fires while
+    // the call is in flight leaves the child alone.
     child.inFlight += 1;
-    this.touch(child);
     try {
       const result = (await child.client.callTool(
         { name: toolName, arguments: args },
@@ -604,12 +597,12 @@ export class WorkspaceRouter {
     const command = this.resolveChildCommand(root);
     if (!command) return null;
     this.evictIfFull();
-    const env: Record<string, string> = {};
-    for (const [key, value] of Object.entries(this.env)) {
-      if (typeof value === "string") env[key] = value;
-    }
-    env.KIBI_WORKSPACE = root;
-    env[ROUTED_CHILD_ENV] = "1";
+    // The spawn skips unset (undefined) values.
+    const env = {
+      ...this.env,
+      KIBI_WORKSPACE: root,
+      [ROUTED_CHILD_ENV]: "1",
+    } as Record<string, string>;
     const transport = new StdioClientTransport({
       command: command.command,
       args: [...command.args],
@@ -633,7 +626,7 @@ export class WorkspaceRouter {
     transport.onclose = () => {
       child.closed = true;
       if (this.children.get(root) === child) this.children.delete(root);
-      if (child.idleTimer) clearTimeout(child.idleTimer);
+      clearTimeout(child.idleTimer as NodeJS.Timeout);
     };
     await withTimeout(
       client.connect(transport),
@@ -641,25 +634,30 @@ export class WorkspaceRouter {
       `kibi-mcp for ${root} initialize`,
     );
     const label = `[kibi-mcp ${path.basename(root)}]`;
-    transport.stderr?.on("data", (chunk: Buffer | string) => {
-      for (const line of chunk.toString("utf8").split("\n")) {
-        if (line.trim().length > 0) process.stderr.write(`${label} ${line}\n`);
-      }
-    });
+    // stderr is "pipe", so the stream exists once connected.
+    (transport.stderr as NonNullable<typeof transport.stderr>).on(
+      "data",
+      (chunk: Buffer | string) => {
+        for (const line of chunk.toString("utf8").split("\n")) {
+          if (line.trim().length > 0)
+            process.stderr.write(`${label} ${line}\n`);
+        }
+      },
+    );
+    // The call that started the child touches it when it ends.
     this.children.set(root, child);
-    this.touch(child);
     this.log(`Serving ${root} through its own kibi-mcp`);
     return child;
   }
 
   private touch(child: Child): void {
     child.lastUsed = this.now();
-    if (child.idleTimer) clearTimeout(child.idleTimer);
+    clearTimeout(child.idleTimer as NodeJS.Timeout);
     const idleMs = this.options.idleRetireMs ?? DEFAULT_IDLE_RETIRE_MS;
     child.idleTimer = setTimeout(() => {
       if (child.inFlight === 0) void this.retire(child);
     }, idleMs);
-    child.idleTimer.unref?.();
+    child.idleTimer.unref();
   }
 
   private evictIfFull(): void {
@@ -671,17 +669,18 @@ export class WorkspaceRouter {
         if (!oldest || child.lastUsed < oldest.lastUsed) oldest = child;
       }
       if (!oldest) return;
+      // retire leaves the pool before its first await.
       void this.retire(oldest);
-      this.children.delete(oldest.root);
     }
   }
 
+  /**
+   * Every caller takes the child from the pool (or its own idle timer, which
+   * leaving the pool or closing clears), so it is the pooled entry.
+   */
   private async retire(child: Child): Promise<void> {
-    if (child.closed) return;
-    child.closed = true;
-    if (child.idleTimer) clearTimeout(child.idleTimer);
-    if (this.children.get(child.root) === child)
-      this.children.delete(child.root);
+    clearTimeout(child.idleTimer as NodeJS.Timeout);
+    this.children.delete(child.root);
     for (const [jobId, owner] of this.jobOwners) {
       if (owner === child.root) this.jobOwners.delete(jobId);
     }

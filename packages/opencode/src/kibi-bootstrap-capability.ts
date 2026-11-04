@@ -58,18 +58,16 @@ function* candidateHostRoots(startDir: string): Generator<string> {
   }
 }
 
-function resolveDogfoodHostCapabilityInputs(
+/**
+ * Capability inputs from a host install under `.opencode/node_modules` at a
+ * start directory or one of its ancestors; null when none is complete.
+ */
+export function resolveDogfoodHostCapabilityInputs(
   startDirs: string[],
 ): KibiBootstrapCapabilityDetectionInput | null {
-  const seenRoots = new Set<string>();
-
   for (const startDir of startDirs) {
+    // Shared ancestors are probed again; the answer is the same each time.
     for (const root of candidateHostRoots(startDir)) {
-      if (seenRoots.has(root)) {
-        continue;
-      }
-      seenRoots.add(root);
-
       const pluginPackageJsonPath = path.join(
         root,
         ".opencode",
@@ -118,12 +116,7 @@ function resolveDogfoodHostCapabilityInputs(
 
       // Dogfood host artifacts can be partially installed (package.json present, dist d.ts absent).
       // In that case we should keep probing/fallback instead of hard-failing capability detection.
-      if (
-        typeof pluginHooksDts !== "string" ||
-        pluginHooksDts.length === 0 ||
-        typeof sdkTypesDts !== "string" ||
-        sdkTypesDts.length === 0
-      ) {
+      if (!pluginHooksDts || !sdkTypesDts) {
         continue;
       }
 
@@ -161,18 +154,21 @@ function readTextIfExists(filePath: string): string | undefined {
   try {
     return fs.readFileSync(filePath, "utf8");
   } catch {
-    return undefined;
+    // Missing or unreadable: undefined below.
   }
+  return undefined;
 }
 
 function readPackageVersion(filePath: string): string | undefined {
   try {
-    const raw = fs.readFileSync(filePath, "utf8");
-    const parsed = JSON.parse(raw) as { version?: unknown };
+    const parsed = JSON.parse(String(fs.readFileSync(filePath))) as {
+      version?: unknown;
+    };
     return typeof parsed.version === "string" ? parsed.version : undefined;
   } catch {
-    return undefined;
+    // Missing or malformed: undefined below.
   }
+  return undefined;
 }
 
 export function findSdkPackageJsonForPluginRoot(
@@ -226,9 +222,7 @@ function resolveHostCapabilityInputs(): KibiBootstrapCapabilityDetectionInput {
       initialEnvPwd,
       initialGithubWorkspace,
       moduleDir,
-    ].filter(
-      (value): value is string => typeof value === "string" && value.length > 0,
-    ),
+    ].filter((value): value is string => typeof value === "string"),
   );
   if (dogfoodHost) {
     return dogfoodHost;
@@ -241,6 +235,9 @@ function resolveHostCapabilityInputs(): KibiBootstrapCapabilityDetectionInput {
     const pluginRoot = path.dirname(pluginPackageJsonPath);
     const sdkPackageJsonPath =
       findSdkPackageJsonForPluginRoot(pluginRoot) ??
+      // rationale: this repository installs the SDK only beside the plugin,
+      // so resolving it from here fails whatever name is asked for
+      // Stryker disable next-line StringLiteral
       require.resolve("@opencode-ai/sdk/package.json");
     const sdkRoot = path.dirname(sdkPackageJsonPath);
 
@@ -249,6 +246,9 @@ function resolveHostCapabilityInputs(): KibiBootstrapCapabilityDetectionInput {
       path.join(pluginRoot, "dist", "index.d.ts"),
     );
     const sdkTypesDts = readTextIfExists(
+      // rationale: the installed SDK also ships v1 types at dist/gen with the
+      // same command field, so dropping "v2" here reads an equivalent file
+      // Stryker disable next-line StringLiteral
       path.join(sdkRoot, "dist", "v2", "gen", "types.gen.d.ts"),
     );
 
@@ -275,7 +275,7 @@ export function detectKibiBootstrapCommandCapability(
 ): KibiBootstrapCommandCapability {
   const { pluginVersion, pluginHooksDts, sdkTypesDts } = input;
 
-  if (typeof pluginHooksDts !== "string" || pluginHooksDts.length === 0) {
+  if (!pluginHooksDts) {
     return buildUnsupportedReason(
       pluginVersion,
       "host Hooks definition is unavailable for config hook inspection.",
@@ -289,7 +289,7 @@ export function detectKibiBootstrapCommandCapability(
     );
   }
 
-  if (typeof sdkTypesDts !== "string" || sdkTypesDts.length === 0) {
+  if (!sdkTypesDts) {
     return buildUnsupportedReason(
       pluginVersion,
       "SDK Config definition is unavailable for command surface inspection.",

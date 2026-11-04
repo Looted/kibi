@@ -129,7 +129,7 @@ export function inspectBranchStore(
       return { state: "healthy", path: storePath, recoveryRequired: false };
     }
     if (existsSync(legacyPath)) {
-      const legacy = readFileSync(legacyPath, "utf8");
+      const legacy = readFileSync(legacyPath).toString();
       if (!/<rdf:RDF(?:\s|>)/.test(legacy)) {
         return {
           state: "unreadable",
@@ -299,11 +299,9 @@ export function branchStoreCompilation(
   const currentPath = path.join(inspection.path, "CURRENT");
   let current = "";
   try {
-    current = existsSync(currentPath)
-      ? readFileSync(currentPath, "utf8").trim()
-      : "";
+    current = readFileSync(currentPath, "utf8").trim();
   } catch {
-    current = "";
+    // No readable CURRENT pointer.
   }
   if (current === "") {
     // A healthy store without CURRENT is a legacy kb.rdf store.
@@ -330,8 +328,9 @@ function journalHoldsGraphData(storePath: string): boolean {
       (entry) => entry !== "lock" && !entry.startsWith("."),
     );
   } catch {
-    return false;
+    // No journal directory.
   }
+  return false;
 }
 
 /**
@@ -357,7 +356,9 @@ export function uncompiledBranchStoreReason(
   const storeState =
     inspection.state === "missing"
       ? "does not exist yet"
-      : `is empty (${compilation.generation ?? "no generation"}: nothing compiled)`;
+      : // A healthy store without CURRENT is a compiled legacy store, so an
+        // empty one always has a generation.
+        `is empty (${compilation.generation}: nothing compiled)`;
   return {
     code: BRANCH_STORE_NOT_COMPILED,
     path: inspection.path,

@@ -16,33 +16,69 @@ links:
     target: SCEN-mcp-tool-upsert
   - type: verified_by
     target: TEST-mcp-upsert-coverage
-semantic_text: The `kb_upsert` MCP tool must:\n\nAllow agents to create or update a single entity with its metadata.\nSupport batch creation of relationships to other existing entities in the same call.\nValidate relationship types against the supported canonical list.\nEnforce requirement consistency by rejecting writes that contradict existing requirements, unless a `supersedes` relationship is provided.\nTrigger a refresh of symbol coordinates if the upsert affects symbol linkage.
+semantic_text: The kb_upsert MCP tool must create or update a single entity with its metadata. The kb_upsert MCP tool must create relationships to other existing entities in the same call. The kb_upsert MCP tool must validate relationship types against the supported canonical list. The kb_upsert MCP tool must reject a write that contradicts an existing requirement unless the write declares a supersedes relationship. The kb_upsert MCP tool must refresh symbol coordinates when the upsert affects symbol linkage.
 logic_claims:
-  - CLAIM-8A6BF5268C7491AB
+  - CLAIM-7A41F00A73F13D45
+  - CLAIM-A3EE6046DD9A175A
+  - CLAIM-D92C6CE289BC614A
+  - CLAIM-5AEC54A85BBFABCE
+  - CLAIM-013472A6F74AE546
 semantic_clauses:
-  - The `kb_upsert` MCP tool must:\n\nAllow agents to create or update a single entity with its metadata.\nSupport batch creation of relationships to other existing entities in the same call.\nValidate relationship types against the supported canonical list.\nEnforce requirement consistency by rejecting writes that contradict existing requirements, unless a `supersedes` relationship is provided.\nTrigger a refresh of symbol coordinates if the upsert affects symbol linkage
+  - The kb_upsert MCP tool must create or update a single entity with its metadata.
+  - The kb_upsert MCP tool must create relationships to other existing entities in the same call.
+  - The kb_upsert MCP tool must validate relationship types against the supported canonical list.
+  - The kb_upsert MCP tool must reject a write that contradicts an existing requirement unless the write declares a supersedes relationship.
+  - The kb_upsert MCP tool must refresh symbol coordinates when the upsert affects symbol linkage.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: fa3cacb05e967c06321bf9117e80e79563cfd8316961f83cc58ecc25cf2f446c
+semantic_source_hash: defebdaa4259c62866b179fdcd6a60cb29c96514a13a873ababe3c321f116d68
 semantic_inventory:
-  - claim_key: CLAIM-8A6BF5268C7491AB
-    claim_text: The `kb_upsert` MCP tool must:\n\nAllow agents to create or update a single entity with its metadata.\nSupport batch creation of relationships to other existing entities in the same call.\nValidate relationship types against the supported canonical list.\nEnforce requirement consistency by rejecting writes that contradict existing requirements, unless a `supersedes` relationship is provided.\nTrigger a refresh of symbol coordinates if the upsert affects symbol linkage
-    role: exception
+  - claim_key: CLAIM-7A41F00A73F13D45
+    claim_text: The kb_upsert MCP tool must create or update a single entity with its metadata
+    role: normative
     status: modeled
     span:
       start: 0
-      end: 472
+      end: 78
+  - claim_key: CLAIM-A3EE6046DD9A175A
+    claim_text: The kb_upsert MCP tool must create relationships to other existing entities in the same call
+    role: normative
+    status: modeled
+    span:
+      start: 80
+      end: 172
+  - claim_key: CLAIM-D92C6CE289BC614A
+    claim_text: The kb_upsert MCP tool must validate relationship types against the supported canonical list
+    role: normative
+    status: modeled
+    span:
+      start: 174
+      end: 266
+  - claim_key: CLAIM-5AEC54A85BBFABCE
+    claim_text: The kb_upsert MCP tool must reject a write that contradicts an existing requirement unless the write declares a supersedes relationship
+    role: exception
+    status: modeled
+    span:
+      start: 268
+      end: 403
+  - claim_key: CLAIM-013472A6F74AE546
+    claim_text: The kb_upsert MCP tool must refresh symbol coordinates when the upsert affects symbol linkage
+    role: normative
+    status: modeled
+    span:
+      start: 405
+      end: 498
 type: req
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: agent
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  approved_by: maintainer
+  recorded_at: '2026-11-03T11:35:21.000Z'
+firmness: default
+required_evidence: tested
 ---
-
-The `kb_upsert` MCP tool must:
-
-1. Allow agents to create or update a single entity with its metadata.
-2. Support batch creation of relationships to other existing entities in the same call.
-3. Validate relationship types against the supported canonical list.
-4. Enforce requirement consistency by rejecting writes that contradict existing requirements, unless a `supersedes` relationship is provided.
-5. Trigger a refresh of symbol coordinates if the upsert affects symbol linkage.
+- The kb_upsert MCP tool must create or update a single entity with its metadata.
+- The kb_upsert MCP tool must create relationships to other existing entities in the same call.
+- The kb_upsert MCP tool must validate relationship types against the supported canonical list.
+- The kb_upsert MCP tool must reject a write that contradicts an existing requirement unless the write declares a supersedes relationship.
+- The kb_upsert MCP tool must refresh symbol coordinates when the upsert affects symbol linkage.

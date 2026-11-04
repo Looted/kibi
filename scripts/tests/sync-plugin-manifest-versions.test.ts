@@ -214,7 +214,7 @@ describe("syncPluginManifestVersions", () => {
 
     expect(packageJson.scripts).toMatchObject({
       "version-packages":
-        "changeset version && bun run scripts/sync-plugin-manifest-versions.ts",
+        "bun run scripts/kibi-release.ts prepare && changeset version && bun run scripts/sync-plugin-manifest-versions.ts && bun run scripts/kibi-release.ts write",
     });
   });
 

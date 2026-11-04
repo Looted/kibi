@@ -391,3 +391,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f4de643d70fe
+  - type: specified_by
+    from: REQ-opencode-guidance-injection
+    to: SCEN-opencode-guidance-injection
+    created_at: 2026-11-03T11:36:02.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63e5e17826d6
+  - type: verified_by
+    from: REQ-opencode-guidance-injection
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-11-03T11:36:02.589Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aadc3ae54310
+  - type: requires_property
+    from: REQ-opencode-guidance-injection
+    to: FACT-PROP-REQ-OPENCODE-GUIDANCE-INJECTION-C02
+    created_at: 2026-11-03T11:36:02.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b0f3a7a03b9
+  - type: requires_property
+    from: REQ-opencode-guidance-injection
+    to: FACT-PROP-REQ-OPENCODE-GUIDANCE-INJECTION-C03
+    created_at: 2026-11-03T11:36:02.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f47dd8fd684
+  - type: requires_property
+    from: REQ-opencode-guidance-injection
+    to: FACT-PROP-REQ-OPENCODE-GUIDANCE-INJECTION-C04
+    created_at: 2026-11-03T11:36:02.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e77a9d9eac9
+  - type: requires_property
+    from: REQ-opencode-guidance-injection
+    to: FACT-PROP-REQ-OPENCODE-GUIDANCE-INJECTION-C05
+    created_at: 2026-11-03T11:36:02.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-614d92955be1
+  - type: implements
+    from: SYM-mcp-server-title
+    to: REQ-kibi-release-version
+    created_at: 2026-11-04T05:31:08.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d10ccce88eeb
+  - type: covered_by
+    from: SYM-mcp-server-title
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:31:08.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e122c9e61ba

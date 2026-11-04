@@ -1,18 +1,18 @@
 ---
-title: Only medium/high-confidence suggestions trigger prompts.\n\n**Non-blocking behav
+title: opencode.kibi_plugin clause 2
 status: active
 tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_03_only_medium_high_confidence_suggestions_trigger_
+property_key: clause_02_the_opencode_plugin_must_extract_javascript_and_typescript_l
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_comment_routing.clause_03_only_medium_high_confidence_suggestions_trigger_.eq.true
-claim_key: CLAIM-8ED771213571A72A
-claim_text: 'Only medium/high-confidence suggestions trigger prompts.\n\n**Non-blocking behavior**: Analysis runs after `file.edited` events without blocking sync or other plugin operations.\n\n**Configurability**: Respect `guidance.commentDetection.enabled` and `guidance.commentDetection.minLines` settings.\n\n\nSaving a `.py` file with a long docstring triggers specific FACT/ADR/REQ routing guidance.\nSaving a `.ts` file with a long `//` comment block triggers appropriate guidance.\nShort/ordinary comments do not trigger guidance.\nRepeated saves of identical comments do not spam warnings.\nSync and targeted validation behavior remain unchanged'
+canonical_key: req.req_opencode_comment_routing.clause_02_the_opencode_plugin_must_extract_javascript_and_typescript_l.eq.true
+claim_key: CLAIM-B6150CD471FA4C84
+claim_text: The OpenCode plugin must extract JavaScript and TypeScript line, block and doc comments and Python comment blocks and true docstrings
 id: FACT-PROP-REQ-OPENCODE-COMMENT-ROUTING-C03
 type: fact
 origin:

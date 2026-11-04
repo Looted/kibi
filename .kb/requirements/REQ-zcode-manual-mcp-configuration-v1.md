@@ -53,10 +53,12 @@ id: REQ-zcode-manual-mcp-configuration-v1
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "The claims are documentation content (optional adapter, manual MCP path); they are checked by reading the README and have no refusal side."
 failure_side_waiver_approved_by: Piotr Franczyk
+firmness: default
+required_evidence: tested
 ---
 Documentation must identify the kibi-zcode adapter as optional.
 

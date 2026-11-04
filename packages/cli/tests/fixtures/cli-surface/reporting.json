@@ -1,0 +1,417 @@
+[
+  {
+    "name": "check-generated",
+    "aliases": [],
+    "description": "Compare generated symbol manifests with the staged Git snapshot",
+    "arguments": [],
+    "options": [
+      {
+        "flags": "--staged",
+        "description": "Use the exact Git index bytes",
+        "default": null,
+        "mandatory": true
+      },
+      {
+        "flags": "--changed-only",
+        "description": "Skip regeneration when staged paths cannot affect symbols",
+        "default": null,
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "find-gaps",
+    "aliases": ["gaps"],
+    "description": "List KB entities by the relationships they lack or have. Use for questions like which requirements lack scenarios or tests; all filters must match, and a relationship counts in either direction. Use kb_coverage instead for proof status and repair plans, and kb_check for rule violations. No mutation side effects.",
+    "arguments": [
+      {
+        "name": "type",
+        "description": "",
+        "required": false,
+        "variadic": false,
+        "default": null
+      }
+    ],
+    "options": [
+      {
+        "flags": "--input <path>",
+        "description": "JSON input file (use - for stdin)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--missing-rel <rels>",
+        "description": "Comma-separated missing relationship filters",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--present-rel <rels>",
+        "description": "Comma-separated present relationship filters",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--tag <tags>",
+        "description": "Comma-separated tag filter",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--source <path>",
+        "description": "Source file substring filter",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--limit <n>",
+        "description": "Limit results",
+        "default": "100",
+        "mandatory": false
+      },
+      {
+        "flags": "--offset <n>",
+        "description": "Skip results",
+        "default": "0",
+        "mandatory": false
+      },
+      {
+        "flags": "--format <format>",
+        "description": "Output format: json|table",
+        "default": "table",
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "report",
+    "aliases": [],
+    "description": "Generate a self-contained HTML requirement-health report for local viewing or CI publishing",
+    "arguments": [],
+    "options": [
+      {
+        "flags": "--output <path>",
+        "description": "HTML file or directory (directories receive index.html)",
+        "default": "kibi-report",
+        "mandatory": false
+      },
+      {
+        "flags": "--open",
+        "description": "Open the generated report in the default browser",
+        "default": false,
+        "mandatory": false
+      },
+      {
+        "flags": "--tag <tags>",
+        "description": "Comma-separated tag filter",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--limit <n>",
+        "description": "Maximum complete requirement rows (1-100000)",
+        "default": "10000",
+        "mandatory": false
+      },
+      {
+        "flags": "--certificates <file>",
+        "description": "Publish a kibi check --write-certificates bundle next to the report and link it",
+        "default": null,
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "signoff",
+    "aliases": [],
+    "description": "Show the requirements a change adds, rewrites or affects (or, with --questions, the decisions waiting for the person) as chat Markdown, a fenced block for host renderers, an HTML page or JSON for signoff",
+    "arguments": [],
+    "options": [
+      {
+        "flags": "--staged",
+        "description": "Summarize staged changes instead of the working tree",
+        "default": false,
+        "mandatory": false
+      },
+      {
+        "flags": "--questions <path>",
+        "description": "Render decision questions from a JSON file (use - for stdin): {\"questions\":[{\"statement\":\"...\",\"quote\":\"...\",\"firmness\":\"firm\"}]}",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--format <format>",
+        "description": "Output format: chat (plain Markdown for a reply) | md (fenced block for host renderers) | html | json; default chat, or KIBI_SIGNOFF_FORMAT",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--output <path>",
+        "description": "HTML file to write (default .kb/briefs/signoff/latest.html)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--open",
+        "description": "Open the HTML page in the default browser",
+        "default": false,
+        "mandatory": false
+      },
+      {
+        "flags": "--no-proof",
+        "description": "Skip the proof-state lookup (faster; no Prolog)",
+        "default": null,
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "coverage",
+    "aliases": [],
+    "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are tested end to end, how strong each requirement's evidence is (evidenceLevel: proved, tested, asserted or unverified), and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
+    "arguments": [],
+    "options": [
+      {
+        "flags": "--input <path>",
+        "description": "JSON input file (use - for stdin)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--by <group>",
+        "description": "Coverage mode: req|symbol|type",
+        "default": "req",
+        "mandatory": false
+      },
+      {
+        "flags": "--tag <tags>",
+        "description": "Comma-separated tag filter",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--include-passing",
+        "description": "Include passing rows",
+        "default": false,
+        "mandatory": false
+      },
+      {
+        "flags": "--status <statuses>",
+        "description": "Comma-separated requirement proof-status filter (tested, missing, unresolved, not_applicable); implies include-passing",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--no-include-transitive",
+        "description": "Disable transitive symbol coverage",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--limit <n>",
+        "description": "Limit results",
+        "default": "100",
+        "mandatory": false
+      },
+      {
+        "flags": "--offset <n>",
+        "description": "Skip results",
+        "default": "0",
+        "mandatory": false
+      },
+      {
+        "flags": "--include-migration-preview",
+        "description": "Include one read-only legacy semantic migration preview batch",
+        "default": false,
+        "mandatory": false
+      },
+      {
+        "flags": "--migration-limit <n>",
+        "description": "Maximum migration preview batches (1-10)",
+        "default": "1",
+        "mandatory": false
+      },
+      {
+        "flags": "--migration-offset <n>",
+        "description": "Skip ready semantic-inventory migration batches",
+        "default": "0",
+        "mandatory": false
+      },
+      {
+        "flags": "--migration-predicate-limit <n>",
+        "description": "Maximum ranked predicate schemas per proposition",
+        "default": "5",
+        "mandatory": false
+      },
+      {
+        "flags": "--migration-predicate-min-score <score>",
+        "description": "Minimum predicate schema rank score",
+        "default": "0.35",
+        "mandatory": false
+      },
+      {
+        "flags": "--cases",
+        "description": "Print the edge cases derived from each requirement's typed claims, with their predicted outcome and covering scenarios",
+        "default": false,
+        "mandatory": false
+      },
+      {
+        "flags": "--format <format>",
+        "description": "Output format: json|table",
+        "default": "table",
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "graph",
+    "aliases": [],
+    "description": "Run bounded graph traversal from one or more seed IDs across curated relationship types and return the nodes and edges reached. Use it to follow links from IDs you already have, such as a requirement to its scenarios and tests or a symbol to the requirements it implements; use kb_query to find entities by filter and kb_search to ask a question. Traversal stops at depth, maxNodes or maxEdges and then sets truncated. No mutation side effects.",
+    "arguments": [],
+    "options": [
+      {
+        "flags": "--input <path>",
+        "description": "JSON input file (use - for stdin)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--from <ids>",
+        "description": "Comma-separated seed IDs",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--relationships <rels>",
+        "description": "Comma-separated relationship filter",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--direction <direction>",
+        "description": "Direction: outgoing|incoming|both",
+        "default": "outgoing",
+        "mandatory": false
+      },
+      {
+        "flags": "--depth <n>",
+        "description": "Traversal depth",
+        "default": "1",
+        "mandatory": false
+      },
+      {
+        "flags": "--entity-types <types>",
+        "description": "Comma-separated entity type filter",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--max-nodes <n>",
+        "description": "Maximum node count",
+        "default": "200",
+        "mandatory": false
+      },
+      {
+        "flags": "--max-edges <n>",
+        "description": "Maximum edge count",
+        "default": "500",
+        "mandatory": false
+      },
+      {
+        "flags": "--format <format>",
+        "description": "Output format: json|table",
+        "default": "table",
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "check",
+    "aliases": [],
+    "description": "Run KB validation rules and return violations, quality diagnostics, and typed kibi.migration-plan.v2 actions. Use before or after mutations and after source edits; checks remain read-only and never infer or apply actions from prose suggestions.",
+    "arguments": [],
+    "options": [
+      {
+        "flags": "--input <path>",
+        "description": "JSON input file (use - for stdin)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--fix",
+        "description": "Suggest fixes for violations",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--kb-path <dir>",
+        "description": "Path to KB directory (overrides branch resolution)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--rules <csv>",
+        "description": "Comma-separated allowlist of rule names to run",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--staged",
+        "description": "Run check only against staged changes (experimental)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--min-links <n>",
+        "description": "Minimum number of links required for symbol coverage",
+        "default": "1",
+        "mandatory": false
+      },
+      {
+        "flags": "--dry-run",
+        "description": "Do not modify files; only print what would happen",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--format <format>",
+        "description": "Output format: text|json",
+        "default": "text",
+        "mandatory": false
+      },
+      {
+        "flags": "--fresh-evidence",
+        "description": "evidence-floor judges receipts as they are (stale receipts fail) and needs a clean proof snapshot; run it after kibi prove",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--write-certificates <file>",
+        "description": "Also save the kibi.certificates.v1 bundle the kb-consistency rule re-checked",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--certificates <file>",
+        "description": "Only re-check a saved kibi.certificates.v1 bundle against the current KB with the independent checker",
+        "default": null,
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "check-diff",
+    "aliases": [],
+    "description": "Run the full protected pull-request impact gate from its trusted GitHub event",
+    "arguments": [],
+    "options": [],
+    "commands": []
+  }
+]

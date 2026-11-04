@@ -64,8 +64,7 @@ export function isPrivateClassMember(member: {
   hasModifier?(kind: SyntaxKind): boolean;
   getScope?: () => Scope | string | number;
 }): boolean {
-  const name = typeof member.getName === "function" ? member.getName() : "";
-  if (name.startsWith("#")) {
+  if (member.getName?.().startsWith("#")) {
     return true;
   }
   if (typeof member.hasModifier === "function") {

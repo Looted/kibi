@@ -97,13 +97,7 @@ export function extractRelationshipShard(
   shardPath: string,
 ): ShardExtractionResult {
   try {
-    const records = readShard(shardPath);
-    const relationships = records
-      .map(convertRecordToRelationship)
-      .filter(
-        (relationship): relationship is ExtractedRelationship =>
-          relationship !== null,
-      );
+    const relationships = readShard(shardPath).map(convertRecordToRelationship);
     return { shardPath, relationships };
   } catch (error) {
     throw new Error(
@@ -116,11 +110,11 @@ export function extractRelationshipShard(
 
 /**
  * Converts a RelationshipRecord to an ExtractedRelationship.
- * Returns null if the record is invalid.
+ * Throws when the record's type is unknown or an endpoint is empty.
  */
 export function convertRecordToRelationship(
   record: RelationshipRecord,
-): ExtractedRelationship | null {
+): ExtractedRelationship {
   // Validate type
   if (!VALID_RELATIONSHIP_TYPES.has(record.type)) {
     throw new Error(
@@ -139,7 +133,7 @@ export function convertRecordToRelationship(
     to: record.to,
   };
 
-  // Include metadata if present
+  // Include metadata if present; snapshot rows carry none.
   if (
     record.created_at ||
     record.created_by ||

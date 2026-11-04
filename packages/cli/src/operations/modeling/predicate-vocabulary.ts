@@ -105,16 +105,6 @@ export function predicateVocabularyFromEntity(
   return { constants, aliases };
 }
 
-// implements REQ-kibi-predicate-argument-constants
-export function hasPredicateVocabulary(
-  vocabulary: PredicateVocabulary,
-): boolean {
-  return (
-    Object.keys(vocabulary.constants).length > 0 ||
-    Object.keys(vocabulary.aliases).length > 0
-  );
-}
-
 /**
  * Cross-field errors in a predicate schema's vocabulary: every key must be an
  * argument name, aliases need declared constants for their argument, alias

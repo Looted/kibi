@@ -59,7 +59,6 @@ import { amendsRootCommit } from "../traceability/commit-amend.js";
 import {
   KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
-  KIBI_SYMBOL_COORDINATES_PATH,
   type KibiEntityType,
   type KibiImpactEvidence,
 } from "../traceability/evidence-model.js";
@@ -96,7 +95,10 @@ import {
   isBehaviorSourceEdit,
   parseKibiImpactOverride,
 } from "../traceability/staged-impact-contract.js";
-import { stagedInventoryDriftViolations } from "../traceability/staged-inventory-drift.js";
+import {
+  stagedInventoryDriftViolations,
+  stagedStatementDriftViolations,
+} from "../traceability/staged-inventory-drift.js";
 import { stagedCommitCarriesMigration } from "../traceability/staged-migration.js";
 import {
   assessStagedSymbolsManifest,
@@ -121,6 +123,7 @@ import {
   validateStagedSymbolCoverage,
   validateStagedSymbols,
 } from "../traceability/validate.js";
+import { ensureBranchStoreCompiled } from "../utils/auto-compile.js";
 import { resolveReadBranchAttachment } from "../utils/branch-resolver.js";
 import { CANONICAL_ENTITY_PATHS, isEntityLanePath } from "../utils/kb-paths.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
@@ -298,14 +301,6 @@ const KIBI_ENTITY_TYPES = new Set<KibiEntityType>([
 
 function isKibiEntityType(value: string): value is KibiEntityType {
   return KIBI_ENTITY_TYPES.has(value as KibiEntityType);
-}
-
-function isStagedManifestPath(filePath: string): boolean {
-  return (
-    filePath === CANONICAL_ENTITY_PATHS.symbols ||
-    filePath === ".kb/symbols.yml" ||
-    filePath === KIBI_SYMBOL_COORDINATES_PATH
-  );
 }
 
 function isTestOnlySourcePath(filePath: string): boolean {
@@ -715,6 +710,11 @@ export async function checkCommand(
           `Warning: reading legacy KB attachment ${attachment.gitBranch} -> ${attachment.kbBranch}; migrate before writes or sync.`,
         );
       }
+      // A fresh clone's first commit must not fail on a store nothing compiled.
+      // implements REQ-kibi-fresh-clone-setup
+      await ensureBranchStoreCompiled(process.cwd(), attachment, {
+        name: "kb_check",
+      });
       resolvedKbPath = attachment.storePath;
     }
 
@@ -961,21 +961,22 @@ export async function checkCommand(
           markdownFiles.map((file) => file.path),
           snapshotEntities,
         );
+        const readStagedBase = (filePath: string): string | null => {
+          try {
+            return snapshot
+              .readGit(["show", `${snapshot.baseTree}:${filePath}`])
+              .toString("utf8");
+          } catch {
+            return null;
+          }
+        };
         const inventoryDrift = stagedInventoryDriftViolations({
           stagedPaths: new Set(markdownFiles.map((file) => file.path)),
           snapshotEntities,
           judgeNewRequirements:
             snapshot.headCommit !== null &&
             !amendsRootCommit(process.cwd(), snapshot.headCommit),
-          readBase: (filePath) => {
-            try {
-              return snapshot
-                .readGit(["show", `${snapshot.baseTree}:${filePath}`])
-                .toString("utf8");
-            } catch {
-              return null;
-            }
-          },
+          readBase: readStagedBase,
         });
         if (inventoryDrift.length > 0) {
           printSnapshotResult({
@@ -985,6 +986,25 @@ export async function checkCommand(
             messages: [
               `${inventoryDrift.length} staged requirement(s) have a semantic inventory that is missing or no longer matches their prose:`,
               ...inventoryDrift.map((violation) => `  ${violation.message}`),
+            ],
+          });
+          return { exitCode: options.dryRun ? 0 : 1 };
+        }
+        // implements REQ-kibi-proposition-complete-ingestion
+        // A body edit to a requirement that pins semantic_text must restate
+        // it; otherwise its claims and proofs keep the old wording.
+        const statementDrift = stagedStatementDriftViolations({
+          stagedFiles: markdownFiles,
+          readBase: readStagedBase,
+        });
+        if (statementDrift.length > 0) {
+          printSnapshotResult({
+            format: options.format,
+            coverage: stagedCoverage,
+            violations: statementDrift,
+            messages: [
+              `${statementDrift.length} staged requirement(s) changed their body statement without restating their pinned semantic_text:`,
+              ...statementDrift.map((violation) => `  ${violation.message}`),
             ],
           });
           return { exitCode: options.dryRun ? 0 : 1 };

@@ -307,3 +307,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1e73a2f462c
+  - type: specified_by
+    from: REQ-vscode-source-to-kb
+    to: SCEN-vscode-source-to-kb
+    created_at: 2026-11-03T11:37:11.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad484a750f92
+  - type: verified_by
+    from: REQ-vscode-source-to-kb
+    to: TEST-vscode-traceability
+    created_at: 2026-11-03T11:37:11.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0129cd42134
+  - type: requires_property
+    from: REQ-vscode-source-to-kb
+    to: FACT-PROP-REQ-VSCODE-SOURCE-TO-KB-C02
+    created_at: 2026-11-03T11:37:11.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6fd9a15d119
+  - type: requires_property
+    from: REQ-vscode-source-to-kb
+    to: FACT-PROP-REQ-VSCODE-SOURCE-TO-KB-C03
+    created_at: 2026-11-03T11:37:11.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40107e2b9a9d
+  - type: implements
+    from: SYM-cli-kibi-release-read-kibi-release
+    to: REQ-kibi-release-version
+    created_at: 2026-11-04T05:30:22.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab9c2488c073
+  - type: covered_by
+    from: SYM-cli-kibi-release-read-kibi-release
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:30:22.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fee5385e354

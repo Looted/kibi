@@ -79,7 +79,9 @@ id: REQ-prolog-bundled-runtime
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   recorded_at: '2026-10-04T01:17:15.284Z'
+firmness: default
+required_evidence: tested
 ---
 Kibi must resolve SWI-Prolog from KIBI_SWIPL first, then from the verified bundled platform package, then from swipl on PATH. Kibi must skip the bundled platform package when KIBI_SWIPL is system. Kibi must refuse a bundled platform package whose manifest is malformed or whose binary checksum differs from the manifest. Kibi must reject a swipl on PATH older than version 9.0. Kibi must fail with the detected platform, the covering platform package, and the operating-system install command when no usable SWI-Prolog is found. Kibi must set SWI_HOME_DIR for the SWI-Prolog child process when the bundled build is used

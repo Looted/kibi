@@ -19,12 +19,17 @@ export function validateStagedMarkdown(
   try {
     const { data } = matter(content);
 
-    const type = data.type || inferTypeFromPath(filePath);
-    if (!type) {
+    // Only requirements can embed other entities (detectEmbeddedEntities
+    // returns nothing for any other type), so the path only has to tell a
+    // requirement apart from everything else.
+    const isRequirement = data.type
+      ? data.type === "req"
+      : entityLaneForPath(filePath) === "requirements";
+    if (!isRequirement) {
       return { filePath, errors };
     }
 
-    const embeddedEntities = detectEmbeddedEntities(data, type);
+    const embeddedEntities = detectEmbeddedEntities(data, "req");
     if (embeddedEntities.length > 0) {
       const entityTypes = embeddedEntities.join(" and ");
       errors.push(
@@ -45,18 +50,4 @@ export function validateStagedMarkdown(
   }
 
   return { filePath, errors };
-}
-
-function inferTypeFromPath(filePath: string): string | null {
-  const lane = entityLaneForPath(filePath);
-  switch (lane) {
-    case "requirements":
-      return "req";
-    case "scenarios":
-      return "scenario";
-    case "tests":
-      return "test";
-    default:
-      return null;
-  }
 }

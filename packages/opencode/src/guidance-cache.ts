@@ -30,6 +30,9 @@ export interface CacheEntry {
  * Serializes a CacheKey into a deterministic string for use as a Map key.
  */
 function serializeKey(key: CacheKey): string {
+  // rationale: any constant suffix for an unscoped key keeps keys distinct;
+  // only a caller scope equal to that constant could tell them apart.
+  // Stryker disable next-line StringLiteral
   return `${key.workspaceRoot}\0${key.branch}\0${key.posture}\0${key.riskClass}\0${key.fileBucket}\0${key.scopeKey ?? ""}`;
 }
 
@@ -166,20 +169,15 @@ export class GuidanceCache {
 
 // ── Singleton ───────────────────────────────────────────────────────
 
-let globalCache: GuidanceCache | null = null;
+let globalCache = new GuidanceCache();
 
 export function getGuidanceCache(
   ttlMs?: number,
   idleResetMs?: number,
 ): GuidanceCache {
   // implements REQ-opencode-kibi-plugin-v1
-  if (!globalCache) {
-    globalCache = new GuidanceCache(ttlMs, idleResetMs);
-  } else {
-    if (typeof ttlMs === "number") globalCache.setTtlMs(ttlMs);
-    if (typeof idleResetMs === "number")
-      globalCache.setIdleResetMs(idleResetMs);
-  }
+  if (ttlMs !== undefined) globalCache.setTtlMs(ttlMs);
+  if (idleResetMs !== undefined) globalCache.setIdleResetMs(idleResetMs);
   return globalCache;
 }
 

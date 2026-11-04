@@ -146,20 +146,11 @@ class SessionTracker {
   }
 
   private logWarning(category: WarningCategory, message: string): void {
-    const prefix = `[${category}]`;
-    switch (category) {
-      case "kb-edit":
-        logger.warn(`${prefix} ${message}`);
-        break;
-      case "bootstrap-needed":
-        logger.warn(`${prefix} ${message}`);
-        break;
-      case "missing-traceability":
-        logger.info(`${prefix} ${message}`);
-        break;
-      default:
-        logger.info(`${prefix} ${message}`);
-    }
+    const log =
+      category === "kb-edit" || category === "bootstrap-needed"
+        ? logger.warn
+        : logger.info;
+    log(`[${category}] ${message}`);
   }
 
   private checkRepeatedPattern(category: WarningCategory): void {

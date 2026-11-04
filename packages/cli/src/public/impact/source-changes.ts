@@ -79,18 +79,6 @@ function getWorkingTreeDiffSourceFiles(workspaceRoot: string): string[] {
   }
 }
 
-function getWorkingTreeHunks(
-  workspaceRoot: string,
-  sourceFile: string,
-): HunkRange[] {
-  try {
-    const diffText = runGit(workspaceRoot, ["diff", "-U0", "--", sourceFile]);
-    return parseHunksFromDiff(diffText);
-  } catch {
-    return [];
-  }
-}
-
 function getStagedSourceChanges(
   workspaceRoot: string,
   sourceFileFilter: ReadonlySet<string>,
@@ -142,7 +130,9 @@ function getWorkingTreeSourceChanges(
       !hasMeaningfulSourceDiff(diffText)
     )
       return [];
-    const hunkRanges = getWorkingTreeHunks(workspaceRoot, sourceFile);
+    // The same diff names the hunks; reading it again could only disagree
+    // through a race.
+    const hunkRanges = parseHunksFromDiff(diffText);
     if (hunkRanges.length === 0) return [];
     return [{ file: sourceFile, status: "M", hunkRanges, content }];
   });

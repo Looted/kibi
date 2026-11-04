@@ -8,7 +8,7 @@ tags:
 priority: must
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:14:05.885Z'
 id: SCEN-bootstrap-ui-plugin-offer
 type: scenario

@@ -1,20 +1,21 @@
 ---
-title: The kibi-cursor plugin bundles the six Kibi skills
+title: The kibi-cursor plugin bundles the seven Kibi skills
 status: active
 fact_kind: property_value
 subject_key: cursor.kibi_plugin
 property_key: bundled_skills
-operator: includes
+operator: eq
 value_type: set
 value_set:
   - kibi-bootstrap
   - kibi-commit-review
   - kibi-decisions
   - kibi-freshness
+  - kibi-provable-code
   - kibi-traceability
   - kibi-usage
-claim_text: The kibi-cursor plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-traceability and kibi-usage skills
-claim_key: CLAIM-930C7BFCB5C43874
+claim_text: The kibi-cursor plugin must bundle the kibi-bootstrap, kibi-commit-review, kibi-decisions, kibi-freshness, kibi-provable-code, kibi-traceability and kibi-usage skills, and no others
+claim_key: CLAIM-E0972AB25D5495E5
 text_ref: REQ-cursor-plugin-package
 origin:
   kind: agent

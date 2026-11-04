@@ -4,6 +4,7 @@ import type { PreparedImpactReview } from "./impact-evaluator.js";
 import { blobBytes, treeEntry } from "./impact-git-tree.js";
 import { approvedPartialClass } from "./impact-policy.js";
 import {
+  type AnalysisReview,
   IMPACT_REVIEW_PATH,
   type ImpactDecision,
   type ImpactFileRecord,
@@ -32,8 +33,9 @@ export function recordFromCapturedTree(
     throw new Error(
       `Captured impact review record missing: ${IMPACT_REVIEW_PATH}`,
     );
-  const bytes = blobBytes(snapshot, entry);
-  if (!bytes) throw new Error("Impact review record blob is missing");
+  // blobBytes returns undefined only for non-blob entries, rejected above, and
+  // throws when the snapshot has no bytes for the blob.
+  const bytes = blobBytes(snapshot, entry) as Buffer;
   return parseImpactReviewRecord(
     JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)),
   );
@@ -118,14 +120,12 @@ export function validateDecisionAgainstSnapshot(
       );
     unchangedRequirementIds.add(item.requirementId);
   }
+  // Both sets are disjoint subsets of reqs, so equal sizes mean every scoped
+  // requirement is accounted for.
   if (
     unchangedRequirementIds.size !==
       (decision.knowledge.stillCurrent?.length ?? 0) ||
-    updatedRequirementIds.size + unchangedRequirementIds.size !== reqs.length ||
-    reqs.some(
-      (id) =>
-        !updatedRequirementIds.has(id) && !unchangedRequirementIds.has(id),
-    )
+    updatedRequirementIds.size + unchangedRequirementIds.size !== reqs.length
   )
     throw new Error(
       `Updated evidence must account for every scoped requirement on ${path}`,
@@ -158,24 +158,30 @@ export function validateAnalysisReviews(
       if (
         !policy.allowUnsupportedReview ||
         reviews.length !== 1 ||
-        reviews[0]?.kind !== "unsupported_review"
+        (reviews[0] as AnalysisReview).kind !== "unsupported_review"
       )
         throw new Error(
           `Unsupported side lacks one explicit whole-file review: ${record.path} (${side})`,
         );
       continue;
     }
-    const allowedClass = analysis
-      ? approvedPartialClass(policy, analysis)
-      : null;
+    // Only a present analysis can ask for a partial review.
+    const allowedClass = approvedPartialClass(
+      policy,
+      analysis as NonNullable<typeof analysis>,
+    );
     if (!allowedClass)
       throw new Error(
         `Partial side is not approved by policy: ${record.path} (${side})`,
       );
-    const review = reviews[0];
+    // Read only when it is the one review; an unsupported review has no
+    // limitationClass, so it fails the class comparison.
+    const review = reviews[0] as Extract<
+      AnalysisReview,
+      { kind: "partial_review" }
+    >;
     if (
       reviews.length !== 1 ||
-      review?.kind !== "partial_review" ||
       review.limitationClass !== allowedClass ||
       !same(review.ranges, obligation.ranges)
     )

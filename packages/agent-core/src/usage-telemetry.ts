@@ -5,6 +5,21 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  type OperationSignals,
+  RELATIONSHIP_COUNT_BUCKETS,
+  RESULT_COUNT_BUCKETS,
+  SMALL_COUNT_BUCKETS,
+  countBucket,
+  recallOperation,
+  rememberSkillLoad,
+  telemetryCrash,
+  telemetryField,
+  telemetryRule,
+} from "./telemetry-signals.js";
+
+export type { OperationSignals, RejectionIssue } from "./telemetry-signals.js";
+
 /**
  * Anonymous usage telemetry shared by the CLI, the MCP server and the host
  * hooks.
@@ -101,8 +116,109 @@ export type OperationTelemetry = {
   durationMs: number;
   /** Fixed diagnostic category such as `tool_timeout`, when known. */
   errorCategory?: string | undefined;
+  /**
+   * The class of the error a failure threw (`TypeError`, `SyncError`), so
+   * failures nobody has given a code yet can still be told apart.
+   */
+  errorClass?: string | undefined;
   exitCode?: number | undefined;
+  /** Where the agent struggled; see telemetry-signals.ts. */
+  signals?: OperationSignals | undefined;
 };
+
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * How an operation ended as sent: `success`; `rejected` when Kibi worked and
+ * its answer was no (a check found violations, a payload failed validation,
+ * an id does not exist); `error` when Kibi itself failed.
+ */
+export type TelemetryOutcome = "success" | "rejected" | "error";
+
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * Version of the event fields. 2 split expected outcomes (`rejected`) from
+ * failures (`error`) and added `error_class`.
+ */
+export const TELEMETRY_EVENT_VERSION = 2;
+
+/**
+ * Categories that are an operation's answer rather than a fault: the input
+ * or the workspace was refused, or a check reported what it found.
+ */
+const REJECTED_CATEGORIES: ReadonlySet<string> = new Set([
+  "bootstrap_plan_rejected",
+  "check_violations",
+  "coarse_symbol_linkage",
+  "conflicting_input",
+  "entity_not_found",
+  "entity_validation_failed",
+  "firm_decision_locked",
+  "generated_artifacts_stale",
+  "incomplete_propositions",
+  "input_read_failed",
+  "integration_failed",
+  "invalid_project_config",
+  "invalid_relationship",
+  "legacy_branch_storage",
+  "migration_plan_refused",
+  "missing_input",
+  "query_limit_exceeded",
+  "relationship_source_mismatch",
+  "relationship_validation_failed",
+  "semantic_contradiction",
+  "symbol_granularity_violation",
+  "tests_failed",
+  "uncompiled_source",
+  "unknown_operation",
+  "upsert_dry_run_invalid",
+  "validation_failed",
+]);
+
+/**
+ * Category families that are always findings: doctor checks, migration
+ * refusals, and sync refusing pending sources something else changed.
+ */
+const REJECTED_CATEGORY_PREFIXES = [
+  "doctor:",
+  "migrate:",
+  "pending_source_",
+] as const;
+
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * The outcome an operation's status and category amount to. Only a failure
+ * whose category names an expected answer becomes `rejected`; a failure with
+ * no category, or any other category, stays `error`.
+ */
+export function telemetryOutcome(
+  status: "success" | "error",
+  errorCategory: string | null | undefined,
+): TelemetryOutcome {
+  if (status === "success") return "success";
+  if (!errorCategory) return "error";
+  if (REJECTED_CATEGORIES.has(errorCategory)) return "rejected";
+  return REJECTED_CATEGORY_PREFIXES.some((prefix) =>
+    errorCategory.startsWith(prefix),
+  )
+    ? "rejected"
+    : "error";
+}
+
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * The class name of a thrown value as sent: an identifier such as
+ * `TypeError`, or null for a plain `Error`, a non-error or a name that is not
+ * an identifier. Never the message.
+ */
+export function telemetryErrorClass(error: unknown): string | null {
+  if (error === null || typeof error !== "object") return null;
+  const name = (error as { constructor?: { name?: unknown } }).constructor
+    ?.name;
+  if (typeof name !== "string" || name === "Error" || name === "Object") {
+    return null;
+  }
+  return /^[A-Za-z_$][A-Za-z0-9_$]{0,79}$/.test(name) ? name : null;
+}
 
 // implements REQ-kibi-anonymous-usage-telemetry
 /** Summary of one host hook decision. */
@@ -113,6 +229,8 @@ export type HookTelemetry = {
   kbOperation?: string | undefined;
   kbUsedBefore?: boolean | undefined;
   requirementCount?: number | undefined;
+  /** The Kibi skill a `skill_loaded` action loaded (fixed names or `other`). */
+  skill?: string | undefined;
 };
 
 // implements REQ-kibi-anonymous-usage-telemetry
@@ -139,8 +257,7 @@ type QueuedEvent = {
 };
 
 function flagValue(value: string | undefined): boolean | undefined {
-  const normalized = value?.trim().toLowerCase();
-  if (normalized === undefined || normalized === "") return undefined;
+  const normalized = String(value).trim().toLowerCase();
   if (["1", "true", "yes", "on"].includes(normalized)) return true;
   if (["0", "false", "no", "off"].includes(normalized)) return false;
   return undefined;
@@ -214,8 +331,8 @@ export const SESSION_ENV_KEYS = [
 
 /** `Claude Code`, `claude_code` and `claude-code` name the same host. */
 function hostKey(name: string): string {
+  // Edge spaces become edge dashes, which the last step strips.
   return name
-    .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
@@ -278,7 +395,8 @@ function sandboxedHome(env: Env): boolean {
   if (!home) return false;
   const temp = realDirectory(os.tmpdir());
   const resolved = realDirectory(home);
-  return resolved !== temp && resolved.startsWith(`${temp}${path.sep}`);
+  // The temp directory itself does not start with `${temp}/`.
+  return resolved.startsWith(`${temp}${path.sep}`);
 }
 
 /** The Kibi monorepo root's package name. */
@@ -289,14 +407,15 @@ const KIBI_REPOSITORY_PACKAGE = "kibi";
  * format can drop `import.meta.url` or make reading it throw.
  */
 export function moduleFileFromUrl(readUrl: () => unknown): string | undefined {
+  let file: string | undefined;
   try {
     const url = readUrl();
-    return typeof url === "string" && url !== ""
-      ? fileURLToPath(url)
-      : undefined;
+    // An empty URL makes fileURLToPath throw, so it lands in the catch.
+    if (typeof url === "string") file = fileURLToPath(url);
   } catch {
-    return undefined;
+    // No usable module URL.
   }
+  return file;
 }
 
 /** This module's file. */
@@ -359,7 +478,8 @@ export function telemetryChannel(
   const explicit = env.KIBI_TELEMETRY_CHANNEL?.trim();
   if (explicit)
     return {
-      channel: telemetryCategory(explicit) ?? "release",
+      // A non-blank value always has a category.
+      channel: telemetryCategory(explicit) as string,
       source: "KIBI_TELEMETRY_CHANNEL",
     };
   if (!moduleFile) return { channel: "release", source: "installed" };
@@ -392,7 +512,7 @@ export function telemetryDirectory(env: Env = process.env): string {
 export function readTelemetryConfig(env: Env = process.env): TelemetryConfig {
   try {
     const parsed: unknown = JSON.parse(
-      fs.readFileSync(path.join(telemetryDirectory(env), CONFIG_FILE), "utf8"),
+      String(fs.readFileSync(path.join(telemetryDirectory(env), CONFIG_FILE))),
     );
     return typeof parsed === "object" && parsed !== null
       ? (parsed as TelemetryConfig)
@@ -408,7 +528,6 @@ function writeTelemetryConfig(config: TelemetryConfig, env: Env): void {
   fs.writeFileSync(
     path.join(directory, CONFIG_FILE),
     `${JSON.stringify(config, null, 2)}\n`,
-    "utf8",
   );
 }
 
@@ -538,11 +657,15 @@ export function takeTelemetryNotice(env: Env = process.env): string | null {
   ].join("\n");
 }
 
+// rationale: the suite runs under Bun, whose global cannot be removed, so
+// the Node branch is unreachable from tests.
+// Stryker disable all
 function runtimeName(): string {
   return typeof (globalThis as { Bun?: unknown }).Bun === "undefined"
     ? "node"
     : "bun";
 }
+// Stryker restore all
 
 type SessionMarkers = Record<string, { session: string; at: number }>;
 
@@ -553,11 +676,10 @@ function sessionMarkersPath(env: Env): string {
 function readSessionMarkers(env: Env): SessionMarkers {
   try {
     const parsed: unknown = JSON.parse(
-      fs.readFileSync(sessionMarkersPath(env), "utf8"),
+      String(fs.readFileSync(sessionMarkersPath(env))),
     );
-    return parsed !== null &&
-      typeof parsed === "object" &&
-      !Array.isArray(parsed)
+    // An array works as a record here: its markers are named properties.
+    return typeof parsed === "object" && parsed !== null
       ? (parsed as SessionMarkers)
       : {};
   } catch {
@@ -652,10 +774,12 @@ function baseProperties(
     $process_person_profile: false,
     $geoip_disable: true,
     $lib: "kibi",
+    telemetry_version: TELEMETRY_EVENT_VERSION,
     package: source.packageName,
     package_version: source.packageVersion ?? null,
     host:
-      (source.host?.trim() && hostKey(source.host)) ||
+      // A blank host keys to "", which falls through like no host.
+      (source.host && hostKey(source.host)) ||
       detectTelemetryHost(env) ||
       "unknown",
     remote: remoteEnvironment(env),
@@ -664,7 +788,7 @@ function baseProperties(
     os: process.platform,
     arch: process.arch,
     runtime: runtimeName(),
-    runtime_version: process.versions.node.split(".")[0] ?? null,
+    runtime_version: process.versions.node.split(".")[0] as string,
   };
 }
 
@@ -681,7 +805,7 @@ function appendEvent(event: QueuedEvent, env: Env): void {
     } catch {
       // No queue yet.
     }
-    fs.appendFileSync(file, `${JSON.stringify(event)}\n`, "utf8");
+    fs.appendFileSync(file, `${JSON.stringify(event)}\n`);
   } catch {
     // Telemetry is best effort and must never disturb the caller.
   }
@@ -701,6 +825,13 @@ export function telemetryCategory(value: string | undefined): string | null {
     : "unclassified";
 }
 
+/** An error class name as sent: an identifier, else null. */
+function telemetryClassName(value: string | undefined): string | null {
+  return value !== undefined && /^[A-Za-z_$][A-Za-z0-9_$]{0,79}$/.test(value)
+    ? value
+    : null;
+}
+
 // implements REQ-kibi-anonymous-usage-telemetry
 export function recordOperationTelemetry(
   source: TelemetrySource,
@@ -708,6 +839,8 @@ export function recordOperationTelemetry(
   env: Env = process.env,
 ): void {
   if (!telemetryEnabled(env)) return;
+  const errorCategory = telemetryCategory(operation.errorCategory);
+  const status = telemetryOutcome(operation.status, errorCategory);
   appendEvent(
     {
       event: "kibi_operation",
@@ -716,14 +849,108 @@ export function recordOperationTelemetry(
         ...baseProperties(source, env),
         interface: operation.interface,
         operation: operation.operation,
-        status: operation.status,
+        status,
         duration_ms: Math.max(0, Math.round(operation.durationMs)),
-        error_category: telemetryCategory(operation.errorCategory),
+        error_category: errorCategory,
+        // Only a failure is worth a class: an expected answer has its code.
+        error_class:
+          status === "error" ? telemetryClassName(operation.errorClass) : null,
         exit_code: operation.exitCode ?? null,
+        ...signalProperties(source, operation, status, env),
       },
     },
     env,
   );
+}
+
+/** The workspace's hash and its parents', for markers set in a parent. */
+function workspaceHashes(workspaceRoot: string | undefined): string[] {
+  // rationale: a placeholder entry is not a workspace key, and skill markers
+  // only ever hold workspace keys, so it matches none.
+  // Stryker disable next-line ArrayDeclaration
+  if (!workspaceRoot) return [];
+  // rationale: as above, a placeholder entry matches no skill marker.
+  // Stryker disable next-line ArrayDeclaration
+  const hashes: string[] = [];
+  let current = path.resolve(workspaceRoot);
+  for (;;) {
+    hashes.push(workspaceKey(current));
+    const parent = path.dirname(current);
+    if (parent === current) return hashes;
+    current = parent;
+  }
+}
+
+// implements REQ-kibi-telemetry-agent-signals
+/**
+ * The struggle signals of one operation event, sanitized: fixed rule ids,
+ * Kibi schema field paths, bucketed counts and booleans. Retries, repeated
+ * searches and skill loads are recognised from local hashes only.
+ */
+function signalProperties(
+  source: TelemetrySource,
+  operation: OperationTelemetry,
+  status: TelemetryOutcome,
+  env: Env,
+): Record<string, unknown> {
+  const signals = operation.signals ?? {};
+  const issues = signals.issues ?? [];
+  const first = issues[0];
+  const workspace = source.workspaceRoot
+    ? path.resolve(source.workspaceRoot)
+    : // rationale: without a workspace every call hashes the same fallback,
+      // so which string it is cannot change a retry or repeat match.
+      // Stryker disable next-line StringLiteral
+      "";
+  const recall = recallOperation(telemetryDirectory(env), {
+    retryHash: signals.retryKey
+      ? hashTelemetryId(`retry\0${workspace}\0${signals.retryKey}`)
+      : undefined,
+    searchHash: signals.search
+      ? hashTelemetryId(`search\0${workspace}`)
+      : undefined,
+    workspaceHashes: workspaceHashes(source.workspaceRoot),
+    outcome: status,
+  });
+  const crash =
+    status === "error"
+      ? telemetryCrash(signals.error, telemetryClassName(operation.errorClass))
+      : { frame: null, fingerprint: null };
+  return {
+    dry_run: signals.dryRun ?? null,
+    relationship_count: countBucket(
+      signals.relationshipCount,
+      RELATIONSHIP_COUNT_BUCKETS,
+    ),
+    rejection_code: telemetryCategory(signals.rejectionCode),
+    validation_rule: telemetryRule(first?.rule),
+    validation_field: telemetryField(first?.field),
+    // No issues and no attempt are in no bucket, so both are sent as null.
+    issue_count: countBucket(issues.length, SMALL_COUNT_BUCKETS),
+    attempt: countBucket(recall.attempt, SMALL_COUNT_BUCKETS),
+    prior_outcome: recall.priorOutcome,
+    skill_loaded_before: recall.skillLoadedBefore,
+    result_count: countBucket(signals.resultCount, RESULT_COUNT_BUCKETS),
+    abstained: signals.abstained ?? null,
+    hints_shown: signals.hintsShown ?? null,
+    search_repeat: recall.searchRepeat,
+    crash_frame: crash.frame,
+    crash_fingerprint: crash.fingerprint,
+  };
+}
+
+// implements REQ-kibi-telemetry-agent-signals
+/**
+ * Remember that a host hook saw a Kibi skill load in a workspace, so later
+ * CLI and MCP events there carry `skill_loaded_before`. Only the workspace
+ * path's hash is stored.
+ */
+export function rememberTelemetrySkillLoad(
+  workspaceRoot: string,
+  env: Env = process.env,
+): void {
+  if (!telemetryEnabled(env)) return;
+  rememberSkillLoad(telemetryDirectory(env), workspaceKey(workspaceRoot));
 }
 
 // implements REQ-kibi-anonymous-usage-telemetry
@@ -745,6 +972,7 @@ export function recordHookTelemetry(
         kb_operation: hook.kbOperation ?? null,
         kb_used_before: hook.kbUsedBefore ?? null,
         requirement_count: hook.requirementCount ?? null,
+        skill: hook.skill ?? null,
       },
     },
     env,
@@ -766,6 +994,9 @@ export function clearTelemetryQueue(env: Env = process.env): void {
       name === SESSIONS_FILE ||
       name.endsWith(SENDING_SUFFIX)
     ) {
+      // rationale: `force` covers a file a concurrent flush renames between
+      // the listing and this removal; tests cannot time that race.
+      // Stryker disable next-line ObjectLiteral, BooleanLiteral
       fs.rmSync(path.join(directory, name), { force: true });
     }
   }
@@ -774,8 +1005,8 @@ export function clearTelemetryQueue(env: Env = process.env): void {
 function parseQueued(text: string, now: number): QueuedEvent[] {
   const events: QueuedEvent[] = [];
   for (const line of text.split("\n")) {
-    if (line.trim() === "") continue;
     try {
+      // A blank line fails to parse and is dropped with torn lines.
       const event = JSON.parse(line) as QueuedEvent;
       const age = now - Date.parse(event.timestamp);
       if (Number.isFinite(age) && age <= MAX_EVENT_AGE_MS) events.push(event);
@@ -797,7 +1028,7 @@ function flushDue(file: string, now: number): boolean {
   if (lines.length === 0) return false;
   if (lines.length >= FLUSH_BATCH_EVENTS) return true;
   try {
-    const first = JSON.parse(lines[0] ?? "") as QueuedEvent;
+    const first = JSON.parse(lines[0] as string) as QueuedEvent;
     return now - Date.parse(first.timestamp) >= FLUSH_MAX_AGE_MS;
   } catch {
     return true;
@@ -806,6 +1037,9 @@ function flushDue(file: string, now: number): boolean {
 
 /** Atomically take the queue and any batch a dead process left behind. */
 function claimBatches(directory: string, now: number): string[] {
+  // rationale: a placeholder path in place of the empty list names no file,
+  // so reading it fails and it is dropped like an unreadable batch.
+  // Stryker disable next-line ArrayDeclaration
   const claimed: string[] = [];
   let names: string[];
   try {
@@ -861,8 +1095,8 @@ export async function flushTelemetry(
   const directory = telemetryDirectory(env);
   const now = Date.now();
   if (!options.force && !flushDue(queuePath(env), now)) return 0;
+  // With nothing claimed there are no events, so nothing is sent.
   const claimed = claimBatches(directory, now);
-  if (claimed.length === 0) return 0;
   const events: QueuedEvent[] = [];
   for (const file of claimed) {
     try {
@@ -872,6 +1106,9 @@ export async function flushTelemetry(
     }
   }
   const release = () => {
+    // rationale: `force` only matters when a claimed file is already gone,
+    // which no other process does to a batch this one claimed.
+    // Stryker disable next-line ObjectLiteral, BooleanLiteral
     for (const file of claimed) fs.rmSync(file, { force: true });
   };
   if (events.length === 0) {
@@ -884,7 +1121,10 @@ export async function flushTelemetry(
     () => controller.abort(),
     options.timeoutMs ?? DEFAULT_FLUSH_TIMEOUT_MS,
   );
-  timer.unref?.();
+  // rationale: unref only lets the process exit before the timeout fires;
+  // no test can observe the process lifetime from inside it.
+  // Stryker disable next-line CallExpression
+  timer.unref();
   try {
     const response = await fetchImpl(`${telemetryHost(env)}/batch/`, {
       method: "POST",
@@ -897,7 +1137,7 @@ export async function flushTelemetry(
       signal: controller.signal,
     });
     // A 4xx means PostHog will never accept this batch; drop it.
-    if (!response.ok && response.status >= 500) throw new Error("retry");
+    if (!response.ok && response.status >= 500) throw new Error();
     release();
     return response.ok ? events.length : 0;
   } catch {

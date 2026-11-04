@@ -479,3 +479,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d71ac2c4f7b3
+  - type: assumes
+    from: SCEN-NEG-kibi-telemetry-agent-signals-invented-field
+    to: FACT-NEG-kibi-telemetry-agent-signals-invented-field
+    created_at: 2026-11-03T14:22:43.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dabdc281daa0
+  - type: verified_by
+    from: SCEN-NEG-kibi-telemetry-agent-signals-invented-field
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T14:22:43.446Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f174cc4cd38
+  - type: executable_for
+    from: SYM-test-kibi-release-version-cli
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:19:15.242Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c64e6b0095ca

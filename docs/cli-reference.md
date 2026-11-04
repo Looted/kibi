@@ -110,6 +110,7 @@ not infer or write product knowledge.
 - Creates Kibi-owned `.kb/manifest.json` (lifecycle metadata only; not a user configuration file)
 - Creates `.kb/symbols.yaml` (authored, committed) and the local `.kb/symbol-coordinates.yaml` cache when they do not already exist
 - Leaves `.kb/manifest.json` and `.kb/symbols.yaml` alone when a legacy `.kb/config.json` is present and points to `kibi migrate --yes`, which moves the existing knowledge and runs every schema step from the legacy version
+- Sets up what a fresh clone of the repository needs, following the [setup choices](#setup-choices) recorded in the project: a Kibi section in `AGENTS.md` and an `@AGENTS.md` import in `CLAUDE.md`, and a step in the root `package.json` `prepare` script that installs Kibi's git hooks on every dependency install
 
 **Flags:**
 - `--no-hooks` - Skip git hook installation (hooks are installed by default)
@@ -118,11 +119,25 @@ not infer or write product knowledge.
 - `--print-hook <hook>` - Print a copy-paste snippet that wires Kibi into an existing hook, then exit without writing anything. `<hook>` is one of `pre-commit`, `post-checkout`, `post-merge`, `post-rewrite`, or `all`. The shell snippet resolves the `kibi` binary the same way the managed hooks do (PATH, then `node_modules/.bin`), so it works with project-local installs, and runs the same commands as the managed template with failures propagated. For `pre-commit` that is `kibi check-generated --staged --changed-only` followed by `kibi check --staged`.
 
 - `--format <format>` - With `--print-hook` only: `shell` (default), `lefthook` (entries to merge into `lefthook.yml`), `husky` (one shell snippet per `.husky/<hook>` file) or `pre-commit` (local hooks for `.pre-commit-config.yaml`). Every format runs the same commands under the same conditions as the managed hooks.
+- `--auto-sync` / `--no-auto-sync`, `--prepare-hooks` / `--no-prepare-hooks`, `--agent-instructions` / `--no-agent-instructions`, `--ci-gate` / `--no-ci-gate` - Set and record a [setup choice](#setup-choices). A flag left out keeps the recorded choice.
 
 ```bash
 kibi init --print-hook pre-commit >> .husky/pre-commit
 kibi init --print-hook all --format lefthook
 ```
+
+### Setup choices
+
+Git never clones `.git/hooks` or the compiled branch store, and agent plugins are installed per user, so a fresh clone gets Kibi's knowledge but nothing that tells an agent to use it. Four choices decide how much of that Kibi sets up on its own. The first `kibi init` records them in `package.json` under `kibi.setup` (or in `.kb/setup.json` when the repository has no root `package.json`; Kibi never creates one), and every clone, agent host and CI job reads the same answer. The bootstrap skill asks about them once.
+
+| Choice | Default | What it does |
+| --- | --- | --- |
+| `autoSync` | on | A query, check or write that finds this branch's store never compiled compiles it first (a compile that writes nothing Git tracks), instead of answering from an empty store. `KIBI_AUTO_SYNC=0` turns it off for one environment. |
+| `prepareHooks` | on | Adds a step to the root `package.json` `prepare` script that runs `kibi hooks install --quiet`, so installing the project's dependencies installs the hooks. The step does nothing when `kibi-cli` is not installed (a production `npm ci --omit=dev`), in CI, or outside a Git work tree, and never fails the install. It is not added when a hook manager owns the hooks or there is no root `package.json`. Yarn 2+ does not run `prepare` on install; there, run `kibi hooks install` after cloning. |
+| `agentInstructions` | on | Keeps a marked Kibi section in `AGENTS.md` (read by Codex, Cursor, OpenCode, ZCode and most other agents) and an `@AGENTS.md` import in `CLAUDE.md` for Claude Code. Text outside the markers is never touched, and neither is a file that is a symlink leaving the repository. |
+| `ciGate` | off | Adds `.github/workflows/kibi-check.yml` ([example](examples/github/kibi-check.yml)), which runs `kibi check` on every pull request. It can fail pull requests of a repository whose KB already has violations, so it is offered rather than defaulted. |
+
+`kibi doctor` reports a recorded choice that is not in place under "Fresh-clone setup"; `kibi init` applies it.
 
 **GitHub integration:**
 - `--github` by itself always means **badge + full report**. It copies the canonical workflow from the `kibi-cli` package (the same file as [docs/examples/github/kibi-report.yml](examples/github/kibi-report.yml)). That workflow generates the report on pull requests (artifact only) and deploys GitHub Pages only from the repository default branch or `workflow_dispatch`.
@@ -142,6 +157,13 @@ kibi init --print-hook all --format lefthook
   bootstrap planner owns discovery, approval, source-first application, and
   repair; `doctor` and `sync` are diagnostics/internal lifecycle operations.
 - After running, see the quick start guide in README.md for next steps
+
+## `kibi hooks install`
+
+Installs Kibi's git hooks in this checkout, with the same guards as `kibi init`: only into a hooks directory inside the repository, never over a hook Kibi did not write, and not at all when a hook manager owns the hooks. It needs a repository where `kibi init` already ran.
+
+**Flags:**
+- `--quiet` - What the `prepare` script runs: print only when hooks were installed and always exit 0. It does nothing in CI (`CI` set), outside a Git work tree, before `kibi init`, or where a hook manager owns the hooks.
 
 ## `kibi sync`
 
@@ -918,6 +940,8 @@ Structured JSON output preserves the same two-lane model used by MCP: hard corre
 Verifies environment setup and diagnostics.
 
 **Behavior:**
+- Reports the Kibi release this install belongs to ("Kibi release"), using the release manifest that the installed `kibi-core` ships (`release.json`): the release version and its KB schema, operation protocol and plugin API versions. It warns ("Mixed install") when an installed Kibi package has a different version than that release lists, and also warns when `kibi-core` predates release manifests. A local pack stamped `<version>-dev.<suffix>` counts as its base version. JSON output carries the manifest under `runtime.release` and the per-package comparison under the check's `details`
+- Reports whether a newer `kibi-cli` is published on npm ("Kibi updates"): a newer version is a warning that names both versions, the update command for this install and, when the newer release writes a newer KB schema, the schema move and `kibi migrate`. It uses the cached daily answer and asks the registry only when that is a day old; an unreachable registry passes without a warning, and CI, tests and `KIBI_UPDATE_CHECK=0` / `NO_UPDATE_NOTIFIER` skip the check (see [Update notices](install.md#update-notices))
 - Resolves the SWI-Prolog Kibi runs (`KIBI_SWIPL`, then the bundled `kibi-swipl-<platform>` package, then `swipl` on `PATH`), reports its source, path, and version, and loads every library Kibi requires; when the bundle is missing on a supported platform it names the package to add
 - Verifies `.kb/` directory exists
 - Validates `.kb/manifest.json` syntax

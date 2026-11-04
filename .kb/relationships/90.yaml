@@ -594,3 +594,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-874d4caec606
+  - type: supersedes
+    from: REQ-core-extractors
+    to: REQ-007
+    created_at: 2026-11-03T11:34:37.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-278f5220e407
+  - type: specified_by
+    from: REQ-core-extractors
+    to: SCEN-001
+    created_at: 2026-11-03T11:34:37.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cabea550b77b
+  - type: requires_property
+    from: REQ-core-extractors
+    to: FACT-PROP-REQ-CORE-EXTRACTORS-C03
+    created_at: 2026-11-03T11:34:37.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4e21f1df0f2
+  - type: requires_property
+    from: REQ-core-extractors
+    to: FACT-PROP-REQ-CORE-EXTRACTORS-C04
+    created_at: 2026-11-03T11:34:37.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2d9c2969ab9
+  - type: requires_property
+    from: REQ-core-extractors
+    to: FACT-PROP-REQ-CORE-EXTRACTORS-C05
+    created_at: 2026-11-03T11:34:37.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e52ab0f8b0c1
+  - type: constrains
+    from: REQ-kibi-intent-aware-source-discovery
+    to: FACT-REQ-PROOF-INTENT-SUBJECT
+    created_at: 2026-11-03T11:43:49.581Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b95ff97da09
+  - type: requires_property
+    from: REQ-kibi-intent-aware-source-discovery
+    to: FACT-REQ-PROOF-INTENT-RANKED-EVIDENCE
+    created_at: 2026-11-03T11:43:49.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69e740c6c84c
+  - type: requires_property
+    from: REQ-kibi-intent-aware-source-discovery
+    to: FACT-REQ-PROOF-INTENT-EXPLICIT-UNCERTAINTY
+    created_at: 2026-11-03T11:43:49.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-974941224a3f
+  - type: specified_by
+    from: REQ-kibi-intent-aware-source-discovery
+    to: SCEN-kibi-intent-aware-source-discovery
+    created_at: 2026-11-03T11:43:49.773Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e86ed65761c9
+  - type: assumes
+    from: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    to: FACT-NEG-fresh-clone-agent-instructions
+    created_at: 2026-11-03T16:09:06.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca84ef863e5a
+  - type: assumes
+    from: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    to: FACT-NEG-fresh-clone-auto-compile
+    created_at: 2026-11-03T16:09:07.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f780a853715
+  - type: assumes
+    from: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    to: FACT-NEG-fresh-clone-missing-hooks-note
+    created_at: 2026-11-03T16:09:07.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e64bee8f3f3
+  - type: assumes
+    from: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    to: FACT-NEG-fresh-clone-prepare-hooks
+    created_at: 2026-11-03T16:09:07.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cda055aa46e1
+  - type: assumes
+    from: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    to: FACT-NEG-fresh-clone-setup-choices
+    created_at: 2026-11-03T16:09:07.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b4184b524cf

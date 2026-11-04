@@ -342,3 +342,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e4f075014cb0
+  - type: executable_for
+    from: SYM-test-kibi-telemetry-expected-outcomes-cli
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T13:39:09.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10ed26eaa699
+  - type: depends_on
+    from: REQ-mcp-cli-help
+    to: REQ-002
+    created_at: 2026-11-03T11:45:39.968Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd8f4dd51c1b
+  - type: specified_by
+    from: REQ-mcp-cli-help
+    to: SCEN-mcp-cli-help
+    created_at: 2026-11-03T11:45:40.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a84528317b5b
+  - type: verified_by
+    from: REQ-mcp-cli-help
+    to: TEST-mcp-cli-help
+    created_at: 2026-11-03T11:45:40.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f7004c118b8

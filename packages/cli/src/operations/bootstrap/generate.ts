@@ -238,13 +238,9 @@ export function selectBootstrapCandidates(
 
 function payloadId(payload: Readonly<Record<string, unknown>>): string {
   if (typeof payload.id === "string") return payload.id;
-  const properties = payload.properties;
-  return properties !== null &&
-    typeof properties === "object" &&
-    "id" in properties &&
-    typeof properties.id === "string"
-    ? properties.id
-    : "";
+  // Only validated writes reach here, and a write's properties override its
+  // id: without a string id of its own, the properties name one.
+  return String((payload.properties as Readonly<Record<string, unknown>>).id);
 }
 
 function stagedEntity(

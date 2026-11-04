@@ -2,7 +2,7 @@
 title: Fact kinds a fact query filters on
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: A fact query kind filter shall be subject, property_value, predicate, predicate_schema, observation, meta, rule or rule_schema.
 semantic_clauses:
   - A fact query kind filter shall be subject, property_value, predicate, predicate_schema, observation, meta, rule or rule_schema.
@@ -10,7 +10,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-29T10:33:24.450Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -28,6 +28,7 @@ logic_claims:
   - CLAIM-3253623B1A7BA74D
 id: REQ-kibi-query-fact-kinds
 type: req
+required_evidence: tested
 ---
 A fact query kind filter shall be subject, property_value, predicate, predicate_schema, observation, meta, rule or rule_schema.
 

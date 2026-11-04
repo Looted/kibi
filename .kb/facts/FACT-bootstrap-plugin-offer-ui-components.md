@@ -17,7 +17,7 @@ claim_key: CLAIM-EF3FD57F9F7780C1
 claim_text: The bootstrap plan must offer kibi-plugin-ui when production React or Angular component files exist
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: UI design plugin'
+  ref: 'Maintainer request, 2026-10-09: UI design plugin'
   recorded_at: '2026-10-09T12:14:03.989Z'
 id: FACT-bootstrap-plugin-offer-ui-components
 type: fact

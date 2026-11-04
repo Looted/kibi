@@ -177,6 +177,41 @@ Validation command: `npm exec -- kibi check`.
 
 The CLI and MCP server are peer agent-operation surfaces. MCP-capable hosts can call the public `kb_*` contracts directly; agents in trusted project-local shells can invoke the equivalent CLI JSON routes with `kibi <route> --input <file|->`. Neither path requires direct access to `.kb/**` files.
 
+### Kibi release versions
+
+Each Kibi package keeps its own semantic version, so `kibi-cli` 2.41.0, `kibi-mcp` 3.25.0 and `kibi-core` 0.30.0 can belong to the same release. Every release therefore also gets one Kibi release version in calendar form, `YYYY.M.N`: `2026.11.0` is the first release in November 2026, and `2026.11.1` is the next one. A release version names an exact package set and says nothing about compatibility on its own.
+
+- `kibi --version` prints both versions, for example `Kibi 2026.11.0 (kibi-cli 2.41.0)`.
+- `kibi doctor` reports the release under "Kibi release". If an installed Kibi package has a version other than the one that release lists, it warns with a "Mixed install" message that names each package. The JSON output (`kibi doctor --format json`) carries the full manifest under `runtime.release`.
+- The MCP server's title names the release, for example `Kibi MCP (Kibi 2026.11.0)`.
+- Each release is published as a `kibi@<release>` GitHub release that lists every package version, with the manifest attached as `release.json`. To install a specific release, install the versions it lists.
+
+The manifest ships in `kibi-core` as `release.json`. It also declares the compatibility versions of that release:
+
+| Field | Meaning |
+| --- | --- |
+| `kbSchema.current` | The `.kb/manifest.json` `schemaVersion` this release reads and writes. |
+| `kbSchema.migratesFrom` | The oldest `schemaVersion` that `kibi migrate` upgrades in place. |
+| `operationProtocol` | The `kibiProtocol` of every CLI JSON and MCP result envelope. |
+| `pluginApi` | The capability plugin API (`kibi.plugin.v1`) that plugins declare as `apiVersion`. |
+
+Compatibility questions key off these numbers, not off package versions. A KB at `schemaVersion` 13 works with every release whose `kbSchema.current` is 13, whatever its package versions are.
+
+### Update notices
+
+When a newer `kibi-cli` is published on npm, the CLI prints one line on stderr after a command, for example:
+
+```text
+Kibi update available: kibi-cli 2.41.0 -> 2.42.0. Update with 'npm install -D kibi-cli@latest'. (KIBI_UPDATE_CHECK=0 turns this off)
+```
+
+The update command matches the install: the project's package manager (from its lockfile) for a project dependency, `npx kibi-cli@latest` for an npx cache, and a global install otherwise. When the newer release writes a newer KB schema (`kibi.kbSchema` in its `package.json`), the line also names the schema move and asks you to run `kibi migrate` after updating. Update `kibi-mcp` and the other Kibi packages to the same release; `kibi doctor` warns about a mixed install.
+
+- The CLI asks the npm registry for the latest `kibi-cli` at most once a day, from a detached background process, so no command waits on the network. The request sends nothing about you or the project, and the answer is cached in Kibi's per-user state directory (`update-check.json` next to the telemetry settings). It uses `KIBI_UPDATE_REGISTRY`, then `npm_config_registry`, then `https://registry.npmjs.org`.
+- The line appears at most once a day per version, and only when stderr is a terminal. Agent and hook runs, pipes, commands that print JSON (`--json`, `--format json`, `--input`), CI and test runs, local dev builds and a Kibi source checkout never show it and never check.
+- `KIBI_UPDATE_CHECK=0` or `NO_UPDATE_NOTIFIER=1` turns the check off entirely.
+- `kibi doctor` reports the same answer under "Kibi updates" for every agent host and for the plain CLI: a newer version is a warning with the update command, an unreachable registry is neither a warning nor a failure.
+
 ### First-run lifecycle
 
 After installing the packages, use this short path:
@@ -185,6 +220,16 @@ After installing the packages, use this short path:
 2. Ask your coding agent to “Bootstrap Kibi for this repository.” The agent first asks where product intent lives outside the code (issue trackers, wikis, specs) and which of those sources are authoritative, reads them through its own connectors, and passes cited intent claims to the read-only `kb_plan_bootstrap` planner. After that it asks only questions returned by a `needs_context` result, and shows the exact plan for approval.
 3. After approval, the agent passes the unchanged returned plan to `kb_apply_plan`, then runs `kb_check` and `kb_status`.
 4. Continue normal work with the seeded Kibi context. Use `kibi doctor` only when typed status says infrastructure is degraded.
+
+### Fresh clones and new machines
+
+`kibi init` runs once per repository, but `.git/hooks`, the compiled branch store and agent plugins never travel with a clone. So that a teammate's or an agent's fresh clone still uses Kibi, `kibi init` also:
+
+- writes a Kibi section into `AGENTS.md` and an `@AGENTS.md` import into `CLAUDE.md`, so every coding agent, with or without a Kibi plugin, is told the knowledge base exists and how to query it;
+- adds `kibi hooks install --quiet` to the root `package.json` `prepare` script, so installing dependencies installs the hooks (without a root `package.json`, run `kibi hooks install` after cloning);
+- records these choices in `package.json` `kibi.setup` (or `.kb/setup.json`).
+
+The first Kibi query, check or write in a clone compiles the branch store from the committed sources, and agent plugins tell the agent at session start when the hooks are missing. Each piece can be turned off; see [setup choices](cli-reference.md#setup-choices). An optional pull-request gate (`kibi init --ci-gate`) runs `kibi check` in CI, where no local hook can.
 
 ### Existing Git hooks and hook managers
 
@@ -708,7 +753,7 @@ targets (hook events, output schema, skill frontmatter rules).
 `kibi-cli`, and `kibi-mcp` and does not replace them. It contributes:
 
 - the workspace-gated Kibi MCP server;
-- the six bundled Kibi skills, invoked as `/kibi-claude:kibi-usage`,
+- the seven bundled Kibi skills, invoked as `/kibi-claude:kibi-usage`,
   `/kibi-claude:kibi-bootstrap`, and so on;
 - advisory hooks that show the agent requirement and test context before it
   reads or edits linked code (before an edit, also what the requirement must

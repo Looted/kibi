@@ -15,13 +15,10 @@ export function approvedPartialClass(
   policy: ImpactPolicy,
   analysis: NonNullable<SideEvidence["analysis"]>,
 ): string | null {
-  if (
-    analysis.status !== "partial" ||
-    !analysis.providerId ||
-    !analysis.providerFingerprint ||
-    analysis.diagnosticCodes.length === 0
-  )
-    return null;
+  // A missing provider id or fingerprint matches no policy row (parsed rows
+  // require both), and no diagnostic codes leave `classes` empty: both fall
+  // through to null below.
+  if (analysis.status !== "partial") return null;
   const classes = new Set<string>();
   for (const code of analysis.diagnosticCodes) {
     const entry = policy.allowedPartial.find(
@@ -48,8 +45,9 @@ export function loadBaseImpactPolicy(
     throw new Error(
       `Trusted base policy missing or not a regular file: ${IMPACT_POLICY_PATH}`,
     );
-  const bytes = blobBytes(snapshot, entry);
-  if (!bytes) throw new Error("Trusted impact policy blob is missing");
+  // blobBytes returns undefined only for non-blob entries, rejected above, and
+  // throws when the snapshot has no bytes for the blob.
+  const bytes = blobBytes(snapshot, entry) as Buffer;
   return parseImpactPolicy(
     JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)),
   );

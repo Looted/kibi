@@ -25,6 +25,7 @@ import {
   lstatSync,
   mkdirSync,
   readFileSync,
+  realpathSync,
   writeFileSync,
 } from "node:fs";
 import * as path from "node:path";
@@ -37,6 +38,7 @@ import {
   branchStorePath,
   ensureBranchStoreManifest,
 } from "../utils/branch-store-locator.js";
+import type { GitRepositoryContext } from "../utils/git-repository-context.js";
 import { defaultKbManifest, writeKbManifest } from "../utils/kb-manifest.js";
 import { ENTITY_LANES, KB_PATHS } from "../utils/kb-paths.js";
 import { SYMBOLS_MANIFEST_COMMENT_BLOCK } from "./sync/manifest.js";
@@ -251,7 +253,6 @@ const LEGACY_KIBI_GITIGNORE_REINCLUDES = [
 ] as const;
 
 function stripLegacyKibiGitIgnoreStanza(content: string): string {
-  if (content.length === 0) return content;
   const lines = content.split(/\r?\n/);
   const trimmed = lines.map((line) => line.trim());
   const hasFence = trimmed.includes(LEGACY_KIBI_GITIGNORE_FENCE);
@@ -266,10 +267,10 @@ function stripLegacyKibiGitIgnoreStanza(content: string): string {
     ...LEGACY_KIBI_GITIGNORE_REINCLUDES,
   ]);
   const kept = lines.filter((line) => !drop.has(line.trim()));
-  while (kept.length > 0 && kept[kept.length - 1] === "") {
+  while (kept.at(-1) === "") {
     kept.pop();
   }
-  return kept.length === 0 ? "" : `${kept.join("\n")}\n`;
+  return kept.map((line) => `${line}\n`).join("");
 }
 
 // implements REQ-003
@@ -313,11 +314,14 @@ export async function copySchemaFiles(
   console.log(`✓ Ensured ${schemaFiles.length} schema files`);
 }
 
+// Both markers are plain text without regular-expression metacharacters, so
+// they are embedded in patterns as they are.
 export const KIBI_HOOK_BEGIN = "# BEGIN kibi-managed";
 const KIBI_HOOK_END = "# END kibi-managed";
 
-function escapeRegex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function writeExecutable(hookPath: string, content: string): void {
+  writeFileSync(hookPath, content);
+  chmodSync(hookPath, 0o755);
 }
 
 export type InstallHookResult =
@@ -400,15 +404,11 @@ export function installHook(
   try {
     hookStats = lstatSync(hookPath);
   } catch (error) {
-    if (
-      (error as NodeJS.ErrnoException).code === "ENOENT" ||
-      (error as NodeJS.ErrnoException).code === "ENOTDIR"
-    ) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       // Missing hook: create it through the parent directory. Refuse when an
       // ancestor is itself a symlink whose target leaves the resolved path
       // (realpath is checked by the caller's hooks-dir guard).
-      writeFileSync(hookPath, `#!/bin/sh\n${kibiSection}\n`, { mode: 0o755 });
-      chmodSync(hookPath, 0o755);
+      writeExecutable(hookPath, `#!/bin/sh\n${kibiSection}\n`);
       return "installed";
     }
     console.error(
@@ -428,7 +428,7 @@ export function installHook(
   }
 
   try {
-    const existing = readFileSync(hookPath, "utf8");
+    const existing = readFileSync(hookPath).toString();
 
     if (
       existing.includes(KIBI_HOOK_BEGIN) &&
@@ -436,13 +436,10 @@ export function installHook(
     ) {
       // Replace only the kibi-managed section, preserving any user-authored content
       const updated = existing.replace(
-        new RegExp(
-          `${escapeRegex(KIBI_HOOK_BEGIN)}[\\s\\S]*?${escapeRegex(KIBI_HOOK_END)}`,
-        ),
+        new RegExp(`${KIBI_HOOK_BEGIN}[\\s\\S]*?${KIBI_HOOK_END}`),
         kibiSection,
       );
-      writeFileSync(hookPath, updated, { mode: 0o755 });
-      chmodSync(hookPath, 0o755);
+      writeExecutable(hookPath, updated);
       return "updated";
     }
     if (existing.trim().length > 0) {
@@ -450,13 +447,8 @@ export function installHook(
       return "skipped-foreign";
     }
 
-    const shebang = existing.startsWith("#!/") ? "" : "#!/bin/sh\n";
-    writeFileSync(
-      hookPath,
-      `${shebang}${existing.trimEnd()}\n${kibiSection}\n`,
-      { mode: 0o755 },
-    );
-    chmodSync(hookPath, 0o755);
+    // A blank hook file: nothing of it is worth keeping.
+    writeExecutable(hookPath, `#!/bin/sh\n\n${kibiSection}\n`);
     return "installed";
   } catch (error) {
     console.error(
@@ -494,12 +486,12 @@ function managedHookBody(template: string): string {
 // implements REQ-cli-doctor
 export function outdatedManagedHooks(hooksDir: string): string[] {
   const managed = new RegExp(
-    `${escapeRegex(KIBI_HOOK_BEGIN)}\\n([\\s\\S]*?)\\n${escapeRegex(KIBI_HOOK_END)}`,
+    `${KIBI_HOOK_BEGIN}\\n([\\s\\S]*?)\\n${KIBI_HOOK_END}`,
   );
   return MANAGED_HOOK_TEMPLATES.filter(([hook, template]) => {
     const hookPath = path.join(hooksDir, hook);
     if (!existsSync(hookPath)) return false;
-    const section = managed.exec(readFileSync(hookPath, "utf8"));
+    const section = managed.exec(readFileSync(hookPath).toString());
     return section !== null && section[1] !== managedHookBody(template);
   }).map(([hook]) => hook);
 }
@@ -511,16 +503,21 @@ export function hasManagedHooks(hooksDir: string): boolean {
     const hookPath = path.join(hooksDir, hook);
     return (
       existsSync(hookPath) &&
-      readFileSync(hookPath, "utf8").includes(KIBI_HOOK_BEGIN)
+      readFileSync(hookPath).toString().includes(KIBI_HOOK_BEGIN)
     );
   });
 }
 
 export function installGitHooks(
   hooksDir: string,
-  options: { hooksPathOrigin?: string | null } = {},
+  options: {
+    hooksPathOrigin?: string | null;
+    /** Where install notes go; `kibi hooks install --quiet` passes a no-op. */
+    log?: (message: string) => void;
+  } = {},
 ): GitHookInstallResult[] {
   // implements REQ-git-hook-effective-install
+  const log = options.log ?? ((message: string) => console.log(message));
   mkdirSync(hooksDir, { recursive: true });
 
   const results: GitHookInstallResult[] = MANAGED_HOOK_TEMPLATES.map(
@@ -532,37 +529,95 @@ export function installGitHooks(
 
   for (const { hook, result } of results) {
     if (result === "skipped-foreign") {
-      console.log(
+      log(
         `! ${hook}: existing non-Kibi hook left untouched; Kibi enforcement is NOT installed for this hook. To integrate: ${hookIntegrationRecipe(hook)}.`,
       );
     } else if (result === "skipped-symlink") {
-      console.log(
+      log(
         `! ${hook}: hook is a symlink; Kibi never edits symlink targets. Manage the target manually (${hookIntegrationRecipe(hook)}).`,
       );
     } else if (result === "skipped-unsupported") {
-      console.log(
-        `! ${hook}: hook path is not a regular file; left untouched.`,
-      );
+      log(`! ${hook}: hook path is not a regular file; left untouched.`);
     }
   }
   const installedOrUpdated = results.filter(
     (entry) => entry.result === "installed" || entry.result === "updated",
   );
   if (installedOrUpdated.length > 0) {
-    console.log(
+    log(
       `✓ Installed/updated Kibi git hooks at ${hooksDir} (${installedOrUpdated.map((entry) => entry.hook).join(", ")})`,
     );
   } else {
-    console.log(
+    log(
       `! No Kibi git hooks installed at ${hooksDir} (all hooks were skipped).`,
     );
   }
   if (options.hooksPathOrigin) {
     // Configuration/location reporting stays neutral about what happened:
     // the per-hook lines and the aggregate above carry the install verdict.
-    console.log(
+    log(
       `! core.hooksPath is configured (${options.hooksPathOrigin}); the effective hooks directory for THIS checkout is ${hooksDir}. Git resolves a relative hooks path separately under every worktree, so coverage of other worktrees is INCOMPLETE/UNVERIFIED: commit a versioned launcher that delegates to kibi, or run 'kibi init' in each checkout. Kibi will not change core.hooksPath.`,
     );
   }
   return results;
+}
+
+/**
+ * A hooks directory may be auto-managed only when Git resolves it inside this
+ * repository: under the common Git directory (the default hooks location) or
+ * under the current worktree root (repository-local relative core.hooksPath).
+ * Anything else — global configs, other repositories, external directories —
+ * must never receive auto-installed hooks.
+ * implements REQ-git-hook-effective-install
+ */
+export function isRepositoryManagedHooksDir(
+  context: GitRepositoryContext,
+): boolean {
+  const realpathAllowMissingTail = (candidate: string): string | null => {
+    let current = path.resolve(candidate);
+    const missingSegments: string[] = [];
+
+    while (true) {
+      try {
+        return path.resolve(realpathSync.native(current), ...missingSegments);
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (code !== "ENOENT" && code !== "ENOTDIR") return null;
+
+        // A dangling symlink cannot be canonicalized. Do not treat it as an
+        // ordinary missing suffix: mkdir could follow it into an external
+        // directory when Git's hooks path is created.
+        try {
+          if (lstatSync(current).isSymbolicLink()) return null;
+        } catch (statError) {
+          const statCode = (statError as NodeJS.ErrnoException).code;
+          if (statCode !== "ENOENT" && statCode !== "ENOTDIR") return null;
+        }
+
+        const parent = path.dirname(current);
+        if (parent === current) return null;
+        missingSegments.unshift(path.basename(current));
+        current = parent;
+      }
+    }
+  };
+
+  const isWithin = (candidate: string, root: string) => {
+    // The root itself is "" relative to it, which passes every test below.
+    const relative = path.relative(root, candidate);
+    return (
+      relative !== ".." &&
+      !relative.startsWith(`..${path.sep}`) &&
+      !path.isAbsolute(relative)
+    );
+  };
+
+  const hooksDir = realpathAllowMissingTail(context.effectiveHooksDir);
+  const commonGitDir = realpathAllowMissingTail(context.commonGitDir);
+  const worktreeRoot = realpathAllowMissingTail(context.worktreeRoot);
+  if (!hooksDir || !commonGitDir || !worktreeRoot) return false;
+
+  // The default hooks dir in a linked worktree is shared under the common Git
+  // directory, which can sit outside the current worktree root.
+  return isWithin(hooksDir, commonGitDir) || isWithin(hooksDir, worktreeRoot);
 }

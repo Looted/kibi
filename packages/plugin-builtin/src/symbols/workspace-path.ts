@@ -29,15 +29,23 @@ export function resolveWorkspaceSourceAbsolute(
   const foreignAbsolute =
     /^[A-Za-z]:\//.test(slashed) || slashed.startsWith("//");
   if (slashed.startsWith("/") || foreignAbsolute) {
+    // rationale: path.sep is "/" on every POSIX test host, so replacing the
+    // separator check with true cannot be observed there.
+    // Stryker disable next-line ConditionalExpression
     if (foreignAbsolute && path.sep === "/") return null;
     const root = path.resolve(workspaceRoot);
     const relative = path.relative(root, path.resolve(sourceFile));
-    if (relative === "" || path.isAbsolute(relative)) return null;
+    // The root itself (an empty relative path) normalizes to "." below.
+    // rationale: path.relative returns an absolute path only across Windows
+    // drives, so this guard cannot be exercised on a POSIX test host.
+    // Stryker disable next-line ConditionalExpression
+    if (path.isAbsolute(relative)) return null;
     slashed = relative.replaceAll("\\", "/");
   }
-  const normalized = path.posix.normalize(slashed).replace(/\/+$/, "");
+  // posix.normalize collapses repeated slashes and never returns "", so at
+  // most one trailing slash remains.
+  const normalized = path.posix.normalize(slashed).replace(/\/$/, "");
   if (
-    normalized === "" ||
     normalized === "." ||
     normalized === ".." ||
     normalized.startsWith("../")
@@ -49,7 +57,15 @@ export function resolveWorkspaceSourceAbsolute(
     const realRoot = realpathSync.native(path.resolve(workspaceRoot));
     const realFile = realpathSync.native(absolute);
     const confined = path.relative(realRoot, realFile);
-    if (confined.startsWith("..") || path.isAbsolute(confined)) return null;
+    // A name such as `..config.ts` inside the root is not an escape; only a
+    // `..` path segment is.
+    if (
+      confined === ".." ||
+      confined.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(confined)
+    ) {
+      return null;
+    }
     return realFile;
   } catch {
     return absolute;

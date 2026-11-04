@@ -10,7 +10,7 @@ tags:
 priority: must
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-09: onboarding evaluation round 9 finding K20, replacement plan diagnostics'
+  ref: 'Maintainer request, 2026-10-09: onboarding evaluation round 9 finding K20, replacement plan diagnostics'
   recorded_at: '2026-10-09T07:23:51.233Z'
 semantic_text: A grounding replacement plan must list logic-coverage and strict-req-fact-pairing as the expected kb_check findings between the retraction and the link. A grounding replacement plan must state rollback as the response to a kb_check that is not clean after the last step.
 logic_claims:

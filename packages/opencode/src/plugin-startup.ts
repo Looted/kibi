@@ -6,7 +6,11 @@ import * as config from "./config.js";
 import { getGuidanceCache } from "./guidance-cache.js";
 import * as logger from "./logger.js";
 import { detectPosture } from "./repo-posture.js";
-import { type SchedulerOptions, createSyncScheduler } from "./scheduler.js";
+import {
+  type SchedulerOptions,
+  type SyncRunMetadata,
+  createSyncScheduler,
+} from "./scheduler.js";
 import { getSessionTracker } from "./session-tracker.js";
 import {
   type EffectiveMode,
@@ -18,14 +22,21 @@ import type { PluginInput } from "./index.js";
 
 type PostureSnapshot = ReturnType<typeof detectPosture>;
 
-function isSmartEnforcementSyncReason(reason?: string): boolean {
-  if (!reason) {
-    return false;
+/**
+ * Latches the degraded state a finished sync reports: a failed sync unless
+ * smart enforcement asked for it (a trailing run keeps its trigger's prefix),
+ * and any failed check.
+ */
+export function latchSchedulerRunFailures(
+  meta: SyncRunMetadata,
+  latch: (cause: "scheduler_sync_failed" | "scheduler_check_failed") => void,
+): void {
+  if (meta.exitCode !== 0 && !meta.reason.startsWith("smart-enforcement.")) {
+    latch("scheduler_sync_failed");
   }
-  const normalizedReason = reason.endsWith(".trailing")
-    ? reason.slice(0, -".trailing".length)
-    : reason;
-  return normalizedReason.startsWith("smart-enforcement.");
+  if (meta.checkExitCode !== undefined && meta.checkExitCode !== 0) {
+    latch("scheduler_check_failed");
+  }
 }
 
 const workspaceCacheState = new Map<
@@ -33,7 +44,7 @@ const workspaceCacheState = new Map<
   {
     branch: string;
     posture: PostureSnapshot["state"];
-    configFingerprint: string;
+    configFingerprint: string | undefined;
   }
 >();
 
@@ -67,7 +78,7 @@ export interface PluginStartupContext {
 export function resolveCurrentBranch(cwd: string): string {
   // 1. Check KIBI_BRANCH env var first (highest precedence)
   const envBranch = process.env.KIBI_BRANCH?.trim();
-  if (envBranch && envBranch.length > 0) {
+  if (envBranch) {
     return envBranch;
   }
   // 2. Fall back to git branch
@@ -75,7 +86,10 @@ export function resolveCurrentBranch(cwd: string): string {
     const branch = execSync("git branch --show-current", {
       cwd,
       encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
+      // rationale: only keeps git's stderr out of the host terminal; the
+      // branch read from stdout is the same with any valid stdio setting
+      // Stryker disable next-line StringLiteral
+      stdio: "pipe",
       timeout: 5000,
     }).trim();
     return branch;
@@ -84,12 +98,13 @@ export function resolveCurrentBranch(cwd: string): string {
   }
 }
 
-function readConfigFingerprint(cwd: string): string {
+function readConfigFingerprint(cwd: string): string | undefined {
   try {
     return fs.readFileSync(path.join(cwd, ".kb", "manifest.json"), "utf-8");
   } catch {
-    return "missing";
+    // A missing manifest has no fingerprint.
   }
+  return undefined;
 }
 
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
@@ -103,10 +118,8 @@ export async function runPluginStartup(
     return null;
   }
 
-  logger.resetClient();
-  if (input.client) {
-    logger.setClient(input.client);
-  }
+  // Without a client this clears the one an earlier startup set.
+  logger.setClient(input.client as logger.PluginClient);
 
   const workspaceHealth = checkWorkspaceHealth(input.worktree);
   if (workspaceHealth.needsBootstrap) {
@@ -168,10 +181,9 @@ export async function runPluginStartup(
         overlay_cause: cause,
         runtime_degraded: true,
         static_degraded: posture.maintenanceDegraded,
-        merged_degraded: getMaintenanceDegraded(),
-        maintenance_state: getMaintenanceDegraded()
-          ? "maintenance_degraded"
-          : "maintenance_available",
+        // The overlay was just latched, so the merged state is degraded.
+        merged_degraded: true,
+        maintenance_state: "maintenance_degraded",
         effective_mode: getEffectiveMode(),
       });
     } else if (!runtimeOverlay.causes.includes(cause)) {
@@ -249,19 +261,8 @@ export async function runPluginStartup(
           const schedulerOpts: SchedulerOptions = {
             worktree: input.worktree,
             config: cfg,
-            onRunComplete: (meta) => {
-              if (
-                meta.exitCode !== 0 &&
-                !isSmartEnforcementSyncReason(meta.reason)
-              )
-                latchRuntimeDegraded("scheduler_sync_failed");
-              if (
-                meta.checkExitCode !== undefined &&
-                meta.checkExitCode !== 0
-              ) {
-                latchRuntimeDegraded("scheduler_check_failed");
-              }
-            },
+            onRunComplete: (meta) =>
+              latchSchedulerRunFailures(meta, latchRuntimeDegraded),
           };
           return schedulerFactory(schedulerOpts);
         } catch {

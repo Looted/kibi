@@ -6395,6 +6395,18 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-telemetry-expected-outcomes-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-proof-github-badge-workflow-path",
     "steps": [
       [
@@ -7265,6 +7277,85 @@
         "bun",
         "test",
         "./packages/cli/tests/commands/check-staged-generated.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-bundled-skill-catalog",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/skill-catalog.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-sync-relationship-retry",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/commands/sync.test.ts",
+        "-t",
+        "retries a front-matter relationship"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-fresh-clone-setup",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "180000",
+        "./packages/cli/tests/commands/fresh-clone-setup.test.ts",
+        "./packages/cli/tests/consumer/fresh-branch-store.test.ts",
+        "./packages/agent-core/tests/checkout-hooks.test.ts",
+        "./packages/mcp/tests/server/fresh-branch-store-consumer.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-release-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./scripts/tests/kibi-release.test.ts",
+        "./scripts/tests/release-workflow-contract.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/kibi-release.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/mcp/tests/kibi-release.test.ts",
+        "./packages/mcp/tests/server/server-start-exact.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-update-notice",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/update-check.test.ts"
       ]
     ]
   }

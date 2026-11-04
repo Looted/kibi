@@ -90,17 +90,6 @@ export type EnforcementPolicyResult =
       text: null;
     });
 
-const NO_E2E_SIGNAL: E2eCoverageSignal = {
-  level: "none",
-  evidence: [],
-  reminderText: null,
-};
-
-const DEFAULT_LINKED_ENTITY_RESULT: PolicyLinkedEntityResult = {
-  ids: [],
-  source: "none",
-};
-
 const HARD_BLOCK_PATH_LIMIT = 5;
 
 const AUTHORITATIVE_POSTURES: ReadonlySet<RepoPosture> = new Set([
@@ -161,20 +150,19 @@ function normalizeEvents(
   input: EnforcementPolicyInput,
 ): NormalizedPolicyEvent[] {
   return input.lifecycleEvents.map((event, index) => {
-    const linkedEntityResult =
-      input.linkedEntityResults?.[index] ??
-      (input.linkedEntityIds?.[index]
-        ? {
-            ids: input.linkedEntityIds[index] ?? [],
-            source: "symbols" as const,
-          }
-        : DEFAULT_LINKED_ENTITY_RESULT);
-
+    // Only the linked ids and the e2e evidence and reminder are read below,
+    // so the defaults carry nothing else.
     return {
       ...event,
       pathKind: input.pathKinds[index] ?? "unknown",
-      linkedEntityResult,
-      e2eSignal: input.e2eSignals?.[index] ?? NO_E2E_SIGNAL,
+      linkedEntityResult:
+        input.linkedEntityResults?.[index] ??
+        ({
+          ids: input.linkedEntityIds?.[index] ?? [],
+        } as PolicyLinkedEntityResult),
+      e2eSignal:
+        input.e2eSignals?.[index] ??
+        ({ evidence: [], reminderText: null } as unknown as E2eCoverageSignal),
     };
   });
 }
@@ -206,6 +194,12 @@ function isRelevantEvent(
   return true;
 }
 
+function hasE2eReminder(event: NormalizedPolicyEvent): boolean {
+  return (
+    event.e2eSignal.level !== "none" && event.e2eSignal.reminderText !== null
+  );
+}
+
 function uniqueReminderKinds(events: NormalizedPolicyEvent[]): ReminderKind[] {
   const kinds: ReminderKind[] = [];
   const add = (kind: ReminderKind) => {
@@ -221,10 +215,7 @@ function uniqueReminderKinds(events: NormalizedPolicyEvent[]): ReminderKind[] {
       add("kibi_write");
     }
 
-    if (
-      event.e2eSignal.level !== "none" &&
-      event.e2eSignal.reminderText !== null
-    ) {
+    if (hasE2eReminder(event)) {
       add(event.lifecycle === "deleted" ? "e2e_delete" : "e2e_write");
     }
   }
@@ -233,24 +224,7 @@ function uniqueReminderKinds(events: NormalizedPolicyEvent[]): ReminderKind[] {
 }
 
 function firstE2eReminder(events: NormalizedPolicyEvent[]): string | null {
-  return (
-    events.find(
-      (event) =>
-        event.e2eSignal.level !== "none" &&
-        event.e2eSignal.reminderText !== null,
-    )?.e2eSignal.reminderText ?? null
-  );
-}
-
-function lifecycleLabel(lifecycle: FileLifecycle): string {
-  switch (lifecycle) {
-    case "created":
-      return "created";
-    case "edited":
-      return "edited";
-    case "deleted":
-      return "deleted";
-  }
+  return events.find(hasE2eReminder)?.e2eSignal.reminderText ?? null;
 }
 
 function advisoryText(event: NormalizedPolicyEvent): string {
@@ -279,16 +253,7 @@ function advisoryText(event: NormalizedPolicyEvent): string {
 }
 
 function collectUnique(values: string[]): string[] {
-  const seen = new Set<string>();
-  const result: string[] = [];
-  for (const value of values) {
-    if (seen.has(value)) {
-      continue;
-    }
-    seen.add(value);
-    result.push(value);
-  }
-  return result;
+  return [...new Set(values)];
 }
 
 function linkedIdsText(events: NormalizedPolicyEvent[]): string | null {
@@ -322,7 +287,7 @@ function hardBlockText(events: NormalizedPolicyEvent[]): {
   const pathLines = shownEvents.map((event) => {
     const ids = event.linkedEntityResult.ids;
     const linkedSuffix = ids.length > 0 ? `; linked: ${ids.join(", ")}` : "";
-    return `- \`${event.normalizedPath}\` (${lifecycleLabel(event.lifecycle)}, ${event.pathKind}${linkedSuffix})`;
+    return `- \`${event.normalizedPath}\` (${event.lifecycle}, ${event.pathKind}${linkedSuffix})`;
   });
 
   if (remainingCount > 0) {
@@ -334,7 +299,9 @@ function hardBlockText(events: NormalizedPolicyEvent[]): {
       event.lifecycle === "deleted" &&
       event.linkedEntityResult.ids.length === 0,
   );
-  const representativePath = events[0]?.normalizedPath ?? "<changed-file>";
+  // Only called with at least one relevant event.
+  const representativePath = (events[0] as NormalizedPolicyEvent)
+    .normalizedPath;
   const evidenceNotes = [linkedIdsText(events), e2eEvidenceText(events)].filter(
     (note): note is string => note !== null,
   );

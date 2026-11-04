@@ -2,7 +2,7 @@
 title: Required SWI-Prolog libraries
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: 'The required SWI-Prolog libraries shall be semweb/rdf_db, semweb/rdf_persistency, semweb/sparql_client, pcre, crypto, sha, http/json, http/json_convert, chr, clpfd, thread, persistency, filesex, readutil, date, aggregate and solution_sequences. The prefix __KIBI_ERROR__: shall open a Prolog error line.'
 semantic_clauses:
   - The required SWI-Prolog libraries shall be semweb/rdf_db, semweb/rdf_persistency, semweb/sparql_client, pcre, crypto, sha, http/json, http/json_convert, chr, clpfd, thread, persistency, filesex, readutil, date, aggregate and solution_sequences.
@@ -11,7 +11,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T19:22:05.468Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -37,6 +37,7 @@ logic_claims:
   - CLAIM-BF089089E4627FF2
 id: REQ-prolog-runtime-libraries
 type: req
+required_evidence: tested
 ---
 The required SWI-Prolog libraries shall be semweb/rdf_db, semweb/rdf_persistency, semweb/sparql_client, pcre, crypto, sha, http/json, http/json_convert, chr, clpfd, thread, persistency, filesex, readutil, date, aggregate and solution_sequences. The prefix __KIBI_ERROR__: shall open a Prolog error line.
 

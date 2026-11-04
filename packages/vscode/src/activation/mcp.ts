@@ -27,9 +27,9 @@ export function validateMcpServerPath(
 ): void {
   const d = { ...defaultDeps, ...deps };
   const config = vscode.workspace.getConfiguration("kibi");
-  let serverPath = config.get<string>("mcp.serverPath", "");
+  let serverPath = config.get<string>("mcp.serverPath");
 
-  if (!serverPath || serverPath.trim() === "") {
+  if (!serverPath?.trim()) {
     const detectedPath = findKibiMcpInPath(d);
     if (detectedPath) {
       output.appendLine(`Auto-detected kibi-mcp at: ${detectedPath}`);
@@ -94,7 +94,8 @@ export function findKibiMcpInPath(deps?: Partial<McpDeps>): string | undefined {
       stdio: ["pipe", "pipe", "ignore"],
     });
 
-    const paths = result.trim().split(/\r?\n/);
+    // Blank lines are skipped below, so the output needs no outer trim.
+    const paths = result.split(/\r?\n/);
     for (const p of paths) {
       const trimmed = p.trim();
       if (trimmed && d.existsSync(trimmed)) {

@@ -18,7 +18,12 @@ import {
 import { getFileLinkedTargetsByType } from "./file-entity-links.js";
 
 /** OpenCode's built-in file-editing tools. */
-const EDIT_TOOLS = new Set(["edit", "write", "patch", "multiedit"]);
+const EDIT_TOOLS: ReadonlySet<string | undefined> = new Set([
+  "edit",
+  "write",
+  "patch",
+  "multiedit",
+]);
 
 // implements REQ-opencode-kibi-plugin-v1, REQ-kibi-telemetry-acceptance-gate-v2
 export type OpencodeToolCall = {
@@ -30,20 +35,11 @@ export type OpencodeToolCall = {
   startedAt: Date;
 };
 
-let cachedPackageVersion: string | null | undefined;
-
-function packageVersion(): string | null {
-  // dist/hook-telemetry.js sits one level below the package root.
-  if (cachedPackageVersion !== undefined) return cachedPackageVersion;
-  cachedPackageVersion = readPackageVersion(
-    path.join(
-      path.dirname(fileURLToPath(import.meta.url)),
-      "..",
-      "package.json",
-    ),
-  );
-  return cachedPackageVersion;
-}
+// dist/hook-telemetry.js sits one level below the package root. Read once at
+// load: the version cannot change while the plugin runs.
+const PACKAGE_VERSION = readPackageVersion(
+  path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "package.json"),
+);
 
 // implements REQ-opencode-kibi-plugin-v1, REQ-kibi-telemetry-acceptance-gate-v2
 /**
@@ -66,6 +62,9 @@ export function recordOpencodeToolTelemetry(
   // The plugin lives as long as OpenCode: send the queue whenever it is due.
   void finishHookTelemetry(
     {
+      // rationale: only "stop"/"sessionend" events force a send; any other
+      // name, including an empty one, behaves the same.
+      // Stryker disable next-line StringLiteral
       event: "tool.execute.after",
       workspaceRoot: existsSync(path.join(call.worktree, ".kb"))
         ? call.worktree
@@ -79,26 +78,27 @@ export function recordOpencodeToolTelemetry(
 function recordToolCall(call: OpencodeToolCall, env: NodeJS.ProcessEnv): void {
   if (!existsSync(path.join(call.worktree, ".kb"))) return;
   const kbUsage = kbUsageTrace(call.tool, call.args);
-  let traces = kbUsage ? [kbUsage] : [];
-  if (!kbUsage && call.tool !== undefined && EDIT_TOOLS.has(call.tool)) {
-    const relativePaths = extractEditedPaths(call.args)
-      .map(
-        (rawPath) =>
-          toWorkspacePath(call.worktree, rawPath, call.worktree)?.relative,
-      )
-      .filter((relative): relative is string => relative !== undefined);
-    traces = editTraces(relativePaths, (relativePath) =>
-      getFileLinkedTargetsByType(
-        call.worktree,
-        path.join(call.worktree, relativePath),
-        ["implements"],
-      ),
-    );
-  }
+  if (!kbUsage && !EDIT_TOOLS.has(call.tool)) return;
+  const traces = kbUsage
+    ? [kbUsage]
+    : editTraces(
+        extractEditedPaths(call.args)
+          .map(
+            (rawPath) =>
+              toWorkspacePath(call.worktree, rawPath, call.worktree)?.relative,
+          )
+          .filter((relative): relative is string => relative !== undefined),
+        (relativePath) =>
+          getFileLinkedTargetsByType(
+            call.worktree,
+            path.join(call.worktree, relativePath),
+            ["implements"],
+          ),
+      );
   appendHookUsageRows(
     {
       host: "opencode",
-      packageVersion: packageVersion(),
+      packageVersion: PACKAGE_VERSION,
       workspaceRoot: call.worktree,
       event: "tool.execute.after",
       sessionId: call.sessionId,

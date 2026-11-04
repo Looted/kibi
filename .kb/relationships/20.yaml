@@ -517,3 +517,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-307937482349
+  - type: depends_on
+    from: REQ-kibi-ontology-convergence-witnesses
+    to: REQ-mcp-suggest-predicates
+    created_at: 2026-11-03T11:44:11.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51aeca6bfd48
+  - type: depends_on
+    from: REQ-kibi-ontology-convergence-witnesses
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-11-03T11:44:11.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-422a7fbc358d
+  - type: specified_by
+    from: REQ-kibi-ontology-convergence-witnesses
+    to: SCEN-kibi-ontology-convergence-witnesses
+    created_at: 2026-11-03T11:44:11.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d1b9c713fdb
+  - type: constrains
+    from: REQ-kibi-ontology-convergence-witnesses
+    to: FACT-SUBJECT-79C92ADA34274409
+    created_at: 2026-11-03T11:44:11.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3dcae4605e25
+  - type: requires_predicate
+    from: REQ-kibi-ontology-convergence-witnesses
+    to: FACT-ONTOLOGY-SCHEMA-DISCOVERY
+    created_at: 2026-11-03T11:44:11.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0233d1c2278e
+  - type: requires_property
+    from: REQ-kibi-ontology-convergence-witnesses
+    to: FACT-ONTOLOGY-EXACT-BINDINGS
+    created_at: 2026-11-03T11:44:11.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-563a73f72ac8
+  - type: requires_predicate
+    from: REQ-kibi-ontology-convergence-witnesses
+    to: FACT-CONTRADICTION-SOURCE-WITNESSES
+    created_at: 2026-11-03T11:44:11.593Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb16d31224fb
+  - type: requires_predicate
+    from: REQ-kibi-ontology-convergence-witnesses
+    to: FACT-RULE-OVERLAP-UNRESOLVED
+    created_at: 2026-11-03T11:44:11.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5de0fea4301

@@ -157,7 +157,6 @@ const STOP_WORDS = new Set([
   "from",
   "govern",
   "happen",
-  "happens",
   "how",
   "i",
   "if",
@@ -223,6 +222,11 @@ const NON_GOVERNING_FACTOR = 0.5;
 const PROVENANCE_STUB_FACTOR = 0.25;
 const AMBIGUOUS_MARGIN = 0.05;
 
+// rationale: an entry that is not an edge names no entity, so it adds no
+// graph evidence, supersession or link and cannot change a ranking.
+// Stryker disable next-line ArrayDeclaration
+const NO_GRAPH_EDGES: readonly GraphEdge[] = [];
+
 const MAX_CANDIDATES = 10_000;
 const MAX_GRAPH_SEEDS = 5;
 const MAX_GRAPH_EDGES = 2_000;
@@ -267,7 +271,7 @@ export function questionPaths(query: string): string[] {
  * would only dilute the words that are; `sourceLocations` is how a path
  * reaches the search as source evidence.
  */
-function topicText(
+export function topicText(
   query: string,
   locations: readonly SourceLocation[] = [],
 ): string {
@@ -286,16 +290,18 @@ const CODE_SPAN_WEIGHT = 2;
 // implements REQ-kibi-intent-aware-source-discovery
 function codeSpanTokens(topic: string): Set<string> {
   return new Set(
-    [...topic.matchAll(CODE_SPAN)].flatMap((match) => tokens(match[1] ?? "")),
+    [...topic.matchAll(CODE_SPAN)].flatMap((match) =>
+      tokens(match[1] as string),
+    ),
   );
 }
 
-function normalize(value: string): string {
+export function normalize(value: string): string {
+  // Runs of separators split into empty words, which the filter drops.
   return expandIdentifiers(value)
-    .trim()
     .toLowerCase()
-    .replace(/[-_]+/g, " ")
-    .replace(/[^a-z0-9\s]+/g, " ")
+    .replace(/[-_]/g, " ")
+    .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s+/)
     .filter(Boolean)
     .map((token) =>
@@ -355,7 +361,9 @@ export function intentTokens(value: string): readonly string[] {
 
 // Clause boundaries an agent writes when it packs several questions into one
 // query: "user roles: how many can a user have, support role".
-const CLAUSE_SEPARATOR = /[;:,!?\n]+|\.(?=\s|$)|\s[-\u2013\u2014]\s/;
+// A run of separators, or a full stop that ends the query, leaves an empty
+// clause, which has too few tokens to count.
+const CLAUSE_SEPARATOR = /[;:,!?\n]|\.(?=\s)|\s[-\u2013\u2014]\s/;
 const MIN_CLAUSE_TOKENS = 2;
 
 /**
@@ -363,7 +371,7 @@ const MIN_CLAUSE_TOKENS = 2;
  * A clause needs two signal tokens: one word alone matches too broadly to
  * stand in for the question.
  */
-function queryClauses(query: string): readonly (readonly string[])[] {
+export function queryClauses(query: string): readonly (readonly string[])[] {
   const clauses = query
     .split(CLAUSE_SEPARATOR)
     .map((clause) => tokens(clause))
@@ -372,7 +380,8 @@ function queryClauses(query: string): readonly (readonly string[])[] {
 }
 
 function stringValues(value: unknown): readonly string[] {
-  if (typeof value === "string") return value.trim() ? [value] : [];
+  // Blank strings add no tokens; facetValues drops them.
+  if (typeof value === "string") return [value];
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is string => typeof item === "string");
 }
@@ -393,14 +402,16 @@ function entityText(entity: Record<string, unknown>): string {
     .join(" ");
 }
 
+/** The entity's source file without its fragment, or null without one. */
 function entitySourcePath(entity: Record<string, unknown>): string | null {
   const sourceFile = entity.sourceFile;
-  if (typeof sourceFile === "string" && sourceFile.trim()) {
-    return sourceFile.split("#", 1)[0]?.trim() ?? null;
-  }
-  const source = entity.source;
-  if (typeof source !== "string" || !source.trim()) return null;
-  return source.split("#", 1)[0]?.trim() ?? null;
+  const source =
+    typeof sourceFile === "string" && sourceFile.trim()
+      ? sourceFile
+      : entity.source;
+  return typeof source === "string"
+    ? (source.split("#", 1)[0] as string).trim()
+    : null;
 }
 
 function sourcePathMatches(
@@ -423,58 +434,52 @@ function numberField(
 ): number | null {
   for (const key of keys) {
     const value = entity[key];
-    if (typeof value === "number" && Number.isFinite(value)) return value;
+    // Number.isFinite is false for anything but a finite number.
+    if (Number.isFinite(value)) return value as number;
     if (typeof value === "string" && /^\d+$/.test(value)) return Number(value);
   }
   return null;
 }
 
-function sourceMatches(
+export function sourceMatches(
   entity: Record<string, unknown>,
   locations: readonly SourceLocation[],
 ): IntentSourceMatch[] {
-  if (locations.length === 0) return [];
   const entityPath = entitySourcePath(entity);
   const title = typeof entity.title === "string" ? normalize(entity.title) : "";
   const matches: IntentSourceMatch[] = [];
 
   for (const location of locations) {
     if (!sourcePathMatches(entityPath, location.path)) continue;
-    const requestedSymbol = location.symbol ? normalize(location.symbol) : "";
+    // No requested symbol (or no title) is contained in any title.
+    const requestedSymbol = normalize(location.symbol ?? "");
     const symbolMatches =
-      requestedSymbol.length === 0 ||
-      title === requestedSymbol ||
-      title.includes(requestedSymbol) ||
-      requestedSymbol.includes(title);
+      title.includes(requestedSymbol) || requestedSymbol.includes(title);
     if (!symbolMatches) continue;
 
     const startLine = numberField(entity, "sourceLine", "source_line");
-    const endLine =
-      numberField(entity, "sourceEndLine", "source_end_line") ?? startLine;
+    // A requested line matches only an entity with a start line, so a
+    // matched line is always a coordinate match.
     const lineMatches =
       location.line === undefined ||
       (startLine !== null &&
-        endLine !== null &&
         location.line >= startLine &&
-        location.line <= endLine);
+        location.line <=
+          (numberField(entity, "sourceEndLine", "source_end_line") ??
+            startLine));
     if (!lineMatches) continue;
 
     const exactSymbol = requestedSymbol.length > 0 && title === requestedSymbol;
-    const coordinate = location.line !== undefined && startLine !== null;
     matches.push({
       path: location.path,
       ...(typeof entity.id === "string" ? { symbolId: entity.id } : {}),
-      ...(exactSymbol
-        ? { distance: 0 }
-        : coordinate
-          ? { distance: 1 }
-          : { distance: 2 }),
+      distance: exactSymbol ? 0 : location.line === undefined ? 2 : 1,
     });
   }
   return matches;
 }
 
-function facetValues(facets: IntentSearchFacets | undefined): Array<{
+export function facetValues(facets: IntentSearchFacets | undefined): Array<{
   name: IntentSearchFacetName;
   value: string;
 }> {
@@ -506,9 +511,9 @@ const ENTITY_TOKENS = new WeakMap<Record<string, unknown>, EntityTokens>();
 // The tokenizer a cached entry was built with: the code of every function
 // that decides an entity's tokens, so a change to any of them starts a fresh
 // cache instead of reusing tokens the new code would not produce.
-let tokenizerFingerprint: string | undefined;
-function tokenizer(): string {
-  tokenizerFingerprint ??= tokenSourceHash([
+/** The code and stop tokens that decide an entity's tokens. */
+export function tokenizerSources(): string[] {
+  return [
     ...[
       normalize,
       stem,
@@ -521,12 +526,17 @@ function tokenizer(): string {
       computeEntityTokens,
     ].map(String),
     ...STOP_TOKENS,
-  ]);
+  ];
+}
+
+let tokenizerFingerprint: string | undefined;
+export function tokenizer(): string {
+  tokenizerFingerprint ??= tokenSourceHash(tokenizerSources());
   return tokenizerFingerprint;
 }
 
 const TOKEN_CACHES = new Map<string, SearchTokenCache>();
-function tokenCache(workspaceRoot: string): SearchTokenCache {
+export function tokenCache(workspaceRoot: string): SearchTokenCache {
   let cache = TOKEN_CACHES.get(workspaceRoot);
   if (cache === undefined) {
     cache = openSearchTokenCache(workspaceRoot, tokenizer());
@@ -564,7 +574,7 @@ function computeEntityTokens(
 }
 
 // implements REQ-kibi-intent-aware-source-discovery
-function entityTokens(
+export function entityTokens(
   entity: Record<string, unknown>,
   body: string | null,
   cache?: SearchTokenCache,
@@ -605,7 +615,7 @@ function entityTokens(
   return computed;
 }
 
-function scoreEntity(
+export function scoreEntity(
   entity: Record<string, unknown>,
   queryTokens: readonly string[],
   facets: readonly { name: IntentSearchFacetName; value: string }[],
@@ -660,8 +670,8 @@ function scoreEntity(
   const matchedFacets: string[] = [];
   let facetScore = 0;
   for (const facet of facets) {
+    // A facet without tokens matches nothing.
     const facetTokens = tokens(facet.value);
-    if (facetTokens.length === 0) continue;
     const matches = facetTokens.filter(
       (token) =>
         titleTokens.has(token) ||
@@ -676,11 +686,8 @@ function scoreEntity(
   facetScore = Math.min(1, facetScore / Math.max(1, facets.length));
 
   const sourceScore = sourceEvidence.length > 0 ? 1 : 0;
-  const graphScore =
-    graphEvidence.length > 0 ? Math.min(1, graphEvidence.length / 2) : 0;
-  const status = String(entity.status ?? "")
-    .trim()
-    .toLowerCase();
+  const graphScore = Math.min(1, graphEvidence.length / 2);
+  const status = String(entity.status).trim().toLowerCase();
   const nonGoverning = NON_GOVERNING_STATUSES.has(status) || superseded;
   const score =
     Math.min(
@@ -700,11 +707,8 @@ function scoreEntity(
   if (matchedFacets.length > 0) reasons.push("semantic facet match");
   if (sourceEvidence.length > 0) reasons.push("source location match");
   if (graphEvidence.length > 0) reasons.push("traceability graph match");
-  if (
-    body &&
-    bodyTokens.size > 0 &&
-    queryTokens.some((token) => bodyTokens.has(token))
-  ) {
+  // Without a body there are no body tokens.
+  if (queryTokens.some((token) => bodyTokens.has(token))) {
     reasons.push("markdown body match");
   }
   return { score, reasons, matchedFacets };
@@ -736,21 +740,19 @@ export type MarkdownBodyCache = Map<string, string | null>;
 // files, and synchronous reads of those finish many times sooner than
 // batches of asynchronous ones.
 // implements REQ-kibi-intent-aware-source-discovery
-function readBodies(
+export function readBodies(
   entities: readonly Record<string, unknown>[],
   workspaceRoot: string,
   cache: MarkdownBodyCache,
 ): Map<Record<string, unknown>, string | null> {
-  for (const entity of entities) {
-    const source = String(entity.source ?? "");
-    if (!cache.has(source))
-      cache.set(source, loadMarkdownBodySync(source, workspaceRoot));
-  }
   return new Map(
-    entities.map((entity) => [
-      entity,
-      cache.get(String(entity.source ?? "")) ?? null,
-    ]),
+    entities.map((entity) => {
+      const source = entity.source;
+      if (typeof source !== "string") return [entity, null];
+      if (!cache.has(source))
+        cache.set(source, loadMarkdownBodySync(source, workspaceRoot));
+      return [entity, cache.get(source) ?? null];
+    }),
   );
 }
 
@@ -759,7 +761,7 @@ export async function rankIntentEntities(
   entities: readonly Record<string, unknown>[],
   options: IntentSearchOptions,
   workspaceRoot: string,
-  graphEdges: readonly GraphEdge[] = [],
+  graphEdges: readonly GraphEdge[] = NO_GRAPH_EDGES,
   bodyCache: MarkdownBodyCache = new Map(),
 ): Promise<IntentSearchResult> {
   const query = topicText(options.query, options.sourceLocations);
@@ -816,9 +818,8 @@ export async function rankIntentEntities(
     // already capped; unbounded parallel paths only add noise to receipts.
     const graphEvidence = (graphByEntity.get(entityId) ?? []).slice(0, 8);
     const body = bodies.get(entity) ?? null;
-    let scored: ReturnType<typeof scoreEntity> | undefined;
-    for (const signalTokens of [allTokens, ...clauseTokenSets]) {
-      const candidate = scoreEntity(
+    const score = (signalTokens: readonly string[]) =>
+      scoreEntity(
         entity,
         signalTokens,
         facets,
@@ -831,14 +832,16 @@ export async function rankIntentEntities(
         isProvenanceStub(entity),
         emphasis,
       );
-      if (scored === undefined || candidate.score > scored.score)
-        scored = candidate;
+    let scored = score(allTokens);
+    for (const signalTokens of clauseTokenSets) {
+      const candidate = score(signalTokens);
+      if (candidate.score > scored.score) scored = candidate;
     }
-    if (scored === undefined || scored.score < minScore) continue;
+    if (scored.score < minScore) continue;
     const snippet =
       body === null
         ? undefined
-        : bodySnippetLine(String(entity.type ?? ""), body, entity);
+        : bodySnippetLine(String(entity.type), body, entity);
     // Inherited source evidence says so, instead of claiming the entity
     // itself sits at the location.
     const reasons = scored.reasons.map((reason) =>
@@ -876,29 +879,16 @@ export async function rankIntentEntities(
       String(right.entity.id ?? ""),
     );
   });
-  const topScore = ranked[0]?.score ?? null;
-  const first = ranked[0];
-  const second = ranked[1];
-  const topTwoMargin =
-    first !== undefined && second !== undefined
-      ? first.score - second.score
-      : null;
-  // A requirement and its own scenario, facts or tests score alike on the
-  // same words without being rival answers: the rival is the best match the
-  // top match is not linked to.
-  const topId = String(first?.entity.id ?? "");
-  const linkedToTop = new Set<string>();
-  for (const edge of graphEdges) {
-    if (edge.from === topId) linkedToTop.add(edge.to);
-    if (edge.to === topId) linkedToTop.add(edge.from);
+  const [first, second] = ranked;
+  let topScore: number | null = null;
+  let topTwoMargin: number | null = null;
+  let topRivalMargin: number | null = null;
+  if (first !== undefined) {
+    topScore = first.score;
+    if (second !== undefined) topTwoMargin = first.score - second.score;
+    const rival = rivalOf(first, ranked, graphEdges);
+    if (rival !== undefined) topRivalMargin = first.score - rival.score;
   }
-  const rival = ranked
-    .slice(1)
-    .find((match) => !linkedToTop.has(String(match.entity.id ?? "")));
-  const topRivalMargin =
-    first !== undefined && rival !== undefined
-      ? first.score - rival.score
-      : null;
   return {
     matches: ranked,
     analysis: {
@@ -916,6 +906,27 @@ export async function rankIntentEntities(
   };
 }
 
+/**
+ * A requirement and its own scenario, facts or tests score alike on the
+ * same words without being rival answers: the rival is the best match the
+ * top match is not linked to.
+ */
+function rivalOf(
+  top: IntentSearchMatch,
+  ranked: readonly IntentSearchMatch[],
+  graphEdges: readonly GraphEdge[],
+): IntentSearchMatch | undefined {
+  const topId = String(top.entity.id ?? "");
+  const linkedToTop = new Set<string>();
+  for (const edge of graphEdges) {
+    if (edge.from === topId) linkedToTop.add(edge.to);
+    if (edge.to === topId) linkedToTop.add(edge.from);
+  }
+  return ranked
+    .slice(1)
+    .find((match) => !linkedToTop.has(String(match.entity.id ?? "")));
+}
+
 // implements REQ-kibi-intent-aware-source-discovery
 /**
  * Source evidence a requirement inherits from the symbols that implement it:
@@ -923,21 +934,21 @@ export async function rankIntentEntities(
  * `implements` are what that file is for, even when the question shares no
  * word with them. Each inherited match names the implementing symbol.
  */
-function inheritedSourceMatches(
+export function inheritedSourceMatches(
   entities: readonly Record<string, unknown>[],
   locations: readonly SourceLocation[],
   graphEdges: readonly GraphEdge[],
 ): Map<string, IntentSourceMatch[]> {
   const inherited = new Map<string, IntentSourceMatch[]>();
-  if (locations.length === 0 || graphEdges.length === 0) return inherited;
+  // A symbol without matches passes on an empty list, which is no evidence.
   const matchedSymbols = new Map<string, IntentSourceMatch[]>();
   for (const entity of entities) {
-    if (String(entity.type ?? "") !== "symbol") continue;
-    const matches = sourceMatches(entity, locations);
-    if (matches.length > 0)
-      matchedSymbols.set(String(entity.id ?? ""), matches);
+    if (entity.type !== "symbol") continue;
+    matchedSymbols.set(
+      String(entity.id ?? ""),
+      sourceMatches(entity, locations),
+    );
   }
-  if (matchedSymbols.size === 0) return inherited;
   for (const edge of graphEdges) {
     if (edge.relationship !== "implements") continue;
     const matches = matchedSymbols.get(edge.from);
@@ -950,12 +961,10 @@ function inheritedSourceMatches(
   return inherited;
 }
 
-export function graphGoal(seedIds: readonly string[], depth: 1 | 2): string {
+/** The edge query for `seedIds`; both depths read the same direct edges. */
+export function graphGoal(seedIds: readonly string[], _depth: 1 | 2): string {
   const ids = seedIds.map((id) => `'${escapeAtom(id)}'`).join(",");
   const relationships = GRAPH_RELATIONSHIPS.join(",");
-  if (depth === 1) {
-    return `kb_relationship_edges([${relationships}], [${ids}], Edges)`;
-  }
   return `kb_relationship_edges([${relationships}], [${ids}], Edges)`;
 }
 
@@ -966,7 +975,8 @@ export async function queryGraphEdges(
   if (seedIds.length === 0) return [];
   const result = await prolog.query(graphGoal(seedIds, 1));
   if (!result.success) return [];
-  return parseTriples(result.bindings.Edges ?? "[]")
+  // A missing binding reads as "undefined", which is no list.
+  return parseTriples(String(result.bindings.Edges))
     .slice(0, MAX_GRAPH_EDGES)
     .map(([relationship, from, to]) => ({
       relationship,
@@ -975,7 +985,7 @@ export async function queryGraphEdges(
     }));
 }
 
-async function loadIntentCandidates(
+export async function loadIntentCandidates(
   prolog: PrologPort,
   options: IntentSearchOptions,
 ): Promise<Record<string, unknown>[]> {
@@ -1047,7 +1057,8 @@ async function loadIntentCandidates(
       }),
     );
   }
-  return Array.from(candidates.values()).slice(0, MAX_CANDIDATES);
+  // addCandidates never grows the map past MAX_CANDIDATES.
+  return Array.from(candidates.values());
 }
 
 // implements REQ-kibi-intent-aware-source-discovery
@@ -1070,7 +1081,7 @@ export async function executeIntentSearch(
     candidates,
     options,
     workspaceRoot,
-    [],
+    NO_GRAPH_EDGES,
     bodies,
   );
   const sourceSeeds = firstPass.matches
@@ -1080,9 +1091,7 @@ export async function executeIntentSearch(
     new Set([
       ...(sourceSeeds.length > 0
         ? sourceSeeds
-        : firstPass.matches
-            .map((match) => String(match.entity.id ?? ""))
-            .slice(0, MAX_GRAPH_SEEDS)),
+        : firstPass.matches.map((match) => String(match.entity.id ?? ""))),
     ]),
   ).slice(0, MAX_GRAPH_SEEDS);
   const graphEdges = await queryGraphEdges(prolog, seeds);

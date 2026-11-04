@@ -46,7 +46,6 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
   private manifestPath: string;
   private coordinatesPath: string;
   private byFileAliases = new Map<string, SymbolEntry[]>();
-  private byRelativePath = new Map<string, SymbolEntry[]>();
 
   constructor(
     private workspaceRoot: string,
@@ -80,7 +79,8 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
       // Store metadata in WeakMap
       codeLensMetadata.set(lens, {
         symbolId: entry.id,
-        staticLinks: entry.links ?? [],
+        // buildIndex gives every entry a links list.
+        staticLinks: entry.links as string[],
         sourceFile: entry.sourceFile,
         sourceLine: entry.sourceLine,
       });
@@ -254,20 +254,14 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
       }
     }
 
-    const relative = this.relativeKey(filePath);
-    if (relative) {
-      const entries = this.byRelativePath.get(relative);
-      if (entries && entries.length > 0) {
-        return entries;
-      }
-    }
-
+    // A document whose workspace-relative path matches an indexed file
+    // resolves to that file's absolute path, one of the aliases above, so no
+    // separate relative-path lookup is needed.
     return null;
   }
 
   private rebuildFileAliases(): void {
     this.byFileAliases.clear();
-    this.byRelativePath.clear();
     if (!this.index) return;
 
     for (const [filePath, entries] of this.index.byFile.entries()) {
@@ -275,11 +269,6 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
         if (!this.byFileAliases.has(candidate)) {
           this.byFileAliases.set(candidate, entries);
         }
-      }
-
-      const relative = this.relativeKey(filePath);
-      if (relative && !this.byRelativePath.has(relative)) {
-        this.byRelativePath.set(relative, entries);
       }
     }
   }

@@ -2,7 +2,7 @@
 title: kb_check rule names
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The evidence floor check rule shall be evidence-floor. Evidence floors shall start at KB schema version 11. The unapproved agent requirement rule shall be agent-requirement-unapproved. The unapproved exception rule shall be exception-unapproved. The self-attested exception approval rule shall be exception-approval-self-attested. The missing requirement rationale rule shall be requirement-rationale-missing. The policy markers rule shall be policy-markers. The policy ownership rule shall be policy-ownership. The symbol granularity rule shall be symbol-granularity. The acknowledged supersedes reason rule shall be supersedes-reason-acknowledged. The scoped check omission note id shall be scoped_check_omitted_quality.
 semantic_clauses:
   - The evidence floor check rule shall be evidence-floor.
@@ -20,7 +20,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T20:19:31.677Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -118,6 +118,7 @@ logic_claims:
   - CLAIM-CDC574A1940BB7F6
 id: REQ-kibi-check-rule-names
 type: req
+required_evidence: tested
 ---
 The evidence floor check rule shall be evidence-floor. Evidence floors shall start at KB schema version 11. The unapproved agent requirement rule shall be agent-requirement-unapproved. The unapproved exception rule shall be exception-unapproved. The self-attested exception approval rule shall be exception-approval-self-attested. The missing requirement rationale rule shall be requirement-rationale-missing. The policy markers rule shall be policy-markers. The policy ownership rule shall be policy-ownership. The symbol granularity rule shall be symbol-granularity. The acknowledged supersedes reason rule shall be supersedes-reason-acknowledged. The scoped check omission note id shall be scoped_check_omitted_quality.
 

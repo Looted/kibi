@@ -47,15 +47,17 @@ export type ReportCommandDeps = Readonly<{
 }>;
 
 function gitCommitSha(cwd: string): string | undefined {
+  let sha: string | undefined;
   try {
-    const sha = execFileSync("git", ["-C", cwd, "rev-parse", "HEAD"], {
+    sha = execFileSync("git", ["-C", cwd, "rev-parse", "HEAD"], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     }).trim();
-    return /^[0-9a-f]{7,64}$/i.test(sha) ? sha : undefined;
   } catch {
-    return undefined;
+    // No commit yet, or not a repository: the report links no commit.
   }
+  // "undefined" is not a commit id.
+  return /^[0-9a-f]{7,64}$/i.test(String(sha)) ? sha : undefined;
 }
 
 function loadReportRepository(cwd: string, branch: string): ReportRepository {
@@ -83,8 +85,7 @@ function parseLimit(value?: string): number {
   return limit;
 }
 
-function reportTarget(root: string, output?: string): string {
-  const requested = output?.trim() || "kibi-report";
+function reportTarget(root: string, requested: string): string {
   const absolute = path.resolve(root, requested);
   return [".html", ".htm"].includes(path.extname(absolute).toLowerCase())
     ? absolute
@@ -163,7 +164,8 @@ async function writeAtomically(
   );
   await mkdir(directory, { recursive: true });
   try {
-    await writeFile(temporaryPath, contents, "utf8");
+    // writeFile encodes a string as UTF-8.
+    await writeFile(temporaryPath, contents);
     await rename(temporaryPath, filePath);
   } catch (error) {
     await rm(temporaryPath, { force: true });
@@ -227,19 +229,18 @@ const KB_CERTIFICATES_VERSION = "kibi.certificates.v1";
 async function readKbCertificates(
   bundlePath: string,
 ): Promise<{ raw: string; certificates: readonly unknown[] }> {
-  const raw = await readFile(bundlePath, "utf8");
+  // Buffer#toString decodes UTF-8.
+  const raw = (await readFile(bundlePath)).toString();
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
   } catch {
     throw new Error(`report: ${bundlePath} is not JSON`);
   }
-  const bundle =
-    parsed !== null && typeof parsed === "object"
-      ? (parsed as Record<string, unknown>)
-      : {};
+  // A scalar has neither field; null has no fields at all.
+  const bundle = parsed as Record<string, unknown> | null;
   if (
-    bundle.version !== KB_CERTIFICATES_VERSION ||
+    bundle?.version !== KB_CERTIFICATES_VERSION ||
     !Array.isArray(bundle.certificates)
   )
     throw new Error(
@@ -253,12 +254,8 @@ function certificateKinds(
 ): Readonly<Record<string, number>> {
   const kinds: Record<string, number> = {};
   for (const certificate of certificates) {
-    const kind =
-      certificate !== null &&
-      typeof certificate === "object" &&
-      typeof (certificate as Record<string, unknown>).kind === "string"
-        ? ((certificate as Record<string, unknown>).kind as string)
-        : "unknown";
+    const declared = (certificate as { kind?: unknown } | null)?.kind;
+    const kind = typeof declared === "string" ? declared : "unknown";
     kinds[kind] = (kinds[kind] ?? 0) + 1;
   }
   return kinds;
@@ -276,18 +273,15 @@ export async function reportCommand(
 
   const now = (deps.now ?? (() => new Date()))();
   const workspace = (deps.cwd ?? (() => process.cwd()))();
-  const outputPath = reportTarget(workspace, options.output);
   const requestedOutput = options.output?.trim() || "kibi-report";
+  const outputPath = reportTarget(workspace, requestedOutput);
   const outputIsHtmlFile = [".html", ".htm"].includes(
     path.extname(requestedOutput).toLowerCase(),
   );
-  const kbCertificatesSource =
-    options.certificates?.trim() === undefined ||
-    options.certificates.trim() === ""
-      ? undefined
-      : await readKbCertificates(
-          path.resolve(workspace, options.certificates.trim()),
-        );
+  const certificatesOption = options.certificates?.trim();
+  const kbCertificatesSource = certificatesOption
+    ? await readKbCertificates(path.resolve(workspace, certificatesOption))
+    : undefined;
   const kbCertificatesPath = outputIsHtmlFile
     ? path.join(
         path.dirname(outputPath),
@@ -323,10 +317,9 @@ export async function reportCommand(
   const notApplicable = Number(summary.proofNotApplicable ?? 0);
   const tested = Number(summary.proofTested ?? 0);
   const currentRequirements = Math.max(0, total - notApplicable);
-  const proofPercent =
-    currentRequirements === 0
-      ? 0
-      : Math.round((tested / currentRequirements) * 100);
+  // Not a number when there are no current requirements; the badge then
+  // says so instead of showing a share.
+  const proofPercent = Math.round((tested / currentRequirements) * 100);
   const hasContradiction = coverage.requirements.rows.some(
     (row) =>
       Array.isArray(row.proofGaps) &&

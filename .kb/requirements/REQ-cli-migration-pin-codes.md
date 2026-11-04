@@ -2,7 +2,7 @@
 title: Migration pin and acknowledgement codes
 status: open
 priority: must
-firmness: firm
+firmness: default
 semantic_text: The missing context tag code shall be context_missing_tag. The semantic text pin code shall be semantic_text_pin. The evidence floor pin code shall be evidence_floor_pin. The firm supersede acknowledgement code shall be firm_supersede_acknowledge. The proof contract claims pin code shall be proof_contract_claims_pin. The proof contract claims review code shall be proof_contract_claims_review. The rederive with dropped grounding code shall be semantic_inventory_rederive_drop_grounding. The supersedes reason acknowledgement code shall be supersedes_reason_acknowledge. The legacy symbol link mark action id shall be symbol-legacy-link-mark. The legacy symbol link mark code shall be symbol_legacy_link_mark. A superseded requirement shall close with status closed. Derived symbol coordinates shall start at KB schema version 13.
 semantic_clauses:
   - The missing context tag code shall be context_missing_tag.
@@ -21,7 +21,7 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
   approved_by: maintainer
   recorded_at: '2026-10-28T20:29:36.383Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -127,6 +127,7 @@ logic_claims:
   - CLAIM-6C377382E2EA545C
 id: REQ-cli-migration-pin-codes
 type: req
+required_evidence: tested
 ---
 The missing context tag code shall be context_missing_tag. The semantic text pin code shall be semantic_text_pin. The evidence floor pin code shall be evidence_floor_pin. The firm supersede acknowledgement code shall be firm_supersede_acknowledge. The proof contract claims pin code shall be proof_contract_claims_pin. The proof contract claims review code shall be proof_contract_claims_review. The rederive with dropped grounding code shall be semantic_inventory_rederive_drop_grounding. The supersedes reason acknowledgement code shall be supersedes_reason_acknowledge. The legacy symbol link mark action id shall be symbol-legacy-link-mark. The legacy symbol link mark code shall be symbol_legacy_link_mark. A superseded requirement shall close with status closed. Derived symbol coordinates shall start at KB schema version 13.
 

@@ -360,3 +360,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-158d9d80077f
+  - type: requires_property
+    from: REQ-skillopt-paid-launch-accounting
+    to: FACT-PROP-REQ-SKILLOPT-PAID-LAUNCH-ACCOUNTING-C05
+    created_at: 2026-11-03T11:38:49.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc082006b298

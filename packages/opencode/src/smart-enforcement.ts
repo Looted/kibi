@@ -73,11 +73,7 @@ export function computeEffectiveMode(inputs: ModeInputs): EffectiveMode {
     return STRICT_ELIGIBLE_POSTURES.has(inputs.posture) ? "hard" : "advisory";
   }
 
-  // Maintenance-degraded always forces advisory
-  if (inputs.maintenanceDegraded) {
-    return "advisory";
-  }
-
+  // Maintenance-degraded forces advisory through isStrictEligible below.
   // Advisory config always produces advisory behavior
   if (inputs.mode === "advisory") {
     return "advisory";

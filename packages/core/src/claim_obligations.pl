@@ -66,6 +66,7 @@
 :- use_module(library(http/json)).
 :- use_module(library(apply)).
 :- use_module(library(lists)).
+:- use_module(library(pairs)).
 :- use_module('kb.pl').
 :- use_module('model_check.pl', [model_check_obligation/4, edge_text/3]).
 
@@ -90,7 +91,7 @@ fact_obligation(FactId, ProofKind, Result) :-
     ->  (   memberchk(ProofKind, [arithmetic, smt])
         ->  Result = obligation(_{kind: "numeric_constraint", variable: Variable,
                                   value_type: ValueType, operator: Operator, value: Value})
-        ;   (   memberchk(ProofKind, [typecheck, source]) -> Article = a ; Article = an ),
+        ;   (   ProofKind == exhaustive -> Article = an ; Article = a ),
             format(string(Reason),
                    "~w is a numeric fact, which ~w ~w certificate cannot express (use arithmetic or smt)",
                    [FactId, Article, ProofKind]),
@@ -132,8 +133,6 @@ set_obligation(FactId, Members, rule, obligation(_{kind: "every_member", predica
     fact_property_key(FactId, Property),
     atom_string(Property, Predicate),
     !.
-set_obligation(FactId, Members, state_machine, Result) :- !,
-    machine_obligation(FactId, Members, eq, Result).
 set_obligation(FactId, _Members, rule, incompatible(Reason)) :- !,
     format(string(Reason),
            "~w is a set fact with no property to read as the predicate every member satisfies",
@@ -321,14 +320,12 @@ claim_obligation(ReqId-ClaimKey, ProofKind, Result) :-
         Result = unresolved(Reason)
     ;   claim_fact(ReqId, ClaimKey, FactId),
         fact_obligation(FactId, ProofKind, FactResult),
-        (   FactResult = obligation(Dict)
-        ->  Result = obligation(FactId, Dict)
-        ;   FactResult == attested
-        ->  Result = attested(FactId)
-        ;   FactResult = incompatible(Reason)
-        ->  Result = incompatible(FactId, Reason)
-        )
+        claim_result(FactResult, FactId, Result)
     ).
+
+claim_result(obligation(Dict), FactId, obligation(FactId, Dict)).
+claim_result(attested, FactId, attested(FactId)).
+claim_result(incompatible(Reason), FactId, incompatible(FactId, Reason)).
 
 %% obligation_equal(+Left, +Right)
 % Two obligations (dicts, possibly read back from a receipt) ask the same.
@@ -339,7 +336,6 @@ obligation_equal(Left, Right) :-
 obligation_key(Obligation, set(Members)) :-
     dict_text(Obligation, kind, "set_equals"),
     get_dict(members, Obligation, Raw),
-    is_list(Raw),
     maplist(text_string, Raw, Strings),
     sort(Strings, Members),
     !.
@@ -390,7 +386,6 @@ obligation_key(Obligation, predicate(Name, Args, Value)) :-
     dict_text(Obligation, kind, "predicate_holds"),
     dict_text(Obligation, predicate, Name),
     get_dict(args, Obligation, RawArgs),
-    is_list(RawArgs),
     maplist(text_string, RawArgs, Args),
     dict_text(Obligation, value, Value),
     !.
@@ -410,7 +405,6 @@ obligation_key(Obligation, numeric(Variable, Type, Operator, Value)) :-
 
 obligation_members(Obligation, Members) :-
     get_dict(members, Obligation, Raw),
-    is_list(Raw),
     maplist(text_string, Raw, Strings),
     sort(Strings, Members).
 
@@ -419,16 +413,16 @@ dict_text(Dict, Key, String) :-
     get_dict(Key, Dict, Raw),
     text_string(Raw, String).
 
-number_value(Raw, Value) :- number(Raw), !, Value is Raw * 1.0.
 number_value(Raw, Value) :-
     text_string(Raw, String),
     number_string(Number, String),
-    Value is Number * 1.0.
+    Value is float(Number).
 
 text_string(Raw, String) :- string(Raw), !, String = Raw.
 text_string(Raw, String) :- atom(Raw), !, atom_string(Raw, String).
-text_string(Raw, String) :- number(Raw), !, number_string(Raw, String).
-text_string(^^(Raw, _), String) :- !, text_string(Raw, String).
+% mutalog-disable-next-line cut_insert: a number matches no later clause
+text_string(Raw, String) :- number(Raw), number_string(Raw, String).
+text_string(^^(Raw, _), String) :- text_string(Raw, String).
 
 % The members of a set fact, sorted and unique, and its operator: eq (the
 % set is exactly these members), includes (it contains at least these),
@@ -450,7 +444,8 @@ fact_set(FactId, Members, Operator) :-
         exclude(==(""), Parts, NonEmpty),
         maplist([S, A]>>atom_string(A, S), NonEmpty, Atoms)
     ),
-    (   prop_atom(Props, operator, Operator0) -> Operator = Operator0 ; Operator = eq ),
+    % Without an operator the memberchk binds eq, the default.
+    ignore(prop_atom(Props, operator, Operator)),
     memberchk(Operator, [eq, includes, subset_of, excludes]),
     \+ prop_atom(Props, polarity, forbid),
     maplist([A, S]>>atom_string(A, S), Atoms, Strings),
@@ -499,6 +494,7 @@ requirement_claim_status(ReqId, ClaimKey, Status) :-
     first_per_key(Pairs, [], Unique),
     member(ClaimKey-Status, Unique).
 
+% mutalog-disable-next-line cut_insert: the list is bound, so the clauses' first arguments are distinct
 first_per_key([], Acc, Unique) :- reverse(Acc, Unique).
 first_per_key([Key-S|Rest], Acc, Unique) :-
     (   memberchk(Key-_, Acc)
@@ -519,25 +515,21 @@ inventory_claim_status(ReqId, ClaimKey, Status) :-
 inventory_list(Raw, Entries) :- is_list(Raw), !, Entries = Raw.
 inventory_list(^^(Raw, _), Entries) :- !, inventory_list(Raw, Entries).
 inventory_list(Raw, Entries) :-
-    (   string(Raw) ; atom(Raw) ),
-    catch(atom_json_dict(Raw, Parsed, [value_string_as(string)]), _, fail),
-    is_list(Parsed),
+    catch(( atom_json_dict(Raw, Parsed, [value_string_as(string)]), is_list(Parsed) ), _, fail),
     !,
     Entries = Parsed.
 inventory_list(Raw, Entries) :-
-    (   string(Raw) ; atom(Raw) ),
-    catch(term_string(Parsed, Raw), _, fail),
-    is_list(Parsed),
+    catch(( term_string(Parsed, Raw), is_list(Parsed) ), _, fail),
     !,
     Entries = Parsed.
 inventory_list(_, []).
 
 entry_field(Entry, Key, Value) :-
-    is_dict(Entry), !,
-    get_dict(Key, Entry, Value).
-entry_field(Entry, Key, Value) :-
-    is_list(Entry),
-    memberchk(Key=Value, Entry).
+    (   is_dict(Entry)
+    ->  get_dict(Key, Entry, Value)
+    ;   is_list(Entry),
+        memberchk(Key=Value, Entry)
+    ).
 
 % The fact grounding a claim: the same claim_key, linked from the
 % requirement through requires_property, requires_predicate or requires_rule.
@@ -564,13 +556,17 @@ test_requirement(TestId, ReqId) :-
 test_claim_obligations_json(TestId0, KeysJson, Kind0, Json) :-
     kb:normalize_term_atom(TestId0, TestId),
     kb:normalize_term_atom(Kind0, Kind),
-    atom_json_term(KeysJson, Keys0, []),
+    atom_json_term(KeysJson, Keys, []),
+    claim_rows(TestId, Keys, Kind, Rows),
+    with_output_to(string(Json), json_write_dict(current_output, Rows, [width(0)])).
+
+% The rows for claim keys given as text.
+claim_rows(TestId, Keys0, Kind, Rows) :-
     maplist([K, A]>>(text_string(K, S), atom_string(A, S)), Keys0, Keys),
     findall(ReqId, test_requirement(TestId, ReqId), ReqIds0),
     sort(ReqIds0, ReqIds),
     foldl(key_rows(Kind, ReqIds), Keys, [], RowsRev),
-    reverse(RowsRev, Rows),
-    with_output_to(string(Json), json_write_dict(current_output, Rows, [width(0)])).
+    reverse(RowsRev, Rows).
 
 key_rows(Kind, ReqIds, Key, Acc0, Acc) :-
     findall(ReqId,
@@ -610,8 +606,9 @@ owner_row(Kind, Key, KeyString, ReqId, Acc0, [Row|Acc0]) :-
 % fact the kind cannot express).  An attested claim is not an issue here:
 % it is reported as attested, and never counts as proved.
 proof_contract_claim_issues_json(Json) :-
-    findall(Row, proof_contract_claim_issue(Row), Rows0),
-    sort(Rows0, Rows),
+    findall(Issue, proof_contract_claim_issue(Issue), Issues0),
+    sort(Issues0, Issues),
+    maplist(issue_row, Issues, Rows),
     with_output_to(string(Json), json_write_dict(current_output, Rows, [width(0)])).
 
 certificate_kind(exhaustive).
@@ -632,32 +629,34 @@ test_certificate_contract(TestId, Kind, Contract) :-
     atom_string(Kind, KindString),
     certificate_kind(Kind).
 
+names_no_claims(Contract) :-
+    \+ ( get_dict(proves, Contract, Proves), is_list(Proves), Proves \== [] ).
+
 contract_dict(^^(Raw, _), Dict) :- !, contract_dict(Raw, Dict).
 contract_dict(Dict, Dict) :- is_dict(Dict), !.
 contract_dict(Raw, Dict) :-
-    (   atom(Raw) ; string(Raw) ),
-    catch(atom_json_dict(Raw, Dict, [value_string_as(string)]), _, fail),
-    is_dict(Dict).
+    catch(( atom_json_dict(Raw, Dict, [value_string_as(string)]), is_dict(Dict) ), _, fail).
 
-proof_contract_claim_issue(_{test_id: TestString, reason: Reason}) :-
+% An issue is TestId-ClaimKey-Reason, with ClaimKey none for a contract that
+% names no claims; sorting the issues orders the rows and drops repeats.
+issue_row(TestId-none-Reason, _{test_id: TestString, reason: Reason}) :-
+    !,
+    atom_string(TestId, TestString).
+issue_row(TestId-KeyString-Reason, _{test_id: TestString, claim_key: KeyString, reason: Reason}) :-
+    atom_string(TestId, TestString).
+
+proof_contract_claim_issue(TestId-none-Reason) :-
     test_certificate_contract(TestId, Kind, Contract),
-    \+ ( get_dict(proves, Contract, Proves), is_list(Proves), Proves \== [] ),
-    atom_string(TestId, TestString),
+    names_no_claims(Contract),
     format(string(Reason),
            "the ~w proof contract names no claims in proves, so its certificate proves nothing about a requirement",
            [Kind]).
-proof_contract_claim_issue(_{test_id: TestString, claim_key: KeyString, reason: Reason}) :-
+proof_contract_claim_issue(TestId-KeyString-Reason) :-
     test_certificate_contract(TestId, Kind, Contract),
     get_dict(proves, Contract, Proves),
-    is_list(Proves),
-    Proves \== [],
-    atom_json_term(KeysJson, Proves, []),
-    test_claim_obligations_json(TestId, KeysJson, Kind, RowsJson),
-    atom_json_dict(RowsJson, Rows, [value_string_as(string)]),
+    claim_rows(TestId, Proves, Kind, Rows),
     member(Row, Rows),
-    get_dict(result, Row, Result),
-    memberchk(Result, ["unresolved", "incompatible"]),
-    atom_string(TestId, TestString),
+    % Only unresolved and incompatible rows carry a reason.
     get_dict(claim_key, Row, KeyString),
     get_dict(reason, Row, Reason).
 
@@ -672,22 +671,26 @@ proof_contract_claim_issue(_{test_id: TestString, claim_key: KeyString, reason: 
 % it.  The migration pins proves only when exactly one claim is derived;
 % the review lists every candidate so a person can bind the rest.
 proof_contract_claim_candidates_json(Json) :-
-    findall(Row, proof_contract_claim_candidates(Row), Rows0),
-    sort(Rows0, Rows),
+    findall(TestId-Row, proof_contract_claim_candidates(TestId, Row), Keyed0),
+    keysort(Keyed0, Keyed),
+    pairs_values(Keyed, Rows),
     with_output_to(string(Json), json_write_dict(current_output, Rows, [width(0)])).
 
-proof_contract_claim_candidates(_{test_id: TestString, kind: KindString, candidates: Candidates}) :-
+% One test's row, its candidates ordered by claim key and then requirement.
+proof_contract_claim_candidates(TestId, _{test_id: TestString, kind: KindString, candidates: Candidates}) :-
     test_certificate_contract(TestId, Kind, Contract),
-    \+ ( get_dict(proves, Contract, Proves), is_list(Proves), Proves \== [] ),
-    findall(Candidate,
-        (   test_requirement(TestId, ReqId),
+    names_no_claims(Contract),
+    findall(ReqId, test_requirement(TestId, ReqId), ReqIds0),
+    sort(ReqIds0, ReqIds),
+    findall((ClaimKey-ReqId)-Candidate,
+        (   member(ReqId, ReqIds),
             requirement_claim_status(ReqId, ClaimKey, modeled),
             claim_obligation(ReqId-ClaimKey, Kind, Result),
             claim_candidate(ReqId, ClaimKey, Result, Candidate)
         ),
-        Candidates0),
-    sort(Candidates0, Candidates1),
-    sort(claim_key, @=<, Candidates1, Candidates),
+        Keyed0),
+    keysort(Keyed0, Keyed),
+    pairs_values(Keyed, Candidates),
     atom_string(TestId, TestString),
     atom_string(Kind, KindString).
 

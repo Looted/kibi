@@ -164,7 +164,7 @@ describe("GitHub Pages URLs", () => {
 
 describe("GitHub workflow templates", () => {
   test("documented examples match the packaged templates", () => {
-    for (const kind of ["report", "badge"] as const) {
+    for (const kind of ["report", "badge", "check"] as const) {
       const fileName = githubWorkflowTemplateFileName(kind);
       const packaged = readFileSync(
         path.join(githubTemplateDir(), fileName),
@@ -337,7 +337,20 @@ describe("kibi init GitHub option registration", () => {
       errors.push(String(message));
     };
     try {
-      const result = await initCommand({ badgeOnly: true });
+      // Run from a scratch directory, so an init that does not stop at the
+      // option check cannot write into the checkout running the tests.
+      const scratch = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-badge-only-"),
+      );
+      const previous = process.cwd();
+      process.chdir(scratch);
+      let result: Awaited<ReturnType<typeof initCommand>>;
+      try {
+        result = await initCommand({ badgeOnly: true });
+      } finally {
+        process.chdir(previous);
+        fs.rmSync(scratch, { recursive: true, force: true });
+      }
       expect(result.exitCode).toBe(1);
       expect(errors.join("\n")).toContain("--badge-only requires --github");
     } finally {
