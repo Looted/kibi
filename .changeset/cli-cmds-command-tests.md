@@ -37,3 +37,5 @@ The usage-metrics tables are drawn by one helper, and the zero-result tool table
 The symbol coordinate refresh builds the artifact publication in one place, reads files without encoding arguments, and skips extraction when an incremental refresh reuses every record; manifests and coordinate artifacts are unchanged.
 
 The legacy storage migration no longer plans a coordinates move for a configured symbols manifest whose name is not `symbols.yaml` or `symbols.yml`. Such a manifest was planned twice, once as the manifest and once as `.kb/symbol-coordinates.yaml`, and a `custom.yml` manifest picked up an unrelated `custom.yaml` as its coordinates. Listing tracked files also keeps Git's error output off the terminal outside a repository.
+
+When a relationship fails every retry and the engine gives no detail for a later attempt, the sync warning now keeps the earlier explanation, such as the batch error, instead of falling back to "Unknown error". A missing entity id is also read from a multi-line engine error. The engine reset before a retry pass is now a plain best-effort step, and the persistence tests use the real Prolog codec instead of a module mock.

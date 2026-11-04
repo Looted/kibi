@@ -25,28 +25,6 @@ import type {
 } from "../../../src/extractors/markdown.js";
 import type { PrologProcess, QueryResult } from "../../../src/prolog.js";
 
-// --- Mocks ---
-
-const mockToPrologAtom = mock((value: string) => {
-  const simple = /^[a-z][a-zA-Z0-9_]*$/;
-  return simple.test(value) ? value : `'${value.replace(/'/g, "''")}'`;
-});
-
-const mockToPrologString = mock((value: string) => {
-  const escaped = value
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, "\\n")
-    .replace(/\r/g, "\\r")
-    .replace(/\t/g, "\\t");
-  return `"${escaped}"`;
-});
-
-mock.module("../../../src/prolog/codec.js", () => ({
-  toPrologAtom: mockToPrologAtom,
-  toPrologString: mockToPrologString,
-}));
-
 // --- Helpers ---
 
 function makeEntity(overrides: Partial<ExtractedEntity> = {}): ExtractedEntity {
@@ -111,11 +89,6 @@ function makeProlog(queries?: Record<string, QueryResult>): MockProlog {
 
 describe("persistEntities", () => {
   let consoleWarnSpy: ReturnType<typeof mock>;
-
-  beforeEach(() => {
-    mockToPrologAtom.mockClear();
-    mockToPrologString.mockClear();
-  });
 
   test("returns 0 entities and kbModified=false for empty results array", async () => {
     const prolog = makeProlog({
@@ -1108,11 +1081,6 @@ describe("persistEntities", () => {
 });
 
 describe("persistRelationships", () => {
-  beforeEach(() => {
-    mockToPrologAtom.mockClear();
-    mockToPrologString.mockClear();
-  });
-
   test("returns 0 relationships and kbModified=false for empty inputs", async () => {
     const prolog = makeProlog();
     const result = await persistRelationships(asPrologProcess(prolog), [], []);
