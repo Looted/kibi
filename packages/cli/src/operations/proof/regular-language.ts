@@ -219,6 +219,8 @@ type Node =
 function syntaxOf(spec: PatternSpec): Syntax {
   const flags = spec.flags ?? "";
   const allowed = spec.flavor === "js" ? "disu" : "iasu";
+  if (spec.flavor === "python" && flags.includes("a") && flags.includes("u"))
+    throw new UnsupportedPattern("the Python flags a and u are incompatible");
   for (const flag of flags) {
     if (!allowed.includes(flag))
       throw new UnsupportedPattern(
@@ -371,6 +373,9 @@ class Parser {
       this.fail("a lone ]");
     if (char === "}" && this.syntax.flavor === "js" && this.syntax.unicode)
       this.fail("a lone }");
+    // A { that starts no quantifier is a syntax error with the u flag.
+    if (char === "{" && this.syntax.flavor === "js" && this.syntax.unicode)
+      this.fail("a { that does not start a quantifier");
     const code = this.readLiteral();
     return { type: "set", ranges: this.literalSet(code) };
   }
@@ -539,7 +544,10 @@ class Parser {
     // An identity escape: a syntax character stands for itself (in Python
     // any ASCII punctuation does); any other escape is one Kibi does not
     // model.
-    if (/[\^$\\.*+?()[\]{}|/\-]/.test(char)) return code(char.charCodeAt(0));
+    if (/[\^$\\.*+?()[\]{}|/]/.test(char)) return code(char.charCodeAt(0));
+    // A JavaScript u pattern allows \- only inside a class (Python reaches
+    // the punctuation rule below).
+    if (char === "-" && (inClass || !this.syntax.unicode)) return code(0x2d);
     if (
       this.syntax.flavor === "python" &&
       /[^A-Za-z0-9]/.test(char) &&

@@ -73,10 +73,12 @@ export async function loadExistingPredicateSchemas(
       throw new Error(queryResult.error || "Query failed with unknown error");
     }
 
-    const facts = queryResult.bindings.Results
-      ? parseListOfLists(queryResult.bindings.Results).map(parseEntityFromList)
-      : [];
-    return facts.flatMap((fact) => predicateSchemaFromEntity(fact));
+    const results = queryResult.bindings.Results;
+    // A success without the binding found no schema.
+    if (results === undefined) return [];
+    return parseListOfLists(results)
+      .map(parseEntityFromList)
+      .flatMap((fact) => predicateSchemaFromEntity(fact));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     warnings.push(

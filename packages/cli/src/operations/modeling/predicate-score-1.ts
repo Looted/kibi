@@ -32,8 +32,10 @@ export function scoreExactPredicates1(
     return 0;
   }
   if (schema.predicate_name === "exception_rule") {
+    // The subject class already spans whitespace, so it absorbs a leading
+    // "the" and any extra spacing before the modal verb.
     if (
-      !/^(?:the\s+)?[a-z][a-z\s_-]*?\s+(?:must|shall|should)\s+.+?\s+unless\s+(?:the\s+)?.+?\.?$/i.test(
+      !/^[a-z][a-z\s_-]*\s(?:must|shall|should)\s+.+?\s+unless\s+(?:the\s+)?.+?\.?$/i.test(
         text,
       )
     ) {

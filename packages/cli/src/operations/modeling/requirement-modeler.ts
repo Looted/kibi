@@ -142,16 +142,15 @@ function strictSetClaim(
   provenance: string | undefined,
 ): ExtractedRequirementClaim | null {
   const normalized = stripListPrefix(statement);
-  const suggestion = detectStrictSuggestion(
-    { semantic_text: normalized },
-    normalized,
-  );
+  // Only the claim is read; the payload feeds suggestion metadata alone.
+  const suggestion = detectStrictSuggestion({}, normalized);
   if (suggestion?.kind !== "strict_property") return null;
   const strict: SemanticStrictPropertyClaim = suggestion.claim;
+  // Only set claims carry value_set, and a matches claim its value_string.
   const value =
-    strict.value_type === "set" && strict.value_set !== undefined
+    strict.value_set !== undefined
       ? [...strict.value_set]
-      : strict.operator === "matches" && strict.value_string !== undefined
+      : strict.operator === "matches"
         ? strict.value_string
         : undefined;
   if (value === undefined) return null;
