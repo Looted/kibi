@@ -11542,6 +11542,14 @@ test(audit_store_probe_leaves_a_missing_log_absent, [setup(setup_kb), cleanup(cl
     kb:audit_store_writable,
     assertion(\+ exists_file(AuditLog)).
 
+test(audit_store_probe_closes_the_log_it_opens, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-PROBED'),
+    kb:kb_audit_db(AuditLog),
+    assertion(exists_file(AuditLog)),
+    kb:audit_store_writable,
+    ks_open_file_streams(AuditLog, Streams),
+    assertion(Streams == []).
+
 test(legacy_delete_audits_what_it_removed, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     ks_assert(req, 'REQ-DELETED'),
     kb:entity_id_to_uri('REQ-DELETED', URI),
