@@ -1184,6 +1184,7 @@ kb_runtime_diagnostic :-
     format(user_error,
            '__KIBI_RUNTIME__:pid=~w;audit=~w;runtime=~w@~w;packages=~w~n',
            [Pid, AuditLog, RuntimeName, RuntimeVersion, PackageVersions]),
+    % mutalog-disable-next-line goal_true: the flush only matters to a parent reading the pipe while the goal still runs
     flush_output(user_error).
 
 kb_environment_value(Name, Value) :-
