@@ -21,3 +21,5 @@ Fix a failed `kibi sync --rebuild` publication deleting the live journal databas
 Source discovery reads pending receipts through one parser and lets errors in a well-formed receipt surface instead of swallowing them; behaviour for valid and malformed receipts is unchanged.
 
 `kibi init` drops an unused next-step identifier and a redundant containment check; its output is unchanged.
+
+`kibi init --github` derives workflow paths from one table and simplifies README badge placement; the README output is unchanged.
