@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import * as fs from "node:fs";
 import {
   mkdirSync,
   mkdtempSync,
@@ -225,6 +226,18 @@ describe("validateSkillBundle", () => {
         `Skill file exceeds 131072 bytes: ${join(root, "big.md")} (131073 bytes)`,
       ],
     ]);
+  });
+
+  test("reports a bundle root that cannot be resolved", () => {
+    const root = skill({ ...VALID, resources: ["r.md"] }, "b", { "r.md": "r" });
+    const realpath = spyOn(fs, "realpathSync").mockImplementation((() => {
+      throw new Error("broken root");
+    }) as unknown as typeof fs.realpathSync);
+    try {
+      expect(errorsOf(root)).toStrictEqual([["SKILL.md", "broken root"]]);
+    } finally {
+      realpath.mockRestore();
+    }
   });
 
   test("reports an oversize SKILL.md as a content error", () => {

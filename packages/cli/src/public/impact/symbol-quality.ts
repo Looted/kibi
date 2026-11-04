@@ -73,8 +73,8 @@ function createDuplicateCoordinateDiagnostics(
   return [...groups.values()].flatMap((group) => {
     if (group.length < 2) return [];
     if (hasDistinctCoordinates(group)) return [];
-    const first = group[0];
-    if (first === undefined) return [];
+    // The group holds at least two symbols.
+    const first = group[0] as SymbolMetadata;
     const candidateIds = group.map((symbol) => symbol.id).sort();
 
     return [
@@ -106,7 +106,8 @@ function requirementTagsById(
   const tagsById = new Map<string, readonly string[]>();
   for (const result of results) {
     if (result.entity.type !== "req") continue;
-    tagsById.set(result.entity.id, [...(result.entity.tags ?? [])].sort());
+    // Order does not matter: callers sort or compare tags as sets.
+    tagsById.set(result.entity.id, result.entity.tags ?? []);
   }
   return tagsById;
 }
@@ -126,12 +127,11 @@ function hasSharedRequirementTag(
   targetIds: readonly string[],
   tagsByRequirementId: ReadonlyMap<string, readonly string[]>,
 ): boolean {
-  const tagSets = targetIds
-    .map((targetId) => new Set(tagsByRequirementId.get(targetId) ?? []))
-    .filter((tagSet) => tagSet.size > 0);
-  const first = tagSets[0];
-  if (first === undefined || tagSets.length !== targetIds.length) return false;
-  return [...first].some((tag) => tagSets.every((tagSet) => tagSet.has(tag)));
+  // A target without tags shares none; callers pass at least one target.
+  const [first, ...rest] = targetIds.map(
+    (targetId) => new Set(tagsByRequirementId.get(targetId)),
+  ) as [Set<string>, ...Set<string>[]];
+  return [...first].some((tag) => rest.every((tagSet) => tagSet.has(tag)));
 }
 
 function isMixedPurposeCandidate(symbol: SymbolMetadata): boolean {

@@ -62,8 +62,13 @@ function validateBundleContents(
   } catch (error) {
     errors.push(new SkillValidationError("SKILL.md", messageOf(error)));
   }
-  // The caller saw SKILL.md exist, so its directory resolves.
-  const root = realpathSync(dirname(path));
+  let root: string;
+  try {
+    root = realpathSync(dirname(path));
+  } catch (error) {
+    errors.push(new SkillValidationError("SKILL.md", messageOf(error)));
+    return;
+  }
   for (const resource of manifest.resources ?? []) {
     const resourcePath = resolve(dirname(path), resource);
     try {

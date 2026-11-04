@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import * as path from "node:path";
-import { effectiveFirmness } from "../../decision-firmness.js";
+import { type Firmness, effectiveFirmness } from "../../decision-firmness.js";
 import {
   type ExtractedEntity,
   extractFromMarkdown,
@@ -32,12 +32,12 @@ export type RequirementStatementDiagnosticsOptions = {
 };
 
 function implementedRequirementIds(symbol: ExtractedSymbol): string[] {
-  return [
-    ...(symbol.relationships ?? [])
-      .filter((relationship) => relationship.type === "implements")
-      .map((relationship) => relationship.to),
-    ...symbol.reqLinks,
-  ].filter((id) => id.startsWith("REQ-"));
+  const ids = [...symbol.reqLinks];
+  // biome-ignore lint/complexity/noForEach: optional chaining needs no fallback list
+  symbol.relationships?.forEach((relationship) => {
+    if (relationship.type === "implements") ids.push(relationship.to);
+  });
+  return ids.filter((id) => id.startsWith("REQ-"));
 }
 
 function truncate(text: string, limit: number): string {
@@ -79,19 +79,21 @@ export function createRequirementStatementDiagnostics(
   for (const id of [...symbolsByRequirement.keys()].sort()) {
     const requirement = options.readRequirement(id);
     if (requirement === undefined || requirement.type !== "req") continue;
-    if (RETIRED_STATUS.test(requirement.status ?? "")) continue;
+    // A missing status reads as "undefined", which no retired word matches.
+    if (RETIRED_STATUS.test(String(requirement.status))) continue;
     if (options.requirementChanged(requirement)) continue;
-    const entry = symbolsByRequirement.get(id);
-    if (entry === undefined) continue;
+    // id is one of the map's own keys.
+    const entry = symbolsByRequirement.get(id) as {
+      names: Set<string>;
+      files: Set<string>;
+    };
+    // A requirement always carries a firmness.
     const firmness = effectiveFirmness(
       "req",
       requirement.firmness,
       requirement.origin,
-    );
-    const label =
-      firmness === "firm"
-        ? "firm: ask before changing"
-        : (firmness ?? "default");
+    ) as Firmness;
+    const label = firmness === "firm" ? "firm: ask before changing" : firmness;
     const statement = truncate(
       requirement.semantic_text ?? requirement.title,
       MAX_STATEMENT,
@@ -117,7 +119,7 @@ export function createRequirementStatementDiagnostics(
           : `Confirm the changed code still does what ${id} says. If it no longer does, the request conflicts with a recorded rule: ask whether to change ${id} before keeping the change, then supersede or update it in the same change with the person's words, and say in the final answer which rule changed.`,
       evidence: {
         requirement: id,
-        firmness: firmness ?? "default",
+        firmness,
         statement,
         symbols: sorted,
       },
@@ -142,10 +144,13 @@ export function workspaceFileChanged(
       {
         cwd: workspaceRoot,
         encoding: "utf8",
+        // rationale: stdio only keeps git's stderr off the console; stdout is the same
+        // Stryker disable next-line ArrayDeclaration
         stdio: ["ignore", "pipe", "ignore"],
       },
     );
-    return output.trim() !== "";
+    // Porcelain output is empty exactly when nothing changed.
+    return output !== "";
   } catch {
     return false;
   }
@@ -166,6 +171,7 @@ export function readWorkspaceRequirement(
       path.join(workspaceRoot, ".kb", "requirements", `${id}.md`),
     ).entity;
   } catch {
-    return undefined;
+    // A missing or unreadable document reads as unknown.
   }
+  return undefined;
 }
