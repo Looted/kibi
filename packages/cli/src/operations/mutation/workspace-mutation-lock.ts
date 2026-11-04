@@ -206,8 +206,9 @@ function removeLockOwner(
   );
 }
 
+/** A lock with neither kind needs operator recovery (or a reclaim). */
 type LockObservation = {
-  readonly kind: "live" | "missing" | "recovery";
+  readonly kind?: "live" | "missing";
   readonly description: string;
   /** Set only when the owner metadata is readable and its pid is dead. */
   readonly deadHolder?: LockRecord;
@@ -240,14 +241,12 @@ function observeExistingLock(
         };
       }
       return {
-        kind: "recovery",
         description: "lock owner metadata is missing or unverifiable",
       };
     }
   }
   if (record === null) {
     return {
-      kind: "recovery",
       description: `${source} is corrupt or unverifiable`,
     };
   }
@@ -257,12 +256,10 @@ function observeExistingLock(
     }
   } catch {
     return {
-      kind: "recovery",
       description: `holder pid ${record.pid} could not be verified as live`,
     };
   }
   return {
-    kind: "recovery",
     description: `holder pid ${record.pid} is not live`,
     // Legacy file locks are never reclaimed automatically.
     ...(source === "lock owner metadata" ? { deadHolder: record } : {}),

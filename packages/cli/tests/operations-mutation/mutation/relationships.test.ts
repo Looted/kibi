@@ -668,6 +668,14 @@ describe("validateLiveRelationshipTargets", () => {
     }
   });
 
+  test("skips a relationship from an unknown endpoint", async () => {
+    const { prolog, goals } = fakeProlog(() => no);
+    await validateLiveRelationshipTargets(prolog, entity, [
+      { type: "depends_on", from: "X-1", to: "REQ-1" },
+    ]);
+    expect(goals).toStrictEqual([typeGoal("X-1")]);
+  });
+
   test("looks up the entity itself when it has no string type", async () => {
     const { prolog, goals } = fakeProlog(() => no);
     await validateLiveRelationshipTargets(

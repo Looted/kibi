@@ -334,12 +334,9 @@ export async function validateLiveRelationshipTargets(
   }
 }
 
-function plannedFactKind(
-  planned: Readonly<Record<string, unknown>>,
-): string | undefined {
-  return planned.type === "fact" && typeof planned.fact_kind === "string"
-    ? planned.fact_kind
-    : undefined;
+function plannedFactKind(planned: Readonly<Record<string, unknown>>): unknown {
+  // A kind is compared with fixed names, so a non-string one matches none.
+  return planned.type === "fact" ? planned.fact_kind : undefined;
 }
 
 export async function validateStrictLanePairing(
