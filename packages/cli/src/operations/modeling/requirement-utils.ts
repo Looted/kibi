@@ -34,10 +34,8 @@ export function normalizeSourceFiles(
 
 // implements REQ-002
 export function clampConfidence(confidence: number | undefined): number {
-  const numeric =
-    typeof confidence === "number" && Number.isFinite(confidence)
-      ? confidence
-      : 0.8;
+  // Number.isFinite is false for every non-number, so it is the whole guard.
+  const numeric = Number.isFinite(confidence) ? (confidence as number) : 0.8;
   return Math.round(Math.min(1, Math.max(0, numeric)) * 100) / 100;
 }
 
@@ -75,9 +73,11 @@ export function normalizeClaimValue(
 
 // implements REQ-002
 export function stripListPrefix(value: string): string {
+  // One separator character is enough to match: the next pattern skips
+  // leading whitespace and the final trim drops the rest.
   return value
-    .replace(/^\s*[-*+]\s+/, "")
-    .replace(/^\s*\d+[.)]\s+/, "")
+    .replace(/^\s*[-*+]\s/, "")
+    .replace(/^\s*\d+[.)]\s/, "")
     .trim();
 }
 
@@ -89,7 +89,8 @@ export function trimSentenceTail(value: string): string {
 // implements REQ-002
 export function cleanSubject(value: string): string {
   const cleaned = trimSentenceTail(stripListPrefix(value));
-  return cleaned.replace(/^(?:the|a|an)\s+/i, "").trim() || cleaned;
+  // `cleaned` is already trimmed, so dropping the article leaves no edge space.
+  return cleaned.replace(/^(?:the|a|an)\s+/i, "") || cleaned;
 }
 
 // implements REQ-002

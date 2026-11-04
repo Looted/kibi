@@ -29,14 +29,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function whatIfWitness(witness: Record<string, unknown>): ContradictionWitness {
+  const { kind, ...rest } = witness;
   return {
-    ...witness,
+    ...rest,
     requirements: Array.isArray(witness.requirements)
       ? witness.requirements.map((id) => normalizeEntityId(String(id)))
       : [],
     reason: text(witness.reason),
     status: text(witness.status) || "contradiction",
-    ...(typeof witness.kind === "string" ? { kind: witness.kind } : {}),
+    ...(typeof kind === "string" ? { kind } : {}),
   };
 }
 
@@ -44,6 +45,16 @@ function whatIfWitnesses(value: unknown): ContradictionWitness[] {
   return (Array.isArray(value) ? value.filter(isRecord) : []).map(
     whatIfWitness,
   );
+}
+
+/** The parsed JSON value, or undefined when `raw` is not JSON. */
+function decodeJson(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // Unreadable output: undefined, which the caller rejects.
+  }
+  return undefined;
 }
 
 // implements REQ-kibi-truthful-consistency
@@ -56,13 +67,8 @@ function whatIfWitnesses(value: unknown): ContradictionWitness[] {
  */
 export function parseWhatIfAnalysis(raw: unknown): WhatIfAnalysis | null {
   if (typeof raw !== "string") return null;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-    if (typeof parsed === "string") parsed = JSON.parse(parsed);
-  } catch {
-    return null;
-  }
+  const once = decodeJson(raw);
+  const parsed = typeof once === "string" ? decodeJson(once) : once;
   if (Array.isArray(parsed)) {
     const after = whatIfWitnesses(parsed);
     return { after, introduced: after, removed: [], unchanged: [] };
