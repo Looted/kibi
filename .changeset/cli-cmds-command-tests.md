@@ -17,3 +17,5 @@ The report command reads its output target and certificate option once, and its 
 Fix the staged generated-manifest check failing with "Could not parse staged Git tree" when any staged path contains a newline.
 
 Fix a failed `kibi sync --rebuild` publication deleting the live journal database or CURRENT pointer when the step that moves it aside is the one that fails; the rollback now undoes only the moves that happened.
+
+Source discovery reads pending receipts through one parser and lets errors in a well-formed receipt surface instead of swallowing them; behaviour for valid and malformed receipts is unchanged.
