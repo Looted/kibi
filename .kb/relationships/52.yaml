@@ -302,7 +302,7 @@ relationships:
     id: rel-84519161bd00
   - type: implements
     from: SYM-schema6-planOriginBackfill
-    to: REQ-kibi-schema6-migration
+    to: REQ-kibi-schema6-migration-v2
     created_at: 2026-10-04T03:12:57.543Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

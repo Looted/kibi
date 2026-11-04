@@ -19989,16 +19989,20 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-skillopt-cursor-compat
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-operator-build-optimize-layout
     title: buildOptimizeLayout
     sourceFile: scripts/skillopt-eval/operator.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
       - type: covered_by
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-operator-command
@@ -20009,9 +20013,11 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-skillopt-cursor-compat
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-operator-default-dependencies
     title: defaultOperatorDependencies
     sourceFile: scripts/skillopt-eval/operator.ts
@@ -20020,9 +20026,11 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-skillopt-cursor-compat
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-operator-dependencies
     title: OperatorDependencies
     sourceFile: scripts/skillopt-eval/operator.ts
@@ -20031,16 +20039,20 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-skillopt-cursor-compat
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-operator-main
     title: main
     sourceFile: scripts/skillopt-eval/operator.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
       - type: covered_by
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-operator-optimize-layout
@@ -20051,16 +20063,20 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-skillopt-cursor-compat
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-operator-parse-args
     title: parseOperatorArgs
     sourceFile: scripts/skillopt-eval/operator.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
       - type: covered_by
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-operator-parsed-args
@@ -20071,16 +20087,20 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-skillopt-cursor-compat
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-operator-resolve-base
     title: resolveOperatorBase
     sourceFile: scripts/skillopt-eval/operator.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
       - type: covered_by
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-operator-run-command
@@ -20088,8 +20108,10 @@ symbols:
     sourceFile: scripts/skillopt-eval/operator.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
       - type: covered_by
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-operator-run-options
@@ -20100,9 +20122,11 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-skillopt-cursor-compat
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-operator-usage-error
     title: OperatorUsageError
     sourceFile: scripts/skillopt-eval/operator.ts
@@ -20110,8 +20134,10 @@ symbols:
     granularity_reason: legacy-link
     text_ref: scripts/skillopt-eval/operator.ts#OperatorUsageError
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
       - type: covered_by
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-operator-usage-error-name
@@ -20120,8 +20146,10 @@ symbols:
     symbol_role: behavioral
     text_ref: scripts/skillopt-eval/operator.ts#OperatorUsageError.name
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
       - type: covered_by
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-operator-tests
@@ -23837,8 +23865,10 @@ symbols:
     sourceFile: tools/skillopt/verify_pin.py
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
       - type: covered_by
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-verify-lock
@@ -23846,8 +23876,10 @@ symbols:
     sourceFile: tools/skillopt/verify_pin.py
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
       - type: covered_by
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-wait-process-group-reaping
@@ -25725,8 +25757,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-bootstrap-apply-long-running
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
+        target: REQ-bootstrap-apply-long-running
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
   - id: SYM-WorkspaceMutationLockError-name
@@ -25736,8 +25770,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-bootstrap-apply-long-running
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
+        target: REQ-bootstrap-apply-long-running
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
   - id: SYM-WorkspaceMutationLockFileSystem
@@ -25747,8 +25783,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-bootstrap-apply-long-running
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
+        target: REQ-bootstrap-apply-long-running
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
   - id: SYM-WorkspaceMutationLockHandle
@@ -25758,8 +25796,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-bootstrap-apply-long-running
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
+        target: REQ-bootstrap-apply-long-running
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
   - id: SYM-WorkspaceMutationLockOptions
@@ -25769,8 +25809,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-bootstrap-apply-long-running
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
+        target: REQ-bootstrap-apply-long-running
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
   - id: SYM-classifySourceMutationFailure
@@ -25780,8 +25822,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-bootstrap-apply-long-running
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
+        target: REQ-bootstrap-apply-long-running
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
   - id: SYM-WorkflowDependencies
@@ -34398,7 +34442,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-cell-receipt
     title: CursorCellReceipt
     status: active
@@ -34409,7 +34453,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-variant-summary
     title: CursorVariantSummary
     status: active
@@ -34420,7 +34464,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-compatibility-report
     title: CursorCompatibilityReport
     status: active
@@ -34431,7 +34475,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-objective-workflow-shape
     title: ObjectiveWorkflow
     status: active
@@ -34455,7 +34499,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-qualification-deps
     title: CursorQualificationDependencies
     status: active
@@ -34466,7 +34510,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-variant-type
     title: CursorVariant
     status: active
@@ -34477,7 +34521,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-qualification-check
     title: CursorQualificationCheck
     status: active
@@ -34488,7 +34532,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-qualification-receipt
     title: CursorQualificationReceipt
     status: active
@@ -34499,7 +34543,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-qualification-error
     title: CursorQualificationError
     status: active
@@ -34510,7 +34554,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-qualification-error-name
     title: CursorQualificationError.name
     status: active
@@ -34521,7 +34565,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-sha256-text
     title: sha256Text
     status: active
@@ -34532,7 +34576,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-summarize-cells
     title: summarizeCursorCells
     status: active
@@ -34543,7 +34587,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-evaluate-verdict
     title: evaluateCursorVerdict
     status: active
@@ -34554,7 +34598,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-run-compat-gate
     title: runCursorCompatibilityGate
     status: active
@@ -34565,7 +34609,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-persist-report
     title: persistCursorCompatibilityReport
     status: active
@@ -34576,7 +34620,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-default-cell-timeout
     title: DEFAULT_CURSOR_CELL_TIMEOUT_MS
     status: active
@@ -34587,7 +34631,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-candidate-type
     title: CursorCandidate
     status: active
@@ -34598,7 +34642,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-gate-input
     title: CursorGateInput
     status: active
@@ -34609,7 +34653,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-evaluation-branch
     title: CURSOR_EVALUATION_BRANCH
     status: active
@@ -34620,7 +34664,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-run-cell
     title: runCursorCell
     status: active
@@ -34631,7 +34675,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-cell-options
     title: CursorCellOptions
     status: active
@@ -34642,7 +34686,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-completed-cell
     title: CompletedCursorCell
     status: active
@@ -34653,7 +34697,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-cell-deps
     title: CursorCellDependencies
     status: active
@@ -34664,7 +34708,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-cursor-compat
       - type: implements
-        target: REQ-skillopt-codex-optimization
+        target: REQ-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-parse-args
     title: parseCursorArgs
     status: active
@@ -35208,8 +35252,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-bootstrap-apply-long-running
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
+        target: REQ-bootstrap-apply-long-running
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
   - id: SYM-withWorkspaceMutationLock
@@ -35219,8 +35265,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-bootstrap-apply-long-running
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
+        target: REQ-bootstrap-apply-long-running
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
   - id: SYM-withSymbolCompilerLock
@@ -35393,8 +35441,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-bootstrap-apply-long-running
       - type: implements
-        target: REQ-core-atomic-upsert-persistence
+        target: REQ-bootstrap-apply-long-running
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
   - id: SYM-SymbolCompilerLockOptions
@@ -39914,7 +39964,7 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-kibi-verification-receipts-v2
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-proof-buildProofResults
     title: buildProofResults
     status: active
@@ -39924,7 +39974,7 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-kibi-verification-receipts-v2
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-proof-proofArtifact
     title: proofArtifact
     status: active
@@ -39934,7 +39984,7 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-kibi-verification-receipts-v2
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-proof-validateProofTestIds
     title: validateProofTestIds
     status: active
@@ -39944,7 +39994,7 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-kibi-verification-receipts-v2
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-proof-runZcodeProof
     title: runZcodeProof
     status: active
@@ -39954,7 +40004,7 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-kibi-verification-receipts-v2
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-proof-main
     title: main
     status: active
@@ -39964,7 +40014,7 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-kibi-verification-receipts-v2
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-proof-nativeId
     title: nativeId
     status: active
@@ -39974,7 +40024,7 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-kibi-verification-receipts-v2
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-proof-ZCODE_TEST_ID
     title: ZCODE_TEST_ID
     status: active
@@ -39985,7 +40035,7 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-kibi-verification-receipts-v2
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-proof-ZCODE_PROOF_COMMAND
     title: ZCODE_PROOF_COMMAND
     status: active
@@ -39996,7 +40046,7 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-kibi-verification-receipts-v2
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-proof-ZCODE_BUN_TEST_ARGS
     title: ZCODE_BUN_TEST_ARGS
     status: active
@@ -40007,7 +40057,7 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-kibi-verification-receipts-v2
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-proof-ZCODE_NATIVE_CASES
     title: ZCODE_NATIVE_CASES
     status: active
@@ -40018,7 +40068,7 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-kibi-verification-receipts-v2
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-e2e-test-briefs-retired
     title: briefs-retired.test
     status: active
@@ -49363,7 +49413,7 @@ symbols:
       - type: covered_by
         target: TEST-kibi-schema6-migration-cli
       - type: implements
-        target: REQ-kibi-schema6-migration
+        target: REQ-kibi-schema6-migration-v2
   - id: SYM-schema6-applyOriginBackfill
     title: applyOriginBackfill
     status: active
@@ -49378,7 +49428,7 @@ symbols:
       - type: covered_by
         target: TEST-kibi-schema6-migration-cli
       - type: implements
-        target: REQ-kibi-schema6-migration
+        target: REQ-kibi-schema6-migration-v2
   - id: SYM-schema6-planInventoryRederivation
     title: planInventoryRederivation
     status: active
@@ -49393,7 +49443,7 @@ symbols:
       - type: covered_by
         target: TEST-kibi-schema6-migration-cli
       - type: implements
-        target: REQ-kibi-schema6-migration
+        target: REQ-kibi-schema6-migration-v2
   - id: SYM-schema6-applyInventoryRederivation
     title: applyInventoryRederivation
     status: active
@@ -49408,7 +49458,7 @@ symbols:
       - type: covered_by
         target: TEST-kibi-schema6-migration-cli
       - type: implements
-        target: REQ-kibi-schema6-migration
+        target: REQ-kibi-schema6-migration-v2
   - id: SYM-schema6-buildSchema6MigrationFragment
     title: buildSchema6MigrationFragment
     status: active
@@ -52352,7 +52402,7 @@ symbols:
       - type: covered_by
         target: TEST-kibi-upsert-review-lanes
       - type: implements
-        target: REQ-kibi-review-observation-claim-text
+        target: REQ-kibi-review-observation-claim-text-v2
   - id: SYM-test-kibi-upsert-review-lanes
     title: kb_upsert review lanes consumer suite
     status: active

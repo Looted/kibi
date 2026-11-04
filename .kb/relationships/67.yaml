@@ -337,7 +337,7 @@ relationships:
     id: rel-729fa05ad04e
   - type: implements
     from: SYM-core-valid-claim-provenance
-    to: REQ-kibi-review-observation-claim-text
+    to: REQ-kibi-review-observation-claim-text-v2
     created_at: 2026-10-06T20:44:48.998Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

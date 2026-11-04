@@ -134,7 +134,7 @@ relationships:
     id: rel-05e651ebad4d
   - type: implements
     from: SYM-schema6-applyOriginBackfill
-    to: REQ-kibi-schema6-migration
+    to: REQ-kibi-schema6-migration-v2
     created_at: 2026-10-04T03:13:04.804Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
