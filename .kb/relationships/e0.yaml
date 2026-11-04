@@ -325,13 +325,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d54fcd93ee87
-  - type: implements
-    from: SYM-cli-COVERAGE_ROW_PAGE_SIZE
-    to: REQ-kibi-proof-run-vocabulary
-    created_at: 2026-10-28T17:50:24.080Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-28991bd32d5a
   - type: covered_by
     from: SYM-cli-COVERAGE_ROW_PAGE_SIZE
     to: TEST-proof-coverage-row-page-size

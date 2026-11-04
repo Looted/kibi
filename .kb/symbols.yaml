@@ -26739,14 +26739,14 @@ symbols:
     symbol_role: unknown
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-producers-and-storage
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-proof-integrations-path
-      - type: implements
-        target: REQ-kibi-proof-run-vocabulary
   - id: SYM-proof-runs-dir
     title: PROOF_RUNS_DIR
     sourceFile: packages/cli/src/proof/integrations.ts
@@ -26754,14 +26754,14 @@ symbols:
     symbol_role: unknown
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-producers-and-storage
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-proof-runs-dir
-      - type: implements
-        target: REQ-kibi-proof-run-vocabulary
   - id: SYM-producer-kinds
     title: PRODUCER_KINDS
     sourceFile: packages/cli/src/proof/integrations.ts
@@ -26769,14 +26769,14 @@ symbols:
     symbol_role: unknown
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-producers-and-storage
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-producer-kinds
-      - type: implements
-        target: REQ-kibi-proof-run-vocabulary
   - id: SYM-proof-receipt-outcome
     title: ProofReceiptOutcome
     sourceFile: packages/cli/src/proof/receipt-outcome.ts
@@ -27021,14 +27021,14 @@ symbols:
     symbol_role: unknown
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-result-vocabulary
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-proof-result-outcomes
-      - type: implements
-        target: REQ-kibi-proof-run-vocabulary
   - id: SYM-proof-binding-kinds
     title: PROOF_BINDING_KINDS
     sourceFile: packages/cli/src/public/proof-protocol.ts
@@ -27036,14 +27036,14 @@ symbols:
     symbol_role: unknown
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-contract-vocabulary
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-proof-binding-kinds
-      - type: implements
-        target: REQ-kibi-proof-run-vocabulary
   - id: SYM-attempts-status-2
     title: ATTEMPTS_STATUS
     sourceFile: packages/cli/src/public/proof-protocol.ts
@@ -27051,14 +27051,14 @@ symbols:
     symbol_role: unknown
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-result-vocabulary
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-attempts-status
-      - type: implements
-        target: REQ-kibi-proof-run-vocabulary
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-run-failure-phases
@@ -27068,14 +27068,14 @@ symbols:
     symbol_role: unknown
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-result-vocabulary
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-run-failure-phases
-      - type: implements
-        target: REQ-kibi-proof-run-vocabulary
   - id: SYM-success-policies
     title: SUCCESS_POLICIES
     sourceFile: packages/cli/src/public/proof-protocol.ts
@@ -27083,14 +27083,14 @@ symbols:
     symbol_role: unknown
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-contract-vocabulary
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-success-policies
-      - type: implements
-        target: REQ-kibi-proof-run-vocabulary
   - id: SYM-proof-result-schema
     title: PROOF_RESULT_SCHEMA
     sourceFile: packages/cli/src/public/proof-protocol.ts
@@ -27253,6 +27253,8 @@ symbols:
     symbol_role: unknown
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-retention-limits
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
@@ -27261,8 +27263,6 @@ symbols:
         target: TEST-proof-max-proof-receipts
       - type: implements
         target: REQ-kibi-fresh-verification-receipts-v2
-      - type: implements
-        target: REQ-kibi-proof-run-vocabulary
       - type: implements
         target: REQ-kibi-verification-receipts-v2
   - id: SYM-ingest-proof-spec
@@ -32341,14 +32341,14 @@ symbols:
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     granularity_reason: config-artifact
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-retention-limits
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-coverage-row-page-size
-      - type: implements
-        target: REQ-kibi-proof-run-vocabulary
   - id: SYM-cli-receiptCodeScopeSymbolIds
     title: receiptCodeScopeSymbolIds
     status: active

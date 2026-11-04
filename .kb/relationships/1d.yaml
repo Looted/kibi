@@ -482,3 +482,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e2207f49db7
+  - type: constrains
+    from: REQ-kibi-proof-result-vocabulary
+    to: FACT-kibi-proof-run-vocabulary-component
+    created_at: 2026-11-04T14:49:25.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9fa66854348
+  - type: requires_property
+    from: REQ-kibi-proof-result-vocabulary
+    to: FACT-proof-result-outcomes
+    created_at: 2026-11-04T14:49:25.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a80c81c9400
+  - type: requires_property
+    from: REQ-kibi-proof-result-vocabulary
+    to: FACT-run-failure-phases
+    created_at: 2026-11-04T14:49:25.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44327f0ab551
+  - type: requires_property
+    from: REQ-kibi-proof-result-vocabulary
+    to: FACT-attempts-status
+    created_at: 2026-11-04T14:49:25.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4045298653d5
+  - type: specified_by
+    from: REQ-kibi-proof-result-vocabulary
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-11-04T14:49:25.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ead168fc22ee
+  - type: supersedes
+    from: REQ-kibi-proof-result-vocabulary
+    to: REQ-kibi-proof-run-vocabulary
+    created_at: 2026-11-04T14:49:25.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0bc600cd61e

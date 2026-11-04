@@ -209,13 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f93e225a585a
-  - type: implements
-    from: SYM-proof-integrations-path
-    to: REQ-kibi-proof-run-vocabulary
-    created_at: 2026-10-28T17:49:26.592Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1b5c77f803f9
   - type: covered_by
     from: SYM-proof-integrations-path
     to: TEST-proof-proof-integrations-path

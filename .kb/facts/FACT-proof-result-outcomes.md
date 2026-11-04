@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.proof.run_vocabulary
 claim_key: CLAIM-D8E61F01CA133EFE
 claim_text: A proof result outcome shall be passed, failed, timed_out, skipped, interrupted or errored
-text_ref: REQ-kibi-proof-run-vocabulary
+text_ref: REQ-kibi-proof-result-vocabulary
 property_key: result_outcomes
 operator: eq
 value_type: set

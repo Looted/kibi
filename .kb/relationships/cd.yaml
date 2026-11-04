@@ -370,3 +370,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9062603f53ed
+  - type: constrains
+    from: REQ-kibi-proof-producers-and-storage
+    to: FACT-kibi-proof-run-vocabulary-component
+    created_at: 2026-11-04T14:50:20.200Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bdffd75d5be
+  - type: requires_property
+    from: REQ-kibi-proof-producers-and-storage
+    to: FACT-producer-kinds
+    created_at: 2026-11-04T14:50:20.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9264ffd6f457
+  - type: requires_property
+    from: REQ-kibi-proof-producers-and-storage
+    to: FACT-proof-integrations-path
+    created_at: 2026-11-04T14:50:20.266Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfabf0f91916
+  - type: requires_property
+    from: REQ-kibi-proof-producers-and-storage
+    to: FACT-proof-runs-dir
+    created_at: 2026-11-04T14:50:20.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7efb2543632e
+  - type: specified_by
+    from: REQ-kibi-proof-producers-and-storage
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-11-04T14:50:20.308Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65cda9ce73d8
+  - type: supersedes
+    from: REQ-kibi-proof-producers-and-storage
+    to: REQ-kibi-proof-run-vocabulary
+    created_at: 2026-11-04T14:50:20.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d13e39fb0da7
