@@ -15,3 +15,5 @@ Simplify the manifest merge driver's record bookkeeping and the untracked-docume
 The report command reads its output target and certificate option once, and its commit lookup and badge share no longer carry redundant fallbacks.
 
 Fix the staged generated-manifest check failing with "Could not parse staged Git tree" when any staged path contains a newline.
+
+Fix a failed `kibi sync --rebuild` publication deleting the live journal database or CURRENT pointer when the step that moves it aside is the one that fails; the rollback now undoes only the moves that happened.
