@@ -80,6 +80,8 @@ pnpm, Yarn, and Bun work the same way through their local runners. The [installa
 
 **Upgrading.** After updating the Kibi packages, run `kibi migrate` (or ask your agent to). It shows what would change and applies nothing until you approve; the [CLI reference](https://looted.github.io/kibi/reference/cli.html#kibi-migrate) covers each schema version.
 
+**Versions.** Each release has one Kibi release version, such as `2026.11.0`, that names its exact package set and declares the KB schema it uses. `kibi --version` and `kibi doctor` show it, and doctor warns when installed packages come from different releases. See [Kibi release versions](https://looted.github.io/kibi/guide/install.html#kibi-release-versions).
+
 ## Connect your coding agent
 
 The setup prompt above does this step for you. To do it by hand: every client starts the same project-local `kibi-mcp` server (`npx --no-install kibi-mcp`, stdio, working directory = your repository). Optional plugins add bundled skills and hooks on top.

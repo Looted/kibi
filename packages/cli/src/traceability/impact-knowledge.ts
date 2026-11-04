@@ -31,30 +31,33 @@ function semanticEntityFingerprint(
   const semantic: Record<string, unknown> =
     entity.type === "req"
       ? { id: entity.id, type: entity.type }
-      : Object.fromEntries(
-          Object.entries(entity)
-            .filter(
-              ([key]) =>
-                ![
-                  "source",
-                  "created_at",
-                  "updated_at",
-                  "title",
-                  "proof_receipts",
-                  // Provenance metadata, not authored meaning.
-                  "origin",
-                ].includes(key),
-            )
-            .sort(([a], [b]) => a.localeCompare(b)),
+      : // canonicalJson orders the keys, so entry order is irrelevant here.
+        Object.fromEntries(
+          Object.entries(entity).filter(
+            ([key]) =>
+              ![
+                "source",
+                "created_at",
+                "updated_at",
+                "title",
+                "proof_receipts",
+                // Provenance metadata, not authored meaning.
+                "origin",
+              ].includes(key),
+          ),
         );
   if (entity.type === "req") {
-    if (entity.semantic_source_field === "title") semantic.title = entity.title;
-    else if (entity.semantic_source_field === "text_ref")
-      semantic.text_ref = entity.text_ref;
-    else semantic.semantic_text = entity.semantic_text;
+    const sourceField =
+      entity.semantic_source_field === "title" ||
+      entity.semantic_source_field === "text_ref"
+        ? entity.semantic_source_field
+        : "semantic_text";
+    // A requirement may have no text in its source field (a title-only
+    // requirement has no semantic_text); an absent field is simply not bound.
     // rationale explains why a requirement exists; it is not checked meaning,
     // so editing it does not count as a semantic change.
     for (const key of [
+      sourceField,
       "semantic_clauses",
       "logic_claims",
       "proof_exempt",
@@ -112,10 +115,7 @@ export function entityRows(
   knowledge = readSnapshotKnowledge(snapshot.readGit, tree, snapshot.readBlobs),
 ): Map<string, EntityRow> {
   const mdFiles = entriesForTree(snapshot, tree).filter(
-    (entry) =>
-      entry.type === "blob" &&
-      entry.path.startsWith(".kb/") &&
-      entry.path.endsWith(".md"),
+    (entry) => entry.path.startsWith(".kb/") && entry.path.endsWith(".md"),
   );
   const symbolsPath =
     entriesForTree(snapshot, tree).find(
@@ -124,16 +124,21 @@ export function entityRows(
     )?.path ?? "";
   const artifactById = new Map<string, string>();
   for (const entry of mdFiles) {
-    const bytes = blobBytes(snapshot, entry);
-    if (!bytes) continue;
-    const source = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-    const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(
-      source,
-    )?.[1];
-    if (!frontmatter) continue;
-    const parsed = parseYaml(frontmatter) as { id?: unknown } | null;
-    if (parsed && typeof parsed.id === "string")
-      artifactById.set(parsed.id, entry.path);
+    // A non-blob entry has no bytes and decodes as an empty file.
+    const source = new TextDecoder("utf-8", { fatal: true }).decode(
+      blobBytes(snapshot, entry),
+    );
+    // The pattern is anchored at the start, so a file has at most one
+    // frontmatter match, and a file without frontmatter has none.
+    for (const [, frontmatter] of source.matchAll(
+      /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/g,
+    )) {
+      const parsed = parseYaml(frontmatter as string) as
+        | { id?: unknown }
+        | undefined;
+      if (typeof parsed?.id === "string")
+        artifactById.set(parsed.id, entry.path);
+    }
   }
   const rows = new Map<string, EntityRow>();
   for (const result of knowledge) {
@@ -210,22 +215,25 @@ export function requirementScope(
   const symbols = knowledge.filter(
     (row) =>
       row.type === "symbol" &&
-      (pathCandidates.includes(row.sourcePath ?? "") ||
-        pathCandidates.includes(row.artifactPath)),
+      pathCandidates.some(
+        (path) => path === row.sourcePath || path === row.artifactPath,
+      ),
   );
   const relationshipRows = readOnlyRelationships(rows);
   const ids = new Set<string>();
   for (const entity of knowledge)
     if (entity.type === "req" && pathCandidates.includes(entity.artifactPath))
       ids.add(entity.id);
-  for (const symbol of symbols)
-    for (const relation of relationshipRows.get(symbol.id) ?? []) {
+  const symbolIds = new Set(symbols.map((symbol) => symbol.id));
+  for (const [from, relations] of relationshipRows) {
+    if (!symbolIds.has(from)) continue;
+    for (const relation of relations)
       if (
         relation.type === "implements" &&
         rows.get(relation.to)?.type === "req"
       )
         ids.add(relation.to);
-    }
+  }
   return [...ids].sort();
 }
 

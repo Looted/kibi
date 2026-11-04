@@ -15,7 +15,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { PUBLISHABLE_DIRS } from "../package-catalog.ts";
+import { PACKAGE_CATALOG, PUBLISHABLE_DIRS } from "../package-catalog.ts";
 
 const WORKFLOW_PATH = join(
   import.meta.dir,
@@ -218,6 +218,62 @@ describe("publish.yml CI workflow contract", () => {
           version: "2.0.1",
         }),
       );
+      // The release manifest step reads every publishable package and the
+      // compatibility constants; stub the source files it imports.
+      for (const file of [
+        "kibi-release.ts",
+        "check-release-bumps.ts",
+        "package-catalog.ts",
+      ]) {
+        cpSync(
+          join(repositoryRoot, "scripts", file),
+          join(root, "scripts", file),
+        );
+      }
+      mkdirSync(join(root, "packages/cli/src/utils"), { recursive: true });
+      writeFileSync(
+        join(root, "packages/cli/src/utils/schema-version.ts"),
+        "export const LATEST_KB_SCHEMA_VERSION = 13;\n",
+      );
+      mkdirSync(join(root, "packages/plugin-sdk/src"), { recursive: true });
+      writeFileSync(
+        join(root, "packages/plugin-sdk/src/protocol.ts"),
+        'export const KIBI_PLUGIN_API_VERSION = "kibi.plugin.v1";\n',
+      );
+      const releasePackages: Record<string, string> = {};
+      for (const entry of PACKAGE_CATALOG) {
+        if (!entry.publishable) continue;
+        const manifestPath = join(root, "packages", entry.dir, "package.json");
+        if (entry.dir !== "mcp" && entry.dir !== "codex") {
+          mkdirSync(join(root, "packages", entry.dir), { recursive: true });
+          writeFileSync(
+            manifestPath,
+            JSON.stringify({ name: entry.npmName, version: "1.0.0" }),
+          );
+        }
+        releasePackages[entry.npmName] = JSON.parse(
+          readFileSync(manifestPath, "utf8"),
+        ).version;
+      }
+      const seededRelease = {
+        release: "2026.11.0",
+        date: "2026-11-03",
+        packages: releasePackages,
+        compatibility: {
+          kbSchema: { current: 13, migratesFrom: 1 },
+          operationProtocol: 1,
+          pluginApi: "kibi.plugin.v1",
+        },
+      };
+      writeFileSync(
+        join(root, "packages/core/release.json"),
+        `${JSON.stringify(seededRelease, null, 2)}\n`,
+      );
+      mkdirSync(join(root, "releases"));
+      writeFileSync(
+        join(root, "releases/history.json"),
+        `${JSON.stringify([seededRelease], null, 2)}\n`,
+      );
       writeFileSync(
         join(root, ".changeset/existing-mcp-fix.md"),
         '---\n"kibi-mcp": patch\n"kibi-codex": patch\n---\n\nExisting MCP fix.\n',
@@ -231,7 +287,7 @@ describe("publish.yml CI workflow contract", () => {
         ["run", "version-packages"],
         {
           cwd: root,
-          env: process.env,
+          env: { ...process.env, KIBI_RELEASE_DATE: "2026-11-04" },
           encoding: "utf8",
           timeout: 30000,
         },
@@ -277,13 +333,33 @@ describe("publish.yml CI workflow contract", () => {
       expect(
         readFileSync(join(root, "packages/codex/CHANGELOG.md"), "utf8"),
       ).toContain(`## ${codex.version}`);
+      // The release step bumped kibi-core so it ships the new manifest.
+      const core = JSON.parse(
+        readFileSync(join(root, "packages/core/package.json"), "utf8"),
+      );
+      expect(core.version).toBe("1.0.1");
+      const release = JSON.parse(
+        readFileSync(join(root, "packages/core/release.json"), "utf8"),
+      );
+      expect(release.release).toBe("2026.11.1");
+      expect(release.date).toBe("2026-11-04");
+      expect(release.packages["kibi-mcp"]).toBe("2.1.2");
+      expect(release.packages["kibi-core"]).toBe("1.0.1");
+      expect(
+        JSON.parse(
+          readFileSync(join(root, "releases/history.json"), "utf8"),
+        ).map((entry: { release: string }) => entry.release),
+      ).toEqual(["2026.11.1", "2026.11.0"]);
+      expect(
+        readFileSync(join(root, "packages/core/CHANGELOG.md"), "utf8"),
+      ).toContain("Ships the release manifest for Kibi 2026.11.1.");
       // Re-running the normal command after consuming both Changesets is idempotent.
       const repeated = spawnSync(
         process.execPath,
         ["run", "version-packages"],
         {
           cwd: root,
-          env: process.env,
+          env: { ...process.env, KIBI_RELEASE_DATE: "2026-11-04" },
           encoding: "utf8",
           timeout: 30000,
         },
@@ -297,6 +373,11 @@ describe("publish.yml CI workflow contract", () => {
       expect(
         readFileSync(join(root, "packages/mcp/CHANGELOG.md"), "utf8"),
       ).toBe(changelog);
+      expect(
+        JSON.parse(
+          readFileSync(join(root, "packages/core/release.json"), "utf8"),
+        ).release,
+      ).toBe("2026.11.1");
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

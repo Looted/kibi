@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import { resolveWorkspaceSourceAbsolute } from "../utils/repo-relative-path.js";
@@ -40,9 +40,9 @@ export interface SymbolCoordinatesArtifact {
 // implements REQ-generated-coordinate-persistence
 export interface CoordinateExtractionIdentity {
   readonly id: string;
-  readonly title?: string;
-  readonly sourceFile?: string;
-  readonly granularity_reason?: string;
+  readonly title?: string | undefined;
+  readonly sourceFile?: string | undefined;
+  readonly granularity_reason?: string | undefined;
 }
 
 // implements REQ-generated-coordinate-persistence
@@ -120,15 +120,13 @@ export function coarseCoordinateSpan(
   title: string,
   content: string,
 ): SymbolCoordinatesRecord {
+  const lines = content.split(/\r?\n/);
   if (title.length > 0) {
     const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const pattern = new RegExp(`\\b${escaped}\\b`);
-    const lines = content.split(/\r?\n/);
     for (let index = 0; index < lines.length; index++) {
-      const line = lines[index];
-      if (line === undefined) continue;
-      const match = pattern.exec(line);
-      if (!match || match.index < 0) continue;
+      const match = pattern.exec(lines[index] as string);
+      if (!match) continue;
       return {
         sourceFile,
         sourceLine: index + 1,
@@ -138,14 +136,13 @@ export function coarseCoordinateSpan(
       };
     }
   }
-  const lines = content.split(/\r?\n/);
-  const lastLine = lines[lines.length - 1] ?? "";
+  // split always yields at least one (possibly empty) line.
   return {
     sourceFile,
     sourceLine: 1,
     sourceColumn: 0,
-    sourceEndLine: Math.max(1, lines.length),
-    sourceEndColumn: lastLine.length,
+    sourceEndLine: lines.length,
+    sourceEndColumn: (lines[lines.length - 1] as string).length,
   };
 }
 
@@ -169,28 +166,26 @@ export function isValidCoordinateSpan(
     sourceEndLine,
     sourceEndColumn,
   } = value;
+  // Number.isInteger is false for every non-number.
   return (
     typeof sourceFile === "string" &&
     sourceFile.length > 0 &&
-    typeof sourceLine === "number" &&
     Number.isInteger(sourceLine) &&
-    sourceLine >= 1 &&
-    typeof sourceColumn === "number" &&
+    (sourceLine as number) >= 1 &&
     Number.isInteger(sourceColumn) &&
-    sourceColumn >= 0 &&
-    typeof sourceEndLine === "number" &&
+    (sourceColumn as number) >= 0 &&
     Number.isInteger(sourceEndLine) &&
-    sourceEndLine >= sourceLine &&
-    typeof sourceEndColumn === "number" &&
+    (sourceEndLine as number) >= (sourceLine as number) &&
     Number.isInteger(sourceEndColumn) &&
-    sourceEndColumn >= 0
+    (sourceEndColumn as number) >= 0
   );
 }
 
 interface RawCoordinateEntry {
   readonly span: SymbolCoordinatesRecord;
-  readonly identityHash?: string;
-  readonly sourceHash?: string;
+  /** A valid hash, or undefined when the record carries none. */
+  readonly identityHash: string | undefined;
+  readonly sourceHash: string | undefined;
 }
 
 function normalizeRawEntry(value: unknown): RawCoordinateEntry | null {
@@ -211,12 +206,9 @@ function normalizeRawEntry(value: unknown): RawCoordinateEntry | null {
       sourceEndLine: rest.sourceEndLine,
       sourceEndColumn: rest.sourceEndColumn,
     },
-    ...(typeof identityHash === "string" && identityHash.length > 0
-      ? { identityHash }
-      : {}),
-    ...(typeof sourceHash === "string" && sourceHash.length > 0
-      ? { sourceHash }
-      : {}),
+    // Present hashes were validated above; absent ones are undefined.
+    identityHash: identityHash as string | undefined,
+    sourceHash: sourceHash as string | undefined,
   };
 }
 
@@ -273,26 +265,23 @@ export function parseCoordinateArtifact(
       reason: `unsupported or missing artifact version: ${String(declaredVersion)}`,
     };
   }
-  if (declaredVersion === SYMBOL_COORDINATES_FORMAT_VERSION) {
-    const bound: Record<string, BoundSymbolCoordinatesRecord> = {};
-    for (const [id, entry] of Object.entries(entries)) {
-      const identityHash = entry.identityHash;
-      const sourceHash = entry.sourceHash;
-      if (identityHash === undefined || sourceHash === undefined) {
-        return {
-          status: "invalid",
-          reason: `record '${id}' is missing its identity or source binding in a versioned artifact`,
-        };
-      }
-      bound[id] = { ...entry.span, identityHash, sourceHash };
+  const bound: Record<string, BoundSymbolCoordinatesRecord> = {};
+  for (const [id, entry] of Object.entries(entries)) {
+    const identityHash = entry.identityHash;
+    const sourceHash = entry.sourceHash;
+    if (identityHash === undefined || sourceHash === undefined) {
+      return {
+        status: "invalid",
+        reason: `record '${id}' is missing its identity or source binding in a versioned artifact`,
+      };
     }
-    return {
-      status: "parsed",
-      formatVersion: SYMBOL_COORDINATES_FORMAT_VERSION,
-      coordinates: bound,
-    };
+    bound[id] = { ...entry.span, identityHash, sourceHash };
   }
-  return { status: "invalid", reason: "unreachable artifact parser state" };
+  return {
+    status: "parsed",
+    formatVersion: SYMBOL_COORDINATES_FORMAT_VERSION,
+    coordinates: bound,
+  };
 }
 
 /**
@@ -310,9 +299,9 @@ export function writeCoordinateArtifact(
     left.localeCompare(right),
   )) {
     const entry = entries[id];
-    if (entry === undefined || !isValidCoordinateSpan(entry)) {
+    if (!isValidCoordinateSpan(entry)) {
       throw new CoordinateArtifactError(
-        `refusing to publish an invalid or missing coordinate span${id === undefined ? "" : ` for ${id}`}`,
+        `refusing to publish an invalid or missing coordinate span for ${id}`,
       );
     }
     if (!isSha256Hash(entry.identityHash) || !isSha256Hash(entry.sourceHash)) {
@@ -334,9 +323,9 @@ export function writeCoordinateArtifact(
     version: SYMBOL_COORDINATES_FORMAT_VERSION,
     coordinates,
   };
+  // Every record is a fresh object, so the dump has no references to avoid.
   return `${SYMBOL_COORDINATES_COMMENT_BLOCK}${dumpYAML(artifact, {
     lineWidth: -1,
-    noRefs: true,
   })}`;
 }
 
@@ -350,7 +339,7 @@ export function writeLegacyCoordinateArtifact(
     left.localeCompare(right),
   )) {
     const entry = entries[id];
-    if (entry === undefined || !isValidCoordinateSpan(entry)) {
+    if (!isValidCoordinateSpan(entry)) {
       throw new CoordinateArtifactError(
         `refusing to publish an invalid or missing legacy coordinate span for ${id}`,
       );
@@ -365,7 +354,7 @@ export function writeLegacyCoordinateArtifact(
   }
   return `${SYMBOL_COORDINATES_COMMENT_BLOCK}${dumpYAML(
     { coordinates },
-    { lineWidth: -1, noRefs: true },
+    { lineWidth: -1 },
   )}`;
 }
 
@@ -406,22 +395,23 @@ function stripGeneratedFields(
   return next;
 }
 
+/**
+ * The record's source path: a non-empty `sourceFile`, else `source`. An empty
+ * or non-string `source` never equals a valid span's source file and hashes
+ * like a missing one, so it needs no check of its own.
+ */
 function manifestSourceFile(record: ManifestSymbolRecord): string | undefined {
   if (typeof record.sourceFile === "string" && record.sourceFile.length > 0) {
     return record.sourceFile;
   }
-  if (typeof record.source === "string" && record.source.length > 0) {
-    return record.source;
-  }
-  return undefined;
+  return record.source;
 }
 
 function defaultResolveSourceText(sourceFile: string): string | null {
   const absolute = resolveWorkspaceSourceAbsolute(process.cwd(), sourceFile);
-  if (absolute === null || !existsSync(absolute)) return null;
   try {
-    const content = readFileSync(absolute, "utf8");
-    return typeof content === "string" ? content : null;
+    // A path outside the workspace resolves to null, which readFileSync rejects.
+    return readFileSync(absolute as string, "utf8");
   } catch {
     return null;
   }
@@ -472,7 +462,7 @@ export function mergeCoordinatesWithManifest(
     if (!sourceTexts.has(sourceFile)) {
       sourceTexts.set(sourceFile, readSourceText(sourceFile));
     }
-    return sourceTexts.get(sourceFile) ?? null;
+    return sourceTexts.get(sourceFile) as string | null;
   };
   const sourceHashes = new Map<string, string | null>();
   const sourceHashOf = (sourceFile: string): string | null => {
@@ -486,7 +476,7 @@ export function mergeCoordinatesWithManifest(
         text === null ? null : coordinateSourceHash(text),
       );
     }
-    return sourceHashes.get(sourceFile) ?? null;
+    return sourceHashes.get(sourceFile) as string | null;
   };
   const rawCoordinates = coordinateArtifact?.coordinates ?? {};
   return symbolRecords.map((symbolRecord) => {
@@ -505,24 +495,19 @@ export function mergeCoordinatesWithManifest(
     const sourceHash = (candidate as { sourceHash?: unknown }).sourceHash;
     if (identityHash !== undefined || sourceHash !== undefined) {
       const recordSourceFile = manifestSourceFile(symbolRecord);
+      // The identity key reads every non-string field as "".
       const expected = coordinateIdentityHash({
         id: symbolId,
-        ...(symbolRecord.title === undefined
-          ? {}
-          : { title: symbolRecord.title }),
-        ...(recordSourceFile === undefined
-          ? {}
-          : { sourceFile: recordSourceFile }),
-        ...(typeof symbolRecord.granularity_reason === "string"
-          ? { granularity_reason: symbolRecord.granularity_reason }
-          : {}),
+        title: symbolRecord.title,
+        sourceFile: recordSourceFile,
+        granularity_reason: symbolRecord.granularity_reason,
       });
+      // `expected` is a valid hash, so equality also validates identityHash,
+      // and a valid span's non-empty sourceFile never equals a missing one.
       if (
-        !isSha256Hash(identityHash) ||
-        !isSha256Hash(sourceHash) ||
         identityHash !== expected ||
+        !isSha256Hash(sourceHash) ||
         !isValidCoordinateSpan(candidate) ||
-        recordSourceFile === undefined ||
         candidate.sourceFile !== recordSourceFile
       ) {
         return stripped;
@@ -554,9 +539,10 @@ function legacyRecordMatchesCurrentExtraction(
   entry: SymbolCoordinatesRecord,
   resolveSourceText: (sourceFile: string) => string | null,
 ): boolean {
-  const sourceFile = manifestSourceFile(record);
-  if (sourceFile === undefined || entry.sourceFile !== sourceFile) return false;
-  const title = typeof record.title === "string" ? record.title : "";
+  // A valid span's non-empty sourceFile never equals a missing one.
+  if (entry.sourceFile !== manifestSourceFile(record)) return false;
+  const title = record.title;
+  if (typeof title !== "string") return false;
   const declarationName = title.slice(title.lastIndexOf(".") + 1);
   if (declarationName.length === 0) return false;
   const content = resolveSourceText(entry.sourceFile);
@@ -564,9 +550,7 @@ function legacyRecordMatchesCurrentExtraction(
   const lines = content.split(/\r?\n/);
   const lineText = lines[entry.sourceLine - 1];
   if (lineText === undefined) return false;
-  if (entry.sourceColumn > lineText.length - declarationName.length) {
-    return false;
-  }
+  // A span that runs past the line slices short and cannot match.
   return (
     lineText.slice(
       entry.sourceColumn,
@@ -578,16 +562,12 @@ function legacyRecordMatchesCurrentExtraction(
 function inlineSpanOf(
   record: ManifestSymbolRecord,
 ): SymbolCoordinatesRecord | undefined {
-  const sourceFile = manifestSourceFile(record) ?? "";
-  const span: SymbolCoordinatesRecord = {
-    sourceFile,
-    sourceLine: typeof record.sourceLine === "number" ? record.sourceLine : -1,
-    sourceColumn:
-      typeof record.sourceColumn === "number" ? record.sourceColumn : -1,
-    sourceEndLine:
-      typeof record.sourceEndLine === "number" ? record.sourceEndLine : -1,
-    sourceEndColumn:
-      typeof record.sourceEndColumn === "number" ? record.sourceEndColumn : -1,
+  const span = {
+    sourceFile: manifestSourceFile(record),
+    sourceLine: record.sourceLine,
+    sourceColumn: record.sourceColumn,
+    sourceEndLine: record.sourceEndLine,
+    sourceEndColumn: record.sourceEndColumn,
   };
   return isValidCoordinateSpan(span) ? span : undefined;
 }

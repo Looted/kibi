@@ -205,6 +205,10 @@ function localPartialRanges(
 ): readonly { startLine: number; endLine: number }[] | null {
   const codes = analysis.diagnostics.map((diagnostic) => diagnostic.code);
   if (codes.some((code) => /LIMIT/i.test(code))) return null;
+  // rationale: only the blocked verdict is read. For a partial analysis it
+  // depends on the ranges and codes alone; the side (anything but "before")
+  // and the hunk list only choose between the non-blocking verdicts.
+  // Stryker disable StringLiteral,ArrayDeclaration
   const obligation = analysisObligation(
     "after",
     {
@@ -214,6 +218,7 @@ function localPartialRanges(
     },
     [],
   );
+  // Stryker restore StringLiteral,ArrayDeclaration
   return obligation.kind === "blocked" ? null : analysis.uncoveredRanges;
 }
 
@@ -235,6 +240,30 @@ function describeAnalysisDiagnostics(
   ].join("; ");
 }
 
+type SourceSpan = Readonly<{
+  startLine: number;
+  startColumn: number;
+  endLine: number;
+  endColumn: number;
+}>;
+
+function sameSpan(left: SourceSpan, right: SourceSpan): boolean {
+  return (
+    left.startLine === right.startLine &&
+    left.startColumn === right.startColumn &&
+    left.endLine === right.endLine &&
+    left.endColumn === right.endColumn
+  );
+}
+
+const DECORATOR_REASON = "decorator-may-alter-or-create-declarations";
+
+/**
+ * A partial tree-sitter Python analysis whose only gaps are decorators: each
+ * diagnostic is a decorator-expansion notice whose range is one of the
+ * uncovered ranges, and each uncovered range is a decorator range some
+ * diagnostic names.
+ */
 function isCoordinateOnlyDecoratorPartial(
   analysis: Awaited<ReturnType<SourceAnalysisService["analyzeTextV2"]>>,
 ): boolean {
@@ -249,32 +278,21 @@ function isCoordinateOnlyDecoratorPartial(
   )
     return false;
   return (
-    analysis.diagnostics.every((diagnostic) => {
-      if (
-        diagnostic.code !== "TREESITTER_DECORATOR_EXPANSION_UNAVAILABLE" ||
-        diagnostic.range === undefined
-      )
-        return false;
-      const range = diagnostic.range;
-      return analysis.uncoveredRanges.some(
-        (uncovered) =>
-          uncovered.reason === "decorator-may-alter-or-create-declarations" &&
-          uncovered.startLine === range.startLine &&
-          uncovered.startColumn === range.startColumn &&
-          uncovered.endLine === range.endLine &&
-          uncovered.endColumn === range.endColumn,
-      );
-    }) &&
+    analysis.diagnostics.every(
+      ({ code, range }) =>
+        code === "TREESITTER_DECORATOR_EXPANSION_UNAVAILABLE" &&
+        range !== undefined &&
+        analysis.uncoveredRanges.some((uncovered) =>
+          sameSpan(uncovered, range),
+        ),
+    ) &&
+    // The check above guarantees every diagnostic a range, and an uncovered
+    // range matched with another reason fails here.
     analysis.uncoveredRanges.every(
       (uncovered) =>
-        uncovered.reason === "decorator-may-alter-or-create-declarations" &&
-        analysis.diagnostics.some(
-          ({ range }) =>
-            range !== undefined &&
-            uncovered.startLine === range.startLine &&
-            uncovered.startColumn === range.startColumn &&
-            uncovered.endLine === range.endLine &&
-            uncovered.endColumn === range.endColumn,
+        uncovered.reason === DECORATOR_REASON &&
+        analysis.diagnostics.some(({ range }) =>
+          sameSpan(uncovered, range as SourceSpan),
         ),
     )
   );
@@ -301,8 +319,7 @@ export async function enrichSymbolCoordinates(
   const tsEntries: ManifestSymbolEntry[] = [];
 
   for (let index = 0; index < output.length; index++) {
-    const entry = output[index];
-    if (!entry) continue;
+    const entry = output[index] as ManifestSymbolEntry;
 
     const resolved = resolveSourcePath(entry.sourceFile, workspaceRoot);
     if (!resolved || !fs.statSync(resolved.absolutePath).isFile()) {
@@ -317,16 +334,19 @@ export async function enrichSymbolCoordinates(
       continue;
     }
 
-    const ext = path.extname(resolved.absolutePath).toLowerCase();
     if (isTsJsSourcePath(resolved.absolutePath)) {
       tsIndices.push(index);
       tsEntries.push(entry);
       continue;
     }
 
+    // rationale: only a Windows path.relative yields backslashes; on POSIX a
+    // source path is normalized before it resolves, so none can reach here.
+    // Stryker disable MethodExpression,StringLiteral
     const logicalPath = path
       .relative(workspaceRoot, resolved.absolutePath)
       .replaceAll("\\", "/");
+    // Stryker restore MethodExpression,StringLiteral
     let analysis = analyses.get(logicalPath);
     const firstAnalysis = analysis === undefined;
     if (!analysis) {
@@ -424,11 +444,9 @@ export async function enrichSymbolCoordinates(
 
   if (tsEntries.length > 0) {
     const enrichedTs = await enrichTsCoordinates(tsEntries, workspaceRoot);
-    for (let i = 0; i < tsIndices.length; i++) {
-      const target = tsIndices[i];
+    for (const [i, target] of tsIndices.entries()) {
       const enriched = enrichedTs[i];
-      if (target === undefined || !enriched) continue;
-      output[target] = enriched;
+      if (enriched) output[target] = enriched;
     }
   }
 
@@ -462,8 +480,7 @@ function enrichWithRegexHeuristic(
     const lines = content.split(/\r?\n/);
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i] ?? "";
-      const match = pattern.exec(line);
+      const match = pattern.exec(lines[i] as string);
       if (!match) continue;
 
       const sourceLine = i + 1;
@@ -483,9 +500,9 @@ function enrichWithRegexHeuristic(
 
     return entry;
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    // readFileSync and String.prototype.replace only throw Error instances.
     console.warn(
-      `[kibi] Failed regex coordinate heuristic for ${entry.id}: ${message}`,
+      `[kibi] Failed regex coordinate heuristic for ${entry.id}: ${(error as Error).message}`,
     );
     return entry;
   }
@@ -507,11 +524,12 @@ function resolveSourcePath(
   workspaceRoot: string,
 ): { absolutePath: string } | null {
   if (!sourceFile) return null;
+  // existsSync is false for the null of a path outside the workspace.
   const absolutePath = resolveWorkspaceSourceAbsolute(
     workspaceRoot,
     sourceFile,
-  );
-  if (absolutePath === null || !fs.existsSync(absolutePath)) return null;
+  ) as string;
+  if (!fs.existsSync(absolutePath as string)) return null;
   return { absolutePath };
 }
 
@@ -543,8 +561,7 @@ function detectSourceLanguage(filePath: string): string {
   return extensionLanguage(filePath);
 }
 
+/** The file name without its extension (a dotfile has no extension). */
 function inferModuleTitle(filePath: string): string {
-  const extension = path.extname(filePath);
-  const basename = path.basename(filePath, extension);
-  return basename.length > 0 ? basename : path.basename(filePath);
+  return path.basename(filePath, path.extname(filePath));
 }

@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e8f32ea82ea
+  - type: implements
+    from: SYM-cli-is-closed-output-error
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-11-04T05:30:57.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b054b7b0907b
+  - type: covered_by
+    from: SYM-cli-is-closed-output-error
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-11-04T05:30:57.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d30727391d96

@@ -384,3 +384,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09a7af91ee52
+  - type: implements
+    from: SYM-cli-kibi-release-kibi-release-manifest
+    to: REQ-kibi-release-version
+    created_at: 2026-11-04T05:30:08.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e837146fc08a
+  - type: covered_by
+    from: SYM-cli-kibi-release-kibi-release-manifest
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:30:08.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a62054ace17e
+  - type: implements
+    from: SYM-010
+    to: REQ-kibi-release-version
+    created_at: 2026-11-04T05:31:23.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ad8ccb3f1dd
+  - type: covered_by
+    from: SYM-010
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:31:23.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9681b6e2c57

@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b8469bf7073b
+  - type: implements
+    from: SYM-cli-built-package-versions
+    to: REQ-engine-daemon-package-versions
+    created_at: 2026-11-04T05:30:52.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-116cc3e090f3
+  - type: covered_by
+    from: SYM-cli-built-package-versions
+    to: TEST-engine-daemon-package-versions
+    created_at: 2026-11-04T05:30:52.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89d63c3f8942

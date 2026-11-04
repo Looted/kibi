@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-614d92955be1
+  - type: implements
+    from: SYM-mcp-server-title
+    to: REQ-kibi-release-version
+    created_at: 2026-11-04T05:31:08.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d10ccce88eeb
+  - type: covered_by
+    from: SYM-mcp-server-title
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:31:08.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e122c9e61ba

@@ -9,16 +9,15 @@
  */
 
 function getEnvValue(key: string): string | undefined {
-  const value = process.env[key];
-  return typeof value === "string" ? value : undefined;
+  return process.env[key];
 }
 
 export function getBranchOverride(): string | undefined {
   // Branch identity is exact and must not be normalized. Preserve whitespace
   // so the Git-ref validator rejects an accidental value instead of silently
   // attaching a different branch.
-  const value = getEnvValue("KIBI_BRANCH");
-  return value === undefined || value.length === 0 ? undefined : value;
+  // An empty value means no override.
+  return getEnvValue("KIBI_BRANCH") || undefined;
 }
 
 export function getKbPlPathOverride(): string | undefined {

@@ -19,7 +19,6 @@
 import {
   type PluginMode,
   type PluginProviderStamp,
-  PluginValidationError,
   type SemanticClassificationDecision,
   type SemanticClassifierInput,
   type SemanticClassifierResult,
@@ -96,10 +95,11 @@ export function withFallback(
 function isUnresolved(
   decision: SemanticClassificationDecision | undefined,
 ): boolean {
-  if (!decision) return true;
-  if (decision.lane === "none") return true;
-  if (decision.ambiguity?.ambiguous === true) return true;
-  return false;
+  return (
+    decision === undefined ||
+    decision.lane === "none" ||
+    decision.ambiguity?.ambiguous === true
+  );
 }
 
 /** Bound and redact provider error text before it reaches diagnostics. */
@@ -120,26 +120,14 @@ export function diagnosticFromError(
   const message = redactClassifierMessage(
     error instanceof Error ? error.message : String(error),
   );
-  let code = "unknown";
-  let model: string | undefined;
-  if (error instanceof PluginValidationError) {
-    code = error.code;
-  } else if (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    typeof (error as { code?: unknown }).code === "string"
-  ) {
-    code = (error as { code: string }).code;
-  }
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "model" in error &&
-    typeof (error as { model?: unknown }).model === "string"
-  ) {
-    model = (error as { model: string }).model;
-  }
+  // A PluginValidationError carries its code as a string field too, so one
+  // field read covers it; primitives simply have no such fields.
+  const fields = error as
+    | { code?: unknown; model?: unknown }
+    | null
+    | undefined;
+  const code = typeof fields?.code === "string" ? fields.code : "unknown";
+  const model = typeof fields?.model === "string" ? fields.model : undefined;
   return {
     pluginId: binding.pluginId,
     packageName: binding.packageName,
@@ -169,28 +157,22 @@ async function runClassifier(
   }
 }
 
-function fillMissingDecisions(
+/**
+ * One decision per input proposition, in input order; a proposition no
+ * provider decided gets the conservative `none` lane.
+ */
+function decisionsInInputOrder(
   input: SemanticClassifierInput,
-  decisions: readonly SemanticClassificationDecision[],
-  builtin: SemanticClassifierResult | null,
+  chosen: ReadonlyMap<string, SemanticClassificationDecision>,
 ): SemanticClassificationDecision[] {
-  const byKey = new Map(
-    decisions.map((decision) => [decision.claimKey, decision]),
+  return input.propositions.map(
+    (proposition) =>
+      chosen.get(proposition.claimKey) ?? {
+        claimKey: proposition.claimKey,
+        lane: "none" as const,
+        confidence: 0,
+      },
   );
-  const builtinByKey = new Map(
-    (builtin?.decisions ?? []).map((decision) => [decision.claimKey, decision]),
-  );
-  return input.propositions.map((proposition) => {
-    const existing = byKey.get(proposition.claimKey);
-    if (existing) return existing;
-    const fallback = builtinByKey.get(proposition.claimKey);
-    if (fallback) return fallback;
-    return {
-      claimKey: proposition.claimKey,
-      lane: "none" as const,
-      confidence: 0,
-    };
-  });
 }
 
 /**
@@ -213,80 +195,65 @@ export async function composeSemanticClassification(
     readonly decisions: readonly SemanticClassificationDecision[];
   }> = [];
   let fallbackUsed = false;
-  let decisions: SemanticClassificationDecision[] = [];
+  // Canonical decision per claim key; validated results never hold a foreign
+  // or duplicate key, so adopting a result is a plain per-key overwrite.
+  const chosen = new Map<string, SemanticClassificationDecision>();
+  const adopt = (decisions: readonly SemanticClassificationDecision[]) => {
+    for (const decision of decisions) chosen.set(decision.claimKey, decision);
+  };
 
   if (allowExternal && resolution.replace) {
     const replaced = await runClassifier(resolution.replace, input);
     if (replaced.ok) {
       // Replace success: missing decisions get conservative `none`, not builtin
       // fill. Valid empty decisions[] is abstention (same as ontology replace).
-      decisions = fillMissingDecisions(input, replaced.result.decisions, null);
+      adopt(replaced.result.decisions);
       stamps.push(resolution.replace.stamp);
     } else {
       diagnostics.push(replaced.diagnostic);
       const builtinResult = await runClassifier(resolution.builtin, input);
       if (builtinResult.ok) {
-        decisions = [...builtinResult.result.decisions];
+        adopt(builtinResult.result.decisions);
         stamps.push(withFallback(resolution.builtin.stamp, true));
       } else {
         diagnostics.push(builtinResult.diagnostic);
-        decisions = [];
       }
       fallbackUsed = true;
     }
   } else {
     const builtinResult = await runClassifier(resolution.builtin, input);
     if (builtinResult.ok) {
-      decisions = [...builtinResult.result.decisions];
+      adopt(builtinResult.result.decisions);
       stamps.push(resolution.builtin.stamp);
     } else {
       diagnostics.push(builtinResult.diagnostic);
-      decisions = [];
     }
 
     if (allowExternal) {
       for (const augment of resolution.augment) {
-        const unresolvedKeys = new Set(
-          input.propositions
-            .filter((proposition) => {
-              const current = decisions.find(
-                (decision) => decision.claimKey === proposition.claimKey,
-              );
-              return isUnresolved(current);
-            })
-            .map((proposition) => proposition.claimKey),
+        const propositions = input.propositions.filter((proposition) =>
+          isUnresolved(chosen.get(proposition.claimKey)),
         );
-        if (unresolvedKeys.size === 0) break;
+        if (propositions.length === 0) break;
 
-        const subset: SemanticClassifierInput = {
-          propositions: input.propositions.filter((proposition) =>
-            unresolvedKeys.has(proposition.claimKey),
-          ),
-        };
-        const augmentResult = await runClassifier(augment, subset);
+        const augmentResult = await runClassifier(augment, { propositions });
         if (!augmentResult.ok) {
           diagnostics.push(augmentResult.diagnostic);
           continue;
         }
         stamps.push(augment.stamp);
-        const byKey = new Map(
-          decisions.map((decision) => [decision.claimKey, decision]),
-        );
-        for (const decision of augmentResult.result.decisions) {
-          if (!unresolvedKeys.has(decision.claimKey)) continue;
-          if (decision.lane === "none") continue;
-          byKey.set(decision.claimKey, decision);
-        }
-        decisions = fillMissingDecisions(
-          input,
-          [...byKey.values()],
-          builtinResult.ok ? builtinResult.result : null,
+        // The subset is the expected key set, so every decision here is for a
+        // still-unresolved proposition; a `none` answer never displaces one.
+        adopt(
+          augmentResult.result.decisions.filter(
+            (decision) => decision.lane !== "none",
+          ),
         );
       }
     }
   }
 
-  decisions = fillMissingDecisions(input, decisions, null);
+  const decisions = decisionsInInputOrder(input, chosen);
 
   if (allowExternal) {
     for (const shadow of resolution.shadow) {

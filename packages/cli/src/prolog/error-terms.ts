@@ -80,13 +80,15 @@ export type PrologErrorRecord = Readonly<{
   storeLocked?: PrologStoreLockedDetail;
 }>;
 
+/** The first structured error term line of `text`, behind the sentinel. */
+const ERROR_TERM_LINE = new RegExp(`^${PROLOG_ERROR_TERM_PREFIX}(.+)`, "m");
+
 /** Extract the first structured error term line from raw stderr text. */
 // implements REQ-core-prolog-process-management
 export function extractPrologErrorRecord(
   text: string,
 ): PrologErrorRecord | null {
-  const match = text.match(/^__KIBI_ERROR__:(.+)$/m);
-  const term = match?.[1];
+  const term = ERROR_TERM_LINE.exec(text)?.[1];
   if (term === undefined) return null;
   return parsePrologErrorTerm(term);
 }
@@ -104,7 +106,9 @@ export function parsePrologErrorTerm(
   const [formalRaw, contextRaw] = splitTopLevelGeneral(formalAndContext, ",");
   if (!formalRaw) return null;
 
-  const context = contextRaw ? parseContextTerm(contextRaw) : null;
+  const contextMessage = contextRaw
+    ? parseContextMessage(contextRaw)
+    : undefined;
   const parsed = parseFormalTerm(formalRaw);
   if (!parsed) return null;
 
@@ -164,7 +168,7 @@ export function parsePrologErrorTerm(
       };
     case "entity_not_found": {
       const entityId = unquoteAtom(parsed.entityId);
-      const role = parseEntityRole(context?.message);
+      const role = parseEntityRole(contextMessage);
       const verb =
         role === "source"
           ? "Source entity"
@@ -187,7 +191,7 @@ export function parsePrologErrorTerm(
         code: "contradiction",
         conflicts,
         message:
-          context?.message ??
+          contextMessage ??
           "Contradiction detected: conflicting requirements without a supersedes relationship",
       };
     }
@@ -199,22 +203,51 @@ export function parsePrologErrorTerm(
   }
 }
 
-type ContextTerm = Readonly<{ predicate?: string; message?: string }>;
+/**
+ * The message of an error context: the second argument of
+ * `context(Predicate, Message)`, or the whole context when it is a plain
+ * atom. An empty message is none.
+ */
+function parseContextMessage(contextRaw: string): string | undefined {
+  const inner = contextRaw.trim().match(/^context\((.*)\)$/s)?.[1];
+  const message = unquoteAtom(
+    inner === undefined
+      ? contextRaw
+      : (splitTopLevelGeneral(inner, ",")[1] ?? ""),
+  );
+  return message === "" ? undefined : message;
+}
 
-function parseContextTerm(contextRaw: string): ContextTerm | null {
-  const contextMatch = contextRaw.trim().match(/^context\((.*)\)$/s);
-  if (contextMatch?.[1] === undefined) {
-    const message = unquoteAtom(contextRaw.trim());
-    return message === "" ? null : { message };
+/**
+ * The owner journal of a store-locked error, or null when it is missing,
+ * empty or not a JSON object.
+ */
+function parseLockOwner(
+  ownerRaw: string | undefined,
+): PrologStoreLockOwner | null {
+  try {
+    // A missing journal throws in unquoteAtom, an empty one in JSON.parse,
+    // and a null one at the first field read; each means no owner.
+    const parsed = JSON.parse(unquoteAtom(ownerRaw as string)) as {
+      pid?: unknown;
+      workspaceRoot?: unknown;
+      bootId?: unknown;
+      startedAt?: unknown;
+    };
+    if (typeof parsed !== "object") return null;
+    return {
+      ...(typeof parsed.pid === "number" ? { pid: parsed.pid } : {}),
+      ...(typeof parsed.workspaceRoot === "string"
+        ? { workspaceRoot: parsed.workspaceRoot }
+        : {}),
+      ...(typeof parsed.bootId === "string" ? { bootId: parsed.bootId } : {}),
+      ...(typeof parsed.startedAt === "string"
+        ? { startedAt: parsed.startedAt }
+        : {}),
+    };
+  } catch {
+    return null;
   }
-  const parts = splitTopLevelGeneral(contextMatch[1], ",");
-  if (parts.length === 0) return null;
-  const predicate = parts[0]?.trim();
-  const message = parts[1] ? unquoteAtom(parts[1].trim()) : "";
-  return {
-    ...(predicate ? { predicate } : {}),
-    ...(message ? { message } : {}),
-  };
 }
 
 /**
@@ -234,56 +267,15 @@ function parseStoreLockedContext(
   if (!contextRaw) return empty;
   const inner = contextRaw.trim().match(/^kb_store_locked\((.*)\)$/s)?.[1];
   if (inner === undefined) return empty;
-  const parts = splitTopLevelGeneral(inner, ",");
-  const ownerRaw = parts[0]?.trim();
-  const lockRaw = parts[1]?.trim();
-  const lockDirectory = lockRaw ? unquoteAtom(lockRaw) : "";
+  const [ownerRaw, lockRaw, originalRaw] = splitTopLevelGeneral(inner, ",");
   // kb.pl preserves the original attach failure so nothing is masked by the
   // store_locked re-brand (e.g. a permissions problem vs a lock clash).
-  const originalRaw = parts[2]?.trim();
   const originalError = originalRaw ? unquoteAtom(originalRaw) : "";
-  if (!ownerRaw || ownerRaw === '""' || ownerRaw === "''") {
-    return {
-      owner: null,
-      lockDirectory,
-      ...(originalError !== "" ? { originalError } : {}),
-    };
-  }
-  try {
-    const parsed = JSON.parse(unquoteAtom(ownerRaw)) as {
-      pid?: unknown;
-      workspaceRoot?: unknown;
-      bootId?: unknown;
-      startedAt?: unknown;
-    };
-    if (parsed === null || typeof parsed !== "object") {
-      return {
-        owner: null,
-        lockDirectory,
-        ...(originalError !== "" ? { originalError } : {}),
-      };
-    }
-    return {
-      owner: {
-        ...(typeof parsed.pid === "number" ? { pid: parsed.pid } : {}),
-        ...(typeof parsed.workspaceRoot === "string"
-          ? { workspaceRoot: parsed.workspaceRoot }
-          : {}),
-        ...(typeof parsed.bootId === "string" ? { bootId: parsed.bootId } : {}),
-        ...(typeof parsed.startedAt === "string"
-          ? { startedAt: parsed.startedAt }
-          : {}),
-      },
-      lockDirectory,
-      ...(originalError !== "" ? { originalError } : {}),
-    };
-  } catch {
-    return {
-      owner: null,
-      lockDirectory,
-      ...(originalError !== "" ? { originalError } : {}),
-    };
-  }
+  return {
+    owner: parseLockOwner(ownerRaw),
+    lockDirectory: lockRaw ? unquoteAtom(lockRaw) : "",
+    ...(originalError !== "" ? { originalError } : {}),
+  };
 }
 
 type FormalTerm =
@@ -299,13 +291,14 @@ type FormalTerm =
 function parseFormalTerm(formalRaw: string): FormalTerm | null {
   const formal = formalRaw.trim();
   const functorMatch = formal.match(/^([a-z][A-Za-z0-9_]*)\((.*)\)$/s);
-  if (functorMatch?.[1] === undefined || functorMatch[2] === undefined) {
-    return null;
-  }
-  const functor = functorMatch[1];
-  const args = functorMatch[2].trim()
-    ? splitTopLevelGeneral(functorMatch[2], ",")
-    : [];
+  if (functorMatch === null) return null;
+  // Both groups always take part in a match.
+  const [, functor, argsText] = functorMatch as unknown as [
+    string,
+    string,
+    string,
+  ];
+  const args = argsText.trim() ? splitTopLevelGeneral(argsText, ",") : [];
 
   if (functor === "permission_error") {
     const operation = args[0]?.trim();
@@ -322,7 +315,7 @@ function parseFormalTerm(formalRaw: string): FormalTerm | null {
   }
 
   if (functor === "existence_error" && args[0]?.trim() === "entity") {
-    const entityId = args[1]?.trim();
+    const entityId = args[1];
     if (entityId === undefined) return null;
     return { kind: "entity_not_found", entityId: unquoteAtom(entityId) };
   }
@@ -332,13 +325,11 @@ function parseFormalTerm(formalRaw: string): FormalTerm | null {
   }
 
   if (functor === "kb_contradiction") {
-    const listText = args[0]?.trim() ?? "[]";
-    const pairs = parseContradictionPairs(listText);
-    return { kind: "contradiction", pairs };
+    return { kind: "contradiction", pairs: parseContradictionPairs(args[0]) };
   }
 
   if (functor === "validation_error") {
-    const message = args[0]?.trim();
+    const message = args[0];
     if (message === undefined) return null;
     return { kind: "validation_error", message: unquoteAtom(message) };
   }
@@ -356,54 +347,57 @@ function parseInvalidRelationshipContext(
   const parts = splitTopLevelGeneral(inner, ",");
   const formatted = parts[1]?.trim();
   if (formatted === undefined) return null;
-  const formatMatch = formatted.match(/^(.*)-\[(.*)\]$/s);
-  const template = formatMatch?.[1];
-  const argsText = formatMatch?.[2];
-  if (template === undefined || argsText === undefined) return null;
-  const formatArgs = argsText.trim()
-    ? splitTopLevelGeneral(argsText, ",").map((arg) => unquoteAtom(arg.trim()))
-    : [];
-  return { formatTemplate: unquoteAtom(template.trim()), formatArgs };
+  // The greedy first group starts at the beginning anyway.
+  const formatMatch = formatted.match(/(.*)-\[(.*)\]$/s);
+  if (formatMatch === null) return null;
+  // Both groups always take part in a match.
+  const [, template, argsText] = formatMatch as unknown as [
+    string,
+    string,
+    string,
+  ];
+  return {
+    formatTemplate: unquoteAtom(template),
+    formatArgs: splitTopLevelGeneral(argsText, ",").map(unquoteAtom),
+  };
 }
 
 function substituteRelationshipArgs(
-  template: string | null,
-  args: readonly string[] | null,
+  template: string,
+  args: readonly string[],
 ): PrologErrorRelationship | null {
-  if (template === null || args === null || args.length < 3) return null;
+  if (args.length < 3) return null;
   const substituted = template
     .split("~w")
-    .map((chunk, index) =>
-      index === 0 ? chunk : `${args[index - 1] ?? ""}${chunk}`,
-    )
+    // args[-1] is undefined, so the first chunk gets no argument.
+    .map((chunk, index) => `${args[index - 1] ?? ""}${chunk}`)
     .join("");
   const match = substituted.match(
     /^Invalid relationship:\s*(\S+)\s+from\s+(\S+)\s+to\s+(\S+)\s*$/,
   );
-  if (!match?.[1] || !match[2] || !match[3]) return null;
-  return {
-    relType: match[1],
-    fromType: match[2],
-    toType: match[3],
-  };
+  if (match === null) return null;
+  // Every group of a match holds at least one character.
+  const [, relType, fromType, toType] = match as unknown as [
+    string,
+    string,
+    string,
+    string,
+  ];
+  return { relType, fromType, toType };
 }
 
-function parseContradictionPairs(listText: string): Array<[string, string]> {
+function parseContradictionPairs(
+  listText: string | undefined,
+): Array<[string, string]> {
+  if (listText === undefined) return [];
   const trimmed = listText.trim();
   if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) return [];
-  const inner = trimmed.slice(1, -1).trim();
-  if (inner === "") return [];
-  return splitTopLevelGeneral(inner, ",")
-    .map((item) => splitTopLevelGeneral(item.trim(), "-"))
-    .map((pair) => {
-      const reason = pair[0] ?? "";
-      const otherId = pair[1] ?? "";
-      return [unquoteAtom(reason.trim()), unquoteAtom(otherId.trim())] as [
-        string,
-        string,
-      ];
-    })
-    .filter((pair) => pair[0] !== "" && pair[1] !== "");
+  const pairs: Array<[string, string]> = [];
+  for (const item of splitTopLevelGeneral(trimmed.slice(1, -1), ",")) {
+    const [reason, otherId] = splitTopLevelGeneral(item, "-").map(unquoteAtom);
+    if (reason && otherId) pairs.push([reason, otherId]);
+  }
+  return pairs;
 }
 
 function parseEntityRole(

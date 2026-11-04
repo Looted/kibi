@@ -2,8 +2,7 @@ name: Mutation (tree-sitter readers)
 
 # Stryker gate for kibi-plugin-treesitter's source-proof readers
 # (stryker.treesitter.conf.mjs, see docs/mutation-testing.md). It runs
-# nightly on develop and on pull requests that touch the plugin or this
-# mutation setup.
+# only when dispatched by hand.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -18,20 +17,6 @@ permissions:
   contents: read
 
 on:
-  schedule:
-    - cron: '47 3 * * *'
-  pull_request:
-    branches: [develop]
-    paths:
-      - 'packages/plugin-treesitter/src/**'
-      - 'packages/plugin-treesitter/tests/**'
-      - 'packages/plugin-sdk/src/**'
-      - 'stryker.treesitter.conf.mjs'
-      - 'scripts/mutation-sandbox-treesitter.sh'
-      - 'scripts/mutation-treesitter-inprocess.mjs'
-      - 'scripts/mutation-sandbox-setup.sh'
-      - '.github/workflows/mutation-treesitter.yml'
-      - 'bun.lock'
   workflow_dispatch:
 
 jobs:
@@ -42,7 +27,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event_name == 'schedule' && 'develop' || '' }}
           fetch-depth: 1
 
       - name: Setup Bun

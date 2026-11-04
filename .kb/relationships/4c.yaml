@@ -475,3 +475,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0634133b2efd
+  - type: implements
+    from: SYM-cli-kibi-release-release-mismatches
+    to: REQ-kibi-release-version
+    created_at: 2026-11-04T05:30:32.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82d2facb75b6
+  - type: covered_by
+    from: SYM-cli-kibi-release-release-mismatches
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:30:32.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-128fb98582fd

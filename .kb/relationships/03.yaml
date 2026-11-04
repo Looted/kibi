@@ -363,3 +363,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9dacd73ed072
+  - type: constrains
+    from: REQ-kibi-release-version
+    to: FACT-kibi-release-version-subject
+    created_at: 2026-11-04T05:18:43.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6db9b1cffe4b
+  - type: requires_property
+    from: REQ-kibi-release-version
+    to: FACT-kibi-release-version-calendar
+    created_at: 2026-11-04T05:18:43.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47effca0a211
+  - type: requires_property
+    from: REQ-kibi-release-version
+    to: FACT-kibi-release-version-core-ships-manifest
+    created_at: 2026-11-04T05:18:43.614Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-801477d0b90d
+  - type: requires_property
+    from: REQ-kibi-release-version
+    to: FACT-kibi-release-version-cli-prints-release
+    created_at: 2026-11-04T05:18:43.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6eb1cc44d40a
+  - type: requires_property
+    from: REQ-kibi-release-version
+    to: FACT-kibi-release-version-doctor-warns-mixed
+    created_at: 2026-11-04T05:18:43.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b38d323a331
+  - type: specified_by
+    from: REQ-kibi-release-version
+    to: SCEN-kibi-release-version
+    created_at: 2026-11-04T05:19:32.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e96eebe8470
+  - type: specified_by
+    from: REQ-kibi-release-version
+    to: SCEN-NEG-kibi-release-version-MIXED-INSTALL-UNREPORTED
+    created_at: 2026-11-04T05:19:32.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e2c1da32fda
+  - type: specified_by
+    from: REQ-kibi-release-version
+    to: SCEN-NEG-kibi-release-version-NO-RELEASE-VERSION
+    created_at: 2026-11-04T05:46:56.593Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f03aaa5d603
+  - type: specified_by
+    from: REQ-kibi-release-version
+    to: SCEN-NEG-kibi-release-version-MANIFEST-DRIFT
+    created_at: 2026-11-04T05:46:56.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf1197bdae0f
+  - type: specified_by
+    from: REQ-kibi-release-version
+    to: SCEN-NEG-kibi-release-version-VERSION-OMITS-RELEASE
+    created_at: 2026-11-04T05:46:56.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc9ef55015b6

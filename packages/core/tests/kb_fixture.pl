@@ -30,6 +30,7 @@ fixture_kb_open(Dir) :-
 % .pl file the store loads when it attaches.
 fixture_kb_open(LegacyEntities, Dir) :-
     detach_leftover_kb,
+    forget_proof_memo,
     tmp_file(kibi_fixture_kb, Dir),
     make_directory_path(Dir),
     (   LegacyEntities == []
@@ -40,6 +41,19 @@ fixture_kb_open(LegacyEntities, Dir) :-
                            close(Out))
     ),
     kb_attach(Dir).
+
+%% forget_proof_memo
+% Empty requirement_proof's pure-function memo, when that module is loaded.
+% The memo is keyed by its inputs, and fixtures in different files build the
+% same receipts, so a cached answer from an earlier test (or an earlier
+% load of the module under mutation testing) would otherwise stand in for a
+% fresh computation.
+forget_proof_memo :-
+    (   current_predicate(requirement_proof:pure_memo/3)
+    ->  retractall(requirement_proof:pure_memo(_, _, _)),
+        retractall(requirement_proof:pure_memo_size(_))
+    ;   true
+    ).
 
 %% detach_leftover_kb
 % Detach a KB that a test cut short (a time limit, say) left attached, so

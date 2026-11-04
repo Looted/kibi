@@ -85,13 +85,13 @@ describe("check-rule registry single-source contract", () => {
     );
     for (const rule of registryJson.rules) {
       if (rule.implementation !== "prolog" || !rule.prologPredicate) continue;
-      const dispatched =
-        checksPl.includes(
-          `selected_rule(Rules, '${rule.name}', ${rule.prologPredicate}`,
-        ) ||
-        checksPl.includes(
-          `selected_rule_with_options(Rules, '${rule.name}', ${rule.prologPredicate}`,
-        );
+      // checks.pl lists every aggregated check once, as
+      // aggregated_check(Key, Rule, Predicate); full and selected runs both
+      // dispatch from that table.
+      const dispatched = new RegExp(
+        `^aggregated_check\\([a-z_]+, '${rule.name}', ${rule.prologPredicate}\\)\\.$`,
+        "m",
+      ).test(checksPl);
       expect(dispatched).toBeTrue();
       expect(checksPl.includes(rule.prologPredicate)).toBeTrue();
     }
