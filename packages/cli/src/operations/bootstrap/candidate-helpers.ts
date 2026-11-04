@@ -105,9 +105,10 @@ export function asImportedRule(
   step: Readonly<Record<string, unknown>>,
   ref: string,
 ): Readonly<Record<string, unknown>> {
+  // Spreading null adds nothing, so only non-objects need the fallback.
   const properties =
-    step.properties !== null && typeof step.properties === "object"
-      ? (step.properties as Record<string, unknown>)
+    typeof step.properties === "object"
+      ? (step.properties as Record<string, unknown> | null)
       : {};
   return {
     ...step,
