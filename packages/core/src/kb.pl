@@ -592,6 +592,7 @@ journal_bytes(Directory, Bytes) :-
 
 %% kb_storage_compact
 kb_storage_compact :-
+    % mutalog-disable-next-line goal_true: a legacy store records no journal sentinel stamp, so the save inside the compaction fails for it as well
     kb_storage_mode(journaled),
     kb_attached(Directory),
     with_kb_mutex(kb_storage_compact_locked(Directory)).
@@ -620,6 +621,7 @@ kb_storage_compact_locked(Directory) :-
     % that has not gone through kb_save/0. Publish that dirty transaction
     % first so CURRENT never points at an older commit sequence.
     kb_save_journaled_locked(Directory),
+    % mutalog-disable-next-line literal: an unbound option names no option, so [_] flushes every journal too
     rdf_flush_journals([]),
     (   kb_generation(Generation) -> true ; Generation = 'generation-1' ),
     (   kb_commit_sequence(Sequence) -> true ; Sequence = 0 ),

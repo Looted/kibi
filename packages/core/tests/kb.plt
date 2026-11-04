@@ -10091,6 +10091,13 @@ test(a_journaled_store_keeps_its_own_empty_graph, [setup(cleanup_test_kb), clean
     rdf_unload_graph('urn:kibi:test:foreign'),
     assertion(Graph == Expected).
 
+test(a_new_journaled_store_takes_a_restored_graph_of_one_triple, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    rdf_assert('urn:kibi:test:s', 'urn:kibi:test:p', "o", 'urn:kibi:test:restored'),
+    ks_journaled_attached(_),
+    kb:kb_graph(Graph),
+    kb_detach,
+    assertion(Graph == 'urn:kibi:test:restored').
+
 test(detach_needs_no_owner_file, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
     ks_journaled_attached(Dir),
     atom_concat(Dir, '/.kibi-lock-owner.json', Owner),
