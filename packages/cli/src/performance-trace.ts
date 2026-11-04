@@ -65,9 +65,9 @@ function privateTraceFile(): {
     const directory = realpathSync(configuredDirectory);
     if (path.resolve(configuredDirectory) !== directory) return null;
     const directoryStats = statSync(directory);
-    // Windows has no process.getuid: the call throws and the catch below
-    // turns the trace off there.
-    // biome-ignore lint/style/noNonNullAssertion: see above
+    // rationale: Windows has no process.getuid; the call throws there and
+    // the catch below turns the trace off.
+    // biome-ignore lint/style/noNonNullAssertion: getuid exists off Windows
     if (directoryStats.uid !== process.getuid!()) return null;
     if ((directoryStats.mode & 0o077) !== 0) {
       return null;
