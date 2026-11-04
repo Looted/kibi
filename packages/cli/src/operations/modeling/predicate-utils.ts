@@ -42,6 +42,15 @@ export function clampScore(value: number | undefined): number {
   return Math.min(1, Math.max(0, numeric));
 }
 
+// Named capture groups of the first match of `pattern` in `text`; a text
+// that does not match captures nothing, so every group reads as undefined.
+export function captures(
+  text: string,
+  pattern: RegExp,
+): Readonly<Record<string, string | undefined>> {
+  return text.match(pattern)?.groups ?? {};
+}
+
 // implements REQ-mcp-suggest-predicates
 export function slug(value: string): string {
   // Edge whitespace becomes an edge underscore, which the last step drops;

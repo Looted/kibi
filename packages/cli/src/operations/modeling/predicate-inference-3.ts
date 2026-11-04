@@ -1,4 +1,5 @@
 import {
+  captures,
   inferTrigger,
   normalizePredicateToken,
   normalizeSubjectKey,
@@ -8,112 +9,120 @@ import {
 
 // implements REQ-mcp-suggest-predicates
 export function inferScopedAuthorizationRuleArgs(text: string): string[] {
-  const scoped = text.match(
+  const scoped = captures(
+    text,
     /^(?<actor>.+?)\s+(?:must|shall|should)\s+be\s+denied\s+(?<action>.+?)\.?$/i,
   );
   return [
-    slug(scoped?.groups?.actor ?? "actor"),
-    slug(scoped?.groups?.action ?? "action"),
+    slug(scoped.actor ?? "actor"),
+    slug(scoped.action ?? "action"),
     "deny",
   ];
 }
 
 // implements REQ-mcp-suggest-predicates
 export function inferDocumentationStandardRuleArgs(text: string): string[] {
-  const docs = text.match(
+  const docs = captures(
+    text,
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+documented\s+in\s+(?<artifact>.+?)\.?$/i,
   );
   return [
-    slug(docs?.groups?.subject ?? "subject"),
+    slug(docs.subject ?? "subject"),
     "documented_in",
-    slug(docs?.groups?.artifact ?? "documentation"),
+    slug(docs.artifact ?? "documentation"),
   ];
 }
 
 // implements REQ-mcp-suggest-predicates
 export function inferWarmupPolicyRuleArgs(text: string): string[] {
-  const warmup = text.match(
+  const warmup = captures(
+    text,
     /^(?:the\s+)?(?<subject>.+?)\s+(?:must|shall|should)\s+warm\s+up\s+on\s+(?<trigger>.+?)\.?$/i,
   );
-  return [
-    slug(warmup?.groups?.subject ?? "subject"),
-    slug(warmup?.groups?.trigger ?? "trigger"),
-  ];
+  return [slug(warmup.subject ?? "subject"), slug(warmup.trigger ?? "trigger")];
 }
 
 // implements REQ-mcp-suggest-predicates
 export function inferVisualLayoutRuleArgs(text: string): string[] {
-  const layout = text.match(
+  const layout = captures(
+    text,
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+remain\s+visually\s+aligned\s+with\s+(?<target>.+?)\.?$/i,
   );
   return [
-    slug(layout?.groups?.subject ?? "subject"),
+    slug(layout.subject ?? "subject"),
     "aligned_with",
-    slug(layout?.groups?.target ?? "target"),
+    slug(layout.target ?? "target"),
   ];
 }
 
 // implements REQ-mcp-suggest-predicates
 export function inferEnforcementLocationRuleArgs(text: string): string[] {
-  const enforcement = text.match(
+  const enforcement = captures(
+    text,
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+enforced\s+at\s+(?<location>.+?)\.?$/i,
   );
   return [
-    slug(enforcement?.groups?.subject ?? "subject"),
-    slug(enforcement?.groups?.location ?? "location"),
+    slug(enforcement.subject ?? "subject"),
+    slug(enforcement.location ?? "location"),
   ];
 }
 
 // implements REQ-mcp-suggest-predicates
 export function inferReconciliationRuleArgs(text: string): string[] {
-  const reconciliation = text.match(
+  const reconciliation = captures(
+    text,
     /^on\s+(?<trigger>.+?),\s*(?<subject>.+?)\s+(?:must|shall|should)\s+reconcile\s+(?<target>.+?)\s+and\s+(?<action>clear\s+stale\s+.+?)\.?$/i,
   );
   return [
-    slug(reconciliation?.groups?.subject ?? "subject"),
-    slug(reconciliation?.groups?.trigger ?? "trigger"),
-    slug(reconciliation?.groups?.target ?? "target"),
-    slug(reconciliation?.groups?.action ?? "action"),
+    slug(reconciliation.subject ?? "subject"),
+    slug(reconciliation.trigger ?? "trigger"),
+    slug(reconciliation.target ?? "target"),
+    slug(reconciliation.action ?? "action"),
   ];
 }
 
 // implements REQ-mcp-suggest-predicates
 export function inferThrottlePolicyRuleArgs(text: string): string[] {
-  const throttle = text.match(
+  const throttle = captures(
+    text,
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+throttled\s+for\s+(?<condition>.+?)\.?$/i,
   );
   return [
-    slug(throttle?.groups?.subject ?? "subject"),
-    normalizePredicateToken(throttle?.groups?.condition ?? "condition"),
+    slug(throttle.subject ?? "subject"),
+    normalizePredicateToken(throttle.condition ?? "condition"),
   ];
 }
 
+// A lazy word-class capture spans whitespace, and every capture is slugged
+// or normalized (which trims it), so one whitespace character before the next
+// keyword matches what a run would.
+
 // implements REQ-mcp-suggest-predicates
 export function inferDefaultValueArgs(text: string, subject: string): string[] {
-  const defaultValue = text.match(
-    /^(?:the\s+)?(?<subject>[a-z][a-z\s_-]*?)\s+defaults?\s+to\s+(?<value>[a-z][a-z0-9\s_-]*?)(?:\s+(?<property>mode|state|status))?\.?$/i,
+  const defaultValue = captures(
+    text,
+    /^(?:the\s+)?(?<subject>[a-z][a-z\s_-]*?)\sdefaults?\s+to\s+(?<value>[a-z][a-z0-9\s_-]*?)(?:\s(?<property>mode|state|status))?\.?$/i,
   );
   return [
-    defaultValue?.groups?.subject
-      ? normalizeSubjectKey(defaultValue.groups.subject)
-      : subject,
-    slug(defaultValue?.groups?.property ?? "value"),
-    slug(defaultValue?.groups?.value ?? "value"),
+    defaultValue.subject ? normalizeSubjectKey(defaultValue.subject) : subject,
+    slug(defaultValue.property ?? "value"),
+    slug(defaultValue.value ?? "value"),
   ];
 }
 
 // implements REQ-mcp-suggest-predicates
 export function inferUniquenessArgs(text: string): string[] {
-  const uniqueness = text.match(
-    /^(?:there\s+)?(?:must|shall|should)\s+be\s+at\s+most\s+one\s+(?<subject>[a-z][a-z\s_-]*?)\s+per\s+(?<scope>.+?)\.?$/i,
+  const uniqueness = captures(
+    text,
+    /^(?:there\s+)?(?:must|shall|should)\s+be\s+at\s+most\s+one\s+(?<subject>[a-z][a-z\s_-]*?)\sper\s+(?<scope>.+?)\.?$/i,
   );
-  const scope = (uniqueness?.groups?.scope ?? "scope")
-    .split(/\s+per\s+/i)
-    .map((part) => part.trim())
+  const scope = (uniqueness.scope ?? "scope")
+    // normalizePredicateToken drops the spaces left around each "per".
+    .split(/\sper\s+/i)
     .filter((part) => part.length > 0)
     .map(normalizePredicateToken)
     .join(",");
-  return [slug(uniqueness?.groups?.subject ?? "subject"), scope];
+  return [slug(uniqueness.subject ?? "subject"), scope];
 }
 
 // implements REQ-mcp-suggest-predicates
@@ -121,18 +130,19 @@ export function inferStateMembershipArgs(
   text: string,
   subject: string,
 ): string[] {
-  const stateMembership = text.match(
+  const stateMembership = captures(
+    text,
     /^(?<subject>.+?)\s+(?:terminal\s+)?states\s+are\s+(?<states>.+?)\.?$/i,
   );
-  const states = (stateMembership?.groups?.states ?? "state")
+  const states = (stateMembership.states ?? "state")
     .split(/,|\band\b|\bor\b/i)
     .map((state) => state.trim())
     .filter((state) => state.length > 0)
     .map(normalizePredicateToken)
     .join(",");
   return [
-    stateMembership?.groups?.subject
-      ? normalizeSubjectKey(stateMembership.groups.subject)
+    stateMembership.subject
+      ? normalizeSubjectKey(stateMembership.subject)
       : subject,
     states,
   ];
@@ -143,26 +153,27 @@ export function inferTemporalOrderArgs(
   text: string,
   subject: string,
 ): string[] {
-  const initializesAfter = text.match(
+  const initializesAfter = captures(
+    text,
     /^(?:the\s+)?(?<subject>.+?)\s+initializes\s+after\s+(?:the\s+)?(?<ready>.+?)\s+is\s+ready\.?$/i,
   );
-  if (initializesAfter?.groups?.subject && initializesAfter.groups.ready) {
+  // Both groups are mandatory and non-empty, so one of them marks a match.
+  if (initializesAfter.ready !== undefined) {
     return [
-      slug(initializesAfter.groups.subject),
-      `${slug(initializesAfter.groups.ready)}_ready`,
+      slug(initializesAfter.subject as string),
+      `${slug(initializesAfter.ready)}_ready`,
       "initializes",
     ];
   }
 
-  const temporal = text.match(
-    /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+(?<before>[a-z][a-z\s_-]*?)\s+before\s+(?<after>.+?)\.?$/i,
+  const temporal = captures(
+    text,
+    /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+(?<before>[a-z][a-z\s_-]*?)\sbefore\s+(?<after>.+?)\.?$/i,
   );
   return [
-    temporal?.groups?.subject
-      ? slug(temporal.groups.subject).replace(/_/g, ".")
-      : subject,
-    normalizePredicateToken(temporal?.groups?.before ?? "before_event"),
-    normalizePredicateToken(temporal?.groups?.after ?? "after_event"),
+    temporal.subject ? slug(temporal.subject).replace(/_/g, ".") : subject,
+    normalizePredicateToken(temporal.before ?? "before_event"),
+    normalizePredicateToken(temporal.after ?? "after_event"),
   ];
 }
 
@@ -171,26 +182,29 @@ export function inferConditionalBehaviorArgs(
   text: string,
   subject: string,
 ): string[] {
-  const whenMust = text.match(
+  const whenMust = captures(
+    text,
     /^when\s+(?<condition>.+?),\s*(?:the\s+)?(?<subject>.+?)\s+(?:must|shall|should)\s+(?<behavior>.+?)\.?$/i,
   );
-  if (whenMust?.groups?.condition && whenMust.groups.subject) {
+  // Every group is mandatory and non-empty, so one of them marks a match.
+  if (whenMust.condition !== undefined) {
     return [
-      slug(whenMust.groups.subject),
-      normalizePredicateToken(whenMust.groups.condition),
-      normalizePredicateToken(whenMust.groups.behavior ?? "behavior"),
+      slug(whenMust.subject as string),
+      normalizePredicateToken(whenMust.condition),
+      normalizePredicateToken(whenMust.behavior as string),
     ];
   }
 
-  const conditional = text.match(
+  const conditional = captures(
+    text,
     /^if\s+(?:(?:a|an|the)\s+)?(?<conditionSubject>[a-z][a-z_-]*)\s+(?<condition>.+?),\s*(?:it|they|the\s+[a-z][a-z\s_-]*?)\s+(?<behavior>.+?)\.?$/i,
   );
   return [
-    conditional?.groups?.conditionSubject
-      ? singularize(slug(conditional.groups.conditionSubject))
+    conditional.conditionSubject
+      ? singularize(slug(conditional.conditionSubject))
       : subject,
-    normalizePredicateToken(conditional?.groups?.condition ?? "condition"),
-    normalizePredicateToken(conditional?.groups?.behavior ?? "behavior"),
+    normalizePredicateToken(conditional.condition ?? "condition"),
+    normalizePredicateToken(conditional.behavior ?? "behavior"),
   ];
 }
 
@@ -199,31 +213,31 @@ export function inferStateTransitionArgs(
   text: string,
   subject: string,
 ): string[] {
-  const transition = text.match(
-    /^when\s+(?<trigger>.+?),\s*(?:the\s+)?(?<subject>[a-z][a-z\s_-]*?)\s+transitions?\s+from\s+(?<from>[a-z][a-z0-9_-]*)\s+to\s+(?<to>[a-z][a-z0-9_-]*)\.?$/i,
+  const transition = captures(
+    text,
+    /^when\s+(?<trigger>.+?),\s*(?:the\s+)?(?<subject>[a-z][a-z\s_-]*?)\stransitions?\s+from\s+(?<from>[a-z][a-z0-9_-]*)\s+to\s+(?<to>[a-z][a-z0-9_-]*)\.?$/i,
   );
   return [
-    transition?.groups?.subject
-      ? normalizeSubjectKey(transition.groups.subject)
-      : subject,
-    normalizePredicateToken(transition?.groups?.from ?? "from_state"),
-    normalizePredicateToken(transition?.groups?.to ?? "to_state"),
-    normalizePredicateToken(transition?.groups?.trigger ?? inferTrigger(text)),
+    transition.subject ? normalizeSubjectKey(transition.subject) : subject,
+    normalizePredicateToken(transition.from ?? "from_state"),
+    normalizePredicateToken(transition.to ?? "to_state"),
+    normalizePredicateToken(transition.trigger ?? inferTrigger(text)),
   ];
 }
 
 // implements REQ-mcp-suggest-predicates
 export function inferRateLimitArgs(text: string): string[] {
-  const rateLimit = text.match(
-    /^(?<subject>.+?)\s+must\s+be\s+rate\s+limited\s+to\s+(?<count>\d+)\s+(?<action>[a-z][a-z\s_-]*?)\s+per\s+(?<window>[a-z]+)\.?$/i,
+  const rateLimit = captures(
+    text,
+    /^(?<subject>.+?)\s+must\s+be\s+rate\s+limited\s+to\s+(?<count>\d+)\s+(?<action>[a-z][a-z\s_-]*?)\sper\s+(?<window>[a-z]+)\.?$/i,
   );
-  const subject = rateLimit?.groups?.subject
-    ? slug(rateLimit.groups.subject).replace(/_requests?$/, ".request")
+  const subject = rateLimit.subject
+    ? slug(rateLimit.subject).replace(/_requests?$/, ".request")
     : "requirement.subject";
   return [
     subject,
-    normalizePredicateToken(rateLimit?.groups?.action ?? "action"),
-    normalizePredicateToken(rateLimit?.groups?.window ?? "window"),
-    rateLimit?.groups?.count ?? "0",
+    normalizePredicateToken(rateLimit.action ?? "action"),
+    normalizePredicateToken(rateLimit.window ?? "window"),
+    rateLimit.count ?? "0",
   ];
 }

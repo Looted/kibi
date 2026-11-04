@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import {
+  captures,
   clampInteger,
   clampScore,
   escapeRegExp,
@@ -264,5 +265,25 @@ describe("keyword matching", () => {
     expect(matchesKeyword("ANY", "uses c++ daily", "C++")).toBe(true);
     expect(matchesKeyword("ANY", "uses c daily", "C++")).toBe(false);
     expect(matchesKeyword("ANY", "a.b", "A.B")).toBe(true);
+  });
+});
+
+describe("captures", () => {
+  test("returns the named groups of the first match", () => {
+    expect(captures("a=1 b=2", /(?<key>[a-z])=(?<value>\d)/)).toStrictEqual({
+      key: "a",
+      value: "1",
+    });
+  });
+
+  test("leaves a group that took no part in the match undefined", () => {
+    expect(captures("a", /(?<key>a)(?<rest>b)?/)).toStrictEqual({
+      key: "a",
+      rest: undefined,
+    });
+  });
+
+  test("returns no groups when the text does not match", () => {
+    expect(captures("xyz", /(?<key>a)/)).toStrictEqual({});
   });
 });
