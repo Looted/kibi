@@ -91,6 +91,29 @@ export function listLaneMarkdownFiles(
   return result;
 }
 
+/** A lane Markdown file with its text. */
+// implements REQ-cli-schema-migration
+export type LaneMarkdownSource = LaneMarkdownFile &
+  Readonly<{ content: string }>;
+
+/**
+ * Every authored Markdown entity file in the canonical lanes with its text,
+ * sorted. A file that can no longer be read is skipped.
+ */
+// implements REQ-cli-schema-migration
+export function listLaneMarkdownSources(
+  workspaceRoot: string,
+  lanes: readonly EntityLane[] = ENTITY_LANES,
+): LaneMarkdownSource[] {
+  return listLaneMarkdownFiles(workspaceRoot, lanes).flatMap((file) => {
+    const content = readText(file.absolutePath);
+    // rationale: the listed files are regular files, so a read only fails when
+    // a file vanishes between listing and reading; no test can time that.
+    // Stryker disable next-line ConditionalExpression,ArrayDeclaration
+    return content === null ? [] : [{ ...file, content }];
+  });
+}
+
 /** A Markdown document split around its YAML frontmatter. */
 // implements REQ-cli-schema-migration
 export type FrontmatterSlice = Readonly<{
