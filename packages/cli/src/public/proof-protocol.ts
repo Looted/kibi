@@ -499,8 +499,9 @@ export const PROOF_BINDINGS_SCHEMA = {
 } as const;
 
 function record(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+  // typeof null is "object", and null is returned as is.
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
     : null;
 }
 
@@ -531,9 +532,7 @@ function includes<T extends string>(
   list: readonly T[],
   value: unknown,
 ): value is T {
-  return (
-    typeof value === "string" && (list as readonly string[]).includes(value)
-  );
+  return (list as readonly unknown[]).includes(value);
 }
 
 function producerProvenanceErrors(
@@ -596,7 +595,7 @@ function attemptsErrors(value: unknown, label: string): string[] {
         Number(entryRow.duration_ms) < 0)
     )
       errors.push(
-        `${entryLabel}.duration_ms must be a non-negative integer; received ${JSON.stringify(entryRow.duration_ms ?? null)}`,
+        `${entryLabel}.duration_ms must be a non-negative integer; received ${JSON.stringify(entryRow.duration_ms)}`,
       );
   });
   return errors;
@@ -693,7 +692,7 @@ export function proofRunArtifactErrors(value: unknown): string[] {
       !includes(RUN_FAILURE_PHASES, run.failure_phase)
     )
       errors.push(
-        `artifact.run.failure_phase must be one of: ${RUN_FAILURE_PHASES.join(", ")}; received ${JSON.stringify(run.failure_phase ?? null)}`,
+        `artifact.run.failure_phase must be one of: ${RUN_FAILURE_PHASES.join(", ")}; received ${JSON.stringify(run.failure_phase)}`,
       );
   }
   if (
@@ -970,19 +969,16 @@ function proofContractKindErrors(contract: Record<string, unknown>): string[] {
 }
 
 function isArgIndex(value: unknown): boolean {
-  return typeof value === "number" && Number.isInteger(value) && value >= 1;
+  return Number.isInteger(value) && (value as number) >= 1;
 }
 
-function isSourceReference(
-  value: unknown,
-  options: Readonly<{ arg?: boolean }> = { arg: true },
-): boolean {
+function isSourceReference(value: unknown, allowArg = true): boolean {
   const row = record(value);
   return (
     row !== null &&
     nonEmptyString(row.symbol_id) &&
     (row.export === undefined || nonEmptyString(row.export)) &&
-    (row.arg === undefined || (options.arg === true && isArgIndex(row.arg))) &&
+    (row.arg === undefined || (allowArg && isArgIndex(row.arg))) &&
     Object.keys(row).every(
       (key) => key === "symbol_id" || key === "export" || key === "arg",
     )
@@ -1007,10 +1003,10 @@ function isPredicateReference(value: unknown): boolean {
   const row = record(value);
   // A predicate is called with every argument, so it projects none.
   if (row === null || row.harness_for === undefined)
-    return isSourceReference(value, { arg: false });
+    return isSourceReference(value, false);
   const { harness_for: harness, ...reference } = row;
   return (
-    isSourceReference(reference, { arg: false }) &&
+    isSourceReference(reference, false) &&
     Array.isArray(harness) &&
     harness.length > 0 &&
     harness.every(nonEmptyString)
@@ -1047,7 +1043,7 @@ function sourceContractErrors(contract: Record<string, unknown>): string[] {
     if (isSourceDomain(entry)) {
       errors.push(
         ...sourceSpecErrors(
-          record(entry)?.source,
+          (entry as { source: unknown }).source,
           `proof_contract.domains.${type}.source`,
         ),
       );
@@ -1250,7 +1246,7 @@ function predicateMap(
   for (const [key, entry] of Object.entries(row)) {
     const reference = sourceReference(entry);
     if (reference === undefined) continue;
-    const harness = record(entry)?.harness_for;
+    const harness = (entry as { harness_for?: unknown }).harness_for;
     out[key] = Array.isArray(harness)
       ? {
           ...reference,

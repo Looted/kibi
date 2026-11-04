@@ -1,0 +1,47 @@
+{
+  "valid": [],
+  "null": [
+    "proof_contract must be an object with version, integration, required_proofs, and success_policy"
+  ],
+  "array": [
+    "proof_contract must be an object with version, integration, required_proofs, and success_policy"
+  ],
+  "empty": [
+    "proof_contract.version must be kibi.proof-contract.v1; received null",
+    "proof_contract.integration must reference a configured integration id",
+    "proof_contract.required_proofs must be a non-empty array of {symbol_id, target} obligations",
+    "proof_contract.success_policy must be one of: all_required_first_attempt, own_results_first_attempt; received null"
+  ],
+  "badVersion": [
+    "proof_contract.version must be kibi.proof-contract.v1; received \"v0\""
+  ],
+  "integrationBlank": [
+    "proof_contract.integration must reference a configured integration id"
+  ],
+  "proofsString": [
+    "proof_contract.required_proofs must be a non-empty array of {symbol_id, target} obligations"
+  ],
+  "proofsEmpty": [
+    "proof_contract.required_proofs must be a non-empty array of {symbol_id, target} obligations"
+  ],
+  "proofsTooMany": [
+    "proof_contract.required_proofs must contain at most 1000 obligations"
+  ],
+  "proofsMax": [],
+  "proofsBad": [
+    "proof_contract.required_proofs[0] must be an object with symbol_id and target",
+    "proof_contract.required_proofs[1].symbol_id must be a non-empty proof symbol ID (SYM-*)",
+    "proof_contract.required_proofs[2].target must be a non-empty execution target",
+    "proof_contract.required_proofs[5] duplicates target/symbol_id 't/SYM-a'",
+    "proof_contract.required_proofs[6].symbol_id must be a non-empty proof symbol ID (SYM-*)",
+    "proof_contract.required_proofs[7].target must be a non-empty execution target",
+    "proof_contract.required_proofs[8].target must be a non-empty execution target"
+  ],
+  "policy": [],
+  "policyBad": [
+    "proof_contract.success_policy must be one of: all_required_first_attempt, own_results_first_attempt; received \"lenient\""
+  ],
+  "policyMissing": [
+    "proof_contract.success_policy must be one of: all_required_first_attempt, own_results_first_attempt; received null"
+  ]
+}
