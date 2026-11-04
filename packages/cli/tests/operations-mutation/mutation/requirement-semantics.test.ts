@@ -222,7 +222,9 @@ describe("assertStoredRequirementBoundary", () => {
       message.indexOf("inventory (") + "inventory (".length,
       message.indexOf("). Run kb_model"),
     );
-    expect(errors).toStartWith("semantic_inventory_version must be");
+    expect(errors).toStartWith(
+      "semantic_inventory_version must be 'kibi.semantic-inventory.v1'; semantic_source_field must be",
+    );
     expect(outcome).toStrictEqual({
       result: refusal(errors),
       calls: ["entity"],
