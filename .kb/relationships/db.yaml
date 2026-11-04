@@ -405,3 +405,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-123a69f741cf
+  - type: assumes
+    from: SCEN-kibi-happy-path-gap
+    to: FACT-kibi-happy-path-gap-success-only-not-tested
+    created_at: 2026-11-04T16:55:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2babf67a9a0
