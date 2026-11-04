@@ -43,3 +43,5 @@ When a relationship fails every retry and the engine gives no detail for a later
 `kibi prove --requirement` now selects the tests a requirement reaches through its scenarios. The rows were read with a pattern that kept the closing quote of every quoted test id, so no test reached through a scenario was ever selected. Direct `validates` rows no longer need a `TEST-` prefix, and the requirement id is quoted as a Prolog atom in both queries.
 
 A `junit` or `tap` integration now reads its native report relative to the workspace root, where the producer runs, instead of the current directory.
+
+`kibi init` now writes agent instructions through an `AGENTS.md` or `CLAUDE.md` link into a directory of the worktree whose name starts with two dots (such as `..docs/`); such a link was refused as one that leaves the repository. The setup choice reader and the agent instruction helpers drop guards with no effect on their results, and `kibi init` reads the setup choice names from their one list.
