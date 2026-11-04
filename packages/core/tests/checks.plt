@@ -341,11 +341,7 @@ test(linked_test_with_wrong_semantics, Suggestions == [S1, S2, S3]) :-
         chk_rel(specified_by, 'REQ-F3', 'SCEN-F3'),
         chk_rel(verified_by, 'SCEN-F3', 'TEST-F3'),
         check_symbol_coverage(Violations),
-        findall(S, member(violation(_, _, _, S, _), Violations), Suggestions0),
-        % kb.pl counts a test that verifies any scenario as qualifying
-        % coverage, so the scenario path is asked for directly.
-        checks:covered_symbol_link_suggestion('REQ-F3', 'TEST-F3', Got3),
-        append(Suggestions0, [Got3], Suggestions)
+        findall(S, member(violation(_, _, _, S, _), Violations), Suggestions)
     )),
     chk_mismatch_suggestion('TEST-F1', 'REQ-F1', S1),
     chk_mismatch_suggestion('TEST-F2', 'REQ-F2', S2),
@@ -2952,7 +2948,7 @@ chk_pairing_fixture :-
     chk_rel(requires_property, 'REQ-PROP', 'FACT-BAG-SIZE'),
     % wrong-lane targets
     chk_req('REQ-LANE'),
-    chk_rel(constrains, 'REQ-LANE', 'FACT-TOTAL'),
+    chk_raw_rel(constrains, 'REQ-LANE', 'FACT-TOTAL'),
     chk_raw_rel(constrains, 'REQ-LANE', 'FACT-LEGACY'),
     chk_rel(requires_property, 'REQ-LANE', 'FACT-OBS'),
     chk_raw_rel(requires_property, 'REQ-LANE', 'FACT-LEGACY'),
@@ -3947,7 +3943,7 @@ test(strict_lanes_skip_retired_requirements, Ids == ['REQ-LIVE', 'REQ-LIVE']) :-
         chk_ent(fact, 'FACT-OBS', [fact_kind=observation]),
         forall(member(R-St, ['REQ-DEP'-deprecated, 'REQ-LIVE'-open]),
                (   chk_req(R, [status=St]),
-                   chk_rel(constrains, R, 'FACT-TOTAL'),
+                   chk_raw_rel(constrains, R, 'FACT-TOTAL'),
                    chk_rel(requires_property, R, 'FACT-OBS')
                )),
         chk_req('REQ-DEP2', [status=deprecated]),

@@ -9,6 +9,8 @@
 :- use_module(cert_fixture).
 :- use_module(test_helpers).
 
+:- fixture_setups_fail_tests.
+
 % The two rules run on KBs that hold contradictions of every kind and
 % contexts the checker cannot compare; the text helpers run on hand-built
 % checker entries.
