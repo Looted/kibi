@@ -10074,6 +10074,24 @@ test(a_new_journaled_store_ignores_an_empty_graph, [setup(cleanup_test_kb), clea
     kb:journal_expected_graph_uri(Dir, Expected),
     assertion(Graph == Expected).
 
+test(a_journaled_store_keeps_its_own_empty_graph, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_store(Dir),
+    kb:journal_expected_graph_uri(Dir, Expected),
+    rdf_create_graph(Expected),
+    rdf_assert('urn:kibi:test:s', 'urn:kibi:test:p', "o", 'urn:kibi:test:foreign'),
+    kb_attach(Dir),
+    kb:kb_graph(Graph),
+    kb_detach,
+    rdf_unload_graph('urn:kibi:test:foreign'),
+    assertion(Graph == Expected).
+
+test(detach_needs_no_owner_file, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(Dir),
+    atom_concat(Dir, '/.kibi-lock-owner.json', Owner),
+    delete_file(Owner),
+    assertion(kb_detach),
+    assertion(\+ kb:kb_attached(_)).
+
 test(compaction_threshold_is_sixteen_mebibytes) :-
     assertion(\+ kb:journal_needs_compaction(16777215)),
     assertion(kb:journal_needs_compaction(16777216)),
@@ -11044,7 +11062,13 @@ test(structured_fields_decode_once) :-
     deterministic(kb:literal_to_value(title, "[1]"^^String, Parsed)),
     assertion(Parsed == [1]),
     kb:literal_to_value(title, '[2]'^^String, FromAtom),
-    assertion(FromAtom == [2]).
+    assertion(FromAtom == [2]),
+    % Only text that starts with the bracket is read as a list.
+    forall(member(Spaced, [' [3]', " [3]"]),
+           ( kb:literal_to_value(title, Spaced^^String, Kept),
+             assertion(Kept == Spaced^^String),
+             kb:literal_to_value(title, literal(type(String, Spaced)), KeptText),
+             assertion(KeptText == Spaced) )).
 
 test(structured_literal_values_unwrap_once) :-
     forall(member(Literal-Expected,

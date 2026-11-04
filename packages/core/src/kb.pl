@@ -241,13 +241,10 @@ journal_graph_uri(Directory, GraphURI) :-
     journal_expected_graph_uri(Directory, Expected),
     (   rdf_graph(Expected)
     ->  GraphURI = Expected
-    ;   findall(G,
-                (rdf_graph(G), rdf(_, _, _, G)),
-                Graphs),
-        (   Graphs = [GraphURI|_]
-        ->  true
-        ;   GraphURI = Expected
-        )
+    ;   rdf_graph_property(Graph, triples(Triples)),
+        Triples > 0
+    ->  GraphURI = Graph
+    ;   GraphURI = Expected
     ).
 
 kb_attach_legacy(Directory) :-
@@ -322,12 +319,12 @@ boot_id(File, BootId) :-
           _,
           BootId = "").
 
+% Only kb_detach/0 calls it, for an attached journaled store; an owner file
+% that was never written is nothing to remove.
 kb_remove_lock_owner :-
-    (   kb_attached(Directory)
-    ->  kb_lock_owner_path(Directory, Path),
-        catch(delete_file(Path), _, true)
-    ;   true
-    ).
+    kb_attached(Directory),
+    kb_lock_owner_path(Directory, Path),
+    catch(delete_file(Path), _, true).
 
 kb_throw_store_locked(PersistencyDirectory, Directory, Original) :-
     kb_lock_owner_path(Directory, Path),
@@ -549,7 +546,7 @@ read_journal_metadata(Directory, Generation, Sequence) :-
         split_string(Contents, ':\n\r', ' \t', Parts),
         Parts = [GenerationString, SequenceString|_],
         atom_string(Generation, GenerationString),
-        catch(number_string(Sequence, SequenceString), _, fail)
+        number_string(Sequence, SequenceString)
     ->  true
     ;   Generation = 'generation-1',
         Sequence = 0
@@ -883,13 +880,9 @@ with_kb_mutex(Goal) :-
 % pre-existing dirty bit for callers that intentionally batch several writes
 % before an explicit kb_save/0.
 kb_run_journaled_mutation(Goal) :-
-    (   kb_dirty -> WasDirty = true ; WasDirty = false ),
-    catch(
-        rdf_transaction(Goal),
-        Error,
-        (   (WasDirty == false -> retractall(kb_dirty) ; true),
-            throw(Error)
-        )
+    (   kb_dirty
+    ->  rdf_transaction(Goal)
+    ;   catch(rdf_transaction(Goal), Error, (retractall(kb_dirty), throw(Error)))
     ),
     kb_mark_dirty.
 
@@ -2016,7 +2009,8 @@ initialize_journal_audit_sequence(GraphURI) :-
     aggregate_all(count,
                   rdf(_, 'urn:kibi:audit/operation', _, GraphURI),
                   Count),
-    retractall(kb_audit_sequence(_)),
+    % kb_detach/0 dropped the last store's sequence, and kb_attach/1 refuses
+    % while one is attached, so there is none to replace.
     assert(kb_audit_sequence(Count)).
 
 next_audit_sequence(Sequence) :-
