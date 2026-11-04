@@ -620,7 +620,7 @@ kb_storage_compact_locked(Directory) :-
     % that has not gone through kb_save/0. Publish that dirty transaction
     % first so CURRENT never points at an older commit sequence.
     kb_save_journaled_locked(Directory),
-    rdf_flush_journals([min_size(0)]),
+    rdf_flush_journals([]),
     (   kb_generation(Generation) -> true ; Generation = 'generation-1' ),
     (   kb_commit_sequence(Sequence) -> true ; Sequence = 0 ),
     write_journal_head(Directory, Generation, Sequence).

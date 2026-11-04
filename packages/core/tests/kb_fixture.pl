@@ -69,7 +69,23 @@ detach_leftover_kb :-
     % rdf_reset_db/0 refuses while the RDF store is busy (an open snapshot,
     % say); unloading the graphs one by one still drops their triples.
     catch(rdf_reset_db, _, forall(rdf_graph(Graph), rdf_unload_graph(Graph))),
-    forall(kb_state(Head), retractall(Head)).
+    forall(kb_state(Head), retractall(Head)),
+    forall(text_memo(Head), retractall(Head)).
+
+% Memos of other modules that are keyed by input text alone. They assume
+% the code that filled them never changes, which a reloaded module (a
+% mutation run, say) breaks, so they are dropped with the KB state.
+text_memo(Module:Head) :-
+    member(Module:Head, [ logic_ir:logic_rule_memo(_, _),
+                          logic_ir:logic_rule_memo_size(_),
+                          requirement_proof:pure_memo(_, _, _),
+                          requirement_proof:pure_memo_size(_),
+                          checks:json_text_memo(_, _),
+                          checks:json_text_memo_size(_),
+                          discovery:coverage_memo(_, _, _, _),
+                          status:workspace_root_memo(_, _) ]),
+    current_predicate(_, Module:Head),
+    predicate_property(Module:Head, dynamic).
 
 release(Goal) :-
     ignore(catch(Goal, _, true)).
@@ -85,7 +101,8 @@ kb_state(kb:Head) :-
 % without running it. In a file that runs this directive, the setup option of
 % each test, and of its unit, runs instead as the first goal of the test
 % body, where a failure throws and fails the test on both. A unit's setup and
-% cleanup then run around each of its tests rather than once for the unit.
+% cleanup then run around each of its tests rather than once for the unit,
+% and each test starts without the text memos of other modules.
 :- dynamic setups_in_body/1, unit_fixture/3.
 
 fixture_setups_fail_tests :-
@@ -141,6 +158,7 @@ take_option(Name, Options0, Options, Goal) :-
 
 :- meta_predicate fixture_setup(0), fixture_cleanup(0, 0).
 fixture_setup(Setup) :-
+    forall(text_memo(Head), retractall(Head)),
     (   call(Setup)
     ->  true
     ;   throw(error(goal_failed(setup(Setup)), _))
