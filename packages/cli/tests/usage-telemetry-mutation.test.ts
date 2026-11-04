@@ -15,7 +15,9 @@ import { Command } from "commander";
 import {
   finishCliTelemetry,
   noteCliErrorCategory,
+  noteCliOperationCall,
   noteCliResultError,
+  noteCliThrownError,
   trackCommandPath,
 } from "../src/usage-telemetry.js";
 
@@ -75,6 +77,14 @@ function events(): Record<string, unknown>[] {
 }
 
 const categories = () => events().map((event) => event.error_category);
+const field = (name: string) => events().map((event) => event[name]);
+
+/** An error thrown from a Kibi source file, so its event names the frame. */
+function crash(fn: string): TypeError {
+  const error = new TypeError("secret /private");
+  error.stack = `TypeError: secret\n    at ${fn} (/x/packages/cli/src/${fn}.ts:3:4)`;
+  return error;
+}
 
 describe("finishCliTelemetry", () => {
   test("records status, exit code and duration, printing the notice once", async () => {
@@ -177,6 +187,81 @@ describe("finishCliTelemetry", () => {
     await finish("", 0);
     expect(events()).toStrictEqual([]);
     expect(stderrWrites).toStrictEqual([]);
+  });
+});
+
+describe("noteCliThrownError", () => {
+  test("notes a thrown error's code and class; the first note wins", async () => {
+    noteCliThrownError(Object.assign(new TypeError("x"), { code: "E_NOTED" }));
+    noteCliThrownError(Object.assign(new RangeError("y"), { code: "E_LATER" }));
+    await finish("sync", 1);
+    expect(categories()).toStrictEqual(["e_noted"]);
+    expect(field("error_class")).toStrictEqual(["TypeError"]);
+  });
+
+  test("reads a code only from an object, and only a string one", async () => {
+    for (const error of [
+      null,
+      undefined,
+      "text",
+      Object.assign(() => undefined, { code: "FN" }),
+      { code: 5 },
+      { code: "" },
+    ]) {
+      noteCliThrownError(error);
+      await finish("check", 1);
+    }
+    expect(categories()).toStrictEqual(Array(6).fill("check_violations"));
+    expect(field("error_class")).toStrictEqual(Array(6).fill(null));
+  });
+
+  test("the noted error, else the one thrown at exit, places the crash", async () => {
+    noteCliThrownError(crash("noted"));
+    await finish("sync", 1, { error: crash("thrown") });
+    await finish("sync", 1, { error: crash("thrown") });
+    await finish("sync", 1);
+    expect(field("crash_frame")).toStrictEqual([
+      "kibi-cli/src/noted#noted",
+      "kibi-cli/src/thrown#thrown",
+      null,
+    ]);
+  });
+
+  test("a noted class wins over the thrown error's, which is used otherwise", async () => {
+    noteCliThrownError(new RangeError("x"));
+    await finish("sync", 1, { error: new TypeError("y") });
+    await finish("sync", 1, { error: new TypeError("y") });
+    await finish("sync", 1, { error: new Error("y") });
+    await finish("sync", 0, { error: new TypeError("y") });
+    expect(field("error_class")).toStrictEqual([
+      "RangeError",
+      "TypeError",
+      null,
+      null,
+    ]);
+  });
+});
+
+describe("noteCliOperationCall", () => {
+  test("the first noted call gives the signals, until the event is recorded", async () => {
+    noteCliOperationCall({ operation: "kb_upsert", args: { dryRun: true } });
+    noteCliOperationCall({ operation: "kb_upsert", args: { dryRun: false } });
+    await finish("upsert", 0);
+    await finish("upsert", 0);
+    expect(field("dry_run")).toStrictEqual([true, null]);
+  });
+
+  test("without a noted call the command path names the operation", async () => {
+    await finish("kb_validate_upsert", 0);
+    expect(field("dry_run")).toStrictEqual([true]);
+  });
+
+  test("an error the call carries places the crash when none was thrown", async () => {
+    noteCliOperationCall({ operation: "kb_status", error: crash("carried") });
+    await finish("status", 1);
+    expect(field("crash_frame")).toStrictEqual([
+      "kibi-cli/src/carried#carried",
+    ]);
   });
 });
 

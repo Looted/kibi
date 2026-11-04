@@ -8,6 +8,7 @@ import {
   openFailureResult,
 } from "../src/cli-protocol.js";
 import { EngineQueryLimitError } from "../src/engine-limits.js";
+import * as telemetry from "../src/usage-telemetry.js";
 
 function context(overrides: Partial<CliContext> = {}): CliContext {
   return {
@@ -279,6 +280,13 @@ describe("executeOperation", () => {
         },
       ],
     ];
+    const noted: unknown[] = [];
+    const note = spyOn(telemetry, "noteCliThrownError").mockImplementation(
+      (error) => {
+        noted.push(error);
+      },
+    );
+    restores.push(() => note.mockRestore());
     for (const [thrown, exitCode, error] of cases) {
       stubSpec({
         execute: async () => {
@@ -293,6 +301,8 @@ describe("executeOperation", () => {
         errorEnvelope("kb_status", error, "failed"),
       );
     }
+    // Only a plain Error is noted: coded errors and non-errors are not.
+    expect(noted).toStrictEqual([cases[2]?.[0]]);
   });
 
   test("a read stopped at its engine limit reports the limit", async () => {

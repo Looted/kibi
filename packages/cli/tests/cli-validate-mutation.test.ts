@@ -78,6 +78,12 @@ describe("prepareOperationInput", () => {
         "/limit must be >= 1: >=, 1",
         "/nested/depth must be integer: integer",
       ],
+      issues: [
+        { field: "other", rule: "required" },
+        { field: "other", rule: "additionalProperties" },
+        { field: "other", rule: "minimum" },
+        { field: "other", rule: "type" },
+      ],
     });
   });
 
@@ -90,6 +96,7 @@ describe("prepareOperationInput", () => {
     ).toStrictEqual({
       valid: false,
       errors: ["/banned boolean schema is false"],
+      issues: [{ field: "other", rule: "false schema" }],
     });
   });
 
@@ -134,6 +141,10 @@ describe("prepareOperationInput", () => {
       errors: [
         "/ must NOT have additional properties: d",
         "/b must be string: string",
+      ],
+      issues: [
+        { field: "other", rule: "additionalProperties" },
+        { field: "other", rule: "type" },
       ],
     });
   });

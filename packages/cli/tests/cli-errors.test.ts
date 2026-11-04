@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { InputError, OperationError, codedErrorOf } from "../src/cli-errors.js";
+import {
+  InputError,
+  KbRejection,
+  OperationError,
+  codedErrorOf,
+  prefixedFailure,
+} from "../src/cli-errors.js";
 
 describe("InputError and OperationError", () => {
   test("InputError is a non-retryable exit-2 error", () => {
@@ -107,5 +113,36 @@ describe("codedErrorOf", () => {
     expect(
       codedErrorOf(foreign("InputError", { code: "X", retryable: true })),
     ).toStrictEqual({ code: "X", message: "foreign message", retryable: true });
+  });
+});
+
+describe("KbRejection and prefixedFailure", () => {
+  test("a rejection has no issues unless given some", () => {
+    const rejection = new KbRejection("ENTITY_NOT_FOUND", "no such id");
+    expect(rejection).toBeInstanceOf(Error);
+    expect(rejection.code).toBe("ENTITY_NOT_FOUND");
+    expect(rejection.message).toBe("no such id");
+    expect(rejection.issues).toStrictEqual([]);
+  });
+
+  test("prefixes the message and keeps a rejection's code and issues", () => {
+    const issues = [{ rule: "required", field: "title" }];
+    const wrapped = prefixedFailure(
+      "Upsert failed: ",
+      new KbRejection("ENTITY_VALIDATION_FAILED", "bad", issues),
+    );
+    expect(wrapped).toBeInstanceOf(KbRejection);
+    expect(wrapped.message).toBe("Upsert failed: bad");
+    expect((wrapped as KbRejection).code).toBe("ENTITY_VALIDATION_FAILED");
+    expect((wrapped as KbRejection).issues).toBe(issues);
+    for (const [error, message] of [
+      [new TypeError("boom"), "P: boom"],
+      ["text", "P: text"],
+    ] as const) {
+      const plain = prefixedFailure("P: ", error);
+      expect(plain).not.toBeInstanceOf(KbRejection);
+      expect(plain.constructor).toBe(Error);
+      expect(plain.message).toBe(message);
+    }
   });
 });

@@ -29,6 +29,7 @@ let stdoutResult: boolean;
 let appended: unknown[];
 let notedCategories: unknown[];
 let notedResults: unknown[];
+let notedCalls: unknown[];
 let effects: string[];
 
 function track<T extends { mockRestore(): void }>(spy: T): T {
@@ -50,6 +51,7 @@ beforeEach(() => {
   appended = [];
   notedCategories = [];
   notedResults = [];
+  notedCalls = [];
   effects = ["kb-read"];
   track(
     spyOn(process.stdout, "write").mockImplementation((chunk: unknown) => {
@@ -73,6 +75,11 @@ beforeEach(() => {
   track(
     spyOn(telemetry, "noteCliErrorCategory").mockImplementation((code) => {
       notedCategories.push(code);
+    }),
+  );
+  track(
+    spyOn(telemetry, "noteCliOperationCall").mockImplementation((call) => {
+      notedCalls.push(call);
     }),
   );
   track(
@@ -307,6 +314,25 @@ describe("runJsonInvocation execution", () => {
     expect(notedResults).toStrictEqual([]);
     expect(appended).toStrictEqual([]);
     expect(process.exitCode).toBe(0);
+  });
+
+  test("notes the call, with the input's issues only when it is invalid", async () => {
+    stubRuntime({ exitCode: 0, stdout: '{"data":{"n":1}}\n' });
+    await runJsonInvocation(invocation(inputFile('{"q":"a"}')));
+    await runJsonInvocation(invocation(inputFile('{"q":1}')));
+    expect(notedCalls).toStrictEqual([
+      {
+        operation: "kb_status",
+        args: { q: "a" },
+        result: { data: { n: 1 } },
+      },
+      {
+        operation: "kb_status",
+        args: { q: 1 },
+        result: { data: { n: 1 } },
+        inputIssues: [{ rule: "type", field: "other" }],
+      },
+    ]);
   });
 
   test("a successful write runs the after-success hook", async () => {

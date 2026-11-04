@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import * as jsonCommand from "../src/cli-json-command.js";
 import { registerFoundationCommands } from "../src/cli-register-foundation.js";
+import * as hooksInstall from "../src/commands/hooks-install.js";
 import * as init from "../src/commands/init.js";
 import * as migrate from "../src/commands/migrate.js";
 import * as query from "../src/commands/query.js";
@@ -68,6 +69,15 @@ describe("registerFoundationCommands", () => {
     await run("sync", "--rebuild");
     expect(plainCalls(syncSpy)).toStrictEqual([[{ rebuild: true }]]);
     expect(process.exitCode).toBe(6);
+  });
+
+  test("hooks install passes its options and sets the exit code", async () => {
+    const hooksSpy = stub(hooksInstall, "hooksInstallCommand", {
+      exitCode: 3,
+    });
+    await run("hooks", "install", "--quiet");
+    expect(plainCalls(hooksSpy)).toStrictEqual([[{ quiet: true }]]);
+    expect(process.exitCode).toBe(3);
   });
 
   test("query runs the human path or the JSON route", async () => {

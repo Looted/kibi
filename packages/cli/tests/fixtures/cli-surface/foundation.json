@@ -34,9 +34,81 @@
         "description": "With --print-hook: shell (default), lefthook, husky or pre-commit",
         "default": null,
         "mandatory": false
+      },
+      {
+        "flags": "--auto-sync",
+        "description": "Compile a missing branch store on first use (default; recorded in package.json kibi.setup or .kb/setup.json)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--no-auto-sync",
+        "description": "Answer from an uncompiled store with a 'run kibi sync' warning instead",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--prepare-hooks",
+        "description": "Install Kibi's git hooks from the package.json prepare script on every dependency install (default)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--no-prepare-hooks",
+        "description": "Leave the prepare script alone",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--agent-instructions",
+        "description": "Keep a Kibi section in AGENTS.md and an @AGENTS.md import in CLAUDE.md (default)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--no-agent-instructions",
+        "description": "Write no agent instruction files",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--ci-gate",
+        "description": "Add .github/workflows/kibi-check.yml, which runs kibi check on every pull request",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--no-ci-gate",
+        "description": "Add no pull-request gate workflow (default)",
+        "default": null,
+        "mandatory": false
       }
     ],
     "commands": []
+  },
+  {
+    "name": "hooks",
+    "aliases": [],
+    "description": "Manage Kibi's git hooks in this checkout",
+    "arguments": [],
+    "options": [],
+    "commands": [
+      {
+        "name": "install",
+        "aliases": [],
+        "description": "Install Kibi's git hooks in this checkout (run by the package.json prepare script that kibi init adds)",
+        "arguments": [],
+        "options": [
+          {
+            "flags": "--quiet",
+            "description": "Print only when hooks were installed and never fail: do nothing in CI, outside a Git work tree, before kibi init, or where a hook manager owns the hooks",
+            "default": null,
+            "mandatory": false
+          }
+        ],
+        "commands": []
+      }
+    ]
   },
   {
     "name": "migrate",

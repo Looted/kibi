@@ -31,6 +31,7 @@ import {
   attachmentFailureMessage,
   createCliRuntime,
 } from "../../src/runtime/cli-runtime.js";
+import * as autoCompile from "../../src/utils/auto-compile.js";
 import {
   type BranchResolverDeps,
   _setBranchResolverDepsForTests,
@@ -533,6 +534,26 @@ describe("operations that require Prolog", () => {
     );
     await runtime.close(context, { status: "success", result: null });
     expect(engineCalls.at(-1)).toEqual(["terminate", engine]);
+  });
+
+  test("only the default engine compiles a never-compiled branch store", async () => {
+    const root = fresh();
+    onBranch();
+    const compiled: unknown[] = [];
+    restores.push(
+      spyOn(autoCompile, "ensureBranchStoreCompiled").mockImplementation(
+        async (workspaceRoot, attachment, spec) => {
+          compiled.push([workspaceRoot, attachment.kbBranch, spec.name]);
+          return "not-needed";
+        },
+      ),
+    );
+    const runtime = createCliRuntime({ workspaceRoot: root });
+    await runtime.open(readSpec(), { prolog: fakePort().port });
+    expect(compiled).toStrictEqual([]);
+    const context = await runtime.open(readSpec());
+    expect(compiled).toStrictEqual([[root, "main", "probe"]]);
+    await runtime.close(context, { status: "success", result: null });
   });
 
   test("a failed engine start terminates it and rethrows", async () => {
