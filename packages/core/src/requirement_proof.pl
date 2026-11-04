@@ -392,12 +392,20 @@ parse_inventory_entries(Raw, Entries) :-
     ->  Entries = Raw
     ;   Raw = ^^(Value, _)
     ->  inventory_entries(Value, Entries)
-    ;   (atom(Raw) ; string(Raw)),
-        catch(atom_json_dict(Raw, JsonEntries, [value_string_as(string)]), _, fail),
+    ;   % Text that is not JSON or Prolog makes these parsers throw, and
+        % other input either throws or parses to a non-list, so neither needs
+        % a type guard.  A handler that succeeded would leave the entries
+        % unbound, which the is_list/1 check after it rejects the same way.
+        catch(atom_json_dict(Raw, JsonEntries, [value_string_as(string)]),
+              _,
+              % mutalog-disable-next-line goal_true: unbound entries fail is_list/1 like a failed parse
+              fail),
         is_list(JsonEntries)
     ->  Entries = JsonEntries
-    ;   (atom(Raw) ; string(Raw)),
-        catch(term_string(PrologEntries, Raw), _, fail),
+    ;   catch(term_string(PrologEntries, Raw),
+              _,
+              % mutalog-disable-next-line goal_true: unbound entries fail is_list/1 like a failed parse
+              fail),
         is_list(PrologEntries)
     ->  Entries = PrologEntries
     ;   Entries = []

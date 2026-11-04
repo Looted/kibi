@@ -83,6 +83,20 @@ test(inventory_entries_parse_every_shape) :-
     once(requirement_proof:inventory_entries(f(x), E8)), E8 == [],
     once(requirement_proof:inventory_entries(42, E9)), E9 == [].
 
+test(memo_size_counts_each_remembered_answer) :-
+    rqp_forget_memo,
+    requirement_proof:pure_memo_remember(k1, kind, a),
+    requirement_proof:pure_memo_remember(k2, kind, b),
+    findall(Size, requirement_proof:pure_memo_size(Size), Sizes),
+    Sizes == [2].
+
+test(only_text_inventories_are_memoized) :-
+    rqp_forget_memo,
+    forall(member(Raw, ['[c]', "[d]", [x], f(x), 42]),
+           once(requirement_proof:inventory_entries(Raw, _))),
+    findall(Entries, requirement_proof:pure_memo(_, inventory_entries, Entries), Memo),
+    Memo == [[c], [d]].
+
 test(pure_memo_caches_and_bounds_its_size) :-
     retractall(requirement_proof:pure_memo(_, _, _)),
     retractall(requirement_proof:pure_memo_size(_)),
