@@ -104,6 +104,139 @@ if (RUN_NODE_TEST_SUITE) {
       );
 
       it(
+        "loads on the OpenCode v1 and v2 plugin APIs from one package",
+        {
+          timeout: 30000,
+        },
+        async () => {
+          const dist = join(installDir, "node_modules/kibi-opencode/dist");
+          const { default: definition } = await import(join(dist, "index.js"));
+          // v1 (1.4+) reads default.server; v2 validates { id, setup }.
+          assert.strictEqual(typeof definition, "object");
+          assert.ok(
+            typeof definition.id === "string" && definition.id.length > 0,
+          );
+          assert.strictEqual(typeof definition.server, "function");
+          assert.strictEqual(typeof definition.setup, "function");
+
+          // On v2 a hook that fails to register must not stop the others,
+          // and the failure is reported.
+          const v2 = await import(join(dist, "opencode-v2.js"));
+          const logger = await import(join(dist, "logger.js"));
+          const registered: string[] = [];
+          const prompts: Array<{ text: string }> = [];
+          let toolHook: ((input: unknown) => Promise<void>) | undefined;
+          const commands: Array<{
+            name: string;
+            execute: (invocation: unknown) => Promise<void>;
+          }> = [];
+          const context = {
+            location: { directory: tmpDir, project: { directory: tmpDir } },
+            session: {
+              hook: async () => {
+                throw new Error("session hooks unavailable");
+              },
+              prompt: async (input: { text: string }) => {
+                prompts.push(input);
+              },
+            },
+            tool: {
+              hook: async (
+                _name: string,
+                callback: (input: unknown) => Promise<void>,
+              ) => {
+                registered.push("tool");
+                toolHook = callback;
+                return { dispose: () => {} };
+              },
+            },
+            command: {
+              transform: async (
+                callback: (editor: {
+                  add: (definition: (typeof commands)[number]) => void;
+                }) => void,
+              ) => {
+                registered.push("command");
+                callback({ add: (definition) => commands.push(definition) });
+                return { dispose: () => {} };
+              },
+            },
+          };
+          const events: Array<{ type: string; properties: { file?: string } }> =
+            [];
+          const logged: unknown[][] = [];
+          logger._setConsoleError((...args: unknown[]) => {
+            logged.push(args);
+          });
+          try {
+            await v2.createV2Setup(async () => ({
+              "experimental.chat.system.transform": () => {},
+              event: ({
+                event,
+              }: {
+                event: { type: string; properties: { file?: string } };
+              }) => {
+                events.push(event);
+              },
+              config: (config: {
+                command: Record<string, { template: string }>;
+              }) => {
+                config.command["kibi-e2e"] = { template: "check $ARGUMENTS" };
+              },
+            }))(context);
+          } finally {
+            logger._setConsoleError(null);
+          }
+          assert.deepStrictEqual(registered.sort(), ["command", "tool"]);
+          assert.ok(
+            logged.some((entry) =>
+              String(entry[1]).includes(
+                "OpenCode v2 session.context registration failed",
+              ),
+            ),
+            JSON.stringify(logged),
+          );
+
+          // Completed patch tools reach the v1 event hook as file events.
+          await toolHook?.({
+            sessionID: "ses_e2e",
+            id: "call_e2e",
+            tool: "apply_patch",
+            status: "completed",
+            input: {
+              patchText: [
+                "*** Begin Patch",
+                "*** Add File: src/new.ts",
+                "+export {};",
+                "*** Delete File: src/gone.ts",
+                "*** End Patch",
+              ].join("\n"),
+            },
+          });
+          assert.deepStrictEqual(
+            events.map((event) => event.type),
+            ["tool.execute.after", "file.created", "file.deleted"],
+          );
+          assert.strictEqual(
+            events[1]?.properties.file,
+            join(tmpDir, "src/new.ts"),
+          );
+
+          // Legacy template commands run through the v2 session prompt.
+          const command = commands.find((entry) => entry.name === "kibi-e2e");
+          assert.ok(command, JSON.stringify(commands.map((c) => c.name)));
+          await command.execute({
+            sessionID: "ses_e2e",
+            prompt: { text: "billing" },
+          });
+          assert.deepStrictEqual(
+            prompts.map((entry) => entry.text),
+            ["check billing"],
+          );
+        },
+      );
+
+      it(
         "trims oversized guidance to one block within the bullet and word budget",
         {
           timeout: 30000,

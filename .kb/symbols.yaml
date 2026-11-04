@@ -37065,6 +37065,8 @@ symbols:
     granularity_reason: test-suite
     relationships:
       - type: executable_for
+        target: TEST-e2e-opencode-v2-plugin-load
+      - type: executable_for
         target: TEST-opencode-kibi-plugin-v1
       - type: executable_for
         target: TEST-opencode-smart-enforcement-v1-coverage
@@ -56530,6 +56532,8 @@ symbols:
       recorded_at: 2026-10-19T20:30:52.946Z
     relationships:
       - type: covered_by
+        target: TEST-e2e-opencode-v2-plugin-load
+      - type: covered_by
         target: TEST-opencode-v2-plugin-api
       - type: implements
         target: REQ-opencode-v2-plugin-api
@@ -56546,6 +56550,8 @@ symbols:
       recorded_at: 2026-10-19T20:30:55.833Z
     relationships:
       - type: covered_by
+        target: TEST-e2e-opencode-v2-plugin-load
+      - type: covered_by
         target: TEST-opencode-v2-plugin-api
       - type: implements
         target: REQ-opencode-v2-plugin-api
@@ -56561,6 +56567,8 @@ symbols:
       kind: agent
       recorded_at: 2026-10-19T20:30:58.707Z
     relationships:
+      - type: covered_by
+        target: TEST-e2e-opencode-v2-plugin-load
       - type: covered_by
         target: TEST-opencode-v2-plugin-api
       - type: implements
@@ -56594,6 +56602,8 @@ symbols:
       recorded_at: 2026-10-19T20:31:04.403Z
     relationships:
       - type: covered_by
+        target: TEST-e2e-opencode-v2-plugin-load
+      - type: covered_by
         target: TEST-opencode-v2-plugin-api
       - type: implements
         target: REQ-opencode-v2-plugin-api
@@ -56609,6 +56619,8 @@ symbols:
       kind: agent
       recorded_at: 2026-10-19T20:31:07.203Z
     relationships:
+      - type: covered_by
+        target: TEST-e2e-opencode-v2-plugin-load
       - type: covered_by
         target: TEST-opencode-v2-plugin-api
       - type: implements
@@ -56773,6 +56785,8 @@ symbols:
       recorded_at: 2026-10-19T22:24:07.043Z
     relationships:
       - type: covered_by
+        target: TEST-e2e-opencode-v2-plugin-load
+      - type: covered_by
         target: TEST-opencode-v2-plugin-api
       - type: implements
         target: REQ-opencode-v2-plugin-api
@@ -56804,6 +56818,8 @@ symbols:
       kind: agent
       recorded_at: 2026-10-20T08:01:09.756Z
     relationships:
+      - type: covered_by
+        target: TEST-e2e-opencode-v2-plugin-load
       - type: covered_by
         target: TEST-opencode-v2-plugin-api
       - type: implements
