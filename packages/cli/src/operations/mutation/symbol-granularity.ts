@@ -1,36 +1,35 @@
 import { collectGranularityCandidates } from "kibi-plugin-builtin";
 import { InputError } from "../../cli-errors.js";
-import type { OperationContext } from "../../public/operations/runtime-types.js";
+import type {
+  FilesystemPort,
+  OperationContext,
+} from "../../public/operations/runtime-types.js";
 import {
   ALLOWED_GRANULARITY_REASONS_PROSE,
   type GranularSymbolCandidate,
-  type SymbolKind,
   coarseLinkBehavioralNames,
-  getBehavioralSymbolNames,
   getNonBehavioralSymbolNames,
-  inferSymbolRole,
   isAllowedGranularityReason,
   isTraceabilityRelationshipType,
 } from "../../public/symbol-granularity.js";
 import { resolveWorkspaceSourceAbsolute } from "../../utils/repo-relative-path.js";
 import type { RelationshipInput } from "./types.js";
 
-function candidate(name: string, kind: SymbolKind): GranularSymbolCandidate {
-  return { name, kind, role: inferSymbolRole(kind) };
-}
-
 /**
  * Granularity candidates must include bare unique method names (parity with
  * the pre-plugin `collectGranularityCandidates` behavior). The extractor
- * symbol list alone is too narrow and rejects previously-valid upserts.
+ * symbol list alone is too narrow and rejects previously-valid upserts. The
+ * granularity helpers infer each role from its kind and sort the names they
+ * report, so the plugin's candidates are used as they are.
  */
 function candidates(
   filePath: string,
   content: string,
 ): GranularSymbolCandidate[] {
-  return collectGranularityCandidates(filePath, content)
-    .map((item) => candidate(item.name, item.kind as SymbolKind))
-    .sort((left, right) => left.name.localeCompare(right.name));
+  return collectGranularityCandidates(
+    filePath,
+    content,
+  ) as GranularSymbolCandidate[];
 }
 
 function summarized(names: readonly string[]): string {
@@ -65,12 +64,11 @@ function withStoredSymbolLocation(
   entity: Readonly<Record<string, unknown>>,
   stored: Readonly<Record<string, unknown>> | null | undefined,
 ): Readonly<Record<string, unknown>> {
-  if (entity.type !== "symbol" || stored === null || stored === undefined)
-    return entity;
+  // Only a symbol payload reaches here.
+  if (stored === null || stored === undefined) return entity;
   const merged: Record<string, unknown> = { ...entity };
   for (const field of STORED_LOCATION_FIELDS) {
-    if (merged[field] === undefined && stored[field] !== undefined)
-      merged[field] = stored[field];
+    if (merged[field] === undefined) merged[field] = stored[field];
   }
   return merged;
 }
@@ -96,8 +94,6 @@ export async function validateSymbolGranularity(
   if (isAllowedGranularityReason(entity.granularity_reason)) return;
   if (typeof entity.sourceFile !== "string" || typeof entity.title !== "string")
     return;
-  const fs = context.fs;
-  if (fs === undefined) return;
   const sourcePath = resolveWorkspaceSourceAbsolute(
     context.workspaceRoot,
     entity.sourceFile,
@@ -105,6 +101,9 @@ export async function validateSymbolGranularity(
   if (sourcePath === null) return;
   let content: string;
   try {
+    // A runtime without a filesystem fails here with a TypeError, which
+    // skips the check like an unreadable file does.
+    const fs = context.fs as FilesystemPort;
     const stat = await fs.stat(sourcePath);
     if (!stat.isFile()) return;
     content = await fs.readFile(sourcePath);
@@ -113,16 +112,14 @@ export async function validateSymbolGranularity(
     throw error;
   }
   const available = candidates(entity.sourceFile, content);
-  const exact = available.find(({ name }) => name === entity.title);
   // A declaration named like the symbol is coarse only through its own
   // behavioral members (a class and its public methods), the same test the
   // staged gate and `kibi check` apply; any other title is judged against
-  // every behavioral declaration in the file. An exported constant is its
-  // own declaration with exact coordinates (a certificate proof's domain is
-  // one), so it is granular whatever its role.
-  const behavioral = exact
-    ? coarseLinkBehavioralNames(entity.title, available)
-    : getBehavioralSymbolNames(available);
+  // every behavioral declaration in the file (coarseLinkBehavioralNames
+  // covers both). An exported constant is its own declaration with exact
+  // coordinates (a certificate proof's domain is one), so it is granular
+  // whatever its role.
+  const behavioral = coarseLinkBehavioralNames(entity.title, available);
   if (behavioral.length === 0) return;
   const nonBehavioral = getNonBehavioralSymbolNames(available);
   const ignored =
