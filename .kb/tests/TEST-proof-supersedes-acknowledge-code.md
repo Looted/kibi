@@ -26,15 +26,15 @@ id: TEST-proof-supersedes-acknowledge-code
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-fbbaf205dd14d876b946e93e
+    receipt_id: PR-680c7edc38532d781dbb2790
     test_id: TEST-proof-supersedes-acknowledge-code
     scope: unit
     outcome: passed
-    code_snapshot: fed4ebb783f2658a2b1a7673268d9b0ffcf80faa0d1f59c186900196eec682cc
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T20:36:35.139Z'
-    finished_at: '2026-10-28T20:36:35.306Z'
-    artifact_digest: 219d82335e1d5d8bc58f556a820a3a5cd92f7828f5de6d7185d92bce032146d1
+    code_snapshot: e25a1f0385dac8dcff3382f76f7940204d134ea7aa298c9b083cb2fcd11015b2
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-04T18:30:40.052Z'
+    finished_at: '2026-11-04T18:30:40.192Z'
+    artifact_digest: 2fde0f083856ae792f96fd009c93a3d8ffdddfbf0ef984832715c625d539c4f2
     contract_hash: 8d3f0f4df05f71f5cc51055faccb56e8f6596b0bd4d6be1591654fe07428a581
     binding_hash: e5dee231383b60ebf0bfce524351fafcc104636e81dd19b7e3b756c9f3721307
     fingerprint: 39b8a532921ed17c1ad780cfc70cbf2e3d386d9ba393777d8c47b989f00fb861
@@ -71,7 +71,7 @@ proof_receipts:
     certificate_digest: 91fb018bb5e5484474a398832d62ffd4e8282fb89f185779a4b31eb63a5e3ef3
     claim_bindings:
       - claim_key: CLAIM-9D285E495E7AAEE0
-        requirement_id: REQ-cli-migration-pin-codes
+        requirement_id: REQ-cli-migration-supersession-codes
         fact_id: FACT-supersedes-acknowledge-code
         binding: derived
         scope: code

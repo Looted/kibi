@@ -15,20 +15,20 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-4539371f51bb922c2b29ea34
+    receipt_id: PR-ef56869be39d96b12596086d
     test_id: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
     scope: end_to_end
     outcome: passed
-    code_snapshot: e2663d10a2e1a0b8fdd0d38e888ee46d8031436be2244a613e1c406fbfa714b0
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-30T19:52:22.087Z'
-    finished_at: '2026-10-30T19:53:19.471Z'
-    artifact_digest: 0fbbef87f8de81b7d792260aeb8c79411ebc63315ea18c96a2291aa4c8ec728b
-    contract_hash: 906cca7199309d273a9dc61b3a175e23e3f2fe82764c51173ada6cf69c4404db
-    binding_hash: 3849bd6f177585d2a743c6dba6dc51ea532a2f6853f1b6172aa806b29e6469da
-    fingerprint: d1c4ba3eb0ee1a1e0d812dd0e2b9febb776704c1fd7006fdb30ccf46462d3094
+    code_snapshot: e25a1f0385dac8dcff3382f76f7940204d134ea7aa298c9b083cb2fcd11015b2
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-04T18:27:20.844Z'
+    finished_at: '2026-11-04T18:28:07.403Z'
+    artifact_digest: 16398b3b6a09359a8104ef0e6efddfa67377e574bbea134f22d0e34221738d69
+    contract_hash: 4aeddfd893b85de667338165458ac8dfc908d633d6a4117ff137a3fd26d0f919
+    binding_hash: a928c2eedacdaadfc97fb01d2e0f41ddf1f223b0a0fdaef8d662c66c7ce8d96b
+    fingerprint: b306bd9de40a1467df2971230e0d6da3dddf85f413772e7f94361ed531556ac1
     fingerprint_components:
-      contract: 906cca7199309d273a9dc61b3a175e23e3f2fe82764c51173ada6cf69c4404db
+      contract: 4aeddfd893b85de667338165458ac8dfc908d633d6a4117ff137a3fd26d0f919
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -41,7 +41,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-kibi-bootstrap-plan-apply
+      - symbol_id: SYM-e2e-init-sync-check
         target: default
         outcome: passed
         binding: aggregate_run
