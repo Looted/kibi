@@ -1111,12 +1111,25 @@ describe("interactive queries", () => {
   });
 
   test("wake on a frame split across chunks", async () => {
-    const { prolog } = await started(() => ({
-      chunks: ["X = 1.\n\n__KIBI_QUERY", "_FRAME_END__\ntrue.", "\n\n"],
-    }));
-    const startedAt = Date.now();
+    // Every 50 ms poll is held back, so only an output wake can answer.
+    const realSetTimeout = globalThis.setTimeout;
+    let polls = 0;
+    spyOn(globalThis, "setTimeout").mockImplementation(((
+      handler: () => void,
+      ms?: number,
+    ) => {
+      if (ms !== 50) return realSetTimeout(handler, ms);
+      polls += 1;
+      return realSetTimeout(handler, 60_000);
+    }) as never);
+    const { prolog } = await started(
+      () => ({
+        chunks: ["X = 1.\n\n__KIBI_QUERY", "_FRAME_END__\ntrue.", "\n\n"],
+      }),
+      { timeout: 1000 },
+    );
     expect((await prolog.query("kb_split")).bindings).toStrictEqual({ X: "1" });
-    expect(Date.now() - startedAt).toBeLessThan(45);
+    expect(polls).toBe(1);
   });
 
   test("refuse a lost or unstarted session", async () => {
