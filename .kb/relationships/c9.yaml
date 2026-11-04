@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-223989e0741a
+  - type: assumes
+    from: SCEN-NEG-kb-decision-implicit-supersede-UNREPORTED
+    to: FACT-NEG-kb-decision-implicit-supersede-UNREPORTED
+    created_at: 2026-11-04T15:03:36.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24406de644bd
+  - type: verified_by
+    from: SCEN-NEG-kb-decision-implicit-supersede-UNREPORTED
+    to: TEST-kb-decision-firmness
+    created_at: 2026-11-04T15:03:36.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dced69e4317c
