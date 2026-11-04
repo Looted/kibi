@@ -192,6 +192,17 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
   ) {
     extracted.verification_perspective = verificationPerspective;
   }
+  // Stored as a Prolog atom, so the projection may answer "true" or true.
+  const proofExempt = entity.proof_exempt;
+  if (proofExempt === true || proofExempt === "true") {
+    extracted.proof_exempt = true;
+  } else if (proofExempt === false || proofExempt === "false") {
+    extracted.proof_exempt = false;
+  }
+  const proofExemptReason = optionalStringField(entity, "proof_exempt_reason");
+  if (proofExemptReason !== undefined) {
+    extracted.proof_exempt_reason = proofExemptReason;
+  }
   const proofContract = optionalObjectField(entity, "proof_contract");
   if (proofContract !== undefined) {
     extracted.proof_contract = proofContract as NonNullable<

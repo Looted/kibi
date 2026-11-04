@@ -159,6 +159,18 @@ export function isQualifiedSourcePath(filePath: string): boolean {
   );
 }
 
+/**
+ * True when some source extractor can find declarations in the path: a
+ * language or ambiguous-language extension. File-level documents (JSON, YAML,
+ * shell, ...) and extensionless or unclassified paths have nothing narrower
+ * than the whole file to link.
+ */
+// implements REQ-source-analysis-v2
+export function hasDeclarationExtractor(filePath: string): boolean {
+  const kind = EXTENSIONS[extensionOf(filePath)]?.kind;
+  return kind === "language" || kind === "ambiguous";
+}
+
 /** Every classified extension, for parity checks against provider catalogs. */
 // implements REQ-source-analysis-v2
 export function classifiedExtensions(): readonly string[] {
