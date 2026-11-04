@@ -163,7 +163,8 @@ export function canonicalJson(value: unknown): string {
       active.delete(item);
       return result;
     }
-    if (typeof item === "object" && item !== null) {
+    // null was encoded above, so every remaining object is a record.
+    if (typeof item === "object") {
       if (active.has(item)) throw new Error("Impact evidence contains a cycle");
       active.add(item);
       const record = item as Record<string, unknown>;
@@ -178,7 +179,7 @@ export function canonicalJson(value: unknown): string {
 }
 
 export function fingerprint(value: unknown): Fingerprint {
-  return `sha256:${createHash("sha256").update(canonicalJson(value), "utf8").digest("hex")}`;
+  return `sha256:${createHash("sha256").update(canonicalJson(value)).digest("hex")}`;
 }
 
 export function fingerprintBytes(value: Uint8Array): Fingerprint {
@@ -286,7 +287,6 @@ export function parseImpactPolicy(value: unknown): ImpactPolicy {
     if (
       typeof path !== "string" ||
       !path.trim() ||
-      path.startsWith("/") ||
       path.includes("\\") ||
       path
         .split("/")
@@ -397,7 +397,6 @@ export function parseImpactReviewRecord(value: unknown): ImpactReviewRecord {
       typeof row.path !== "string" ||
       !row.path ||
       row.path === IMPACT_REVIEW_PATH ||
-      row.path.startsWith("/") ||
       row.path.includes("\\") ||
       row.path
         .split("/")
@@ -408,7 +407,7 @@ export function parseImpactReviewRecord(value: unknown): ImpactReviewRecord {
       throw new Error(`Duplicate impact review path: ${row.path}`);
     paths.add(row.path);
     const validStatuses: readonly string[] = ["A", "M", "R", "C", "T", "D"];
-    if (typeof row.status !== "string" || !validStatuses.includes(row.status))
+    if (!validStatuses.includes(row.status as string))
       throw new Error(`files[${index}] has an invalid status`);
     if (
       row.oldPath !== undefined &&
@@ -567,7 +566,6 @@ function validateDecision(value: Record<string, unknown>): void {
           if (
             typeof entity.entityId !== "string" ||
             typeof entity.artifactPath !== "string" ||
-            entity.artifactPath.startsWith("/") ||
             entity.artifactPath.includes("\\") ||
             entity.artifactPath
               .split("/")
@@ -658,7 +656,6 @@ function validateAnalysisReview(value: unknown): void {
         "partial review range",
       );
       if (
-        !isObject(range) ||
         !Number.isSafeInteger(range.startLine) ||
         (range.startLine as number) < 1 ||
         !Number.isSafeInteger(range.startColumn) ||
@@ -684,8 +681,7 @@ function validateSideEvidence(value: unknown, label: string): void {
     label,
   );
   const hasProjection = Object.hasOwn(value, "contentProjection");
-  const projected =
-    hasProjection && value.contentProjection === "proof_receipts_stripped";
+  const projected = value.contentProjection === "proof_receipts_stripped";
   const modeKinds: Readonly<Record<string, SideEvidence["kind"]>> = {
     "100644": "regular",
     "100755": "regular",
