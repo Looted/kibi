@@ -52,6 +52,7 @@ export function manifestVersion(
   return undefined;
 }
 
+// implements REQ-engine-daemon-package-versions
 /** The bundled kibi-cli version, else the one beside `directory` (src/ or dist/). */
 export function cliVersion(directory: string = moduleDirectory): string {
   if (typeof __KIBI_CLI_VERSION__ === "string") return __KIBI_CLI_VERSION__;

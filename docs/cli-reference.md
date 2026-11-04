@@ -940,6 +940,7 @@ Structured JSON output preserves the same two-lane model used by MCP: hard corre
 Verifies environment setup and diagnostics.
 
 **Behavior:**
+- Reports the Kibi release this install belongs to ("Kibi release"), using the release manifest that the installed `kibi-core` ships (`release.json`): the release version and its KB schema, operation protocol and plugin API versions. It warns ("Mixed install") when an installed Kibi package has a different version than that release lists, and also warns when `kibi-core` predates release manifests. A local pack stamped `<version>-dev.<suffix>` counts as its base version. JSON output carries the manifest under `runtime.release` and the per-package comparison under the check's `details`
 - Resolves the SWI-Prolog Kibi runs (`KIBI_SWIPL`, then the bundled `kibi-swipl-<platform>` package, then `swipl` on `PATH`), reports its source, path, and version, and loads every library Kibi requires; when the bundle is missing on a supported platform it names the package to add
 - Verifies `.kb/` directory exists
 - Validates `.kb/manifest.json` syntax

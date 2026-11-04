@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-214955684721
+  - type: executable_for
+    from: SYM-test-kibi-release-version-mcp
+    to: TEST-kibi-release-version
+    created_at: 2026-11-04T05:19:21.053Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba52f0e12f8d

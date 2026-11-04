@@ -573,3 +573,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e824a9ff3f25
+  - type: validates
+    from: TEST-kibi-release-version
+    to: REQ-kibi-release-version
+    created_at: 2026-11-04T05:19:06.830Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebf0175c2ff3

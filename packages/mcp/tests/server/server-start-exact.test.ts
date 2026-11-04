@@ -69,9 +69,15 @@ describe("startServer", () => {
         "utf8",
       ),
     ).version;
+    const releaseManifest = JSON.parse(
+      readFileSync(
+        path.join(import.meta.dir, "..", "..", "..", "core", "release.json"),
+        "utf8",
+      ),
+    ) as { release: string };
     expect(inner._serverInfo).toStrictEqual({
       name: "kibi-mcp",
-      title: "Kibi MCP",
+      title: `Kibi MCP (Kibi ${releaseManifest.release})`,
       description:
         "Agent-native requirements compiler: branch-local knowledge base for requirements, scenarios, tests, facts, and code-symbol traceability.",
       websiteUrl: "https://github.com/Looted/kibi",

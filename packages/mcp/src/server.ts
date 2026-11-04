@@ -21,6 +21,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { initializeDiagnosticMode } from "./diagnostics.js";
 import { loadDefaultEnvFile } from "./env.js";
+import { kibiReleaseForMcp, mcpServerTitle } from "./kibi-release.js";
 import { setupDocsAndPrompts } from "./server/docs.js";
 import { KIBI_ICONS } from "./server/icons.js";
 import { registerAllTools } from "./server/tools.js";
@@ -64,7 +65,7 @@ export async function startServer(): Promise<void> {
   const server = new McpServer(
     {
       name: "kibi-mcp",
-      title: "Kibi MCP",
+      title: mcpServerTitle(kibiReleaseForMcp(VERSION)),
       description:
         "Agent-native requirements compiler: branch-local knowledge base for requirements, scenarios, tests, facts, and code-symbol traceability.",
       websiteUrl: "https://github.com/Looted/kibi",

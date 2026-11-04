@@ -7318,5 +7318,33 @@
         "./packages/mcp/tests/server/fresh-branch-store-consumer.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-release-version",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./scripts/tests/kibi-release.test.ts",
+        "./scripts/tests/release-workflow-contract.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/kibi-release.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/mcp/tests/kibi-release.test.ts",
+        "./packages/mcp/tests/server/server-start-exact.test.ts"
+      ]
+    ]
   }
 ]

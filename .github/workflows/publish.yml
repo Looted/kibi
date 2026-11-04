@@ -124,6 +124,8 @@ jobs:
           path: ${{ runner.temp }}/swipl-artifacts
       - name: Verify archives and populate the platform packages
         run: node scripts/populate-swipl-platform-packages.mjs --artifacts "$RUNNER_TEMP/swipl-artifacts"
+      - name: Verify the Kibi release manifest
+        run: bun run release:check
       - name: Verify publish metadata for npm provenance
         run: bun run scripts/verify-publish-metadata.ts --require-swipl-payload
       - name: Clean stale tarballs
@@ -488,5 +490,17 @@ jobs:
                 || echo "Failed to attach VSIX to $tag, skipping"
             fi
           done <<< "$to_publish"
+
+          # One umbrella release names the exact package set of this release.
+          kibi_release=$(bun run scripts/kibi-release.ts version)
+          bun run scripts/kibi-release.ts notes > "$RUNNER_TEMP/kibi-release-notes.md"
+          echo "Creating GitHub release: kibi@${kibi_release}"
+          gh release create "kibi@${kibi_release}" \
+            --title "Kibi ${kibi_release}" \
+            --notes-file "$RUNNER_TEMP/kibi-release-notes.md" \
+            --target "$GITHUB_SHA" \
+            --latest \
+            packages/core/release.json \
+            || echo "Release kibi@${kibi_release} already exists, skipping"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
