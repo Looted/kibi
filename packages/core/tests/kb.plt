@@ -11582,8 +11582,11 @@ test(proof_contract_candidates_come_from_the_kb_graph, [setup(setup_kb), cleanup
 test(entity_queries_filter_by_id_and_tag, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     ks_entity_props('REQ-QF-A', "Filtered", PropsA),
     kb_assert_entity(req, [tags=[alpha]|PropsA]),
-    ks_assert(req, 'REQ-QF-B'),
+    ks_entity_props('REQ-QF-B', "Filtered", PropsB),
+    kb_assert_entity(req, [tags=[beta]|PropsB]),
     kb_query_entities(none, 'REQ-QF-B', [], none, 10, 0, ById, ByIdCount),
+    ks_outcome(kb_query_entities(none, none, alpha, none, 10, 0, _, _), NotAList),
+    assertion(NotAList == false),
     kb_query_entities(none, 'REQ-QF-NONE', [], none, 10, 0, _, NoneCount),
     kb_query_entities(none, none, [alpha], none, 10, 0, ByTag, ByTagCount),
     ks_rows_ids(ById, ByIdIds),
@@ -11706,12 +11709,12 @@ test(untested_symbols_have_one_answer, [setup(setup_kb), cleanup(cleanup_kb)]) :
     assertion(Answers == [['SYM-UNT-1']]).
 
 test(stale_measures_age_in_days_against_a_natural_bound, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    ks_aged_req('REQ-AGED', 864060),
+    ks_aged_req('REQ-AGED', 8640050),
     findall(Max-Outcome,
-            ( member(Max, [0, 10, 11, -1, ten]),
+            ( member(Max, [0, 100, 101, -1, ten]),
               ks_outcome(stale('REQ-AGED', Max), Outcome) ),
             Outcomes),
-    assertion(Outcomes == [0-true, 10-true, 11-false, (-1)-false, ten-false]).
+    assertion(Outcomes == [0-true, 100-true, 101-false, (-1)-false, ten-false]).
 
 test(orphaned_symbols_lack_every_link, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     ks_entities(req, ['REQ-ORP']),
@@ -11821,7 +11824,13 @@ test(decision_pairs_match_arity_keys_and_current_partners, [setup(setup_kb), cle
     assertion(ALeft-ARight == []-['REQ-DEC-B']),
     assertion(WLeft-WRight == []-[]),
     assertion(SLeft-SRight == []-[]),
-    assertion(Pairs == 1).
+    assertion(Pairs == 1),
+    req_conflict_witness('REQ-DEC-A', 'REQ-DEC-B', Witness),
+    assertion(Witness.left.requirementSource == 'test://kb.plt'),
+    findall(Keys-Decision, kb:decision_predicate(default, permission_rule, 4, Keys, Decision), Builtin),
+    findall(Keys, kb:decision_predicate(default, permission_rule, 5, Keys, _), Wider),
+    assertion(Builtin == [[1, 2, 3]-4]),
+    assertion(Wider == []).
 
 test(decision_signatures_keep_one_memo, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb:decision_signatures(Before),
@@ -11859,18 +11868,20 @@ ks_clear_changed_symbols :-
 test(changed_symbols_count_unique_requirement_links, [setup(setup_kb), cleanup((ks_clear_changed_symbols, cleanup_kb))]) :-
     ks_entities(req, ['REQ-CH-1', 'REQ-CH-2']),
     ks_entities(test, ['TEST-CH']),
-    ks_entities(symbol, ['SYM-CH-A', 'SYM-CH-N', 'SYM-CH-T', 'SYM-CH-U']),
-    ks_edges_of(implements, ['SYM-CH-A'-'REQ-CH-1']),
+    ks_entities(symbol, ['SYM-CH-A', 'SYM-CH-K', 'SYM-CH-N', 'SYM-CH-T', 'SYM-CH-U']),
+    ks_edges_of(implements, ['SYM-CH-A'-'REQ-CH-1', 'SYM-CH-K'-'REQ-CH-1']),
     ks_edges_of(executable_for, ['SYM-CH-T'-'TEST-CH']),
-    forall(member(Symbol, ['SYM-CH-A', 'SYM-CH-N', 'SYM-CH-T']), assertz(kb:changed_symbol(Symbol))),
+    forall(member(Symbol, ['SYM-CH-A', 'SYM-CH-K', 'SYM-CH-N', 'SYM-CH-T']), assertz(kb:changed_symbol(Symbol))),
     assertz(kb:changed_symbol_req('SYM-CH-A', 'REQ-CH-1')),
     assertz(kb:changed_symbol_req('SYM-CH-A', 'REQ-CH-2')),
     assertz(kb:changed_symbol_loc('SYM-CH-A', 'src/a.ts', 7, 3, 'alpha')),
     findall(Symbol-Count-File-Line-Col-Name,
             kb:changed_symbol_violation(Symbol, 3, Count, File, Line, Col, Name),
             Violations),
-    findall(Symbol-Count, kb:changed_symbol_missing_req(Symbol, 2, Count), UnderTwo),
-    assertion(Violations == ['SYM-CH-A'-2-'src/a.ts'-7-3-alpha, 'SYM-CH-N'-0-''-0-0-'']),
+    findall(Symbol-Count, kb:changed_symbol_missing_req(Symbol, 2, Count), UnderTwo0),
+    exclude(==('SYM-CH-K'-1), UnderTwo0, UnderTwo),
+    assertion(Violations == ['SYM-CH-A'-2-'src/a.ts'-7-3-alpha, 'SYM-CH-K'-1-''-0-0-'',
+                             'SYM-CH-N'-0-''-0-0-'']),
     assertion(UnderTwo == ['SYM-CH-N'-0]).
 
 :- end_tests(kb_changed_symbols).
@@ -11882,6 +11893,13 @@ test(production_coverage_needs_a_matching_requirement_path, [setup(setup_kb), cl
     ks_verification_req('REQ-CV-M', [
         '-SCOPE'-[property_key="verification_scope", operator=eq, value_string="end_to_end", polarity=require]
     ]),
+    ks_verification_req('REQ-CV-M2', [
+        '-SCOPE'-[property_key="verification_scope", operator=eq, value_string="end_to_end", polarity=require]
+    ]),
+    assert_fixture_entity(test, 'TEST-CV-M2', "Direct unit test", active, [verification_scope=unit]),
+    ks_entities(symbol, ['SYM-CV-M2']),
+    ks_edges_of(verified_by, ['REQ-CV-M2'-'TEST-CV-M2']),
+    ks_edges_of(covered_by, ['SYM-CV-M2'-'TEST-CV-M2']),
     ks_entities(scenario, ['SCEN-CV-S', 'SCEN-CV-SD', 'SCEN-CV-M']),
     forall(member(Test, ['TEST-CV-S', 'TEST-CV-D', 'TEST-CV-SD']), ks_assert(test, Test)),
     assert_fixture_entity(test, 'TEST-CV-M', "Unit test", active, [verification_scope=unit]),
@@ -11892,15 +11910,19 @@ test(production_coverage_needs_a_matching_requirement_path, [setup(setup_kb), cl
     ks_edges_of(covered_by, ['SYM-CV-S'-'TEST-CV-S', 'SYM-CV-D'-'TEST-CV-D',
                              'SYM-CV-SD'-'TEST-CV-SD', 'SYM-CV-M'-'TEST-CV-M']),
     ks_edges_of(executable_for, ['SYM-CV-EXEC'-'TEST-CV-S']),
+    assert_raw_relationship(covered_by, 'SYM-CV-EXEC', 'TEST-CV-D'),
     findall(Symbol-Req, kb:production_symbol_covered_for_requirement(Symbol, Req), Covered0),
     msort(Covered0, Covered),
+    findall(Symbol-Req, kb:symbol_has_req_coverage(Symbol, Req), Has0),
+    msort(Has0, Has),
+    assertion(Has == Covered),
     findall(Symbol, symbol_no_req_coverage(Symbol, _), Gaps0),
     msort(Gaps0, Gaps),
     findall(Symbol, kb:symbol_uncovered(Symbol), Uncovered0),
     msort(Uncovered0, Uncovered),
     findall(Symbol, production_symbol_untested(Symbol), Untested),
     assertion(Covered == ['SYM-CV-D'-'REQ-CV-D', 'SYM-CV-S'-'REQ-CV-S']),
-    assertion(Gaps == ['SYM-CV-M', 'SYM-CV-NONE', 'SYM-CV-SD']),
+    assertion(Gaps == ['SYM-CV-M', 'SYM-CV-M2', 'SYM-CV-NONE', 'SYM-CV-SD']),
     assertion(Uncovered == Gaps),
     assertion(Untested == ['SYM-CV-NONE']).
 
@@ -11983,5 +12005,140 @@ test(conflict_types_and_term_atoms_have_one_answer) :-
 test(real_bounds_are_not_integer_bounds) :-
     assertion(\+ kb:values_conflict(gt, 1.5, lt, 2.0, number)),
     assertion(kb:values_conflict(gt, 1, lt, 2, int)).
+
+test(numeric_conflicts_answer_once_and_only_for_numeric_comparisons) :-
+    findall(OpA-OpB,
+            ( member(OpA-ValA-OpB-ValB, [eq-5-eq-6, eq-5-neq-5, neq-5-eq-5, lt-1-gt-2, lt-3-eq-5]),
+              kb:values_conflict(OpA, ValA, OpB, ValB, int) ),
+            Conflicts),
+    assertion(Conflicts == [eq-eq, eq-neq, neq-eq, lt-gt, lt-eq]),
+    findall(Case,
+            ( member(Case-(OpA-ValA-OpB-ValB-Type),
+                     [string-(lt-1-gt-2-string), operator-(includes-1-gt-2-int),
+                      other-(lt-1-includes-2-int), value-(lt-a-gt-b-int)]),
+              ks_outcome(kb:values_conflict(OpA, ValA, OpB, ValB, Type), Outcome),
+              Outcome \== false ),
+            Accepted),
+    assertion(Accepted == []).
+
+test(conflict_value_types_widen_only_numeric_pairs) :-
+    findall(A-B-Type,
+            ( member(A-B, [int-int, int-number, string-int, int-string, string-string]),
+              kb:conflict_value_type(A, B, Type) ),
+            Types),
+    assertion(Types == [int-int-int, int-number-number, string-int-string,
+                        int-string-int, string-string-string]).
+
+test(removing_an_entity_keeps_a_built_index_count, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_entities(req, ['REQ-RM-A', 'REQ-RM-B']),
+    kb_rebuild_indexes,
+    kb_retract_entity('REQ-RM-A'),
+    ks_index_count(AfterOne),
+    kb_retract_entity('REQ-RM-NEVER'),
+    ks_index_count(AfterMissing),
+    kb_retract_entity('REQ-RM-B'),
+    ks_index_count(AfterLast),
+    kb:kb_refresh_entity_index('REQ-RM-GONE'),
+    ks_index_count(AfterRefresh),
+    assertion(AfterRefresh == 0),
+    ks_assert(req, 'REQ-RM-C'),
+    retractall(kb:kb_index_entity_count(_)),
+    kb_retract_entity('REQ-RM-C'),
+    assertion(AfterOne == 1),
+    assertion(AfterMissing == 1),
+    assertion(AfterLast == 0),
+    assertion(\+ kb:kb_index_entity_count(_)).
+
+test(journaled_delete_runs_once_and_keeps_other_graphs, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_journaled_attached(_),
+    ks_assert(req, 'REQ-JDEL'),
+    kb:entity_id_to_uri('REQ-JDEL', URI),
+    rdf_assert(URI, 'urn:kibi:test:p', 'urn:kibi:test:o', 'urn:kibi:test:foreign'),
+    findall(done, kb_retract_entity('REQ-JDEL', req, [id='REQ-JDEL']), Runs),
+    (   rdf(URI, 'urn:kibi:test:p', 'urn:kibi:test:o', 'urn:kibi:test:foreign') -> Kept = true ; Kept = false ),
+    rdf_unload_graph('urn:kibi:test:foreign'),
+    kb_detach,
+    assertion(Runs == [done]),
+    assertion(Kept == true).
+
+test(contradiction_checks_run_only_for_unskipped_requirements, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_entity_props('REQ-STAGE-CHECK', "Checked", ReqProps),
+    ks_entity_props('SYM-STAGE-CHECK', "Unchecked", SymProps),
+    ks_stderr(kb_preview_upsert_contradiction(req, ReqProps, [], false), Checked),
+    ks_stderr(kb_preview_upsert_contradiction(req, ReqProps, [], true), Skipped),
+    ks_stderr(kb_preview_upsert_contradiction(symbol, SymProps, [], false), Other),
+    findall(Text-Has,
+            ( member(Text, [Checked, Skipped, Other]),
+              ( sub_string(Text, _, _, _, "__KIBI_STAGE__:contradiction_check") -> Has = true ; Has = false ) ),
+            Stages),
+    Stages = [_-CheckedHas, _-SkippedHas, _-OtherHas],
+    assertion([CheckedHas, SkippedHas, OtherHas] == [true, false, false]),
+    findall(done, kb:kb_maybe_check_req_contradiction(symbol, 'SYM-STAGE-CHECK', false), Once),
+    assertion(Once == [done]).
+
+test(batches_need_a_known_skip_flag, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_entity_props('REQ-BATCH-FLAG', "Flag", Props),
+    ks_outcome(ks_stderr(kb_commit_upsert_batch([upsert(req, Props, [], maybe)], _), _), Outcome),
+    assertion(Outcome == false),
+    assertion(\+ kb_entity('REQ-BATCH-FLAG', _, _)).
+
+test(proof_contracts_need_a_test_in_the_kb_graph, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_raw_entity(test, 'TEST-RAW-CONTRACT', [proof_contract="{}"]),
+    assert_raw_entity(req, 'REQ-RAW-CONTRACT', [proof_contract="{}"]),
+    ks_assert(test, 'TEST-PLAIN-HERE'),
+    Foreign = 'urn:kibi:test:foreign',
+    rdf_assert('kb:entity/TEST-PLAIN-HERE', 'urn-kibi:type', "test"^^'http://www.w3.org/2001/XMLSchema#string', Foreign),
+    rdf_assert('kb:entity/TEST-PLAIN-HERE', 'kb:proof_contract', "{}"^^'http://www.w3.org/2001/XMLSchema#string', Foreign),
+    kb_query_proof_contracts(some('TEST-RAW-CONTRACT'), 5, 0, Raw),
+    kb_query_proof_contracts(some('REQ-RAW-CONTRACT'), 5, 0, NotATest),
+    kb_query_proof_contracts(some('TEST-PLAIN-HERE'), 5, 0, Elsewhere),
+    rdf_unload_graph(Foreign),
+    assertion(Raw == [['TEST-RAW-CONTRACT', test, [id='TEST-RAW-CONTRACT', proof_contract="{}"]]]),
+    assertion(NotATest == []),
+    assertion(Elsewhere == []).
+
+test(legacy_proof_candidates_need_a_contract, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_attach_with_legacy([
+        entity(test, 'TEST-LEGACY-A-NONE', "None", [title("None")]),
+        entity(test, 'TEST-LEGACY-B-BARE', "Bare", [proof_contract="{}"])
+    ]),
+    kb_query_proof_contracts(none, 1, 0, Rows),
+    ks_rows_ids(Rows, Ids),
+    assertion(Ids == ['TEST-LEGACY-B-BARE']).
+
+test(verification_semantics_come_from_the_requirement_verification_subject, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_assert(req, 'REQ-VSUB'),
+    ks_fact('FACT-VSUB-OTHER', [fact_kind=subject, subject_key="other.subject"]),
+    ks_fact('FACT-VSUB-SCOPE', [fact_kind=property_value, subject_key="other.subject",
+                                property_key="verification_scope", operator=eq,
+                                value_type=string, value_string="end_to_end", polarity=require]),
+    ks_edges_of(constrains, ['REQ-VSUB'-'FACT-VSUB-OTHER']),
+    ks_edges_of(requires_property, ['REQ-VSUB'-'FACT-VSUB-SCOPE']),
+    findall(Key-Expected, kb:required_test_semantic('REQ-VSUB', Key, Expected), Semantics),
+    assertion(Semantics == []).
+
+test(deprecated_adrs_without_a_successor, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ks_adr('ADR-NS-OLD', deprecated),
+    ks_adr('ADR-NS-SUP', superseded),
+    ks_adr('ADR-NS-REPLACED', deprecated),
+    ks_adr('ADR-NS-NEW', accepted),
+    ks_adr('ADR-NS-OK', accepted),
+    ks_edges_of(supersedes, ['ADR-NS-NEW'-'ADR-NS-REPLACED']),
+    include(deprecated_no_successor,
+            ['ADR-NS-OLD', 'ADR-NS-SUP', 'ADR-NS-REPLACED', 'ADR-NS-NEW', 'ADR-NS-OK'], Lint),
+    assertion(Lint == ['ADR-NS-OLD', 'ADR-NS-SUP']).
+
+test(migration_copies_audits_from_the_change_log_only, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_legacy_source(Source, Target),
+    ks_raw_triple('urn:kibi:audit/stray-1', 'urn:kibi:audit/operation',
+                  "upsert"^^'http://www.w3.org/2001/XMLSchema#string'),
+    ks_stderr(kb_save, _),
+    ks_stderr(kb_migrate_legacy(Source, Target), _),
+    kb_attach(Target),
+    ks_audit_indexes(Indexes),
+    (   rdf('urn:kibi:audit/stray-1', _, _) -> Stray = true ; Stray = false ),
+    kb_detach,
+    assertion(Indexes == [1, 2, 3]),
+    assertion(Stray == false).
 
 :- end_tests(kb_symbol_coverage).
