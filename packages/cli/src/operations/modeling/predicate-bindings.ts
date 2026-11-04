@@ -306,7 +306,7 @@ export function subjectKeyParticipantReason(
     (key) => bindingToken(key) === token,
   );
   if (subject === undefined) return null;
-  return `"${value}" is the requirement's subject key ${subject}, which the predicate fact already carries as its subject_key, so it names no ${bindingToken(context.argumentType ?? "")}`;
+  return `"${value}" is the requirement's subject key ${subject}, which the predicate fact already carries as its subject_key, so it names no ${bindingToken(context.argumentType as string)}`;
 }
 
 /** The most words a value of a naming argument may have. */

@@ -312,6 +312,12 @@ describe("argument types", () => {
         argumentType: "Actor Scope",
       }),
     ).toContain("so it names no actor_scope");
+    expect(
+      subjectKeyParticipantReason("Billing.Invoice", {
+        ...context,
+        constants: ["other"],
+      }),
+    ).toContain("subject key billing.invoice");
     expect(subjectKeyParticipantReason("other", context)).toBeNull();
     expect(
       subjectKeyParticipantReason("!!", {

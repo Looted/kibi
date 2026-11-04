@@ -297,6 +297,15 @@ describe("alignRequirementVocabulary", () => {
   });
 
   test("keeps ranked candidates that already hold the proposed key", async () => {
+    const outside = provider("builtin", null);
+    await alignRequirementVocabulary(context(kb().prolog, outside.capability), {
+      ...CLAUSE,
+      statement: "Cart size must stay small.",
+    });
+    // The proposed key ranks outside the candidates, so it is added.
+    expect(
+      outside.ranked[0]?.clauses[0]?.candidates.map((c) => c.subjectKey),
+    ).toStrictEqual(["cart.size", "session.timeout"]);
     const { capability, ranked } = provider("builtin", null);
     await alignRequirementVocabulary(context(kb().prolog, capability), CLAUSE);
     const keys = ranked[0]?.clauses[0]?.candidates.map((c) => c.subjectKey);
