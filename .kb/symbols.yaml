@@ -33321,6 +33321,10 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-agent-core-shared-hook-inputs
+      - type: implements
+        target: REQ-agent-core-shared-hook-inputs
+      - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
@@ -33328,14 +33332,15 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-cursor-kibi-plugin-v1
-      - type: implements
-        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-unit-test-agent-core-shared-hook-inputs
+    title: shared-hook-inputs.test
+    status: active
+    sourceFile: packages/agent-core/tests/shared-hook-inputs.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-agent-core-shared-hook-inputs
   - id: SYM-agent-core-classifyPath
     title: classifyPath
     status: active
@@ -33343,6 +33348,10 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-agent-core-shared-hook-inputs
+      - type: implements
+        target: REQ-agent-core-shared-hook-inputs
+      - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
@@ -33350,14 +33359,6 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-cursor-kibi-plugin-v1
-      - type: implements
-        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-agent-core-extractKbMcpToolCall
     title: extractKbMcpToolCall
     status: active
@@ -33365,6 +33366,10 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-agent-core-shared-hook-inputs
+      - type: implements
+        target: REQ-agent-core-shared-hook-inputs
+      - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
@@ -33372,20 +33377,16 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-cursor-kibi-plugin-v1
-      - type: implements
-        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-agent-core-canonicalKbToolName
     title: canonicalKbToolName
     status: active
     sourceFile: packages/agent-core/src/kb-mcp-tools.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-agent-core-shared-hook-inputs
+      - type: implements
+        target: REQ-agent-core-shared-hook-inputs
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
       - type: implements

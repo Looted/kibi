@@ -1,5 +1,8 @@
 // implements REQ-claude-code-kibi-plugin-v1
-import { kibiCliOperation } from "kibi-agent-core/kb-mcp-tools";
+import {
+  canonicalKbToolName,
+  kibiCliOperation,
+} from "kibi-agent-core/kb-mcp-tools";
 
 /**
  * Recognize Kibi usage in tool calls so hooks can stay quiet once the agent is
@@ -37,16 +40,17 @@ function strings(value: unknown): string[] {
     : [];
 }
 
-/** `mcp__<server>__kb_check` / `kibi_kb_check` / `kb_check` -> `kb_check`. */
+/**
+ * `mcp__<server>__kb_check` / `kibi_kb_check` / `kb_check` -> `kb_check`,
+ * through the shared kibi-agent-core name rule every host uses.
+ */
 export function canonicalKbOperation(
   toolName: string | undefined,
 ): string | undefined {
-  // `undefined` is not an operation name, so it needs no special case.
-  const name = `${toolName}`.trim();
-  // split always yields at least one segment.
-  const lastSegment = name.split("__").at(-1) as string;
-  const operation = lastSegment.replace(/^kibi_/, "");
-  return /^kb_[a-z_]+$/.test(operation) ? operation : undefined;
+  // A canonical name always starts with kb_, and `String(undefined)` never
+  // matches, so only the operation's characters are checked.
+  const operation = canonicalKbToolName(toolName);
+  return /kb_[a-z_]+$/.test(String(operation)) ? operation : undefined;
 }
 
 function payloadOf(toolInput: unknown): Record<string, unknown> {

@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-abe2532e93a8
+  - type: assumes
+    from: SCEN-agent-core-shared-hook-inputs
+    to: FACT-PRED-agent-core-shared-hook-inputs
+    created_at: 2026-11-04T14:37:05.648Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fd850467254

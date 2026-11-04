@@ -7366,5 +7366,15 @@
         "./packages/mcp/tests/server/server-start-exact.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-agent-core-shared-hook-inputs",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/agent-core/tests/shared-hook-inputs.test.ts"
+      ]
+    ]
   }
 ]
