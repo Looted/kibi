@@ -1010,6 +1010,152 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/operations/semantic-advisor/predicate-rules-launcher.ts": [
     "packages/cli/tests/operations-mutation/semantic-advisor/predicate-rules-reexports.test.ts",
   ],
+  "packages/cli/src/public/operational-artifacts.ts": [
+    "packages/cli/tests/public/operational-artifacts.test.ts",
+  ],
+  "packages/cli/src/public/evidence-levels.ts": [
+    "packages/cli/tests/public-mutation/evidence-levels.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/manifest.ts": [
+    "packages/cli/tests/public/impact/manifest.test.ts",
+    "packages/cli/tests/public-coverage/impact/impact-small.coverage.test.ts",
+  ],
+  "packages/cli/src/public/operations/source-path-dangling.ts": [
+    "packages/cli/tests/public-coverage/operations/source-path-dangling.coverage.test.ts",
+  ],
+  "packages/cli/src/public/operations/specs/check-rules.generated.ts": [
+    "packages/cli/tests/public-mutation/generated-vocabularies.mutation.test.ts",
+  ],
+  "packages/cli/src/public/symbol-granularity.generated.ts": [
+    "packages/cli/tests/public-mutation/generated-vocabularies.mutation.test.ts",
+  ],
+  "packages/cli/src/public/schemas/relationship.ts": [
+    "packages/cli/tests/public-mutation/schemas-relationship.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/symbol-granularity-check.ts": [
+    "packages/cli/tests/public-mutation/operations/symbol-granularity-check.mutation.test.ts",
+    "packages/cli/tests/public/symbol-granularity-check.test.ts",
+  ],
+  "packages/cli/src/public/operations/evidence-floor.ts": [
+    "packages/cli/tests/public-mutation/operations/evidence-floor.mutation.test.ts",
+    "packages/cli/tests/public-coverage/operations/evidence-floor.coverage.test.ts",
+  ],
+  "packages/cli/src/public/schemas/entity.ts": [
+    "packages/cli/tests/public-mutation/schemas-entity.mutation.test.ts",
+  ],
+  "packages/cli/src/public/telemetry-acceptance.ts": [
+    "packages/cli/tests/public-mutation/telemetry-acceptance.mutation.test.ts",
+    "packages/cli/tests/public/telemetry-acceptance.test.ts",
+    "packages/cli/tests/public/telemetry-acceptance-edges.test.ts",
+  ],
+  "packages/cli/src/public/skill-system/errors.ts": [
+    "packages/cli/tests/public-mutation/skill-system/errors.mutation.test.ts",
+  ],
+  "packages/cli/src/public/skill-system/paths.ts": [
+    "packages/cli/tests/public-mutation/skill-system/paths.mutation.test.ts",
+  ],
+  "packages/cli/src/public/skill-system/validation.ts": [
+    "packages/cli/tests/public-mutation/skill-system/validation.mutation.test.ts",
+  ],
+  "packages/cli/src/public/skill-system/loader.ts": [
+    "packages/cli/tests/public-mutation/skill-system/loader.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/workspace-snapshot.ts": [
+    "packages/cli/tests/public-mutation/operations/workspace-snapshot.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/proof-receipt-projection.ts": [
+    "packages/cli/tests/public-mutation/operations/proof-receipt-projection.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/runtime-types.ts": [
+    "packages/cli/tests/public-mutation/operations/runtime-types.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/symbol-coordinates-check.ts": [
+    "packages/cli/tests/public-mutation/operations/symbol-coordinates-check.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/summaries.ts": [
+    "packages/cli/tests/public-mutation/impact/summaries.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/prolog-json.ts": [
+    "packages/cli/tests/public-mutation/operations/prolog-json.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/proof-contract-claims.ts": [
+    "packages/cli/tests/public-mutation/operations/proof-contract-claims.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/specs/skills.ts": [
+    "packages/cli/tests/public-mutation/operations/specs/skills.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/specs/sparql.ts": [
+    "packages/cli/tests/public-mutation/operations/specs/sparql.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/specs/composite.ts": [
+    "packages/cli/tests/public-mutation/operations/specs/composite.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/diff-meaning.ts": [
+    "packages/cli/tests/public-mutation/impact/diff-meaning.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/requirement-statements.ts": [
+    "packages/cli/tests/public-mutation/impact/requirement-statements.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/symbol-quality-model.ts": [
+    "packages/cli/tests/public-mutation/impact/symbol-quality-model.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/symbol-quality.ts": [
+    "packages/cli/tests/public-mutation/impact/symbol-quality.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/diagnostics.ts": [
+    "packages/cli/tests/public-mutation/impact/diagnostics.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/source-changes.ts": [
+    "packages/cli/tests/public-mutation/impact/source-changes.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/unowned-files.ts": [
+    "packages/cli/tests/public-mutation/impact/unowned-files.mutation.test.ts",
+  ],
+  "packages/cli/src/public/entity-origin.ts": [
+    "packages/cli/tests/public-mutation/entity-origin.mutation.test.ts",
+  ],
+  "packages/cli/src/public/symbol-granularity.ts": [
+    "packages/cli/tests/public-mutation/symbol-granularity.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/check-format-shared.ts": [
+    "packages/cli/tests/public-mutation/operations/check-format-shared.mutation.test.ts",
+  ],
+  "packages/cli/src/public/ignore-policy.ts": [
+    "packages/cli/tests/public-mutation/ignore-policy.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/node-ports.ts": [
+    "packages/cli/tests/public-mutation/operations/node-ports.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/check-helpers.ts": [
+    "packages/cli/tests/public-mutation/operations/check-helpers.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/catalog.ts": [
+    "packages/cli/tests/public-mutation/operations/catalog.mutation.test.ts",
+  ],
+  "packages/cli/src/public/proof-fingerprint.ts": [
+    "packages/cli/tests/public-mutation/proof-fingerprint.mutation.test.ts",
+  ],
+  "packages/cli/src/public/diagnostic-usage.ts": [
+    "packages/cli/tests/public-mutation/diagnostic-usage.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/result-envelope.ts": [
+    "packages/cli/tests/public-mutation/operations/result-envelope.mutation.test.ts",
+  ],
+  "packages/cli/src/public/telemetry-remediation.ts": [
+    "packages/cli/tests/public-mutation/telemetry-remediation.mutation.test.ts",
+  ],
+  "packages/cli/src/public/distribution-parity.ts": [
+    "packages/cli/tests/public-mutation/distribution-parity.mutation.test.ts",
+  ],
+  "packages/cli/src/public/proof-receipt.ts": [
+    "packages/cli/tests/public-mutation/proof-receipt.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/repair-plan.ts": [
+    "packages/cli/tests/public-mutation/operations/repair-plan.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/contracts.ts": [
+    "packages/cli/tests/public-mutation/operations/contracts.mutation.test.ts",
+  ],
 };
 
 // Plugin package modules gated the same way: each with the hermetic tests of
