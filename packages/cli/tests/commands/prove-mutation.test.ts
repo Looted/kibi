@@ -1070,7 +1070,8 @@ function harness(options: {
     () => err.mockRestore(),
     () => note.mockRestore(),
     () => {
-      if (packKey === undefined) delete process.env.KIBI_E2E_PACK_CACHE_KEY;
+      if (packKey === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_E2E_PACK_CACHE_KEY");
       else process.env.KIBI_E2E_PACK_CACHE_KEY = packKey;
     },
   );
@@ -1271,7 +1272,7 @@ describe("prove command setup", () => {
   });
 
   test("keys the shared pack cache by the snapshot unless one is set", async () => {
-    delete process.env.KIBI_E2E_PACK_CACHE_KEY;
+    Reflect.deleteProperty(process.env, "KIBI_E2E_PACK_CACHE_KEY");
     const h = harness({
       integrations: [web],
       tests: [proofTest("T-1", "web")],
