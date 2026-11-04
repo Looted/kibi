@@ -1004,9 +1004,10 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/operations/semantic-advisor/predicate-rules-product.ts": [
     "packages/cli/tests/operations-mutation/semantic-advisor/predicate-rules-reexports.test.ts",
   ],
-  "packages/cli/src/operations/semantic-advisor/predicate-rules-product-tail.ts": [
-    "packages/cli/tests/operations-mutation/semantic-advisor/predicate-rules-reexports.test.ts",
-  ],
+  "packages/cli/src/operations/semantic-advisor/predicate-rules-product-tail.ts":
+    [
+      "packages/cli/tests/operations-mutation/semantic-advisor/predicate-rules-reexports.test.ts",
+    ],
   "packages/cli/src/operations/semantic-advisor/predicate-rules-launcher.ts": [
     "packages/cli/tests/operations-mutation/semantic-advisor/predicate-rules-reexports.test.ts",
   ],
