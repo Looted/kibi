@@ -21,6 +21,7 @@ import {
   type SwiplResolverDeps,
   defaultDeps,
   detectGlibc,
+  executableDigest,
   inspectSwiplBundle,
   parseSwiplVersion,
   probeRequiredLibraries,
@@ -797,5 +798,31 @@ describe("probeRequiredLibraries", () => {
         answer({ status: null, stdout: "", stderr: " \n" }),
       ),
     ).toStrictEqual({ kind: "failed", detail: "exit status none" });
+  });
+});
+
+describe("executable digests", () => {
+  test("hash an executable file and nothing else", () => {
+    const dir = temp();
+    const binary = path.join(dir, "swipl");
+    writeFileSync(binary, "#!/bin/sh\n");
+    chmodSync(binary, 0o755);
+    expect(executableDigest(binary)).toBe(
+      createHash("sha256").update("#!/bin/sh\n").digest("hex"),
+    );
+    expect(executableDigest(path.join(dir, "missing"))).toBeNull();
+    expect(executableDigest(dir)).toBeNull();
+  });
+
+  test("an executable that cannot be read has no digest", () => {
+    const dir = temp();
+    const binary = path.join(dir, "swipl");
+    writeFileSync(binary, "x");
+    chmodSync(binary, 0o755);
+    expect(
+      executableDigest(binary, () => {
+        throw new Error("EACCES");
+      }),
+    ).toBeNull();
   });
 });

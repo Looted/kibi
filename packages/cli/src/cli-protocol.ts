@@ -176,15 +176,13 @@ export async function executeOperation(
     }
     // A result the operation itself reports as an error (a rejected
     // bootstrap, a refused migration plan) exits non-zero like any other.
+    // toKibiResult sets an error status only with the terminal error.
     if (envelope.status === "error") {
+      const error = envelope.error as NonNullable<typeof envelope.error>;
       return {
         exitCode: 1,
         stdout: `${JSON.stringify(envelope)}\n`,
-        ...(envelope.error
-          ? {
-              stderr: `Error [${envelope.error.code}]: ${envelope.error.message}\n`,
-            }
-          : {}),
+        stderr: `Error [${error.code}]: ${error.message}\n`,
       };
     }
     return { exitCode: 0, stdout: `${JSON.stringify(envelope)}\n` };

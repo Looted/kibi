@@ -206,9 +206,12 @@ function isExecutableFile(candidate: string): boolean {
 }
 
 /** SHA-256 of an executable file, or null when it is missing or unreadable. */
-function executableDigest(candidate: string): string | null {
+export function executableDigest(
+  candidate: string,
+  digest: (file: string) => string = sha256File,
+): string | null {
   try {
-    if (isExecutableFile(candidate)) return sha256File(candidate);
+    if (isExecutableFile(candidate)) return digest(candidate);
   } catch {
     // Unreadable.
   }

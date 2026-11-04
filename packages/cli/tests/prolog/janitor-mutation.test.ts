@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { spawn } from "node:child_process";
 import {
   existsSync,
@@ -134,6 +134,31 @@ describe("sweepStoreLock", () => {
     expect(existsSync(join(path, "rdf", "lock"))).toBe(true);
     expect(sweepStoreLock(path, true)?.action).toBe("kill-and-clean");
     expect(await exited).toBe("SIGTERM");
+    expect(existsSync(join(path, "rdf", "lock"))).toBe(false);
+  });
+
+  test("a holder that exits before the stop is still cleaned", () => {
+    const root = workspace();
+    const child = sleeper();
+    const path = store(root, "a", {
+      pid: child.pid,
+      workspaceRoot: join(root, "removed"),
+    });
+    const realKill = process.kill.bind(process);
+    const kill = spyOn(process, "kill").mockImplementation(((
+      pid: number,
+      signal?: string | number,
+    ) => {
+      if (signal === "SIGTERM")
+        throw Object.assign(new Error("kill ESRCH"), { code: "ESRCH" });
+      return realKill(pid, signal);
+    }) as typeof process.kill);
+    try {
+      expect(sweepStoreLock(path, true)?.action).toBe("kill-and-clean");
+      expect(kill).toHaveBeenCalledWith(child.pid, "SIGTERM");
+    } finally {
+      kill.mockRestore();
+    }
     expect(existsSync(join(path, "rdf", "lock"))).toBe(false);
   });
 
