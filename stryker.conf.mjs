@@ -666,6 +666,215 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/traceability/git-change-snapshot.ts": [
     "packages/cli/tests/traceability/git-change-snapshot-mutation.test.ts",
   ],
+  "packages/cli/src/operations/modeling/logic-modeling.ts": [
+    "packages/cli/tests/operations-mutation/modeling/logic-modeling.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-applicability.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-applicability.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-applyplan.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-applyplan.test.ts",
+    "packages/cli/tests/operations-mutation/modeling/predicate-applyplan-suggestions.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-binding-hints.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-binding-hints.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-bindings.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-bindings.test.ts",
+    "packages/cli/tests/operations-mutation/modeling/predicate-binding-hints.test.ts",
+    "packages/cli/tests/operations-mutation/modeling/predicate-applyplan.test.ts",
+    "packages/cli/tests/operations-mutation/modeling/predicate-applyplan-suggestions.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-catalog.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-data.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-catalog-1.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-data.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-catalog-2.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-data.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-catalog-3.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-data.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-catalog-4.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-data.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-catalog-5.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-data.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-catalog-6.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-data.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-closed-vocabularies.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-data.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-usage-hints-1.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-data.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-usage-hints-2.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-data.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-usage-hints-3.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-data.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-usage-hints-4.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-data.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-inference-1.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-inference-1.test.ts",
+    "packages/cli/tests/operations-mutation/modeling/predicate-applyplan-suggestions.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-inference-2.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-inference-2.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-inference-3.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-inference-3.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-inference-launcher.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-inference-launcher.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-inference.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-inference.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-loader.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-loader.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-ranker.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-ranker.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-score-1.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-score-1.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-score-2.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-score-2.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-utils.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-utils.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/requirement-applyplan.ts": [
+    "packages/cli/tests/operations-mutation/modeling/requirement-applyplan.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/requirement-heuristics.ts": [
+    "packages/cli/tests/operations-mutation/modeling/requirement-heuristics.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/requirement-modeler.ts": [
+    "packages/cli/tests/operations-mutation/modeling/requirement-modeler.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/requirement-utils.ts": [
+    "packages/cli/tests/operations-mutation/modeling/requirement-utils.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/vocabulary-alignment.ts": [
+    "packages/cli/tests/operations-mutation/modeling/vocabulary-alignment.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-score-3.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-score-3.test.ts",
+    "packages/cli/tests/operations-mutation/modeling/predicate-score-3-golden.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/predicate-vocabulary.ts": [
+    "packages/cli/tests/operations-mutation/modeling/predicate-vocabulary.test.ts",
+    "packages/cli/tests/operations-mutation/mutation/strict-fact.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/audit.ts": [
+    "packages/cli/tests/operations-mutation/mutation/audit.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/context-warning.ts": [
+    "packages/cli/tests/operations-mutation/mutation/context-warning.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/entity-projection.ts": [
+    "packages/cli/tests/operations-mutation/mutation/entity-projection.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/firm-decision-guard.ts": [
+    "packages/cli/tests/operations-mutation/mutation/firm-decision-guard.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/omitted-properties.ts": [
+    "packages/cli/tests/operations-mutation/mutation/omitted-properties.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/origin.ts": [
+    "packages/cli/tests/operations-mutation/mutation/origin.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/predicate-vocabulary-guard.ts": [
+    "packages/cli/tests/operations-mutation/mutation/predicate-vocabulary-guard.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/requirement-semantics.ts": [
+    "packages/cli/tests/operations-mutation/mutation/requirement-semantics.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/saga.ts": [
+    "packages/cli/tests/operations-mutation/mutation/saga.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/save.ts": [
+    "packages/cli/tests/operations-mutation/mutation/save.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/serialization.ts": [
+    "packages/cli/tests/operations-mutation/mutation/serialization.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/symbol-granularity.ts": [
+    "packages/cli/tests/operations-mutation/mutation/symbol-granularity.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/uncompiled-source.ts": [
+    "packages/cli/tests/operations-mutation/mutation/uncompiled-source.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/validation.ts": [
+    "packages/cli/tests/operations-mutation/mutation/validation.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/warnings.ts": [
+    "packages/cli/tests/operations-mutation/mutation/warnings.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/what-if.ts": [
+    "packages/cli/tests/operations-mutation/mutation/what-if.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/symbol-compiler-lock.ts": [
+    "packages/cli/tests/operations-mutation/mutation/symbol-compiler-lock.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/workspace-mutation-lock.ts": [
+    "packages/cli/tests/operations-mutation/mutation/workspace-mutation-lock.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/relationships.ts": [
+    "packages/cli/tests/operations-mutation/mutation/relationships.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/stored-entity.ts": [
+    "packages/cli/tests/operations-mutation/mutation/stored-entity.test.ts",
+    "packages/cli/tests/operations-mutation/mutation/origin.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/strict-fact.ts": [
+    "packages/cli/tests/operations-mutation/mutation/strict-fact.test.ts",
+    "packages/cli/tests/operations-coverage/mutation/write-guards.test.ts",
+    "packages/cli/tests/operations/requirement-semantics.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/symbol-refresh.ts": [
+    "packages/cli/tests/operations-mutation/mutation/symbol-refresh.test.ts",
+    "packages/cli/tests/operations/symbol-refresh-remaining.coverage.test.ts",
+  ],
+  "packages/cli/src/operations/proof/code-languages.ts": [
+    "packages/cli/tests/operations-mutation/proof/code-languages.test.ts",
+  ],
+  "packages/cli/src/operations/proof/code-runner.ts": [
+    "packages/cli/tests/operations-mutation/proof/code-runner.test.ts",
+  ],
+  "packages/cli/src/operations/proof/compact-receipts.ts": [
+    "packages/cli/tests/operations-mutation/proof/compact-receipts.test.ts",
+  ],
+  "packages/cli/src/operations/proof/migrate-legacy-receipts.ts": [
+    "packages/cli/tests/operations-mutation/proof/migrate-legacy-receipts.test.ts",
+  ],
+  "packages/cli/src/operations/proof/prolog-evaluator.ts": [
+    "packages/cli/tests/operations-mutation/proof/prolog-evaluator.test.ts",
+  ],
+  "packages/cli/src/operations/proof/prune-receipts.ts": [
+    "packages/cli/tests/operations-mutation/proof/prune-receipts.test.ts",
+  ],
+  "packages/cli/src/operations/proof/receipt-compaction.ts": [
+    "packages/cli/tests/operations-mutation/proof/receipt-compaction.test.ts",
+  ],
+  "packages/cli/src/operations/proof/receipt-document.ts": [
+    "packages/cli/tests/operations-mutation/proof/receipt-document.test.ts",
+  ],
+  "packages/cli/src/operations/proof/java-package-shadow.ts": [
+    "packages/cli/tests/proofs/java-package-shadow.test.ts",
+    "packages/cli/tests/proofs/java-package-shadow-mutation.test.ts",
+    "packages/cli/tests/proofs/java-package-shadow-go.test.ts",
+    "packages/cli/tests/operations-mutation/proof/java-package-shadow.test.ts",
+  ],
 };
 
 // Plugin package modules gated the same way: each with the hermetic tests of
