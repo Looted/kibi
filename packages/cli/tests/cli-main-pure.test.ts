@@ -18,6 +18,7 @@ import {
   main,
   packageVersion,
 } from "../src/cli.js";
+import { formatVersionLine, readKibiRelease } from "../src/kibi-release.js";
 
 const restores: Array<() => void> = [];
 afterEach(() => {
@@ -71,7 +72,9 @@ describe("buildProgram", () => {
     const program = buildProgram();
     expect(program.name()).toBe("kibi");
     expect(program.description()).toBe("Prolog-based project knowledge base");
-    expect(program.version()).toBe(PACKAGE_VERSION);
+    expect(program.version()).toBe(
+      formatVersionLine(PACKAGE_VERSION, readKibiRelease()),
+    );
     expect(
       program.options.map((option) => [option.flags, option.description]),
     ).toStrictEqual([
