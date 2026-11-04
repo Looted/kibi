@@ -51,9 +51,9 @@ function absolutePathArgs(argv: readonly string[], base: string): string[] {
     value === "-" || path.isAbsolute(value) ? value : path.resolve(base, value);
   const result: string[] = [];
   for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index] ?? "";
+    const arg = argv[index] as string;
     const eq = arg.indexOf("=");
-    if (eq > 0 && PATH_OPTIONS.has(arg.slice(0, eq))) {
+    if (eq !== -1 && PATH_OPTIONS.has(arg.slice(0, eq))) {
       result.push(`${arg.slice(0, eq)}=${absolute(arg.slice(eq + 1))}`);
       continue;
     }

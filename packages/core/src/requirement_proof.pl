@@ -54,7 +54,8 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
     check_rule_verifiability(UnverifiableRules),
     normalize_atom(VerificationSnapshot, Snapshot),
     normalize_atom(CheckedAt, CheckedAtAtom),
-    (catch(parse_time(CheckedAtAtom, CheckedAtStamp), _, fail) -> true ; CheckedAtStamp = -1),
+    % parse_time/2 fails, rather than throws, on any atom it cannot read.
+    (parse_time(CheckedAtAtom, CheckedAtStamp) -> true ; CheckedAtStamp = -1),
     normalize_integer(MaxAgeSeconds, MaxAge),
     normalize_atom(BindingMode, BindingModeAtom),
     % Everything else in the context follows from the KB, so the proof memo
@@ -210,7 +211,8 @@ compute_requirement_proof(ReqId, ReqProps, Context, Proof) :-
     ).
 
 exempt_requirement_proof(Reason, ReqProps, Proof) :-
-    requirement_evidence(ReqProps, not_applicable, [], [], EvidenceLevel, Evidence),
+    % Only a tested requirement reads its passing and proved tests.
+    requirement_evidence(ReqProps, not_applicable, _, _, EvidenceLevel, Evidence),
     proof_version(Version),
     Proof = _{
         proofVersion: Version,
@@ -338,12 +340,12 @@ inventory_entry_status(Entry, Status) :-
     inventory_entry_field(Entry, status, RawStatus),
     normalize_atom(RawStatus, Status).
 
-inventory_entry_field(Dict, Key, Value) :-
-    is_dict(Dict),
-    get_dict(Key, Dict, Value).
-inventory_entry_field(List, Key, Value) :-
-    is_list(List),
-    memberchk(Key=Value, List).
+inventory_entry_field(Entry, Key, Value) :-
+    (   is_dict(Entry)
+    ->  get_dict(Key, Entry, Value)
+    ;   is_list(Entry),
+        memberchk(Key=Value, Entry)
+    ).
 
 % Pure-function memos, content-addressed by variant_sha1/2, so they need no
 % invalidation: equal inputs always produce equal outputs. Proof evaluation
@@ -602,7 +604,7 @@ invalid_rule_fact_ids(RuleFactIds, Context, InvalidFactIds) :-
         Invalid0),
     sort(Invalid0, InvalidFactIds).
 
-logic_grounding_status(false, _, _, _, _, _, _, _, _, missing) :- !.
+logic_grounding_status(false, _, _, _, _, _, _, _, _, missing).
 logic_grounding_status(true, MissingGround, MissingManifest, _, _, _, _, _, _, missing) :-
     (MissingGround \= [] ; MissingManifest \= []),
     !.
@@ -618,7 +620,6 @@ contradiction_stage(ReqId, _LogicStatus, Context, Stage) :-
     requirement_contradiction_witnesses(ReqId, Context.contradictionWitnesses, Conflicts),
     member(Witness, Conflicts),
     Witness.status == contradiction,
-    Conflicts \= [],
     !,
     Stage = _{status: blocked, outcome: conflict_found, conflicts: Conflicts}.
 contradiction_stage(ReqId, _LogicStatus, Context, Stage) :-
@@ -626,11 +627,6 @@ contradiction_stage(ReqId, _LogicStatus, Context, Stage) :-
     Conflicts \= [],
     !,
     Stage = _{status: unresolved, outcome: analysis_incomplete, conflicts: Conflicts}.
-contradiction_stage(ReqId, _LogicStatus, Context, Stage) :-
-    requirement_contradictions(ReqId, Context.contradictions, Conflicts),
-    Conflicts \= [],
-    !,
-    Stage = _{status: blocked, outcome: conflict_found, conflicts: Conflicts}.
 contradiction_stage(_ReqId, LogicStatus, _Context, Stage) :-
     LogicStatus \= passed,
     !,
@@ -652,22 +648,11 @@ contradiction_stage(ReqId, LogicStatus, InventoryStatus, Context, Stage) :-
     ;   Stage = Stage0
     ).
 
-requirement_contradictions(ReqId, Violations, Conflicts) :-
-    include(violation_mentions_requirement(ReqId), Violations, Conflicts0),
-    maplist(violation_description, Conflicts0, Conflicts).
-
 requirement_contradiction_witnesses(ReqId, Witnesses, Conflicts) :-
     include(witness_mentions_requirement(ReqId), Witnesses, Conflicts).
 
 witness_mentions_requirement(ReqId, Witness) :-
     memberchk(ReqId, Witness.requirements).
-
-violation_mentions_requirement(ReqId, violation(_, EntityId, _, _, _)) :-
-    normalize_atom(EntityId, Pair),
-    atomic_list_concat(Ids, '/', Pair),
-    memberchk(ReqId, Ids).
-
-violation_description(violation(_, EntityId, Description, _, _), _{requirements: EntityId, reason: Description}).
 
 violation_for_entity(Violations, EntityId) :-
     member(violation(_, RawId, _, _, _), Violations),
@@ -793,7 +778,6 @@ pending_certified_claim_keys(ScenarioTestStage, Context, Open, Keys) :-
             memberchk(proof_contract=RawContract, Props),
             proof_contract_dict(RawContract, Contract),
             get_dict(proves, Contract, Proves),
-            is_list(Proves),
             member(RawKey, Proves),
             normalize_atom(RawKey, Key),
             memberchk(Key, Open)
@@ -848,8 +832,7 @@ cases_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, Stage) :-
     reverse(Rows0, Rows),
     include(case_row_blocking, Rows, Blocking),
     partition(case_row_waived, Blocking, WaivedRows, OpenRows),
-    findall(Key, (member(Row, OpenRows), get_dict(claimKey, Row, Key)), OpenKeys0),
-    sort(OpenKeys0, OpenKeys),
+    findall(Key, (member(Row, OpenRows), get_dict(claimKey, Row, Key)), OpenKeys),
     pending_certified_claim_keys(ScenarioTestStage, Context, OpenKeys, Pending),
     case_summary(Rows, Summary),
     (   \+ (member(Row, Rows), get_dict(predicted, Row, rejection))
@@ -894,7 +877,8 @@ case_row(ScenarioIds, Waiver, Case, Acc, [Row|Acc]) :-
     ;   Coverage = uncovered
     ),
     Row0 = Dict.put(_{coverage: Coverage, scenarios: Covering}),
-    (   Waiver == _{} -> Row = Row0 ; Row = Row0.put(waiver, Waiver) ).
+    % Unification, not ==: two empty dicts differ in their unbound tags.
+    (   Waiver = _{} -> Row = Row0 ; Row = Row0.put(waiver, Waiver) ).
 
 % A rejection case blocks until a scenario covers it or its fact's waiver
 % is approved.
@@ -967,11 +951,10 @@ dimension_stage(ReqId, ScenarioTestStage, Context, Stage) :-
 % A claim whose text quantifies and whose every grounding fact is a boolean
 % property value or a ground predicate.
 unrepresented_quantified_claim(Key, FactIds, Claim) :-
-    FactIds = [_|_],
+    % FactIds is never empty: claim_text_of/2 needs a fact.
     forall(member(FactId, FactIds), dimensionless_fact(FactId)),
     claim_text_of(FactIds, Text),
     claim_quantifier(Text, Quantifier),
-    !,
     quantifier_rewrites(Quantifier, Rewrites),
     dimension_waiver(FactIds, Waiver),
     atom_string(Quantifier, QuantifierText),
@@ -1016,8 +999,9 @@ claim_text_of(FactIds, Text) :-
 % bound (exactly, at least, at most, no more than) in Text.
 claim_quantifier(Text, Quantifier) :-
     string_lower(Text, Lower),
-    split_string(Lower, " \t\n\r.,;:()[]\"'`/!?-", " \t\n\r.,;:()[]\"'`/!?-", Words0),
-    exclude(==(""), Words0, Words),
+    % No word holds a separator, so nothing is left to pad; the empty words
+    % between adjacent separators match no quantifier.
+    split_string(Lower, " \t\n\r.,;:()[]\"'`/!?-", "", Words),
     quantifier_in(Words, Quantifier).
 
 quantifier_in(["no", "more", "than"|_], no_more_than) :- !.
@@ -1082,19 +1066,14 @@ fact_claim_key_or_id(FactId, Key) :-
     ).
 
 % Claims of ReqId a passed receipt binds with a derived obligation outside
-% intent scope: a certificate decides them, both sides.
+% intent scope: a certificate decides them, both sides.  test_claim_binding/4
+% reads the recorded bindings, and judges one derived only while the receipt
+% is passed and its certificate re-checks (evidenceLevel proved).
 certified_claim_keys(ReqId, ScenarioTestStage, Context, Keys) :-
     (   get_dict(tests, ScenarioTestStage, Tests) -> true ; Tests = [] ),
     findall(Key,
         (   member(TestId, Tests),
             test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
-            get_dict(state, Evidence, passed),
-            get_dict(claimBindings, Evidence, Recorded),
-            member(Entry, Recorded),
-            inventory_entry_field(Entry, requirement_id, RawReq),
-            normalize_atom(RawReq, ReqId),
-            inventory_entry_field(Entry, claim_key, RawKey),
-            normalize_atom(RawKey, Key),
             test_claim_binding(ReqId, Key, [TestId-Evidence], Binding),
             get_dict(binding, Binding, derived),
             \+ get_dict(scope, Binding, intent)
@@ -1209,14 +1188,15 @@ unique_evidence_by_test(Evidence0, Evidence) :-
 % state from any scenario that accepts its scope, independent of scenario order.
 % implements REQ-ui-pattern-component-proof
 first_evidence_for_test(Evidence, TestId, Item) :-
-    member(Item, Evidence),
-    Item.testId == TestId,
-    Item.state \== not_end_to_end,
-    !.
-first_evidence_for_test(Evidence, TestId, Item) :-
-    member(Item, Evidence),
-    Item.testId == TestId,
-    !.
+    (   member(Item, Evidence),
+        get_dict(testId, Item, TestId),
+        get_dict(state, Item, State),
+        State \== not_end_to_end
+    ->  true
+    ;   member(Item, Evidence),
+        get_dict(testId, Item, TestId)
+    ->  true
+    ).
 
 scenario_passing_e2e_obligation(Context, TestObligation, Obligation) :-
     scenario_accepted_scopes(TestObligation.scenarioId, AcceptedScopes),
@@ -1324,7 +1304,6 @@ scenario_obligation_status(TestObligation, _E2eEvidence, missing) :-
 scenario_obligation_status(_TestObligation, [], missing) :-
     !.
 scenario_obligation_status(_TestObligation, Evidence, passed) :-
-    Evidence \= [],
     forall(member(Item, Evidence), Item.state == passed),
     !.
 scenario_obligation_status(_TestObligation, _Evidence, unresolved).
@@ -1398,14 +1377,16 @@ proof_receipt_entries(Props, Receipts, Present) :-
     (   memberchk(proof_receipts=Raw, Props)
     ->  Present = true,
         inventory_entries(Raw, Receipts)
-    ;   Present = false,
+    ;   % mutalog-disable-next-line goal_true: the only caller's clause heads bind false and [] alike
+        Present = false,
+        % mutalog-disable-next-line goal_true: the only caller's clause heads bind false and [] alike
         Receipts = []
     ).
 
 valid_receipt_shape(TestId, Receipt) :-
     inventory_entry_field(Receipt, version, RawVersion),
     normalize_receipt_atom(RawVersion, Version),
-    receipt_version(Version),
+    % valid_receipt_version_fields/2 has a clause for each receipt version only.
     valid_receipt_version_fields(Version, Receipt),
     inventory_entry_field(Receipt, receipt_id, RawReceiptId),
     normalize_receipt_atom(RawReceiptId, ReceiptId), valid_receipt_id(ReceiptId),
@@ -1433,7 +1414,6 @@ valid_receipt_shape(TestId, Receipt) :-
     inventory_entry_field(Receipt, producer, RawProducer),
     receipt_producer_name(RawProducer, ProducerName), ProducerName \= '',
     inventory_entry_field(Receipt, command_argv, RawCommandArgv),
-    is_list(RawCommandArgv),
     RawCommandArgv \= [],
     maplist(nonempty_receipt_atom, RawCommandArgv),
     (   inventory_entry_field(Receipt, binding_hash, RawBindingHash)
@@ -1445,7 +1425,6 @@ valid_receipt_shape(TestId, Receipt) :-
     normalize_receipt_atom(RawRunOutcome, RunOutcome),
     memberchk(RunOutcome, [passed, failed, errored, cancelled, timed_out, interrupted, no_results]),
     inventory_entry_field(Receipt, proof_results, RawResults),
-    is_list(RawResults),
     maplist(valid_receipt_proof_result, RawResults),
     receipt_timestamp(Receipt, started_at, StartedStamp),
     receipt_timestamp(Receipt, finished_at, FinishedStamp),
@@ -1453,8 +1432,7 @@ valid_receipt_shape(TestId, Receipt) :-
 
 % kibi.proof-receipt.v2 adds the contract kind and the evidence level the
 % receipt supports; v1 receipts are still read, as e2e evidence at tested.
-receipt_version('kibi.proof-receipt.v1').
-receipt_version('kibi.proof-receipt.v2').
+% No other version is valid.
 
 valid_receipt_version_fields('kibi.proof-receipt.v1', _Receipt).
 valid_receipt_version_fields('kibi.proof-receipt.v2', Receipt) :-
@@ -1488,8 +1466,7 @@ valid_fingerprint_components(Receipt) :-
     forall(member(Key, [contract, integration, command, bindings, producer]),
            (inventory_entry_field(Components, Key, Raw),
             normalize_receipt_atom(Raw, Value),
-            valid_sha256(Value))),
-    !.
+            valid_sha256(Value))).
 
 nonempty_receipt_atom(Value) :-
     normalize_receipt_atom(Value, Atom),
@@ -1515,10 +1492,10 @@ valid_receipt_attempts(Result) :-
     valid_attempt_status(Status, Attempts).
 
 valid_attempt_status(unavailable, Attempts) :-
-    \+ inventory_entry_field(Attempts, entries, _Present), !.
-valid_attempt_status(unavailable, Attempts) :-
-    inventory_entry_field(Attempts, entries, Entries),
-    Entries == [], !.
+    (   inventory_entry_field(Attempts, entries, Entries)
+    ->  Entries == []
+    ;   true
+    ).
 valid_attempt_status(complete, Attempts) :-
     inventory_entry_field(Attempts, entries, Entries),
     is_list(Entries),
@@ -1526,8 +1503,7 @@ valid_attempt_status(complete, Attempts) :-
     forall(member(Entry, Entries),
            (inventory_entry_field(Entry, outcome, RawEntryOutcome),
             normalize_receipt_atom(RawEntryOutcome, EntryOutcome),
-            memberchk(EntryOutcome, [passed, failed, timed_out, skipped, interrupted, errored]))),
-    !.
+            memberchk(EntryOutcome, [passed, failed, timed_out, skipped, interrupted, errored]))).
 
 valid_sha256(Value) :-
     atom_length(Value, 64),
@@ -1541,7 +1517,8 @@ receipt_timestamp(Receipt, Field, Stamp) :-
     inventory_entry_field(Receipt, Field, RawValue),
     normalize_receipt_atom(RawValue, Value),
     re_match('^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:[.][0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})$', Value),
-    catch(parse_time(Value, Stamp), _, fail).
+    % parse_time/2 fails, rather than throws, on any atom it cannot read.
+    parse_time(Value, Stamp).
 
 chronological_receipt_history(Receipts) :-
     maplist(receipt_finished_stamp, Receipts, FinishedStamps),
@@ -1567,8 +1544,7 @@ receipt_for_snapshot(Snapshot, Receipt) :-
 receipt_for_current_mode(TestId, Context, Receipts, SnapshotReceipts) :-
     (   Context.proofBindingMode == per_contract,
         get_dict(TestId, Context.proofTestBindings, CurrentBinding)
-    ->  include(receipt_with_binding_hash, Receipts, BoundReceipts),
-        include(receipt_for_binding(CurrentBinding), BoundReceipts, BindingReceipts),
+    ->  include(receipt_for_binding(CurrentBinding), Receipts, BindingReceipts),
         (   BindingReceipts == []
         ->  include(receipt_for_snapshot(Context.proofSnapshot), Receipts, SnapshotReceipts)
         ;   SnapshotReceipts = BindingReceipts
@@ -1576,21 +1552,17 @@ receipt_for_current_mode(TestId, Context, Receipts, SnapshotReceipts) :-
     ;   include(receipt_for_snapshot(Context.proofSnapshot), Receipts, SnapshotReceipts)
     ).
 
-receipt_with_binding_hash(Receipt) :-
-    inventory_entry_field(Receipt, binding_hash, _).
-
 % The current binding is one hash, or a list of the hashes a current receipt
 % may carry (the current binding and the one written before relationship
 % links left it).
-receipt_for_binding(Bindings, Receipt) :-
-    is_list(Bindings),
-    !,
+% A receipt without a binding_hash matches neither.
+receipt_for_binding(Current, Receipt) :-
     inventory_entry_field(Receipt, binding_hash, RawBinding),
     normalize_receipt_atom(RawBinding, Binding),
-    memberchk(Binding, Bindings).
-receipt_for_binding(Binding, Receipt) :-
-    inventory_entry_field(Receipt, binding_hash, RawBinding),
-    normalize_receipt_atom(RawBinding, Binding).
+    (   is_list(Current)
+    ->  memberchk(Binding, Current)
+    ;   Binding == Current
+    ).
 
 receipt_matches_current_binding(Scope, ContractBinding, Receipt) :-
     inventory_entry_field(Receipt, scope, RawScope),
@@ -1598,10 +1570,8 @@ receipt_matches_current_binding(Scope, ContractBinding, Receipt) :-
     receipt_matches_current_contract(ContractBinding, Receipt).
 
 receipt_matches_current_contract(none, _Receipt).
+% Only receipts of a well-formed history get here, so the version is valid.
 receipt_matches_current_contract(hash(ExpectedHash), Receipt) :-
-    inventory_entry_field(Receipt, version, RawVersion),
-    normalize_receipt_atom(RawVersion, Version),
-    receipt_version(Version),
     inventory_entry_field(Receipt, contract_hash, RawContractHash),
     normalize_receipt_atom(RawContractHash, ExpectedHash).
 
@@ -1637,18 +1607,18 @@ proof_contract_hash(RawContract, Hash) :-
     canonical_json_value(Contract, Canonical),
     crypto_data_hash(Canonical, Hash, [algorithm(sha256), encoding(utf8)]).
 
-proof_contract_dict(^^(Value, _), Contract) :- !,
-    proof_contract_dict(Value, Contract).
-proof_contract_dict(literal(type(_, Value)), Contract) :- !,
-    proof_contract_dict(Value, Contract).
-proof_contract_dict(literal(Value), Contract) :- !,
-    proof_contract_dict(Value, Contract).
-proof_contract_dict(Contract, Contract) :-
-    is_dict(Contract), !.
+% A stored value, unwrapped, or JSON text of an object.  atom_json_dict/3
+% raises on anything that is not text, which the catch turns into failure.
 proof_contract_dict(Raw, Contract) :-
-    (atom(Raw) ; string(Raw)),
-    catch(atom_json_dict(Raw, Contract, [value_string_as(string)]), _, fail),
-    is_dict(Contract).
+    (   Raw = ^^(Value, _)
+    ->  proof_contract_dict(Value, Contract)
+    ;   Raw = literal(Literal)
+    ->  (   Literal = type(_, Value) -> true ; Value = Literal ),
+        proof_contract_dict(Value, Contract)
+    ;   is_dict(Raw)
+    ->  Contract = Raw
+    ;   catch(( atom_json_dict(Raw, Contract, [value_string_as(string)]), is_dict(Contract) ), _, fail)
+    ).
 
 canonical_json_value(Value, Json) :-
     is_dict(Value), !,
@@ -1666,11 +1636,12 @@ canonical_json_value(Value, Json) :-
 canonical_json_value(Value, Json) :-
     memberchk(Value, [true, false, null]), !,
     atom_string(Value, Json).
+% Scalars only from here on, which json_write/2 writes on one line.
 canonical_json_value(Value, Json) :-
-    with_output_to(string(Json), json_write(current_output, Value, [width(0)])).
+    with_output_to(string(Json), json_write(current_output, Value)).
 
 canonical_json_pair(Key-Value, Json) :-
-    with_output_to(string(KeyJson), json_write(current_output, Key, [width(0)])),
+    with_output_to(string(KeyJson), json_write(current_output, Key)),
     canonical_json_value(Value, ValueJson),
     format(string(Json), "~s:~s", [KeyJson, ValueJson]).
 
@@ -1824,8 +1795,8 @@ production_symbol_stage(ReqId, PassingE2eTests, Stage, ProductionSymbols) :-
     findall(TestId,
         (kb_relationship(specified_by, ReqId, ScenarioId),
          scenario_test(ScenarioId, TestId)),
-        ScenarioTests0),
-    sort(ScenarioTests0, ScenarioTests),
+        ScenarioTests),
+    % Only looked up with memberchk/2, so neither order nor duplicates matter.
     requirement_proof_context(Context),
     production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, [], Context, Stage, ProductionSymbols).
 
@@ -2134,9 +2105,7 @@ receipt_item_reject_reason(Item, stale_proof_receipt) :-
     Item.state == stale,
     get_dict(codeSnapshot, Item, _),
     !.
-receipt_item_reject_reason(Item, receipt_snapshot_mismatch) :-
-    Item.state == stale,
-    !.
+% Any other stale receipt, and every other state, as receipt_state_reject_reason/2.
 receipt_item_reject_reason(Item, Reason) :-
     receipt_state_reject_reason(Item.state, Reason).
 
@@ -2145,10 +2114,7 @@ receipt_state_reject_reason(snapshot_unavailable, proof_snapshot_unavailable) :-
 receipt_state_reject_reason(contract_mismatch, receipt_contract_mismatch) :- !.
 receipt_state_reject_reason(invalid, invalid_proof_receipt) :- !.
 receipt_state_reject_reason(failed, failed_proof_receipt) :- !.
-receipt_state_reject_reason(not_end_to_end, none) :- !.
 receipt_state_reject_reason(stale, receipt_snapshot_mismatch) :- !.
-receipt_state_reject_reason(passed, none) :- !.
-receipt_state_reject_reason(none, none) :- !.
 receipt_state_reject_reason(_, none).
 
 explanation_reason_text(Reason, Text) :-
@@ -2194,9 +2160,7 @@ test_required_proof_refs(TestId, Refs) :-
 test_required_proof_refs(_TestId, []).
 
 contract_required_symbol_ids(Contract, SymbolIds) :-
-    (   get_dict(required_proofs, Contract, Raw)
-    ;   get_dict('required_proofs', Contract, Raw)
-    ),
+    get_dict(required_proofs, Contract, Raw),
     !,
     inventory_entries(Raw, Entries),
     findall(SymbolId,
@@ -2267,8 +2231,7 @@ symbol_missing_coordinates(SymbolId) :-
 
 valid_symbol_coordinates(Props) :-
     memberchk(sourceFile=RawSourceFile, Props),
-    source_path_atom(RawSourceFile, SourceFile),
-    SourceFile \= '',
+    source_path_atom(RawSourceFile, _SourceFile),
     memberchk(sourceLine=RawLine, Props),
     memberchk(sourceColumn=RawColumn, Props),
     memberchk(sourceEndLine=RawEndLine, Props),
@@ -2320,7 +2283,6 @@ symbol_coordinate_ref(SymbolId, Ref) :-
     kb_entity(SymbolId, symbol, Props),
     memberchk(sourceFile=RawFile, Props),
     source_path_atom(RawFile, File),
-    File \= '',
     !,
     (   valid_symbol_coordinates(Props)
     ->  memberchk(sourceLine=RawLine, Props),
@@ -2364,13 +2326,14 @@ certificate_rejections(ScenarioTestStage, Context, Rejections) :-
     ->  true
     ;   Obligations = []
     ),
-    findall(_{test: TestId, reason: Reason},
+    findall(TestId-Reason,
         (member(Obligation, Obligations),
          member(TestId, Obligation.tests),
          test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
          get_dict(certificateRejection, Evidence, Reason)),
-        Rejections0),
-    sort(Rejections0, Rejections).
+        Pairs0),
+    sort(Pairs0, Pairs),
+    findall(_{test: TestId, reason: Reason}, member(TestId-Reason, Pairs), Rejections).
 
 % implements REQ-kibi-claim-bound-proofs
 %% receipt_claim_fields(+Receipt, +Evidence0, -Evidence)
@@ -2404,12 +2367,12 @@ claim_evidence(ReqId, Props, Inventory, ProofStatus, ScenarioTestStage, Context,
     (   get_dict(tests, ScenarioTestStage, Tests) -> true ; Tests = [] ),
     % The bindings are read whatever the proof status, so a claim that is not
     % proved because the requirement is not tested end to end still shows the
-    % binding each receipt holds, and a rejected binding its reason.
+    % binding each receipt holds, and a rejected binding its reason.  A test
+    % without recorded bindings gives none in test_claim_binding/4.
     findall(TestId-Evidence,
         (member(TestId, Tests),
          test_receipt_evidence(Context, [unit, integration, end_to_end], TestId, Evidence),
-         get_dict(state, Evidence, passed),
-         get_dict(claimBindings, Evidence, _)),
+         get_dict(state, Evidence, passed)),
         BoundTests),
     intent_claim_level(Props, IntentLevel),
     maplist(claim_entry(ReqId, ProofStatus, IntentLevel, BoundTests), Inventory, Entries0),
@@ -2417,9 +2380,9 @@ claim_evidence(ReqId, Props, Inventory, ProofStatus, ScenarioTestStage, Context,
     findall(R, (member(E, ClaimEvidence), get_dict(rejections, E, Rs), member(R, Rs)), Rejections0),
     sort(Rejections0, Rejections),
     include(applicable_claim, ClaimEvidence, Applicable),
-    (   ProofStatus == tested,
-        Applicable \== [],
-        forall(member(E, Applicable), claim_level_is(proved, E))
+    % A claim is proved only while ProofStatus is tested, and no applicable
+    % claim leaves ProvedTests empty.
+    (   forall(member(E, Applicable), claim_level_is(proved, E))
     ->  findall(T-K,
             (member(E, Applicable), get_dict(bindings, E, Bs), member(B, Bs),
              get_dict(binding, B, derived), get_dict(test, B, T), get_dict(kind, B, K)),
@@ -2501,7 +2464,9 @@ test_claim_binding(ReqId, Key, BoundTests, Binding) :-
     normalize_atom(RawKey, Key),
     inventory_entry_field(Recorded, requirement_id, RawReq),
     normalize_atom(RawReq, ReqId),
-    (   get_dict(kind, Evidence, Kind) -> true ; Kind = e2e ),
+    % Only a v2 receipt records claim bindings, and its evidence always names
+    % its kind.
+    get_dict(kind, Evidence, Kind),
     judge_claim_binding(ReqId, Key, Kind, Evidence, Recorded, Verdict, Scope, Reason),
     Binding0 = _{test: TestId, kind: Kind, binding: Verdict, scope: Scope},
     (   Reason == ''
@@ -2762,7 +2727,6 @@ human_intent(Props, approved, Ref) :-
     intent_ref(Props, Ref).
 human_intent(Props, firm, Ref) :-
     effective_firmness(Props, firm),
-    !,
     intent_ref(Props, Ref).
 
 effective_firmness(Props, Firmness) :-
@@ -2795,8 +2759,7 @@ prop_text(Props, Key, Text) :-
 origin_field(Props, Key, Value) :-
     memberchk(origin=Raw, Props),
     kb:source_value_atom(Raw, Json),
-    catch(atom_json_dict(Json, Origin, [value_string_as(atom)]), _, fail),
-    is_dict(Origin),
+    catch(( atom_json_dict(Json, Origin, [value_string_as(atom)]), is_dict(Origin) ), _, fail),
     get_dict(Key, Origin, Value0),
     kb:source_value_atom(Value0, Value),
     Value \== ''.
@@ -2819,14 +2782,12 @@ proof_advisories(Stages, Advisories) :-
 proof_issues(Stages, Gaps, Advisories) :-
     findall(Gap,
         (gap_definition(Gap, _, _, _),
-         proof_gap_present(Gap, Stages),
-         \+ proof_issue_advisory(Gap, Stages)),
-        Gaps),
-    findall(Gap,
-        (gap_definition(Gap, _, _, _),
-         proof_gap_present(Gap, Stages),
-         proof_issue_advisory(Gap, Stages)),
-        Advisories).
+         once(proof_gap_present(Gap, Stages))),
+        Present),
+    partition(advisory_gap(Stages), Present, Advisories, Gaps).
+
+advisory_gap(Stages, Gap) :-
+    proof_issue_advisory(Gap, Stages).
 
 receipt_completeness_issue(missing_proof_receipt).
 receipt_completeness_issue(stale_proof_receipt).

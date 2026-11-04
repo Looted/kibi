@@ -6395,6 +6395,18 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-telemetry-expected-outcomes-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-proof-github-badge-workflow-path",
     "steps": [
       [
@@ -7289,6 +7301,21 @@
         "./packages/cli/tests/commands/sync.test.ts",
         "-t",
         "retries a front-matter relationship"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-fresh-clone-setup",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "180000",
+        "./packages/cli/tests/commands/fresh-clone-setup.test.ts",
+        "./packages/cli/tests/consumer/fresh-branch-store.test.ts",
+        "./packages/agent-core/tests/checkout-hooks.test.ts",
+        "./packages/mcp/tests/server/fresh-branch-store-consumer.test.ts"
       ]
     ]
   }

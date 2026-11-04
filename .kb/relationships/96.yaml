@@ -566,3 +566,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0793980fed8e
+  - type: covered_by
+    from: SYM-agent-core-telemetry-signals-kibiskillload
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-03T14:23:27.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8692c4028ad
+  - type: implements
+    from: SYM-agent-core-telemetry-signals-kibiskillload
+    to: REQ-kibi-telemetry-agent-signals
+    created_at: 2026-11-03T14:23:27.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e04da9b2af0

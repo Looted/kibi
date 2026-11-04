@@ -17,6 +17,7 @@
  */
 
 import path from "node:path";
+import { KbRejection } from "../../cli-errors.js";
 import {
   type SourceExtractionFailure,
   failedSourceKeepsSemanticBaseline,
@@ -121,7 +122,8 @@ export async function readUncompiledAuthoredSource(
     try {
       frontmatter = authoredFrontmatter(content);
     } catch (parseError) {
-      throw new Error(
+      throw new KbRejection(
+        "UNCOMPILED_SOURCE",
         `Upsert of ${input.id} refused: ${relative} exists but kibi sync cannot compile it (${extractionError}), and its front matter does not parse (${errorText(parseError)}), so the write cannot merge into it. Fix the front matter of ${relative}, run kibi sync, then retry.`,
       );
     }
@@ -181,7 +183,8 @@ export function assertAuthoredWriteCompiles(
     );
   } catch (error) {
     const message = errorText(error);
-    throw new Error(
+    throw new KbRejection(
+      "UNCOMPILED_SOURCE",
       `Upsert of ${input.id} refused: ${input.id} exists in ${source.path} but is not compiled${source.extractionError === null ? "" : ` (${source.extractionError})`}, and this write would leave the file uncompilable: ${message}. ${sourceExtractionRemediation(source.path, message)}`,
     );
   }

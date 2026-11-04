@@ -6,6 +6,7 @@ import * as fs from "node:fs";
 import { mkdirSync, writeFileSync } from "node:fs";
 import * as nodeModule from "node:module";
 import path from "node:path";
+import { writeAgentInstructions } from "../../src/commands/agent-instructions.js";
 import { doctorCommand } from "../../src/commands/doctor.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import {
@@ -74,6 +75,8 @@ function preparedWorkspace(): string {
 
 function writeOkManifest(cwd: string): void {
   mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+  // kibi init writes the agent instructions a fresh clone relies on.
+  writeAgentInstructions(cwd);
   writeFileSync(
     path.join(cwd, ".kb", "manifest.json"),
     JSON.stringify({
@@ -209,7 +212,7 @@ describe("doctorCommand rendered report", () => {
     expect(text).toContain(
       "! Git hooks: Not installed: a new branch is not compiled on checkout and commits skip 'kibi check --staged'",
     );
-    expect(text).toContain("  → Run: kibi init (installs the git hooks)");
+    expect(text).toContain("  → Run: kibi hooks install");
     expect(text).toContain("✓ pre-commit hook: Not installed (optional)");
     expect(text).toContain("✓ post-rewrite hook: Not installed (optional)");
     expect(text).not.toContain("✗");
@@ -1377,6 +1380,6 @@ describe("doctorCommand branch store", () => {
     };
     expect(hooks.passed).toBe(true);
     expect(hooks.warning).toBe(true);
-    expect(hooks.remediation).toBe("Run: kibi init (installs the git hooks)");
+    expect(hooks.remediation).toBe("Run: kibi hooks install");
   });
 });

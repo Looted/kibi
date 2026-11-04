@@ -14,7 +14,11 @@ import {
 } from "./public/diagnostic-usage.js";
 import type { OperationName } from "./public/operations/types.js";
 import { createCliRuntime } from "./runtime/cli-runtime.js";
-import { noteCliErrorCategory, noteCliResultError } from "./usage-telemetry.js";
+import {
+  noteCliErrorCategory,
+  noteCliOperationCall,
+  noteCliResultError,
+} from "./usage-telemetry.js";
 
 export function writeOptionalStderr(stderr: string | undefined): void {
   if (stderr !== undefined) {
@@ -69,9 +73,10 @@ function findInputConflicts(invocation: JsonInvocation): string[] {
     }
     return option.long === undefined ? [] : [option.long];
   });
-  const positionalConflicts = (invocation.positionals ?? [])
-    .filter(({ value }) => value !== undefined)
-    .map(({ name }) => name);
+  const positionalConflicts =
+    invocation.positionals
+      ?.filter(({ value }) => value !== undefined)
+      .map(({ name }) => name) ?? [];
   return [...positionalConflicts, ...optionConflicts];
 }
 
@@ -84,12 +89,12 @@ function diagnosticModeEnabled(command: Command): boolean {
 }
 
 function structuredResult(stdout: string | undefined): unknown {
-  if (stdout === undefined) return undefined;
   try {
-    return JSON.parse(stdout);
+    return JSON.parse(stdout as string);
   } catch {
-    return undefined;
+    // No output, or output that is not one JSON document.
   }
+  return undefined;
 }
 
 async function writeAndWaitForDrain(
@@ -156,6 +161,8 @@ export async function runJsonInvocation(
 
   const prepared = prepareOperationInput(input, spec.businessInputSchema);
   const businessArgs = prepared.valid ? prepared.businessInput : {};
+  // implements REQ-kibi-telemetry-agent-signals
+  const inputIssues = prepared.valid ? undefined : prepared.issues;
   const telemetry = prepared.valid ? (prepared.telemetry ?? null) : null;
   const runtime = createCliRuntime({ workspaceRoot });
   let result: Awaited<ReturnType<typeof executeProtocolOperation>>;
@@ -214,5 +221,11 @@ export async function runJsonInvocation(
   }
   writeOptionalStderr(result.stderr);
   if (result.exitCode !== 0) noteCliResultError(result.stdout);
+  noteCliOperationCall({
+    operation: invocation.operationName,
+    args: input,
+    result: structuredResult(result.stdout),
+    ...(inputIssues !== undefined ? { inputIssues } : {}),
+  });
   process.exitCode = result.exitCode;
 }

@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aafbf0d72b0d
+  - type: implements
+    from: SYM-setup-choices-setup-choices-source
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:53:20.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23f0f4a2e015
+  - type: covered_by
+    from: SYM-setup-choices-setup-choices-source
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:53:20.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ad48c2504ca

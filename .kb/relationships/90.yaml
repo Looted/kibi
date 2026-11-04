@@ -657,3 +657,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e86ed65761c9
+  - type: assumes
+    from: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    to: FACT-NEG-fresh-clone-agent-instructions
+    created_at: 2026-11-03T16:09:06.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca84ef863e5a
+  - type: assumes
+    from: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    to: FACT-NEG-fresh-clone-auto-compile
+    created_at: 2026-11-03T16:09:07.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f780a853715
+  - type: assumes
+    from: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    to: FACT-NEG-fresh-clone-missing-hooks-note
+    created_at: 2026-11-03T16:09:07.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e64bee8f3f3
+  - type: assumes
+    from: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    to: FACT-NEG-fresh-clone-prepare-hooks
+    created_at: 2026-11-03T16:09:07.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cda055aa46e1
+  - type: assumes
+    from: SCEN-NEG-kibi-fresh-clone-setup-missing-setup
+    to: FACT-NEG-fresh-clone-setup-choices
+    created_at: 2026-11-03T16:09:07.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b4184b524cf

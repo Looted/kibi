@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { Command } from "commander";
 import { isClosedOutputError, main } from "../src/cli";
+import * as usageTelemetry from "../src/usage-telemetry";
 import { finishCliTelemetry } from "../src/usage-telemetry";
 
 type Stream = NodeJS.WriteStream;
@@ -129,6 +130,30 @@ describe("the CLI entry", () => {
     expect(await settles(run)).toBe(false);
     expect(exits).toEqual([]);
     process.stdout.emit("drain");
+    await run;
+    expect(exits).toEqual([0]);
+  });
+
+  test("a telemetry failure never changes the exit code", async () => {
+    parseWith(async () => {
+      process.exitCode = 3;
+    });
+    const telemetry = spyOn(
+      usageTelemetry,
+      "finishCliTelemetry",
+    ).mockRejectedValue(new Error("disk full"));
+    restores.push(() => telemetry.mockRestore());
+    await main();
+    expect(telemetry).toHaveBeenCalledTimes(1);
+    expect(exits).toEqual([3]);
+  });
+
+  test("a stream that errors instead of draining still lets the run exit", async () => {
+    parseWith(async () => undefined);
+    needsDrain(process.stdout);
+    const run = main();
+    expect(await settles(run)).toBe(false);
+    process.stdout.emit("error", closed());
     await run;
     expect(exits).toEqual([0]);
   });

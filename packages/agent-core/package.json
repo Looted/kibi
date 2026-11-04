@@ -41,6 +41,10 @@
     "./snippets": {
       "types": "./dist/snippets.d.ts",
       "default": "./dist/snippets.js"
+    },
+    "./checkout-hooks": {
+      "types": "./dist/checkout-hooks.d.ts",
+      "default": "./dist/checkout-hooks.js"
     }
   },
   "files": ["dist", "CHANGELOG.md"],

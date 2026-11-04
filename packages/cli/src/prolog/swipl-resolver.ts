@@ -91,38 +91,59 @@ export type SwiplResolverDeps = {
   runVersion: (bin: string) => string;
 };
 
-function detectGlibc(): boolean | undefined {
-  if (process.platform !== "linux") return undefined;
+/** True on glibc Linux, false on musl Linux, undefined elsewhere. */
+export function detectGlibc(
+  platform: string = process.platform,
+  report: { getReport(): unknown } = process.report,
+  exists: (path: string) => boolean = existsSync,
+): boolean | undefined {
+  if (platform !== "linux") return undefined;
   try {
-    const report = process.report?.getReport?.() as
-      | { header?: { glibcVersionRuntime?: unknown } }
-      | undefined;
-    if (report !== undefined) {
-      return typeof report.header?.glibcVersionRuntime === "string";
-    }
+    // A runtime without a report (or a report without a header) throws here
+    // and falls back to the musl loader probe below.
+    const { header } = report.getReport() as {
+      header: { glibcVersionRuntime?: unknown };
+    };
+    const runtime = header.glibcVersionRuntime;
+    return typeof runtime === "string";
   } catch {
     // Fall back to the musl loader probe below.
   }
   return !["/lib/ld-musl-x86_64.so.1", "/lib/ld-musl-aarch64.so.1"].some(
-    (loader) => existsSync(loader),
+    (loader) => exists(loader),
   );
 }
 
-function defaultRunVersion(bin: string): string {
-  return execFileSync(bin, ["--version"], {
+type VersionRunner = (
+  file: string,
+  args: readonly string[],
+  options: {
+    encoding: "utf8";
+    timeout: number;
+    stdio: ["ignore", "pipe", "pipe"];
+  },
+) => string;
+
+/** Output of `<bin> --version`; throws when the executable cannot run. */
+export function runSwiplVersion(
+  bin: string,
+  run: VersionRunner = execFileSync,
+): string {
+  return run(bin, ["--version"], {
     encoding: "utf8",
     timeout: 10_000,
     stdio: ["ignore", "pipe", "pipe"],
   });
 }
 
-function defaultDeps(): SwiplResolverDeps {
+/** The host facts of this process. */
+export function defaultDeps(): SwiplResolverDeps {
   return {
     platform: process.platform,
     arch: process.arch,
     glibc: detectGlibc(),
-    locatePackage: (name) => locatePlatformPackage(name),
-    runVersion: defaultRunVersion,
+    locatePackage: locatePlatformPackage,
+    runVersion: runSwiplVersion,
   };
 }
 
@@ -135,7 +156,7 @@ export function parseSwiplVersion(
   const [, major, minor, patch] = match;
   return {
     version: `${major}.${minor}${patch === undefined ? "" : `.${patch}`}`,
-    major: Number.parseInt(major ?? "0", 10),
+    major: Number(major),
   };
 }
 
@@ -174,12 +195,27 @@ type BundleInspection =
 
 function isExecutableFile(candidate: string): boolean {
   try {
-    if (!statSync(candidate).isFile()) return false;
-    accessSync(candidate, constants.X_OK);
-    return true;
+    if (statSync(candidate).isFile()) {
+      accessSync(candidate, constants.X_OK);
+      return true;
+    }
   } catch {
-    return false;
+    // Missing, or not executable by this user.
   }
+  return false;
+}
+
+/** SHA-256 of an executable file, or null when it is missing or unreadable. */
+export function executableDigest(
+  candidate: string,
+  digest: (file: string) => string = sha256File,
+): string | null {
+  try {
+    if (isExecutableFile(candidate)) return digest(candidate);
+  } catch {
+    // Unreadable.
+  }
+  return null;
 }
 
 function inspectBundle(deps: SwiplResolverDeps): BundleInspection {
@@ -216,7 +252,7 @@ function inspectBundle(deps: SwiplResolverDeps): BundleInspection {
   let manifest: unknown;
   let packageJson: { kibi?: { swiplVersion?: unknown } };
   try {
-    manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    manifest = JSON.parse(String(readFileSync(manifestPath)));
   } catch (error) {
     return corrupt(
       `${MANIFEST_FILE} is not valid JSON (${error instanceof Error ? error.message : String(error)})`,
@@ -224,7 +260,7 @@ function inspectBundle(deps: SwiplResolverDeps): BundleInspection {
   }
   try {
     packageJson = JSON.parse(
-      readFileSync(path.join(packageDir, "package.json"), "utf8"),
+      String(readFileSync(path.join(packageDir, "package.json"))),
     ) as { kibi?: { swiplVersion?: unknown } };
   } catch (error) {
     return corrupt(
@@ -238,16 +274,9 @@ function inspectBundle(deps: SwiplResolverDeps): BundleInspection {
       typeof packageVersion === "string" ? packageVersion : undefined,
   });
   if (!checked.ok) return corrupt(checked.reason);
-  if (!isExecutableFile(binary)) {
+  const actual = executableDigest(binary);
+  if (actual === null) {
     return corrupt(`${BUNDLED_BINARY_PATH} is missing or not executable`);
-  }
-  let actual: string;
-  try {
-    actual = sha256File(binary);
-  } catch (error) {
-    return corrupt(
-      `${BUNDLED_BINARY_PATH} is unreadable (${error instanceof Error ? error.message : String(error)})`,
-    );
   }
   if (actual !== checked.binarySha256) {
     return corrupt(
@@ -313,8 +342,10 @@ function findOnPath(
   env: NodeJS.ProcessEnv,
   deps: SwiplResolverDeps,
 ): PathLookup {
-  for (const directory of (env.PATH ?? "").split(path.delimiter)) {
-    if (directory === "" || !path.isAbsolute(directory)) continue;
+  if (env.PATH === undefined) return { kind: "absent" };
+  for (const directory of env.PATH.split(path.delimiter)) {
+    // An empty entry is relative too.
+    if (!path.isAbsolute(directory)) continue;
     const candidate = path.join(directory, "swipl");
     if (!isExecutableFile(candidate)) continue;
     const probe = probeVersion(candidate, deps);
@@ -376,7 +407,7 @@ function fail(error: SwiplResolutionError): never {
 function notFoundError(
   deps: SwiplResolverDeps,
   bundle: BundleInspection | "skipped",
-  lookup: PathLookup,
+  lookup: Exclude<PathLookup, { kind: "ok" }>,
 ): SwiplResolutionError {
   const platform = hostLabel(deps);
   const command = installCommand(deps.platform);
@@ -426,8 +457,6 @@ function notFoundError(
       lines.push(
         `System SWI-Prolog: swipl on PATH (${lookup.bin}) could not report its version (${lookup.detail}).`,
       );
-      break;
-    case "ok":
       break;
   }
   lines.push(`  Install it with: ${command}`);
@@ -564,12 +593,30 @@ export type SwiplGoalRunner = (
   env: NodeJS.ProcessEnv,
 ) => { status: number | null; stdout: string; stderr: string; error?: Error };
 
-function defaultGoalRunner(
+type GoalSpawner = (
+  file: string,
+  args: string[],
+  options: {
+    encoding: "utf8";
+    timeout: number;
+    stdio: ["ignore", "pipe", "pipe"];
+    env: NodeJS.ProcessEnv;
+  },
+) => {
+  status: number | null;
+  stdout: string | null;
+  stderr: string | null;
+  error?: Error | undefined;
+};
+
+/** Run `bin` with `args`; the default {@link SwiplGoalRunner}. */
+export function runSwiplGoal(
   bin: string,
   args: readonly string[],
   env: NodeJS.ProcessEnv,
+  spawn: GoalSpawner = spawnSync,
 ): ReturnType<SwiplGoalRunner> {
-  const result = spawnSync(bin, [...args], {
+  const result = spawn(bin, [...args], {
     encoding: "utf8",
     timeout: 60_000,
     stdio: ["ignore", "pipe", "pipe"],
@@ -595,7 +642,7 @@ export type LibraryProbe =
  */
 export function probeRequiredLibraries(
   resolved: ResolvedSwipl,
-  run: SwiplGoalRunner = defaultGoalRunner,
+  run: SwiplGoalRunner = runSwiplGoal,
   env: NodeJS.ProcessEnv = process.env,
 ): LibraryProbe {
   const goal = `forall(member(L, [${REQUIRED_SWIPL_LIBRARIES.join(", ")}]), (catch(use_module(library(L)), _, fail) -> true ; format("${MISSING_LIBRARY_MARKER}~w~n", [L])))`;
@@ -607,7 +654,7 @@ export function probeRequiredLibraries(
     return { kind: "failed", detail: result.error.message };
   }
   if (result.status !== 0) {
-    const detail = result.stderr.trim().split("\n")[0] ?? "";
+    const detail = result.stderr.trim().split("\n")[0] as string;
     return {
       kind: "failed",
       detail: `exit status ${result.status ?? "none"}${detail === "" ? "" : `: ${detail}`}`,

@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
 import {
   hashTelemetryId,
@@ -57,6 +58,25 @@ describe("Cursor hook runner", () => {
     );
 
     expect(result.additional_context).toBeDefined();
+  });
+
+  // implements REQ-kibi-fresh-clone-setup
+  test("sessionStart adds the missing-hooks note after the advisory in a checkout without Kibi hooks", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(cwd, pluginData);
+    fs.mkdirSync(path.join(cwd, ".kb"));
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
+    spawnSync("git", ["init", "-q"], { cwd });
+
+    const result = await runHook(
+      { hook_event_name: "sessionStart", cwd },
+      { pluginData, workspaceTrusted: false },
+    );
+
+    const context = String(result.additional_context);
+    expect(context.endsWith(`\n${MISSING_HOOKS_NOTE}`)).toBe(true);
+    expect(context.length).toBeGreaterThan(MISSING_HOOKS_NOTE.length + 1);
   });
 
   test("sessionStart emits advisory output without executing a trusted CLI fallback", async () => {

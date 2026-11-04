@@ -12,11 +12,12 @@
 // implements REQ-bootstrap-provenance-stubs
 export const PROVENANCE_STUB_TAG = "bootstrap:provenance-stub";
 
-function tagList(value: unknown): readonly string[] {
-  if (typeof value === "string") return [value];
-  return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : [];
+/** Whether `tags` (one tag or a list of them) holds the stub tag. */
+function hasStubTag(tags: unknown): boolean {
+  return (
+    tags === PROVENANCE_STUB_TAG ||
+    (Array.isArray(tags) && tags.includes(PROVENANCE_STUB_TAG))
+  );
 }
 
 /** Whether an entity row (projected or complete) is a provenance stub. */
@@ -27,5 +28,5 @@ export function isProvenanceStub(
   if (!entity) return false;
   const type = String(entity.type ?? "");
   if (type !== "" && type !== "fact") return false;
-  return tagList(entity.tags).includes(PROVENANCE_STUB_TAG);
+  return hasStubTag(entity.tags);
 }

@@ -72,6 +72,9 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/plugins/compose-search-hints.ts": [
     "packages/cli/tests/search-hints.test.ts",
   ],
+  "packages/cli/src/telemetry-details.ts": [
+    "packages/cli/tests/telemetry-details.test.ts",
+  ],
   "packages/cli/src/plugins/generated-sources.ts": [
     "packages/cli/tests/plugins/generated-sources-mutation.test.ts",
     "packages/cli/tests/plugins/language-pack-relevance.test.ts",
@@ -186,6 +189,226 @@ export const CLI_MUTATION_MODULES = {
   ],
   "packages/cli/src/proof/integrations.ts": [
     "packages/cli/tests/proof/integrations-config.test.ts",
+  ],
+  "packages/cli/src/plugins/external-allowlist.ts": [
+    "packages/cli/tests/plugins/external-allowlist.test.ts",
+  ],
+  "packages/cli/src/plugins/approved-source-analyzers.ts": [
+    "packages/cli/tests/plugins/approved-source-analyzers.test.ts",
+  ],
+  "packages/cli/src/plugins/plugin-install-check.ts": [
+    "packages/cli/tests/plugins/plugin-install-check.test.ts",
+  ],
+  "packages/cli/src/plugins/load-plugin.ts": [
+    "packages/cli/tests/plugins/load-plugin.test.ts",
+  ],
+  "packages/cli/src/plugins/project-config.ts": [
+    "packages/cli/tests/plugins/project-config.test.ts",
+  ],
+  "packages/cli/src/plugins/check-policies.ts": [
+    "packages/cli/tests/plugins/check-policies.test.ts",
+  ],
+  "packages/cli/src/plugins/proof-reference-extractors.ts": [
+    "packages/cli/tests/plugins/proof-reference-loader.test.ts",
+  ],
+  "packages/cli/src/plugins/compose-vocabulary-alignment.ts": [
+    "packages/cli/tests/plugins/compose-vocabulary-alignment.test.ts",
+  ],
+  "packages/cli/src/plugins/compose-semantic-classifier.ts": [
+    "packages/cli/tests/plugins/compose-semantic-classifier.test.ts",
+  ],
+  "packages/cli/src/plugins/source-change-analysis.ts": [
+    "packages/cli/tests/plugins/source-change-analysis.test.ts",
+  ],
+  "packages/cli/src/traceability/markdown-validate.ts": [
+    "packages/cli/tests/traceability/markdown-validate.test.ts",
+    "packages/cli/tests/traceability/markdown-validate-remaining.coverage.test.ts",
+  ],
+  "packages/cli/src/traceability/staged-migration.ts": [
+    "packages/cli/tests/traceability/staged-migration-contract.test.ts",
+  ],
+  "packages/cli/src/traceability/staged-entity-id-style.ts": [
+    "packages/cli/tests/traceability/staged-entity-id-style.test.ts",
+  ],
+  "packages/cli/src/traceability/impact-git-tree.ts": [
+    "packages/cli/tests/traceability/impact-git-tree.test.ts",
+  ],
+  "packages/cli/src/traceability/impact-policy.ts": [
+    "packages/cli/tests/traceability/impact-policy.test.ts",
+  ],
+  "packages/cli/src/traceability/analysis-gate.ts": [
+    "packages/cli/tests/traceability/analysis-gate-contract.test.ts",
+  ],
+  "packages/cli/src/traceability/evidence-model.ts": [
+    "packages/cli/tests/traceability/evidence-model-contract.test.ts",
+  ],
+  "packages/cli/src/traceability/staged-diagnostics.ts": [
+    "packages/cli/tests/traceability/staged-diagnostics-contract.test.ts",
+  ],
+  "packages/cli/src/traceability/staged-entity-context.ts": [
+    "packages/cli/tests/traceability/staged-entity-context.test.ts",
+  ],
+  "packages/cli/src/traceability/snapshot-knowledge.ts": [
+    "packages/cli/tests/traceability/snapshot-knowledge-reader.test.ts",
+  ],
+  "packages/cli/src/traceability/impact-pr-diff.ts": [
+    "packages/cli/tests/traceability/impact-pr-diff.test.ts",
+  ],
+  "packages/cli/src/traceability/staged-impact-contract.ts": [
+    "packages/cli/tests/traceability/staged-impact-contract-rules.test.ts",
+  ],
+  "packages/cli/src/traceability/commit-amend.ts": [
+    "packages/cli/tests/traceability/commit-amend-probe.test.ts",
+  ],
+  "packages/cli/src/traceability/staged-inventory-drift.ts": [
+    "packages/cli/tests/traceability/staged-inventory-drift-contract.test.ts",
+    "packages/cli/tests/traceability/staged-inventory-drift.test.ts",
+  ],
+  "packages/cli/src/traceability/impact-record-validation.ts": [
+    "packages/cli/tests/traceability/impact-record-validation.test.ts",
+  ],
+  "packages/cli/src/traceability/trusted-pr-event.ts": [
+    "packages/cli/tests/traceability/trusted-pr-event-scripted.test.ts",
+  ],
+  "packages/cli/src/traceability/impact-knowledge.ts": [
+    "packages/cli/tests/traceability/impact-knowledge.test.ts",
+  ],
+  "packages/cli/src/traceability/impact-side-evidence.ts": [
+    "packages/cli/tests/traceability/impact-side-evidence.test.ts",
+  ],
+  "packages/cli/src/env/bootstrap.ts": [
+    "packages/cli/tests/env/bootstrap-mutation.test.ts",
+  ],
+  "packages/cli/src/report/html-report.ts": [
+    "packages/cli/tests/report/html-report-mutation.test.ts",
+  ],
+  "packages/cli/src/signoff/collect.ts": [
+    "packages/cli/tests/signoff/collect-mutation.test.ts",
+  ],
+  "packages/cli/src/extractors/manifest.ts": [
+    "packages/cli/tests/extractors/manifest-mutation.test.ts",
+  ],
+  "packages/cli/src/extractors/markdown.ts": [
+    "packages/cli/tests/extractors/markdown-mutation.test.ts",
+  ],
+  "packages/cli/src/extractors/symbols-coordinator.ts": [
+    "packages/cli/tests/extractors/symbols-coordinator-mutation.test.ts",
+  ],
+  "packages/cli/src/extractors/symbol-coordinates.ts": [
+    "packages/cli/tests/extractors/symbol-coordinates-mutation.test.ts",
+  ],
+  "packages/cli/src/proof/command-test-report.ts": [
+    "packages/cli/tests/proof/command-test-report-mutation.test.ts",
+  ],
+  "packages/cli/src/proof/step-runner.ts": [
+    "packages/cli/tests/proof/step-runner-mutation.test.ts",
+  ],
+  "packages/cli/src/proof/inspect.ts": [
+    "packages/cli/tests/proof/inspect-mutation.test.ts",
+  ],
+  "packages/cli/src/proof/integration-plan.ts": [
+    "packages/cli/tests/proof/integration-plan-mutation.test.ts",
+  ],
+  "packages/cli/src/cli-command.ts": ["packages/cli/tests/cli-command.test.ts"],
+  "packages/cli/src/env.ts": ["packages/cli/tests/env.test.ts"],
+  "packages/cli/src/provenance-stub.ts": [
+    "packages/cli/tests/provenance-stub.test.ts",
+  ],
+  "packages/cli/src/prolog/utf8-transport.ts": [
+    "packages/cli/tests/prolog/utf8-transport-pure.test.ts",
+  ],
+  "packages/cli/src/cli-errors.ts": ["packages/cli/tests/cli-errors.test.ts"],
+  "packages/cli/src/workspace-cwd.ts": [
+    "packages/cli/tests/workspace-cwd.test.ts",
+  ],
+  "packages/cli/src/cli-register-json.ts": [
+    "packages/cli/tests/cli-register-json-mutation.test.ts",
+    "packages/cli/tests/cli-register-json-routes.test.ts",
+  ],
+  "packages/cli/src/cli-validate.ts": [
+    "packages/cli/tests/cli-validate-mutation.test.ts",
+  ],
+  "packages/cli/src/search-token-cache.ts": [
+    "packages/cli/tests/search-token-cache-mutation.test.ts",
+    "packages/cli/tests/search-token-cache.test.ts",
+  ],
+  "packages/cli/src/cli-register-skills.ts": [
+    "packages/cli/tests/cli-register-skills.test.ts",
+  ],
+  "packages/cli/src/usage-telemetry.ts": [
+    "packages/cli/tests/usage-telemetry-mutation.test.ts",
+    "packages/cli/tests/usage-telemetry.test.ts",
+  ],
+  "packages/cli/src/cli-operation-loader.ts": [
+    "packages/cli/tests/cli-operation-metadata.test.ts",
+    "packages/cli/tests/cli-operation-metadata-remaining.coverage.test.ts",
+  ],
+  "packages/cli/src/cli-operation-metadata.ts": [
+    "packages/cli/tests/cli-operation-metadata.test.ts",
+    "packages/cli/tests/cli-operation-metadata-remaining.coverage.test.ts",
+  ],
+  "packages/cli/src/package-versions.ts": [
+    "packages/cli/tests/package-versions.test.ts",
+  ],
+  "packages/cli/src/performance-trace.ts": [
+    "packages/cli/tests/performance-trace.test.ts",
+  ],
+  "packages/cli/src/cli-register-foundation.ts": [
+    "packages/cli/tests/cli-register-foundation.test.ts",
+  ],
+  "packages/cli/src/cli-register-reporting.ts": [
+    "packages/cli/tests/cli-register-reporting.test.ts",
+  ],
+  "packages/cli/src/cli-register-maintenance.ts": [
+    "packages/cli/tests/cli-register-maintenance.test.ts",
+  ],
+  "packages/cli/src/cli-register-proof.ts": [
+    "packages/cli/tests/cli-register-proof.test.ts",
+  ],
+  "packages/cli/src/cli-protocol.ts": [
+    "packages/cli/tests/cli-protocol-mutation.test.ts",
+  ],
+  "packages/cli/src/cli-json-command.ts": [
+    "packages/cli/tests/cli-json-command-mutation.test.ts",
+  ],
+  "packages/cli/src/cli.ts": [
+    "packages/cli/tests/cli-main-pure.test.ts",
+    "packages/cli/tests/cli-main-mutation.test.ts",
+    "packages/cli/tests/cli-main-remaining.coverage.test.ts",
+  ],
+  "packages/cli/src/prolog/janitor.ts": [
+    "packages/cli/tests/prolog/janitor-mutation.test.ts",
+  ],
+  "packages/cli/src/prolog/error-terms.ts": [
+    "packages/cli/tests/prolog/error-terms-parse.test.ts",
+  ],
+  "packages/cli/src/prolog/store-lock.ts": [
+    "packages/cli/tests/prolog/store-lock-mutation.test.ts",
+    "packages/cli/tests/prolog/store-lock.test.ts",
+  ],
+  "packages/cli/src/prolog/swipl-resolver.ts": [
+    "packages/cli/tests/prolog/swipl-resolver-mutation.test.ts",
+    "packages/cli/tests/prolog/swipl-resolver.test.ts",
+  ],
+  "packages/cli/src/prolog/codec.ts": [
+    "packages/cli/tests/prolog/codec-mutation.test.ts",
+    "packages/cli/tests/prolog-codec.test.ts",
+    "packages/cli/tests/prolog/codec.test.ts",
+    "packages/cli/tests/prolog/codec-literal-edges.test.ts",
+    "packages/cli/tests/prolog/codec-coverage.test.ts",
+    "packages/cli/tests/prolog/codec-remaining.coverage.test.ts",
+  ],
+  "packages/cli/src/intent-search.ts": [
+    "packages/cli/tests/intent-search-mutation.test.ts",
+    "packages/cli/tests/intent-search.test.ts",
+    "packages/cli/tests/intent-search.coverage.test.ts",
+    "packages/cli/tests/intent-search-remaining.coverage.test.ts",
+  ],
+  "packages/cli/src/search-answer.ts": [
+    "packages/cli/tests/search-answer-mutation.test.ts",
+    "packages/cli/tests/search-answer.test.ts",
+    "packages/cli/tests/proofs/claims/search-answer-limits.proof.test.ts",
+    "packages/cli/tests/search-provenance-stubs.test.ts",
   ],
 };
 

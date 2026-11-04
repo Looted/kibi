@@ -1,4 +1,5 @@
 import * as path from "node:path";
+import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
 import {
   type AutoUpdateInput,
   type AutoUpdateResult,
@@ -111,6 +112,25 @@ export function adoptPrecomputedSuggestion<T>(
 }
 
 import * as fs from "node:fs";
+
+/**
+ * A fresh clone carries no git hooks; the system prompt says so. The check
+ * runs git, so its answer is kept for a short while per worktree, and a
+ * checkout whose hooks get installed mid-session stops showing it.
+ */
+const CHECKOUT_HOOKS_TTL_MS = 30_000;
+const checkoutHooksCache = new Map<
+  string,
+  { note: string | null; at: number }
+>();
+function checkoutHooksNote(worktreeRoot: string): string | null {
+  const cached = checkoutHooksCache.get(worktreeRoot);
+  const now = Date.now();
+  if (cached && now - cached.at < CHECKOUT_HOOKS_TTL_MS) return cached.note;
+  const note = missingHooksNote(worktreeRoot);
+  checkoutHooksCache.set(worktreeRoot, { note, at: now });
+  return note;
+}
 
 export interface PluginInput {
   worktree: string;
@@ -952,6 +972,9 @@ const kibiOpencodePlugin: Plugin = async (
 
         // No entry carries the sentinel, so the guidance is never a repeat.
         output.system.push(guidance);
+        // implements REQ-kibi-fresh-clone-setup
+        const hooksNote = checkoutHooksNote(promptWorkContext.worktreeRoot);
+        if (hooksNote !== null) output.system.push(hooksNote);
       };
     }
 

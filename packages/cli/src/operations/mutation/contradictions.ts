@@ -1,3 +1,4 @@
+import { KbRejection } from "../../cli-errors.js";
 import { escapeAtom } from "../../prolog/codec.js";
 import type { PrologErrorRecord } from "../../prolog/error-terms.js";
 import {
@@ -135,6 +136,29 @@ export function parseUpsertChangeKinds(
 }
 
 // implements REQ-kibi-operation-interface-parity
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * The error a failed store write throws: the formatted message, coded as a
+ * rejection when the store refused the entity (a contradiction, an invalid
+ * relationship) rather than failing itself.
+ */
+export function upsertFailure(
+  entityId: string,
+  raw?: string,
+  record?: PrologErrorRecord,
+): Error {
+  const message = formatUpsertError(entityId, raw, record);
+  if (message.startsWith("Contradiction detected for ")) {
+    return new KbRejection("SEMANTIC_CONTRADICTION", message);
+  }
+  const invalidRelationship = record
+    ? record.code === "invalid_relationship"
+    : raw !== undefined && formatInvalidRelationshipError(raw) !== null;
+  return invalidRelationship
+    ? new KbRejection("INVALID_RELATIONSHIP", message)
+    : new Error(message);
+}
+
 export function formatUpsertError(
   entityId: string,
   raw?: string,

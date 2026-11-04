@@ -164,7 +164,7 @@ describe("GitHub Pages URLs", () => {
 
 describe("GitHub workflow templates", () => {
   test("documented examples match the packaged templates", () => {
-    for (const kind of ["report", "badge"] as const) {
+    for (const kind of ["report", "badge", "check"] as const) {
       const fileName = githubWorkflowTemplateFileName(kind);
       const packaged = readFileSync(
         path.join(githubTemplateDir(), fileName),

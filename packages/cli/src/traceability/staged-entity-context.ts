@@ -1,4 +1,3 @@
-import { CONTEXT_REQUIRED_TYPES } from "../entity-body-context.js";
 import type { ExtractionResult } from "../extractors/markdown.js";
 import type { Violation } from "../public/check-types.js";
 import {
@@ -31,20 +30,19 @@ function readTreeFile(
  */
 // implements REQ-cli-staged-entity-context
 function acknowledgedIds(snapshot: TreeReader, tree: string): Set<string> {
-  const text = readTreeFile(snapshot, tree, ".kb/manifest.json");
-  if (text === null) return new Set();
+  let parsed: { contextAcknowledged?: unknown } | null | undefined;
   try {
-    const parsed = JSON.parse(text) as { contextAcknowledged?: unknown };
-    return new Set(
-      Array.isArray(parsed.contextAcknowledged)
-        ? parsed.contextAcknowledged.filter(
-            (id): id is string => typeof id === "string",
-          )
-        : [],
+    // A missing manifest reads as the JSON text "null".
+    parsed = JSON.parse(
+      String(readTreeFile(snapshot, tree, ".kb/manifest.json")),
     );
   } catch {
-    return new Set();
+    // A malformed manifest acknowledges nothing.
   }
+  const listed = parsed?.contextAcknowledged;
+  // Non-string members never equal an entity id, so they need no filter, and
+  // new Set(undefined) is empty.
+  return new Set(Array.isArray(listed) ? (listed as string[]) : undefined);
 }
 
 /** Ids another entity supersedes in the given compiled knowledge. */
@@ -72,15 +70,13 @@ export function collectIntroducedEntityContextViolations(
   headKnowledge: readonly ExtractionResult[],
 ): Violation[] {
   const rules = new Set([ENTITY_CONTEXT_MISSING_RULE]);
+  // evaluateEntityContext exempts the types that need no body context.
   const read = (tree: string) =>
     stagedPaths.flatMap((file) => {
       const content = readTreeFile(snapshot, tree, file);
       const entity =
         content === null ? null : readAuthoredEntity(content, file);
-      return entity !== null &&
-        (CONTEXT_REQUIRED_TYPES as readonly string[]).includes(entity.type)
-        ? [entity]
-        : [];
+      return entity === null ? [] : [entity];
     });
   const head = evaluateEntityContext(
     read(snapshot.headTree),

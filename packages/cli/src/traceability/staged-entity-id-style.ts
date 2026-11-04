@@ -59,12 +59,12 @@ export function createStagedEntityIdStyleDiagnostics(
 }
 
 function readEntityId(file: StagedFile): string | undefined {
-  if (file.content === undefined) return undefined;
+  let id: unknown;
   try {
-    const id = extractFromMarkdownString(file.content, file.path).entity.id;
-    return typeof id === "string" && id.trim() !== "" ? id.trim() : undefined;
+    // Missing content throws like any unreadable frontmatter.
+    id = extractFromMarkdownString(file.content as string, file.path).entity.id;
   } catch {
     // Frontmatter errors are reported by staged Markdown validation.
-    return undefined;
   }
+  return typeof id === "string" && id.trim() !== "" ? id.trim() : undefined;
 }

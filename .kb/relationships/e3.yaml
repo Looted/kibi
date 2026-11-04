@@ -377,3 +377,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5683b7191bee
+  - type: executable_for
+    from: SYM-kibi-fresh-clone-setup-verifier
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:27:08.543Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e426784ce437
+  - type: implements
+    from: SYM-agent-instructions-report-agent-instructions
+    to: REQ-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:50:52.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1573b850f75
+  - type: covered_by
+    from: SYM-agent-instructions-report-agent-instructions
+    to: TEST-kibi-fresh-clone-setup
+    created_at: 2026-11-03T15:50:52.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ed7bbec8026

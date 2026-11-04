@@ -1,3 +1,4 @@
+import type { RejectionIssue } from "kibi-agent-core/usage-telemetry";
 // implements REQ-kibi-operation-interface-parity
 export class InputError extends Error {
   // implements REQ-kibi-operation-interface-parity
@@ -27,6 +28,54 @@ export class OperationError extends Error {
     this.name = "OperationError";
   }
 }
+
+// implements REQ-kibi-telemetry-expected-outcomes, REQ-kibi-telemetry-agent-signals
+/**
+ * A KB operation refusing its input or the workspace state: a payload that
+ * fails validation, a contradiction, an id that does not exist. The message
+ * is what the caller always got; `code` names the refusal for anonymous
+ * telemetry, which counts it as an expected outcome rather than a failure.
+ * It is not an envelope error: the result still reports OPERATION_FAILED.
+ */
+export class KbRejection extends Error {
+  constructor(
+    readonly code: KbRejectionCode,
+    message: string,
+    /**
+     * Why, as fixed rule ids and Kibi schema field paths (never values), for
+     * the anonymous telemetry that shows where agents struggle.
+     */
+    readonly issues: readonly RejectionIssue[] = [],
+  ) {
+    super(message);
+  }
+}
+
+// implements REQ-kibi-telemetry-expected-outcomes
+/**
+ * Wrap a failure in a message prefix such as `Upsert execution failed: `,
+ * keeping a rejection's code so the refusal is not counted as a fault.
+ */
+export function prefixedFailure(prefix: string, error: unknown): Error {
+  const message = `${prefix}${error instanceof Error ? error.message : String(error)}`;
+  return error instanceof KbRejection
+    ? new KbRejection(error.code, message, error.issues)
+    : new Error(message);
+}
+
+// implements REQ-kibi-telemetry-expected-outcomes
+export type KbRejectionCode =
+  | "ENTITY_NOT_FOUND"
+  | "ENTITY_VALIDATION_FAILED"
+  | "FIRM_DECISION_LOCKED"
+  | "INCOMPLETE_PROPOSITIONS"
+  | "INVALID_RELATIONSHIP"
+  | "LEGACY_BRANCH_STORAGE"
+  | "RELATIONSHIP_SOURCE_MISMATCH"
+  | "RELATIONSHIP_VALIDATION_FAILED"
+  | "SEMANTIC_CONTRADICTION"
+  | "UNCOMPILED_SOURCE"
+  | "VALIDATION_FAILED";
 
 /** The error envelope fields a thrown Kibi error carries. */
 // implements REQ-mcp-coded-error-envelope

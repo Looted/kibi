@@ -1,4 +1,4 @@
-// implements REQ-cli-status-pre-first-sync
+// implements REQ-cli-status-pre-first-sync, REQ-kibi-fresh-clone-setup
 import { afterEach, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
 import {
@@ -138,7 +138,10 @@ function freshBranchWorkspace(): string {
 /** Protocol errors the client saw, such as a non-JSON line on the server's stdout. */
 const protocolErrors: Error[] = [];
 
-async function connect(cwd: string): Promise<Client> {
+async function connect(
+  cwd: string,
+  extraEnv: Record<string, string> = {},
+): Promise<Client> {
   const client = new Client({ name: "kibi-consumer", version: "1.0.0" });
   client.onerror = (error) => protocolErrors.push(error);
   await client.connect(
@@ -146,7 +149,7 @@ async function connect(cwd: string): Promise<Client> {
       command: "node",
       args: [KIBI_MCP],
       cwd,
-      env: sandboxEnv(),
+      env: { ...sandboxEnv(), ...extraEnv },
       stderr: "pipe",
     }),
   );
@@ -171,7 +174,9 @@ type CheckData = { violations: Array<{ rule: string; suggestion: string }> };
 describe("kibi-mcp on a new branch whose store was never compiled", () => {
   test("kb_status is stale, kb_search and kb_check name the uncompiled store, and kb_apply_plan compiles the store", async () => {
     const workspace = freshBranchWorkspace();
-    const client = await connect(workspace);
+    // What an opted-out checkout sees; by default the first store-backed
+    // tool compiles the store (next test).
+    const client = await connect(workspace, { KIBI_AUTO_SYNC: "0" });
 
     const before = (await call(client, "kb_status", {})) as StatusData;
     expect(before.staleReasons.map((row) => row.code)).toContain(
@@ -297,5 +302,35 @@ describe("kibi-mcp on a new branch whose store was never compiled", () => {
     })) as QueryData;
     expect(byId.count).toBe(1);
     expect(byId.branchStore).toBeUndefined();
+  }, 240_000);
+  test("the first store-backed tool compiles the store and answers from the knowledge", async () => {
+    const workspace = freshBranchWorkspace();
+    const client = await connect(workspace);
+
+    // kb_status stays read-only: it still reports the uncompiled store.
+    const before = (await call(client, "kb_status", {})) as StatusData;
+    expect(before.staleReasons.map((row) => row.code)).toContain(
+      "branch_store_not_compiled",
+    );
+
+    const byId = (await call(client, "kb_query", {
+      id: "REQ-demo-login",
+    })) as { count: number; branchStore?: unknown };
+    expect(byId.count).toBe(1);
+    expect(byId.branchStore).toBeUndefined();
+    // The compile's progress went to stderr, not the JSON-RPC stream.
+    expect(protocolErrors.map((error) => error.message)).toEqual([]);
+    expect(
+      ((await call(client, "kb_status", {})) as StatusData).staleReasons.map(
+        (row) => row.code,
+      ),
+    ).not.toContain("branch_store_not_compiled");
+    // Only gitignored state changed.
+    expect(
+      execFileSync("git", ["status", "--porcelain"], {
+        cwd: workspace,
+        encoding: "utf8",
+      }).trim(),
+    ).toBe("");
   }, 240_000);
 });

@@ -277,15 +277,15 @@ export const SEARCH_ANSWER_LIMITS = {
 type Edge = Readonly<{ rel: string; from: string; to: string }>;
 type Row = Record<string, unknown>;
 
-function text(value: unknown): string {
-  return typeof value === "string" ? value : value == null ? "" : String(value);
+export function text(value: unknown): string {
+  return value == null ? "" : String(value);
 }
 
-function unique(ids: readonly string[]): string[] {
+export function unique(ids: readonly string[]): string[] {
   return [...new Set(ids.filter((id) => id.length > 0))];
 }
 
-function brief(entity: Row): SearchAnswerEntity {
+export function brief(entity: Row): SearchAnswerEntity {
   const status = text(entity.status);
   const firmness = effectiveFirmness(
     entity.type,
@@ -300,7 +300,7 @@ function brief(entity: Row): SearchAnswerEntity {
   };
 }
 
-function queryCall(args: Record<string, unknown>): string {
+export function queryCall(args: Record<string, unknown>): string {
   return `kb_query(${JSON.stringify(args)})`;
 }
 
@@ -328,7 +328,7 @@ export function predicateKeyFilter(
   schema: PredicateFactSchema,
 ): Record<string, string> | undefined {
   const names = schema.argumentNames;
-  if (names.length === 0 || names.length !== args.length) return undefined;
+  if (names.length !== args.length) return undefined;
   const declared = schema.keyArguments.filter((key) => names.includes(key));
   const keys =
     declared.length > 0
@@ -336,8 +336,8 @@ export function predicateKeyFilter(
       : [names.includes("subject") ? "subject" : (names[0] as string)];
   const where: Record<string, string> = {};
   for (const key of keys) {
-    const value = args[names.indexOf(key)] ?? "";
-    if (value !== "") where[key] = value;
+    const value = args[names.indexOf(key)];
+    if (value) where[key] = value;
   }
   return Object.keys(where).length > 0 ? where : undefined;
 }
@@ -348,7 +348,7 @@ export function predicateKeyFilter(
  * two tuples may both hold (alice has two roles), so no pair is claimed.
  */
 // implements REQ-search-answer-hygiene
-function disagreeingPredicateFacts(
+export function disagreeingPredicateFacts(
   left: Row,
   right: Row,
   schema: PredicateFactSchema | undefined,
@@ -369,18 +369,23 @@ function disagreeingPredicateFacts(
   const rightArgs = argsOf(right);
   const leftKey = predicateKeyFilter(leftArgs, schema);
   const rightKey = predicateKeyFilter(rightArgs, schema);
-  if (leftKey === undefined || rightKey === undefined) return false;
-  if (JSON.stringify(leftKey) !== JSON.stringify(rightKey)) return false;
-  const deny = (row: Row) => text(row.polarity) === "deny";
+  // A missing right key never stringifies like a present left one.
+  if (
+    leftKey === undefined ||
+    JSON.stringify(leftKey) !== JSON.stringify(rightKey)
+  )
+    return false;
+  const leftDenies = text(left.polarity) === "deny";
+  const rightDenies = text(right.polarity) === "deny";
   return (
-    deny(left) !== deny(right) ||
+    leftDenies !== rightDenies ||
     leftArgs.some((value, index) => value !== rightArgs[index])
   );
 }
 
 /** Typed statement and follow-up query of a linked fact, by fact kind. */
 // implements REQ-kibi-query-fact-filters
-function factDetail(
+export function factDetail(
   fact: Row,
   schema?: PredicateFactSchema,
 ): Omit<SearchAnswerFact, keyof SearchAnswerEntity> {
@@ -423,7 +428,7 @@ function factDetail(
   return base;
 }
 
-function edgesGoal(ids: readonly string[]): string {
+export function edgesGoal(ids: readonly string[]): string {
   const idList = ids.map((id) => `'${escapeAtom(id)}'`).join(",");
   return `kb_relationship_edges([${ANSWER_RELATIONSHIPS.join(",")}], [${idList}], Edges)`;
 }
@@ -435,16 +440,16 @@ function edgesGoal(ids: readonly string[]): string {
  * Facts of other kinds, and predicates without a schema, yield no row.
  */
 // implements REQ-kibi-query-fact-filters
-function factSchemasGoal(ids: readonly string[]): string {
+export function factSchemasGoal(ids: readonly string[]): string {
   const idList = ids.map((id) => `'${escapeAtom(id)}'`).join(",");
   return `findall([FactId,Names,Keys], (member(FactId, [${idList}]), kb:predicate_fact(FactId, Ns, Name, _, _), ((kb:predicate_schema(SchemaId, Ns, Name, _, Names, _) -> ((kb_entity(SchemaId, fact, Props), memberchk(key_arguments=KeysRaw, Props), kb:normalize_term_atom_list(KeysRaw, Keys)) -> true ; Keys = [])) ; (kb:builtin_decision_predicate(Ns, Name, _, KeyPositions, _), kb:builtin_predicate_signature(Name, _, Names), findall(Key, (member(P, KeyPositions), nth1(P, Names, Key)), Keys)))), Schemas)`;
 }
 
-function parseFactSchemas(
+export function parseFactSchemas(
   raw: string | undefined,
 ): Map<string, PredicateFactSchema> {
   const schemas = new Map<string, PredicateFactSchema>();
-  for (const [id, names, keys] of parseTriples(raw ?? "[]")) {
+  for (const [id, names, keys] of parseTriples(String(raw))) {
     schemas.set(normalizeEntityId(id), {
       argumentNames: parseAtomList(names),
       keyArguments: parseAtomList(keys),
@@ -460,7 +465,7 @@ function parseFactSchemas(
  * linked entity; on a journaled engine each costs a polling interval, which
  * made a warm search take seconds.
  */
-class AnswerGraph {
+export class AnswerGraph {
   private readonly edgesById = new Map<string, Edge[]>();
   private readonly rows = new Map<string, Row | null>();
   private rowLoads = 0;
@@ -534,21 +539,22 @@ class AnswerGraph {
     if (edgeIds.length > 0) {
       for (const id of edgeIds) this.edgesById.set(id, []);
       for (const [rel, from, to] of parseTriples(
-        result.bindings.Edges ?? "[]",
+        String(result.bindings.Edges),
       )) {
         const edge = {
           rel,
           from: normalizeEntityId(from),
           to: normalizeEntityId(to),
         };
+        // A self-loop lands in its list twice; edgesOf drops the repeat.
         this.edgesById.get(edge.from)?.push(edge);
-        if (edge.to !== edge.from) this.edgesById.get(edge.to)?.push(edge);
+        this.edgesById.get(edge.to)?.push(edge);
       }
     }
     if (rowIds.length > 0) {
       this.rowLoads += rowIds.length;
       for (const id of rowIds) this.rows.set(id, null);
-      for (const row of parseListOfLists(result.bindings.Results ?? "[]").map(
+      for (const row of parseListOfLists(String(result.bindings.Results)).map(
         parseEntityFromList,
       ))
         this.rows.set(normalizeEntityId(text(row.id)), row);
@@ -558,7 +564,10 @@ class AnswerGraph {
 }
 
 /** Tests that verify a scenario: `verified_by` from it or `validates` into it. */
-function scenarioTests(scenarioId: string, edges: readonly Edge[]): string[] {
+export function scenarioTests(
+  scenarioId: string,
+  edges: readonly Edge[],
+): string[] {
   const tests: string[] = [];
   for (const edge of edges) {
     if (edge.rel === "verified_by" && edge.from === scenarioId)
@@ -570,7 +579,11 @@ function scenarioTests(scenarioId: string, edges: readonly Edge[]): string[] {
 }
 
 /** Requirement ids a non-requirement entity points back to. */
-function owningRequirements(id: string, type: string, edges: readonly Edge[]) {
+export function owningRequirements(
+  id: string,
+  type: string,
+  edges: readonly Edge[],
+) {
   const owners: string[] = [];
   for (const edge of edges) {
     if (type === "scenario" && edge.rel === "specified_by" && edge.to === id)
@@ -588,7 +601,7 @@ function owningRequirements(id: string, type: string, edges: readonly Edge[]) {
 }
 
 /** Shorten to at most `maxChars` code points, ending with an ellipsis. */
-function clip(value: string, maxChars: number): string {
+export function clip(value: string, maxChars: number): string {
   const chars = Array.from(value);
   if (chars.length <= maxChars) return value;
   return `${chars.slice(0, Math.max(0, maxChars - 1)).join("")}…`;
@@ -637,31 +650,32 @@ export function adrExcerpt(
   const prose = lines
     .map((line) =>
       line
-        .replace(/^\s*(?:[-*+]|\d+[.)])\s+/, "")
+        .replace(/^\s*(?:[-*+]|\d+[.)])\s/, "")
         .replace(/^\s*>\s?/, "")
         .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
         .replace(/\*\*|__|`/g, "")
         .trim(),
     )
-    .filter((line) => line !== "" && !/^\|/.test(line))
+    .filter((line) => !/^\|/.test(line))
     .join(" ")
     .replace(/\s+/g, " ")
     .trim();
   if (!prose) return undefined;
-  const sentences = prose.split(/(?<=[.!?])\s+/);
+  const sentences = prose.split(/(?<=[.!?]) /);
   let excerpt = "";
   for (const sentence of sentences) {
-    const next = `${excerpt} ${sentence.trim()}`.trim();
+    const next = `${excerpt} ${sentence}`.trim();
     if (excerpt !== "" && Array.from(next).length > maxChars) break;
     excerpt = next;
   }
   return clip(excerpt, maxChars);
 }
 
-async function rationaleOf(
+export async function rationaleOf(
   row: Row,
   workspaceRoot: string | undefined,
   bodies: Map<string, Promise<string | null>>,
+  load: typeof loadMarkdownBody = loadMarkdownBody,
 ): Promise<SearchAnswerRationale> {
   const source = text(row.sourceFile) || text(row.source);
   if (!source) return brief(row);
@@ -669,7 +683,7 @@ async function rationaleOf(
   if (workspaceRoot !== undefined) {
     let body = bodies.get(source);
     if (body === undefined) {
-      body = loadMarkdownBody(source, workspaceRoot);
+      body = load(source, workspaceRoot);
       bodies.set(source, body);
     }
     const markdown = await body;
@@ -691,7 +705,7 @@ type RawVerdict = Readonly<{
   inventory?: unknown;
 }>;
 
-function records(value: unknown): Record<string, unknown>[] {
+export function records(value: unknown): Record<string, unknown>[] {
   return Array.isArray(value)
     ? value.filter(
         (item): item is Record<string, unknown> =>
@@ -700,7 +714,7 @@ function records(value: unknown): Record<string, unknown>[] {
     : [];
 }
 
-function strings(value: unknown): string[] {
+export function strings(value: unknown): string[] {
   return Array.isArray(value)
     ? value.map((item) => normalizeEntityId(text(item))).filter(Boolean)
     : [];
@@ -818,6 +832,8 @@ export function projectVerdict(
       }
     }
   }
+  // Contradictions are collected first, so they already lead the
+  // witnesses: they block regardless of scenarios.
   const status: SearchAnswerVerdict["status"] = witnesses.some(
     (witness) => witness.status === "contradiction",
   )
@@ -827,10 +843,6 @@ export function projectVerdict(
       : unknowns.length > 0
         ? "unknown"
         : "none";
-  // Contradictions first: they block regardless of scenarios.
-  witnesses.sort((left, right) =>
-    left.status === right.status ? 0 : left.status === "contradiction" ? -1 : 1,
-  );
   return {
     verdict: { status, witnesses: witnesses.slice(0, perRequirement) },
     unknowns: unknowns.slice(0, perRequirement),
@@ -841,9 +853,9 @@ export function projectVerdict(
 
 const UNKNOWN_PROCEDURE = /existence_error|[Uu]nknown procedure|does not exist/;
 
-function decodeJsonBinding(raw: string | undefined): unknown {
-  if (raw === undefined) return undefined;
-  let parsed: unknown = JSON.parse(raw);
+/** A missing binding is not JSON, so it throws like a malformed one. */
+export function decodeJsonBinding(raw: string | undefined): unknown {
+  let parsed: unknown = JSON.parse(String(raw));
   if (typeof parsed === "string") parsed = JSON.parse(parsed);
   return parsed;
 }
@@ -859,7 +871,7 @@ type VerdictPayload = Readonly<{
  * otherwise the module is loaded first. A verdict that cannot be computed
  * leaves the answer standing with `verdict_unavailable` unknowns.
  */
-async function fetchVerdicts(
+export async function fetchVerdicts(
   prolog: Pick<PrologPort, "query">,
   graph: AnswerGraph,
   rowIds: readonly string[],
@@ -874,16 +886,15 @@ async function fetchVerdicts(
     await graph.fetch({ rows: rowIds });
     if (!UNKNOWN_PROCEDURE.test(message)) return undefined;
   }
-  try {
-    return await runOperationJsonQuery<VerdictPayload>(
-      prolog as PrologPort,
-      "discovery.pl",
-      goal,
-      "Search answer verdicts",
-    );
-  } catch {
-    return undefined;
-  }
+  return runOperationJsonQuery<VerdictPayload>(
+    prolog as PrologPort,
+    "discovery.pl",
+    goal,
+    // rationale: the label only names the lookup in its error, which is
+    // discarded here: a verdict that cannot be computed is no verdict.
+    // Stryker disable next-line StringLiteral
+    "Search answer verdicts",
+  ).catch(() => undefined);
 }
 
 /**
@@ -892,7 +903,7 @@ async function fetchVerdicts(
  * leaves the rows loaded and every ask positional.
  */
 // implements REQ-kibi-query-fact-filters
-async function fetchFactSchemas(
+export async function fetchFactSchemas(
   graph: AnswerGraph,
   factIds: readonly string[],
   request: Readonly<{ edges: readonly string[]; rows: readonly string[] }>,
@@ -1061,21 +1072,23 @@ export async function buildSearchAnswer(
       propose(owner, fact.score * 0.85, `fact ${fact.id} via ${scenario}`);
   }
 
-  const supersededBy = new Map<string, string>();
-  for (const edge of seedEdges)
-    if (edge.rel === "supersedes") supersededBy.set(edge.to, edge.from);
   // A matched requirement that was superseded points at what governs now:
-  // follow the chain so the replacement is a candidate too.
+  // follow the chain so the replacement is a candidate too. Every candidate
+  // so far is on the first frontier, so its supersedes edges are read there;
+  // an empty frontier fetches nothing.
+  const supersededBy = new Map<string, string>();
   let frontier = byScore();
-  for (let hop = 0; hop < 3 && frontier.length > 0; hop += 1) {
+  for (let hop = 0; hop < 3; hop += 1) {
     await graph.fetch({ edges: frontier, rows: frontier });
     for (const edge of graph.edgesOf(frontier))
       if (edge.rel === "supersedes") supersededBy.set(edge.to, edge.from);
     const next: string[] = [];
+    // Every frontier id is a candidate: the first frontier lists them and
+    // each later one holds the replacements just added.
     for (const id of frontier) {
       const replacement = supersededBy.get(id);
-      const source = candidates.get(id);
-      if (replacement === undefined || source === undefined) continue;
+      if (replacement === undefined) continue;
+      const source = candidates.get(id) as { score: number; via: string };
       if (!candidates.has(replacement)) {
         candidates.set(replacement, {
           score: source.score * 0.95,
@@ -1087,12 +1100,11 @@ export async function buildSearchAnswer(
     frontier = next;
   }
   // A replacement found on the last hop still needs its row and links, and
-  // a replacement that was itself superseded must not read as current.
-  if (frontier.length > 0) {
-    await graph.fetch({ edges: frontier, rows: frontier });
-    for (const edge of graph.edgesOf(frontier))
-      if (edge.rel === "supersedes") supersededBy.set(edge.to, edge.from);
-  }
+  // a replacement that was itself superseded must not read as current. An
+  // empty frontier fetches nothing.
+  await graph.fetch({ edges: frontier, rows: frontier });
+  for (const edge of graph.edgesOf(frontier))
+    if (edge.rel === "supersedes") supersededBy.set(edge.to, edge.from);
 
   type Chosen = { id: string; entity: Row; score: number; via: string };
   const chosen: Chosen[] = [];
@@ -1180,23 +1192,11 @@ export async function buildSearchAnswer(
       ...plan.directTests.slice(0, limits.perRequirement),
     ]),
   });
-  const detailedUngoverned = ungoverned.map((entry) => {
-    const row = entry.type === "fact" ? graph.row(entry.id) : null;
-    if (row === null) return entry;
-    const { type, rank } = entry;
-    return {
-      ...brief(row),
-      ...factDetail(row, schemas.get(entry.id)),
-      type,
-      rank,
-    };
-  });
   // Tests linked to the requirement itself come first, then tests that
   // verify one of its scenarios; a test reached both ways counts as direct.
   const testVias = plans.map((plan) => {
     const testVia = new Map<string, string>();
-    for (const testId of plan.directTests)
-      if (!testVia.has(testId)) testVia.set(testId, "direct");
+    for (const testId of plan.directTests) testVia.set(testId, "direct");
     const verification = graph.edgesOf(plan.scenarios);
     for (const scenarioId of plan.scenarios)
       for (const testId of scenarioTests(scenarioId, verification))
@@ -1229,11 +1229,9 @@ export async function buildSearchAnswer(
         !SUPERSEDED_ADR_STATUSES.has(text(row.status)),
     );
     for (const adr of adrRows) rationaleRows.set(text(adr.id), adr);
-    const projected = projectVerdict(
-      verdicts === undefined ? undefined : verdictById.get(req.id),
-    );
+    const projected = projectVerdict(verdictById.get(req.id));
     if (projected.truncated) truncated = true;
-    const testVia = testVias[index] ?? new Map<string, string>();
+    const testVia = testVias[index] as Map<string, string>;
     governing.push({
       ...brief(req.entity),
       score: req.score,
@@ -1246,9 +1244,9 @@ export async function buildSearchAnswer(
         ? { moreFacts: moreFactsOf(req.id, plan.factsOmitted) }
         : {}),
       scenarios: rowsOf(plan.scenarios).map(brief),
-      tests: rowsOf(testIds[index] ?? []).map((row) => ({
+      tests: rowsOf(testIds[index] as string[]).map((row) => ({
         ...brief(row),
-        via: testVia.get(text(row.id)) ?? "direct",
+        via: testVia.get(text(row.id)) as string,
       })),
       adrs: adrRows.map(brief),
       verdict: projected.verdict,
@@ -1282,18 +1280,25 @@ export async function buildSearchAnswer(
   const governingFacts = plans.flatMap((plan) =>
     rowsOf(plan.facts).map((fact) => ({ fact, requirement: plan.req.id })),
   );
-  const ungovernedAnswer: SearchAnswerUngoverned[] = detailedUngoverned
+  const ungovernedAnswer: SearchAnswerUngoverned[] = ungoverned
     .map((entry) => {
       const row = entry.type === "fact" ? graph.row(entry.id) : null;
       if (row === null) return entry;
+      const schema = schemas.get(entry.id);
+      const detailed = {
+        ...brief(row),
+        ...factDetail(row, schema),
+        type: entry.type,
+        rank: entry.rank,
+      };
       const holder = governingFacts.find(({ fact }) =>
-        disagreeingPredicateFacts(row, fact, schemas.get(entry.id)),
+        disagreeingPredicateFacts(row, fact, schema),
       );
-      if (holder === undefined) return entry;
+      if (holder === undefined) return detailed;
       const factId = text(holder.fact.id);
       const { claim } = factDetail(holder.fact, schemas.get(factId));
       return {
-        ...entry,
+        ...detailed,
         overriddenBy: {
           fact: factId,
           requirement: holder.requirement,
@@ -1322,7 +1327,7 @@ export async function buildSearchAnswer(
  * requirement, the note says so first: the governing list, if any, came from
  * lower-ranked matches and is not the top match's requirement.
  */
-function answerNote(
+export function answerNote(
   governingCount: number,
   ungoverned: readonly SearchAnswerUngoverned[],
 ): string {
@@ -1356,8 +1361,8 @@ function answerNote(
   );
 }
 
-function byteSize(value: unknown): number {
-  return Buffer.byteLength(JSON.stringify(value), "utf8");
+export function byteSize(value: unknown): number {
+  return Buffer.byteLength(JSON.stringify(value));
 }
 
 function clipTitle<T extends SearchAnswerEntity>(entity: T, chars: number): T {
@@ -1378,7 +1383,6 @@ function clipRationale<T extends SearchAnswerRationale>(
 }
 
 function withoutExcerpt<T extends SearchAnswerRationale>(entity: T): T {
-  if (entity.excerpt === undefined) return entity;
   const { excerpt: _excerpt, ...rest } = entity;
   return rest as T;
 }
@@ -1390,14 +1394,14 @@ const ANSWER_TRIM_ORDER = [
   "rationale",
 ] as const;
 /** Where a linked fact of a governing requirement sorts in its list. */
-function factRank(edge: Edge, seedIds: readonly string[]): number {
+export function factRank(edge: Edge, seedIds: readonly string[]): number {
   const matched = seedIds.indexOf(edge.to);
   if (matched >= 0) return matched;
   return seedIds.length + (edge.rel === "constrains" ? 1 : 0);
 }
 
 /** The facts an answer left out of a governing requirement, and the ask. */
-function moreFactsOf(
+export function moreFactsOf(
   requirementId: string,
   count: number,
 ): { count: number; ask: string } {
@@ -1485,9 +1489,9 @@ export function fitSearchAnswer(
     index >= 0 && over();
     index -= 1
   ) {
+    // A requirement with at most one of each is left as it was.
     const governing = [...current.governing];
     const req = governing[index] as SearchAnswerRequirement;
-    if (req.scenarios.length <= 1 && req.tests.length <= 1) continue;
     governing[index] = {
       ...req,
       scenarios: req.scenarios.slice(0, 1),

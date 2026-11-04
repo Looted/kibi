@@ -65,8 +65,18 @@ export function analysisObligation<Range extends LineRange>(
   analysis: GateAnalysis<Range> | null | undefined,
   newHunkRanges: readonly HunkRange[],
 ): AnalysisObligation<Range> {
-  if (side === "before" || !analysis || analysis.status === "ok")
-    return { kind: "none" };
+  return side === "before"
+    ? { kind: "none" }
+    : afterAnalysisObligation(analysis, newHunkRanges);
+}
+
+/** {@link analysisObligation} for the after side of a changed file. */
+// implements REQ-source-analysis-v2
+export function afterAnalysisObligation<Range extends LineRange>(
+  analysis: GateAnalysis<Range> | null | undefined,
+  newHunkRanges: readonly HunkRange[],
+): AnalysisObligation<Range> {
+  if (!analysis || analysis.status === "ok") return { kind: "none" };
   if (analysis.status === "failed")
     return { kind: "blocked", reason: "source analysis failed" };
   if (
