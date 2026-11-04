@@ -99,14 +99,13 @@ export async function executePruneReceipts(
   const results: PruneReceiptsTestResult[] = [];
   for (const test of tests) {
     const testId = String(test.id);
-    const receipts = Array.isArray(test.proof_receipts)
-      ? (test.proof_receipts.filter(
-          (value): value is Record<string, unknown> =>
-            typeof value === "object" &&
-            value !== null &&
-            !Array.isArray(value),
-        ) as unknown as ProofReceipt[])
-      : [];
+    // A missing history flattens to [undefined], which the filter drops.
+    const receipts = [test.proof_receipts]
+      .flat()
+      .filter(
+        (value): value is Record<string, unknown> =>
+          typeof value === "object" && value !== null && !Array.isArray(value),
+      ) as unknown as ProofReceipt[];
     if (receipts.length <= keep) continue;
 
     const nextReceipts = receipts.slice(-keep);
