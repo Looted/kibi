@@ -1,6 +1,6 @@
 import path from "node:path";
 import { EngineClient } from "../engine.js";
-import { PrologProcess, resolveKbPlPath } from "../prolog.js";
+import { type PrologProcess, resolveKbPlPath } from "../prolog.js";
 import { escapeAtom } from "../prolog/codec.js";
 import {
   type RuntimeOptions,
@@ -42,28 +42,24 @@ export async function withAttachedBranchProlog<T>(
   callback: (prolog: PrologProcess) => Promise<T>,
   deps?: Partial<DiscoveryDeps>,
 ): Promise<T> {
-  const usesEngine = deps?.createProlog === undefined;
-  const createProlog =
-    deps?.createProlog ?? ((opts) => new PrologProcess(opts));
+  // Without an injected process the branch engine serves the queries.
+  const createProlog = deps?.createProlog;
   let prolog: PrologProcess | null = null;
   let engine: EngineClient | null = null;
-  let attached = false;
-  let branchName: string;
 
   try {
     // Callers only read: a detached HEAD reads its read-only snapshot.
     const attachment = resolveReadBranchAttachment(process.cwd());
     if ("error" in attachment) throw new Error(attachment.error);
-    branchName = attachment.kbBranch;
     if (attachment.readOnly !== undefined) {
       console.warn(`[KIBI] ${attachment.readOnly.notice}`);
       await refreshDetachedSnapshot(process.cwd(), attachment);
     }
 
-    if (usesEngine) {
+    if (createProlog === undefined) {
       engine = new EngineClient({
         workspaceRoot: process.cwd(),
-        branch: branchName,
+        branch: attachment.kbBranch,
         timeout: 120_000,
       });
       await engine.start();
@@ -71,23 +67,19 @@ export async function withAttachedBranchProlog<T>(
     } else {
       prolog = createProlog({ timeout: 120000 });
       await prolog.start();
-    }
-    if (!usesEngine) {
-      const kbPath = attachment.storePath;
       const attachResult = await prolog.query(
-        `kb_attach('${escapeAtom(kbPath)}')`,
+        `kb_attach('${escapeAtom(attachment.storePath)}')`,
       );
       if (!attachResult.success) {
         throw new Error(
           `Failed to attach KB: ${attachResult.error || "Unknown error"}`,
         );
       }
-      attached = true;
     }
 
     return await callback(prolog);
   } finally {
-    if (usesEngine) {
+    if (createProlog === undefined) {
       await engine?.terminate();
     } else {
       await safeCleanupProlog(prolog);
@@ -95,7 +87,6 @@ export async function withAttachedBranchProlog<T>(
   }
 }
 
-// implements REQ-003
 // implements REQ-003
 export async function resolveCurrentKbPath(): Promise<string> {
   const attachment = resolveBranchAttachment(process.cwd());

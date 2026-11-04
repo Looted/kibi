@@ -62,7 +62,8 @@ function assertReadableBundle(filePath: string): void {
     throw new Error(`check: no certificate bundle at ${filePath}`);
   }
   try {
-    JSON.parse(readFileSync(filePath, "utf8"));
+    // Buffer#toString decodes UTF-8.
+    JSON.parse(readFileSync(filePath).toString());
   } catch {
     throw new Error(`check: ${filePath} is not valid JSON`);
   }

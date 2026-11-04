@@ -89,20 +89,18 @@ export function syncPrepareScript(
     !Array.isArray(manifest.scripts)
       ? (manifest.scripts as Record<string, unknown>)
       : {};
-  const current =
-    typeof scripts.prepare === "string" ? scripts.prepare : undefined;
-  const hasKibi = current !== undefined && KIBI_PREPARE_PATTERN.test(current);
+  const current = typeof scripts.prepare === "string" ? scripts.prepare : "";
+  const hasKibi = KIBI_PREPARE_PATTERN.test(current);
 
   let next: string | undefined;
   let result: PrepareScriptResult;
   if (enabled) {
     if (hasKibi) return "present";
-    next =
-      current === undefined || current.trim() === ""
-        ? KIBI_PREPARE_COMMAND
-        : `${current} && ${KIBI_PREPARE_COMMAND}`;
-    result =
-      current === undefined || current.trim() === "" ? "added" : "appended";
+    const blank = current.trim() === "";
+    next = blank
+      ? KIBI_PREPARE_COMMAND
+      : `${current} && ${KIBI_PREPARE_COMMAND}`;
+    result = blank ? "added" : "appended";
   } else {
     if (!hasKibi) return "absent";
     const remaining = splitSteps(current).filter(
@@ -112,10 +110,9 @@ export function syncPrepareScript(
     result = "removed";
   }
 
+  // The script moves to the end; an undefined one is left out of the JSON.
   const { prepare: _previous, ...otherScripts } = scripts;
-  const nextScripts =
-    next === undefined ? otherScripts : { ...otherScripts, prepare: next };
-  manifest.scripts = nextScripts;
+  manifest.scripts = { ...otherScripts, prepare: next };
   writeFileSync(packagePath, serializeJson(manifest, raw));
   return result;
 }
@@ -126,8 +123,9 @@ export function hasKibiPrepareScript(worktreeRoot: string): boolean {
   try {
     const manifest = JSON.parse(
       readFileSync(path.join(worktreeRoot, "package.json"), "utf8"),
-    ) as { scripts?: { prepare?: unknown } };
-    const prepare = manifest.scripts?.prepare;
+    ) as { scripts: { prepare?: unknown } };
+    // A manifest without scripts throws here and counts as no script.
+    const prepare = manifest.scripts.prepare;
     return typeof prepare === "string" && KIBI_PREPARE_PATTERN.test(prepare);
   } catch {
     return false;

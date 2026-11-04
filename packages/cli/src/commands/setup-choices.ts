@@ -71,11 +71,13 @@ export type ResolvedSetupChoices = SetupChoices & {
 };
 
 function readJson(file: string): unknown {
+  let value: unknown;
   try {
-    return JSON.parse(readFileSync(file, "utf8"));
+    value = JSON.parse(readFileSync(file).toString());
   } catch {
-    return undefined;
+    // A missing or malformed file holds no value.
   }
+  return value;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

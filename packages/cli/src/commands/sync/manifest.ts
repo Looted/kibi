@@ -27,6 +27,7 @@ import * as path from "node:path";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import { isSeq, parseDocument } from "yaml";
 import {
+  type CoordinateExtractionIdentity,
   type SymbolCoordinatesRecord,
   coarseCoordinateSpan,
   coordinateIdentityHash,
@@ -178,8 +179,7 @@ function readSourceText(
   const absolute = resolveWorkspaceSourceAbsolute(workspaceRoot, sourceFile);
   if (absolute === null || !deps.existsSync(absolute)) return null;
   try {
-    const content = deps.readFileSync(absolute, "utf8");
-    return typeof content === "string" ? content : null;
+    return String(deps.readFileSync(absolute));
   } catch {
     return null;
   }
@@ -190,14 +190,17 @@ function fallbackCoarseCoordinates(
   workspaceRoot: string,
   deps: ManifestDeps,
 ): SymbolCoordinatesRecord | null {
-  if (!isCoarseGranularityAnchor(entry)) return null;
-  const sourceFile =
-    typeof entry.sourceFile === "string" ? entry.sourceFile : undefined;
-  const title = typeof entry.title === "string" ? entry.title : "";
-  if (sourceFile === undefined) return null;
+  const { sourceFile, title } = entry;
+  if (!isCoarseGranularityAnchor(entry) || typeof sourceFile !== "string") {
+    return null;
+  }
   const content = readSourceText(sourceFile, workspaceRoot, deps);
   if (content === null) return null;
-  return coarseCoordinateSpan(sourceFile, title, content);
+  return coarseCoordinateSpan(
+    sourceFile,
+    typeof title === "string" ? title : "",
+    content,
+  );
 }
 
 /** Atomically replace `targetPath` with `content` via temp file + rename. */
@@ -220,27 +223,17 @@ function publishAtomically(
   }
 }
 
-function manifestEntryIdentity(entry: ManifestSymbolEntry): {
-  id: string;
-  title?: string;
-  sourceFile?: string;
-  granularity_reason?: string;
-} {
-  const title = typeof entry.title === "string" ? entry.title : undefined;
-  const sourceFile =
-    typeof entry.sourceFile === "string" ? entry.sourceFile : undefined;
-  const granularityReason =
-    typeof entry.granularity_reason === "string"
-      ? entry.granularity_reason
-      : undefined;
+// The identity key reads any non-string field as empty, so manifest values
+// are passed through unchecked.
+function manifestEntryIdentity(
+  entry: ManifestSymbolEntry,
+): CoordinateExtractionIdentity {
   return {
     id: String(entry.id),
-    ...(title === undefined ? {} : { title }),
-    ...(sourceFile === undefined ? {} : { sourceFile }),
-    ...(granularityReason === undefined
-      ? {}
-      : { granularity_reason: granularityReason }),
-  };
+    title: entry.title,
+    sourceFile: entry.sourceFile,
+    granularity_reason: entry.granularity_reason,
+  } as CoordinateExtractionIdentity;
 }
 
 /**
@@ -284,7 +277,7 @@ export async function refreshManifestCoordinates(
   const shouldRefreshCoordinates =
     incremental || (deps?.refreshSymbolCoordinates ?? false);
 
-  const rawContent = resolved.readFileSync(manifestPath, "utf8");
+  const rawContent = String(resolved.readFileSync(manifestPath));
   const parsed = resolved.parseYAML(rawContent);
 
   if (!isRecord(parsed)) {
@@ -319,9 +312,7 @@ export async function refreshManifestCoordinates(
       resolved.resolveSymbolsManifestPaths(workspaceRoot).coordinatesPath;
     storedCoordinates = {};
     if (resolved.existsSync(coordinatesPath)) {
-      storedArtifactBytes = String(
-        resolved.readFileSync(coordinatesPath, "utf8"),
-      );
+      storedArtifactBytes = String(resolved.readFileSync(coordinatesPath));
       const existing = parseCoordinateArtifact(storedArtifactBytes);
       if (existing.status === "invalid") {
         // The artifact is a local cache: an incremental refresh rebuilds a
@@ -342,7 +333,9 @@ export async function refreshManifestCoordinates(
   // bytes are exactly what a fresh extraction would produce, so an
   // incremental refresh keeps them and extracts only the remaining symbols.
   const reused = new Map<number, BoundCoordinates>();
-  if (incremental && storedCoordinates !== null) {
+  if (incremental) {
+    // An incremental refresh always loads the stored artifact above.
+    const baseline = storedCoordinates ?? {};
     const sourceHashes = new Map<string, string | null>();
     const currentSourceHash = (sourceFile: string): string | null => {
       if (!sourceHashes.has(sourceFile)) {
@@ -354,18 +347,15 @@ export async function refreshManifestCoordinates(
       }
       return sourceHashes.get(sourceFile) ?? null;
     };
-    for (let index = 0; index < before.length; index++) {
-      const entry = before[index];
-      const id = typeof entry?.id === "string" ? entry.id : undefined;
-      if (!entry || !id) continue;
-      const stored = storedCoordinates[id] as
-        | Partial<BoundCoordinates>
+    for (const [index, entry] of before.entries()) {
+      const id = typeof entry.id === "string" ? entry.id : undefined;
+      if (!id) continue;
+      // Legacy artifact records carry no bindings, so they never match.
+      const stored = baseline[id] as
+        | (SymbolCoordinatesRecord & Partial<BoundCoordinates>)
         | undefined;
       if (
         stored === undefined ||
-        typeof stored.identityHash !== "string" ||
-        typeof stored.sourceHash !== "string" ||
-        typeof stored.sourceFile !== "string" ||
         stored.identityHash !==
           coordinateIdentityHash(manifestEntryIdentity(entry)) ||
         stored.sourceHash !== currentSourceHash(stored.sourceFile)
@@ -379,41 +369,40 @@ export async function refreshManifestCoordinates(
   const pendingIndices = before
     .map((_, index) => index)
     .filter((index) => !reused.has(index));
-  const extracted =
-    incremental && pendingIndices.length === 0
-      ? []
-      : await resolved.enrichSymbolCoordinates(
-          pendingIndices.map((index) => before[index] as ManifestSymbolEntry),
-          workspaceRoot,
-          shouldRefreshCoordinates
-            ? { allowPythonDecoratorCoordinates: true }
-            : undefined,
-        );
   const enriched: ManifestSymbolEntry[] = before.map((entry, index) => {
     const kept = reused.get(index);
     if (kept === undefined) return entry;
     const { identityHash: _identity, sourceHash: _source, ...span } = kept;
     return { ...entry, ...span };
   });
-  pendingIndices.forEach((index, position) => {
-    const entry = extracted[position];
-    if (entry !== undefined) enriched[index] = entry;
-  });
+  // An incremental refresh that reuses every record extracts nothing.
+  if (!incremental || pendingIndices.length > 0) {
+    const extracted = await resolved.enrichSymbolCoordinates(
+      pendingIndices.map((index) => before[index] as ManifestSymbolEntry),
+      workspaceRoot,
+      shouldRefreshCoordinates
+        ? { allowPythonDecoratorCoordinates: true }
+        : undefined,
+    );
+    pendingIndices.forEach((index, position) => {
+      const entry = extracted[position];
+      if (entry !== undefined) enriched[index] = entry;
+    });
+  }
 
   // Publish the generated coordinate artifact when explicitly requested.
   // Parse and I/O failures are fatal so sync never advances cache state on a
   // partially published compiler dependency. Symbols without extractable
   // coordinates stay absent from the artifact; coverage keeps their gap visible.
-  let refreshedArtifactBytes: string | null = null;
-  const boundEntries: Record<
-    string,
-    SymbolCoordinatesRecord & { identityHash: string; sourceHash: string }
-  > = {};
-  if (shouldRefreshCoordinates) {
+  let artifactPublication: { path: string; bytes: string } | null = null;
+  const boundEntries: Record<string, BoundCoordinates> = {};
+  const boundIds = new Map<number, string>();
+  if (coordinatesPath !== null) {
     for (const [index, entry] of enriched.entries()) {
-      const id = typeof entry?.id === "string" ? entry.id : undefined;
+      const id = typeof entry.id === "string" ? entry.id : undefined;
       if (!id) continue;
       const kept = reused.get(index);
+      // A reused record is the stored one, so it never counts as changed.
       if (kept !== undefined) {
         boundEntries[id] = kept;
         continue;
@@ -433,8 +422,12 @@ export async function refreshManifestCoordinates(
         identityHash: coordinateIdentityHash(manifestEntryIdentity(entry)),
         sourceHash: coordinateSourceHash(sourceText),
       };
+      boundIds.set(index, id);
     }
-    refreshedArtifactBytes = resolved.writeCoordinateArtifact(boundEntries);
+    const bytes = resolved.writeCoordinateArtifact(boundEntries);
+    if (bytes !== storedArtifactBytes) {
+      artifactPublication = { path: coordinatesPath, bytes };
+    }
   }
 
   // Coordinates belong exclusively to the generated artifact. Always strip
@@ -456,7 +449,7 @@ export async function refreshManifestCoordinates(
   for (let i = 0; i < before.length; i++) {
     const previous = before[i] ?? ({} as ManifestSymbolEntry);
     const current = enriched[i] ?? previous;
-    const id = typeof current.id === "string" ? current.id : undefined;
+    const boundId = boundIds.get(i);
     const changed =
       storedCoordinates === null
         ? GENERATED_COORD_FIELDS.some(
@@ -464,9 +457,11 @@ export async function refreshManifestCoordinates(
               previous[field as keyof ManifestSymbolEntry] !==
               current[field as keyof ManifestSymbolEntry],
           )
-        : id !== undefined &&
-          boundEntries[id] !== undefined &&
-          !sameCoordinateSpan(storedCoordinates[id], boundEntries[id]);
+        : boundId !== undefined &&
+          !sameCoordinateSpan(
+            storedCoordinates[boundId],
+            boundEntries[boundId] as BoundCoordinates,
+          );
 
     if (changed) {
       refreshed++;
@@ -493,7 +488,7 @@ export async function refreshManifestCoordinates(
       !coarseAnchor &&
       !eligible &&
       typeof current.coordinateRefreshFailure === "string" &&
-      !INACTIVE_SYMBOL_STATUSES.has(String(current.status ?? ""));
+      !INACTIVE_SYMBOL_STATUSES.has(String(current.status));
     if ((eligible || unreadable) && !hasAllGeneratedCoordinates(current)) {
       failures.push({
         id: typeof current.id === "string" ? current.id : `#${i}`,
@@ -512,26 +507,23 @@ export async function refreshManifestCoordinates(
   const nextContent = `${SYMBOLS_MANIFEST_COMMENT_BLOCK}${dumped}`;
 
   let manifestPublished = false;
-  const artifactChanged =
-    refreshedArtifactBytes !== null &&
-    coordinatesPath !== null &&
-    refreshedArtifactBytes !== storedArtifactBytes;
+  const artifactChanged = artifactPublication !== null;
   try {
     if (!incremental && rawContent !== nextContent) {
       publishAtomically(manifestPath, nextContent, resolved);
       manifestPublished = true;
     }
-    if (
-      artifactChanged &&
-      refreshedArtifactBytes !== null &&
-      coordinatesPath !== null
-    ) {
-      publishAtomically(coordinatesPath, refreshedArtifactBytes, resolved);
+    if (artifactPublication !== null) {
+      publishAtomically(
+        artifactPublication.path,
+        artifactPublication.bytes,
+        resolved,
+      );
     }
   } catch (error) {
     if (manifestPublished) {
       try {
-        const current = resolved.readFileSync(manifestPath, "utf8");
+        const current = String(resolved.readFileSync(manifestPath));
         if (current !== nextContent) {
           throw new Error(
             `symbol manifest changed after publication; refusing rollback: ${manifestPath}`,
@@ -600,14 +592,18 @@ export function normalizeManifestLayout(
   deps?: Partial<ManifestDeps>,
 ): number | null {
   const resolved = resolveDeps(deps);
-  const rawContent = String(resolved.readFileSync(manifestPath, "utf8"));
+  const rawContent = String(resolved.readFileSync(manifestPath));
   const doc = parseDocument(rawContent);
-  const symbols = doc.get("symbols", true);
-  if (!isSeq(symbols) || symbols.items.length === 0) return null;
-  if (!blockifySymbolManifest(doc)) return null;
-  const nextContent = doc.toString({ lineWidth: 0 });
-  if (nextContent === rawContent) return null;
-  publishAtomically(manifestPath, nextContent, resolved);
+  const symbols = doc.get("symbols");
+  // A flow list always renders differently once it is block YAML.
+  if (
+    !isSeq(symbols) ||
+    symbols.items.length === 0 ||
+    !blockifySymbolManifest(doc)
+  ) {
+    return null;
+  }
+  publishAtomically(manifestPath, doc.toString({ lineWidth: 0 }), resolved);
   return symbols.items.length;
 }
 

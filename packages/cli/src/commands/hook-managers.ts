@@ -83,19 +83,11 @@ const PRINT_ORDER: readonly ManagedHookName[] = [
 const KIBI_COMMAND = "npx --no-install kibi";
 
 function isFile(filePath: string): boolean {
-  try {
-    return statSync(filePath).isFile();
-  } catch {
-    return false;
-  }
+  return existsSync(filePath) && statSync(filePath).isFile();
 }
 
 function isDirectory(filePath: string): boolean {
-  try {
-    return statSync(filePath).isDirectory();
-  } catch {
-    return false;
-  }
+  return existsSync(filePath) && statSync(filePath).isDirectory();
 }
 
 function readText(filePath: string): string | null {
@@ -177,20 +169,20 @@ export function detectHookManager(
   return null;
 }
 
-function parseConfig(filePath: string): unknown {
-  const text = readText(filePath);
-  if (text === null) return undefined;
-  try {
-    return parseYaml(text);
-  } catch {
-    return undefined;
-  }
+function asRecord(value: unknown): Record<string, unknown> | null {
+  // typeof null is "object", so null passes through as null.
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
+    : null;
 }
 
-function asRecord(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
+/** A YAML (or JSON) mapping file, or null when it is missing or unreadable. */
+function readConfigRecord(filePath: string): Record<string, unknown> | null {
+  try {
+    return asRecord(parseYaml(readFileSync(filePath).toString()));
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -230,20 +222,18 @@ function lefthookCommands(
   worktreeRoot: string,
   hook: ManagedHookName,
 ): string[] | null {
-  const main = firstExisting(worktreeRoot, LEFTHOOK_CONFIG_FILES);
+  // Without a main file this names lefthook.yml, which then fails to read.
   const files = [
-    ...(main ? [main] : []),
-    ...LEFTHOOK_LOCAL_CONFIG_FILES.filter((file) =>
-      isFile(path.join(worktreeRoot, file)),
-    ),
+    managerConfigPath(worktreeRoot, "lefthook"),
+    ...LEFTHOOK_LOCAL_CONFIG_FILES,
   ];
   let configured = false;
   const commands: string[] = [];
   for (const file of files) {
     // TOML configs are not read; their hooks count as not visible.
-    const hookNode = asRecord(parseConfig(path.join(worktreeRoot, file)))?.[
-      hook
-    ];
+    const config = readConfigRecord(path.join(worktreeRoot, file));
+    if (config === null) continue;
+    const hookNode = config[hook];
     if (hookNode === undefined || hookNode === null) continue;
     configured = true;
     lefthookRuns(
@@ -255,21 +245,20 @@ function lefthookCommands(
   return configured ? commands : null;
 }
 
-// pre-commit stage names before 3.2 dropped the `pre-` prefix.
+// pre-commit stage names before 3.2 dropped the `pre-` prefix; `commit` is
+// the only legacy name of a hook Kibi manages.
 const LEGACY_PRE_COMMIT_STAGES: Readonly<Record<string, string>> = {
   commit: "pre-commit",
-  push: "pre-push",
-  "merge-commit": "pre-merge-commit",
 };
 
 function preCommitFrameworkCommands(
   worktreeRoot: string,
   hook: ManagedHookName,
 ): string[] | null {
-  const config = asRecord(
-    parseConfig(path.join(worktreeRoot, PRE_COMMIT_CONFIG_FILE)),
+  const config = readConfigRecord(
+    path.join(worktreeRoot, PRE_COMMIT_CONFIG_FILE),
   );
-  if (!config || !Array.isArray(config.repos)) return null;
+  if (config === null || !Array.isArray(config.repos)) return null;
   const defaultStages = Array.isArray(config.default_stages)
     ? config.default_stages
     : null;
@@ -337,9 +326,7 @@ function splitShellCommands(content: string): string[] {
   return content
     .split("\n")
     .filter((line) => !line.trimStart().startsWith("#"))
-    .flatMap((line) => line.split(/&&|\|\||;|\|/))
-    .map((command) => command.trim())
-    .filter((command) => command.length > 0);
+    .flatMap((line) => line.split(/&&|\|\||;|\|/));
 }
 
 // Matches `kibi <sub>`, `npx kibi <sub>`, `node_modules/.bin/kibi <sub>` and
@@ -536,7 +523,10 @@ export function hookManagerCoverage(
     return {
       hook,
       configured: commands !== null,
-      missing: missingKibiHookCommands(hook, commands ?? []),
+      missing:
+        commands === null
+          ? KIBI_HOOK_DELEGATIONS[hook].map((delegation) => delegation.label)
+          : missingKibiHookCommands(hook, commands),
     };
   });
 }

@@ -80,7 +80,8 @@ export function findUntrackedDocumentMatches(
       ],
       { encoding: "utf8", maxBuffer: 16 * 1024 * 1024, stdio: "pipe" },
     );
-    untracked = output.split("\0").filter(Boolean);
+    // The empty tail after the last NUL fails the extension check below.
+    untracked = output.split("\0");
   } catch {
     return matches;
   }
@@ -94,7 +95,8 @@ export function findUntrackedDocumentMatches(
     if (!resolved.existsSync(absolute)) continue;
     const workspaceRelative = path
       .relative(workspaceRoot, absolute)
-      .replaceAll("\\", "/");
+      .split(path.sep)
+      .join("/");
     // A pending-source receipt makes an untracked file visible to sync, so
     // the file cannot be why an id is missing.
     if (existsSync(pendingReceiptFor(workspaceRoot, workspaceRelative)))
@@ -105,12 +107,12 @@ export function findUntrackedDocumentMatches(
     } catch {
       continue;
     }
-    const ids = manifest ? manifestIds(content) : [frontmatterId(content)];
+    // A document without an id (null) is never among the missing ids.
+    const ids = (
+      manifest ? manifestIds(content) : [frontmatterId(content)]
+    ) as string[];
     for (const id of ids) {
-      if (id !== null && remaining.has(id)) {
-        matches.set(id, workspaceRelative);
-        remaining.delete(id);
-      }
+      if (remaining.delete(id)) matches.set(id, workspaceRelative);
     }
   }
   return matches;
@@ -139,9 +141,9 @@ export async function adoptUpsertOnlySymbolManifest(
 ): Promise<boolean> {
   const relative = KB_PATHS.symbolsManifest;
   const absolute = path.resolve(workspaceRoot, relative);
-  if (!existsSync(absolute)) return false;
   if (existsSync(pendingReceiptFor(workspaceRoot, relative))) return false;
   let bytes: Buffer;
+  // A missing manifest fails the read.
   try {
     bytes = readFileSync(absolute);
   } catch {
@@ -173,15 +175,15 @@ function pendingReceiptFor(workspaceRoot: string, relative: string): string {
 /** Symbol ids declared by an untracked symbols manifest. */
 function manifestIds(content: string): string[] {
   try {
-    const parsed = parseYAML(content) as { symbols?: unknown } | null;
-    const symbols = Array.isArray(parsed?.symbols) ? parsed.symbols : [];
-    return symbols.flatMap((symbol) =>
-      symbol !== null &&
-      typeof symbol === "object" &&
-      typeof (symbol as { id?: unknown }).id === "string"
-        ? [(symbol as { id: string }).id]
-        : [],
-    );
+    // An empty document parses to null, whose property read throws into
+    // the catch below.
+    const { symbols } = parseYAML(content) as { symbols?: unknown };
+    return Array.isArray(symbols)
+      ? symbols.flatMap((symbol) => {
+          const id = (symbol as { id?: unknown } | null)?.id;
+          return typeof id === "string" ? [id] : [];
+        })
+      : [];
   } catch {
     return [];
   }
@@ -193,15 +195,16 @@ function manifestIds(content: string): string[] {
  * are not entity candidates.
  */
 function frontmatterId(content: string): string | null {
-  const lines = content.match(/[^\n]*\n|[^\n]+$/g) ?? [];
-  if (lines[0]?.trim() !== "---") return null;
-  for (let index = 1; index < lines.length && index < 64; index++) {
-    const line = lines[index] ?? "";
+  const lines = content.split("\n");
+  // split always yields a first element.
+  if ((lines[0] as string).trim() !== "---") return null;
+  for (const line of lines.slice(1, 64)) {
     if (line.trim() === "---") return null;
     const match = line.match(/^id:\s*(?:"([^"]+)"|'([^']+)'|(\S+))/);
     if (match) {
-      const id = (match[1] ?? match[2] ?? match[3])?.trim();
-      return id && id.length > 0 ? id : null;
+      // One of the three alternatives matched.
+      const id = (match[1] ?? match[2] ?? (match[3] as string)).trim();
+      return id || null;
     }
   }
   return null;

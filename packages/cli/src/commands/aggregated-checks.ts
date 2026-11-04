@@ -16,7 +16,8 @@ interface JsonViolation {
 
 function ontologyQualitySetting(raw: string | undefined): string {
   if (raw === undefined || raw.trim() === "") return "default";
-  const value = Number(raw.trim());
+  // Number() ignores surrounding whitespace itself.
+  const value = Number(raw);
   return Number.isFinite(value) ? String(value) : "default";
 }
 
