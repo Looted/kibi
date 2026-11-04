@@ -58,7 +58,12 @@ describe("MutationSaga", () => {
   test("does nothing once committed", async () => {
     const saga = new MutationSaga();
     let rolledBack = false;
-    saga.add({ name: "a", rollback: () => void (rolledBack = true) });
+    saga.add({
+      name: "a",
+      rollback: () => {
+        rolledBack = true;
+      },
+    });
     saga.markCommitted();
     expect(saga.committed).toBe(true);
     expect(await saga.rollback()).toStrictEqual([]);
@@ -70,7 +75,12 @@ describe("MutationSaga", () => {
     saga.markCommitted();
     expect(saga.committed).toBe(true);
     let rolledBack = false;
-    saga.add({ name: "late", rollback: () => void (rolledBack = true) });
+    saga.add({
+      name: "late",
+      rollback: () => {
+        rolledBack = true;
+      },
+    });
     expect(await saga.rollback()).toStrictEqual([]);
     expect(rolledBack).toBe(false);
   });

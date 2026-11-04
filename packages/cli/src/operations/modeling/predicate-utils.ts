@@ -29,27 +29,27 @@ export function clampInteger(
   min: number,
   max: number,
 ): number {
-  const numeric =
-    typeof value === "number" && Number.isFinite(value) ? value : fallback;
+  // Number.isFinite is false for every non-number.
+  const numeric = Number.isFinite(value) ? (value as number) : fallback;
   return Math.min(max, Math.max(min, Math.trunc(numeric)));
 }
 
 // implements REQ-mcp-suggest-predicates
 export function clampScore(value: number | undefined): number {
-  const numeric =
-    typeof value === "number" && Number.isFinite(value)
-      ? value
-      : DEFAULT_MIN_SCORE;
+  const numeric = Number.isFinite(value)
+    ? (value as number)
+    : DEFAULT_MIN_SCORE;
   return Math.min(1, Math.max(0, numeric));
 }
 
 // implements REQ-mcp-suggest-predicates
 export function slug(value: string): string {
+  // Edge whitespace becomes an edge underscore, which the last step drops;
+  // every run of other characters (underscores included) is one underscore.
   return value
-    .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+    .replace(/^_|_$/g, "");
 }
 
 // implements REQ-mcp-suggest-predicates
@@ -118,8 +118,8 @@ export function inferScope(text: string): string {
 
 // implements REQ-mcp-suggest-predicates
 export function normalizePredicateToken(value: string): string {
+  // Edge whitespace becomes an edge underscore, which the last step drops.
   return value
-    .trim()
     .replace(/\b(?:a|an|the)\b\s*/gi, "")
     .replace(/['’]/g, "")
     .replace(/\s+/g, "_")
@@ -129,7 +129,8 @@ export function normalizePredicateToken(value: string): string {
 
 // implements REQ-mcp-suggest-predicates
 export function singularize(value: string): string {
-  return singularizeToken(value, ["changes", "status", "results"]);
+  // "status" needs no entry: singularizeToken keeps every "-us" word.
+  return singularizeToken(value, ["changes", "results"]);
 }
 
 // implements REQ-mcp-suggest-predicates
@@ -212,9 +213,7 @@ export function inferUnit(text: string): string {
 
 // implements REQ-mcp-suggest-predicates
 export function inferGate(text: string): string {
-  const quoted = text.match(/[`'"](?<gate>[A-Za-z0-9_.:-]+)[`'"]/)?.groups
-    ?.gate;
-  return quoted ?? "feature_gate";
+  return text.match(/[`'"]([A-Za-z0-9_.:-]+)[`'"]/)?.[1] ?? "feature_gate";
 }
 
 // implements REQ-mcp-suggest-predicates
