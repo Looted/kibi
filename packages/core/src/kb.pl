@@ -3404,12 +3404,12 @@ values_conflict(OpA, ValA, OpB, ValB, Type) :-
     % mutalog-disable-next-line goal_true: neq against one numeric comparison never conflicts
     \+ ( OpA == neq, OpB == eq ),
     number(ValA), number(ValB),
-    (   Type == int
-    ->  IntegerVariables = all
-    ;   % mutalog-disable-next-line literal: a fresh variable in the list names no constrained variable
-        IntegerVariables = []
-    ),
+    type_integer_variables(Type, IntegerVariables),
     \+ numeric_constraints_satisfiable([c(OpA, X, ValA), c(OpB, X, ValB)], IntegerVariables).
+
+type_integer_variables(int, all).
+% mutalog-disable-next-line literal: a fresh variable in the list names no constrained variable
+type_integer_variables(number, []).
 
 numeric_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte]).
 

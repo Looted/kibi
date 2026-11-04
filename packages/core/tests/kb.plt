@@ -12352,7 +12352,8 @@ test(numeric_conflicts_need_numbers) :-
 
 test(integer_bounds_without_an_integer_between_conflict) :-
     assertion(kb:values_conflict(lt, 3, gt, 2, int)),
-    assertion(\+ kb:values_conflict(lt, 3, gt, 2, number)).
+    assertion(\+ kb:values_conflict(lt, 3, gt, 2, number)),
+    assertion(kb:values_conflict(lt, 2, gt, 3, number)).
 
 test(only_numeric_values_compare_numerically) :-
     assertion(kb:same_value(int, 1, number, 1.0)),
