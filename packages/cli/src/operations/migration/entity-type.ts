@@ -43,7 +43,9 @@ export const ENTITY_TYPE_BACKFILL_ACTION_ID = "entity-type-backfill";
  * the absolute path, decides: a workspace checked out under a `tests/` or
  * `requirements/` directory must not turn its facts into tests.
  */
-const LANE_TYPES: Readonly<Record<EntityLane, string>> = {
+/** The entity type each canonical lane holds. */
+// implements REQ-cli-migrate-entity-type-backfill
+export const LANE_TYPES: Readonly<Record<EntityLane, string>> = {
   requirements: "req",
   scenarios: "scenario",
   tests: "test",
