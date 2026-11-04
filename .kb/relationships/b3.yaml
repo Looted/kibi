@@ -42,13 +42,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-77fe7dde2539
   - type: covered_by
-    from: SYM-ReleaseContext
-    to: TEST-014
-    created_at: 2026-09-05T14:54:14.565Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d14afca596c7
-  - type: covered_by
     from: SYM-cursor-parseStdinJson
     to: TEST-cursor-kibi-plugin-v1
     created_at: 2026-09-05T15:39:31.939Z
@@ -118,20 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e2a7952a1d7
-  - type: implements
-    from: SYM-cli-source-write-scope
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-10-21T20:14:28.672Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c25802192f89
-  - type: covered_by
-    from: SYM-cli-source-write-scope
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-10-21T20:14:28.690Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-85b34b6b1731
   - type: implements
     from: SYM-core-evidence-level-counts
     to: REQ-kibi-evidence-levels
@@ -279,20 +258,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-536bccdf71b6
-  - type: implements
-    from: SYM-hooks-install-kibi-prepare-command
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:52:18.950Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dee10260276e
-  - type: covered_by
-    from: SYM-hooks-install-kibi-prepare-command
-    to: TEST-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:52:18.976Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d2792b94e34f
   - type: covered_by
     from: SYM-agent-core-telemetry-signals-countbucket
     to: TEST-kibi-telemetry-expected-outcomes-cli

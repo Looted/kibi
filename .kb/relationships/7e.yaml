@@ -7,33 +7,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-568e45714ba9
   - type: covered_by
-    from: SYM-cli-engine-client-query-status
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.116Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-882e6e20768d
-  - type: covered_by
     from: SYM-cli-engine-daemon
     to: TEST-core-journaled-engine-lifecycle
     created_at: 2026-08-16T19:47:37.140Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-22f06297cb05
-  - type: implements
-    from: SYM-cli-rule-registry-ruleRunsByDefault
-    to: REQ-cli-check
-    created_at: 2026-08-18T18:22:51.300Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-843fc7b5f692
-  - type: covered_by
-    from: SYM-cli-rule-registry-ruleRunsByDefault
-    to: TEST-cli-quality-diagnostics-contract
-    created_at: 2026-08-18T18:22:51.308Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-948f82018e5f
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -98,26 +77,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8d7b020c1386
   - type: covered_by
-    from: SYM-cli-rule-registry-ruleRunsByDefault
-    to: TEST-004
-    created_at: 2026-08-29T11:40:21.968Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-630aab83d80d
-  - type: covered_by
     from: SYM-KIBI-STAGED-IMPACT-EVIDENCE-DOC
     to: TEST-cli-staged-impact-enforcement
     created_at: 2026-09-05T15:12:57.417Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1502057590c1
-  - type: covered_by
-    from: SYM-cli-engine-client-query-status
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:29:17.121Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2b468b15cd15
   - type: covered_by
     from: SYM-cli-engine-daemon
     to: TEST-core-journaled-engine-delta-sync

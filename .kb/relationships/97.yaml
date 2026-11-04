@@ -7,20 +7,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-fd8dce6c9e67
   - type: implements
-    from: SYM-canonical-KibiTreeDataProvider-onDidChangeTreeData
-    to: REQ-vscode-traceability
-    created_at: 2026-08-18T17:38:01.493Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-21f1737b66b6
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-onDidChangeTreeData
-    to: TEST-vscode-traceability
-    created_at: 2026-08-18T17:38:01.501Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bf626df7f401
-  - type: implements
     from: SYM-cli-rule-registry-getRuleEnforcementClass
     to: REQ-cli-check
     created_at: 2026-08-18T18:22:44.730Z
@@ -90,27 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e5efdc1e546c
-  - type: implements
-    from: SYM-resolveCurrentBranch
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:54:14.009Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b9abf4b3ba89
-  - type: covered_by
-    from: SYM-resolveCurrentBranch
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:54:14.025Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1663040c4069
-  - type: covered_by
-    from: SYM-resolveCurrentBranch
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:54:14.033Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0e9f00b099ef
   - type: covered_by
     from: SYM-cli-rule-registry-getRuleEnforcementClass
     to: TEST-004
@@ -146,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-975a0b6505b6
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-onDidChangeTreeData
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:27:38.300Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b0cb624816db
   - type: implements
     from: SYM-quality-compile-packed
     to: REQ-test-journaled-engine-harness
@@ -167,34 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7ea805cef71
-  - type: implements
-    from: SYM-zcode-proof-ZCODE_TEST_ID
-    to: REQ-zcode-kibi-plugin-v1
-    created_at: 2026-09-17T08:54:06.009Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9968165226e9
-  - type: covered_by
-    from: SYM-zcode-proof-ZCODE_TEST_ID
-    to: TEST-zcode-kibi-plugin-v1
-    created_at: 2026-09-17T08:54:06.019Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2e1be2ea964b
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-onDidChangeTreeData
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:31:58.232Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-28ec34ddaa94
-  - type: covered_by
-    from: SYM-cap-plugin-createbuiltintsmorphsymbolextractor-944db424
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:43:48.779Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bd97256cbbf2
   - type: covered_by
     from: SYM-source-analysis-v2-analyzesourcechanges-94b9974e
     to: TEST-source-analysis-v2-contract

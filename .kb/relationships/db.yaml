@@ -356,20 +356,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-07fe4db97bcf
-  - type: implements
-    from: SYM-agent-instructions-agents-file
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:50:12.896Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-24b02f32a121
-  - type: covered_by
-    from: SYM-agent-instructions-agents-file
-    to: TEST-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:50:12.922Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eeaaa28786c0
   - type: covered_by
     from: SYM-agent-core-telemetry-signals-telemetryrule
     to: TEST-kibi-telemetry-expected-outcomes-cli

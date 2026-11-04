@@ -1,32 +1,11 @@
 relationships:
   - type: implements
-    from: SYM-auto-FF0B85426247
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-15T22:19:11.806Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c2ea97f870b3
-  - type: implements
     from: SYM-auto-4B78DAEF6C6B
     to: REQ-kibi-operation-interface-parity
     created_at: 2026-08-15T22:20:44.085Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e804725b50a4
-  - type: implements
-    from: SYM-auto-FF0B85426247
-    to: REQ-mcp-relationship-preflight
-    created_at: 2026-08-16T07:53:05.640Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1ad705736311
-  - type: covered_by
-    from: SYM-auto-FF0B85426247
-    to: TEST-mcp-relationship-preflight
-    created_at: 2026-08-16T07:53:05.645Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-318de2793a0e
   - type: covered_by
     from: SYM-auto-4B78DAEF6C6B
     to: TEST-cli-branch-store-recovery
@@ -90,13 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-276f80712079
-  - type: covered_by
-    from: SYM-auto-FF0B85426247
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:39:45.462Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-009faa447e29
   - type: implements
     from: SYM-runIndependentFinalState
     to: REQ-skillopt-external-adoption-verdict
@@ -112,40 +84,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-dd35bc25c1e7
   - type: covered_by
-    from: SYM-isCoarseGranularityAnchor
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:18:23.085Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-820898e525e7
-  - type: covered_by
-    from: SYM-isCoarseGranularityAnchor
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:25:49.970Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-73d05f1ad8ec
-  - type: covered_by
     from: SYM-auto-4B78DAEF6C6B
     to: TEST-kibi-operation-interface-parity
     created_at: 2026-09-05T17:17:09.680Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e6788eabe1ee
-  - type: covered_by
-    from: SYM-auto-FF0B85426247
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-05T17:21:23.777Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3003ca31b8de
-  - type: covered_by
-    from: SYM-vscode-code-action-provider-action-kind
-    to: TEST-vscode-traceability
-    created_at: 2026-09-05T18:25:19.903Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4027ab1c8064
   - type: executable_for
     from: SYM-e2e-test-snapshot-relevance
     to: TEST-e2e-snapshot-relevance
@@ -160,13 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-116fb3d0608b
-  - type: covered_by
-    from: SYM-vscode-code-action-provider-action-kind
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:28:44.652Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-544e0c474891
   - type: covered_by
     from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
     to: TEST-kibi-predicate-vocabulary-migration-e2e

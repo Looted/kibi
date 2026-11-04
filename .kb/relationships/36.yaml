@@ -14,13 +14,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-77e6c4fa78f3
   - type: covered_by
-    from: SYM-cli-engine-client-storage-status
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-08-16T19:47:07.425Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8315436b045a
-  - type: covered_by
     from: SYM-cli-engine-protocol-version
     to: TEST-core-journaled-engine-lifecycle
     created_at: 2026-08-16T19:47:37.142Z
@@ -84,34 +77,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-6c801db4205b
   - type: covered_by
-    from: SYM-normalizeRepositoryUrl
-    to: TEST-014
-    created_at: 2026-08-28T10:10:51.454Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8b1aa0cde246
-  - type: covered_by
-    from: SYM-AnalyzeSourceTextOptions
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:15:08.636Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2741ee9e5a7c
-  - type: covered_by
-    from: SYM-AnalyzeSourceTextOptions
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:22:56.611Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fc59d7bccc29
-  - type: covered_by
-    from: SYM-cli-engine-client-storage-status
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:29:40.025Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-58fd5f47b0e9
-  - type: covered_by
     from: SYM-cli-engine-protocol-version
     to: TEST-core-journaled-engine-delta-sync
     created_at: 2026-09-05T15:30:36.799Z
@@ -132,27 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69fc763c2027
-  - type: implements
-    from: SYM-quality-eval-liveSearchEvaluator
-    to: REQ-kibi-change-to-proof-evaluation
-    created_at: 2026-09-14T19:18:36.599Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c6cf168936be
-  - type: covered_by
-    from: SYM-quality-eval-liveSearchEvaluator
-    to: TEST-kibi-change-to-proof-evaluation
-    created_at: 2026-09-14T19:18:36.610Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-899b95d8fa56
-  - type: covered_by
-    from: SYM-quality-eval-liveSearchEvaluator
-    to: TEST-kibi-change-to-proof-evaluation-live
-    created_at: 2026-09-18T07:31:13.416Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1564fb5cc19b
   - type: relates_to
     from: ADR-capability-plugins-v1
     to: REQ-capability-plugin-protocol-v1
@@ -195,13 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-07d39a3f1d50
-  - type: covered_by
-    from: SYM-cap-plugin-builtin-predicate-rule-sets-0eb8653e
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:42:11.470Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d9c6d68741fc
   - type: executable_for
     from: SYM-claude-case-advisory-boundary
     to: TEST-claude-code-kibi-plugin-v1
@@ -251,34 +188,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae50ec42675b
-  - type: implements
-    from: SYM-agent-core-decision-guard-claimdecisionflag
-    to: REQ-agent-hosts-decision-guard
-    created_at: 2026-10-14T17:47:48.685Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-662849229cff
-  - type: covered_by
-    from: SYM-agent-core-decision-guard-claimdecisionflag
-    to: TEST-codex-kibi-plugin-v1
-    created_at: 2026-10-14T17:47:48.701Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c73ea93d313e
-  - type: covered_by
-    from: SYM-agent-core-decision-guard-claimdecisionflag
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-10-14T17:47:48.715Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a512c7a3b294
-  - type: covered_by
-    from: SYM-agent-core-decision-guard-claimdecisionflag
-    to: TEST-zcode-kibi-plugin-v1
-    created_at: 2026-10-14T17:47:48.726Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-64b63cd8489b
   - type: executable_for
     from: SYM-proof-evidence-level-vocabulary
     to: TEST-proof-evidence-level-vocabulary

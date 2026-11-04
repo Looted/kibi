@@ -91,13 +91,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-f2d69c15e765
   - type: covered_by
-    from: SYM-getFreshSymbolsManifestSourcePaths
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:17:47.417Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1199d7846af7
-  - type: covered_by
     from: SYM-cli-discovery-renderDiscoveryTable
     to: TEST-mcp-search-discovery
     created_at: 2026-09-05T17:36:42.409Z

@@ -24,13 +24,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d0008d3fce1
-  - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanhash
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-16T19:45:30.452Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-63589a57664b
   - type: implements
     from: SYM-cli-register-reporting-commands
     to: REQ-kibi-operation-interface-parity
@@ -95,13 +88,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0921f22e5a83
   - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanhash
-    to: TEST-e2e-plan-compiler-hash
-    created_at: 2026-09-18T07:15:43.323Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bd189f049edc
-  - type: covered_by
     from: SYM-quality-maintenance-proofPruneCommand
     to: TEST-e2e-proof-maintenance-ops
     created_at: 2026-09-19T19:21:51.501Z
@@ -129,13 +115,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7403e2d3926c
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanhash
-    to: REQ-kibi-change-to-proof-plan-compiler-v2
-    created_at: 2026-10-04T03:01:38.626Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3092a27916ea
   - type: constrains
     from: REQ-bootstrap-write-safety
     to: FACT-bootstrap-write-safety-subject

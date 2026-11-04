@@ -1,11 +1,4 @@
 relationships:
-  - type: covered_by
-    from: SYM-cli-sync-extract-relationship-shard
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-08-16T19:49:09.964Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7474805bcec6
   - type: validates
     from: TEST-mcp-relationship-preflight
     to: SCEN-mcp-relationship-preflight
@@ -125,20 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0e107b1be851
-  - type: implements
-    from: SYM-skillopt-cursor-default-cell-timeout
-    to: REQ-skillopt-cursor-compat
-    created_at: 2026-08-24T17:26:40.308Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3b5850f5ffc5
-  - type: covered_by
-    from: SYM-skillopt-cursor-default-cell-timeout
-    to: TEST-skillopt-cursor-compat
-    created_at: 2026-08-25T19:51:13.330Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e35cb09f7c94
   - type: covered_by
     from: SYM-cursor-packageName
     to: TEST-cursor-kibi-plugin-v1

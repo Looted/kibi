@@ -14,55 +14,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-63298fae5064
   - type: covered_by
-    from: SYM-cli-engine-client-search-entities
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.113Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0c09040b4ff2
-  - type: covered_by
-    from: SYM-classifySupersedesHistory
-    to: TEST-cli-supersedes-history-unit
-    created_at: 2026-08-17T11:27:56.413Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9eff8b78589a
-  - type: covered_by
-    from: SYM-classifySupersedesHistory
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-17T12:54:49.854Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a21306557a1a
-  - type: implements
-    from: SYM-canonical-hasImpactOptions
-    to: REQ-cli-check
-    created_at: 2026-08-18T17:36:06.685Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0f42f5ae30e9
-  - type: covered_by
-    from: SYM-canonical-hasImpactOptions
-    to: TEST-004
-    created_at: 2026-08-18T17:36:06.696Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-738069ced0fc
-  - type: implements
-    from: SYM-canonical-KibiTreeDataProvider-getEntityById
-    to: REQ-vscode-traceability
-    created_at: 2026-08-18T17:37:40.814Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2dbe2301c67e
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-getEntityById
-    to: TEST-vscode-traceability
-    created_at: 2026-08-18T17:37:40.825Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f7bb98db90c
-  - type: covered_by
     from: SYM-cli-report-filters
     to: TEST-kibi-html-health-report
     created_at: 2026-08-18T20:41:54.021Z
@@ -132,48 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8f54c05e5867
-  - type: implements
-    from: SYM-LogMetadata
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:52:24.441Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-99dba92eacd5
-  - type: covered_by
-    from: SYM-LogMetadata
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:52:24.460Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-af2c53b8d9a5
-  - type: covered_by
-    from: SYM-LogMetadata
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:52:24.473Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-417157660bfa
-  - type: implements
-    from: SYM-skillopt-setup-seeded-stale-kb
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-08-26T18:07:20.997Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1105530e7168
-  - type: covered_by
-    from: SYM-skillopt-setup-seeded-stale-kb
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-28T10:08:38.462Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-95e477ce8072
-  - type: covered_by
-    from: SYM-cli-engine-client-search-entities
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:29:26.300Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d63303da25bb
   - type: covered_by
     from: SYM-evaluate-contract-against-run
     to: TEST-kibi-verification-evidence-contract
@@ -182,13 +91,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-97d4f128880a
   - type: covered_by
-    from: SYM-proof-result-errors
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-05T17:32:18.465Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-85e7ea1c99a8
-  - type: covered_by
     from: SYM-modeling-predicate-inference-1-inferRetryPolicyArgs
     to: TEST-mcp-suggest-predicates
     created_at: 2026-09-05T17:42:23.965Z
@@ -196,26 +98,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8abf78e9507f
   - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-getEntityById
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:27:11.070Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fee1a53b71de
-  - type: covered_by
     from: SYM-jsonSchemaToZod
     to: TEST-agent-kibi-interface-selection
     created_at: 2026-09-18T15:15:07.288Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-93c55a7523ea
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-getEntityById
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:31:24.027Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d04101999051
   - type: implements
     from: SYM-plugin-sdk-validate-source-analysis-result-for-path
     to: REQ-capability-plugin-protocol-v1
@@ -258,13 +146,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c17f008bb71
-  - type: implements
-    from: SYM-classifySupersedesHistory
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:58:35.968Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-59790047a51d
   - type: implements
     from: SYM-plan-apply-journal-recoverPlanApplyJournal
     to: REQ-kibi-change-to-proof-plan-compiler-v2

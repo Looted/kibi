@@ -6,13 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-135a9203d9d7
-  - type: covered_by
-    from: SYM-cli-engine-pid-path
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.152Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-269c18b750ec
   - type: implements
     from: SYM-canonical-resolveLegacyEntityPaths
     to: REQ-cli-init-canonical
@@ -27,20 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4dd1c77e5e47
-  - type: implements
-    from: SYM-canonical-KibiTreeDataProvider-getTreeItem
-    to: REQ-vscode-traceability
-    created_at: 2026-08-18T17:37:58.026Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7efdce8336ea
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-getTreeItem
-    to: TEST-vscode-traceability
-    created_at: 2026-08-18T17:37:58.035Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2742164b7516
   - type: covered_by
     from: SYM-cli-logic-ir-LOGIC_RULE_MAX_VARIABLES
     to: TEST-kibi-logical-requirement-coverage
@@ -77,13 +56,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-d38d257d40ef
   - type: covered_by
-    from: SYM-cli-engine-pid-path
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:30:31.700Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7ef7c2f22dcc
-  - type: covered_by
     from: SYM-cursor-isSourceImpactRelevantPath
     to: TEST-cursor-kibi-plugin-v1
     created_at: 2026-09-05T15:39:11.505Z
@@ -91,61 +63,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-5cab7d51f169
   - type: covered_by
-    from: SYM-proof-integration-errors
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-05T17:31:54.662Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3198785d0f93
-  - type: covered_by
     from: SYM-modeling-predicate-utils-matchesKeyword
     to: TEST-mcp-suggest-predicates
     created_at: 2026-09-05T17:46:15.889Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-535a6221ecd5
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-getTreeItem
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:27:33.760Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5c2e9b1ba7fd
-  - type: covered_by
-    from: SYM-prolog-bind-process-exit-handler
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-09-09T03:37:06.498Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3db4b7630c9e
-  - type: covered_by
-    from: SYM-prolog-bind-process-exit-handler
-    to: TEST-005
-    created_at: 2026-09-09T06:03:42.384Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f0fbbdff3c53
-  - type: implements
-    from: SYM-prolog-bind-process-exit-handler
-    to: REQ-core-prolog-process-management
-    created_at: 2026-09-09T06:03:42.388Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8f435955f91a
-  - type: implements
-    from: SYM-manifest-record-source-path
-    to: REQ-cli-staged-impact-enforcement
-    created_at: 2026-09-15T15:44:48.709Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4994219a54a6
-  - type: covered_by
-    from: SYM-manifest-record-source-path
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-15T15:44:48.728Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f02d099437a0
   - type: implements
     from: SYM-quality-maintenance-proofMigrateLegacyCommand
     to: REQ-kibi-verification-evidence-contract
@@ -167,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb403e7352ee
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-getTreeItem
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:31:51.522Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9e1252eaed9d
   - type: implements
     from: SYM-cap-plugin-compareeligiblebyapplicabilityscorethenname-23b39448
     to: REQ-mcp-suggest-predicates
@@ -265,20 +181,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d8d32a434eb8
-  - type: implements
-    from: SYM-cli-signoff-render-questions-markdown
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-22T09:26:13.732Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c614a221d768
-  - type: covered_by
-    from: SYM-cli-signoff-render-questions-markdown
-    to: TEST-kibi-signoff-views
-    created_at: 2026-10-22T09:26:13.751Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dc969c799c8a
   - type: implements
     from: SYM-core-kb-consistency
     to: REQ-kibi-kb-certificates

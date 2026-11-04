@@ -35,13 +35,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-6d4ecb8d6a29
   - type: covered_by
-    from: SYM-isSupportedBehaviorSourcePath
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:18:22.571Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2ee46982b4d6
-  - type: covered_by
     from: SYM-auto-C77E34E6931A
     to: TEST-kibi-operation-interface-parity
     created_at: 2026-09-05T17:20:12.012Z
@@ -83,20 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3988502b007f
-  - type: implements
-    from: SYM-cursor-signalExitCode
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:20:39.431Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7c13b419e992
-  - type: covered_by
-    from: SYM-cursor-signalExitCode
-    to: TEST-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:20:39.440Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c00a84897947
   - type: validates
     from: TEST-kibi-non-numeric-proof-kinds
     to: SCEN-kibi-non-numeric-proof-kinds

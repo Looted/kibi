@@ -104,34 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d8b1c549451
-  - type: implements
-    from: SYM-describe-workspace-drift
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-08T00:33:28.601Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a4dbc2472b46
-  - type: covered_by
-    from: SYM-describe-workspace-drift
-    to: TEST-kibi-fresh-verification-receipts
-    created_at: 2026-09-09T03:37:40.081Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ca015f3e9630
-  - type: covered_by
-    from: SYM-describe-workspace-drift
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-09T06:04:18.969Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-181c41ad512c
-  - type: covered_by
-    from: SYM-quality-inventory-191df9948720
-    to: TEST-cli-check-integrity
-    created_at: 2026-09-14T20:22:46.011Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-902d41fa641e
   - type: constrains
     from: REQ-prolog-coverage-test-selection
     to: FACT-prolog-coverage-selection-subject
@@ -384,17 +356,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-543472e414d6
-  - type: implements
-    from: SYM-quality-inventory-191df9948720
-    to: REQ-cli-check
-    created_at: 2026-09-15T07:43:18.833Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cab250cf7b21
-  - type: covered_by
-    from: SYM-quality-inventory-191df9948720
-    to: TEST-004
-    created_at: 2026-09-15T07:43:18.846Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c6d3c02365dc

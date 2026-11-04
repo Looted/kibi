@@ -27,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f7a2fb3cc13
-  - type: implements
-    from: SYM-cursor-agentPluginRoot
-    to: REQ-cursor-agent-plugin-standard-v1
-    created_at: 2026-08-20T14:05:19.064Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-06708496f102
   - type: covered_by
     from: SYM-cursor-agentPluginRoot
     to: TEST-cursor-agent-plugin-v1
@@ -133,20 +126,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-d555e7529a51
   - type: covered_by
-    from: SYM-isEligibleForCoordinateRefresh
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:18:28.643Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-10aa6a2ca1cf
-  - type: covered_by
-    from: SYM-isEligibleForCoordinateRefresh
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:25:55.397Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-13b6083b2c1e
-  - type: covered_by
     from: SYM-auto-5EDA4085C185
     to: TEST-kibi-operation-interface-parity
     created_at: 2026-09-05T17:17:46.096Z
@@ -160,13 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-17b2fbec2c50
-  - type: covered_by
-    from: SYM-isEligibleForCoordinateRefresh
-    to: TEST-coordinate-repair-capability
-    created_at: 2026-09-14T13:28:25.196Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-360a9276ba15
   - type: verified_by
     from: SCEN-remove-briefs-v1
     to: TEST-e2e-briefs-retired
@@ -174,20 +146,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-592a82abc79a
-  - type: implements
-    from: SYM-skillopt-campaign-manifest-schema
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-10-05T12:02:40.524Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-91b82690dc51
-  - type: covered_by
-    from: SYM-skillopt-campaign-manifest-schema
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:02:40.542Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-40bb682186fb
   - type: covered_by
     from: SYM-bootstrap-candidates-providerclaim
     to: TEST-bootstrap-provenance-stubs

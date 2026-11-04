@@ -35,13 +35,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-09d067497110
   - type: covered_by
-    from: SYM-cleanupAbandonedStagingDirectories
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:17:08.999Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a36f97f7cbc6
-  - type: covered_by
     from: SYM-kibi-doctor-command
     to: TEST-cli-doctor-workflows
     created_at: 2026-08-29T10:23:15.628Z
@@ -70,13 +63,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-f773fd923d3d
   - type: covered_by
-    from: SYM-cleanupAbandonedStagingDirectories
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:24:46.683Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dcb84d09744a
-  - type: covered_by
     from: SYM-cursor-extractKbMcpToolName
     to: TEST-cursor-kibi-plugin-v1
     created_at: 2026-09-05T15:38:26.731Z
@@ -90,13 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d425dffad992
-  - type: covered_by
-    from: SYM-cap-plugin-detectsignals-644b5a33
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:43:09.009Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e0dd6666e289
   - type: covered_by
     from: SYM-cap-plugin-validatepredicateschema-23fddd5a
     to: TEST-e2e-capability-plugins

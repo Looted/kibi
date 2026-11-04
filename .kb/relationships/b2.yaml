@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-b19ce74841e3
-    type: implements
-    from: SYM-auto-7EA45A5BE416
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:16:10.746Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-auto-7EA45A5BE416
     to: TEST-kibi-operation-interface-parity
@@ -55,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-be5b62e23e08
-  - type: covered_by
-    from: SYM-cli-github-resolve-repo
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-19T20:56:06.865Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-edb3c98152f4
   - type: covered_by
     from: SYM-auto-7EA45A5BE416
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -118,13 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c05e13d99f7
-  - type: covered_by
-    from: SYM-BehaviorSourceEditInput
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:12:26.860Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ded1cd156bf6
   - type: covered_by
     from: SYM-createUniqueStagingPath
     to: TEST-cli-sync-discovery-readme-ignore

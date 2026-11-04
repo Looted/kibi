@@ -35,26 +35,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-072db61840fb
   - type: covered_by
-    from: SYM-cursor-buildPluginManifest
-    to: TEST-cursor-agent-plugin-v1
-    created_at: 2026-09-05T15:36:18.251Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-878648321cd3
-  - type: covered_by
     from: SYM-modeling-predicate-utils-inferGate
     to: TEST-mcp-suggest-predicates
     created_at: 2026-09-05T17:45:34.868Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fbc666678aec
-  - type: covered_by
-    from: SYM-SyncOptions
-    to: TEST-skill-cli-load-validate
-    created_at: 2026-09-05T18:02:56.111Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-91924be3e485
   - type: covered_by
     from: SYM-isErrno
     to: TEST-skillopt-external-adoption-verdict
@@ -104,20 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b8a76b30ffe4
-  - type: implements
-    from: SYM-cli-strip-sync-builtin-ontology-suggestions
-    to: REQ-capability-plugin-observable-behavior-v1
-    created_at: 2026-09-22T19:48:42.971Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-592f519d724f
-  - type: covered_by
-    from: SYM-cli-strip-sync-builtin-ontology-suggestions
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:48:42.976Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0c4960f03ce2
   - type: validates
     from: TEST-model-predicates-participant-not-subject
     to: SCEN-model-predicates-participant-not-subject

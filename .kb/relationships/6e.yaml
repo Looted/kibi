@@ -41,48 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e4e6db16c938
-  - type: covered_by
-    from: SYM-readManifestWithCoordinateOverlay
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:20:07.258Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2f97348c960a
-  - type: covered_by
-    from: SYM-kibi-migration-plan-build
-    to: TEST-agent-guided-migration-orchestration
-    created_at: 2026-09-05T15:01:10.280Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c0caf7992667
-  - type: covered_by
-    from: SYM-readManifestWithCoordinateOverlay
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:27:26.270Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-200b6652b26b
-  - type: covered_by
-    from: SYM-cli-engine-attachments-match
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-10T14:57:17.523Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ef4c95fd0b15
-  - type: implements
-    from: SYM-cli-engine-attachments-match
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-10T14:57:17.583Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d12eaa105c4c
-  - type: covered_by
-    from: SYM-cap-plugin-launcher-predicate-rules-d2597a06
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:42:55.221Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cde48d4850a9
   - type: implements
     from: SYM-mcp-withWorkspaceRootSchema
     to: REQ-mcp-workspace-routing
@@ -97,20 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c5abc5b1310
-  - type: implements
-    from: SYM-skillopt-fixtures-case-contracts-objective-case-contracts-8e9355e2
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T12:24:42.883Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2074cf47d803
-  - type: covered_by
-    from: SYM-skillopt-fixtures-case-contracts-objective-case-contracts-8e9355e2
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:24:42.895Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7f81ccf27524
   - type: implements
     from: SYM-skillopt-mcp-routed-operation
     to: REQ-skillopt-host-neutral-optimization

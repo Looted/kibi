@@ -49,27 +49,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-fe951706bc2f
   - type: implements
-    from: SYM-DocResource
-    to: REQ-002
-    created_at: 2026-08-22T20:06:02.176Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-21660d8538e6
-  - type: covered_by
-    from: SYM-DocResource
-    to: TEST-005
-    created_at: 2026-08-22T20:06:02.192Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-92c64530c6c8
-  - type: covered_by
-    from: SYM-DocResource
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:06:02.196Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bf7058e72759
-  - type: implements
     from: SYM-handleKbModelRequirement
     to: REQ-002
     created_at: 2026-08-22T20:06:37.785Z
@@ -119,13 +98,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-197dddc3a958
   - type: covered_by
-    from: SYM-DocResource
-    to: TEST-agent-kibi-interface-selection
-    created_at: 2026-09-18T14:54:05.334Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8ca3c82df5db
-  - type: covered_by
     from: SYM-handleKbModelRequirement
     to: TEST-e2e-mcp-model-requirement
     created_at: 2026-09-18T15:12:20.194Z
@@ -153,20 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77d080cc3542
-  - type: implements
-    from: SYM-skillopt-campaign-workflow-campaignruntime-aa661724
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T12:24:00.787Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-990182caf18c
-  - type: covered_by
-    from: SYM-skillopt-campaign-workflow-campaignruntime-aa661724
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:24:00.808Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b876b89517d3
   - type: supersedes
     from: REQ-skillopt-operator-selected-harness
     to: REQ-skillopt-codex-optimization
@@ -321,20 +279,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e90f3d40a03
-  - type: implements
-    from: SYM-opencode-signoff-read-latest
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-22T09:26:42.273Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-13e73ecabcec
-  - type: covered_by
-    from: SYM-opencode-signoff-read-latest
-    to: TEST-kibi-signoff-views
-    created_at: 2026-10-22T09:26:42.292Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0a80cf3d62eb
   - type: executable_for
     from: SYM-proof-binding-word-limit
     to: TEST-proof-binding-word-limit

@@ -21,13 +21,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-46460c65ff3a
   - type: covered_by
-    from: SYM-HeldOutReceiptStore-withLease
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:08:42.345Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2cc3b1490c79
-  - type: covered_by
     from: SYM-skillopt-seal-default-cell-evidence
     to: TEST-skillopt-predicate-first-requirements
     created_at: 2026-09-05T18:21:25.842Z
@@ -83,13 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce59ede49714
-  - type: implements
-    from: SYM-HeldOutReceiptStore-withLease
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:36:15.276Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c9ce1de16ff7
   - type: covered_by
     from: SYM-cap-plugin-validatekibiplugin-ca84fa32
     to: TEST-e2e-capability-plugins
@@ -154,20 +140,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-37f871892b94
   - type: implements
-    from: SYM-skillopt-runtime-case-signals-relationshiptargets-d2f98993
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T12:24:55.509Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3823c784fbb8
-  - type: covered_by
-    from: SYM-skillopt-runtime-case-signals-relationshiptargets-d2f98993
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:24:55.521Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2476abecbf9a
-  - type: implements
     from: SYM-kibi-cli-src-intent-search-ts-rankintententities
     to: REQ-search-answer-hygiene
     created_at: 2026-10-12T23:37:24.668Z
@@ -209,13 +181,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e810a071210a
-  - type: implements
-    from: SYM-claude-rulePromptNote
-    to: REQ-agent-hosts-decision-guard
-    created_at: 2026-10-14T17:47:27.147Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a80965b6e494
   - type: covered_by
     from: SYM-claude-rulePromptNote
     to: TEST-codex-kibi-plugin-v1

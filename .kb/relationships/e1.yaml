@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-15T22:15:33.040Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-auto-87FDC219E2F3
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-15T22:21:18.327Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c7bcce9819ad
   - type: covered_by
     from: SYM-auto-5133B22986F1
     to: TEST-cli-branch-store-recovery
@@ -20,13 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7cf8b488c66a
-  - type: covered_by
-    from: SYM-auto-87FDC219E2F3
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-16T07:54:28.488Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b0e3c3ce9d4e
   - type: executable_for
     from: SYM-test-rule-contradiction-witness-proof
     to: TEST-kibi-ontology-convergence-witnesses
@@ -70,13 +56,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0c15dd579e8b
   - type: covered_by
-    from: SYM-auto-87FDC219E2F3
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:42:38.118Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2581496307c0
-  - type: covered_by
     from: SYM-inspectBranchStore
     to: TEST-cli-branch-store-recovery
     created_at: 2026-09-05T15:05:00.944Z
@@ -90,13 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-26f734769264
-  - type: covered_by
-    from: SYM-auto-87FDC219E2F3
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-05T17:18:44.430Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c7080ec680b7
   - type: implements
     from: SYM-claude-stopReminder
     to: REQ-claude-code-kibi-plugin-v1
@@ -146,20 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-535adfe3b63e
-  - type: implements
-    from: SYM-auto-5133B22986F1
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:56:27.398Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-22ab4d54c1ab
-  - type: implements
-    from: SYM-auto-87FDC219E2F3
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:56:48.759Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-328bd82d12f1
   - type: implements
     from: SYM-inspectBranchStore
     to: REQ-branch-store-recovery-v4

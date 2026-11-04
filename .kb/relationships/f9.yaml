@@ -66,20 +66,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a5671711d351
-  - type: implements
-    from: SYM-canonical-KibiTreeDataProvider-getEntityCount
-    to: REQ-vscode-traceability
-    created_at: 2026-08-18T17:37:44.291Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c8a1f5520b73
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-getEntityCount
-    to: TEST-vscode-traceability
-    created_at: 2026-08-18T17:37:44.302Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ecae43ae9198
   - type: covered_by
     from: SYM-auto-2E8B94C6ABB2
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -137,26 +123,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b78bb90f50c8
   - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-getEntityCount
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:27:15.647Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f8e9d9430681
-  - type: covered_by
     from: SYM-ArtifactPath-remove
     to: TEST-e2e-skillopt-trust-boundaries
     created_at: 2026-09-19T19:22:33.488Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e7a6d195760e
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-getEntityCount
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:31:30.599Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9f14d99be250
   - type: implements
     from: SYM-claude-classifyPath
     to: REQ-claude-code-kibi-plugin-v1

@@ -1,32 +1,4 @@
 relationships:
-  - id: rel-8bd66a8dc495
-    type: implements
-    from: SYM-auto-4411F1CA4EE0
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:22:43.852Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-auto-4411F1CA4EE0
-    to: REQ-reusable-skill-subsystem
-    created_at: 2026-08-16T07:55:22.193Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f19852b351e1
-  - type: covered_by
-    from: SYM-auto-4411F1CA4EE0
-    to: TEST-mcp-skills-resource-discoverability
-    created_at: 2026-08-16T07:55:22.197Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1ae0dfa6f167
-  - type: covered_by
-    from: SYM-reqcompiler-usage-parse-log
-    to: TEST-kibi-telemetry-acceptance-gate
-    created_at: 2026-08-16T18:52:12.204Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ea980170b1bd
   - type: implements
     from: SYM-canonical-readLegacyKbConfig
     to: REQ-cli-init-canonical
@@ -48,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fbe3c44610e6
-  - type: covered_by
-    from: SYM-auto-4411F1CA4EE0
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:36:10.579Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5715ca585cf3
   - type: executable_for
     from: SYM-e2e-packed-cli-doctor
     to: TEST-cli-doctor-workflows
@@ -63,20 +28,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-11fece47f270
   - type: covered_by
-    from: SYM-auto-4411F1CA4EE0
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-05T17:16:53.338Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f38d0a2b09fd
-  - type: covered_by
-    from: SYM-command-environment
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-05T17:29:08.030Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-831173c10fab
-  - type: covered_by
     from: SYM-mcp-formatViolationText
     to: TEST-mcp-tool-check-coverage
     created_at: 2026-09-05T17:49:26.219Z
@@ -84,33 +35,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-33b7c71c2c49
   - type: covered_by
-    from: SYM-auto-4411F1CA4EE0
-    to: TEST-skill-cli-load-validate
-    created_at: 2026-09-05T18:03:26.986Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ddf114fbd2b8
-  - type: covered_by
     from: SYM-skillopt-resolve-task-fixture
     to: TEST-skillopt-external-adoption-verdict
     created_at: 2026-09-05T18:15:21.358Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-85d34d6adfa0
-  - type: implements
-    from: SYM-request-engine-signal-shutdown
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-14T12:39:45.919Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e4ee7dec68bc
-  - type: covered_by
-    from: SYM-request-engine-signal-shutdown
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-09-14T17:07:02.626Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f19eaf8b9f9f
   - type: implements
     from: SYM-skillopt-resolve-task-fixture
     to: REQ-skillopt-paid-matrix-infrastructure
@@ -132,13 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46e87890766e
-  - type: implements
-    from: SYM-reqcompiler-usage-parse-log
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T03:06:27.212Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-19eb13aeb1f8
   - type: implements
     from: SYM-migration-semantic-inventory-review-code
     to: REQ-cli-schema-migration

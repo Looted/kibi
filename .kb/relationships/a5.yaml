@@ -237,17 +237,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ab20f7affdd7
-  - type: implements
-    from: SYM-setup-choices-setup-file
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:53:31.391Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a46a3d2d897e
-  - type: covered_by
-    from: SYM-setup-choices-setup-file
-    to: TEST-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:53:31.416Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ecf74e6b2b50

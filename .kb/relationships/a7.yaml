@@ -38,13 +38,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28d885fc400a
-  - type: covered_by
-    from: SYM-cli-engine-client-is-running
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.123Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bfbf80266bf1
   - type: implements
     from: SYM-cli-report-format-absolute-utc
     to: REQ-kibi-html-health-report
@@ -59,27 +52,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-077eea18555c
-  - type: implements
-    from: SYM-extractToolCallPayload
-    to: REQ-002
-    created_at: 2026-08-22T20:06:23.093Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-43a9d1b81d3f
-  - type: covered_by
-    from: SYM-extractToolCallPayload
-    to: TEST-005
-    created_at: 2026-08-22T20:06:23.107Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-801fd4b39c6a
-  - type: covered_by
-    from: SYM-extractToolCallPayload
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:06:23.114Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-480381044359
   - type: implements
     from: SYM-modeling-requirement-utils-clampConfidence
     to: REQ-002
@@ -116,33 +88,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-bcb028e91440
   - type: covered_by
-    from: SYM-cli-engine-client-is-running
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:28:52.696Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1ed1cc7a1d38
-  - type: covered_by
     from: SYM-fingerprint-drift
     to: TEST-kibi-verification-evidence-contract
     created_at: 2026-09-05T17:29:45.010Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4c90d8fe82a6
-  - type: covered_by
-    from: SYM-semantic-advisor-canonicalize
-    to: TEST-mcp-semantic-advisor-preflight
-    created_at: 2026-09-05T17:38:57.937Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7601f189341c
-  - type: covered_by
-    from: SYM-extractToolCallPayload
-    to: TEST-kibi-telemetry-acceptance-gate
-    created_at: 2026-09-18T15:10:39.221Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-79e687a3be6f
   - type: covered_by
     from: SYM-modeling-requirement-utils-clampConfidence
     to: TEST-e2e-mcp-model-requirement
@@ -171,20 +122,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e40588e770b2
-  - type: implements
-    from: SYM-impact-stage-e-verifyapprovedsourceanalyzer
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-30T15:21:36.862Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a5dc976a793a
-  - type: covered_by
-    from: SYM-impact-stage-e-verifyapprovedsourceanalyzer
-    to: TEST-impact-policy-stage-e-installed-e2e
-    created_at: 2026-09-30T15:21:36.877Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-83761d2e7e5e
   - type: executable_for
     from: SYM-test-prolog-doctor-runtime-report
     to: TEST-prolog-doctor-runtime-report

@@ -148,13 +148,6 @@ relationships:
     id: rel-9201b98fb8e8
   - type: implements
     from: SYM-operation-executeCoverage
-    to: REQ-kibi-conservative-requirement-proof
-    created_at: 2026-09-18T07:28:22.950Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e569853ca0c5
-  - type: implements
-    from: SYM-operation-executeCoverage
     to: REQ-kibi-dependency-ordered-repair-plan
     created_at: 2026-09-18T07:28:22.954Z
     created_by: kibi/upsert

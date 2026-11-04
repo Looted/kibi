@@ -13,20 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-84dc2dc3cbab
-  - type: implements
-    from: SYM-cli-report-parse-git-remote
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T21:04:31.840Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3ed0ead7adfc
-  - type: covered_by
-    from: SYM-cli-report-parse-git-remote
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-18T21:04:31.853Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-efa5861aefed
   - type: covered_by
     from: SYM-semantic-advisor-detectStrictSuggestion
     to: TEST-mcp-semantic-advisor-preflight
@@ -69,27 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f1b9b0f3ea32
-  - type: implements
-    from: SYM-package-catalog-dir
-    to: REQ-020
-    created_at: 2026-09-21T15:27:51.976Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6540baa92657
-  - type: covered_by
-    from: SYM-package-catalog-dir
-    to: TEST-014
-    created_at: 2026-09-21T19:23:01.051Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a72692a3118d
-  - type: covered_by
-    from: SYM-cap-plugin-capabilityregistry-getbuiltinplugin-eac3b9f7
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:39:22.059Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-be8fb8e371d2
   - type: executable_for
     from: SYM-claude-test-COORDINATES_YAML
     to: TEST-claude-code-kibi-plugin-v1

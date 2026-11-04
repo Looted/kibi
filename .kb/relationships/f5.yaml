@@ -7,20 +7,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: implements
-    from: SYM-shared-npm-cache-type
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-08-21T21:07:34.240Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7ab037a4f629
-  - type: covered_by
-    from: SYM-shared-npm-cache-type
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-21T21:07:34.254Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0a954d201e76
-  - type: implements
     from: SYM-refreshSymbolCoordinatesForManifest
     to: REQ-generated-coordinate-persistence
     created_at: 2026-08-24T06:15:23.579Z
@@ -104,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5b4706ba24c2
-  - type: covered_by
-    from: SYM-cap-plugin-projectkibiconfig-24a81eca
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:47:04.816Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8a2f063e6648
   - type: implements
     from: SYM-performance-trace-event-kind
     to: REQ-installed-staged-impact-timing-integrity
@@ -125,20 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-634508b3b4e3
-  - type: implements
-    from: SYM-docs-site-catalog-sitePagePath
-    to: REQ-docs-readme-published-links
-    created_at: 2026-09-29T13:40:55.066Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9e7cbe51f543
-  - type: covered_by
-    from: SYM-docs-site-catalog-sitePagePath
-    to: TEST-docs-readme-published-links
-    created_at: 2026-09-29T13:40:55.070Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-04f851c7f8c0
   - type: implements
     from: SYM-docs-site-catalog-REPORT_PATH
     to: REQ-docs-site-root-pages
@@ -237,20 +202,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6ccbca3bfbba
-  - type: implements
-    from: SYM-skillopt-assert-evaluation-host
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-21T10:55:00.504Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-77a06ba622c5
-  - type: covered_by
-    from: SYM-skillopt-assert-evaluation-host
-    to: TEST-e2e-skillopt-host-neutral-optimization
-    created_at: 2026-10-21T10:55:00.528Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1cde70d30ade
   - type: requires_property
     from: REQ-kibi-signoff-fences
     to: FACT-signoff-summary-fence

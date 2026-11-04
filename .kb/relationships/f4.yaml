@@ -20,20 +20,6 @@ relationships:
     created_at: 2026-03-16T12:57:51.090Z
     created_by: migration/adr-017
     source: documentation/tests/TEST-008.md
-  - type: implements
-    from: SYM-auto-888C4EC7C8E5
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-15T22:20:18.508Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d1245c40aca8
-  - type: covered_by
-    from: SYM-auto-888C4EC7C8E5
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-16T07:53:49.254Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-afd2004fe1ee
   - type: verified_by
     from: REQ-kibi-verification-evidence-contract
     to: TEST-kibi-verification-evidence-contract
@@ -126,27 +112,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-1caf6c862754
   - type: covered_by
-    from: SYM-auto-888C4EC7C8E5
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:43:20.864Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ad889319dafa
-  - type: implements
-    from: SYM-skillopt-cursor-run-command
-    to: REQ-skillopt-cursor-compat
-    created_at: 2026-08-24T17:28:27.058Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7030f52e3f56
-  - type: covered_by
-    from: SYM-skillopt-cursor-run-command
-    to: TEST-skillopt-cursor-compat
-    created_at: 2026-08-25T19:52:05.694Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ff4d0d3123d9
-  - type: covered_by
     from: SYM-core-kb-attach-audit-store
     to: TEST-kibi-change-to-proof-plan-compiler
     created_at: 2026-08-26T07:14:35.823Z
@@ -188,13 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a2bdf28bd1a
-  - type: covered_by
-    from: SYM-auto-888C4EC7C8E5
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-05T17:18:49.118Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1789b91b1de0
   - type: covered_by
     from: SYM-assertCanonicalSourceComplete
     to: TEST-skill-cli-load-validate
@@ -266,34 +224,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-fdfa5ed24a6f
   - type: implements
-    from: SYM-docs-site-page-meta-parseFrontMatter
-    to: REQ-docs-readme-published-links
-    created_at: 2026-09-29T21:45:21.439Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9ecf36c1287d
-  - type: implements
-    from: SYM-docs-site-page-meta-parseFrontMatter
-    to: REQ-docs-site-root-pages
-    created_at: 2026-09-29T21:45:21.445Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-094687ecbad4
-  - type: covered_by
-    from: SYM-docs-site-page-meta-parseFrontMatter
-    to: TEST-docs-readme-published-links
-    created_at: 2026-09-29T21:45:21.449Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-de35eccb1dc2
-  - type: covered_by
-    from: SYM-docs-site-page-meta-parseFrontMatter
-    to: TEST-docs-site-pages
-    created_at: 2026-09-29T21:45:21.453Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3aca3823398c
-  - type: implements
     from: SYM-sync-package-release-manifests
     to: REQ-020
     created_at: 2026-09-30T15:27:31.928Z
@@ -307,27 +237,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83723980a895
-  - type: implements
-    from: SYM-agent-core-isKibiMcpToolName
-    to: REQ-mcp-workspace-routing
-    created_at: 2026-10-02T14:47:42.024Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-056352867e8b
-  - type: covered_by
-    from: SYM-agent-core-isKibiMcpToolName
-    to: TEST-mcp-workspace-routing
-    created_at: 2026-10-02T14:47:42.096Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5e8b6cdd3c0b
-  - type: implements
-    from: SYM-auto-888C4EC7C8E5
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:56:52.338Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-22335ab51f84
   - type: implements
     from: SYM-proof-attributeCommandRun
     to: REQ-kibi-fresh-verification-receipts-v2

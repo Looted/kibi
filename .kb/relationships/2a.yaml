@@ -132,17 +132,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8102d81a0a73
-  - type: implements
-    from: SYM-setup-choices-serialize-json
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:53:04.881Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eaa9037446df
-  - type: covered_by
-    from: SYM-setup-choices-serialize-json
-    to: TEST-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:53:04.897Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d6f50934f818

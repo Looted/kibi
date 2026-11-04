@@ -34,13 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-88bd35bd6c65
-  - type: covered_by
-    from: SYM-hashFixtureClaimRoot
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:12:02.401Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-523ea6d1af2b
   - type: executable_for
     from: SYM-quality-native-report-tests
     to: TEST-native-report-integrity
@@ -48,13 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fd39b917c265
-  - type: implements
-    from: SYM-hashFixtureClaimRoot
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:37:39.801Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-74e2b48a80b0
   - type: executable_for
     from: SYM-e2e-runtime-symbol-portability
     to: TEST-e2e-runtime-symbol-portability
@@ -62,20 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-451b9722a601
-  - type: covered_by
-    from: SYM-impact-stage-e-withoutproofreceiptfrontmatter
-    to: TEST-impact-policy-stage-e-installed-e2e
-    created_at: 2026-09-27T17:52:51.422Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-95a6743cc43e
-  - type: implements
-    from: SYM-impact-stage-e-withoutproofreceiptfrontmatter
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:52:51.455Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0e2eebf720ce
   - type: implements
     from: SYM-prolog-swipl-platform-packages-dts
     to: REQ-prolog-bundled-runtime
@@ -90,20 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4c44bce5963c
-  - type: implements
-    from: SYM-prolog-swipl-bundled-binary-path-js
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:35.976Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-66a1c4b54778
-  - type: covered_by
-    from: SYM-prolog-swipl-bundled-binary-path-js
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:35.987Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3859c6940cb0
   - type: executable_for
     from: SYM-test-kibi-truthful-consistency
     to: TEST-kibi-truthful-consistency

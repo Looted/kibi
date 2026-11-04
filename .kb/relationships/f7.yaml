@@ -97,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9bd196c2820d
-  - type: covered_by
-    from: SYM-cap-plugin-normalizekey-a7d2e151
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:42:15.345Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-88ff1b2139f3
   - type: implements
     from: SYM-prolog-swipl-minimum-swipl-major-src
     to: REQ-prolog-bundled-runtime
@@ -118,20 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d91bad66611b
-  - type: implements
-    from: SYM-skillopt-broker-terminate-group
-    to: REQ-skillopt-operator-selected-harness
-    created_at: 2026-10-05T17:22:05.792Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-afa907b046c9
-  - type: covered_by
-    from: SYM-skillopt-broker-terminate-group
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T17:22:05.908Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-193c280fe344
   - type: constrains
     from: REQ-kibi-uncompiled-source-semantic-baseline
     to: FACT-SUBJ-kibi-sync-uncompiled-sources

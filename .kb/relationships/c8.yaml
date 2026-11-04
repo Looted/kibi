@@ -1,11 +1,4 @@
 relationships:
-  - type: covered_by
-    from: SYM-cli-engine-durable-fsync
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-08-16T19:47:07.417Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0241bf3f1401
   - type: executable_for
     from: SYM-test-packed-source-relationship-parity
     to: TEST-kibi-source-relationship-parity
@@ -27,20 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ca09253b5416
-  - type: implements
-    from: SYM-canonical-defaultKbManifest
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:02:02.469Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5b229df41868
-  - type: covered_by
-    from: SYM-canonical-defaultKbManifest
-    to: TEST-cli-canonical-init
-    created_at: 2026-08-18T17:02:02.478Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a10070664da7
   - type: implements
     from: SYM-cli-report-relative-time
     to: REQ-kibi-html-health-report
@@ -76,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-05910a7db2d9
-  - type: implements
-    from: SYM-cursor-parseWorkspaceFolderPaths
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-08-20T13:01:07.148Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6cfc9180481d
   - type: covered_by
     from: SYM-cursor-parseWorkspaceFolderPaths
     to: TEST-cursor-consumer-local-mcp-launcher-v1
@@ -147,26 +119,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-328b139b24ff
   - type: covered_by
-    from: SYM-cleanupTempKb
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:15:33.728Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9b3cc84a3915
-  - type: covered_by
     from: SYM-codex-adapterKind
     to: TEST-codex-kibi-plugin-v1
     created_at: 2026-09-05T15:20:25.610Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d6f12d5a4ed
-  - type: covered_by
-    from: SYM-cli-engine-durable-fsync
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:30:00.133Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-083b44fdef45
   - type: covered_by
     from: SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG
     to: TEST-001
@@ -293,20 +251,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ed1cb2d7f43
-  - type: implements
-    from: SYM-cli-with-witness-diagnosis
-    to: REQ-kibi-code-proof-kinds
-    created_at: 2026-10-26T15:58:30.053Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f70a6d2ea69d
-  - type: covered_by
-    from: SYM-cli-with-witness-diagnosis
-    to: TEST-kibi-code-proof-kinds
-    created_at: 2026-10-26T15:58:30.072Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d1b3ec3ba8a6
   - type: validates
     from: TEST-proof-proof-test-report-env
     to: SCEN-kibi-fresh-verification-receipts

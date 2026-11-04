@@ -41,41 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9ae69bccbf7d
-  - type: implements
-    from: SYM-findKibiOpencodePluginEntry
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:48:56.486Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fbed0cc5510e
-  - type: covered_by
-    from: SYM-findKibiOpencodePluginEntry
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:48:56.499Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-14d1f32ea606
-  - type: covered_by
-    from: SYM-findKibiOpencodePluginEntry
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:48:56.504Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-465ca0d98ba8
-  - type: covered_by
-    from: SYM-extractManifestSymbolRecordsString
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:18:12.302Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-21f41c94f050
-  - type: covered_by
-    from: SYM-extractManifestSymbolRecordsString
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:25:39.347Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-85ca83d01344
   - type: covered_by
     from: SYM-cursor-worktree-package-version
     to: TEST-cursor-kibi-plugin-v1
@@ -98,20 +63,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-f18a25b38c6b
   - type: covered_by
-    from: SYM-skillopt-held-out-receipt-store-load-terminal
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:14:40.406Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-36e68e10505a
-  - type: covered_by
-    from: SYM-surface
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:15:47.558Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-adc29454ee50
-  - type: covered_by
     from: SYM-assertPreparedRoot
     to: TEST-e2e-skillopt-trust-boundaries
     created_at: 2026-09-19T19:25:13.313Z
@@ -125,27 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e0a6fc39986
-  - type: implements
-    from: SYM-skillopt-held-out-receipt-store-load-terminal
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:39:41.511Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5cf44c7a2cea
-  - type: implements
-    from: SYM-surface
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:40:23.238Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a6f9df192621
-  - type: covered_by
-    from: SYM-docs-site-theme-escapeHtml
-    to: TEST-docs-site-pages
-    created_at: 2026-09-29T08:30:07.424Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-800ee562f876
   - type: validates
     from: TEST-prolog-coverage-test-selection
     to: SCEN-prolog-coverage-test-selection
@@ -181,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae02a6773eb3
-  - type: implements
-    from: SYM-docs-site-theme-escapeHtml
-    to: REQ-docs-site-root-pages
-    created_at: 2026-09-30T07:33:32.704Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d9f6e9f3b25e
   - type: covered_by
     from: SYM-decision-firmness-supersedes-reason-acknowledged-rule
     to: TEST-kb-decision-firmness
@@ -237,20 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-48680a592245
-  - type: implements
-    from: SYM-vscode-signoff-announcement
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-22T09:26:58.566Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8712c49c17c3
-  - type: covered_by
-    from: SYM-vscode-signoff-announcement
-    to: TEST-kibi-signoff-views
-    created_at: 2026-10-22T09:26:58.584Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-46c1ad5218b2
   - type: validates
     from: TEST-proof-near-restatement-jaccard
     to: SCEN-bootstrap-claim-restatement

@@ -167,13 +167,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-65849992607e
-  - type: covered_by
-    from: SYM-FixtureClaimError
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:07:40.824Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-be2d0d274486
   - type: executable_for
     from: SYM-e2e-test-cli-check-gate-enforcement
     to: TEST-e2e-check-gate-enforcement
@@ -181,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0702cf7ffea3
-  - type: implements
-    from: SYM-FixtureClaimError
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:35:25.693Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f79b0d6ce3c7
   - type: executable_for
     from: SYM-packed-mcp-stdio-server-interface
     to: TEST-e2e-mcp-freshness-external-replace

@@ -6,48 +6,6 @@ relationships:
     created_at: "2026-08-16T18:51:39.469Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-cli-engine-client-get-pid
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.128Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d722db479ffb
-  - type: implements
-    from: SYM-canonical-KB_PATHS
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:03:19.457Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1da128b572d6
-  - type: covered_by
-    from: SYM-canonical-KB_PATHS
-    to: TEST-cli-canonical-init
-    created_at: 2026-08-18T17:03:19.464Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ad148d3c8e8d
-  - type: implements
-    from: SYM-buildStrictWriteSet
-    to: REQ-011
-    created_at: 2026-08-22T20:12:17.473Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7ffcd2c31c24
-  - type: covered_by
-    from: SYM-buildStrictWriteSet
-    to: TEST-cli-strict-modeling
-    created_at: 2026-08-22T20:12:17.486Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-96ed767be91e
-  - type: covered_by
-    from: SYM-buildStrictWriteSet
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:12:17.490Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e8f1d8b548b7
   - type: implements
     from: SYM-runKibiOpencodeAutoUpdate
     to: REQ-opencode-kibi-plugin-v1
@@ -70,20 +28,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-e8100b7a767b
   - type: covered_by
-    from: SYM-cli-rule-registry-RULE_NAMES
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-26T07:15:13.864Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b3a156418c2a
-  - type: covered_by
-    from: SYM-buildStrictWriteSet
-    to: TEST-001
-    created_at: 2026-09-05T14:51:02.198Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-729e3c1afd0d
-  - type: covered_by
     from: SYM-kibi-migration-plan-version
     to: TEST-agent-guided-migration-orchestration
     created_at: 2026-09-05T15:01:27.007Z
@@ -97,20 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cf9f187f9652
-  - type: covered_by
-    from: SYM-cli-engine-client-get-pid
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:28:43.039Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3aac4ff437a3
-  - type: covered_by
-    from: SYM-cli-rule-registry-RULE_NAMES
-    to: TEST-001
-    created_at: 2026-09-05T15:35:15.130Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4dd65f29f6f9
   - type: covered_by
     from: SYM-load-proof-integrations
     to: TEST-kibi-verification-evidence-contract
@@ -153,13 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7abaa601ff5d
-  - type: covered_by
-    from: SYM-cap-plugin-validatesourceanalysisresult-7f251be2
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:48:01.812Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-efd33bed8a3a
   - type: validates
     from: TEST-kibi-proof-ingest-batch-atomicity
     to: SCEN-kibi-verification-receipts-v2

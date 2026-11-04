@@ -27,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d8cb6355b823
-  - type: implements
-    from: SYM-ToolsRuntime
-    to: REQ-mcp-relationship-preflight
-    created_at: 2026-08-22T20:11:13.048Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c6f5d0b36db3
   - type: covered_by
     from: SYM-ToolsRuntime
     to: TEST-005
@@ -119,13 +112,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-2052565bd482
   - type: covered_by
-    from: SYM-modeling-predicate-utils-singularize
-    to: TEST-mcp-suggest-predicates
-    created_at: 2026-09-05T17:46:42.006Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f376acdaf98a
-  - type: covered_by
     from: SYM-detectPosture
     to: TEST-opencode-smart-enforcement
     created_at: 2026-09-05T18:00:55.209Z
@@ -139,13 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-670268908925
-  - type: covered_by
-    from: SYM-ArtifactPath
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:06:35.489Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e59e043c1123
   - type: implements
     from: SYM-detectPosture
     to: REQ-opencode-posture-detection
@@ -160,13 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3ba307f5056
-  - type: covered_by
-    from: SYM-ArtifactPath
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:21:59.236Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-65706d47ba44
   - type: implements
     from: SYM-claude-toWorkspacePath
     to: REQ-claude-code-kibi-plugin-v1

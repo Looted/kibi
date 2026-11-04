@@ -27,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-743a2e990057
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:48:48.511Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b8ec8acfe23e
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -252,13 +245,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-5f8486270846
   - type: implements
-    from: SYM-docs-site-theme-clientScript
-    to: REQ-docs-site-root-pages
-    created_at: 2026-09-30T07:34:02.196Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4e997ae017eb
-  - type: implements
     from: SYM-proof-receipt-schema
     to: REQ-kibi-fresh-verification-receipts-v2
     created_at: 2026-10-04T03:05:14.669Z
@@ -370,20 +356,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b6a850322310
-  - type: implements
-    from: SYM-cli-render-source-write
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-10-21T20:14:22.216Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d5c966d2d286
-  - type: covered_by
-    from: SYM-cli-render-source-write
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-10-21T20:14:22.268Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-654d9e381d5a
   - type: executable_for
     from: SYM-proof-codex-manifest-fields
     to: TEST-proof-codex-manifest-fields

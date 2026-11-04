@@ -133,27 +133,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-50027599f267
   - type: implements
-    from: SYM-cli-contracts-assert-unique-effect-kinds
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-09-23T12:11:46.821Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6e543ab054ba
-  - type: covered_by
-    from: SYM-cli-contracts-assert-unique-effect-kinds
-    to: TEST-cli-protocol-capability-plugins
-    created_at: 2026-09-23T12:11:46.827Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-439ec1328761
-  - type: covered_by
-    from: SYM-cli-contracts-assert-unique-effect-kinds
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-23T14:59:15.884Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-07e0c04685cb
-  - type: implements
     from: SYM-compose-subject-ranking
     to: REQ-kibi-vocabulary-alignment-capability
     created_at: 2026-09-28T09:49:22.321Z
@@ -181,20 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d4a87de15550
-  - type: implements
-    from: SYM-claude-SnippetInput
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:26:55.063Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-149d38d88c35
-  - type: covered_by
-    from: SYM-claude-SnippetInput
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:26:55.093Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fc428ebbb124
   - type: implements
     from: SYM-impact-stage-e-projectedpathevidence
     to: REQ-impact-policy-stage-e-content-bound-review

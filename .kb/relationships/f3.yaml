@@ -11,13 +11,6 @@ relationships:
     created_by: migration/adr-017
     source: documentation/scenarios/SCEN-007.md
   - type: implements
-    from: SYM-auto-159F89573024
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-15T22:21:40.057Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9172e4ba5475
-  - type: implements
     from: SYM-skillopt-runtime-probe-required-mcp
     to: REQ-skillopt-host-neutral-optimization
     created_at: 2026-08-15T23:12:17.347Z
@@ -31,13 +24,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-257a9b4ecc1e
-  - type: covered_by
-    from: SYM-auto-159F89573024
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T07:54:39.253Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cdd3c9f1167d
   - type: implements
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-guidance-buildguidance
     to: REQ-KIBI-BOOTSTRAP-PLAN
@@ -59,13 +45,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18cb108f91fd
-  - type: covered_by
-    from: SYM-auto-159F89573024
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:43:14.570Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1b5f0137d72b
   - type: implements
     from: SYM-kibiOpencodePlugin
     to: REQ-opencode-kibi-plugin-v1
@@ -129,20 +108,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b547362e786
-  - type: implements
-    from: SYM-cli-queryEntityChunks
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-09-27T22:10:48.749Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-25ecbf5c3af4
-  - type: covered_by
-    from: SYM-cli-queryEntityChunks
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-27T22:10:48.799Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ddf00ce8336d
   - type: verified_by
     from: SCEN-prolog-build-pipeline-validation
     to: TEST-prolog-build-pipeline-validation

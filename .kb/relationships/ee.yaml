@@ -1,25 +1,4 @@
 relationships:
-  - id: rel-82d982678856
-    type: implements
-    from: SYM-cli-report-open
-    to: REQ-kibi-html-health-report
-    created_at: "2026-08-15T21:05:55.882Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-cli-report-open
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-15T21:05:55.883Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8024a56d1878
-  - type: covered_by
-    from: SYM-cli-engine-client-query-entities
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.161Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8a7591555186
   - type: specified_by
     from: REQ-kibi-fresh-verification-receipts
     to: SCEN-kibi-snapshot-relevance
@@ -168,27 +147,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8ae8759d6e10
   - type: covered_by
-    from: SYM-markdown-FrontmatterError
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:18:55.450Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f1842a0a0d05
-  - type: covered_by
-    from: SYM-markdown-FrontmatterError
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:26:13.324Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-506836a794fe
-  - type: covered_by
-    from: SYM-cli-engine-client-query-entities
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:29:12.292Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-725789870adb
-  - type: covered_by
     from: SYM-cli-report-brand-logo
     to: TEST-kibi-branded-health-report
     created_at: 2026-09-05T16:58:38.284Z
@@ -272,13 +230,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-543995be2a63
-  - type: implements
-    from: SYM-impact-stage-e-prepareimpactreview
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:46:49.346Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ac180405ef29
   - type: implements
     from: SYM-impact-stage-e-prepareimpactreview
     to: REQ-impact-review-public-preparation

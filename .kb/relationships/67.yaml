@@ -1,18 +1,4 @@
 relationships:
-  - id: rel-19850eca6d1e
-    type: implements
-    from: SYM-auto-479CCD24D41F
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-15T22:21:20.248Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-auto-479CCD24D41F
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-16T07:54:29.928Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-269d82c2f916
   - type: covered_by
     from: SYM-projectStagedEntities
     to: TEST-kibi-conservative-requirement-proof
@@ -27,20 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4e34840a551d
-  - type: covered_by
-    from: SYM-cli-github-placeholder-pages-urls
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-19T20:55:48.419Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5822bab467fe
-  - type: covered_by
-    from: SYM-auto-479CCD24D41F
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:37:10.454Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5f88c70e7711
   - type: implements
     from: SYM-GENERATED_SYMBOL_FIELDS
     to: REQ-generated-coordinate-persistence
@@ -69,13 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9cb5b93768b6
-  - type: covered_by
-    from: SYM-auto-479CCD24D41F
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-05T17:17:05.179Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d72c54fda553
   - type: covered_by
     from: SYM-attempts-status-2
     to: TEST-kibi-verification-evidence-contract
@@ -237,34 +202,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bde9cf1394ee
-  - type: implements
-    from: SYM-auto-479CCD24D41F
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:56:15.979Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-59d73883f541
-  - type: implements
-    from: SYM-proof-parseProofTestReport
-    to: REQ-kibi-fresh-verification-receipts-v2
-    created_at: 2026-10-04T03:15:05.728Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6588928faabd
-  - type: covered_by
-    from: SYM-proof-parseProofTestReport
-    to: TEST-kibi-proof-receipt-compaction
-    created_at: 2026-10-04T03:15:05.744Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e09228037e6d
-  - type: covered_by
-    from: SYM-proof-parseProofTestReport
-    to: TEST-kibi-proof-receipt-compaction-cli
-    created_at: 2026-10-04T05:30:31.030Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-729fa05ad04e
   - type: implements
     from: SYM-core-valid-claim-provenance
     to: REQ-kibi-review-observation-claim-text-v2

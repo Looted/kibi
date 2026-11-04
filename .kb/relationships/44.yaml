@@ -1,25 +1,4 @@
 relationships:
-  - type: covered_by
-    from: SYM-isSupportedLegacyBranchMigration
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-17T08:38:26.460Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e62ce9eedfa4
-  - type: implements
-    from: SYM-skillopt-required-kibi-tools
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-08-21T19:52:52.491Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-609c3f85e5d9
-  - type: covered_by
-    from: SYM-skillopt-required-kibi-tools
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-21T19:52:52.506Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-050f1a1a1745
   - type: executable_for
     from: SYM-packed-create-owned-temp-directory
     to: TEST-test-journaled-engine-harness
@@ -48,27 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c45a4d2e617
-  - type: implements
-    from: SYM-cli-discovery-resolve-core-module
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:23:57.598Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9acbc7fe6e53
-  - type: covered_by
-    from: SYM-cli-discovery-resolve-core-module
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:23:57.614Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a53d7afd0f7b
-  - type: covered_by
-    from: SYM-cli-discovery-resolve-core-module
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:23:57.618Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cb3161bd9728
   - type: covered_by
     from: SYM-markdown-normalizeDateLike
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -133,20 +91,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-24c5db84e043
   - type: implements
-    from: SYM-cli-apply-classification-routing
-    to: REQ-capability-plugin-observable-behavior-v1
-    created_at: 2026-09-22T19:48:18.724Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-64734c87e84a
-  - type: covered_by
-    from: SYM-cli-apply-classification-routing
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:48:18.728Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9bc3acd5bc5b
-  - type: implements
     from: SYM-jev-resolve-timeout
     to: REQ-capability-plugin-configuration-v1
     created_at: 2026-09-22T19:49:18.766Z
@@ -174,13 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-44b666375179
-  - type: implements
-    from: SYM-isSupportedLegacyBranchMigration
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T03:00:58.354Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8c455ac81650
   - type: validates
     from: TEST-check-related-requirement-unmodeled
     to: REQ-check-related-requirement-unmodeled

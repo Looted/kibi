@@ -1,11 +1,4 @@
 relationships:
-  - type: covered_by
-    from: SYM-cli-engine-migration
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-08-16T19:47:07.427Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e06e7db3aa44
   - type: executable_for
     from: 36ec3bc91de13ec6
     to: TEST-kibi-predicate-suggestion-relevance-v1
@@ -49,26 +42,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8d9951f133e5
   - type: covered_by
-    from: SYM-cli-engine-migration
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:30:16.271Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ef7d55ff35be
-  - type: covered_by
     from: SYM-producer-kinds
     to: TEST-kibi-verification-evidence-contract
     created_at: 2026-09-05T17:31:01.823Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-80199e23c1be
-  - type: covered_by
-    from: SYM-modeling-predicate-utils-escapeRegExp
-    to: TEST-mcp-suggest-predicates
-    created_at: 2026-09-05T17:45:14.184Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d99ffd780d98
   - type: covered_by
     from: SYM-cap-plugin-capabilityregistrycache-get-27109bcb
     to: TEST-e2e-capability-plugins
@@ -139,20 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b0296a4058f3
-  - type: covered_by
-    from: SYM-skillopt-mcp-model-modes
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-04T12:15:17.953Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2aba1dd4a6e4
-  - type: implements
-    from: SYM-skillopt-mcp-model-modes
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-04T20:37:02.840Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-aba701a068ee
   - type: implements
     from: SYM-core-requirement-evidence
     to: REQ-kibi-evidence-levels

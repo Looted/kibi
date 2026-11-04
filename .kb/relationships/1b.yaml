@@ -41,20 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e3a803084f6
-  - type: covered_by
-    from: SYM-kibi-migration-action-default
-    to: TEST-agent-guided-migration-orchestration
-    created_at: 2026-09-05T15:00:38.469Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2c6719deae54
-  - type: covered_by
-    from: SYM-cli-engine-format-attachment-mismatch
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:30:05.576Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-68b4cb495edc
   - type: relates_to
     from: REQ-006
     to: FACT-CHECK-RULESET-CORE-3
@@ -62,27 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-86108de55a32
-  - type: implements
-    from: SYM-quality-producer-loadProofSteps
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-14T18:53:53.933Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-788794ad543c
-  - type: covered_by
-    from: SYM-quality-producer-loadProofSteps
-    to: TEST-proof-runner-integrity
-    created_at: 2026-09-14T18:53:53.945Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b2eb75099676
-  - type: covered_by
-    from: SYM-quality-producer-loadProofSteps
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-18T07:40:52.343Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7ae1edffb13b
   - type: covered_by
     from: SYM-cap-plugin-collectgranularitycandidates-95f8e20e
     to: TEST-e2e-capability-plugins
@@ -126,20 +91,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-6d746d934d52
   - type: implements
-    from: SYM-detached-snapshot-refreshDetachedSnapshot
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T03:14:21.748Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5660cc0efe60
-  - type: covered_by
-    from: SYM-detached-snapshot-refreshDetachedSnapshot
-    to: TEST-branch-detached-head-read-only
-    created_at: 2026-10-04T03:14:21.766Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-de7e689a8aa6
-  - type: implements
     from: SYM-search-answer-projectVerdict
     to: REQ-kibi-search-answer-layer-v2
     created_at: 2026-10-04T03:15:16.234Z
@@ -167,13 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8a2b9d21ff9a
-  - type: covered_by
-    from: SYM-detached-snapshot-refreshDetachedSnapshot
-    to: TEST-branch-detached-head-read-only-cli
-    created_at: 2026-10-04T05:28:45.075Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9beed7a50a40
   - type: executable_for
     from: SYM-proof-cursor-agent-plugin-plugin-fields
     to: TEST-proof-cursor-agent-plugin-plugin-fields

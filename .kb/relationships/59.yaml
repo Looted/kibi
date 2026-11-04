@@ -21,20 +21,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-d5cbf4b13062
   - type: implements
-    from: SYM-canonical-SchemaVersionSource
-    to: REQ-cli-schema-migration
-    created_at: 2026-08-18T17:03:54.898Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-001fbc5c179a
-  - type: covered_by
-    from: SYM-canonical-SchemaVersionSource
-    to: TEST-cli-config-schema
-    created_at: 2026-08-18T17:03:54.905Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3bbac920993f
-  - type: implements
     from: SYM-operation-node-network
     to: REQ-kibi-operation-interface-parity
     created_at: 2026-08-22T20:30:11.830Z
@@ -97,20 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-86fc36d85feb
-  - type: implements
-    from: SYM-cap-plugin-sourceanalysisservice-analyzetext-7b1783aa
-    to: REQ-capability-plugin-three-capabilities-v1
-    created_at: 2026-09-22T19:41:29.544Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c9cbdaec608b
-  - type: covered_by
-    from: SYM-cap-plugin-sourceanalysisservice-analyzetext-7b1783aa
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:41:29.548Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5f51496880b0
   - type: implements
     from: SYM-jev-max-timeout-ms
     to: REQ-capability-plugin-configuration-v1

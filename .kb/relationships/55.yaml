@@ -34,41 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-58a4f66839b1
-  - type: implements
-    from: SYM-normalizePropertyKey
-    to: REQ-011
-    created_at: 2026-08-22T20:13:25.817Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b7e17247a2fc
-  - type: covered_by
-    from: SYM-normalizePropertyKey
-    to: TEST-cli-strict-modeling
-    created_at: 2026-08-22T20:13:25.832Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e0055429632e
-  - type: covered_by
-    from: SYM-normalizePropertyKey
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:13:25.836Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c700b860007a
-  - type: implements
-    from: SYM-skillopt-cursor-usage-error
-    to: REQ-skillopt-cursor-compat
-    created_at: 2026-08-24T17:28:53.497Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3068470e909a
-  - type: covered_by
-    from: SYM-skillopt-cursor-usage-error
-    to: TEST-skillopt-cursor-compat
-    created_at: 2026-08-25T19:52:26.195Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ad66b08e3807
   - type: constrains
     from: REQ-mcp-search-discovery
     to: FACT-SUBJ-REQ-MCP-SEARCH-DISCOVERY
@@ -83,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4c71f57f83a
-  - type: covered_by
-    from: SYM-normalizePropertyKey
-    to: TEST-001
-    created_at: 2026-09-05T14:51:33.009Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dca2fc0eef2c
   - type: covered_by
     from: SYM-proof-run-artifact-errors
     to: TEST-kibi-verification-evidence-contract

@@ -52,13 +52,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-86cdc2a66a1e
-  - type: implements
-    from: SYM-formatRelationshipSourceMismatch
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:28:08.058Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ba9d5d97d240
   - type: covered_by
     from: SYM-formatRelationshipSourceMismatch
     to: TEST-mcp-relationship-preflight
@@ -115,13 +108,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-71da851053ea
-  - type: covered_by
-    from: SYM-cleanupStaging
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:17:15.018Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-11f55a25ae62
   - type: constrains
     from: REQ-cli-usage-metrics-v1
     to: FACT-SUBJ-REQ-CLI-USAGE-METRICS-V1
@@ -136,13 +122,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc78f6138b76
-  - type: covered_by
-    from: SYM-cleanupStaging
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:24:51.764Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f64005e244d1
   - type: covered_by
     from: SYM-cli-engine-stop-command
     to: TEST-core-journaled-engine-delta-sync

@@ -13,27 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fe6235c587a
-  - type: implements
-    from: SYM-classifyDiagnosticError
-    to: REQ-002
-    created_at: 2026-08-22T20:04:56.421Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8d359e280da9
-  - type: covered_by
-    from: SYM-classifyDiagnosticError
-    to: TEST-005
-    created_at: 2026-08-22T20:04:56.438Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-31d734928cb1
-  - type: covered_by
-    from: SYM-classifyDiagnosticError
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:04:56.442Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a9d56c67edb3
   - type: covered_by
     from: SYM-auto-9AEF238324D1
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -41,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eeaed233fbfb
-  - type: covered_by
-    from: SYM-cursor-impactCheckFollowup
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-05T15:38:46.016Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f3617a23320d
   - type: covered_by
     from: SYM-auto-9AEF238324D1
     to: TEST-kibi-operation-interface-parity
@@ -76,27 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3305c9ceceb
-  - type: implements
-    from: SYM-quality-packed-summary
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-09-14T19:07:51.686Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-efa3d31b4aa5
-  - type: covered_by
-    from: SYM-quality-packed-summary
-    to: TEST-proof-runner-integrity
-    created_at: 2026-09-14T19:07:51.693Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fa0a09836539
-  - type: covered_by
-    from: SYM-quality-packed-summary
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-09-17T20:23:34.889Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5d8c7dc7f656
   - type: implements
     from: SYM-FixtureClaimError-name
     to: REQ-skillopt-paid-matrix-infrastructure
@@ -132,20 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-74a51b1d16ef
-  - type: implements
-    from: SYM-docs-site-page-meta-FrontMatter
-    to: REQ-docs-site-root-pages
-    created_at: 2026-09-29T21:45:31.893Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23a3c346c16e
-  - type: covered_by
-    from: SYM-docs-site-page-meta-FrontMatter
-    to: TEST-docs-site-pages
-    created_at: 2026-09-29T21:45:31.896Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ba3b4cb4f544
   - type: implements
     from: SYM-auto-9AEF238324D1
     to: REQ-branch-store-recovery-v4

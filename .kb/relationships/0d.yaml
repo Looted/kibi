@@ -20,27 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8fb903ab24fd
-  - type: implements
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-template
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:51.846Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-163183b81ccb
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-template
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:51.853Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3d4432a70f8a
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-template
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:15:06.527Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8e8ca3b6ca51
   - type: constrains
     from: REQ-vscode-source-to-kb
     to: FACT-SUBJ-REQ-VSCODE-KB-TO-SOURCE
@@ -76,20 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b965af9f5a7
-  - type: covered_by
-    from: SYM-impact-stage-e-fingerprint
-    to: TEST-impact-policy-stage-e-installed-e2e
-    created_at: 2026-09-27T17:38:12.283Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e6bb41b9274f
-  - type: implements
-    from: SYM-impact-stage-e-fingerprint
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:38:12.303Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c353baf6919d
   - type: implements
     from: SYM-mcp-tools-list-diagnostic-contract
     to: REQ-kibi-operation-interface-parity

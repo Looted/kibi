@@ -56,27 +56,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3b6d2a7d04ba
   - type: implements
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodeconfighookinput
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:44.716Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-09439fbd19e0
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodeconfighookinput
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:44.723Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-58e47af1af3a
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodeconfighookinput
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:15:22.573Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c5d17e16b4c2
-  - type: implements
     from: SYM-computeEnforcementPolicy
     to: REQ-opencode-kibi-plugin-v1
     created_at: 2026-08-22T20:57:30.851Z
@@ -146,20 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e132a5bbf00
-  - type: implements
-    from: SYM-quality-inventory-462930c7e9c8
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-14T20:31:47.497Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d63630278fe8
-  - type: covered_by
-    from: SYM-quality-inventory-462930c7e9c8
-    to: TEST-cli-prolog-codec
-    created_at: 2026-09-14T20:31:47.514Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dd00d0dc9a2f
   - type: covered_by
     from: SYM-cli-discovery-renderCoverageTable
     to: TEST-coverage-depth-labels

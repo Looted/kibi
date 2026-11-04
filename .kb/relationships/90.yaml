@@ -35,13 +35,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-f26adcda8afb
   - type: covered_by
-    from: SYM-cli-engine-client-next-solution
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.154Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-811aa5c3d568
-  - type: covered_by
     from: SYM-auto-61AB23FEF699
     to: TEST-kibi-change-to-proof-plan-compiler
     created_at: 2026-08-22T20:39:19.977Z
@@ -126,26 +119,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b78417867861
   - type: covered_by
-    from: SYM-cli-engine-client-next-solution
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:28:57.380Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-766ea7b8181b
-  - type: covered_by
     from: SYM-auto-61AB23FEF699
     to: TEST-kibi-operation-interface-parity
     created_at: 2026-09-05T17:17:52.088Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2a811d8cd7dc
-  - type: covered_by
-    from: SYM-kibi-playwright-producer-on-test-end
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-05T17:30:32.166Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7ee13f68bc9b
   - type: covered_by
     from: SYM-proof-run-artifact-schema
     to: TEST-kibi-verification-evidence-contract
@@ -181,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-542a1a891696
-  - type: covered_by
-    from: SYM-runUnitCoverage
-    to: TEST-e2e-coverage-pipeline
-    created_at: 2026-09-19T18:19:46.964Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f2d57d463c1
   - type: implements
     from: SYM-cursor-getSourceLinkedRequirementIds
     to: REQ-cursor-kibi-plugin-v1
@@ -335,13 +307,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-10013b6a2574
-  - type: implements
-    from: SYM-kb-decision-firmness-evaluatedecisionfirmness
-    to: REQ-kb-decision-firmness
-    created_at: 2026-10-12T22:26:18.538Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1cbeceee8fed
   - type: covered_by
     from: SYM-kb-decision-firmness-evaluatedecisionfirmness
     to: TEST-kb-decision-firmness
@@ -629,31 +594,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1b9c19c79d2e
-  - type: implements
-    from: SYM-runUnitCoverage
-    to: REQ-014
-    created_at: 2026-08-22T20:14:38.527Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6e77cc19dbcf
-  - type: covered_by
-    from: SYM-runUnitCoverage
-    to: TEST-scripts-unit-coverage-runner
-    created_at: 2026-08-22T20:14:38.539Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-798ad1eaf306
-  - type: covered_by
-    from: SYM-runUnitCoverage
-    to: TEST-006
-    created_at: 2026-08-22T20:14:38.544Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c0bcd8a9974f
-  - type: covered_by
-    from: SYM-runUnitCoverage
-    to: TEST-011
-    created_at: 2026-09-05T14:52:46.048Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f5893c3f8050

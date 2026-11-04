@@ -1,39 +1,4 @@
 relationships:
-  - id: rel-b54fd91ec381
-    type: implements
-    from: SYM-cli-report-getting-started-url
-    to: REQ-kibi-html-health-report
-    created_at: "2026-08-18T20:41:50.412Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-cli-report-getting-started-url
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-18T20:41:50.413Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-72812f4977f9
-  - type: implements
-    from: SYM-modeling-requirement-utils-stripListPrefix
-    to: REQ-002
-    created_at: 2026-08-22T20:08:41.382Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-213477d435e3
-  - type: covered_by
-    from: SYM-modeling-requirement-utils-stripListPrefix
-    to: TEST-005
-    created_at: 2026-08-22T20:08:41.391Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-60615bfd67a7
-  - type: covered_by
-    from: SYM-modeling-requirement-utils-stripListPrefix
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:08:41.398Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eeb812694784
   - type: covered_by
     from: SYM-kibi-check-build-summary
     to: TEST-agent-guided-migration-orchestration
@@ -42,54 +7,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8c033a51df28
   - type: covered_by
-    from: SYM-cli-engine-read-journal-generation
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:30:58.550Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c1bd4f8e5d4a
-  - type: covered_by
     from: SYM-modeling-predicate-inference-1-inferDependencyRuleArgs
     to: TEST-mcp-suggest-predicates
     created_at: 2026-09-05T17:41:43.490Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0049593ab94b
-  - type: covered_by
-    from: SYM-browseLinkedEntities
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:26:57.041Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-47f928491e0b
-  - type: implements
-    from: SYM-sweep-runtime-sockets
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:39:24.417Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eee6fdaf6593
-  - type: covered_by
-    from: SYM-sweep-runtime-sockets
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:39:24.425Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3d437fdd29ca
-  - type: covered_by
-    from: SYM-modeling-requirement-utils-stripListPrefix
-    to: TEST-e2e-mcp-model-requirement
-    created_at: 2026-09-18T15:21:13.336Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4fab1cb8d3de
-  - type: covered_by
-    from: SYM-browseLinkedEntities
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:31:09.269Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6105eaff53d6
   - type: covered_by
     from: SYM-cap-plugin-kibiplugin-cd533318
     to: TEST-e2e-capability-plugins
@@ -132,27 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-996e62fc59fe
-  - type: implements
-    from: SYM-migrate-polarity-values-plan
-    to: REQ-cli-schema-migration
-    created_at: 2026-10-04T16:22:17.350Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5be425f121ac
-  - type: implements
-    from: SYM-skillopt-campaign-workflow-parsecompletecampaignevaluation-e4f544e4
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T12:23:18.950Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5536dc906537
-  - type: covered_by
-    from: SYM-skillopt-campaign-workflow-parsecompletecampaignevaluation-e4f544e4
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:23:18.963Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f82cb998a110
   - type: implements
     from: SYM-skillopt-user-instruction
     to: REQ-skillopt-host-neutral-optimization

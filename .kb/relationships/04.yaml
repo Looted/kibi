@@ -63,26 +63,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-23482b494a34
   - type: covered_by
-    from: SYM-HeldOutTerminalReceiptSchema
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:09:02.677Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9308c52baa0c
-  - type: covered_by
     from: SYM-predicateGate
     to: TEST-skillopt-external-adoption-verdict
     created_at: 2026-09-05T18:12:23.564Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eea9d6b7a282
-  - type: implements
-    from: SYM-HeldOutTerminalReceiptSchema
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:36:30.820Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-399e3f7c415b
   - type: implements
     from: SYM-predicateGate
     to: REQ-skillopt-paid-matrix-infrastructure
@@ -97,20 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-13221096c067
-  - type: implements
-    from: SYM-skillopt-false-if-enoent
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-09-19T23:54:58.601Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-656cfd324b05
-  - type: covered_by
-    from: SYM-skillopt-false-if-enoent
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-09-19T23:54:58.617Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3995adf2c16d
   - type: implements
     from: SYM-cap-plugin-isprojectscopedpackage-c0eba0f8
     to: REQ-capability-plugin-observable-behavior-v1
@@ -132,20 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8c582f9589cf
-  - type: implements
-    from: SYM-prolog-release-platform-targets
-    to: REQ-prolog-bundled-release
-    created_at: 2026-10-01T00:22:09.041Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fd889f778414
-  - type: covered_by
-    from: SYM-prolog-release-platform-targets
-    to: TEST-prolog-bundled-release
-    created_at: 2026-10-01T00:22:09.068Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7dbb4507786e
   - type: constrains
     from: REQ-bootstrap-subject-fact-shared
     to: FACT-KIBI-BOOTSTRAP-SUBJECT

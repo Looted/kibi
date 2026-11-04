@@ -28,41 +28,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-f5db73356e94
   - type: implements
-    from: SYM-run-unit-coverage-shardLabelsFromArgv
-    to: REQ-014
-    created_at: 2026-09-21T12:26:46.725Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8c9b3c38e4a4
-  - type: covered_by
-    from: SYM-run-unit-coverage-shardLabelsFromArgv
-    to: TEST-scripts-unit-coverage-runner
-    created_at: 2026-09-21T12:26:46.733Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5f0fd6e503a2
-  - type: covered_by
-    from: SYM-run-unit-coverage-shardLabelsFromArgv
-    to: TEST-e2e-coverage-pipeline
-    created_at: 2026-09-21T19:14:13.556Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7fa92a40ca2d
-  - type: implements
-    from: SYM-CI-PROOF-REUSE-TYPE
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-25T12:17:46.408Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9e6da92b8fb4
-  - type: covered_by
-    from: SYM-CI-PROOF-REUSE-TYPE
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-25T12:27:53.379Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f49283d7f6f5
-  - type: implements
     from: SYM-claude-fileKnowledgeSnippet
     to: REQ-claude-code-kibi-plugin-v1
     created_at: 2026-09-27T09:25:42.826Z

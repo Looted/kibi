@@ -1,25 +1,4 @@
 relationships:
-  - id: rel-ab1ce6f72c3c
-    type: implements
-    from: SYM-auto-8B6FF5246789
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:16:06.973Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-auto-8B6FF5246789
-    to: REQ-core-atomic-upsert-persistence
-    created_at: 2026-08-16T07:49:55.098Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cccd56e27914
-  - type: covered_by
-    from: SYM-auto-8B6FF5246789
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T07:49:55.103Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d37e5e1172bc
   - type: verified_by
     from: SCEN-kibi-branded-health-report
     to: TEST-kibi-branded-health-report
@@ -41,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c20e12efac4
-  - type: implements
-    from: SYM-canonical-planLegacyStorageMigration
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:01:01.461Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-019aa6f7c61d
   - type: covered_by
     from: SYM-canonical-planLegacyStorageMigration
     to: TEST-cli-migrate
@@ -62,20 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2d451c3950fe
-  - type: covered_by
-    from: SYM-auto-8B6FF5246789
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:38:46.378Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9ab02175efdc
-  - type: covered_by
-    from: SYM-kibi-check-format-impact
-    to: TEST-agent-guided-migration-orchestration
-    created_at: 2026-09-05T14:41:00.101Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4c0ecdcb2a3c
   - type: covered_by
     from: SYM-canonical-planLegacyStorageMigration
     to: TEST-cli-canonical-runtime
@@ -104,20 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-edebc831a5ea
-  - type: implements
-    from: SYM-skillopt-user-permission
-    to: REQ-skillopt-operator-selected-harness
-    created_at: 2026-10-05T16:55:58.290Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6e6488bd047c
-  - type: covered_by
-    from: SYM-skillopt-user-permission
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T16:55:58.317Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f8574c50f7a
   - type: verified_by
     from: SCEN-kibi-hooks-flow-manifest
     to: TEST-kibi-hooks-flow-manifest

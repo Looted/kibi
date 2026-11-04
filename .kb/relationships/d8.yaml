@@ -195,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-488d58eb1a37
-  - type: covered_by
-    from: SYM-cli-github-pages-urls-type
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-28T10:09:12.790Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-53c7f5ce081f
   - type: constrains
     from: REQ-audit-quality-diagnostics-v1
     to: FACT-SUBJ-REQ-AUDIT-QUALITY-DIAGNOSTICS-V1

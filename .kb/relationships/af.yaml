@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-bba53c014b72
-    type: covered_by
-    from: SYM-cli-engine-start-lock-path
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: "2026-08-16T19:47:37.109Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-KIBI-NO-IMPACT-DECLARATION
     to: TEST-cli-staged-impact-enforcement
@@ -13,13 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-86739c62bba4
-  - type: covered_by
-    from: SYM-cli-engine-start-lock-path
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:31:08.824Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2c93f6d93bf2
   - type: covered_by
     from: SYM-cursor-interfaceAdvisory
     to: TEST-cursor-worktree-kibi-continuity
@@ -35,20 +21,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-c4e1f95377c8
   - type: implements
-    from: SYM-create-missing-override-rationale-diagnostic
-    to: REQ-cli-staged-impact-enforcement
-    created_at: 2026-09-15T15:44:23.728Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-de2c3338747d
-  - type: covered_by
-    from: SYM-create-missing-override-rationale-diagnostic
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-15T15:44:23.739Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d732bf58716b
-  - type: implements
     from: SYM-cap-plugin-assertbarepackagename-4a211175
     to: REQ-capability-plugin-observable-behavior-v1
     created_at: 2026-09-22T09:28:41.872Z
@@ -62,20 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bccd0a3c0418
-  - type: covered_by
-    from: SYM-docs-site-theme-PageShell
-    to: TEST-docs-site-pages
-    created_at: 2026-09-29T08:29:57.400Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-aeb88b4e6323
-  - type: implements
-    from: SYM-docs-site-theme-PageShell
-    to: REQ-docs-site-root-pages
-    created_at: 2026-09-30T07:33:23.397Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-70492484639e
   - type: validates
     from: TEST-prolog-bundled-release
     to: SCEN-prolog-bundled-release

@@ -61,13 +61,6 @@ relationships:
     id: rel-808201296149
   - type: implements
     from: SYM-buildPrompt
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:57:23.366Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4e68d25f9ff9
-  - type: implements
-    from: SYM-buildPrompt
     to: REQ-agent-kibi-interface-selection
     created_at: 2026-08-22T20:57:23.380Z
     created_by: kibi/upsert
@@ -151,20 +144,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-d7be954fb614
   - type: covered_by
-    from: SYM-cursor-buildAgentPluginMcpJson
-    to: TEST-cursor-agent-plugin-v1
-    created_at: 2026-09-05T15:36:08.057Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2cc6a9fa27bc
-  - type: covered_by
-    from: SYM-cursor-saveHookState
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-05T15:40:12.118Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-385aa1739173
-  - type: covered_by
     from: SYM-inspect-proof-environment
     to: TEST-kibi-verification-evidence-contract
     created_at: 2026-09-05T17:29:54.689Z
@@ -185,20 +164,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-128cb88a66e9
-  - type: covered_by
-    from: SYM-impact-stage-e-canonicaljson
-    to: TEST-impact-policy-stage-e-installed-e2e
-    created_at: 2026-09-27T17:35:34.647Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fb9c165c315d
-  - type: implements
-    from: SYM-impact-stage-e-canonicaljson
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:35:34.729Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-024546cdb9bd
   - type: implements
     from: SYM-superseded-closure-applySupersededClosures
     to: REQ-kibi-kb-lifecycle-integrity
@@ -234,20 +199,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f4e21d70a79
-  - type: implements
-    from: SYM-cli-signoff-render-summary-markdown
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-22T09:26:09.984Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-936f7aab5f9c
-  - type: covered_by
-    from: SYM-cli-signoff-render-summary-markdown
-    to: TEST-kibi-signoff-views
-    created_at: 2026-10-22T09:26:10.002Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d612a221c120
   - type: implements
     from: SYM-cli-report-proof-gate-keys
     to: REQ-kibi-report-filters-and-gates

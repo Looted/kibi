@@ -1,11 +1,4 @@
 relationships:
-  - type: covered_by
-    from: SYM-test-root-stop-engines
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-16T18:52:30.415Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ba8d9a80debc
   - type: implements
     from: SYM-kb-status-json
     to: REQ-cli-status-pre-first-sync
@@ -49,27 +42,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-e4f4a1e25618
   - type: implements
-    from: SYM-DIAGNOSTIC_MODE_ENABLED
-    to: REQ-002
-    created_at: 2026-08-22T20:05:36.813Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2f5db9119392
-  - type: covered_by
-    from: SYM-DIAGNOSTIC_MODE_ENABLED
-    to: TEST-005
-    created_at: 2026-08-22T20:05:36.828Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-40a23fe73924
-  - type: covered_by
-    from: SYM-DIAGNOSTIC_MODE_ENABLED
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:05:36.834Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8cffdc5ac166
-  - type: implements
     from: SYM-test
     to: REQ-002
     created_at: 2026-08-22T20:10:45.484Z
@@ -98,26 +70,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-34c52b68eb9b
   - type: covered_by
-    from: SYM-repositoryMatches
-    to: TEST-014
-    created_at: 2026-08-28T10:11:02.341Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5b44dbe6304c
-  - type: covered_by
     from: SYM-collectStagedAuthoredSymbolsManifestEvidence
     to: TEST-cli-staged-impact-enforcement
     created_at: 2026-09-05T15:17:05.050Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-388307263be6
-  - type: covered_by
-    from: SYM-cli-engine-read-attachment-identity
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:30:53.310Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-76a3ccef28e4
   - type: covered_by
     from: SYM-kb-status-json
     to: TEST-core-journaled-engine-delta-sync
@@ -175,13 +133,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-2c8204964b01
   - type: covered_by
-    from: SYM-DIAGNOSTIC_MODE_ENABLED
-    to: TEST-kibi-telemetry-acceptance-gate
-    created_at: 2026-09-18T14:50:10.752Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-60365e3fa0d2
-  - type: covered_by
     from: SYM-test
     to: TEST-mcp-upsert-coverage
     created_at: 2026-09-18T15:28:03.536Z
@@ -195,20 +146,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3fbf22392ea7
-  - type: implements
-    from: SYM-pack-packages-pack-catalog
-    to: REQ-020
-    created_at: 2026-09-21T15:27:14.640Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-044933ebfe02
-  - type: covered_by
-    from: SYM-pack-packages-pack-catalog
-    to: TEST-014
-    created_at: 2026-09-21T19:16:44.227Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a96cf6910188
   - type: executable_for
     from: SYM-e2e-multilingual-language-catalog
     to: TEST-multilingual-language-catalog

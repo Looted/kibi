@@ -13,20 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-44b62faedd6d
-  - type: implements
-    from: SYM-canonical-readKbManifest
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:02:10.638Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-125c0dea4cf1
-  - type: covered_by
-    from: SYM-canonical-readKbManifest
-    to: TEST-cli-canonical-init
-    created_at: 2026-08-18T17:02:10.645Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b3f1eae0337f
   - type: validates
     from: TEST-cursor-consumer-local-mcp-launcher-v1
     to: REQ-cursor-consumer-local-mcp-launcher-v1
@@ -34,48 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e4f0f9ec4e4
-  - type: implements
-    from: SYM-modeling-requirement-utils-trimSentenceTail
-    to: REQ-002
-    created_at: 2026-08-22T20:08:46.149Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12dc81c69f76
-  - type: covered_by
-    from: SYM-modeling-requirement-utils-trimSentenceTail
-    to: TEST-005
-    created_at: 2026-08-22T20:08:46.160Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f8cb8f90f3e
-  - type: covered_by
-    from: SYM-modeling-requirement-utils-trimSentenceTail
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:08:46.163Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c4c69dd9ded5
-  - type: implements
-    from: SYM-buildStableRequirementIds
-    to: REQ-011
-    created_at: 2026-08-22T20:12:11.168Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3347d18a0b19
-  - type: covered_by
-    from: SYM-buildStableRequirementIds
-    to: TEST-cli-strict-modeling
-    created_at: 2026-08-22T20:12:11.180Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fe2f889a498d
-  - type: covered_by
-    from: SYM-buildStableRequirementIds
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:12:11.185Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-54149bf5f1bb
   - type: covered_by
     from: SYM-auto-974943F1E67A
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -83,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-165df6c739e2
-  - type: covered_by
-    from: SYM-buildStableRequirementIds
-    to: TEST-001
-    created_at: 2026-09-05T14:50:56.794Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3970e85ea790
   - type: executable_for
     from: SYM-e2e-test-root-suite-batch-diagnostics
     to: TEST-root-suite-batch-diagnostics
@@ -118,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d896e49aed3
-  - type: covered_by
-    from: SYM-modeling-requirement-utils-trimSentenceTail
-    to: TEST-e2e-mcp-model-requirement
-    created_at: 2026-09-18T15:21:51.180Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c7aa59575f8a
   - type: specified_by
     from: REQ-kibi-local-proof-parity
     to: SCEN-kibi-local-proof-parity

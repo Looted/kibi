@@ -21,20 +21,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-6460f9726f88
   - type: implements
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-detectkibibootstrapcommandcapability
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:37.814Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3a836632b947
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-detectkibibootstrapcommandcapability
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:37.819Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-01e3c9392cec
-  - type: implements
     from: SYM-handleKbSkillsLoad
     to: REQ-002
     created_at: 2026-08-22T20:06:48.807Z
@@ -76,13 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77027647ee37
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-detectkibibootstrapcommandcapability
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:17:43.563Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5e6c6336443b
   - type: implements
     from: SYM-mutation-relationships-schema
     to: REQ-kibi-operation-interface-parity
@@ -125,20 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5f0f3ae0f074
-  - type: implements
-    from: SYM-quality-inventory-02098b3620d2
-    to: REQ-cursor-kibi-plugin-v1
-    created_at: 2026-09-14T20:33:45.675Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12f6c73dd8a4
-  - type: covered_by
-    from: SYM-quality-inventory-02098b3620d2
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-14T20:33:45.688Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f0a66be095a
   - type: executable_for
     from: SYM-e2e-test-briefs-retired
     to: TEST-e2e-briefs-retired
@@ -153,13 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-807282fd0ec3
-  - type: covered_by
-    from: SYM-cap-plugin-iscapabilityid-2e16a4ad
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:47:25.657Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e8dc488fff9c
   - type: implements
     from: SYM-resetProlog
     to: REQ-core-prolog-process-management

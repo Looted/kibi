@@ -52,27 +52,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8e45f80f3aa8
-  - type: covered_by
-    from: SYM-normalize-semantic-clause
-    to: TEST-kibi-proposition-complete-ingestion
-    created_at: 2026-08-16T18:52:06.534Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2590892a2f92
-  - type: implements
-    from: SYM-canonical-parseHunksFromDiff
-    to: REQ-cli-canonical-runtime
-    created_at: 2026-08-18T17:36:37.179Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-37f304df211c
-  - type: covered_by
-    from: SYM-canonical-parseHunksFromDiff
-    to: TEST-cli-canonical-runtime
-    created_at: 2026-08-18T17:36:37.191Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0373f7ce7098
   - type: implements
     from: SYM-suggest-predicates-core-handler
     to: REQ-kibi-predicate-suggestion-relevance-v1
@@ -165,13 +144,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-e1cc54c9dc96
   - type: covered_by
-    from: SYM-skillopt-run-verification-harness
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:15:31.248Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ab3718ab437e
-  - type: covered_by
     from: SYM-TRACEABILITY_RELATIONSHIP_TYPES
     to: TEST-cli-symbol-behavioral-anchors
     created_at: 2026-09-05T18:21:55.020Z
@@ -185,13 +157,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-144fb672b10e
-  - type: covered_by
-    from: SYM-skillopt-run-verification-harness
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:26:14.500Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-11ca213b8d3c
   - type: verified_by
     from: SCEN-upsert-unknown-field-guidance
     to: TEST-upsert-unknown-field-guidance

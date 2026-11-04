@@ -20,20 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b6d92104cde2
-  - type: implements
-    from: SYM-BRIDGE-SOURCE-WORKTREE-ENV
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-08-23T23:34:06.981Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1c6e2d3e10ab
-  - type: covered_by
-    from: SYM-BRIDGE-SOURCE-WORKTREE-ENV
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-23T23:34:06.991Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8aeb514ee66c
   - type: covered_by
     from: SYM-convert-junit-xml
     to: TEST-kibi-verification-evidence-contract
@@ -111,20 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-22084c7e514e
-  - type: implements
-    from: SYM-cli-EngineSession-recordModuleLoad
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-26T22:36:33.597Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-25cd87da8cc8
-  - type: covered_by
-    from: SYM-cli-EngineSession-recordModuleLoad
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-09-26T22:36:33.629Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3673757b1548
   - type: implements
     from: SYM-impact-stage-e-validateanalysisreviews
     to: REQ-impact-policy-stage-e-content-bound-review

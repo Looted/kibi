@@ -111,20 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c70764c357b7
-  - type: implements
-    from: SYM-quality-eval-runLiveHeldOutEvaluation
-    to: REQ-kibi-change-to-proof-evaluation
-    created_at: 2026-09-14T19:19:08.813Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8cc7d5e67aa2
-  - type: covered_by
-    from: SYM-quality-eval-runLiveHeldOutEvaluation
-    to: TEST-kibi-change-to-proof-evaluation
-    created_at: 2026-09-14T19:19:08.827Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e3374de09d3a
   - type: covered_by
     from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-executecompileintent
     to: TEST-e2e-plan-compiler-hash
@@ -132,13 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-439945738fd5
-  - type: covered_by
-    from: SYM-quality-eval-runLiveHeldOutEvaluation
-    to: TEST-kibi-change-to-proof-evaluation-live
-    created_at: 2026-09-18T07:32:05.993Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-80165208ea70
   - type: validates
     from: TEST-e2e-vscode-extension-lifecycle
     to: SCEN-vscode-kb-to-source
@@ -174,13 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2f7a38f93979
-  - type: covered_by
-    from: SYM-cap-plugin-validatepermissions-aa84267e
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:47:34.751Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b4bf9391752d
   - type: implements
     from: SYM-docs-site-catalog-SITE_TAGLINE
     to: REQ-docs-readme-published-links
@@ -237,20 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1096accd7a10
-  - type: implements
-    from: SYM-skillopt-runtime-case-signals-supersededrequirementids-338b9306
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T12:24:58.440Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-79e7774ffd14
-  - type: covered_by
-    from: SYM-skillopt-runtime-case-signals-supersededrequirementids-338b9306
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:24:58.459Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0ead97121a06
   - type: implements
     from: SYM-bootstrap-claim-name-length-subjectkeyregistry
     to: REQ-bootstrap-claim-name-length

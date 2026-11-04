@@ -27,48 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c0da8d97c6a9
-  - type: implements
-    from: SYM-scripts-coverageManifest-writeCoverageManifestAudit
-    to: REQ-014
-    created_at: 2026-08-20T10:36:27.736Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-03767cf540ae
-  - type: covered_by
-    from: SYM-scripts-coverageManifest-writeCoverageManifestAudit
-    to: TEST-scripts-unit-coverage-runner
-    created_at: 2026-08-20T10:36:27.746Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cbc1d1024af1
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstraprecommendedaction
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:01.159Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-63223c5ff3a6
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstraprecommendedaction
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:01.165Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e674eb030fb7
-  - type: covered_by
-    from: SYM-scripts-coverageManifest-writeCoverageManifestAudit
-    to: TEST-006
-    created_at: 2026-08-22T20:15:00.710Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bde5a27a4ece
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstraprecommendedaction
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:17:33.915Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-311099bea018
   - type: covered_by
     from: SYM-auto-D4EC6552EDC9
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -126,13 +84,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-44a912bf2011
   - type: covered_by
-    from: SYM-scripts-coverageManifest-writeCoverageManifestAudit
-    to: TEST-011
-    created_at: 2026-09-05T14:52:30.495Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-51414236ed6c
-  - type: covered_by
     from: SYM-cli-rule-registry-getEffectiveRules
     to: TEST-001
     created_at: 2026-09-05T15:35:22.977Z
@@ -168,33 +119,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-a2ba4abede25
   - type: covered_by
-    from: SYM-semantic-advisor-singularize
-    to: TEST-mcp-semantic-advisor-preflight
-    created_at: 2026-09-05T17:40:03.082Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cee7643e8327
-  - type: covered_by
     from: SYM-predicate-score-exact-2
     to: TEST-mcp-suggest-predicates
     created_at: 2026-09-05T17:47:57.098Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7b3f915a82b5
-  - type: covered_by
-    from: SYM-VerificationHarnessOptionsError
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:10:58.440Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fbf267a1db5c
-  - type: covered_by
-    from: SYM-skillopt-held-out-evaluate-matrix
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:14:31.163Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7c45e2fc18d5
   - type: implements
     from: SYM-finished-at-precedes-started-at
     to: REQ-kibi-verification-evidence-contract
@@ -209,20 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e57077d60afa
-  - type: covered_by
-    from: SYM-VerificationHarnessOptionsError
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:24:58.358Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a3a7e21609b5
-  - type: implements
-    from: SYM-skillopt-held-out-evaluate-matrix
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:39:34.583Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ab1e37fd2933
   - type: implements
     from: SYM-claude-readEntitySummary
     to: REQ-claude-code-kibi-plugin-v1
@@ -258,20 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6dd343eef6b9
-  - type: implements
-    from: SYM-mcp-kibiWorkspaceFor
-    to: REQ-mcp-workspace-routing
-    created_at: 2026-10-02T14:42:52.949Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d810e0a1f841
-  - type: covered_by
-    from: SYM-mcp-kibiWorkspaceFor
-    to: TEST-mcp-workspace-routing
-    created_at: 2026-10-02T14:42:53.016Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-42849b315712
   - type: implements
     from: SYM-auto-D4EC6552EDC9
     to: REQ-branch-store-recovery-v4

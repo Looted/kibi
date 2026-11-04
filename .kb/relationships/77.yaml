@@ -41,20 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c31f4741147
-  - type: covered_by
-    from: SYM-cli-github-ensure-gitignore
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-19T20:54:33.651Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-820a13db8118
-  - type: covered_by
-    from: SYM-cli-github-load-workflow-template
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-19T20:55:05.072Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f00def07ffc
   - type: implements
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-upsert
     to: REQ-KIBI-BOOTSTRAP-PLAN
@@ -182,13 +168,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-f1f936903cef
   - type: covered_by
-    from: SYM-sync-warn-failed-source-hash
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-09T03:35:49.175Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1bcd1e1bf94f
-  - type: covered_by
     from: SYM-convert-tap
     to: TEST-native-report-integrity
     created_at: 2026-09-14T19:17:48.809Z
@@ -272,41 +251,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a79ff6828411
-  - type: implements
-    from: SYM-cap-plugin-sourceanalysisresultv2
-    to: REQ-capability-plugin-protocol-v1
-    created_at: 2026-09-30T15:24:08.036Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-edda494ed946
-  - type: covered_by
-    from: SYM-cap-plugin-sourceanalysisresultv2
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-30T15:24:08.048Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-37dd10925737
-  - type: implements
-    from: SYM-skillopt-selected-host-choice
-    to: REQ-skillopt-operator-selected-harness
-    created_at: 2026-10-05T23:49:07.180Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a4977a38ab07
-  - type: covered_by
-    from: SYM-skillopt-selected-host-choice
-    to: TEST-skillopt-claude-code-host
-    created_at: 2026-10-05T23:49:07.210Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c42096d8e09d
-  - type: covered_by
-    from: SYM-skillopt-selected-host-choice
-    to: TEST-e2e-skillopt-claude-code-host
-    created_at: 2026-10-05T23:49:07.246Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5dbc968cefd2
   - type: validates
     from: TEST-model-predicates-closed-vocabularies
     to: REQ-model-predicates-closed-vocabularies

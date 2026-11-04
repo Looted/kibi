@@ -120,20 +120,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-bfdd396d6de2
   - type: covered_by
-    from: SYM-TaskFixtureResolutionError
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:10:27.729Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-373a2233fa9b
-  - type: implements
-    from: SYM-TaskFixtureResolutionError
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:37:01.975Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3ed30ee0fde9
-  - type: covered_by
     from: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
     to: TEST-claude-code-kibi-plugin-v1
     created_at: 2026-09-27T09:27:47.531Z
@@ -147,13 +133,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-81d8bd1e74c1
-  - type: implements
-    from: SYM-impact-stage-e-impactreviewinventory
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:43:46.643Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5ab30efac861
   - type: implements
     from: SYM-impact-stage-e-impactreviewinventory
     to: REQ-impact-review-public-preparation

@@ -77,13 +77,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-9e084e82d4b0
   - type: covered_by
-    from: SYM-codex-HookEvent
-    to: TEST-codex-kibi-plugin-v1
-    created_at: 2026-09-05T15:20:04.035Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cd2303e7aa29
-  - type: covered_by
     from: SYM-auto-9673173700B2
     to: TEST-kibi-operation-interface-parity
     created_at: 2026-09-05T17:19:28.329Z
