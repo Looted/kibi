@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kibiProtocol",
+    "operation",
+    "resultVersion",
+    "status",
+    "data",
+    "effects",
+    "diagnostics",
+    "nextActions"
+  ],
+  "properties": {
+    "kibiProtocol": {
+      "const": 1
+    },
+    "operation": {
+      "const": "kb_check"
+    },
+    "resultVersion": {
+      "const": "kibi.kb_check.v1"
+    },
+    "status": {
+      "enum": ["success", "committed_with_repairs", "error"]
+    },
+    "effects": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "status"],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "status": {
+            "enum": ["completed", "failed", "not_applicable"]
+          },
+          "detail": {},
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["message"],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": ["info", "warning", "error"]
+          },
+          "message": {
+            "type": "string"
+          },
+          "detail": {},
+          "category": {
+            "type": "string"
+          },
+          "suggestion": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "nextActions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["operation", "reason", "required"],
+        "properties": {
+          "operation": {
+            "type": "string"
+          },
+          "input": {},
+          "reason": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "retryable"],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "details": {}
+      }
+    }
+  }
+}

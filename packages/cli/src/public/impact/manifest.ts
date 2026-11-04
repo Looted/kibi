@@ -22,9 +22,8 @@ export function readImpactManifestResults(
 ): readonly ExtractionResult[] {
   const symbolsPath = CANONICAL_ENTITY_PATHS.symbols;
 
-  const absolutePath = path.isAbsolute(symbolsPath)
-    ? symbolsPath
-    : path.resolve(workspaceRoot, symbolsPath);
+  // path.resolve keeps an absolute manifest path as it is.
+  const absolutePath = path.resolve(workspaceRoot, symbolsPath);
   if (!existsSync(absolutePath)) return [];
 
   return extractFromManifest(absolutePath).map((result) => ({

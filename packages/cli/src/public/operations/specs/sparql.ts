@@ -83,9 +83,9 @@ async function executeSparqlRemote(
       ? context.signal
       : AbortSignal.any([
           context.signal,
-          AbortSignal.timeout(
-            Math.max(1, Math.ceil(input.timeoutMs / 1_000)) * 1_000,
-          ),
+          // A validated timeout is positive, so this rounds up to at least
+          // one whole second.
+          AbortSignal.timeout(Math.ceil(input.timeoutMs / 1_000) * 1_000),
         ]);
   try {
     const response = await context.net.fetch(endpoint, {

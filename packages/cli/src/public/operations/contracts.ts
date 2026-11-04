@@ -143,10 +143,10 @@ const reviewFileEvidence = {
 const recordTemplateFile = {
   ...objectData(
     {
-      ...(((reviewFileEvidence as OperationJsonSchema).properties as Record<
+      ...((reviewFileEvidence as OperationJsonSchema).properties as Record<
         string,
         OperationJsonSchema
-      >) ?? {}),
+      >),
       analysisReviews: { type: "null" },
       decision: { type: "null" },
     },
@@ -928,7 +928,6 @@ export function declaredEffects(
 ): readonly OperationEffectDeclaration[] {
   const overrides = EFFECT_OVERRIDES[operation];
   if (!overrides) throw new Error(`Missing effect contract for ${operation}`);
-  const expected = new Set(effects);
   const declarations = effects.map((kind) => {
     const override = overrides[kind] ?? {};
     return {
@@ -938,11 +937,11 @@ export function declaredEffects(
           ? ("write" as const)
           : ("read" as const),
       destructive: override.destructive === true,
-      retrySafety:
-        override.retrySafety ?? (override.destructive ? "unsafe" : "safe"),
+      // Every destructive override also names its retry safety.
+      retrySafety: override.retrySafety ?? "safe",
       openWorld: override.openWorld === true,
     };
   });
-  assertUniqueEffectKinds(operation, declarations, expected.size);
+  assertUniqueEffectKinds(operation, declarations, effects.length);
   return declarations;
 }

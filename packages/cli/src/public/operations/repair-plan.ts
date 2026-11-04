@@ -225,7 +225,13 @@ const REPAIR_PHASES = {
 
 type RepairPhase = keyof typeof REPAIR_PHASES;
 
-const GAP_PHASE: Readonly<Record<string, RepairPhase>> = {
+// Own-key lookups: a gap or stage named like an Object.prototype member
+// ("constructor", "toString") must miss rather than resolve to a function.
+function lookup<T>(table: Readonly<Record<string, T>>): ReadonlyMap<string, T> {
+  return new Map(Object.entries(table));
+}
+
+const GAP_PHASE = lookup<RepairPhase>({
   missing_requirement_source: "requirement_source",
   missing_semantic_inventory: "semantic_inventory",
   incomplete_semantic_inventory: "semantic_inventory",
@@ -255,9 +261,9 @@ const GAP_PHASE: Readonly<Record<string, RepairPhase>> = {
   missing_production_symbol: "production_ownership",
   missing_production_symbol_coverage: "production_coverage",
   missing_symbol_coordinates: "source_coordinates",
-};
+});
 
-const GAP_STAGE: Readonly<Record<string, string>> = {
+const GAP_STAGE = lookup<string>({
   missing_requirement_source: "source_coordinates",
   missing_semantic_inventory: "semantic_inventory",
   incomplete_semantic_inventory: "semantic_inventory",
@@ -287,9 +293,9 @@ const GAP_STAGE: Readonly<Record<string, string>> = {
   missing_production_symbol: "production_symbols",
   missing_production_symbol_coverage: "production_symbols",
   missing_symbol_coordinates: "source_coordinates",
-};
+});
 
-const PROOF_STAGE_KEY: Readonly<Record<string, string>> = {
+const PROOF_STAGE_KEY = lookup<string>({
   semantic_inventory: "semanticInventory",
   logic_grounding: "logicGrounding",
   contradictions: "contradictions",
@@ -302,7 +308,7 @@ const PROOF_STAGE_KEY: Readonly<Record<string, string>> = {
   executable_symbols: "executableSymbols",
   production_symbols: "productionSymbols",
   source_coordinates: "sourceCoordinates",
-};
+});
 
 export type RepairPlanRepair = {
   readonly requirementId: string;
@@ -427,7 +433,7 @@ function stableStringify(value: unknown): string {
 }
 
 function numberField(value: unknown, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+  return Number.isFinite(value) ? (value as number) : fallback;
 }
 
 function actionForRepair(
@@ -444,35 +450,37 @@ function stageEvidence(
   proofStage: string,
 ): Readonly<Record<string, unknown>> {
   const stages = isRecord(row.proofStages) ? row.proofStages : {};
-  const key = PROOF_STAGE_KEY[proofStage];
+  const key = PROOF_STAGE_KEY.get(proofStage);
   const evidence = key === undefined ? undefined : stages[key];
   const stable = stableValue(evidence);
   return isRecord(stable) ? stable : {};
 }
 
-const VALUE_FIELD: Readonly<Record<string, string>> = {
+const VALUE_FIELD = lookup<string>({
   int: "value_int",
   number: "value_number",
   set: "value_set",
   string: "value_string",
-};
+});
 
 function caseSkeleton(
   requirementId: string,
   row: Readonly<Record<string, unknown>>,
 ): CaseSkeleton | undefined {
   const caseId = typeof row.caseId === "string" ? row.caseId : undefined;
-  const assumption = isRecord(row.assumption) ? row.assumption : undefined;
-  const valueType =
-    typeof assumption?.value_type === "string" ? assumption.value_type : "";
-  const valueField = VALUE_FIELD[valueType];
-  if (caseId === undefined || assumption === undefined || !valueField)
-    return undefined;
+  const assumption: Readonly<Record<string, unknown>> = isRecord(row.assumption)
+    ? row.assumption
+    : {};
+  // Only a string value_type has a field, so valueType is a string below.
+  const valueType = assumption.value_type as string;
+  const valueField = VALUE_FIELD.get(valueType);
+  if (caseId === undefined || !valueField) return undefined;
   const constraint = typeof row.constraint === "string" ? row.constraint : "";
   const property =
     typeof assumption.property_key === "string" ? assumption.property_key : "";
   const expects = row.predicted === "rejection" ? "rejection" : "success";
-  const placeholder = JSON.stringify(assumption.value).includes("<");
+  // JSON.stringify returns undefined for an assumption without a value.
+  const placeholder = String(JSON.stringify(assumption.value)).includes("<");
   const suffix = caseId.replace(/^CASE-/, "");
   const factId = `FACT-CASE-${suffix}`;
   const scenarioId = `SCEN-CASE-${suffix}`;
@@ -519,11 +527,13 @@ function caseSkeletons(
 ): CaseSkeleton[] {
   const rows = Array.isArray(evidence.uncoveredCases)
     ? evidence.uncoveredCases.filter(isRecord)
-    : [];
-  return rows.flatMap((row) => {
-    const skeleton = caseSkeleton(requirementId, row);
-    return skeleton === undefined ? [] : [skeleton];
-  });
+    : undefined;
+  return (
+    rows?.flatMap((row) => {
+      const skeleton = caseSkeleton(requirementId, row);
+      return skeleton === undefined ? [] : [skeleton];
+    }) ?? []
+  );
 }
 
 function batchId(requirementId: string, phase: RepairPhase): string {
@@ -533,28 +543,27 @@ function batchId(requirementId: string, phase: RepairPhase): string {
 }
 
 function buildRequirementBatches(
+  requirementId: string,
   row: Readonly<Record<string, unknown>>,
 ): RepairPlanBatch[] {
-  const requirementId =
-    typeof row.id === "string" ? row.id : "unknown-requirement";
-  const gaps = [...new Set(stringList(row.proofGaps))].sort();
-  const repairs = Array.isArray(row.proofRepairs)
-    ? row.proofRepairs.filter(isRecord)
-    : [];
-  const repairByGap = new Map(
-    repairs.flatMap((repair) =>
-      typeof repair.gap === "string" ? [[repair.gap, repair] as const] : [],
-    ),
+  // Repairs are sorted by priority and gap below, so gap order is free here.
+  const gaps = new Set(stringList(row.proofGaps));
+  const repairByGap = new Map<unknown, Readonly<Record<string, unknown>>>(
+    Array.isArray(row.proofRepairs)
+      ? row.proofRepairs
+          .filter(isRecord)
+          .map((repair) => [repair.gap, repair] as const)
+      : undefined,
   );
   const byPhase = new Map<RepairPhase, RepairPlanRepair[]>();
 
   for (const gap of gaps) {
-    const phase = GAP_PHASE[gap] ?? "manual_review";
+    const phase = GAP_PHASE.get(gap) ?? "manual_review";
     const sourceRepair = repairByGap.get(gap);
     const proofStage =
       typeof sourceRepair?.stage === "string"
         ? sourceRepair.stage
-        : (GAP_STAGE[gap] ?? "manual_review");
+        : (GAP_STAGE.get(gap) ?? "manual_review");
     const evidence = stageEvidence(row, proofStage);
     const repair: RepairPlanRepair = {
       requirementId,
@@ -575,33 +584,28 @@ function buildRequirementBatches(
     byPhase.set(phase, phaseRepairs);
   }
 
-  const phases = [...byPhase.keys()].sort(
-    (left, right) =>
-      REPAIR_PHASES[left].order - REPAIR_PHASES[right].order ||
-      left.localeCompare(right),
+  // Phase orders are distinct, so the order alone sorts the phases.
+  const phases = [...byPhase.entries()].sort(
+    ([left], [right]) => REPAIR_PHASES[left].order - REPAIR_PHASES[right].order,
   );
   const priorBatchIds: string[] = [];
-  return phases.map((phase) => {
-    const phaseRepairs = byPhase.get(phase) ?? [];
+  return phases.map(([phase, phaseRepairs]) => {
+    // Only missing_symbol_coordinates maps to the source_coordinates phase.
     const coordinatesNeedReview =
       phase === "source_coordinates" &&
-      phaseRepairs.some((repair) => {
+      phaseRepairs.filter((repair) => {
         const evidence = repair.evidence.coordinateRepairs;
         return (
-          repair.gap !== "missing_symbol_coordinates" ||
           !Array.isArray(evidence) ||
           evidence.length === 0 ||
           evidence.some((item) => !isRecord(item) || item.refreshable !== true)
         );
-      });
+      }).length > 0;
     const definition: RepairPhaseDefinition = coordinatesNeedReview
       ? {
           ...REPAIR_PHASES[phase],
-          objective: phaseRepairs.some(
-            (repair) => repair.gap === "missing_requirement_source",
-          )
-            ? "Bind the requirement to its current source document through validated upsert and inspect any missing symbol anchors before refreshing."
-            : "Query the affected symbols and repair their sourceFile/title or explicitly author granularity_reason: extractor-miss (or another intentional coarse anchor) through validated upsert before refreshing.",
+          objective:
+            "Query the affected symbols and repair their sourceFile/title or explicitly author granularity_reason: extractor-miss (or another intentional coarse anchor) through validated upsert before refreshing.",
           workflowSteps: [
             "kb_query",
             "kb_validate_upsert",
@@ -664,18 +668,17 @@ export function buildRepairPlan(
   const by = input.by ?? "req";
   if (by !== "req") return undefined;
 
-  const rows = payload.rows ?? [];
-  const requirementRows = rows.filter(
-    (row) => typeof row.id === "string" && stringList(row.proofGaps).length > 0,
+  // A requirement has one batch per phase, so order and requirement id sort
+  // the batches fully. A row without gaps yields no batch.
+  const batches = (
+    payload.rows?.flatMap((row) =>
+      typeof row.id === "string" ? buildRequirementBatches(row.id, row) : [],
+    ) ?? []
+  ).sort(
+    (left, right) =>
+      left.order - right.order ||
+      left.requirementId.localeCompare(right.requirementId),
   );
-  const batches = requirementRows
-    .flatMap(buildRequirementBatches)
-    .sort(
-      (left, right) =>
-        left.order - right.order ||
-        left.requirementId.localeCompare(right.requirementId) ||
-        left.id.localeCompare(right.id),
-    );
   const requirementCount = new Set(batches.map((batch) => batch.requirementId))
     .size;
   const summary = payload.summary ?? {};

@@ -1,0 +1,55 @@
+[
+  {
+    "id": "telemetry_evidence_stale",
+    "severity": "review",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "Telemetry acceptance has no valid timestamped evidence, so current workflow quality is unresolved.",
+    "suggestion": "Run the current Kibi workflow in diagnostic mode, then rerun kibi usage-metrics --require-acceptance and an unfiltered kb_check.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 5,
+      "scope": {
+        "fresh": false,
+        "lastTimestamp": null
+      },
+      "diagnostics": ["usage_log_stale"]
+    }
+  },
+  {
+    "id": "telemetry_acceptance_incomplete",
+    "severity": "review",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "Telemetry cannot evaluate 4 required metric(s): telemetry_completeness, validation_before_upsert, source_lookup_zero_result_rate, e2e_receipt_freshness.",
+    "suggestion": "Capture complete diagnostic events, including a complete requirement coverage run, then rerun the telemetry acceptance report.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 80,
+      "metrics": [
+        {
+          "id": "telemetry_completeness",
+          "status": "insufficient_evidence",
+          "message": "telemetry_completeness message"
+        },
+        {
+          "id": "validation_before_upsert",
+          "status": "insufficient_evidence",
+          "message": "validation_before_upsert message"
+        },
+        {
+          "id": "source_lookup_zero_result_rate",
+          "status": "insufficient_evidence",
+          "message": "source_lookup_zero_result_rate message"
+        },
+        {
+          "id": "e2e_receipt_freshness",
+          "status": "insufficient_evidence",
+          "message": "e2e_receipt_freshness message"
+        }
+      ]
+    }
+  }
+]

@@ -67,8 +67,8 @@ export function foreignParameterWarnings(
   const route = routes[choice];
   if (route === undefined) return [];
   const own = new Set(Object.keys(properties(route)));
-  const equivalents =
-    route.name === undefined ? {} : (EQUIVALENT_PARAMETERS[route.name] ?? {});
+  // An unnamed route reads as "undefined", which no table entry uses.
+  const equivalents = EQUIVALENT_PARAMETERS[String(route.name)] ?? {};
   const warnings: Array<{
     parameter: string;
     message: string;
@@ -76,11 +76,9 @@ export function foreignParameterWarnings(
   }> = [];
   for (const parameter of Object.keys(rest)) {
     if (own.has(parameter) || rest[parameter] === undefined) continue;
+    // The chosen route never owns a parameter that got this far.
     const owners = Object.entries(routes)
-      .filter(
-        ([other, otherRoute]) =>
-          other !== choice && parameter in properties(otherRoute),
-      )
+      .filter(([, otherRoute]) => parameter in properties(otherRoute))
       .map(([other]) => `${selector}: ${other}`);
     if (owners.length === 0) continue;
     const equivalent = equivalents[parameter];
@@ -103,7 +101,8 @@ export async function dispatchComposite(
   context: OperationContext,
 ): Promise<OperationResult<Record<string, unknown>>> {
   const choice = input[selector];
-  const route = typeof choice === "string" ? routes[choice] : undefined;
+  // A missing or non-string selector names no route either.
+  const route = routes[String(choice)];
   if (route === undefined) {
     throw new Error(
       `${selector} must be one of: ${Object.keys(routes).join(", ")}`,
@@ -142,8 +141,7 @@ export async function dispatchComposite(
   }
   // The routed payload's own warnings list carries them, in its own shape;
   // a payload without one gets them in the text content only.
-  const asRecords =
-    route.name !== undefined && RECORD_WARNING_OPERATIONS.has(route.name);
+  const asRecords = RECORD_WARNING_OPERATIONS.has(String(route.name));
   const routedWarnings = Array.isArray(payload.warnings)
     ? {
         warnings: [

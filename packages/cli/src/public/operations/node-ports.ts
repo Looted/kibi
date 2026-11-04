@@ -79,15 +79,28 @@ function isReceiptOnlyMarkdownChange(
     const committed = execFileSync(
       "git",
       ["-C", workspaceRoot, "show", `HEAD:${relativePath}`],
-      // A file staged but not committed yet has no HEAD blob; git's error is
-      // expected here and must not reach the terminal.
-      { encoding: "buffer", maxBuffer: 64 * 1024 * 1024, stdio: "pipe" },
-    ) as Buffer;
+      {
+        maxBuffer: 64 * 1024 * 1024,
+        // A file staged but not committed yet has no HEAD blob; git's error
+        // is expected here and must not reach the terminal.
+        // rationale: stdio only keeps git's stderr off the console; stdout is
+        // the same either way
+        // Stryker disable next-line StringLiteral
+        stdio: "pipe",
+      },
+    );
     return working.equals(snapshotFileContent(relativePath, committed));
   } catch {
-    return false;
+    // An unreadable working file or a missing HEAD blob is a real change.
   }
+  return false;
 }
+
+type Keyed = { readonly key: string };
+// rationale: keys tie only for two names with one NFC form, whose relative
+// order no comparison can decide
+// Stryker disable next-line EqualityOperator
+const byKey = (left: Keyed, right: Keyed) => (left.key < right.key ? -1 : 1);
 
 async function workspaceSnapshot(workspaceRoot: string) {
   const { stdout: listed } = await execFileAsync(
@@ -101,21 +114,18 @@ async function workspaceSnapshot(workspaceRoot: string) {
       "--exclude-standard",
       "-z",
     ],
-    { encoding: "buffer", maxBuffer: 64 * 1024 * 1024 },
+    { maxBuffer: 64 * 1024 * 1024 },
   );
   // The snapshot names each file by its repo-relative path in Unicode NFC, so
   // a checkout whose filesystem reports decomposed names (macOS) hashes the
   // same commit to the same snapshot as a Linux CI runner. The raw name is
   // kept only to read the file.
   const paths = listed
-    .toString("utf8")
     .split("\0")
     .filter(Boolean)
     .filter(includedSnapshotPath)
     .map((raw) => ({ raw, key: raw.normalize("NFC") }))
-    .sort((left, right) =>
-      left.key < right.key ? -1 : left.key > right.key ? 1 : 0,
-    );
+    .sort(byKey);
   const digest = createHash("sha256");
   digest.update("kibi.workspace-snapshot.v2\0");
   // Synchronous reads: one awaited read per file paid a file-handle round
@@ -127,11 +137,8 @@ async function workspaceSnapshot(workspaceRoot: string) {
       const content = fsSync.readFileSync(path.join(workspaceRoot, raw));
       digest.update(snapshotFileContent(relativePath, content));
     } catch (error) {
-      const code =
-        typeof error === "object" && error !== null && "code" in error
-          ? String(error.code)
-          : "unreadable";
-      digest.update(`<${code}>`);
+      // Reading a listed path fails only with a filesystem error code.
+      digest.update(`<${String((error as { code?: unknown }).code)}>`);
     }
     digest.update("\0");
   }
@@ -155,22 +162,26 @@ async function workspaceSnapshot(workspaceRoot: string) {
     previousPath?: string;
   }[] = [];
   for (let index = 0; index < rawChanges.length; index++) {
-    const entry = rawChanges[index] ?? "";
+    const entry = rawChanges[index] as string;
     const statusCode = entry.slice(0, 2);
     const relativePath = entry.slice(3).replaceAll("\\", "/");
-    const previous = rawChanges[index + 1];
-    const isRenameOrCopy = statusCode[0] === "R" || statusCode[0] === "C";
+    // A rename or copy entry is always followed by its source path.
     const previousPath =
-      isRenameOrCopy && previous ? previous.replaceAll("\\", "/") : undefined;
-    const receiptOnly =
-      statusCode.includes("M") &&
+      statusCode[0] === "R" || statusCode[0] === "C"
+        ? (rawChanges[index + 1] as string).replaceAll("\\", "/")
+        : undefined;
+    // rationale: only a modified file can equal its HEAD blob, so the status
+    // test only spares a git call for added, deleted and untracked files
+    // Stryker disable next-line ConditionalExpression,StringLiteral
+    const modified = statusCode.includes("M");
+    const relevant =
       includedSnapshotPath(relativePath) &&
-      isReceiptOnlyMarkdownChange(workspaceRoot, relativePath);
+      !(modified && isReceiptOnlyMarkdownChange(workspaceRoot, relativePath));
     changes.push({
       path: relativePath,
       status: statusCode,
       snapshotRelevant:
-        (includedSnapshotPath(relativePath) && !receiptOnly) ||
+        relevant ||
         (previousPath !== undefined && includedSnapshotPath(previousPath)),
       ...(previousPath !== undefined ? { previousPath } : {}),
     });
@@ -191,7 +202,8 @@ async function workspaceSnapshot(workspaceRoot: string) {
 export const nodeFilesystem: NodeFilesystemPort = {
   readFile: (filePath) => fs.readFile(filePath, "utf8"),
   writeFile: async (filePath, data) => {
-    await fs.writeFile(filePath, data, "utf8");
+    // A string is written as UTF-8.
+    await fs.writeFile(filePath, data);
   },
   rename: (from, to) => fs.rename(from, to),
   mkdir: async (directoryPath) => {

@@ -204,18 +204,34 @@ export function buildTelemetryRemediationReport(
   now: Date = new Date(),
   policy: TelemetryAcceptancePolicy = DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
 ): TelemetryRemediationReport {
-  const acceptance = analyzeTelemetryAcceptance(events, now, policy);
+  return remediateTelemetryAcceptance(
+    events,
+    analyzeTelemetryAcceptance(events, now, policy),
+    policy,
+  );
+}
+
+/**
+ * Remediation items for `events` given an acceptance report already computed
+ * over them with the same `policy`.
+ */
+export function remediateTelemetryAcceptance(
+  events: readonly TelemetryUsageEvent[],
+  acceptance: TelemetryAcceptanceReport,
+  policy: TelemetryAcceptancePolicy,
+): TelemetryRemediationReport {
   const { operations, operationLines, hookRows } =
     partitionTelemetryUsage(events);
-  const timeOf = (event: TelemetryUsageEvent): number | null =>
-    event.timestamp === undefined ||
-    !Number.isFinite(Date.parse(event.timestamp))
-      ? null
-      : Date.parse(event.timestamp);
+  const timeOf = (event: TelemetryUsageEvent): number | null => {
+    // A missing timestamp parses as NaN, like a malformed one.
+    const parsed = Date.parse(String(event.timestamp));
+    return Number.isFinite(parsed) ? parsed : null;
+  };
   const all: IndexedEvent[] = operations.map((event, index) => ({
     event,
     index,
-    logLine: operationLines[index] ?? index + 1,
+    // The partition pairs every operation with its log line.
+    logLine: operationLines[index] ?? Number.NaN,
     time: timeOf(event),
   }));
   const recentStart = Math.max(0, all.length - policy.eventLimit);
@@ -470,12 +486,12 @@ export function buildTelemetryRemediationReport(
     }
   }
 
+  // Ranks are per metric and each metric cites a log line at most once, with
+  // at most one report item, so rank and line order the items fully.
+  const lineOf = (item: TelemetryRemediationItem) =>
+    item.event?.logLine ?? Number.MAX_SAFE_INTEGER;
   items.sort(
-    (left, right) =>
-      left.rank - right.rank ||
-      (left.event?.logLine ?? Number.MAX_SAFE_INTEGER) -
-        (right.event?.logLine ?? Number.MAX_SAFE_INTEGER) ||
-      left.id.localeCompare(right.id),
+    (left, right) => left.rank - right.rank || lineOf(left) - lineOf(right),
   );
   return {
     version: TELEMETRY_REMEDIATION_VERSION,

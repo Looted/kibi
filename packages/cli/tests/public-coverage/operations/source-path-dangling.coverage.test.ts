@@ -1,7 +1,11 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { SourceRepair } from "../../../src/operations/migration/source-paths.js";
 import {
   SOURCE_PATH_DANGLING_RULE,
+  collectSourcePathDanglingViolations,
   sourcePathDanglingViolations,
 } from "../../../src/public/operations/source-path-dangling.js";
 
@@ -107,5 +111,20 @@ describe("sourcePathDanglingViolations", () => {
       file: ".kb/requirements/REQ-1.md",
       remove: "dangling",
     });
+  });
+});
+
+describe("collectSourcePathDanglingViolations", () => {
+  test("names the rule", () => {
+    expect(SOURCE_PATH_DANGLING_RULE).toBe("source-path-dangling");
+  });
+
+  test("reports nothing for a workspace without entity sources", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-source-path-dangling-"));
+    try {
+      expect(collectSourcePathDanglingViolations(root)).toStrictEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
