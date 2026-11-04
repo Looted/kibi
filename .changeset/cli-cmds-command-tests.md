@@ -27,3 +27,5 @@ Source discovery reads pending receipts through one parser and lets errors in a 
 The sync cache reader shares one empty-cache shape and one optional-field list, and the manifest fingerprint reads symbol sources with fewer redundant guards; fingerprints and cache files are unchanged.
 
 Hook manager detection reads lefthook and pre-commit configuration through one parser and drops stage aliases no managed hook uses; detection and coverage results are unchanged.
+
+Installing a Git hook whose path runs through a regular file now reports the hook as not a regular file instead of failing with an uncaught ENOTDIR error. Hook files are written in one place, and the managed markers are matched without an escaping step they never needed.

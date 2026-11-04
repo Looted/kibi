@@ -251,7 +251,6 @@ const LEGACY_KIBI_GITIGNORE_REINCLUDES = [
 ] as const;
 
 function stripLegacyKibiGitIgnoreStanza(content: string): string {
-  if (content.length === 0) return content;
   const lines = content.split(/\r?\n/);
   const trimmed = lines.map((line) => line.trim());
   const hasFence = trimmed.includes(LEGACY_KIBI_GITIGNORE_FENCE);
@@ -266,10 +265,10 @@ function stripLegacyKibiGitIgnoreStanza(content: string): string {
     ...LEGACY_KIBI_GITIGNORE_REINCLUDES,
   ]);
   const kept = lines.filter((line) => !drop.has(line.trim()));
-  while (kept.length > 0 && kept[kept.length - 1] === "") {
+  while (kept.at(-1) === "") {
     kept.pop();
   }
-  return kept.length === 0 ? "" : `${kept.join("\n")}\n`;
+  return kept.map((line) => `${line}\n`).join("");
 }
 
 // implements REQ-003
@@ -313,11 +312,14 @@ export async function copySchemaFiles(
   console.log(`✓ Ensured ${schemaFiles.length} schema files`);
 }
 
+// Both markers are plain text without regular-expression metacharacters, so
+// they are embedded in patterns as they are.
 export const KIBI_HOOK_BEGIN = "# BEGIN kibi-managed";
 const KIBI_HOOK_END = "# END kibi-managed";
 
-function escapeRegex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function writeExecutable(hookPath: string, content: string): void {
+  writeFileSync(hookPath, content);
+  chmodSync(hookPath, 0o755);
 }
 
 export type InstallHookResult =
@@ -400,15 +402,11 @@ export function installHook(
   try {
     hookStats = lstatSync(hookPath);
   } catch (error) {
-    if (
-      (error as NodeJS.ErrnoException).code === "ENOENT" ||
-      (error as NodeJS.ErrnoException).code === "ENOTDIR"
-    ) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       // Missing hook: create it through the parent directory. Refuse when an
       // ancestor is itself a symlink whose target leaves the resolved path
       // (realpath is checked by the caller's hooks-dir guard).
-      writeFileSync(hookPath, `#!/bin/sh\n${kibiSection}\n`, { mode: 0o755 });
-      chmodSync(hookPath, 0o755);
+      writeExecutable(hookPath, `#!/bin/sh\n${kibiSection}\n`);
       return "installed";
     }
     console.error(
@@ -428,7 +426,7 @@ export function installHook(
   }
 
   try {
-    const existing = readFileSync(hookPath, "utf8");
+    const existing = readFileSync(hookPath).toString();
 
     if (
       existing.includes(KIBI_HOOK_BEGIN) &&
@@ -436,13 +434,10 @@ export function installHook(
     ) {
       // Replace only the kibi-managed section, preserving any user-authored content
       const updated = existing.replace(
-        new RegExp(
-          `${escapeRegex(KIBI_HOOK_BEGIN)}[\\s\\S]*?${escapeRegex(KIBI_HOOK_END)}`,
-        ),
+        new RegExp(`${KIBI_HOOK_BEGIN}[\\s\\S]*?${KIBI_HOOK_END}`),
         kibiSection,
       );
-      writeFileSync(hookPath, updated, { mode: 0o755 });
-      chmodSync(hookPath, 0o755);
+      writeExecutable(hookPath, updated);
       return "updated";
     }
     if (existing.trim().length > 0) {
@@ -450,13 +445,8 @@ export function installHook(
       return "skipped-foreign";
     }
 
-    const shebang = existing.startsWith("#!/") ? "" : "#!/bin/sh\n";
-    writeFileSync(
-      hookPath,
-      `${shebang}${existing.trimEnd()}\n${kibiSection}\n`,
-      { mode: 0o755 },
-    );
-    chmodSync(hookPath, 0o755);
+    // A blank hook file: nothing of it is worth keeping.
+    writeExecutable(hookPath, `#!/bin/sh\n\n${kibiSection}\n`);
     return "installed";
   } catch (error) {
     console.error(
@@ -494,12 +484,12 @@ function managedHookBody(template: string): string {
 // implements REQ-cli-doctor
 export function outdatedManagedHooks(hooksDir: string): string[] {
   const managed = new RegExp(
-    `${escapeRegex(KIBI_HOOK_BEGIN)}\\n([\\s\\S]*?)\\n${escapeRegex(KIBI_HOOK_END)}`,
+    `${KIBI_HOOK_BEGIN}\\n([\\s\\S]*?)\\n${KIBI_HOOK_END}`,
   );
   return MANAGED_HOOK_TEMPLATES.filter(([hook, template]) => {
     const hookPath = path.join(hooksDir, hook);
     if (!existsSync(hookPath)) return false;
-    const section = managed.exec(readFileSync(hookPath, "utf8"));
+    const section = managed.exec(readFileSync(hookPath).toString());
     return section !== null && section[1] !== managedHookBody(template);
   }).map(([hook]) => hook);
 }
@@ -511,7 +501,7 @@ export function hasManagedHooks(hooksDir: string): boolean {
     const hookPath = path.join(hooksDir, hook);
     return (
       existsSync(hookPath) &&
-      readFileSync(hookPath, "utf8").includes(KIBI_HOOK_BEGIN)
+      readFileSync(hookPath).toString().includes(KIBI_HOOK_BEGIN)
     );
   });
 }
