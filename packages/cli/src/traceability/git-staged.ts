@@ -116,7 +116,6 @@ const SUPPORTED_EXT = new Set([
   ".cjs",
 ]);
 
-
 function shouldLogTraceDebug(): boolean {
   return isCliTraceOrDebugEnabled();
 }
@@ -369,9 +368,7 @@ export function getStagedFiles(exec: ExecFn = defaultExec): StagedFile[] {
 
     if (status === "D") {
       if (shouldLogTraceDebug()) {
-        console.debug(
-          `Skipping deleted file (staged): ${entry.parts[0]}`,
-        );
+        console.debug(`Skipping deleted file (staged): ${entry.parts[0]}`);
       }
       continue;
     }
