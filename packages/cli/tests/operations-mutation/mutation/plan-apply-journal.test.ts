@@ -308,7 +308,7 @@ describe("journal location", () => {
   test("resolves the branch from the workspace when the context has none", () => {
     const ws = workspace();
     const saved = process.env.KIBI_BRANCH;
-    delete process.env.KIBI_BRANCH;
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     try {
       const { branchAttachment: _branch, ...context } = ws.context;
       expect(() =>
@@ -317,7 +317,8 @@ describe("journal location", () => {
         "Apply plan failed before any write: the KB branch could not be resolved for the plan journal",
       );
     } finally {
-      if (saved === undefined) delete process.env.KIBI_BRANCH;
+      if (saved === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_BRANCH");
       else process.env.KIBI_BRANCH = saved;
     }
   });
