@@ -758,21 +758,16 @@ export async function checkCommand(
               `Partial source analysis: staged line(s) ${review.lines.map((range) => (range.startLine === range.endLine ? `${range.startLine}` : `${range.startLine}-${range.endLine}`)).join(", ")} of ${review.path} fall outside every declaration the analyzer placed (${review.detail}); review that change at file level.`,
           ),
         ].filter((note): note is string => note !== undefined);
-        const printNotedResult = (
-          input: Parameters<typeof printStagedResult>[0],
-        ): void => {
-          printStagedResult(
-            baselineNotes.length === 0
-              ? input
-              : {
-                  ...input,
-                  messages: [...baselineNotes, ...(input.messages ?? [])],
-                },
-          );
+        type NotedResult = Parameters<typeof printStagedResult>[0] & {
+          messages: readonly string[];
         };
-        const printSnapshotResult = (
-          input: Parameters<typeof printStagedResult>[0],
-        ): void => {
+        const printNotedResult = (input: NotedResult): void => {
+          printStagedResult({
+            ...input,
+            messages: [...baselineNotes, ...input.messages],
+          });
+        };
+        const printSnapshotResult = (input: NotedResult): void => {
           snapshot.assertUnchanged();
           printNotedResult(input);
         };
@@ -817,9 +812,9 @@ export async function checkCommand(
         // committed side never blocks, and an after-side local gap blocks only
         // where it overlaps the staged lines. With a policy, the impact review
         // evaluates the same obligations and accepts reviewed partial gaps.
-        if (!impactPolicyEnabled)
+        if (!impactPolicyEnabled) {
           assertSourceAnalysisGate(stagedInventory, sourceAnalysis);
-        if (impactPolicyEnabled) {
+        } else {
           const impactEvaluation = evaluateImpactReview(snapshot, {
             providerSetFingerprint: fingerprintMaintenanceSourceSet(
               process.cwd(),
@@ -832,9 +827,7 @@ export async function checkCommand(
             throw new Error(
               `Staged impact review failed:\n${impactEvaluation.diagnostics.map((item) => `${item.code}: ${item.message}`).join("\n")}`,
             );
-          if (stagedCoverage) {
-            clearResolvedImpactReviewAdvisories(stagedCoverage);
-          }
+          clearResolvedImpactReviewAdvisories(stagedCoverage);
         }
         const stagedFiles = supportedStagedFiles(stagedInventory);
         if (stagedInventory.length === 0) {
@@ -999,10 +992,9 @@ export async function checkCommand(
         // Symbols of a generated file the KB does not reference need no
         // requirement link: the generator owns them. Linked ones stay checked.
         const manifestSourceFiles = new Set(
-          authoredSymbolResults.flatMap((result) => {
-            const sourceFile = result.sourceFile || result.entity.source;
-            return sourceFile ? [sourceFile] : [];
-          }),
+          authoredSymbolResults.map(
+            (result) => result.sourceFile || result.entity.source,
+          ),
         );
         const generatedSkipped: string[] = [];
         for (const f of sourceFiles) {
@@ -1035,9 +1027,7 @@ export async function checkCommand(
             if (exempt && checked.length < symbols.length)
               generatedSkipped.push(f.path);
             symbolsByFile.set(f.path, checked);
-            if (checked?.length) {
-              allSymbols.push(...checked);
-            }
+            allSymbols.push(...checked);
           } catch (e) {
             const message = `Error extracting symbols from staged file ${f.path}: ${e instanceof Error ? e.message : String(e)}`;
             throw new Error(message);
@@ -1050,8 +1040,8 @@ export async function checkCommand(
           );
         const markdownResultsByPath = new Map<string, ExtractionResult>();
         for (const file of markdownFiles) {
-          const content = file.content ?? "";
-          if (hasYamlFrontmatter(content)) {
+          const content = file.content;
+          if (content !== undefined && hasYamlFrontmatter(content)) {
             markdownResultsByPath.set(
               file.path,
               extractFromMarkdownString(content, file.path),
@@ -1059,13 +1049,11 @@ export async function checkCommand(
           }
         }
 
-        const stagedSourceFilePaths = new Set(
+        const stagedSourcePaths = new Set<string | undefined>(
           sourceFiles.map((file) => file.path),
         );
-        const scopedManifestResults = manifestResults.filter(
-          (result) =>
-            result.sourceFile !== undefined &&
-            stagedSourceFilePaths.has(result.sourceFile),
+        const scopedManifestResults = manifestResults.filter((result) =>
+          stagedSourcePaths.has(result.sourceFile),
         );
         const stagedEntityResults: ExtractionResult[] = [
           ...scopedManifestResults,
@@ -1127,12 +1115,10 @@ export async function checkCommand(
                 .flatMap((artifact) => artifact.entityIds)
             : [],
         );
-        const stagedSourcePaths = new Set(sourceFiles.map((file) => file.path));
         const activeGranularityResults = authoredSymbolResults.filter(
           (result) =>
             activeStagedSymbolEntityIds.has(result.entity.id) ||
-            (result.sourceFile !== undefined &&
-              stagedSourcePaths.has(result.sourceFile)),
+            stagedSourcePaths.has(result.sourceFile),
         );
         const snapshotSymbolsByFile = new Map<
           string,
@@ -1226,7 +1212,7 @@ export async function checkCommand(
 
           const overlayFacts = createOverlayFacts(allSymbols);
           const fs = await import("node:fs/promises");
-          await fs.writeFile(tempCtx.overlayPath, overlayFacts, "utf8");
+          await fs.writeFile(tempCtx.overlayPath, overlayFacts);
           await fs.cp(
             tempCtx.overlayPath,
             path.join(tempCtx.kbPath, "changed_symbols.pl"),
@@ -1319,8 +1305,9 @@ export async function checkCommand(
       } catch (err) {
         const message = `Error running staged validation: ${err instanceof Error ? err.message : String(err)}`;
         if (tempCtx) {
+          const { tempDir } = tempCtx;
           try {
-            await cleanupTempKb(tempCtx.tempDir);
+            await cleanupTempKb(tempDir);
           } catch {
             // best-effort: temp directory may already be cleaned up
           }
