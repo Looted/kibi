@@ -15,9 +15,7 @@
       {
         "id": "REQ-a",
         "proofStatus": "missing",
-        "proofGaps": [
-          "missing_logic_claims"
-        ],
+        "proofGaps": ["missing_logic_claims"],
         "proofRepairs": [
           {
             "gap": "missing_logic_claims",
@@ -116,14 +114,8 @@
         "configHash": null
       },
       "scope": {
-        "evaluatedDomains": [
-          "proof",
-          "semantic",
-          "symbol"
-        ],
-        "incompleteDomains": [
-          "coverage"
-        ],
+        "evaluatedDomains": ["proof", "semantic", "symbol"],
+        "incompleteDomains": ["coverage"],
         "complete": false
       },
       "actions": [
@@ -137,9 +129,7 @@
             "kind": "review",
             "instruction": "Persist the exact claim manifest and link it one-to-one to existing logical endpoints."
           },
-          "affectedEntityIds": [
-            "REQ-a"
-          ],
+          "affectedEntityIds": ["REQ-a"],
           "affectedFiles": [],
           "dependsOn": [],
           "preconditions": [],
@@ -183,11 +173,7 @@
           },
           "autoApplicable": false,
           "dispositionRequired": true,
-          "allowedDispositions": [
-            "fixed",
-            "accepted",
-            "deferred"
-          ]
+          "allowedDispositions": ["fixed", "accepted", "deferred"]
         }
       ],
       "diagnostics": [],
