@@ -11,6 +11,7 @@ tags:
   - ontology
   - predicates
   - review:context-missing
+  - umbrella
 links:
   - type: specified_by
     target: SCEN-mcp-suggest-predicates

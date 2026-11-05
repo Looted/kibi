@@ -12,6 +12,7 @@ tags:
   - parity
   - policy
   - review:context-missing
+  - umbrella
 links:
   - type: relates_to
     target: ADR-022

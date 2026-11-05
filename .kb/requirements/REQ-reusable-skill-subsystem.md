@@ -10,6 +10,7 @@ tags:
   - cli
   - skills
   - review:context-missing
+  - umbrella
 links:
   - type: specified_by
     target: SCEN-reusable-skill-subsystem
