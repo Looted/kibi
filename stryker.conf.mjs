@@ -1362,6 +1362,26 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/engine-daemon-mutation.test.ts",
   ],
   "packages/cli/src/prolog.ts": ["packages/cli/tests/prolog-mutation.test.ts"],
+  "packages/cli/src/public/operations/check-executor.ts": [
+    "packages/cli/tests/public-mutation/operations/check-executor.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/impact-review-preparation.ts": [
+    "packages/cli/tests/public-mutation/operations/impact-review-preparation.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/discovery-entities.ts": [
+    "packages/cli/tests/public-mutation/operations/discovery-entities.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/legacy-migration-plan.ts": [
+    "packages/cli/tests/public-mutation/operations/legacy-migration-plan.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/schema6-check-actions.ts": [
+    "packages/cli/tests/public-mutation/operations/schema6-check-actions.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/discovery-executors.ts": [
+    "packages/cli/tests/public-mutation/operations/discovery-query.mutation.test.ts",
+    "packages/cli/tests/public-mutation/operations/discovery-search.mutation.test.ts",
+    "packages/cli/tests/public-mutation/operations/discovery-status.mutation.test.ts",
+  ],
 };
 
 // Plugin package modules gated the same way: each with the hermetic tests of
