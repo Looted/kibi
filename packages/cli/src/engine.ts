@@ -92,8 +92,6 @@ export type {
 const READ_LIMITED_METHODS: ReadonlySet<EngineRequest["method"]> = new Set([
   "query",
   "command",
-  "entities",
-  "search",
 ]);
 
 export const ENGINE_PROTOCOL_VERSION = 1;
@@ -172,9 +170,9 @@ export function parseEngineAttachmentIdentity(
   statusJson: string | undefined,
 ): EngineAttachmentIdentity | null {
   // implements REQ-core-journaled-engine-persistence
-  if (statusJson === undefined) return null;
   try {
-    const decoded = JSON.parse(JSON.parse(statusJson)) as Record<
+    // A missing status (undefined) fails to parse like any other.
+    const decoded = JSON.parse(JSON.parse(statusJson as string)) as Record<
       string,
       unknown
     >;
@@ -230,7 +228,7 @@ export function formatEngineAttachmentMismatch(
 
 function engineIdleTimeoutMs(): number {
   const configured = Number.parseInt(
-    process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS ?? "",
+    String(process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS),
     10,
   );
   return Number.isFinite(configured) && configured >= 100
@@ -240,7 +238,7 @@ function engineIdleTimeoutMs(): number {
 
 function engineWorkspaceWatchdogMs(): number {
   const configured = Number.parseInt(
-    process.env.KIBI_ENGINE_WORKSPACE_WATCHDOG_MS ?? "",
+    String(process.env.KIBI_ENGINE_WORKSPACE_WATCHDOG_MS),
     10,
   );
   return Number.isFinite(configured) && configured >= 100
@@ -256,10 +254,11 @@ type EngineResponse = {
   readonly serverPackageVersions?: string;
 };
 
+// A promise settles once, and every path that settles a pending request
+// first takes it out of the client's map, so no request settles twice.
 type PendingRequest = {
   readonly resolve: (value: unknown) => void;
   readonly reject: (error: Error) => void;
-  settled: boolean;
 };
 
 function quoteProlog(value: string): string {
@@ -267,22 +266,15 @@ function quoteProlog(value: string): string {
 }
 
 function cacheableEngineGoal(goal: string): boolean {
-  const normalized = goal.trim();
-  if (
-    !normalized ||
-    normalized.startsWith("(") ||
-    normalized.includes("kb_storage_status")
-  ) {
-    return false;
-  }
+  if (goal.includes("kb_storage_status")) return false;
   // The daemon cache is deliberately limited to deterministic discovery and
   // graph reads.  Status/freshness reads external files and writes invalidate
   // the entire cache before they can be observed by another client.
   return (
-    normalized.startsWith("findall(") ||
-    normalized.startsWith("kb_entity(") ||
-    normalized.startsWith("kb_entities_by_source(") ||
-    normalized.startsWith("kb_relationship(")
+    goal.startsWith("findall(") ||
+    goal.startsWith("kb_entity(") ||
+    goal.startsWith("kb_entities_by_source(") ||
+    goal.startsWith("kb_relationship(")
   );
 }
 
@@ -292,65 +284,19 @@ function mutatingEngineGoal(goal: string): boolean {
   );
 }
 
+/**
+ * Comments and quoted text in Prolog source: a `%` line comment, a block
+ * comment, or a quoted atom, string or back-quoted text, where a backslash
+ * escapes the next character and a doubled quote stands for itself. An
+ * unterminated comment or quote runs to the end of the goal, unless it ends
+ * in a lone backslash: that text stays visible to the safety check.
+ */
+const PROLOG_DATA =
+  /%[^\n]*|\/\*[\s\S]*?(?:\*\/|$)|'(?:[^'\\]|\\[\s\S]|'')*(?:'|$)|"(?:[^"\\]|\\[\s\S]|"")*(?:"|$)|`(?:[^`\\]|\\[\s\S]|``)*(?:`|$)/g;
+
+/** Blank out comments and quoted data, keeping line breaks and offsets. */
 function maskPrologData(goal: string): string {
-  const chars = [...goal];
-  let quote: "'" | '"' | "`" | null = null;
-  let lineComment = false;
-  let blockComment = false;
-  for (let index = 0; index < chars.length; index += 1) {
-    const current = chars[index];
-    const next = chars[index + 1];
-    if (lineComment) {
-      if (current === "\n") lineComment = false;
-      else chars[index] = " ";
-      continue;
-    }
-    if (blockComment) {
-      if (current === "*" && next === "/") {
-        chars[index] = " ";
-        chars[index + 1] = " ";
-        index += 1;
-        blockComment = false;
-      } else if (current !== "\n") {
-        chars[index] = " ";
-      }
-      continue;
-    }
-    if (quote !== null) {
-      if (current === "\\") {
-        chars[index] = " ";
-        if (index + 1 < chars.length) {
-          chars[index + 1] = " ";
-          index += 1;
-        }
-      } else if (current === quote) {
-        if (next === quote) {
-          chars[index] = " ";
-          chars[index + 1] = " ";
-          index += 1;
-        } else {
-          chars[index] = " ";
-          quote = null;
-        }
-      } else if (current !== "\n") {
-        chars[index] = " ";
-      }
-      continue;
-    }
-    if (current === "%") {
-      chars[index] = " ";
-      lineComment = true;
-    } else if (current === "/" && next === "*") {
-      chars[index] = " ";
-      chars[index + 1] = " ";
-      index += 1;
-      blockComment = true;
-    } else if (current === "'" || current === '"' || current === "`") {
-      chars[index] = " ";
-      quote = current;
-    }
-  }
-  return chars.join("");
+  return goal.replace(PROLOG_DATA, (data) => data.replace(/[^\n]/g, " "));
 }
 
 function safeEngineGoal(goal: string): boolean {
@@ -367,7 +313,7 @@ function safeEngineGoal(goal: string): boolean {
     return false;
   }
   return /(?:^|[(:,\s])(?:kb_|checks:|status:|discovery:|requirement_proof:|code_certificates:|claim_obligations:|findall\(|aggregate_all\(|rdf_transaction\(|use_module\(|atom_json_dict\(|member\(|once\(|true\b|fail\b)/.test(
-    goal.trim(),
+    goal,
   );
 }
 
@@ -388,7 +334,8 @@ function frame(value: unknown): Buffer {
 function ignoreWriteFailure(): void {}
 
 function writeSocketFrame(socket: net.Socket, value: unknown): void {
-  if (socket.destroyed || !socket.writable) return;
+  // A closed peer fails the write through its callback (and its error
+  // listener), never through this caller.
   try {
     socket.write(frame(value), ignoreWriteFailure);
   } catch {
@@ -447,7 +394,7 @@ export function runtimeDirectory(): string {
       try {
         mkdirSync(candidate, { recursive: true, mode: 0o700 });
         const probe = path.join(candidate, `.kibi-write-${process.pid}`);
-        writeFileSync(probe, "", { mode: 0o600 });
+        closeSync(openSync(probe, "wx", 0o600));
         unlinkSync(probe);
         return candidate;
       } catch {
@@ -517,15 +464,13 @@ function runtimeDirectoryRejection(
     if ((directory.mode & 0o077) !== 0)
       return `its mode is ${(directory.mode & 0o777).toString(8).padStart(4, "0")}; it must be private to its owner (chmod 700)`;
     const canonical = canonicalFilesystemPath(candidate);
-    if (
-      Buffer.byteLength(path.join(canonical, socketName), "utf8") > maximumBytes
-    )
+    if (Buffer.byteLength(path.join(canonical, socketName)) > maximumBytes)
       return `its path is too long for a Unix socket (at most ${maximumBytes - socketName.length - 1} bytes)`;
     // XDG_RUNTIME_DIR can exist but be mounted read-only (for example in a
     // constrained container). Probe the directory before using it for the
     // socket, start lock, and pid files so auto-start fails over cleanly.
     const probe = path.join(canonical, `.kibi-write-${randomUUID()}`);
-    writeFileSync(probe, "", { mode: 0o600, flag: "wx" });
+    closeSync(openSync(probe, "wx", 0o600));
     unlinkSync(probe);
     return { directory: canonical };
   } catch (error) {
@@ -548,15 +493,29 @@ function warnRuntimeDirectoryIgnored(directory: string, reason: string): void {
   );
 }
 
-function fsyncPath(filePath: string): void {
-  if (!existsSync(filePath)) return;
-  let descriptor: number | null = null;
+function fsyncFile(filePath: string): void {
+  const descriptor = openSync(filePath, "r");
   try {
-    descriptor = openSync(filePath, "r");
     fsyncSync(descriptor);
   } finally {
-    if (descriptor !== null) closeSync(descriptor);
+    closeSync(descriptor);
   }
+}
+
+function fsyncPath(filePath: string): void {
+  if (existsSync(filePath)) fsyncFile(filePath);
+}
+
+/** Fsync every journal file below `directory`; its directories, leaves first. */
+function fsyncJournalTree(directory: string): string[] {
+  const directories: string[] = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const entryPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) directories.push(...fsyncJournalTree(entryPath));
+    else if (entry.isFile() && entry.name !== "lock") fsyncFile(entryPath);
+  }
+  directories.push(directory);
+  return directories;
 }
 
 /**
@@ -568,25 +527,14 @@ function fsyncPath(filePath: string): void {
 // implements REQ-core-journaled-engine-persistence
 export function fsyncJournaledBranchStore(branchPath: string): void {
   const rdfRoot = path.join(branchPath, "rdf");
-  const directories: string[] = [];
-  const pending = existsSync(rdfRoot) ? [rdfRoot] : [];
-  while (pending.length > 0) {
-    const directory = pending.pop();
-    if (directory === undefined) break;
-    directories.push(directory);
-    for (const entry of readdirSync(directory, { withFileTypes: true })) {
-      const entryPath = path.join(directory, entry.name);
-      if (entry.isDirectory()) pending.push(entryPath);
-      else if (entry.isFile() && entry.name !== "lock") fsyncPath(entryPath);
-    }
-  }
+  const directories = existsSync(rdfRoot) ? fsyncJournalTree(rdfRoot) : [];
   for (const metadata of ["CURRENT", "storage.json", "kb.rdf"]) {
     fsyncPath(path.join(branchPath, metadata));
   }
   // Publish directory entries from the leaves upward, ending at the branch
   // directory that owns CURRENT and the storage marker.
   if (process.platform !== "win32") {
-    for (const directory of directories.reverse()) fsyncPath(directory);
+    for (const directory of directories) fsyncFile(directory);
     fsyncPath(branchPath);
   }
 }
@@ -649,61 +597,32 @@ export function enginePublicationLockPath(
   return `${engineSocketPath(workspaceRoot, branch)}.publish.lock`;
 }
 
-function publicationLockOwner(lockPath: string): {
-  readonly pid: number;
-  readonly createdAt: number;
-} | null {
+/** Whether the pid stamped in a lock file (`<pid>:<created>`) still runs. */
+function lockHolderAlive(lockPath: string): boolean {
+  let pid = Number.NaN;
   try {
-    const [pidText, createdText] = readFileSync(lockPath, "utf8")
-      .trim()
-      .split(":");
-    const pid = Number.parseInt(pidText ?? "", 10);
-    const createdAt = Number.parseInt(createdText ?? "", 10);
-    if (!Number.isInteger(pid) || pid <= 1 || !Number.isFinite(createdAt)) {
-      return null;
-    }
-    return { pid, createdAt };
-  } catch {
-    return null;
-  }
-}
-
-function processIsAlive(pid: number): boolean {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch {
-    return false;
-  }
+    pid = Number.parseInt(String(readFileSync(lockPath)), 10);
+  } catch {}
+  // pid 1 is never a Kibi publisher; it only marks a corrupt stamp.
+  return pid > 1 && isProcessAlive(pid);
 }
 
 function clearStalePublicationLock(lockPath: string): boolean {
-  if (!existsSync(lockPath)) return true;
-  const owner = publicationLockOwner(lockPath);
-  let age = 0;
   try {
-    age = Date.now() - statSync(lockPath).mtimeMs;
+    const age = Date.now() - statSync(lockPath).mtimeMs;
+    if (age <= ENGINE_PUBLICATION_LOCK_STALE_MS) return false;
   } catch {
     return false;
   }
-  if (
-    (owner === null || !processIsAlive(owner.pid)) &&
-    age > ENGINE_PUBLICATION_LOCK_STALE_MS
-  ) {
-    try {
-      unlinkSync(lockPath);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-  return false;
+  if (lockHolderAlive(lockPath)) return false;
+  try {
+    unlinkSync(lockPath);
+  } catch {}
+  return !existsSync(lockPath);
 }
 
 function publicationLockIsActive(lockPath: string): boolean {
-  if (!existsSync(lockPath)) return false;
-  if (clearStalePublicationLock(lockPath)) return false;
-  return existsSync(lockPath);
+  return !clearStalePublicationLock(lockPath) && existsSync(lockPath);
 }
 
 export type EnginePublicationLease = Readonly<{
@@ -735,7 +654,7 @@ export function acquireEnginePublicationLease(
     );
   }
   try {
-    writeFileSync(lockPath, `${process.pid}:${Date.now()}\n`, { flag: "w" });
+    writeFileSync(descriptor, `${process.pid}:${Date.now()}\n`);
   } catch (error) {
     closeSync(descriptor);
     unlinkSync(lockPath);
@@ -774,37 +693,23 @@ export function acquireEnginePublicationLease(
 function tryAcquireStartLock(lockPath: string): number | null {
   try {
     const descriptor = openSync(lockPath, "wx", 0o600);
-    writeFileSync(lockPath, `${process.pid}:${Date.now()}\n`, { flag: "w" });
+    writeFileSync(descriptor, `${process.pid}:${Date.now()}\n`);
     return descriptor;
   } catch {
     // Remove a lock left by a crashed starter, but never steal one from a
     // live process. A short age grace period avoids racing a slow Node start.
     try {
-      const stamp = readFileSync(lockPath, "utf8").trim().split(":");
-      const pid = Number.parseInt(stamp[0] ?? "", 10);
-      const created = Number.parseInt(stamp[1] ?? "", 10);
-      let age = 0;
-      try {
-        age = Date.now() - statSync(lockPath).mtimeMs;
-      } catch {
-        age = 0;
-      }
-      if (!Number.isFinite(created) && age <= 5_000) return null;
-      let alive = false;
-      if (Number.isFinite(pid) && pid > 0) {
-        try {
-          process.kill(pid, 0);
-          alive = true;
-        } catch {
-          alive = false;
-        }
-      }
+      const [pidText, createdText] = readFileSync(lockPath, "utf8").split(":");
+      const created = Number.parseInt(String(createdText), 10);
+      // A stamp without its creation time is judged by the file's age.
+      const age =
+        Date.now() -
+        (Number.isFinite(created) ? created : statSync(lockPath).mtimeMs);
       if (
-        !alive &&
-        (Number.isFinite(created) ? Date.now() - created > 5_000 : age > 5_000)
-      ) {
+        age > 5_000 &&
+        !isProcessAlive(Number.parseInt(pidText as string, 10))
+      )
         unlinkSync(lockPath);
-      }
     } catch {
       // The other starter may be publishing/removing the lock right now.
     }
@@ -812,13 +717,11 @@ function tryAcquireStartLock(lockPath: string): number | null {
   }
 }
 
-function releaseStartLock(lockPath: string, descriptor: number | null): void {
-  if (descriptor !== null) {
-    try {
-      closeSync(descriptor);
-    } catch {
-      // best effort
-    }
+function releaseStartLock(lockPath: string, descriptor: number): void {
+  try {
+    closeSync(descriptor);
+  } catch {
+    // best effort
   }
   try {
     unlinkSync(lockPath);
@@ -830,7 +733,7 @@ function releaseStartLock(lockPath: string, descriptor: number | null): void {
 // implements REQ-core-journaled-engine-persistence
 function recoverStaleJournalLock(branchPath: string): void {
   const lockPath = path.join(branchPath, "rdf", "lock");
-  if (!existsSync(lockPath)) return;
+  // A missing lock reads as no pid.
   const pid = readRdfLockPid(lockPath);
   if (pid === null || pid === process.pid) return;
   let reason: string;
@@ -840,8 +743,8 @@ function recoverStaleJournalLock(branchPath: string): void {
     // A live pid still loses the lock when the lock and its journal were
     // copied in from another workspace: that pid holds the original store,
     // never this copy.
-    const journal = readStoreLockOwner(branchPath)?.owner ?? null;
-    if (journal === null || journal.pid !== pid) return;
+    const journal = readStoreLockOwner(branchPath)?.owner;
+    if (journal?.pid !== pid) return;
     const decision = decideStoreLockTakeover(journal, {
       storePath: branchPath,
     });
@@ -852,7 +755,7 @@ function recoverStaleJournalLock(branchPath: string): void {
   // and kibi doctor instead of healing silently.
   recordStoreLockTakeover(branchPath, pid, reason);
   try {
-    rmSync(lockPath, { force: true });
+    rmSync(lockPath);
   } catch {
     // Let rdf_attach_db report the lock error if another process wins the
     // race between the liveness probe and removal.
@@ -870,6 +773,8 @@ export function daemonNodePath(
   environment: NodeJS.ProcessEnv = process.env,
 ): string {
   if (environment.KIBI_NODE_PATH) return environment.KIBI_NODE_PATH;
+  // rationale: the tests run under Bun only, so the Node branch never runs.
+  // Stryker disable next-line ConditionalExpression,StringLiteral
   return "Bun" in globalThis ? "node" : process.execPath;
 }
 
@@ -908,29 +813,21 @@ function connectSocket(
 ): Promise<net.Socket> {
   return new Promise((resolve, reject) => {
     const socket = net.createConnection(socketPath);
-    let settled = false;
+    // A promise settles once, so a late event after the first is ignored.
     const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
       socket.destroy();
       reject(new Error(`Timed out connecting to Kibi engine at ${socketPath}`));
     }, timeoutMs);
     socket.once("connect", () => {
-      if (settled) return;
-      settled = true;
       clearTimeout(timer);
       resolve(socket);
     });
     // Keep a permanent error listener. Some Node versions emit the
     // connection-refused error on the next tick after a timeout destroys the
     // socket; a once-listener can otherwise become an uncaught event during
-    // concurrent auto-start attempts.
-    socket.on("error", (error) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      reject(error);
-    });
+    // concurrent auto-start attempts. A failed attempt lets its timer run
+    // out: destroying an errored socket again is harmless.
+    socket.on("error", reject);
   });
 }
 
@@ -962,10 +859,7 @@ async function connectWithRetry(
       continue;
     }
     try {
-      return await connectSocket(
-        socketPath,
-        Math.min(250, deadline - Date.now()),
-      );
+      return await connectSocket(socketPath, 250);
     } catch (error) {
       lastError = error;
       await new Promise((resolve) => setTimeout(resolve, 25));
@@ -996,6 +890,23 @@ export type EngineClientOptions = {
   readonly readLimits?: EngineQueryLimits | null;
 };
 
+/** The entities and total count of an indexed page answer. */
+function entityPage(
+  result: PrologQueryResult,
+  failure: string,
+): PrologEntityQueryResult {
+  if (!result.success) throw new Error(result.error ?? failure);
+  const rows = result.bindings.Rows
+    ? parseListOfLists(result.bindings.Rows).map(parseEntityFromList)
+    : [];
+  // A missing or unreadable count falls back to the rows on the page.
+  const count = Number.parseInt(result.bindings.Count as string, 10);
+  return {
+    entities: rows,
+    count: Number.isFinite(count) ? count : rows.length,
+  };
+}
+
 /** PrologPort-compatible client used by CLI and MCP operation runtimes. */
 // implements REQ-core-journaled-engine-persistence
 export class EngineClient {
@@ -1011,7 +922,6 @@ export class EngineClient {
   private pending = new Map<number, PendingRequest>();
   private requestTail: Promise<void> = Promise.resolve();
   private lastResult: PrologQueryResult | null = null;
-  private replacingStaleDaemon = false;
 
   constructor(options: EngineClientOptions) {
     if (!isValidBranchName(options.branch)) {
@@ -1028,7 +938,7 @@ export class EngineClient {
   }
 
   async start(allowSpawn = true): Promise<void> {
-    const wasConnected = this.socket !== null && !this.socket.destroyed;
+    const wasConnected = this.isRunning();
     for (let attempt = 0; ; attempt += 1) {
       await this.connect(allowSpawn);
       if (wasConnected || this.socket === null) return;
@@ -1045,18 +955,16 @@ export class EngineClient {
           attempt > 0 ||
           !allowSpawn ||
           !(error instanceof Error) ||
-          error.message !== "Kibi engine connection closed" ||
-          (this.socket !== null && !this.socket.destroyed)
+          error.message !== "Kibi engine connection closed"
         )
           throw error;
-        this.socket?.destroy();
-        this.socket = null;
+        // The closed connection has already cleared the socket.
       }
     }
   }
 
-  private async connect(allowSpawn = true): Promise<void> {
-    if (this.socket !== null && !this.socket.destroyed) return;
+  private async connect(allowSpawn: boolean): Promise<void> {
+    if (this.isRunning()) return;
     const socketPath = engineSocketPath(this.workspaceRoot, this.branch);
     const publicationLockPath = enginePublicationLockPath(
       this.workspaceRoot,
@@ -1070,102 +978,86 @@ export class EngineClient {
         `Kibi engine publication is in progress: ${publicationLockPath}`,
       );
     }
-    try {
-      if (existsSync(socketPath)) {
-        this.socket = await connectWithRetry(socketPath, 150);
-      } else {
-        throw new Error("engine socket is absent");
-      }
-    } catch {
+    let socket = existsSync(socketPath)
+      ? await connectWithRetry(socketPath, 150).catch(() => null)
+      : null;
+    if (socket === null) {
       if (!allowSpawn) return;
-      const nodePath = daemonNodePath();
-      const entry = daemonEntry();
-      const lockPath = engineStartLockPath(this.workspaceRoot, this.branch);
-      const startDeadline = Date.now() + this.timeout;
-      let lock: number | null = null;
-      while (lock === null && Date.now() < startDeadline) {
-        if (existsSync(socketPath)) {
-          try {
-            this.socket = await connectWithRetry(socketPath, 100);
-            break;
-          } catch {
-            // The daemon may be replacing a stale socket; retry below.
-          }
-        }
-        if (this.socket === null) {
-          // A draining daemon removes its listener before saving, but retains
-          // its PID until the branch lock is released. Do not start a second
-          // writer while that process is still completing shutdown.
-          const existingPid = this.getPid();
-          if (existingPid > 0) {
-            let alive = false;
-            try {
-              process.kill(existingPid, 0);
-              alive = true;
-            } catch {}
-            if (alive) {
-              await new Promise((resolve) => setTimeout(resolve, 50));
-              continue;
-            }
-          }
-          lock = tryAcquireStartLock(lockPath);
-          if (lock === null) {
-            await new Promise((resolve) => setTimeout(resolve, 50));
-          }
-        }
-      }
-      if (this.socket === null && lock === null) {
-        throw new Error(
-          `Unable to connect to Kibi engine at ${socketPath} while another starter owns ${lockPath}`,
-        );
-      }
-      if (lock !== null) {
-        try {
-          rmSync(`${socketPath}.error`, { force: true });
-          try {
-            const daemon = spawn(
-              nodePath,
-              [
-                entry,
-                "--workspace",
-                this.workspaceRoot,
-                "--branch",
-                this.branch,
-                "--socket",
-                socketPath,
-              ],
-              {
-                detached: true,
-                stdio: "ignore",
-                env: {
-                  ...process.env,
-                  KIBI_ENGINE_PROTOCOL: String(ENGINE_PROTOCOL_VERSION),
-                  // The daemon reports the versions of the client that
-                  // started it, so this client and its own daemon agree even
-                  // when the daemon entry is resolved from a bundled host.
-                  KIBI_PACKAGE_VERSIONS: enginePackageVersions(),
-                },
-              },
-            );
-            await new Promise<void>((resolve, reject) => {
-              daemon.once("spawn", resolve);
-              daemon.once("error", reject);
-            });
-            this.daemon = daemon;
-          } catch (error) {
-            throw new Error(
-              `Kibi engine requires Node.js >=18 to host the daemon; failed to start '${nodePath}': ${error instanceof Error ? error.message : String(error)}`,
-            );
-          }
-          this.daemon.unref();
-          this.socket = await connectWithRetry(socketPath, this.timeout);
-        } finally {
-          releaseStartLock(lockPath, lock);
-        }
-      }
+      socket = await this.startDaemon(socketPath);
     }
-    if (this.socket === null) return;
-    this.attachSocket(this.socket);
+    this.socket = socket;
+    this.attachSocket(socket);
+  }
+
+  /** Connect to the daemon another starter brings up, or start one. */
+  private async startDaemon(socketPath: string): Promise<net.Socket> {
+    const nodePath = daemonNodePath();
+    const entry = daemonEntry();
+    const lockPath = engineStartLockPath(this.workspaceRoot, this.branch);
+    const startDeadline = Date.now() + this.timeout;
+    while (Date.now() < startDeadline) {
+      if (existsSync(socketPath)) {
+        // The daemon may be replacing a stale socket; retry below.
+        const socket = await connectWithRetry(socketPath, 100).catch(
+          () => null,
+        );
+        if (socket !== null) return socket;
+      }
+      // A draining daemon removes its listener before saving, but retains
+      // its PID until the branch lock is released. Do not start a second
+      // writer while that process is still completing shutdown.
+      if (!this.daemonProcessAlive()) {
+        const lock = tryAcquireStartLock(lockPath);
+        if (lock !== null) {
+          try {
+            rmSync(`${socketPath}.error`, { force: true });
+            try {
+              const daemon = spawn(
+                nodePath,
+                [
+                  entry,
+                  "--workspace",
+                  this.workspaceRoot,
+                  "--branch",
+                  this.branch,
+                  "--socket",
+                  socketPath,
+                ],
+                {
+                  detached: true,
+                  stdio: "ignore",
+                  env: {
+                    ...process.env,
+                    KIBI_ENGINE_PROTOCOL: String(ENGINE_PROTOCOL_VERSION),
+                    // The daemon reports the versions of the client that
+                    // started it, so this client and its own daemon agree even
+                    // when the daemon entry is resolved from a bundled host.
+                    KIBI_PACKAGE_VERSIONS: enginePackageVersions(),
+                  },
+                },
+              );
+              await new Promise<void>((resolve, reject) => {
+                daemon.once("spawn", resolve);
+                daemon.once("error", reject);
+              });
+              this.daemon = daemon;
+            } catch (error) {
+              throw new Error(
+                `Kibi engine requires Node.js >=18 to host the daemon; failed to start '${nodePath}': ${error instanceof Error ? error.message : String(error)}`,
+              );
+            }
+            this.daemon.unref();
+            return await connectWithRetry(socketPath, this.timeout);
+          } finally {
+            releaseStartLock(lockPath, lock);
+          }
+        }
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    throw new Error(
+      `Unable to connect to Kibi engine at ${socketPath} while another starter owns ${lockPath}`,
+    );
   }
 
   private attachSocket(socket: net.Socket): void {
@@ -1174,12 +1066,11 @@ export class EngineClient {
     // with an MCP server or CLI command lets it exit while the shared daemon
     // keeps serving. request() holds the socket while a reply is pending.
     socket.unref();
-    socket.on("data", (chunk) => {
+    socket.on("data", (chunk: Buffer) => {
       if (this.socket !== socket) return;
       try {
-        const bytes = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
         this.inputBuffer = parseFrames(
-          Buffer.concat([this.inputBuffer, bytes]) as Buffer<ArrayBufferLike>,
+          Buffer.concat([this.inputBuffer, chunk]) as Buffer<ArrayBufferLike>,
           (value) => this.handleResponse(value),
         );
       } catch (error) {
@@ -1192,44 +1083,26 @@ export class EngineClient {
       if (this.socket !== socket) return;
       this.socket = null;
       const error = new Error("Kibi engine connection closed");
-      for (const pending of this.pending.values()) {
-        this.settlePending(pending, () => pending.reject(error));
-      }
+      for (const pending of this.pending.values()) pending.reject(error);
       this.pending.clear();
     });
+    // An error is always followed by close, which clears the map.
     socket.on("error", (error) => {
       if (this.socket !== socket) return;
-      for (const pending of this.pending.values()) {
-        this.settlePending(pending, () => pending.reject(error));
-      }
-      this.pending.clear();
+      for (const pending of this.pending.values()) pending.reject(error);
     });
-  }
-
-  /** Settle a pending RPC at most once (abort vs response race-safe). */
-  private settlePending(pending: PendingRequest, settle: () => void): boolean {
-    if (pending.settled) return false;
-    pending.settled = true;
-    settle();
-    return true;
   }
 
   private handleResponse(value: unknown): void {
-    if (value === null || typeof value !== "object") return;
-    const response = value as Partial<EngineResponse>;
-    if (typeof response.id !== "number") return;
-    const pending = this.pending.get(response.id);
+    // A frame without a numeric id matches no pending request.
+    const id = (value as { id?: unknown } | null)?.id as number;
+    const pending = this.pending.get(id);
     if (!pending) return;
-    this.pending.delete(response.id);
-    if (response.ok) {
-      this.settlePending(pending, () => pending.resolve(response.result));
-    } else {
-      this.settlePending(pending, () =>
-        pending.reject(
-          new Error(response.error ?? "Kibi engine request failed"),
-        ),
-      );
-    }
+    this.pending.delete(id);
+    const response = value as Partial<EngineResponse>;
+    if (response.ok) pending.resolve(response.result);
+    else
+      pending.reject(new Error(response.error ?? "Kibi engine request failed"));
   }
 
   private async request<T>(
@@ -1256,16 +1129,14 @@ export class EngineClient {
       socket.ref();
       held = socket;
       const id = ++this.requestId;
-      const limits =
-        this.readLimits !== undefined &&
-        READ_LIMITED_METHODS.has(request.method)
-          ? { limits: this.readLimits }
-          : {};
+      // Undefined limits drop out of the frame's JSON.
+      const limits = READ_LIMITED_METHODS.has(request.method)
+        ? { limits: this.readLimits as EngineQueryLimits }
+        : {};
       const value = await new Promise<T>((resolve, reject) => {
         this.pending.set(id, {
           resolve: resolve as (value: unknown) => void,
           reject,
-          settled: false,
         });
         try {
           socket.write(
@@ -1282,24 +1153,15 @@ export class EngineClient {
             ignoreWriteFailure,
           );
         } catch (error) {
-          const pending = this.pending.get(id);
           this.pending.delete(id);
-          if (pending) {
-            this.settlePending(pending, () =>
-              reject(error instanceof Error ? error : new Error(String(error))),
-            );
-          }
+          reject(error instanceof Error ? error : new Error(String(error)));
           return;
         }
         if (signal !== undefined) {
           const abort = (): void => {
-            const pending = this.pending.get(id);
-            if (!pending || pending.settled) return;
-            this.pending.delete(id);
+            if (!this.pending.delete(id)) return;
             this.cancel(id);
-            this.settlePending(pending, () =>
-              reject(new Error("Kibi engine request cancelled")),
-            );
+            reject(new Error("Kibi engine request cancelled"));
           };
           if (signal.aborted) abort();
           else signal.addEventListener("abort", abort, { once: true });
@@ -1310,7 +1172,8 @@ export class EngineClient {
       assertWithinQueryLimits(value);
       return value;
     } finally {
-      if (held !== null && this.pending.size === 0) held.unref();
+      // Requests run one at a time, so none is pending here.
+      held?.unref();
       release();
     }
   }
@@ -1354,32 +1217,21 @@ export class EngineClient {
     input: PrologEntityQueryInput,
     signal?: AbortSignal,
   ): Promise<PrologEntityQueryResult> {
+    // Undefined filters drop out of the frame's JSON.
     const result = await this.command<PrologQueryResult>(
       {
         version: 1,
         kind: "entities",
-        ...(input.type !== undefined ? { type: input.type } : {}),
-        ...(input.id !== undefined ? { id: input.id } : {}),
-        ...(input.tags !== undefined ? { tags: input.tags } : {}),
-        ...(input.sourceFile !== undefined
-          ? { sourceFile: input.sourceFile }
-          : {}),
+        type: input.type,
+        id: input.id,
+        tags: input.tags,
+        sourceFile: input.sourceFile,
         limit: input.limit,
         offset: input.offset,
-      },
+      } as EngineCommandV1,
       signal,
     );
-    if (!result.success) {
-      throw new Error(result.error ?? "Indexed entity query failed");
-    }
-    const rows = result.bindings.Rows
-      ? parseListOfLists(result.bindings.Rows).map(parseEntityFromList)
-      : [];
-    const count = Number.parseInt(result.bindings.Count ?? "0", 10);
-    return {
-      entities: rows,
-      count: Number.isFinite(count) ? count : rows.length,
-    };
+    return entityPage(result, "Indexed entity query failed");
   }
 
   async searchEntities(
@@ -1391,23 +1243,13 @@ export class EngineClient {
         version: 1,
         kind: "search",
         query: input.query,
-        ...(input.type !== undefined ? { type: input.type } : {}),
+        type: input.type,
         limit: input.limit,
         offset: input.offset,
-      },
+      } as EngineCommandV1,
       signal,
     );
-    if (!result.success) {
-      throw new Error(result.error ?? "Indexed search candidate query failed");
-    }
-    const rows = result.bindings.Rows
-      ? parseListOfLists(result.bindings.Rows).map(parseEntityFromList)
-      : [];
-    const count = Number.parseInt(result.bindings.Count ?? "0", 10);
-    return {
-      entities: rows,
-      count: Number.isFinite(count) ? count : rows.length,
-    };
+    return entityPage(result, "Indexed search candidate query failed");
   }
 
   /** Best-effort cancellation for a queued request. */
@@ -1475,8 +1317,8 @@ export class EngineClient {
   }
 
   private async readAttachedIdentity(): Promise<EngineAttachmentIdentity | null> {
+    // A failed status carries no JsonString, which parses as no identity.
     const status = await this.queryStatusJson();
-    if (!status.success) return null;
     return parseEngineAttachmentIdentity(status.bindings.JsonString);
   }
 
@@ -1504,7 +1346,7 @@ export class EngineClient {
   // implements REQ-engine-daemon-package-versions
   async inspectLiveDaemon(): Promise<EngineDaemonIdentity | null> {
     const wasConnected = this.isRunning();
-    if (!wasConnected) await this.connect(false);
+    await this.connect(false);
     if (!this.isRunning()) return null;
     try {
       return await this.daemonHandshake();
@@ -1533,47 +1375,37 @@ export class EngineClient {
    * stopped and replaced; it is never reused.
    */
   // implements REQ-prolog-daemon-runtime-identity, REQ-engine-daemon-package-versions
+  // start() runs both checks only on a fresh connection; the requests made
+  // while replacing a daemon find it connected and run neither again.
   private async reconcileRuntime(): Promise<void> {
-    if (this.replacingStaleDaemon || this.socket === null) return;
     if ((await this.daemonRuntimeMismatch()) === null) return;
-    this.replacingStaleDaemon = true;
-    try {
-      await this.shutdownConnectedDaemon();
-      await this.connect(true);
-      const mismatch = await this.daemonRuntimeMismatch();
-      if (mismatch !== null) {
-        throw new Error(
-          `${mismatch} after replacing it; run 'kibi engine stop' and retry`,
-        );
-      }
-    } finally {
-      this.replacingStaleDaemon = false;
+    await this.shutdownConnectedDaemon();
+    await this.connect(true);
+    const mismatch = await this.daemonRuntimeMismatch();
+    if (mismatch !== null) {
+      throw new Error(
+        `${mismatch} after replacing it; run 'kibi engine stop' and retry`,
+      );
     }
   }
 
   private async reconcileAttachment(): Promise<void> {
-    if (this.replacingStaleDaemon || this.socket === null) return;
     const livePath = branchStorePath(this.workspaceRoot, this.branch);
     const expected = readEngineAttachmentIdentity(livePath);
     const attached = await this.readAttachedIdentity();
     if (engineAttachmentsMatch(expected, attached)) return;
-    this.replacingStaleDaemon = true;
-    try {
-      await this.shutdownConnectedDaemon();
-      await this.connect(true);
-      const live = readEngineAttachmentIdentity(livePath);
-      const retried = await this.readAttachedIdentity();
-      if (!engineAttachmentsMatch(live, retried)) {
-        throw new Error(
-          `Kibi engine is attached to a stale branch generation: ${formatEngineAttachmentMismatch(
-            "attachment-handshake",
-            live,
-            retried,
-          )}`,
-        );
-      }
-    } finally {
-      this.replacingStaleDaemon = false;
+    await this.shutdownConnectedDaemon();
+    await this.connect(true);
+    const live = readEngineAttachmentIdentity(livePath);
+    const retried = await this.readAttachedIdentity();
+    if (!engineAttachmentsMatch(live, retried)) {
+      throw new Error(
+        `Kibi engine is attached to a stale branch generation: ${formatEngineAttachmentMismatch(
+          "attachment-handshake",
+          live,
+          retried,
+        )}`,
+      );
     }
   }
 
@@ -1586,13 +1418,7 @@ export class EngineClient {
           `Kibi engine socket remains present but is not reachable: ${socketPath}`,
         );
       }
-      const existingPid = this.getPid();
-      if (existingPid <= 0) return;
-      try {
-        process.kill(existingPid, 0);
-      } catch {
-        return;
-      }
+      if (!this.daemonProcessAlive()) return;
       // An already-draining daemon can have no listener while its durability
       // save still owns the store. A stop caller must wait for that handoff.
     } else {
@@ -1622,7 +1448,7 @@ export class EngineClient {
   getPid(): number {
     const pidPath = enginePidPath(this.workspaceRoot, this.branch);
     try {
-      return Number.parseInt(readFileSync(pidPath, "utf8").trim(), 10) || 0;
+      return Number.parseInt(String(readFileSync(pidPath)), 10) || 0;
     } catch {
       return 0;
     }
@@ -1630,20 +1456,13 @@ export class EngineClient {
 
   /** Resolves false when no daemon answered and none was started. */
   async stop(startIfMissing = true): Promise<boolean> {
-    const socketPath = engineSocketPath(this.workspaceRoot, this.branch);
-    if (!this.isRunning()) {
-      try {
-        await this.connect(startIfMissing);
-      } catch {
-        if (!startIfMissing) return false;
-        throw new Error("Unable to start Kibi engine for stop request");
-      }
+    try {
+      await this.connect(startIfMissing);
+    } catch {
+      if (!startIfMissing) return false;
+      throw new Error("Unable to start Kibi engine for stop request");
     }
-    if (!this.isRunning() && existsSync(socketPath)) {
-      throw new Error(
-        `Kibi engine socket remains present but is not reachable: ${socketPath}`,
-      );
-    }
+    // A socket left without a listener is refused by the shutdown below.
     // A draining daemon has no listener but still counts as stopped here.
     const found = this.isRunning() || this.daemonProcessAlive();
     await this.shutdownConnectedDaemon();
@@ -1651,14 +1470,8 @@ export class EngineClient {
   }
 
   private daemonProcessAlive(): boolean {
-    const pid = this.getPid();
-    if (pid <= 0) return false;
-    try {
-      process.kill(pid, 0);
-      return true;
-    } catch {
-      return false;
-    }
+    // getPid() is 0 without a pid file, which never names a live daemon.
+    return isProcessAlive(this.getPid());
   }
 
   async terminate(): Promise<void> {
@@ -1678,65 +1491,47 @@ export async function ensureJournaledBranchStoreAsync(
 ): Promise<void> {
   mkdirSync(branchPath, { recursive: true });
   const markerPath = path.join(branchPath, "storage.json");
-  const marker = existsSync(markerPath) ? readFileSync(markerPath, "utf8") : "";
-  if (marker.includes("kibi.rdf-journal.v1")) {
+  const legacyRdf = path.join(branchPath, "kb.rdf");
+  const legacyAudit = path.join(branchPath, "audit.log");
+  if (
+    existsSync(markerPath) &&
+    String(readFileSync(markerPath)).includes("kibi.rdf-journal.v1")
+  ) {
     const rdfDirectory = path.join(branchPath, "rdf");
     const currentPath = path.join(branchPath, "CURRENT");
-    const sentinelPath = path.join(branchPath, "kb.rdf");
-    if (!existsSync(rdfDirectory) || !existsSync(currentPath)) {
-      recoverInterruptedGeneration(branchPath);
-      if (existsSync(rdfDirectory) && existsSync(currentPath)) {
-        recoverStaleJournalLock(branchPath);
-        archiveLegacyFiles(branchPath);
-        if (!existsSync(sentinelPath)) {
-          writeFileSync(
-            sentinelPath,
-            "KIBI_STORAGE_FORMAT=kibi.rdf-journal.v1\n",
-            { mode: 0o600 },
-          );
-        }
-        return;
-      }
-      // Publication moves the validated generation before archiving the
-      // legacy files. If the process dies between those moves, preserve the
-      // still-live legacy store and discard only the incomplete publication.
-      const legacyRdf = path.join(branchPath, "kb.rdf");
-      const legacyAudit = path.join(branchPath, "audit.log");
-      const legacyContents = existsSync(legacyRdf)
-        ? readFileSync(legacyRdf, "utf8")
-        : "";
-      if (
-        existsSync(legacyAudit) ||
-        (existsSync(legacyRdf) &&
-          !legacyContents.includes("kibi.rdf-journal.v1"))
-      ) {
-        rmSync(rdfDirectory, { recursive: true, force: true });
-        rmSync(currentPath, { force: true });
-        rmSync(markerPath, { force: true });
-      } else {
-        throw new Error(
-          `Journaled branch store is incomplete at ${branchPath}; restore the immutable legacy/ backup or remove the interrupted generation before retrying`,
-        );
-      }
-    } else {
+    // Restoring acts only on a store missing one half of its generation.
+    recoverInterruptedGeneration(branchPath);
+    if (existsSync(rdfDirectory) && existsSync(currentPath)) {
       recoverStaleJournalLock(branchPath);
       // The sentinel is deliberately written last during migration. If it is
       // missing after a crash, archive any remaining legacy files and fence
-      // old clients before allowing a new engine to attach.
+      // old clients before allowing a new engine to attach. Archiving leaves
+      // kb.rdf only when it already carries the journal format.
       archiveLegacyFiles(branchPath);
-      if (!existsSync(sentinelPath)) {
-        writeFileSync(
-          sentinelPath,
-          "KIBI_STORAGE_FORMAT=kibi.rdf-journal.v1\n",
-          { mode: 0o600 },
-        );
-      }
+      if (!existsSync(legacyRdf))
+        writeFileSync(legacyRdf, "KIBI_STORAGE_FORMAT=kibi.rdf-journal.v1\n", {
+          mode: 0o600,
+        });
       return;
+    }
+    // Publication moves the validated generation before archiving the
+    // legacy files. If the process dies between those moves, preserve the
+    // still-live legacy store and discard only the incomplete publication.
+    if (
+      existsSync(legacyAudit) ||
+      (existsSync(legacyRdf) &&
+        !String(readFileSync(legacyRdf)).includes("kibi.rdf-journal.v1"))
+    ) {
+      rmSync(rdfDirectory, { recursive: true, force: true });
+      rmSync(currentPath, { force: true });
+      rmSync(markerPath);
+    } else {
+      throw new Error(
+        `Journaled branch store is incomplete at ${branchPath}; restore the immutable legacy/ backup or remove the interrupted generation before retrying`,
+      );
     }
   }
 
-  const legacyRdf = path.join(branchPath, "kb.rdf");
-  const legacyAudit = path.join(branchPath, "audit.log");
   if (!existsSync(legacyRdf) && !existsSync(legacyAudit)) {
     mkdirSync(path.join(branchPath, "rdf"), { recursive: true });
     writeFileSync(
@@ -1755,8 +1550,7 @@ export async function ensureJournaledBranchStoreAsync(
     return;
   }
   if (existsSync(legacyRdf)) {
-    const legacyContents = readFileSync(legacyRdf, "utf8");
-    if (!/<rdf:RDF(?:\s|>)/.test(legacyContents)) {
+    if (!/<rdf:RDF(?:\s|>)/.test(String(readFileSync(legacyRdf)))) {
       throw new Error(
         `Legacy Kibi store is corrupt at ${legacyRdf}: expected RDF/XML root`,
       );
@@ -1772,12 +1566,14 @@ export async function ensureJournaledBranchStoreAsync(
     parent,
     `.${migrationKey}.migration.${process.pid}.${Date.now()}`,
   );
-  mkdirSync(staging, { recursive: true, mode: 0o700 });
+  mkdirSync(staging, { mode: 0o700 });
   // Production migration runs in the Node daemon. The one-shot branch exists
   // solely for repository tests that import this helper under Bun.
-  const testOneShot =
-    process.env.NODE_ENV === "test" &&
+  const underBun =
+    // rationale: the tests run under Bun only, so the Node branch never runs.
+    // Stryker disable next-line ConditionalExpression,StringLiteral
     typeof (globalThis as { Bun?: unknown }).Bun !== "undefined";
+  const testOneShot = process.env.NODE_ENV === "test" && underBun;
   const migrator = new PrologProcess({
     timeout: 120_000,
     oneShot: testOneShot,
@@ -1798,7 +1594,7 @@ export async function ensureJournaledBranchStoreAsync(
       throw new Error(migrated.error ?? "Legacy KB migration failed");
     fsyncJournaledBranchStore(staging);
   } catch (error) {
-    rmSync(staging, { recursive: true, force: true });
+    rmSync(staging, { recursive: true });
     throw error;
   } finally {
     await migrator.terminate();
@@ -1811,7 +1607,7 @@ export async function ensureJournaledBranchStoreAsync(
     const source = path.join(staging, file);
     if (!existsSync(source)) continue;
     const target = path.join(branchPath, file);
-    if (existsSync(target)) rmSync(target, { recursive: true, force: true });
+    rmSync(target, { recursive: true, force: true });
     renameSync(source, target);
   }
   archiveLegacyFiles(branchPath);
@@ -1822,7 +1618,7 @@ export async function ensureJournaledBranchStoreAsync(
     { mode: 0o600 },
   );
   fsyncJournaledBranchStore(branchPath);
-  rmSync(staging, { recursive: true, force: true });
+  rmSync(staging, { recursive: true });
 }
 
 function archiveLegacyFiles(branchPath: string): void {
@@ -1830,11 +1626,12 @@ function archiveLegacyFiles(branchPath: string): void {
   mkdirSync(legacyDir, { recursive: true, mode: 0o700 });
   for (const file of ["kb.rdf", "audit.log"]) {
     const source = path.join(branchPath, file);
-    if (!existsSync(source)) continue;
-    if (file === "kb.rdf") {
-      const contents = readFileSync(source, "utf8");
-      if (contents.includes("kibi.rdf-journal.v1")) continue;
-    }
+    // The journal sentinel stays; only legacy data is archived.
+    if (
+      !existsSync(source) ||
+      String(readFileSync(source)).includes("kibi.rdf-journal.v1")
+    )
+      continue;
     const destination = path.join(legacyDir, file);
     if (existsSync(destination)) {
       // Never overwrite an immutable backup from an earlier interrupted
@@ -1850,7 +1647,7 @@ function archiveLegacyFiles(branchPath: string): void {
 }
 
 function recoverInterruptedGeneration(branchPath: string): void {
-  let entries: string[] = [];
+  let entries: string[];
   try {
     entries = readdirSync(branchPath);
   } catch {
@@ -1878,9 +1675,8 @@ function recoverInterruptedGeneration(branchPath: string): void {
     oldCurrent
   ) {
     try {
-      if (existsSync(rdfPath))
-        rmSync(rdfPath, { recursive: true, force: true });
-      if (existsSync(currentPath)) rmSync(currentPath, { force: true });
+      rmSync(rdfPath, { recursive: true, force: true });
+      rmSync(currentPath, { force: true });
       renameSync(oldRdf, rdfPath);
       renameSync(oldCurrent, currentPath);
       return;
@@ -1911,11 +1707,9 @@ function isEngineLifecycleRequest(request: EngineRequest): boolean {
     request.method === "handshake"
   )
     return true;
+  // Only command requests carry a command kind.
   const kind = request.command?.kind;
-  return (
-    request.method === "command" &&
-    (kind === "stop" || kind === "cancel" || kind === "lifecycle")
-  );
+  return kind === "stop" || kind === "cancel" || kind === "lifecycle";
 }
 
 const ENGINE_PRELOADED_MODULES = [
@@ -2043,9 +1837,8 @@ export async function runEngineDaemon(requestedOptions: {
   const prolog = new PrologProcess({
     timeout: 120_000,
     oneShot: false,
-    ...(options.maxOutputBytes === undefined
-      ? {}
-      : { maxOutputBytes: options.maxOutputBytes }),
+    // PrologProcess applies its default to a missing bound.
+    maxOutputBytes: options.maxOutputBytes as number,
   });
   const session = new EngineSession(prolog, branchPath);
   try {
@@ -2061,11 +1854,11 @@ export async function runEngineDaemon(requestedOptions: {
   const serverPackageVersions = enginePackageVersions();
 
   mkdirSync(path.dirname(options.socketPath), { recursive: true, mode: 0o700 });
-  if (existsSync(options.socketPath)) {
+  // A missing socket refuses the probe like a stale one.
+  {
     const isLivePeerSignal = (error: unknown): boolean => {
       if (error && typeof error === "object") {
-        const code =
-          "code" in error ? String((error as NodeJS.ErrnoException).code) : "";
+        const code = String((error as NodeJS.ErrnoException).code);
         if (code === "EPIPE" || code === "ECONNRESET") return true;
         const errno =
           "errno" in error
@@ -2085,12 +1878,7 @@ export async function runEngineDaemon(requestedOptions: {
       // intended live-listener error.
       existing.on("error", () => undefined);
       live = true;
-      try {
-        existing.destroy();
-      } catch {
-        // Ignore destroy races; live detection already succeeded.
-      }
-      existing.unref?.();
+      existing.destroy();
     } catch (error) {
       // Bun 1.4 can reject the probe with EPIPE/ECONNRESET against a live
       // unix listener instead of resolving connect.
@@ -2100,22 +1888,17 @@ export async function runEngineDaemon(requestedOptions: {
       // Otherwise a refused connection means a stale filesystem socket.
     }
     if (live) {
-      try {
-        await prolog.terminate();
-      } catch (error) {
-        // Best-effort cleanup; Bun may surface late EPIPE here too.
-        if (!isLivePeerSignal(error)) {
-          // Ignore non-EPIPE terminate failures.
-        }
-      }
+      // Best-effort cleanup; Bun may surface a late EPIPE here too.
+      await prolog.terminate().catch(() => undefined);
       throw new Error(
         `A Kibi engine is already listening at ${options.socketPath}`,
       );
     }
     try {
-      rmSync(options.socketPath, { force: true });
+      rmSync(options.socketPath);
     } catch {
-      // The listen call below reports permission/address-in-use failures.
+      // A missing socket needs no removal; the listen call below reports
+      // permission/address-in-use failures.
     }
   }
   writeFileSync(
@@ -2124,7 +1907,6 @@ export async function runEngineDaemon(requestedOptions: {
     { mode: 0o600 },
   );
   const server = net.createServer();
-  let activeClients = 0;
   // implements REQ-core-journaled-engine-persistence
   // Idle exit compares wall-clock time: a one-shot timer does not advance
   // while the host (a VM, a laptop) is suspended, so a daemon would outlive
@@ -2168,12 +1950,10 @@ export async function runEngineDaemon(requestedOptions: {
   });
 
   const exactBranchStatus = (result: PrologQueryResult): PrologQueryResult => {
-    if (!result.success || typeof result.bindings.JsonString !== "string") {
-      return result;
-    }
+    // A failed status carries no JsonString, which fails to parse.
     try {
       const decoded = JSON.parse(
-        JSON.parse(result.bindings.JsonString),
+        JSON.parse(result.bindings.JsonString as string),
       ) as Record<string, unknown>;
       decoded.branch = options.branch;
       if (attachedIdentity !== null) {
@@ -2217,13 +1997,14 @@ export async function runEngineDaemon(requestedOptions: {
   workspaceWatchdog.unref();
 
   const scheduleIdleExit = (): void => {
-    if (shuttingDown || activeClients > 0) return;
+    // Idle work and the idle exit both wait for the last client to leave.
+    if (shuttingDown) return;
     if (!idleCompactionQueued) {
       idleCompactionQueued = true;
       queue = queue
         .then(async () => {
           // A lost session is recycled by the next request, not by idle work.
-          if (activeClients === 0 && !session.needsRecycle()) {
+          if (clients.size === 0 && !session.needsRecycle()) {
             await prolog.query("kb_storage_compact_if_needed");
           }
         })
@@ -2239,7 +2020,7 @@ export async function runEngineDaemon(requestedOptions: {
       () => {
         if (
           !shuttingDown &&
-          activeClients === 0 &&
+          clients.size === 0 &&
           Date.now() - lastActivityAt >= idleMs
         )
           void shutdown();
@@ -2259,7 +2040,7 @@ export async function runEngineDaemon(requestedOptions: {
       );
     }
     if (
-      canonicalFilesystemPath(request.workspaceRoot ?? "") !==
+      canonicalFilesystemPath(String(request.workspaceRoot)) !==
         options.workspaceRoot ||
       request.branch !== options.branch
     ) {
@@ -2390,10 +2171,8 @@ export async function runEngineDaemon(requestedOptions: {
             return result;
           }
           case "check": {
-            if (
-              command.rule !== undefined &&
-              !/^[a-z][a-z0-9_]*$/.test(command.rule)
-            ) {
+            // An absent rule reads as "undefined", a valid name.
+            if (!/^[a-z][a-z0-9_]*$/.test(String(command.rule))) {
               throw new Error(
                 "engine.check.rule must be a lowercase rule name",
               );
@@ -2517,18 +2296,16 @@ export async function runEngineDaemon(requestedOptions: {
         }
       }
       case "kbStatus": {
-        const freshnessCacheLookupStartedAt =
-          process.env.KIBI_PERF_TIMINGS === "1" ? performance.now() : null;
+        // The trace writer records nothing unless timing is enabled.
+        const freshnessCacheLookupStartedAt = performance.now();
         if (
           freshnessCache !== null &&
           Date.now() - freshnessCache.capturedAt <= ENGINE_FRESHNESS_CACHE_MS
         ) {
-          if (freshnessCacheLookupStartedAt !== null) {
-            writePerformanceTraceEvent({
-              kind: "engine-freshness-cache-hit",
-              durationMs: performance.now() - freshnessCacheLookupStartedAt,
-            });
-          }
+          writePerformanceTraceEvent({
+            kind: "engine-freshness-cache-hit",
+            durationMs: performance.now() - freshnessCacheLookupStartedAt,
+          });
           return freshnessCache.result;
         }
         const result = exactBranchStatus(
@@ -2551,19 +2328,15 @@ export async function runEngineDaemon(requestedOptions: {
           queryCache.clear();
           freshnessCache = null;
         }
-        if (cacheableEngineGoal(request.goal)) {
-          const queryCacheLookupStartedAt =
-            process.env.KIBI_PERF_TIMINGS === "1" ? performance.now() : null;
-          const cached = queryCache.get(request.goal);
-          if (cached !== undefined) {
-            if (queryCacheLookupStartedAt !== null) {
-              writePerformanceTraceEvent({
-                kind: "engine-query-cache-hit",
-                durationMs: performance.now() - queryCacheLookupStartedAt,
-              });
-            }
-            return cached;
-          }
+        // Only cacheable goals are ever cached.
+        const queryCacheLookupStartedAt = performance.now();
+        const cached = queryCache.get(request.goal);
+        if (cached !== undefined) {
+          writePerformanceTraceEvent({
+            kind: "engine-query-cache-hit",
+            durationMs: performance.now() - queryCacheLookupStartedAt,
+          });
+          return cached;
         }
         // Writes and module loads always run to completion; a limit may
         // only stop a read. The dry-run contradiction preview stages a
@@ -2585,12 +2358,12 @@ export async function runEngineDaemon(requestedOptions: {
         if (
           result.success &&
           cacheableEngineGoal(request.goal) &&
-          Buffer.byteLength(JSON.stringify(result), "utf8") <=
+          Buffer.byteLength(JSON.stringify(result)) <=
             ENGINE_QUERY_CACHE_MAX_RESULT_BYTES
         ) {
           if (queryCache.size >= ENGINE_QUERY_CACHE_MAX_ENTRIES) {
-            const oldest = queryCache.keys().next().value;
-            if (typeof oldest === "string") queryCache.delete(oldest);
+            // A full cache always has an oldest entry.
+            queryCache.delete(queryCache.keys().next().value as string);
           }
           queryCache.set(request.goal, result);
         }
@@ -2638,10 +2411,8 @@ export async function runEngineDaemon(requestedOptions: {
         // SWI interactive cancellation; the client still rejects locally on
         // AbortSignal, but the daemon queue remains occupied until that Prolog
         // call returns. Cancel marks are per-connection. See
-        // docs/mcp-reference.md ("Engine cancellation limits").
-        if (typeof request.cancelOf === "number") {
-          cancelledRequests.add(request.cancelOf);
-        }
+        // docs/mcp-reference.md ("Engine cancellation limits"). The mark
+        // itself is set when the cancel frame arrives, ahead of the queue.
         return { cancelled: request.cancelOf ?? null };
     }
   };
@@ -2651,7 +2422,8 @@ export async function runEngineDaemon(requestedOptions: {
     shuttingDown = true;
     process.off("SIGTERM", requestSignalShutdown);
     process.off("SIGINT", requestSignalShutdown);
-    if (idleWatch) clearInterval(idleWatch);
+    // clearInterval ignores a watch that was never scheduled.
+    clearInterval(idleWatch as NodeJS.Timeout);
     clearInterval(workspaceWatchdog);
     // Stop accepting clients before the first asynchronous durability step.
     // Keep the PID published until Prolog releases the branch-store lock.
@@ -2659,8 +2431,8 @@ export async function runEngineDaemon(requestedOptions: {
     await queue.catch(() => undefined);
     const saved = session.needsRecycle()
       ? null
-      : await prolog.query("kb_save").catch(() => null);
-    let detached = false;
+      : await prolog.query("kb_save").catch(() => undefined);
+    let detached: boolean | undefined = false;
     if (saved?.success) {
       try {
         fsyncJournaledBranchStore(branchPath);
@@ -2676,7 +2448,7 @@ export async function runEngineDaemon(requestedOptions: {
       detached = await prolog
         .query("kb_detach")
         .then((result) => result.success)
-        .catch(() => false);
+        .catch(() => undefined);
     }
     // Once kb_detach released the store, nothing in at_halt is needed and the
     // child is signalled at once. Otherwise let SWI halt on stdin EOF (running
@@ -2691,12 +2463,9 @@ export async function runEngineDaemon(requestedOptions: {
     // hosting process alive on that bookkeeping handle.
     server.unref();
     try {
-      if (existsSync(options.socketPath))
-        rmSync(options.socketPath, { force: true });
-      if (existsSync(enginePidPath(options.workspaceRoot, options.branch)))
-        rmSync(enginePidPath(options.workspaceRoot, options.branch), {
-          force: true,
-        });
+      rmSync(options.socketPath, { force: true });
+      // Last: a vanished pid file has nothing left to remove.
+      rmSync(enginePidPath(options.workspaceRoot, options.branch));
     } catch {
       // best effort cleanup
     }
@@ -2722,16 +2491,14 @@ export async function runEngineDaemon(requestedOptions: {
       return;
     }
     clients.add(socket);
-    activeClients += 1;
     // Request ids are per-connection. Cancel marks must not be daemon-global
     // or Client B's id=1 is poisoned by Client A's cancelOf=1.
     const cancelledRequests = new Set<number>();
     let buffer: Buffer<ArrayBufferLike> = Buffer.alloc(0);
-    socket.on("data", (chunk) => {
+    socket.on("data", (chunk: Buffer) => {
       try {
-        const bytes = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
         buffer = parseFrames(
-          Buffer.concat([buffer, bytes]) as Buffer<ArrayBufferLike>,
+          Buffer.concat([buffer, chunk]) as Buffer<ArrayBufferLike>,
           (value) => {
             const request = value as EngineRequest;
             lastActivityAt = Date.now();
@@ -2744,12 +2511,9 @@ export async function runEngineDaemon(requestedOptions: {
               } satisfies EngineResponse);
               return;
             }
-            if (
-              request.method === "cancel" &&
-              typeof request.cancelOf === "number"
-            ) {
-              cancelledRequests.add(request.cancelOf);
-            }
+            // A mark that is not a number never matches a request id.
+            if (request.method === "cancel")
+              cancelledRequests.add(request.cancelOf as number);
             queue = queue
               .then(async () => {
                 if (cancelledRequests.delete(request.id)) {
@@ -2794,7 +2558,6 @@ export async function runEngineDaemon(requestedOptions: {
     });
     socket.on("close", () => {
       clients.delete(socket);
-      activeClients -= 1;
       scheduleIdleExit();
     });
   });
