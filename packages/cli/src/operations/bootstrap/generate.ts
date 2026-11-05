@@ -58,13 +58,8 @@ function firstUpsertId(candidate: Candidate): string {
       (payload) => payload.type === candidate.entityType,
     ) ?? candidate.applyPlan[0];
   if (typeof first?.id === "string") return first.id;
-  const properties = first?.properties;
-  return properties !== null &&
-    typeof properties === "object" &&
-    "id" in properties &&
-    typeof properties.id === "string"
-    ? properties.id
-    : "";
+  const nested = (first?.properties as { id?: unknown } | null | undefined)?.id;
+  return typeof nested === "string" ? nested : "";
 }
 
 function sha256(value: string): string {
@@ -195,8 +190,7 @@ export function selectBootstrapCandidates(
     // Two candidates that write one entity ID with different content would
     // overwrite each other mid-apply and break the earlier one's grounding.
     const conflict = candidate.applyPlan.find((payload) => {
-      const id = payloadId(payload);
-      const previous = id ? written.get(id) : undefined;
+      const previous = written.get(payloadId(payload));
       return previous !== undefined && previous !== JSON.stringify(payload);
     });
     if (conflict) {
@@ -217,7 +211,6 @@ export function selectBootstrapCandidates(
     }
     for (const payload of candidate.applyPlan) {
       const id = payloadId(payload);
-      if (!id) continue;
       written.set(id, JSON.stringify(payload));
       staged.set(id, stagedEntity(payload));
     }
@@ -236,21 +229,23 @@ export function selectBootstrapCandidates(
   };
 }
 
+/**
+ * Only validated writes reach here: each has an id, and a write's properties
+ * override it, so without a string id of its own the properties name one.
+ */
 function payloadId(payload: Readonly<Record<string, unknown>>): string {
   if (typeof payload.id === "string") return payload.id;
-  // Only validated writes reach here, and a write's properties override its
-  // id: without a string id of its own, the properties name one.
   return String((payload.properties as Readonly<Record<string, unknown>>).id);
 }
 
 function stagedEntity(
   payload: Readonly<Record<string, unknown>>,
 ): Readonly<Record<string, unknown>> {
-  const properties =
-    payload.properties !== null && typeof payload.properties === "object"
-      ? (payload.properties as Readonly<Record<string, unknown>>)
-      : {};
-  return { ...properties, id: payloadId(payload), type: payload.type };
+  return {
+    ...(payload.properties as Readonly<Record<string, unknown>> | undefined),
+    id: payloadId(payload),
+    type: payload.type,
+  };
 }
 
 /**
@@ -264,10 +259,8 @@ function stagedGroundingError(
   planned: ReadonlyMap<string, Readonly<Record<string, unknown>>>,
 ): string | null {
   const local = new Map(planned);
-  for (const payload of candidate.applyPlan) {
-    const id = payloadId(payload);
-    if (id) local.set(id, stagedEntity(payload));
-  }
+  for (const payload of candidate.applyPlan)
+    local.set(payloadId(payload), stagedEntity(payload));
   for (const payload of candidate.applyPlan) {
     const relationships = Array.isArray(payload.relationships)
       ? (payload.relationships as readonly SemanticRelationship[])
@@ -288,10 +281,10 @@ function activationSuppressedClaims(
   activation: ActivationPolicy,
 ): readonly Readonly<Record<string, unknown>>[] {
   const sources = new Set(
-    (declared.knowledgeSources ?? []).map((source) => source.id),
+    declared.knowledgeSources?.map((source) => source.id),
   );
-  return (declared.intentClaims ?? [])
-    .filter((claim) => sources.has(claim.sourceId))
+  const rows = declared.intentClaims
+    ?.filter((claim) => sources.has(claim.sourceId))
     .map((claim) => ({
       candidateId: "",
       reason: "suppressed_by_activation",
@@ -301,6 +294,7 @@ function activationSuppressedClaims(
       sourceId: claim.sourceId,
       activationMode: activation.activationMode,
     }));
+  return rows ?? [];
 }
 
 type ExistingKnowledge = {
@@ -344,7 +338,11 @@ async function existingKnowledge(
     const requirements = texts.map((requirement) => ({
       ...requirement,
       ...(logic.has(requirement.id)
-        ? { modeled: logic.get(requirement.id)?.modeled === true }
+        ? {
+            modeled:
+              (logic.get(requirement.id) as { modeled?: unknown }).modeled ===
+              true,
+          }
         : {}),
     }));
     return { ids, requirements };
@@ -400,23 +398,23 @@ async function expectedSnapshots(
     const workspaceSnapshot = workspace.available
       ? workspace.snapshot.hash
       : undefined;
+    const snapshotHash = /^[a-f0-9]{64}$/i.test(String(workspaceSnapshot))
+      ? (workspaceSnapshot as string)
+      : undefined;
     if (!branch || branch === "unknown")
       diagnostics.push(
         "Bootstrap plan binding could not determine the active Git branch.",
       );
-    if (!workspaceSnapshot || !/^[a-f0-9]{64}$/i.test(workspaceSnapshot))
+    if (snapshotHash === undefined)
       diagnostics.push(
         "Bootstrap plan binding could not determine a current workspace snapshot.",
       );
     const rawSnapshot = status?.snapshotId;
     const kbSnapshotId =
-      rawSnapshot === "missing" &&
-      branch &&
-      workspaceSnapshot &&
-      /^[a-f0-9]{64}$/i.test(workspaceSnapshot)
+      rawSnapshot === "missing" && branch && snapshotHash
         ? bootstrapEmptyKbSnapshotId({
             branch,
-            workspaceSnapshot,
+            workspaceSnapshot: snapshotHash,
             sourceHashes,
           })
         : rawSnapshot;
@@ -456,11 +454,12 @@ export async function executePlanBootstrap(
   context: OperationContext,
 ): Promise<PlanBootstrapResult> {
   const declared = normalizeBootstrapContext(args.bootstrapContext);
+  // Normalized context lists intent claims only when there are some.
+  const hasClaims = declared.intentClaims !== undefined;
   // Declared intent claims already carry the human's sources of truth, so
   // generic Markdown would mostly restate them as duplicate_title noise.
   const genericMarkdownDefaultOff =
-    args.includeGenericMarkdown === undefined &&
-    (declared.intentClaims?.length ?? 0) > 0;
+    args.includeGenericMarkdown === undefined && hasClaims;
   const includeGenericMarkdown =
     args.includeGenericMarkdown ?? !genericMarkdownDefaultOff;
   const minConfidence = clamp(args.minConfidence ?? 0.8, 0.6, 0.95);
@@ -471,7 +470,7 @@ export async function executePlanBootstrap(
     context,
     discovery.activation.activationState === "root_active_thin" ||
       discovery.activation.activationState === "root_active_seeded",
-    (declared.intentClaims?.length ?? 0) > 0,
+    hasClaims,
   ).catch((error: Error) => {
     entityBindingDiagnostics.push(error.message);
     return NO_EXISTING_KNOWLEDGE;
@@ -497,6 +496,9 @@ export async function executePlanBootstrap(
         subjectKeys,
       )
     : {
+        // rationale: these candidates only pass the confidence floor below,
+        // which drops a placeholder entry that has no confidence.
+        // Stryker disable next-line ArrayDeclaration
         candidates: [],
         sourceOnlySignals: [],
         suppressed: [],
