@@ -20,7 +20,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Bun (pinned version for reproducibility)
-ENV BUN_VERSION=1.3.10
+ENV BUN_VERSION=1.4.4
 RUN curl -fsSL https://bun.sh/install | bash -s "bun-v${BUN_VERSION}"
 ENV PATH="/root/.bun/bin:${PATH}"
 
