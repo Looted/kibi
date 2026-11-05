@@ -1,0 +1,101 @@
+[
+  {
+    "id": "REQ-mixed",
+    "proofStages": {
+      "sourceCoordinates": {
+        "status": "missing",
+        "missingSymbols": ["S-ext", "S-none", "S-none-2", "S-unknown", 5],
+        "coordinateRepairs": [
+          {
+            "symbolId": "S-ext",
+            "sourceFile": "src/a.ts",
+            "refreshable": true,
+            "reason": "extractable",
+            "suggestion": "Refresh and persist current symbol coordinates."
+          },
+          {
+            "symbolId": "S-none",
+            "sourceFile": "src/a.ts",
+            "refreshable": false,
+            "reason": "extractor_miss",
+            "suggestion": "Query and validate the symbol, then author a resolvable title/sourceFile or an explicit granularity_reason: extractor-miss (or another intentional coarse anchor) through kb_upsert before refreshing."
+          },
+          {
+            "symbolId": "S-none-2",
+            "sourceFile": "src/a.ts",
+            "refreshable": false,
+            "reason": "extractor_miss",
+            "suggestion": "Query and validate the symbol, then author a resolvable title/sourceFile or an explicit granularity_reason: extractor-miss (or another intentional coarse anchor) through kb_upsert before refreshing."
+          },
+          {
+            "symbolId": "S-unknown",
+            "sourceFile": null,
+            "refreshable": false,
+            "reason": "source_unavailable",
+            "suggestion": "Query and repair the missing symbol before refreshing."
+          }
+        ]
+      }
+    },
+    "proofRepairs": [
+      null,
+      {
+        "gap": "missing_symbol_coordinates",
+        "action": "Query and validate the symbol, then author a resolvable title/sourceFile or an explicit granularity_reason: extractor-miss (or another intentional coarse anchor) through kb_upsert before refreshing. Query and repair the missing symbol before refreshing."
+      },
+      {
+        "gap": "other",
+        "action": "keep"
+      }
+    ]
+  },
+  {
+    "id": "REQ-quiet",
+    "proofStages": {
+      "other": {}
+    }
+  },
+  {
+    "id": "REQ-fresh",
+    "proofStages": {
+      "sourceCoordinates": {
+        "missingSymbols": ["S-ext"],
+        "coordinateRepairs": [
+          {
+            "symbolId": "S-ext",
+            "sourceFile": "src/a.ts",
+            "refreshable": true,
+            "reason": "extractable",
+            "suggestion": "Refresh and persist current symbol coordinates."
+          }
+        ]
+      }
+    },
+    "proofRepairs": [
+      {
+        "gap": "missing_symbol_coordinates",
+        "action": "refresh"
+      }
+    ]
+  },
+  {
+    "id": "REQ-bare"
+  },
+  {
+    "id": "REQ-no-repairs",
+    "proofStages": {
+      "sourceCoordinates": {
+        "missingSymbols": ["S-none"],
+        "coordinateRepairs": [
+          {
+            "symbolId": "S-none",
+            "sourceFile": "src/a.ts",
+            "refreshable": false,
+            "reason": "extractor_miss",
+            "suggestion": "Query and validate the symbol, then author a resolvable title/sourceFile or an explicit granularity_reason: extractor-miss (or another intentional coarse anchor) through kb_upsert before refreshing."
+          }
+        ]
+      }
+    }
+  }
+]
