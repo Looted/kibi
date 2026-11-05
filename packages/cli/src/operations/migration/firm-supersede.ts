@@ -40,7 +40,7 @@ export function planFirmSupersedeAcknowledgement(
 ): string[] {
   const entities = listDecisionEntities(workspaceRoot);
   const known = new Set(
-    readKbManifest(workspaceRoot)?.firmSupersedeAcknowledged ?? [],
+    readKbManifest(workspaceRoot)?.firmSupersedeAcknowledged,
   );
   return implicitFirmSupersedes(
     entities,

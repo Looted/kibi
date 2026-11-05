@@ -41,45 +41,29 @@ function normalizeDiffContent(line: string): string {
   return normalized;
 }
 
-function removeSyntacticTrailingCommas(content: string): string {
-  let normalized = "";
+function removeSyntacticTrailingCommas(content: string): string[] {
   let quote: '"' | "'" | "`" | null = null;
   let escaped = false;
 
-  for (let index = 0; index < content.length; index += 1) {
-    const character = content[index];
-    if (character === undefined) continue;
-
+  return [...content].filter((character, index, characters) => {
     if (quote !== null) {
-      normalized += character;
-
       if (escaped) {
         escaped = false;
-        continue;
-      }
-      if (character === "\\") {
+      } else if (character === "\\") {
         escaped = true;
-        continue;
+      } else if (character === quote) {
+        quote = null;
       }
-      if (character === quote) quote = null;
-      continue;
+      return true;
     }
 
     if (character === '"' || character === "'" || character === "`") {
       quote = character;
-      normalized += character;
-      continue;
+      return true;
     }
 
-    const nextCharacter = content[index + 1];
-    if (isTrailingCommaBeforeCloser(character, nextCharacter)) {
-      continue;
-    }
-
-    normalized += character;
-  }
-
-  return normalized;
+    return !isTrailingCommaBeforeCloser(character, characters[index + 1]);
+  });
 }
 
 function hasMeaningfulDiffHunk(diffLines: readonly string[]): boolean {
@@ -96,33 +80,18 @@ function hasMeaningfulDiffHunk(diffLines: readonly string[]): boolean {
     }
   }
 
-  const normalizedRemovedContent =
-    removeSyntacticTrailingCommas(removedContent);
-  const normalizedAddedContent = removeSyntacticTrailingCommas(addedContent);
-
-  if (
-    normalizedRemovedContent.length === 0 &&
-    normalizedAddedContent.length === 0
-  ) {
-    return false;
-  }
-  return normalizedRemovedContent !== normalizedAddedContent;
+  // Two empty sides compare equal, so an empty hunk is not meaningful.
+  return (
+    JSON.stringify(removeSyntacticTrailingCommas(removedContent)) !==
+    JSON.stringify(removeSyntacticTrailingCommas(addedContent))
+  );
 }
 
 // implements REQ-cli-staged-impact-enforcement
 export function hasMeaningfulSourceDiff(diffText: string): boolean {
-  const hunkLines: string[] = [];
-
-  for (const line of diffText.split(/\r?\n/)) {
-    if (line.startsWith("@@")) {
-      if (hasMeaningfulDiffHunk(hunkLines)) return true;
-      hunkLines.length = 0;
-      continue;
-    }
-    if (hunkLines.length > 0 || line.startsWith("+") || line.startsWith("-")) {
-      hunkLines.push(line);
-    }
-  }
-
-  return hasMeaningfulDiffHunk(hunkLines);
+  // Every "@@" header line starts a new hunk; text before the first header
+  // forms one more.
+  return diffText
+    .split(/^@@.*/m)
+    .some((hunk) => hasMeaningfulDiffHunk(hunk.split(/\r?\n/)));
 }

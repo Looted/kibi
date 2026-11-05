@@ -60,13 +60,15 @@ export interface StagedFileCoverageResult {
   diagnostics: StagedFileCoverageDiagnostic[];
 }
 
-type Relationship = { type: string; from: string; to: string };
+type Edge = { from: string; to: string };
 type GitReader = (args: readonly string[]) => Buffer;
 
 function defaultGitReader(args: readonly string[]): Buffer {
   return execFileSync("git", args, {
-    encoding: "buffer",
     maxBuffer: 64 * 1024 * 1024,
+    // rationale: stdin and stderr are only kept off the terminal; nothing
+    // the reader returns or throws depends on them.
+    // Stryker disable next-line ArrayDeclaration,StringLiteral
     stdio: ["ignore", "pipe", "ignore"],
   });
 }
@@ -83,27 +85,37 @@ function readRequired(reader: GitReader, args: readonly string[]): string {
 function manifestEntries(
   content: string | null,
 ): ReturnType<typeof extractFromManifestString> {
-  if (!content?.trim()) return [];
   try {
-    return extractFromManifestString(content, CANONICAL_ENTITY_PATHS.symbols);
+    // No manifest (null) or a blank one has no symbols array and throws.
+    return extractFromManifestString(
+      content as string,
+      CANONICAL_ENTITY_PATHS.symbols,
+    );
   } catch {
     return [];
   }
 }
 
-function parseRelationships(content: string | null): Relationship[] {
-  if (!content?.trim()) return [];
+/**
+ * The `implements` edges of a relationship shard from one of `symbolIds`.
+ * A missing, blank, malformed or non-list shard has none.
+ */
+function implementsEdges(
+  content: string | undefined,
+  symbolIds: ReadonlySet<string>,
+): Edge[] {
   try {
-    const parsed = parseYaml(content) as { relationships?: unknown[] } | null;
-    if (!Array.isArray(parsed?.relationships)) return [];
-    return parsed.relationships.flatMap((value): Relationship[] => {
-      if (!value || typeof value !== "object") return [];
-      const row = value as Record<string, unknown>;
-      return typeof row.type === "string" &&
-        typeof row.from === "string" &&
+    const parsed = parseYaml(content as string) as {
+      relationships: unknown[];
+    };
+    return parsed.relationships.filter((value): value is Edge => {
+      // Reading a property of a primitive yields undefined.
+      const row = value as Record<string, unknown> | null | undefined;
+      return (
+        row?.type === "implements" &&
+        symbolIds.has(row.from as string) &&
         typeof row.to === "string"
-        ? [{ type: row.type, from: row.from, to: row.to }]
-        : [];
+      );
     });
   } catch {
     return [];
@@ -112,11 +124,7 @@ function parseRelationships(content: string | null): Relationship[] {
 
 function headKbPaths(reader: GitReader): Set<string> {
   try {
-    if (
-      reader(["rev-parse", "--verify", "HEAD"]).toString("utf8").trim() === ""
-    ) {
-      return new Set();
-    }
+    reader(["rev-parse", "--verify", "HEAD"]);
   } catch {
     // A repository with an unborn branch has no committed knowledge yet.
     return new Set();
@@ -130,7 +138,8 @@ function headKbPaths(reader: GitReader): Set<string> {
     "--",
     ".kb",
   ]);
-  return new Set(output.split("\0").filter(Boolean));
+  // The trailing NUL adds "", which no knowledge path filter matches.
+  return new Set(output.split("\0"));
 }
 
 function effectiveRelationshipFiles(
@@ -139,14 +148,15 @@ function effectiveRelationshipFiles(
   reader: GitReader,
 ): { head: Map<string, string>; effective: Map<string, string> } {
   const head = new Map<string, string>();
-  for (const path of [...headPaths].sort()) {
+  for (const path of headPaths) {
     if (!path.startsWith(".kb/relationships/")) continue;
     head.set(path, readRequired(reader, ["show", `HEAD:${path}`]));
   }
   const effective = new Map(head);
   for (const entry of inventory) {
     if (!entry.path.startsWith(".kb/relationships/")) continue;
-    if (entry.oldPath) effective.delete(entry.oldPath);
+    // Deleting an absent (or undefined) key is a no-op.
+    effective.delete(entry.oldPath as string);
     if (entry.status === "D") effective.delete(entry.path);
     else if (entry.content !== undefined)
       effective.set(entry.path, entry.content);
@@ -160,14 +170,14 @@ function effectiveRequirementIds(
   reader: GitReader,
 ): Set<string> {
   const files = new Map<string, string>();
-  for (const path of [...headPaths].sort()) {
+  for (const path of headPaths) {
     if (!path.startsWith(".kb/requirements/") || !path.endsWith(".md")) {
       continue;
     }
     files.set(path, readRequired(reader, ["show", `HEAD:${path}`]));
   }
   for (const entry of inventory) {
-    if (entry.oldPath) files.delete(entry.oldPath);
+    files.delete(entry.oldPath as string);
     if (
       !entry.path.startsWith(".kb/requirements/") ||
       !entry.path.endsWith(".md")
@@ -190,8 +200,13 @@ function effectiveRequirementIds(
   return ids;
 }
 
-function relationshipSet(files: ReadonlyMap<string, string>): Relationship[] {
-  return [...files.values()].flatMap(parseRelationships);
+function edgesOf(
+  files: ReadonlyMap<string, string>,
+  symbolIds: ReadonlySet<string>,
+): Edge[] {
+  return [...files.values()].flatMap((content) =>
+    implementsEdges(content, symbolIds),
+  );
 }
 
 function stagedManifestContent(
@@ -210,20 +225,17 @@ function isKibiManagedPath(path: string): boolean {
   return path.replaceAll("\\", "/").startsWith(`${KB_ROOT}/`);
 }
 
-function sourcePaths(entry: StagedPath): Set<string> {
-  return new Set([entry.path, ...(entry.oldPath ? [entry.oldPath] : [])]);
+function sourcePaths(entry: StagedPath): Set<string | undefined> {
+  return new Set([entry.path, entry.oldPath]);
 }
 
 function entriesForPaths(
   entries: ReturnType<typeof extractFromManifestString>,
-  paths: ReadonlySet<string>,
+  paths: ReadonlySet<string | undefined>,
 ) {
-  return entries.filter((entry) => {
-    const source = entry.sourceFile ?? entry.entity.source;
-    return (
-      typeof source === "string" && paths.has(source.replaceAll("\\", "/"))
-    );
-  });
+  return entries.filter((entry) =>
+    paths.has((entry.sourceFile ?? entry.entity.source).replaceAll("\\", "/")),
+  );
 }
 
 function relevantEntityEvidence(
@@ -233,14 +245,17 @@ function relevantEntityEvidence(
   return inventory.flatMap((entry): string[] => {
     if (
       entry.status === "D" ||
-      entry.content === undefined ||
       !entry.path.endsWith(".md") ||
       !isEntityLanePath(entry.path)
     ) {
       return [];
     }
     try {
-      const parsed = extractFromMarkdownString(entry.content, entry.path);
+      // Without staged content the extraction throws.
+      const parsed = extractFromMarkdownString(
+        entry.content as string,
+        entry.path,
+      );
       return parsed.entity.type === "req" &&
         requirementIds.has(parsed.entity.id)
         ? [entry.path]
@@ -268,14 +283,12 @@ function stableEntry(
   });
 }
 
+// Without a staged manifest both entry lists come from the committed one.
 function changedManifestEvidence(
-  paths: ReadonlySet<string>,
+  paths: ReadonlySet<string | undefined>,
   headEntries: ReturnType<typeof extractFromManifestString>,
   effectiveEntries: ReturnType<typeof extractFromManifestString>,
-  inventory: readonly StagedPath[],
 ): string[] {
-  const staged = stagedManifestContent(inventory);
-  if (staged === undefined) return [];
   const before = entriesForPaths(headEntries, paths).map(stableEntry).sort();
   const after = entriesForPaths(effectiveEntries, paths)
     .map(stableEntry)
@@ -293,8 +306,7 @@ function changedRelationshipEvidence(
   const paths = new Set([...headFiles.keys(), ...effectiveFiles.keys()]);
   return [...paths].filter((path) => {
     const select = (content: string | undefined) =>
-      parseRelationships(content ?? null)
-        .filter((row) => row.type === "implements" && symbolIds.has(row.from))
+      implementsEdges(content, symbolIds)
         .map((row) => `${row.from}\0${row.to}`)
         .sort();
     return (
@@ -308,7 +320,7 @@ function changedRelationshipEvidence(
 export function analyzeStagedFileCoverage(
   inventory: readonly StagedPath[],
   reader: GitReader = defaultGitReader,
-  isGenerated: (path: string) => boolean = () => false,
+  isGenerated?: (path: string) => boolean,
 ): StagedFileCoverageResult {
   const headPaths = headKbPaths(reader);
   const headManifest = headPaths.has(CANONICAL_ENTITY_PATHS.symbols)
@@ -329,8 +341,6 @@ export function analyzeStagedFileCoverage(
     headPaths,
     reader,
   );
-  const headRelationships = relationshipSet(relationshipFiles.head);
-  const effectiveRelationships = relationshipSet(relationshipFiles.effective);
   const files: StagedFileCoverageRecord[] = [];
   const diagnostics: StagedFileCoverageDiagnostic[] = [];
 
@@ -340,38 +350,31 @@ export function analyzeStagedFileCoverage(
     const effectiveOwned = entriesForPaths(effectiveEntries, paths);
     const owned = [...headOwned, ...effectiveOwned];
     const symbolIds = new Set(owned.map((item) => item.entity.id));
-    const inlineRelationships = owned.flatMap((item) => item.relationships);
+    // A symbol's inline relationships all start at that symbol.
+    const inlineEdges = owned
+      .flatMap((item) => item.relationships)
+      .filter((row) => row.type === "implements");
     const requirementIds = [
       ...new Set(
         [
-          ...inlineRelationships,
-          ...headRelationships,
-          ...effectiveRelationships,
+          ...inlineEdges,
+          ...edgesOf(relationshipFiles.head, symbolIds),
+          ...edgesOf(relationshipFiles.effective, symbolIds),
         ]
-          .filter(
-            (row) =>
-              row.type === "implements" &&
-              symbolIds.has(row.from) &&
-              actualRequirementIds.has(row.to),
-          )
+          .filter((row) => actualRequirementIds.has(row.to))
           .map((row) => row.to),
       ),
     ].sort();
+    // The three sources name distinct paths: the manifest, relationship
+    // shards and entity documents.
     const evidencePaths = [
-      ...new Set([
-        ...changedManifestEvidence(
-          paths,
-          headEntries,
-          effectiveEntries,
-          inventory,
-        ),
-        ...changedRelationshipEvidence(
-          symbolIds,
-          relationshipFiles.head,
-          relationshipFiles.effective,
-        ),
-        ...relevantEntityEvidence(inventory, new Set(requirementIds)),
-      ]),
+      ...changedManifestEvidence(paths, headEntries, effectiveEntries),
+      ...changedRelationshipEvidence(
+        symbolIds,
+        relationshipFiles.head,
+        relationshipFiles.effective,
+      ),
+      ...relevantEntityEvidence(inventory, new Set(requirementIds)),
     ].sort();
 
     files.push({
@@ -393,7 +396,7 @@ export function analyzeStagedFileCoverage(
     if (
       entry.analysisDepth !== "file" ||
       isKibiManagedPath(entry.path) ||
-      (requirementIds.length === 0 && isGenerated(entry.path))
+      (requirementIds.length === 0 && isGenerated?.(entry.path))
     )
       continue;
     if (requirementIds.length === 0) {

@@ -30,6 +30,26 @@ export function legacyPropositionRoles(
   return DEFINITION_VERB.test(statement) ? ["definition"] : [];
 }
 
+// A bare desired impression is subjective, even when phrased with should.
+// Keep concrete actions, quantitative conditions and any independent
+// obligation assertive instead of exempting them through subjective words.
+function isSubjectiveAspiration(statement: string): boolean {
+  const impression =
+    /\bshould\s+(?:feel\s+(?:welcoming|comfortable|energetic)(?:\s+and\s+(?:welcoming|comfortable|energetic))*|(?:look|seem)\s+complete)\b/i.exec(
+      statement,
+    );
+  if (impression === null) return false;
+  const tail = statement.slice(impression.index + impression[0].length).trim();
+  return (
+    (tail.length === 0 || /^(?:to|for)\s[^,;.!?]+$/i.test(tail)) &&
+    !/\b(?:and|or)\b/i.test(tail) &&
+    !/\d|\b(?:at least|at most|exactly|within|no more than)\b/i.test(
+      statement,
+    ) &&
+    !hasNormativeAssertion(statement.replace(impression[0], ""))
+  );
+}
+
 // implements REQ-kibi-conditional-requirement-authoring
 export function propositionRole(
   statement: string,
@@ -38,25 +58,7 @@ export function propositionRole(
   // Explicit context labels may quote obligations. Incidental explanatory
   // words within an asserted obligation must not exempt it from grounding.
   const assertedNormative = normative && hasNormativeAssertion(statement);
-  // A bare desired impression is subjective, even when phrased with should.
-  // Keep concrete actions, quantitative conditions and any independent
-  // obligation assertive instead of exempting them through subjective words.
-  const impression =
-    /\bshould\s+(?:feel\s+(?:welcoming|comfortable|energetic)(?:\s+and\s+(?:welcoming|comfortable|energetic))*|(?:look|seem)\s+complete)\b/i.exec(
-      statement,
-    );
-  const impressionTail = impression
-    ? statement.slice(impression.index + impression[0].length).trim()
-    : "";
-  const subjectiveAspiration =
-    impression !== null &&
-    (impressionTail.length === 0 ||
-      /^(?:to|for)\s+[^,;.!?]+$/i.test(impressionTail)) &&
-    !/\b(?:and|or)\b/i.test(impressionTail) &&
-    !/\d|\b(?:at least|at most|exactly|within|no more than)\b/i.test(
-      statement,
-    ) &&
-    !hasNormativeAssertion(statement.replace(impression[0], ""));
+  const subjectiveAspiration = isSubjectiveAspiration(statement);
   if (
     /^\s*(?:for example\b|e\.g\.|(?:example|illustrative(?: example)?)\s*:)/i.test(
       statement,

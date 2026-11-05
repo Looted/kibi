@@ -49,7 +49,7 @@ const NODE_FILE_SYSTEM: WorkspaceMutationLockFileSystem = {
   mkdirSync: (target, options) => {
     mkdirSync(target, options);
   },
-  readFileSync: (target) => readFileSync(target, "utf8"),
+  readFileSync: (target) => readFileSync(target).toString(),
   writeFileSync: (target, data, options) => {
     writeFileSync(target, data, options);
   },
@@ -111,17 +111,14 @@ function randomToken(): string {
 
 function readLockRecord(content: string): LockRecord | null {
   try {
-    const parsed: unknown = JSON.parse(content);
-    if (
-      typeof parsed !== "object" ||
-      parsed === null ||
-      typeof (parsed as Record<string, unknown>).pid !== "number" ||
-      typeof (parsed as Record<string, unknown>).token !== "string" ||
-      typeof (parsed as Record<string, unknown>).acquiredAt !== "number"
-    ) {
-      return null;
-    }
-    return parsed as LockRecord;
+    // A primitive has none of the fields; null throws here and reads as
+    // corrupt like any unparsable text.
+    const parsed = JSON.parse(content) as Record<string, unknown>;
+    return typeof parsed.pid === "number" &&
+      typeof parsed.token === "string" &&
+      typeof parsed.acquiredAt === "number"
+      ? (parsed as unknown as LockRecord)
+      : null;
   } catch {
     return null;
   }
@@ -134,13 +131,12 @@ function errorDetail(error: unknown): string {
 }
 
 function errorCode(error: unknown): string | undefined {
-  if (typeof error !== "object" || error === null) return undefined;
-  return (error as NodeJS.ErrnoException).code;
+  // A primitive reads no code; only null and undefined need the guard.
+  return (error as NodeJS.ErrnoException | null | undefined)?.code;
 }
 
 function isTransientFilesystemError(error: unknown): boolean {
-  if (typeof error !== "object" || error === null) return false;
-  const code = (error as NodeJS.ErrnoException).code;
+  const code = errorCode(error);
   return (
     code === "EBUSY" ||
     code === "EAGAIN" ||
@@ -157,9 +153,7 @@ function retryTransientFilesystemOperation<T>(
   operation: () => T,
   canRetry: (error: unknown) => boolean = () => true,
 ): RetryOutcome<T> {
-  let attempts = 0;
-  while (attempts < MAX_RELEASE_FILESYSTEM_ATTEMPTS) {
-    attempts += 1;
+  for (let attempts = 1; ; attempts += 1) {
     try {
       return { ok: true, value: operation(), attempts };
     } catch (error) {
@@ -172,7 +166,6 @@ function retryTransientFilesystemOperation<T>(
       }
     }
   }
-  throw new Error("unreachable retry state");
 }
 
 function manualCleanupGuidance(target: string, ownerPath: string): string {
@@ -213,15 +206,13 @@ function removeLockOwner(
   );
 }
 
-type LockObservation =
-  | { readonly kind: "live"; readonly description: string }
-  | { readonly kind: "missing"; readonly description: string }
-  | {
-      readonly kind: "recovery";
-      readonly description: string;
-      /** Set only when the owner metadata is readable and its pid is dead. */
-      readonly deadHolder?: LockRecord;
-    };
+/** A lock with neither kind needs operator recovery (or a reclaim). */
+type LockObservation = {
+  readonly kind?: "live" | "missing";
+  readonly description: string;
+  /** Set only when the owner metadata is readable and its pid is dead. */
+  readonly deadHolder?: LockRecord;
+};
 
 function observeExistingLock(
   fileSystem: WorkspaceMutationLockFileSystem,
@@ -231,11 +222,10 @@ function observeExistingLock(
 ): LockObservation {
   let record: LockRecord | null = null;
   let source = "lock owner metadata";
-  let ownerMissing = false;
   try {
     record = readLockRecord(fileSystem.readFileSync(ownerPath));
   } catch (ownerError) {
-    ownerMissing = errorCode(ownerError) === "ENOENT";
+    const ownerMissing = errorCode(ownerError) === "ENOENT";
     try {
       source = "legacy lock metadata";
       record = readLockRecord(fileSystem.readFileSync(target));
@@ -251,14 +241,12 @@ function observeExistingLock(
         };
       }
       return {
-        kind: "recovery",
         description: "lock owner metadata is missing or unverifiable",
       };
     }
   }
   if (record === null) {
     return {
-      kind: "recovery",
       description: `${source} is corrupt or unverifiable`,
     };
   }
@@ -268,19 +256,15 @@ function observeExistingLock(
     }
   } catch {
     return {
-      kind: "recovery",
       description: `holder pid ${record.pid} could not be verified as live`,
     };
   }
   return {
-    kind: "recovery",
     description: `holder pid ${record.pid} is not live`,
     // Legacy file locks are never reclaimed automatically.
     ...(source === "lock owner metadata" ? { deadHolder: record } : {}),
   };
 }
-
-type ReclaimOutcome = "reclaimed" | "changed";
 
 /**
  * Move a dead holder's lock directory aside atomically, confirm the moved
@@ -294,16 +278,18 @@ function reclaimDeadLock(
   target: string,
   holder: LockRecord,
   token: string,
-): ReclaimOutcome {
-  const rename = fileSystem.renameSync;
-  if (rename === undefined) return "changed";
+): boolean {
+  // The caller reclaims only through a filesystem that can rename.
+  const rename = fileSystem.renameSync as NonNullable<
+    WorkspaceMutationLockFileSystem["renameSync"]
+  >;
   const tombstone = `${target}.reclaimed-${token}`;
   try {
     rename(target, tombstone);
   } catch (error) {
     const code = errorCode(error);
     if (code === "ENOENT" || code === "EEXIST" || code === "ENOTEMPTY")
-      return "changed";
+      return false;
     throw new WorkspaceMutationLockError(
       `failed to reclaim workspace mutation lock at ${target} from dead pid ${holder.pid}: ${errorDetail(error)}`,
     );
@@ -313,7 +299,7 @@ function reclaimDeadLock(
   try {
     moved = readLockRecord(fileSystem.readFileSync(tombstoneOwner));
   } catch {
-    moved = null;
+    // An unreadable moved owner stays unverified.
   }
   if (moved === null || moved.token !== holder.token) {
     try {
@@ -329,7 +315,7 @@ function reclaimDeadLock(
   }
   removeLockOwner(fileSystem, tombstone, tombstoneOwner, true);
   removeLockDirectory(fileSystem, tombstone);
-  return "reclaimed";
+  return true;
 }
 
 function defaultIsProcessAlive(pid: number): boolean {
@@ -337,12 +323,8 @@ function defaultIsProcessAlive(pid: number): boolean {
     process.kill(pid, 0);
     return true;
   } catch (error) {
-    if (
-      error instanceof Error &&
-      "code" in error &&
-      (error as NodeJS.ErrnoException).code === "ESRCH"
-    )
-      return false;
+    // process.kill throws only errno errors; only ESRCH proves the pid gone.
+    if ((error as NodeJS.ErrnoException).code === "ESRCH") return false;
     throw error;
   }
 }
@@ -492,13 +474,12 @@ export async function acquireWorkspaceMutationLock(
       );
     }
     if (
-      observation.kind === "recovery" &&
       observation.deadHolder !== undefined &&
       fileSystem.renameSync !== undefined &&
       options.reclaimDeadHolder?.(observation.deadHolder) === true
     ) {
       const holder = observation.deadHolder;
-      if (reclaimDeadLock(fileSystem, target, holder, token) === "reclaimed") {
+      if (reclaimDeadLock(fileSystem, target, holder, token)) {
         reclaimed.push({
           pid: holder.pid,
           token: holder.token,
@@ -511,7 +492,7 @@ export async function acquireWorkspaceMutationLock(
       }
       continue;
     }
-    if (observation.kind === "recovery") {
+    if (observation.kind !== "live") {
       throw new OperationError(
         "SOURCE_MUTATION_LOCK_RECOVERY_REQUIRED",
         `workspace mutation lock at ${target} requires operator recovery: ${observation.description}. Quiesce all Kibi and source-mutating writers, then manually verify the owner metadata and remove the lock only after confirming no operation is active`,
@@ -583,13 +564,14 @@ export async function acquireWorkspaceMutationLock(
     );
   }
 
-  let releaseState: "owned" | "owner-removed" | "released" = "owned";
+  let ownerRemoved = false;
+  let released = false;
   return {
     ...(reclaimed.length > 0 ? { reclaimed } : {}),
     release: () => {
-      if (releaseState === "released") return;
+      if (released) return;
 
-      if (releaseState === "owned") {
+      if (!ownerRemoved) {
         const readResult = retryTransientFilesystemOperation(() =>
           fileSystem.readFileSync(ownerPath),
         );
@@ -606,16 +588,16 @@ export async function acquireWorkspaceMutationLock(
           );
         }
         if (record.token !== token) {
-          releaseState = "released";
+          released = true;
           return;
         }
 
         removeLockOwner(fileSystem, target, ownerPath, false);
-        releaseState = "owner-removed";
+        ownerRemoved = true;
       }
 
       removeLockDirectory(fileSystem, target);
-      releaseState = "released";
+      released = true;
     },
   };
 }

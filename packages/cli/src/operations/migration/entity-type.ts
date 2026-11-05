@@ -18,10 +18,9 @@
 
 import path from "node:path";
 import { load as loadYaml } from "js-yaml";
-import { inferTypeFromPath } from "../../extractors/markdown.js";
+import type { EntityLane } from "../../utils/kb-paths.js";
 import {
-  listLaneMarkdownFiles,
-  readText,
+  listLaneMarkdownSources,
   sliceFrontmatter,
   withTopLevelField,
   writeFileAtomically,
@@ -39,11 +38,28 @@ export const ENTITY_TYPE_BACKFILL_CODE = "entity_type_backfill";
 // implements REQ-cli-migrate-entity-type-backfill
 export const ENTITY_TYPE_BACKFILL_ACTION_ID = "entity-type-backfill";
 
+/**
+ * The entity type each lane implies. The lane, not a folder name anywhere in
+ * the absolute path, decides: a workspace checked out under a `tests/` or
+ * `requirements/` directory must not turn its facts into tests.
+ */
+/** The entity type each canonical lane holds. */
+// implements REQ-cli-migrate-entity-type-backfill
+export const LANE_TYPES: Readonly<Record<EntityLane, string>> = {
+  requirements: "req",
+  scenarios: "scenario",
+  tests: "test",
+  facts: "fact",
+  adr: "adr",
+  flags: "flag",
+  events: "event",
+};
+
 /** One authored entity file without `type` in its front matter. */
 // implements REQ-cli-migrate-entity-type-backfill
 export type EntityTypeBackfillTarget = Readonly<{
   id: string;
-  /** The folder-implied type, as kibi sync reads it. */
+  /** The type the entity's lane implies. */
   type: string;
   path: string;
   after: string;
@@ -70,22 +86,21 @@ export function planEntityTypeBackfill(
 ): EntityTypeBackfillPlan {
   const targets: EntityTypeBackfillTarget[] = [];
   const skipped: EntityTypeBackfillSkip[] = [];
-  for (const file of listLaneMarkdownFiles(workspaceRoot)) {
-    const content = readText(file.absolutePath);
-    const slice = content === null ? null : sliceFrontmatter(content);
-    if (content === null || slice === null) continue;
+  for (const file of listLaneMarkdownSources(workspaceRoot)) {
+    const content = file.content;
+    // Without front matter the text is "undefined", a scalar, not a mapping.
+    const text = String(sliceFrontmatter(content)?.text);
     let data: unknown;
     try {
-      data = loadYaml(slice.text);
+      data = loadYaml(text);
     } catch {
-      continue;
+      // Unparsable front matter is left to the checks that report it.
     }
     if (data === null || typeof data !== "object" || Array.isArray(data))
       continue;
     const record = data as Record<string, unknown>;
     if (Object.hasOwn(record, "type")) continue;
-    const type = inferTypeFromPath(file.absolutePath);
-    if (type === null) continue;
+    const type = LANE_TYPES[file.lane];
     const after = withTopLevelField(content, "type", type);
     if (after === null) {
       skipped.push({

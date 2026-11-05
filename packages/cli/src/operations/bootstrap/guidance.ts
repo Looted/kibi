@@ -1,6 +1,4 @@
-import path from "node:path";
-
-import { buildActions } from "./guidance-actions.js";
+import { buildActions, relative, summary } from "./guidance-actions.js";
 import type { PluginOffer } from "./plugin-offers.js";
 import type {
   ActivationPolicy,
@@ -8,22 +6,6 @@ import type {
   Candidate,
   SourceOnlySignal,
 } from "./types.js";
-
-function relative(root: string, target: string): string {
-  // Intent claims cite tickets and URLs, which are not workspace paths.
-  if (!path.isAbsolute(target)) return target;
-  const value = path.relative(root, target);
-  return value.startsWith("..") || path.isAbsolute(value)
-    ? target.split(path.sep).join("/")
-    : value.split(path.sep).join("/");
-}
-
-function summary(values: readonly string[], limit = 3): string {
-  if (values.length === 0) return "workspace evidence";
-  return values.length <= limit
-    ? values.join(", ")
-    : `${values.slice(0, limit).join(", ")} +${values.length - limit} more`;
-}
 
 function counts(
   candidates: readonly Candidate[],
@@ -95,9 +77,10 @@ function prompt(
     bullets.push(
       `- Scan diagnostics: ${warnings.length} warning(s) during evidence collection.`,
     );
-  const words = bullets.slice(0, 5).join("\n").split(/\s+/).filter(Boolean);
+  // Every bullet starts with "- ", so only trailing whitespace needs trimming.
+  const words = bullets.slice(0, 5).join("\n").trim().split(/\s+/);
   const selected = words.slice(0, 120);
-  if (words.length > 120 && selected.length > 0)
+  if (words.length > 120)
     selected[selected.length - 1] = `${selected[selected.length - 1]}…`;
   return selected.join(" ").replaceAll(" - ", "\n- ");
 }

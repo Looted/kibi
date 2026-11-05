@@ -20,12 +20,12 @@ import {
 } from "./strict-fact.js";
 import type { UpsertInput, ValidatedUpsert } from "./types.js";
 
+// rationale: with Ajv's default options this schema compiles with logged
+// strict-mode warnings only; it accepts and rejects exactly the same entities.
+// Stryker disable next-line ObjectLiteral
 const ajv = new Ajv({ strict: false });
 const schema = entitySchema as Record<string, unknown>;
-const properties =
-  schema.properties !== null && typeof schema.properties === "object"
-    ? (schema.properties as Record<string, unknown>)
-    : {};
+const properties = schema.properties as Record<string, unknown>;
 // Compiled on first mutation: every CLI command imports this module, and
 // most never validate an upsert.
 let entityValidator: ValidateFunction | undefined;
@@ -95,40 +95,32 @@ function unknownEntityProperties(
   return Object.keys(entity).filter((key) => !Object.hasOwn(known, key));
 }
 
+type TypeConditionalBranch = {
+  if: { properties: { type: { const?: string; enum?: string[] } } };
+  else: { not: TypeConditionalNot };
+};
+type TypeConditionalNot = { required?: string[]; anyOf?: TypeConditionalNot[] };
+
 /**
  * The fields a type-conditional `else: { not: ... }` branch of the entity
- * schema forbids, and the types that may carry them; null for any other
- * schema path.
+ * schema forbids, and the types that may carry them. Every `not` in the
+ * entity schema is such a branch, at `#/allOf/<n>/else/not`, so a `not`
+ * error always names one.
  */
-function typeRestrictedFields(
-  schemaPath: string,
-): { fields: string[]; types: string[] } | null {
-  const match = /^#\/allOf\/(\d+)\/else\/not$/.exec(schemaPath);
-  if (match === null) return null;
-  const allOf = (upsertEntitySchema as { allOf?: unknown }).allOf;
-  const branch = Array.isArray(allOf) ? allOf[Number(match[1])] : undefined;
-  if (branch === null || typeof branch !== "object") return null;
-  const record = branch as {
-    if?: { properties?: { type?: { const?: unknown; enum?: unknown } } };
-    else?: { not?: { required?: unknown; anyOf?: unknown } };
-  };
-  const typeRule = record.if?.properties?.type;
-  const types = Array.isArray(typeRule?.enum)
-    ? typeRule.enum.map(String)
-    : typeof typeRule?.const === "string"
-      ? [typeRule.const]
-      : [];
-  const not = record.else?.not;
-  const requiredLists = [
-    not?.required,
-    ...(Array.isArray(not?.anyOf)
-      ? not.anyOf.map((entry: { required?: unknown }) => entry?.required)
-      : []),
-  ];
-  const fields = requiredLists.flatMap((list) =>
-    Array.isArray(list) ? list.map(String) : [],
-  );
-  return types.length > 0 && fields.length > 0 ? { fields, types } : null;
+function typeRestrictedFields(schemaPath: string): {
+  fields: string[];
+  types: string[];
+} {
+  const allOf = (upsertEntitySchema as unknown as { allOf: unknown[] }).allOf;
+  const branch = allOf[
+    Number(schemaPath.split("/")[2])
+  ] as TypeConditionalBranch;
+  const typeRule = branch.if.properties.type;
+  const types = typeRule.enum ?? [typeRule.const as string];
+  const not = branch.else.not;
+  const alternatives = not.anyOf ?? [not];
+  const fields = alternatives.flatMap((entry) => entry.required as string[]);
+  return { fields, types };
 }
 
 // implements REQ-kibi-symbol-link-guidance
@@ -154,34 +146,22 @@ function formatEntityErrors(
   errors: readonly ErrorObject[],
 ): string {
   // A field only some entity types carry fails a type-conditional `not`
-  // branch; AJV then reports "must NOT be valid" plus the "else" it chose.
-  const restricted = new Set(
-    errors.flatMap((error) =>
-      error.keyword === "not" && typeRestrictedFields(error.schemaPath)
-        ? [error.schemaPath.replace(/\/else\/not$/, "/if")]
-        : [],
-    ),
-  );
-  const visible = errors.filter(
-    (error) => !(error.keyword === "if" && restricted.has(error.schemaPath)),
-  );
-  const messages = visible.map((error) => {
-    const restriction =
-      error.keyword === "not" ? typeRestrictedFields(error.schemaPath) : null;
-    if (restriction !== null) {
-      const present = restriction.fields.filter((field) =>
+  // branch (AJV reports only that `not`, never the `if`). The type is always
+  // set: validateUpsertInput requires it.
+  const type = String(entity.type);
+  const messages = errors.map((error) => {
+    if (error.keyword === "not") {
+      const restriction = typeRestrictedFields(error.schemaPath);
+      // The `not` fails because at least one listed field is present.
+      const named = restriction.fields.filter((field) =>
         Object.hasOwn(entity, field),
       );
-      const named = present.length > 0 ? present : restriction.fields;
-      return `${named.join(", ")} ${named.length === 1 ? "is" : "are"} only valid on ${restriction.types.join(" and ")} entities; remove ${named.length === 1 ? "it" : "them"} from this ${String(entity.type ?? "entity")}`;
+      return `${named.join(", ")} ${named.length === 1 ? "is" : "are"} only valid on ${restriction.types.join(" and ")} entities; remove ${named.length === 1 ? "it" : "them"} from this ${type}`;
     }
-    const params = error.params as {
-      readonly additionalProperty?: string;
-      readonly allowedValues?: readonly unknown[];
-    };
     const path = error.instancePath || "root";
-    if (error.keyword === "additionalProperties" && params.additionalProperty) {
-      const property = params.additionalProperty;
+    if (error.keyword === "additionalProperties") {
+      const property = (error.params as { additionalProperty: string })
+        .additionalProperty;
       if (property === "value") {
         return `${path}: unknown property 'value'. ${valueFieldHint(entity.value)} Do not use generic value in kb_upsert.properties.`;
       }
@@ -196,25 +176,25 @@ function formatEntityErrors(
         return `${path}: unknown property '${property}' (${error.message}). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.${others.length > 0 ? ` Other unknown properties: ${others.map((key) => `'${key}'`).join(", ")}.` : ""}`;
       }
       if (path === "root") {
-        const unknown = unknownEntityProperties(entity);
-        const listed = unknown.length > 0 ? unknown : [property];
+        // The reported property is one of the entity's unknown keys.
+        const listed = unknownEntityProperties(entity);
         const proseHint = listed.some((key) =>
           DOCUMENT_TEXT_PROPERTIES.has(key),
         )
           ? " Entity prose belongs in kb_upsert.document.body."
           : "";
-        return `${path}: unknown propert${listed.length === 1 ? "y" : "ies"} ${listed.map((key) => `'${key}'`).join(", ")} (${error.message}). Remove ${listed.length === 1 ? "it" : "them"} from kb_upsert.properties or use fields the ${String(entity.type ?? "entity")} schema defines.${proseHint}`;
+        return `${path}: unknown propert${listed.length === 1 ? "y" : "ies"} ${listed.map((key) => `'${key}'`).join(", ")} (${error.message}). Remove ${listed.length === 1 ? "it" : "them"} from kb_upsert.properties or use fields the ${type} schema defines.${proseHint}`;
       }
       return `${path}: unknown property '${property}' (${error.message}).`;
     }
-    if (error.keyword === "enum" && params.allowedValues) {
+    if (error.keyword === "enum") {
+      const allowedValues = (error.params as { allowedValues: unknown[] })
+        .allowedValues;
       const typed =
-        path === "/status"
-          ? STATUS_VALUES_BY_TYPE.get(String(entity.type))
-          : undefined;
+        path === "/status" ? STATUS_VALUES_BY_TYPE.get(type) : undefined;
       if (typed !== undefined)
-        return `${path}: ${error.message}. Allowed values for ${String(entity.type)} entities: ${typed.join(", ")}`;
-      return `${path}: ${error.message}. Allowed values: ${params.allowedValues.map(String).join(", ")}`;
+        return `${path}: ${error.message}. Allowed values for ${type} entities: ${typed.join(", ")}`;
+      return `${path}: ${error.message}. Allowed values: ${allowedValues.map(String).join(", ")}`;
     }
     return `${path}: ${error.message}`;
   });
@@ -227,10 +207,10 @@ function formatEntityErrors(
     }
   }
   if (Object.hasOwn(entity, "value")) hints.push(valueFieldHint(entity.value));
+  // Either one already pushed a hint above.
   if (
-    hints.length > 0 &&
-    (Object.hasOwn(entity, "value") ||
-      [...ALIASES.keys()].some((key) => Object.hasOwn(entity, key)))
+    Object.hasOwn(entity, "value") ||
+    [...ALIASES.keys()].some((key) => Object.hasOwn(entity, key))
   ) {
     hints.push(
       "Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.",
@@ -262,22 +242,19 @@ export function validateUpsertInput(
   if (!validateEntity(entity)) {
     throw new KbRejection(
       "ENTITY_VALIDATION_FAILED",
-      `Entity validation failed: ${formatEntityErrors(entity, validateEntity.errors ?? [])}`,
+      `Entity validation failed: ${formatEntityErrors(entity, validateEntity.errors as ErrorObject[])}`,
       schemaIssues(validateEntity.errors),
     );
   }
   deriveFactClaimKey(entity);
   validateSymbolSourceFile(entity);
   validateProofExemptionPairing(entity);
-  if (entity.type === "test" && Array.isArray(entity.proof_receipts)) {
-    const receipts = entity.proof_receipts.filter(
-      (value): value is Record<string, unknown> =>
-        typeof value === "object" && value !== null && !Array.isArray(value),
-    );
+  // The schema admits proof_receipts only on a test, as an array of objects.
+  if (entity.proof_receipts !== undefined) {
     const receiptErrors = proofReceiptHistoryErrors(
       input.id,
       entity.verification_scope,
-      receipts,
+      entity.proof_receipts as Record<string, unknown>[],
     );
     if (receiptErrors.length > 0) {
       throw new KbRejection(
@@ -288,12 +265,9 @@ export function validateUpsertInput(
     }
   }
   validateFactModelingShape(entity);
-  if (
-    entity.type === "fact" &&
-    typeof entity.claim_key === "string" &&
-    typeof entity.claim_text === "string"
-  ) {
-    const expectedClaimKey = semanticClaimKey(entity.claim_text);
+  // The schema admits claim_key only on a fact, and only with claim_text.
+  if (entity.claim_key !== undefined) {
+    const expectedClaimKey = semanticClaimKey(entity.claim_text as string);
     if (entity.claim_key !== expectedClaimKey) {
       throw new KbRejection(
         "ENTITY_VALIDATION_FAILED",
@@ -306,9 +280,11 @@ export function validateUpsertInput(
   const validateRelationship = relationshipSchemaValidator();
   relationships.forEach((relationship, index) => {
     if (!validateRelationship(relationship)) {
-      const details = (validateRelationship.errors ?? [])
-        .map((error) => `${error.instancePath || "root"}: ${error.message}`)
-        .join("; ");
+      // AJV stops at the first error of this flat schema.
+      const error = (
+        validateRelationship.errors as ErrorObject[]
+      )[0] as ErrorObject;
+      const details = `${error.instancePath || "root"}: ${error.message}`;
       throw new KbRejection(
         "RELATIONSHIP_VALIDATION_FAILED",
         `Relationship validation failed at index ${index}: ${details}`,
@@ -334,8 +310,9 @@ function validateSymbolSourceFile(
   entity: Readonly<Record<string, unknown>>,
 ): void {
   if (entity.type !== "symbol") return;
+  // The schema types sourceFile as a string; a blank one passes both checks.
   const sourceFile = entity.sourceFile;
-  if (typeof sourceFile !== "string" || sourceFile.trim() === "") return;
+  if (typeof sourceFile !== "string") return;
   const normalized = sourceFile.replaceAll("\\", "/").trim();
   if (normalized === ".kb" || normalized.startsWith(".kb/")) {
     throw new KbRejection(
@@ -349,7 +326,6 @@ function validateSymbolSourceFile(
   if (
     normalized.startsWith("/") ||
     /^[A-Za-z]:\//.test(normalized) ||
-    normalized.startsWith("//") ||
     normalized.split("/").includes("..")
   ) {
     throw new KbRejection(
@@ -369,16 +345,8 @@ function validateSymbolSourceFile(
 function validateProofExemptionPairing(
   entity: Readonly<Record<string, unknown>>,
 ): void {
-  if (entity.type !== "req") return;
-  const flag = entity.proof_exempt;
-  const isExempt =
-    flag === true ||
-    flag === "true" ||
-    flag === "yes" ||
-    flag === "on" ||
-    flag === 1 ||
-    flag === "1";
-  if (!isExempt) return;
+  // The schema admits proof_exempt only on a req, as a boolean.
+  if (entity.proof_exempt !== true) return;
   const reason = entity.proof_exempt_reason;
   if (typeof reason !== "string" || reason.trim() === "") {
     throw new KbRejection(

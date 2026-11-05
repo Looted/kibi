@@ -1,0 +1,301 @@
+{
+  "name": "kb_delete",
+  "cliName": "delete",
+  "description": "Delete entities by ID, or exact relationship triples. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. An entity authored in a Markdown or YAML source is not deleted directly: the call writes nothing and returns outcome plan_returned with a hash-bound deletionPlan and a nextActions entry holding the exact kb_apply_plan input ({plan, approvedPlanHash}); apply that unmodified, or repeat this call with approvedPlanHash = deletionPlan.planHash to apply the freshly computed plan in one step (a stale or different hash fails with DELETE_PLAN_HASH_MISMATCH and writes nothing). Authored requirements are never deleted: outcome supersession_required points to kb_upsert with a supersedes relationship. dryRun:true previews any delete and writes nothing. Side effects: mutates and saves KB and authored sources; skips entities with dependents; dryRun and plan_returned write nothing.",
+  "businessInputSchema": {
+    "type": "object",
+    "oneOf": [
+      {
+        "required": ["ids"],
+        "not": {
+          "required": ["relationships"]
+        }
+      },
+      {
+        "required": ["relationships"],
+        "not": {
+          "required": ["ids"]
+        }
+      }
+    ],
+    "properties": {
+      "ids": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1,
+        "description": "Entity IDs to delete after dependency checks."
+      },
+      "relationships": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "required": ["type", "from", "to"],
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "minLength": 1
+            },
+            "from": {
+              "type": "string",
+              "minLength": 1
+            },
+            "to": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "description": "Exact relationship triples to retract, including legacy shard records."
+      },
+      "approvedPlanHash": {
+        "type": "string",
+        "pattern": "^[a-fA-F0-9]{64}$",
+        "description": "With ids only: the deletionPlan.planHash a prior call for the same ids returned. The plan is recomputed and applied through kb_apply_plan when its hash still matches; a mismatch fails with DELETE_PLAN_HASH_MISMATCH and writes nothing. Not allowed with relationships or dryRun."
+      },
+      "dryRun": {
+        "type": "boolean",
+        "description": "Preview without writing. Relationship and direct entity deletes run their preflight and return outcome dry_run with wouldDelete counts, the sourceWrites (paths and hashes) a commit would make, and skippedEffects. Authored ids return the same deletion plan as without dryRun."
+      }
+    }
+  },
+  "requiresProlog": true,
+  "effects": ["kb-write", "workspace-write"],
+  "execute": "[function executeDelete]",
+  "resultVersion": "kibi.kb_delete.v1",
+  "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "kibiProtocol",
+      "operation",
+      "resultVersion",
+      "status",
+      "data",
+      "effects",
+      "diagnostics",
+      "nextActions"
+    ],
+    "properties": {
+      "kibiProtocol": {
+        "const": 1
+      },
+      "operation": {
+        "const": "kb_delete"
+      },
+      "resultVersion": {
+        "const": "kibi.kb_delete.v1"
+      },
+      "status": {
+        "enum": ["success", "committed_with_repairs", "error"]
+      },
+      "data": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "deleted": {
+            "type": "integer"
+          },
+          "relationships_deleted": {
+            "type": "integer"
+          },
+          "skipped": {
+            "type": "integer"
+          },
+          "errors": {
+            "type": "array",
+            "items": {}
+          },
+          "error_codes": {
+            "type": "array",
+            "items": {}
+          },
+          "relationship_results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "sync_required": {
+            "type": "boolean"
+          },
+          "sourceWrites": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "deletionPlan": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "supersessionPlan": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "skippedEffects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "effectFailures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "nextActions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "plan_returned",
+              "supersession_required",
+              "plan_applied",
+              "dry_run"
+            ],
+            "description": "Absent on a direct delete. plan_returned: deletionPlan was returned and nothing was written; nextActions[0].input is the exact kb_apply_plan input. supersession_required: an authored requirement must be superseded with kb_upsert instead. plan_applied: approvedPlanHash matched and the plan was applied. dry_run: dryRun:true previewed the delete and nothing was written."
+          },
+          "dryRun": {
+            "const": true
+          },
+          "wouldDelete": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "planHash": {
+            "type": "string"
+          },
+          "sourcePaths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recoveryJournalId": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "status"],
+          "properties": {
+            "kind": {
+              "type": "string"
+            },
+            "status": {
+              "enum": ["completed", "failed", "not_applicable"]
+            },
+            "detail": {},
+            "errorCode": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "diagnostics": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["message"],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "severity": {
+              "enum": ["info", "warning", "error"]
+            },
+            "message": {
+              "type": "string"
+            },
+            "detail": {},
+            "category": {
+              "type": "string"
+            },
+            "suggestion": {
+              "type": "string"
+            },
+            "file": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "nextActions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation", "reason", "required"],
+          "properties": {
+            "operation": {
+              "type": "string"
+            },
+            "input": {},
+            "reason": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message", "retryable"],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "details": {}
+        }
+      }
+    }
+  },
+  "declaredEffects": [
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    }
+  ]
+}

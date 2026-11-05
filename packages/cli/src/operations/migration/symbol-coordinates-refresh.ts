@@ -50,9 +50,13 @@ export function readGeneratedManifestBytes(
   };
 }
 
-function hasSymbols(content: string): boolean {
+function hasSymbols(content: string | null): boolean {
   try {
-    const parsed = parseYAML(content) as { symbols?: unknown } | null;
+    // js-yaml reads its input through String(), so a missing file (null)
+    // parses as a null document without symbols.
+    const parsed = parseYAML(content as string) as {
+      symbols?: unknown;
+    } | null;
     return Array.isArray(parsed?.symbols) && parsed.symbols.length > 0;
   } catch {
     // An unreadable manifest is reported by the refresh itself.
@@ -87,8 +91,7 @@ export async function refreshCoordinatesAfterMigration(
   before?: GeneratedManifestBytes,
 ): Promise<MigrationCoordinateRefresh> {
   const after = readGeneratedManifestBytes(workspaceRoot);
-  if (after.symbols === null || !hasSymbols(after.symbols))
-    return { outcome: "skipped" };
+  if (!hasSymbols(after.symbols)) return { outcome: "skipped" };
   if (
     before !== undefined &&
     before.symbols === after.symbols &&
@@ -109,23 +112,18 @@ export async function refreshCoordinatesAfterMigration(
     // Files the migration moved are still untracked and pinned by a
     // pending-source receipt; rebind each to its refreshed bytes so the next
     // sync does not refuse it as hash drift. A file without a receipt is
-    // left alone.
+    // left alone. The refresh writes both files.
     for (const filePath of [symbolsPath, coordinatesPath]) {
-      if (!existsSync(filePath)) continue;
       republishPendingSourceReceipt(
         workspaceRoot,
         path.relative(workspaceRoot, filePath).split(path.sep).join("/"),
-        createHash("sha256")
-          .update(readFileSync(filePath, "utf8"), "utf8")
-          .digest("hex"),
+        createHash("sha256").update(readFileSync(filePath)).digest("hex"),
       );
     }
     return { outcome: "refreshed" };
   } catch (error) {
-    return {
-      outcome: "failed",
-      reason: error instanceof Error ? error.message : String(error),
-    };
+    // The YAML reader, the lock and the file system throw Errors.
+    return { outcome: "failed", reason: (error as Error).message };
   }
 }
 

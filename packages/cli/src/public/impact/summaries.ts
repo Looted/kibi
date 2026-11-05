@@ -8,13 +8,19 @@ import type {
   SymbolsByFile,
 } from "./types.js";
 
+function traceabilityRelationships(
+  symbol: ExtractedSymbol,
+): NonNullable<ExtractedSymbol["relationships"]> {
+  return (
+    symbol.relationships?.filter((relationship) =>
+      isTraceabilityRelationshipType(relationship.type),
+    ) ?? []
+  );
+}
+
 function linkedEntityIdsFor(symbol: ExtractedSymbol): string[] {
   return uniqueSorted(
-    (symbol.relationships ?? [])
-      .filter((relationship) =>
-        isTraceabilityRelationshipType(relationship.type),
-      )
-      .map((relationship) => relationship.to),
+    traceabilityRelationships(symbol).map((relationship) => relationship.to),
   );
 }
 
@@ -50,8 +56,7 @@ export function collectLinkedEntities(
 
   for (const symbols of symbolsByFile.values()) {
     for (const symbol of symbols) {
-      for (const relationship of symbol.relationships ?? []) {
-        if (!isTraceabilityRelationshipType(relationship.type)) continue;
+      for (const relationship of traceabilityRelationships(symbol)) {
         add({
           id: relationship.to,
           relationshipType: relationship.type,
@@ -63,12 +68,8 @@ export function collectLinkedEntities(
   }
 
   for (const result of manifestResults) {
-    if (
-      result.sourceFile === undefined ||
-      !activeSourceFiles.has(result.sourceFile)
-    ) {
-      continue;
-    }
+    // A result without a sourceFile is never active: has(undefined) is false.
+    if (!activeSourceFiles.has(result.sourceFile as string)) continue;
     for (const relationship of result.relationships) {
       if (!isTraceabilityRelationshipType(relationship.type)) continue;
       add({

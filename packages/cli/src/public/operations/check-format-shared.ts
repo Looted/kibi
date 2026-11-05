@@ -134,12 +134,13 @@ export function formatQualityDiagnosticsText(
 function unverifiedRequirementIds(input: {
   readonly impactResult: ChangedFileImpactResult | undefined;
 }): string[] {
-  return (input.impactResult?.impactDiagnostics ?? [])
+  const ids = input.impactResult?.impactDiagnostics
     .filter(
       (diagnostic) => diagnostic.id === "requirement_statement_unverified",
     )
     .map((diagnostic) => diagnostic.entityId)
     .filter((id): id is string => id !== undefined);
+  return ids ?? [];
 }
 
 // implements REQ-mcp-tool-check, REQ-kb-check-unverified-requirement-statements

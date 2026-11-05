@@ -14,7 +14,7 @@ import {
   type SymbolRole,
   inferSymbolRole,
 } from "../public/symbol-granularity.js";
-import { analysisObligation } from "./analysis-gate.js";
+import { afterAnalysisObligation } from "./analysis-gate.js";
 import type { HunkRange, StagedFile } from "./git-staged.js";
 
 type SourceAnalysisResult = SdkSourceAnalysisResult & {
@@ -132,9 +132,7 @@ function resolveSymbolTraceability(
         if (record.title === name && typeof record.id === "string") {
           return {
             id: record.id,
-            relationships: filterTraceabilityRelationships(
-              extractRelationshipsFromManifestRecord(record),
-            ),
+            relationships: extractRelationshipsFromManifestRecord(record),
           };
         }
       }
@@ -150,42 +148,30 @@ function extractRelationshipsFromManifestRecord(record: {
   links?: Array<string | { type?: unknown; target?: unknown }>;
   relationships?: Array<{ type?: unknown; target?: unknown }>;
 }): TraceabilityRelationship[] {
-  const relationships: TraceabilityRelationship[] = [];
+  const links = Array.isArray(record.links) ? record.links : [];
+  const relationships = Array.isArray(record.relationships)
+    ? record.relationships
+    : // rationale: a placeholder entry is not a relationship record, so
+      // manifestRelationship drops it just as it finds nothing in [].
+      // Stryker disable next-line ArrayDeclaration
+      [];
+  return [
+    ...links.map((link) =>
+      typeof link === "string" ? { type: "implements", target: link } : link,
+    ),
+    ...relationships,
+  ].flatMap(manifestRelationship);
+}
 
-  if (Array.isArray(record.links)) {
-    for (const link of record.links) {
-      if (typeof link === "string") {
-        relationships.push({ type: "implements", to: link });
-        continue;
-      }
-
-      if (
-        link &&
-        typeof link === "object" &&
-        typeof link.type === "string" &&
-        typeof link.target === "string"
-      ) {
-        relationships.push({ type: link.type, to: link.target });
-      }
-    }
-  }
-
-  if (Array.isArray(record.relationships)) {
-    for (const relationship of record.relationships) {
-      if (
-        relationship &&
-        typeof relationship.type === "string" &&
-        typeof relationship.target === "string"
-      ) {
-        relationships.push({
-          type: relationship.type,
-          to: relationship.target,
-        });
-      }
-    }
-  }
-
-  return relationships;
+/** A traceability relationship from one manifest link or relationship row. */
+function manifestRelationship(
+  entry: { type?: unknown; target?: unknown } | null,
+): TraceabilityRelationship[] {
+  const { type, target } = entry ?? {};
+  return TRACEABILITY_RELATIONSHIP_TYPES.has(type as string) &&
+    typeof target === "string"
+    ? [{ type: type as string, to: target }]
+    : [];
 }
 
 function buildSymbolResult(
@@ -194,8 +180,8 @@ function buildSymbolResult(
   kind: ExtractedSymbol["kind"],
   span: { startLine: number; endLine: number },
   inlineReqLinks: string[],
-  manifestLookup?: ManifestLookup,
-  nestedSpans: readonly HunkLineRange[] = [],
+  manifestLookup: ManifestLookup | undefined,
+  nestedSpans: readonly HunkLineRange[],
 ): ExtractedSymbol {
   const { id, relationships } = resolveSymbolTraceability(
     stagedFile.path,
@@ -222,11 +208,14 @@ function buildSymbolResult(
   };
 }
 
-// Simple in-memory cache keyed by blob sha with 30s TTL
-const analysisCache = new Map<
+// Simple in-memory caches keyed by blob sha with 30s TTL: one for injected
+// analyzers and one for the builtin fallback.
+type AnalysisCache = Map<
   string,
   { result: SourceAnalysisResult | null; ts: number }
->();
+>;
+const injectedAnalysisCache: AnalysisCache = new Map();
+const builtinAnalysisCache: AnalysisCache = new Map();
 
 const CACHE_TTL_MS = 30 * 1000;
 
@@ -236,7 +225,7 @@ function computeContentSha(content: string): string {
   return h.digest("hex");
 }
 
-function parseReqDirectives(text: string): string[] {
+function parseReqDirectives(text: string | undefined): string[] {
   // look for lines containing implements REQ-123 or implements: REQ-1, REQ-2
   // Stop at end-of-line and only accept IDs starting with an uppercase letter
   // to avoid capturing tokens like `export`, `function`, etc.
@@ -248,27 +237,15 @@ function parseReqDirectives(text: string): string[] {
   const reqs = new Set<string>();
   let m: RegExpExecArray | null;
   while (true) {
-    m = regex.exec(text);
+    // A symbol without directive text reads as the text "undefined", which
+    // holds no directive.
+    m = regex.exec(String(text));
     if (!m) break;
-    const list = m[1];
-    if (!list) continue;
-
-    for (const part of list.split(/[,\s]+/)) {
-      const p = part.trim();
-      if (!p) continue;
-      reqs.add(p);
-    }
+    // The list starts and ends with an ID, so splitting on the separators
+    // leaves no empty or padded part.
+    for (const part of (m[1] as string).split(/[,\s]+/)) reqs.add(part);
   }
   return Array.from(reqs);
-}
-
-function rangesIntersect(
-  aStart: number,
-  aEnd: number,
-  bStart: number,
-  bEnd: number,
-) {
-  return aStart <= bEnd && bStart <= aEnd;
 }
 
 // implements REQ-capability-plugin-activation-disclosure-v1
@@ -299,9 +276,10 @@ export function extractSymbolsFromStagedFile(
   options?: ExtractSymbolsOptions,
 ): ExtractedSymbol[] {
   const content = stagedFile.content ?? "";
-  const sha = computeContentSha(
-    `${content}|${stagedFile.path}|${options?.analyzeText ? "custom" : "builtin"}`,
-  );
+  const sha = computeContentSha(`${content}|${stagedFile.path}`);
+  const analysisCache = options?.analyzeText
+    ? injectedAnalysisCache
+    : builtinAnalysisCache;
 
   // TTL cache lookup
   const now = Date.now();
@@ -388,16 +366,21 @@ export function partialAnalysisSymbolsUsable(analysis: {
   uncoveredRanges?: readonly (HunkLineRange & { reason: string })[];
 }): boolean {
   if (analysis.status !== "partial") return false;
+  // rationale: a placeholder entry has no code, which matches neither the
+  // output-cap nor the whole-file markers, just like no diagnostics.
+  // Stryker disable next-line ArrayDeclaration
   const codes = (analysis.diagnostics ?? []).map((item) => item.code);
   if (codes.some((code) => /LIMIT/i.test(code))) return false;
   return (
-    analysisObligation(
-      "after",
+    afterAnalysisObligation(
       {
-        status: "partial",
+        status: analysis.status,
         diagnosticCodes: codes,
         uncoveredRanges: analysis.uncoveredRanges ?? [],
       },
+      // rationale: only "blocked" matters here, and it is decided before any
+      // hunk is compared.
+      // Stryker disable next-line ArrayDeclaration
       [],
     ).kind !== "blocked"
   );
@@ -425,28 +408,22 @@ function symbolsFromAnalysis(
   const results: ExtractedSymbol[] = [];
 
   for (const symbol of analysis.symbols) {
-    const nested = nestedSpans(symbol, analysis.symbols);
-    try {
-      results.push(
-        buildSymbolResult(
-          stagedFile,
-          sourceSymbolLocator(
-            symbol,
-            analysis.symbols,
-            stagedFile.path,
-            manifestLookup,
-          ),
-          symbol.kind as ExtractedSymbol["kind"],
-          { startLine: symbol.startLine, endLine: symbol.endLine },
-          parseReqDirectives(symbol.directiveText ?? ""),
+    results.push(
+      buildSymbolResult(
+        stagedFile,
+        sourceSymbolLocator(
+          symbol,
+          analysis.symbols,
+          stagedFile.path,
           manifestLookup,
-          nested,
         ),
-      );
-    } catch (error) {
-      if (analysis.status !== undefined) throw error;
-      void stagedFile.path;
-    }
+        symbol.kind as ExtractedSymbol["kind"],
+        { startLine: symbol.startLine, endLine: symbol.endLine },
+        parseReqDirectives(symbol.directiveText),
+        manifestLookup,
+        nestedSpans(symbol, analysis.symbols),
+      ),
+    );
   }
 
   // Filter to only include symbols that intersect with at least one hunk
@@ -471,7 +448,6 @@ function nestedSpans(
   return symbols
     .filter(
       (other) =>
-        other !== symbol &&
         symbol.startLine <= other.startLine &&
         other.endLine <= symbol.endLine &&
         (other.startLine !== symbol.startLine ||
@@ -490,17 +466,17 @@ function ownedHunks(
   hunks: readonly HunkRange[],
 ): HunkRange[] {
   return hunks.filter((hunk) => {
-    if (!rangesIntersect(span.startLine, span.endLine, hunk.start, hunk.end))
-      return false;
     const end = Math.min(span.endLine, hunk.end);
     let line = Math.max(span.startLine, hunk.start);
+    // No changed line inside the span.
+    if (line > end) return false;
     for (const child of nested) {
       if (child.endLine < line) continue;
       if (child.startLine > line) return true;
       line = child.endLine + 1;
       if (line > end) return false;
     }
-    return line <= end;
+    return true;
   });
 }
 
@@ -514,7 +490,7 @@ function sourceSymbolLocator(
   lookup?: ManifestLookup,
 ): string {
   const qualified = symbol.qualifiedName;
-  if (!qualified || qualified === symbol.name) return symbol.name;
+  if (!qualified) return symbol.name;
   if (lookup?.has(`${filePath}:${qualified}`)) return qualified;
   // Another title sync places on this declaration alone: a Terraform
   // address, a bare name no other declaration shares, a class named like

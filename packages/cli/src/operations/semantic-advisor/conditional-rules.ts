@@ -44,11 +44,11 @@ type Comparison = Readonly<{
 }>;
 
 const ONLY_WHEN =
-  /^(?<action>.+?)\s+(?:may|can|must|shall|should)\s+(?:only\s+(?<verbBefore>.+?)|(?<verbAfter>.+?)\s+only)\s+(?:when|if)\s+(?<condition>.+)$/i;
+  /^(?<action>.+?)\s(?:may|can|must|shall|should)\s+(?:only\s+(?<verbBefore>.+?)|(?<verbAfter>.+?)\s+only)\s+(?:when|if)\s+(?<condition>\S.*)$/i;
 const ONLY_WHEN_ANYWHERE =
-  /\bonly\s+(?:when|if)\b|\b(?:may|can|must|shall|should)\s+only\s+[^.;]*?\b(?:when|if)\b/i;
+  /\bonly\s+(?:when|if)\b|\b(?:may|can|must|shall|should)\s+only\s[^.;]*?\b(?:when|if)\b/i;
 const UNLESS =
-  /^(?<action>.+?)\s+(?:(?:may|can|must|shall|should)\s+not|cannot|can't|must\s+never|shall\s+never)\s+(?<verb>.+?)\s+unless\s+(?<condition>.+)$/i;
+  /^(?<action>.+?)\s(?:(?:may|can|must|shall|should)\s+not|cannot|can't|must\s+never|shall\s+never)\s+(?<verb>.+?)\s+unless\s+(?<condition>\S.*)$/i;
 const NEGATED_UNLESS_ANYWHERE =
   /\b(?:not|cannot|can't|never)\b[^.;]*\bunless\b/i;
 const SCOPE_PREFIX =
@@ -93,28 +93,30 @@ const DURATION_UNITS: Readonly<
   weeks: "w",
 };
 
+const ARTICLES = new Set(["a", "an", "the"]);
+
 function identifier(text: string): string {
-  return normalizeKey(text.replace(/\b(?:a|an|the)\b/gi, " "));
+  return normalizeKey(text)
+    .split("_")
+    .filter((word) => !ARTICLES.has(word))
+    .join("_");
 }
 
-function numberValue(text: string): number | null {
-  const trimmed = text.trim().toLowerCase();
-  if (/^-?\d+(?:\.\d+)?$/.test(trimmed)) return Number(trimmed);
-  return NUMBER_WORDS[trimmed] ?? null;
-}
-
-// "5", "five", "30 minutes", "2.5"
+// "5", "five", "30 minutes", "2.5"; the text is lowercase and trimmed.
 function quantity(text: string): Readonly<{
   value: LogicTerm;
   valueType: string;
 }> | null {
-  const match = text
-    .trim()
-    .match(/^(?<amount>-?\d+(?:\.\d+)?|[a-z]+)(?:\s+(?<unit>[a-z]+))?$/i);
-  if (!match?.groups?.amount) return null;
-  const amount = numberValue(match.groups.amount);
+  const groups = text.match(
+    /^(?<amount>-?\d+(?:\.\d+)?|[a-z]+)(?:\s+(?<unit>[a-z]+))?$/,
+  )?.groups;
+  if (groups === undefined) return null;
+  const amountText = groups.amount as string;
+  const amount = /\d/.test(amountText)
+    ? Number(amountText)
+    : (NUMBER_WORDS[amountText] ?? null);
   if (amount === null) return null;
-  const unitText = match.groups.unit?.toLowerCase();
+  const unitText = groups.unit;
   if (unitText === undefined)
     return { value: { kind: "number", value: amount }, valueType: "number" };
   const unit = DURATION_UNITS[unitText];
@@ -127,11 +129,22 @@ function quantity(text: string): Readonly<{
 
 const ZERO: LogicTerm = { kind: "number", value: 0 };
 
-function comparison(predicate: string): Comparison | null {
-  const text = predicate
-    .trim()
-    .replace(/[.!?]+$/, "")
-    .toLowerCase();
+// A bare quantity, or a single word state ("active", "verified") as a
+// symbolic value.
+function value(text: string): Comparison | null {
+  const bare = quantity(text);
+  if (bare) return { operator: "eq", ...bare };
+  if (/^[a-z][a-z_-]*$/.test(text) && !/^(?:not|no|any|some)$/.test(text))
+    return {
+      operator: "eq",
+      value: { kind: "const", value: text.replace(/-/g, "_"), type: "string" },
+      valueType: "string",
+    };
+  return null;
+}
+
+// The predicate is lowercase, trimmed and without closing punctuation.
+function comparison(text: string): Comparison | null {
   const fixed: Readonly<Record<string, Comparison>> = {
     positive: { operator: "gt", value: ZERO, valueType: "number" },
     "greater than zero": { operator: "gt", value: ZERO, valueType: "number" },
@@ -167,22 +180,15 @@ function comparison(predicate: string): Comparison | null {
     ];
   for (const [pattern, operator] of comparators) {
     const match = text.match(pattern);
-    const parsed = match?.groups?.q ? quantity(match.groups.q) : null;
+    const parsed =
+      match === null ? null : quantity((match.groups as { q: string }).q);
     if (parsed) return { operator, ...parsed };
   }
-  const bare = quantity(text);
-  if (bare) return { operator: "eq", ...bare };
-  // A single word state ("active", "verified") is a symbolic value.
-  if (/^[a-z][a-z_-]*$/.test(text) && !/^(?:not|no|any|some)$/.test(text))
-    return {
-      operator: "eq",
-      value: { kind: "const", value: text.replace(/-/g, "_"), type: "string" },
-      valueType: "string",
-    };
-  return null;
+  return value(text);
 }
 
-// "the cart total is positive", "the cart's total is at least 5"
+// "the cart total is positive", "the cart's total is at least 5". The text
+// is trimmed and has no closing punctuation.
 function condition(text: string): Readonly<{
   subjectKey: string;
   propertyKey: string;
@@ -190,40 +196,34 @@ function condition(text: string): Readonly<{
 }> | null {
   // A conjunction or disjunction is not one comparison; "10 or more" and
   // "4 or fewer" are, so a trailing "or more/less/fewer" is not a disjunction.
-  if (
-    /\b(?:and|but)\b|,|\bor\b(?!\s+(?:more|less|fewer)[.!?]*\s*$)/i.test(text)
-  )
+  if (/\b(?:and|but)\b|,|\bor\b(?!\s+(?:more|less|fewer)$)/i.test(text))
     return null;
-  const match = text
-    .trim()
-    .replace(/[.!?]+$/, "")
-    .match(
-      /^(?<subject>.+?)\s+(?<verb>is|are|stays|remains|equals)\s+(?<predicate>.+)$/i,
-    );
-  if (!match?.groups?.subject || !match.groups.verb || !match.groups.predicate)
-    return null;
-  const parsed = comparison(
-    match.groups.verb.toLowerCase() === "equals"
-      ? `equal to ${match.groups.predicate}`
-      : match.groups.predicate,
-  );
+  const groups = text.match(
+    /(?<subject>.+?)\s+(?<verb>is|are|stays|remains|equals)\s+(?<predicate>.+)/i,
+  )?.groups as Readonly<Record<"subject" | "verb" | "predicate", string>>;
+  if (groups === undefined) return null;
+  const predicate = groups.predicate.toLowerCase();
+  // "equals" names the value itself, never a comparison phrase.
+  const parsed =
+    groups.verb.toLowerCase() === "equals"
+      ? value(predicate)
+      : comparison(predicate);
   if (!parsed) return null;
-  const subjectText = match.groups.subject.replace(/\b(?:a|an|the)\b/gi, " ");
   let subjectPart: string;
   let propertyPart: string;
-  const possessive = subjectText.match(/^(?<owner>.+?)['’]s\s+(?<prop>.+)$/);
-  const ofForm = subjectText.match(/^(?<prop>.+?)\s+of\s+(?<owner>.+)$/i);
-  if (possessive?.groups?.owner && possessive.groups.prop) {
-    subjectPart = possessive.groups.owner;
-    propertyPart = possessive.groups.prop;
-  } else if (ofForm?.groups?.owner && ofForm.groups.prop) {
-    subjectPart = ofForm.groups.owner;
-    propertyPart = ofForm.groups.prop;
+  const possessive = groups.subject.match(/(?<owner>.+?)['’]s\s+(?<prop>.+)/)
+    ?.groups as Readonly<Record<"owner" | "prop", string>> | undefined;
+  const ofForm = groups.subject.match(/(?<prop>.+?)\s+of\s+(?<owner>.+)/i)
+    ?.groups as Readonly<Record<"owner" | "prop", string>> | undefined;
+  const owned = possessive ?? ofForm;
+  if (owned) {
+    subjectPart = owned.owner;
+    propertyPart = owned.prop;
   } else {
-    const words = subjectText.trim().split(/\s+/);
-    if (words.length < 2) return null;
-    propertyPart = words.slice(-1).join(" ");
-    subjectPart = words.slice(0, -1).join(" ");
+    // The last word is the property; a lone word leaves no subject.
+    const words = groups.subject.split(/\s/);
+    propertyPart = words.pop() as string;
+    subjectPart = words.join(" ");
   }
   const subjectKey = identifier(subjectPart);
   const propertyKey = identifier(propertyPart);
@@ -232,17 +232,16 @@ function condition(text: string): Readonly<{
 }
 
 function actionName(subject: string, verb: string): string {
-  const verbText = verb.trim();
-  return OCCURRENCE_VERB.test(verbText)
+  return OCCURRENCE_VERB.test(verb)
     ? identifier(subject)
-    : identifier(`${subject} ${verbText.replace(/^be\s+/i, "")}`);
+    : identifier(`${subject} ${verb.replace(/^be\s/i, "")}`);
 }
 
 // implements REQ-kibi-conditional-requirement-authoring
 export function detectConditionalRule(
   statement: string,
 ): ConditionalRuleMatch | null {
-  const text = statement.trim().replace(/[.!?]+$/, "");
+  const text = statement.replace(/[.!?\s]+$/, "").trim();
   const shape: ConditionalRuleShape | null = ONLY_WHEN_ANYWHERE.test(text)
     ? "only_when"
     : NEGATED_UNLESS_ANYWHERE.test(text)
@@ -250,8 +249,8 @@ export function detectConditionalRule(
       : null;
   if (shape === null) return null;
   const scopeMatch = text.match(SCOPE_PREFIX);
-  const scope = scopeMatch?.groups?.scope
-    ? scopeMatch.groups.scope.toLowerCase()
+  const scope = scopeMatch
+    ? (scopeMatch.groups?.scope as string).toLowerCase()
     : null;
   const body = scopeMatch ? text.slice(scopeMatch[0].length) : text;
   const unparsed = (reason: string): ConditionalRuleMatch => ({
@@ -263,22 +262,24 @@ export function detectConditionalRule(
   let action: string;
   let conditionText: string;
   if (shape === "only_when") {
-    const match = body.match(ONLY_WHEN);
-    const verb = match?.groups?.verbBefore ?? match?.groups?.verbAfter;
-    if (!match?.groups?.action || !verb || !match.groups.condition)
+    const groups = body.match(ONLY_WHEN)?.groups;
+    if (groups === undefined)
       return unparsed(
         "The clause says an action happens only under a condition, but its action could not be read.",
       );
-    action = actionName(match.groups.action, verb);
-    conditionText = match.groups.condition;
+    action = actionName(
+      groups.action as string,
+      (groups.verbBefore ?? groups.verbAfter) as string,
+    );
+    conditionText = groups.condition as string;
   } else {
-    const match = body.match(UNLESS);
-    if (!match?.groups?.action || !match.groups.verb || !match.groups.condition)
+    const groups = body.match(UNLESS)?.groups;
+    if (groups === undefined)
       return unparsed(
         "The clause forbids an action unless a condition holds, but its action could not be read.",
       );
-    action = actionName(match.groups.action, match.groups.verb);
-    conditionText = match.groups.condition;
+    action = actionName(groups.action as string, groups.verb as string);
+    conditionText = groups.condition as string;
   }
   if (!/^[a-z]/.test(action))
     return unparsed(

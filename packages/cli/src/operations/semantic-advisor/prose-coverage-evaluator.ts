@@ -42,15 +42,11 @@ function evaluateCase(
   testCase: ProseCoverageCase,
 ): readonly ProseCoverageFailure[] {
   const result = analyzeSemanticAdvisorInput({
+    // Only the first suggestion's kind and claim are compared, and those
+    // depend on the prose and the entity type alone.
     payload: {
       type: "req",
-      id: `REQ-CORPUS-${testCase.id}`,
-      properties: {
-        title: testCase.id,
-        status: "open",
-        source: "mcp://kibi/prose-coverage-corpus",
-        text_ref: testCase.text,
-      },
+      properties: { title: testCase.id, text_ref: testCase.text },
     },
   });
   const suggestion = result.receipt.suggestions[0];

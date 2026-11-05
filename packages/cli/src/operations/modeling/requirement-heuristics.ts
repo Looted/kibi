@@ -16,6 +16,18 @@ function fallbackSubjectFromSource(source: string): string {
   return basename || "Requirement";
 }
 
+type HeuristicGroups = Readonly<
+  Record<"subject" | "predicate" | "value" | "unit" | "state", string>
+>;
+
+/**
+ * The named groups of a match. Every group in these patterns is mandatory, so
+ * a match always captures a non-empty string for each.
+ */
+function groupsOf(match: RegExpMatchArray): HeuristicGroups {
+  return match.groups as HeuristicGroups;
+}
+
 // implements REQ-002
 export function buildFallbackClaim(
   statement: string,
@@ -51,9 +63,8 @@ export function extractHeuristicClaim(
   const retentionMatch = normalized.match(
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+retained\s+for\s+(?<value>\d+)\s+(?<unit>day|days|month|months|year|years)\.?$/i,
   );
-  if (retentionMatch?.groups) {
-    const { unit, subject, value } = retentionMatch.groups;
-    if (!unit || !subject || !value) return null;
+  if (retentionMatch) {
+    const { unit, subject, value } = groupsOf(retentionMatch);
     const normalizedUnit = unit.toLowerCase().startsWith("day")
       ? "Days"
       : unit.toLowerCase().startsWith("month")
@@ -77,9 +88,8 @@ export function extractHeuristicClaim(
   const enabledMatch = normalized.match(
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+(?<state>enabled|disabled)\.?$/i,
   );
-  if (enabledMatch?.groups) {
-    const { subject, state } = enabledMatch.groups;
-    if (!subject || !state) return null;
+  if (enabledMatch) {
+    const { subject, state } = groupsOf(enabledMatch);
     return {
       claim: {
         source,
@@ -98,9 +108,8 @@ export function extractHeuristicClaim(
   const forbiddenMatch = normalized.match(
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+not\s+(?<predicate>.+?)\.?$/i,
   );
-  if (forbiddenMatch?.groups) {
-    const { subject, predicate } = forbiddenMatch.groups;
-    if (!subject || !predicate) return null;
+  if (forbiddenMatch) {
+    const { subject, predicate } = groupsOf(forbiddenMatch);
     return {
       claim: {
         source,
@@ -119,9 +128,8 @@ export function extractHeuristicClaim(
   const requiredMatch = normalized.match(
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+(?<predicate>.+?)\.?$/i,
   );
-  if (requiredMatch?.groups) {
-    const { subject, predicate } = requiredMatch.groups;
-    if (!subject || !predicate) return null;
+  if (requiredMatch) {
+    const { subject, predicate } = groupsOf(requiredMatch);
     return {
       claim: {
         source,

@@ -56,28 +56,21 @@ export async function withConflictReviewSignals(
       title: requirement.title,
       semantic_text: requirement.semanticText,
     }));
-  if (unmodeled.length === 0)
-    return {
-      candidates: [...candidates],
-      signals: [...signals],
-      diagnostics: [],
-    };
   const titles = new Map(
     requirements.map((requirement) => [requirement.id, requirement.title]),
   );
   const related = async (query: string): Promise<string[]> => {
     const ranked = await rankIntentEntities(
       unmodeled,
-      { query, type: "req", minScore: REVIEW_CANDIDATE_MIN_SCORE },
+      { query, minScore: REVIEW_CANDIDATE_MIN_SCORE },
       workspaceRoot,
     );
     return ranked.matches
       .slice(0, MAX_REVIEW_CANDIDATES)
-      .map((match) => String(match.entity.id ?? ""))
-      .filter(Boolean);
+      .map((match) => String(match.entity.id));
   };
   const named = (ids: readonly string[]) =>
-    ids.map((id) => `${id} ("${titles.get(id) ?? ""}")`).join(", ");
+    ids.map((id) => `${id} ("${titles.get(id)}")`).join(", ");
   const diagnostics: string[] = [];
   const reviewed: Candidate[] = [];
   for (const candidate of candidates) {

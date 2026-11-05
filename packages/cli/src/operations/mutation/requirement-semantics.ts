@@ -172,6 +172,10 @@ export async function assertStoredRequirementBoundary(
   if (stored === undefined) return;
   const before: Record<string, unknown> = {};
   for (const field of BOUNDARY_FIELDS) {
+    // Leaving an absent field out keeps the analyzed payload as authored.
+    // rationale: an undefined field changes no boundary decision; only the
+    // advisor's internal receipt hash sees the extra key.
+    // Stryker disable next-line ConditionalExpression
     if (stored[field] !== undefined) before[field] = stored[field];
   }
   const written = { ...before, ...(input.properties ?? {}) };

@@ -1,0 +1,452 @@
+{
+  "names": [
+    "visual_layout_rule",
+    "enforcement_location_rule",
+    "reconciliation_rule",
+    "throttle_policy_rule",
+    "temporal_order",
+    "state_transition",
+    "conditional_behavior",
+    "commit_action",
+    "permission_rule",
+    "zz_none"
+  ],
+  "cases": [
+    {
+      "text": "The toolbar must remain visually aligned with the canvas.",
+      "scores": [0.98, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Limits must be enforced at the gateway.",
+      "scores": [0, 0.98, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts and clear stale caches.",
+      "scores": [0, 0, 0.98, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Uploads must be throttled for free users.",
+      "scores": [0, 0, 0, 0.98, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The renderer initializes after the store is ready.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "When saving, the editor transitions from draft to saved.",
+      "scores": [0, 0, 0, 0, null, 0.98, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Viewers may comment.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users are not allowed to delete posts.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Only admins can delete posts.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Admins cannot delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Admins can't delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Admins must not delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users have no permission to delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "User has permission to delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users should not be able to delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users must be able to read.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Admins are permitted to delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Admins is forbidden to delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Admins are entitled to refunds.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Admins are able to delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users are allowed to read.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "When saving, editors transition from draft_1 to saved-2.",
+      "scores": [0, 0, 0, 0, null, 0.98, 0.98, 0, 0, null]
+    },
+    {
+      "text": "When saving, the editor transitions from a to b.",
+      "scores": [0, 0, 0, 0, null, 0.98, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Uploads should be throttled for free users.",
+      "scores": [0, 0, 0, 0.98, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Limits shall be enforced at the gateway.",
+      "scores": [0, 0.98, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Autosave drafts.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0.98, 0, null]
+    },
+    {
+      "text": "auto-save drafts.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0.98, 0, null]
+    },
+    {
+      "text": "Commit changes.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0.98, 0, null]
+    },
+    {
+      "text": "Persist changes.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0.98, 0, null]
+    },
+    {
+      "text": "Save changes.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0.98, 0, null]
+    },
+    {
+      "text": "It saves changes.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0.98, 0, null]
+    },
+    {
+      "text": "Close without save.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Nothing saved before exit.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Nothing.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "the renderer initializes after store is ready.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "On reconnect,\n\nthe client must reconcile drafts and clear stale caches.",
+      "scores": [0, 0, 0.98, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The\n\nrenderer initializes after the store is ready.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The renderer initializes after the\n\nstore is ready.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "When saving,the editor transitions from draft to saved.",
+      "scores": [0, 0, 0, 0, null, 0.98, 0.98, 0, 0, null]
+    },
+    {
+      "text": "\nThe toolbar must remain visually aligned with the canvas.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The toolbar must remain visually aligned with the canvas.\nx",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The toolbar must remain visually aligned with the canvas.x",
+      "scores": [0.98, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The toolbar\n\nmust remain visually aligned with the canvas.",
+      "scores": [0.98, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The toolbar must\n\nremain visually aligned with the canvas.",
+      "scores": [0.98, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The toolbar must remain\n\nvisually aligned with the canvas.",
+      "scores": [0.98, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The toolbar must remain visually\n\naligned with the canvas.",
+      "scores": [0.98, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The toolbar must remain visually aligned\n\nwith the canvas.",
+      "scores": [0.98, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The toolbar must remain visually aligned with\n\nthe canvas.",
+      "scores": [0.98, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "\nLimits must be enforced at the gateway.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Limits must be enforced at the gateway.\nx",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Limits must be enforced at the gateway.x",
+      "scores": [0, 0.98, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Limits\n\nmust be enforced at the gateway.",
+      "scores": [0, 0.98, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Limits must\n\nbe enforced at the gateway.",
+      "scores": [0, 0.98, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Limits must be\n\nenforced at the gateway.",
+      "scores": [0, 0.98, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Limits must be enforced\n\nat the gateway.",
+      "scores": [0, 0.98, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Limits must be enforced at\n\nthe gateway.",
+      "scores": [0, 0.98, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "\nOn reconnect, the client must reconcile drafts and clear stale caches.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts and clear stale caches.\nx",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts and clear stale caches.x",
+      "scores": [0, 0, 0.98, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "On\n\nreconnect, the client must reconcile drafts and clear stale caches.",
+      "scores": [0, 0, 0.98, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "On reconnect, the client\n\nmust reconcile drafts and clear stale caches.",
+      "scores": [0, 0, 0.98, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "On reconnect, the client must\n\nreconcile drafts and clear stale caches.",
+      "scores": [0, 0, 0.98, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "On reconnect, the client must reconcile\n\ndrafts and clear stale caches.",
+      "scores": [0, 0, 0.98, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts\n\nand clear stale caches.",
+      "scores": [0, 0, 0.98, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts and\n\nclear stale caches.",
+      "scores": [0, 0, 0.98, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts and clear\n\nstale caches.",
+      "scores": [0, 0, 0.98, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts and clear stale\n\ncaches.",
+      "scores": [0, 0, 0.98, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "\nUploads must be throttled for free users.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Uploads must be throttled for free users.\nx",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Uploads must be throttled for free users.x",
+      "scores": [0, 0, 0, 0.98, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Uploads\n\nmust be throttled for free users.",
+      "scores": [0, 0, 0, 0.98, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Uploads must\n\nbe throttled for free users.",
+      "scores": [0, 0, 0, 0.98, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Uploads must be\n\nthrottled for free users.",
+      "scores": [0, 0, 0, 0.98, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Uploads must be throttled\n\nfor free users.",
+      "scores": [0, 0, 0, 0.98, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Uploads must be throttled for\n\nfree users.",
+      "scores": [0, 0, 0, 0.98, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "\nThe renderer initializes after the store is ready.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The renderer initializes after the store is ready.\nx",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The renderer initializes after the store is ready",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Therenderer initializes after the store is ready.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The renderer\n\ninitializes after the store is ready.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The renderer initializes\n\nafter the store is ready.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The renderer initializes after\n\nthe store is ready.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The renderer initializes after the store\n\nis ready.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "The renderer initializes after the store is\n\nready.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "\nWhen saving, the editor transitions from draft to saved.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "When saving, the editor transitions from draft to saved.\nx",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "When saving, the editor transitions from draft to saved",
+      "scores": [0, 0, 0, 0, null, 0.98, 0.98, 0, 0, null]
+    },
+    {
+      "text": "When\n\nsaving, the editor transitions from draft to saved.",
+      "scores": [0, 0, 0, 0, null, 0.98, 0.98, 0, 0, null]
+    },
+    {
+      "text": "When saving, the editor transitions\n\nfrom draft to saved.",
+      "scores": [0, 0, 0, 0, null, 0.98, 0.98, 0, 0, null]
+    },
+    {
+      "text": "When saving, the editor transitions from\n\ndraft to saved.",
+      "scores": [0, 0, 0, 0, null, 0.98, 0.98, 0, 0, null]
+    },
+    {
+      "text": "When saving, the editor transitions from draft\n\nto saved.",
+      "scores": [0, 0, 0, 0, null, 0.98, 0.98, 0, 0, null]
+    },
+    {
+      "text": "When saving, the editor transitions from draft to\n\nsaved.",
+      "scores": [0, 0, 0, 0, null, 0.98, 0.98, 0, 0, null]
+    },
+    {
+      "text": "\nViewers may comment.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Viewers may comment.\nx",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Viewers may comment.x",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Viewers may\n\ncomment.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users are\n\nnot allowed to delete posts.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users are not\n\nallowed to delete posts.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users are not allowed\n\nto delete posts.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Admins must\n\nnot delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users have\n\nno permission to delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users have no\n\npermission to delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users have no permission\n\nto delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users should\n\nnot be able to delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users should not\n\nbe able to delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users should not be\n\nable to delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Users should not be able\n\nto delete.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0.98, null]
+    },
+    {
+      "text": "Close without\n\nsave.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Nothing saved\n\nbefore exit.",
+      "scores": [0, 0, 0, 0, null, 0, 0.98, 0, 0, null]
+    }
+  ]
+}

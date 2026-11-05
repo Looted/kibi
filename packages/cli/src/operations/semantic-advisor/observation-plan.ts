@@ -33,7 +33,7 @@ export function observationPlan(
         tags,
       },
       document: {
-        body: `${title}. The semantic advisor suggested this review observation because the prose below is not safely grounded by a typed fact; it stays open until a reviewer models, rewords or dismisses the claim.\n\n> ${statementOf(payload).trim().replace(/\n/g, "\n> ")}`,
+        body: `${title}. The semantic advisor suggested this review observation because the prose below is not safely grounded by a typed fact; it stays open until a reviewer models, rewords or dismisses the claim.\n\n> ${statementOf(payload).replace(/\n/g, "\n> ")}`,
       },
       relationships: [],
     },

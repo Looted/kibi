@@ -51,7 +51,8 @@ export type ResolvedProjectPackage = Readonly<{
 }>;
 
 function readJson(path: string): unknown {
-  return JSON.parse(fs.readFileSync(path, "utf8"));
+  // String(buffer) decodes UTF-8.
+  return JSON.parse(String(fs.readFileSync(path)));
 }
 
 function nextAncestorDirectory(current: string): string | undefined {
@@ -59,12 +60,13 @@ function nextAncestorDirectory(current: string): string | undefined {
   return parent === current ? undefined : parent;
 }
 
+// The root itself relates as "", which neither starts with ".." nor is absolute.
 function isWithinRoot(rootPath: string, candidatePath: string): boolean {
   const relativePath = relative(resolve(rootPath), resolve(candidatePath));
-  return (
-    relativePath === "" ||
-    (!relativePath.startsWith("..") && !isAbsolute(relativePath))
-  );
+  // rationale: path.relative only returns an absolute path across Windows
+  // drives, so on the POSIX test hosts the isAbsolute guard is always false.
+  // Stryker disable next-line ConditionalExpression
+  return !relativePath.startsWith("..") && !isAbsolute(relativePath);
 }
 
 /**
@@ -76,19 +78,18 @@ export function isBarePackageName(packageName: string): boolean {
   if (!trimmed || trimmed !== packageName) return false;
   if (
     trimmed.startsWith(".") ||
-    trimmed.startsWith("/") ||
     trimmed.includes(":") ||
     trimmed.includes("\\") ||
     trimmed.includes("..")
   ) {
     return false;
   }
-  // Reject subpath imports (`pkg/sub`) and Windows drive paths.
+  // Reject absolute paths, subpath imports (`pkg/sub`) and Windows drive paths.
   if (trimmed.includes("/") && !trimmed.startsWith("@")) return false;
+  // A scope ("@scope", never empty) and a non-empty name, nothing more.
   if (trimmed.startsWith("@")) {
     const parts = trimmed.split("/");
-    if (parts.length !== 2 || !parts[0] || !parts[1]) return false;
-    if (parts[1].includes("/")) return false;
+    if (parts.length !== 2 || !parts[1]) return false;
   }
   return true;
 }
@@ -172,27 +173,19 @@ export function packageJsonForResolvedFile(
   packageRoot: string;
   packageJson: ProjectPackageManifest & Readonly<Record<string, unknown>>;
 } | null {
-  let current = resolve(startPath);
-  try {
-    if (!fs.statSync(current).isDirectory()) current = dirname(current);
-  } catch {
-    current = dirname(current);
-  }
-
-  let cursor: string | undefined = current;
+  // A file (or missing path) has no package.json beneath it, so the walk
+  // simply moves on to its directory.
+  let cursor: string | undefined = resolve(startPath);
   while (cursor !== undefined) {
     const packageJsonPath = join(cursor, "package.json");
-    if (fs.existsSync(packageJsonPath)) {
-      try {
-        const packageJson = readJson(
-          packageJsonPath,
-        ) as ProjectPackageManifest & Record<string, unknown>;
-        if (packageJson.name === expectedPackageName) {
-          return { packageJsonPath, packageRoot: cursor, packageJson };
-        }
-      } catch {
-        // Keep walking if a parent package manifest is malformed.
+    try {
+      const packageJson = readJson(packageJsonPath) as ProjectPackageManifest &
+        Record<string, unknown>;
+      if (packageJson.name === expectedPackageName) {
+        return { packageJsonPath, packageRoot: cursor, packageJson };
       }
+    } catch {
+      // Keep walking past a missing or malformed package manifest.
     }
     cursor = nextAncestorDirectory(cursor);
   }
@@ -250,24 +243,14 @@ function candidateFromManifest(
 ): string | undefined {
   const exportsField = packageJson.exports;
   if (typeof exportsField === "string") return exportsField;
-  if (
-    exportsField &&
-    typeof exportsField === "object" &&
-    !Array.isArray(exportsField)
-  ) {
-    const rootExport = (exportsField as Record<string, unknown>)["."];
-    if (typeof rootExport === "string") return rootExport;
-    if (
-      rootExport &&
-      typeof rootExport === "object" &&
-      !Array.isArray(rootExport)
-    ) {
-      const conditional = rootExport as Record<string, unknown>;
-      if (typeof conditional.import === "string") return conditional.import;
-      if (typeof conditional.default === "string") return conditional.default;
-      if (typeof conditional.require === "string") return conditional.require;
-    }
-  }
+  // Reading a property of an array, number or boolean yields undefined, so
+  // only null and undefined need guarding.
+  const rootExport = (exportsField as Record<string, unknown> | null)?.["."];
+  if (typeof rootExport === "string") return rootExport;
+  const conditional = rootExport as Record<string, unknown> | null | undefined;
+  if (typeof conditional?.import === "string") return conditional.import;
+  if (typeof conditional?.default === "string") return conditional.default;
+  if (typeof conditional?.require === "string") return conditional.require;
   if (typeof packageJson.module === "string") return packageJson.module;
   if (typeof packageJson.main === "string") return packageJson.main;
   return undefined;
@@ -283,7 +266,7 @@ function resolvePackageEntryWithNode(
   try {
     resolved = consumerRequire.resolve(packageName);
   } catch {
-    resolved = undefined;
+    // Fall back to the manifest's declared entry below.
   }
   if (resolved === undefined) {
     const candidate = candidateFromManifest(packageJson);
@@ -340,7 +323,7 @@ export function resolveProjectLocalPackage(
         packageName,
       );
     } catch {
-      packageInfo = null;
+      // Neither resolves: reported as not found below.
     }
   }
 

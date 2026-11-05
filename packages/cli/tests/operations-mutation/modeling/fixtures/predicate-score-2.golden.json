@@ -1,0 +1,728 @@
+{
+  "names": [
+    "build_constraint",
+    "environment_safety_rule",
+    "schema_invariant_rule",
+    "coding_standard_rule",
+    "migration_boundary_rule",
+    "absence_requirement",
+    "offline_behavior_rule",
+    "release_gate_rule",
+    "platform_consistency_rule",
+    "preservation_rule",
+    "abstraction_boundary_rule",
+    "security_configuration_rule",
+    "ordered_strategy_rule",
+    "refresh_policy_rule",
+    "scoped_authorization_rule",
+    "documentation_standard_rule",
+    "warmup_policy_rule",
+    "zz_none"
+  ],
+  "cases": [
+    {
+      "text": "Asset bundles must be deterministic at build time.",
+      "scores": [0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug endpoints must be forbidden in production.",
+      "scores": [0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Config files shall be read-only in staging.",
+      "scores": [0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Feature flags should be allowed in development.",
+      "scores": [0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Event records must be immutable after publication.",
+      "scores": [0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Components must use typed props.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Components must use hooks.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Widgets should avoid framework globals.",
+      "scores": [0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables may only be read as migration input.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables may only be read as migration input by the importer.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug logging must be absent.",
+      "scores": [0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Old flags shall be removed.",
+      "scores": [0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "No telemetry.",
+      "scores": [0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Sync must be non-blocking during offline conditions.",
+      "scores": [0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Sync should be resilient during offline conditions.",
+      "scores": [0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Builds must pass review before release.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Releases must pass tests before app store submission.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Releases must pass tests before testflight.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Settings must synchronize across devices.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Editors must preserve cursor position when reloading.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Diagrams must be persisted as neutral json.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Functions must have explicit search_path settings.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Functions must have explicit security definer.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Resolvers must use mirrors in priority order for downloads.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Dashboards must automatically refresh metrics without requiring manual page reload.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, null]
+    },
+    {
+      "text": "Unassigned users must be denied edit access.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Guests must be denied access as non members.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Public APIs must be documented in the handbook.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, null]
+    },
+    {
+      "text": "The cache must warm up on startup.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, null]
+    },
+    {
+      "text": "Caches should warm up on deploy.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, null]
+    },
+    {
+      "text": "Widgets must use tabs.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Builds must pass review before lunch.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Diagrams must be persisted as json.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Tables must have explicit owner roles.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Admins must be denied nothing.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nResolvers must use mirrors in priority order for downloads.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Resolvers must use mirrors in priority order for downloads.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Resolvers must use mirrors in priority order for downloads.x",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Resolvers\n\nmust use mirrors in priority order for downloads.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Resolvers must\n\nuse mirrors in priority order for downloads.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Resolvers must use\n\nmirrors in priority order for downloads.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "The\n\ncache must warm up on startup.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, null]
+    },
+    {
+      "text": "\nAsset bundles must be deterministic at build time.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Asset bundles must be deterministic at build time.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Asset bundles must be deterministic at build time",
+      "scores": [0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Asset bundles\n\nmust be deterministic at build time.",
+      "scores": [0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Asset bundles must\n\nbe deterministic at build time.",
+      "scores": [0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Asset bundles must be\n\ndeterministic at build time.",
+      "scores": [0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Asset bundles must be deterministic\n\nat build time.",
+      "scores": [0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Asset bundles must be deterministic at\n\nbuild time.",
+      "scores": [0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Asset bundles must be deterministic at build\n\ntime.",
+      "scores": [0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nDebug endpoints must be forbidden in production.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug endpoints must be forbidden in production.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug endpoints must be forbidden in production",
+      "scores": [0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug endpoints\n\nmust be forbidden in production.",
+      "scores": [0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug endpoints must\n\nbe forbidden in production.",
+      "scores": [0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug endpoints must be\n\nforbidden in production.",
+      "scores": [0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug endpoints must be forbidden\n\nin production.",
+      "scores": [0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug endpoints must be forbidden in\n\nproduction.",
+      "scores": [0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nEvent records must be immutable after publication.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Event records must be immutable after publication.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Event records must be immutable after publication.x",
+      "scores": [0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Event records\n\nmust be immutable after publication.",
+      "scores": [0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Event records must\n\nbe immutable after publication.",
+      "scores": [0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Event records must be\n\nimmutable after publication.",
+      "scores": [0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Event records must be immutable\n\nafter publication.",
+      "scores": [0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Event records must be immutable after\n\npublication.",
+      "scores": [0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nLegacy tables may only be read as migration input.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables may only be read as migration input.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables may only be read as migration input",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables\n\nmay only be read as migration input.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables may\n\nonly be read as migration input.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables may only\n\nbe read as migration input.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables may only be\n\nread as migration input.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables may only be read\n\nas migration input.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables may only be read as\n\nmigration input.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables may only be read as migration\n\ninput.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables may only be read as migration input\n\nby the importer.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Legacy tables may only be read as migration input by\n\nthe importer.",
+      "scores": [0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nDebug logging must be absent.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug logging must be absent.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug logging must be absent",
+      "scores": [0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug logging\n\nmust be absent.",
+      "scores": [0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug logging must\n\nbe absent.",
+      "scores": [0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Debug logging must be\n\nabsent.",
+      "scores": [0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nNo telemetry.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "No telemetry.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "No telemetry.x",
+      "scores": [0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "No\n\ntelemetry.",
+      "scores": [0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nSync must be non-blocking during offline conditions.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Sync must be non-blocking during offline conditions.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Sync must be non-blocking during offline conditions",
+      "scores": [0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Sync\n\nmust be non-blocking during offline conditions.",
+      "scores": [0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Sync must\n\nbe non-blocking during offline conditions.",
+      "scores": [0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Sync must be\n\nnon-blocking during offline conditions.",
+      "scores": [0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Sync must be non-blocking\n\nduring offline conditions.",
+      "scores": [0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Sync must be non-blocking during\n\noffline conditions.",
+      "scores": [0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Sync must be non-blocking during offline\n\nconditions.",
+      "scores": [0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nBuilds must pass review before release.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Builds must pass review before release.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Builds must pass review before release.x",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Builds\n\nmust pass review before release.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Builds must\n\npass review before release.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Builds must pass\n\nreview before release.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Builds must pass review\n\nbefore release.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Builds must pass review before\n\nrelease.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nSettings must synchronize across devices.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Settings must synchronize across devices.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Settings must synchronize across devices.x",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Settings\n\nmust synchronize across devices.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Settings must\n\nsynchronize across devices.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Settings must synchronize\n\nacross devices.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Settings must synchronize across\n\ndevices.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nEditors must preserve cursor position when reloading.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Editors must preserve cursor position when reloading.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Editors must preserve cursor position when reloading.x",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Editors\n\nmust preserve cursor position when reloading.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Editors must\n\npreserve cursor position when reloading.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Editors must preserve\n\ncursor position when reloading.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Editors must preserve cursor position\n\nwhen reloading.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Editors must preserve cursor position when\n\nreloading.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nDiagrams must be persisted as neutral json.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Diagrams must be persisted as neutral json.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Diagrams must be persisted as neutral json.x",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Diagrams\n\nmust be persisted as neutral json.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Diagrams must\n\nbe persisted as neutral json.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Diagrams must be\n\npersisted as neutral json.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Diagrams must be persisted\n\nas neutral json.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Diagrams must be persisted as\n\nneutral json.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nFunctions must have explicit search_path settings.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Functions must have explicit search_path settings.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Functions must have explicit search_path settings.x",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Functions\n\nmust have explicit search_path settings.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Functions must\n\nhave explicit search_path settings.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Functions must have\n\nexplicit search_path settings.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Functions must have explicit\n\nsearch_path settings.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Functions must have explicit search_path\n\nsettings.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Resolvers must use mirrors\n\nin priority order for downloads.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Resolvers must use mirrors in\n\npriority order for downloads.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Resolvers must use mirrors in priority\n\norder for downloads.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Resolvers must use mirrors in priority order\n\nfor downloads.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "\nDashboards must automatically refresh metrics without requiring manual page reload.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Dashboards must automatically refresh metrics without requiring manual page reload.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Dashboards must automatically refresh metrics without requiring manual page reload",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, null]
+    },
+    {
+      "text": "Dashboards\n\nmust automatically refresh metrics without requiring manual page reload.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, null]
+    },
+    {
+      "text": "Dashboards must\n\nautomatically refresh metrics without requiring manual page reload.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, null]
+    },
+    {
+      "text": "Dashboards must automatically\n\nrefresh metrics without requiring manual page reload.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, null]
+    },
+    {
+      "text": "Dashboards must automatically refresh\n\nmetrics without requiring manual page reload.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, null]
+    },
+    {
+      "text": "Dashboards must automatically refresh metrics\n\nwithout requiring manual page reload.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, null]
+    },
+    {
+      "text": "Dashboards must automatically refresh metrics without\n\nrequiring manual page reload.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, null]
+    },
+    {
+      "text": "Dashboards must automatically refresh metrics without requiring\n\nmanual page reload.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, null]
+    },
+    {
+      "text": "Dashboards must automatically refresh metrics without requiring manual\n\npage reload.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, null]
+    },
+    {
+      "text": "Dashboards must automatically refresh metrics without requiring manual page\n\nreload.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, 0, null]
+    },
+    {
+      "text": "\nUnassigned users must be denied edit access.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Unassigned users must be denied edit access.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Unassigned users must be denied edit access.x",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Unassigned users\n\nmust be denied edit access.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Unassigned users must\n\nbe denied edit access.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Unassigned users must be\n\ndenied edit access.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "Unassigned users must be denied\n\nedit access.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, 0, null]
+    },
+    {
+      "text": "\nPublic APIs must be documented in the handbook.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Public APIs must be documented in the handbook.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "Public APIs must be documented in the handbook.x",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, null]
+    },
+    {
+      "text": "Public APIs\n\nmust be documented in the handbook.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, null]
+    },
+    {
+      "text": "Public APIs must\n\nbe documented in the handbook.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, null]
+    },
+    {
+      "text": "Public APIs must be\n\ndocumented in the handbook.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, null]
+    },
+    {
+      "text": "Public APIs must be documented\n\nin the handbook.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, null]
+    },
+    {
+      "text": "Public APIs must be documented in\n\nthe handbook.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, 0, null]
+    },
+    {
+      "text": "\nThe cache must warm up on startup.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "The cache must warm up on startup.\nx",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null]
+    },
+    {
+      "text": "The cache must warm up on startup.x",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, null]
+    },
+    {
+      "text": "The cache\n\nmust warm up on startup.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, null]
+    },
+    {
+      "text": "The cache must\n\nwarm up on startup.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, null]
+    },
+    {
+      "text": "The cache must warm\n\nup on startup.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, null]
+    },
+    {
+      "text": "The cache must warm up\n\non startup.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, null]
+    },
+    {
+      "text": "The cache must warm up on\n\nstartup.",
+      "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.98, null]
+    }
+  ]
+}

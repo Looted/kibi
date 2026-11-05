@@ -35,27 +35,41 @@ export function whenParsedNumber<T>(
   return then(value);
 }
 
+type CardinalityGroups = Readonly<{
+  operator: string;
+  value: string;
+  resource: string;
+  scope?: string;
+}>;
+
+type CappedGroups = Readonly<{
+  subject: string;
+  property?: string;
+  value: string;
+}>;
+
 // implements REQ-mcp-semantic-advisor-preflight
 export function detectCountStrictSuggestion(
   payload: Payload,
   statement: string,
 ): SemanticModelingSuggestion | null {
+  // Every group but `scope` is mandatory, so a match carries them all, and the
+  // value group only admits tokens numberToken parses.
   const cardinality = statement.match(
     /\b(?<operator>at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to)\s+(?<value>\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?<resource>[a-z][a-z\s_-]*?)(?:\s+(?:under|in|below)\s+`?(?<scope>\/[^\s`]*)`?)?\.?$/i,
-  );
-  const cardinalityGroups = cardinality?.groups;
-  if (
-    cardinalityGroups?.operator &&
-    cardinalityGroups.value &&
-    cardinalityGroups.resource
-  ) {
-    const operatorText = cardinalityGroups.operator;
-    const valueText = cardinalityGroups.value;
-    const resourceText = cardinalityGroups.resource;
-    const value = numberToken(valueText);
-    const suggestion = whenParsedNumber(value, (parsed) => {
+  )?.groups as CardinalityGroups | undefined;
+  if (cardinality) {
+    const {
+      operator: operatorText,
+      value: valueText,
+      resource: resourceText,
+      scope,
+    } = cardinality;
+    return whenParsedNumber(numberToken(valueText), (parsed) => {
       const normalized = normalizeKey(resourceText);
-      const tail = singularize(normalized.split("_").at(-1) ?? normalized);
+      const tail = singularize(
+        normalized.slice(normalized.lastIndexOf("_") + 1),
+      );
       const operator = /at\s+least/i.test(operatorText)
         ? "gte"
         : /exactly/i.test(operatorText)
@@ -67,8 +81,8 @@ export function detectCountStrictSuggestion(
         {
           // "at least 30 routes under /api/orgs" counts the routes under the
           // prefix, the subject a source proof with path_prefix reads.
-          subject_key: cardinalityGroups.scope
-            ? normalizeSubjectKey(`${resourceText} ${cardinalityGroups.scope}`)
+          subject_key: scope
+            ? normalizeSubjectKey(`${resourceText} ${scope}`)
             : tail === "session"
               ? "user.session"
               : normalized.replace(/_/g, "."),
@@ -83,35 +97,31 @@ export function detectCountStrictSuggestion(
         0.9,
       );
     });
-    if (suggestion) return suggestion;
   }
   const capped = statement.match(
     /^(?<subject>.+?)\s+cap(?:s|ped)?\s+at\s+(?:(?<property>[a-z][a-z\s_-]*?)\s+)?(?<value>\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten)\.?$/i,
+  )?.groups as CappedGroups | undefined;
+  if (!capped) return null;
+  const {
+    subject: subjectText,
+    property: propertyText,
+    value: valueText,
+  } = capped;
+  return whenParsedNumber(numberToken(valueText), (parsed) =>
+    strictSuggestion(
+      payload,
+      `cap at ${valueText}`,
+      {
+        subject_key: normalizeSubjectKey(subjectText),
+        property_key: propertyText
+          ? `${normalizeKey(propertyText)}_cap`
+          : "count",
+        operator: "lte",
+        value_type: "int",
+        value_int: parsed,
+      },
+      "Cap-at prose is an upper-bound strict property and should be modeled explicitly.",
+      0.9,
+    ),
   );
-  const cappedGroups = capped?.groups;
-  if (cappedGroups?.subject && cappedGroups.value) {
-    const subjectText = cappedGroups.subject;
-    const valueText = cappedGroups.value;
-    const propertyText = cappedGroups.property;
-    const value = numberToken(valueText);
-    const suggestion = whenParsedNumber(value, (parsed) =>
-      strictSuggestion(
-        payload,
-        `cap at ${valueText}`,
-        {
-          subject_key: normalizeSubjectKey(subjectText),
-          property_key: propertyText
-            ? `${normalizeKey(propertyText)}_cap`
-            : "count",
-          operator: "lte",
-          value_type: "int",
-          value_int: parsed,
-        },
-        "Cap-at prose is an upper-bound strict property and should be modeled explicitly.",
-        0.9,
-      ),
-    );
-    if (suggestion) return suggestion;
-  }
-  return null;
 }

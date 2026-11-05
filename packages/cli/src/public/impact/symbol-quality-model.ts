@@ -163,8 +163,8 @@ export function narrowerExtractedSymbols(
   symbolsByFile: ReadonlyMap<string, readonly ExtractedSymbol[]>,
 ): readonly ExtractedSymbol[] {
   return (symbolsByFile.get(symbol.sourceFile) ?? []).filter(
+    // A name that starts with "<title>." is never the title itself.
     (candidate) =>
-      candidate.name !== symbol.title &&
       candidate.name.startsWith(`${symbol.title}.`) &&
       candidate.role === "behavioral",
   );

@@ -1,0 +1,1012 @@
+{
+  "one keyword hit": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.38
+  },
+  "keywords halve past six": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.34
+  },
+  "two hits among four keywords": {
+    "exact_pattern": 0,
+    "keyword_hits": 2,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.58
+  },
+  "seven keywords still divide by three": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.37
+  },
+  "stem-only keyword match": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "descriptor overlap at a quarter": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0.25,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.26
+  },
+  "descriptor overlap below a quarter": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0.2,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "descriptor of stop words only": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "usage match at a quarter": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0.25,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "usage match below a quarter": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0.2,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "usage and negative evidence": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0.98,
+    "negative_evidence": 0.98,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.3
+  },
+  "negative evidence alone": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0.98,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "broad terms penalized": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0.13,
+    "specificity_bonus": 0.01,
+    "total": 0.26
+  },
+  "broad terms capped": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0.18,
+    "specificity_bonus": 0.01,
+    "total": 0.2
+  },
+  "broad keyword not penalized": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.42
+  },
+  "aliases and templates widen descriptors": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0.98,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.03,
+    "total": 0.48
+  },
+  "template alone is a descriptor": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0.98,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.02,
+    "total": 0.47
+  },
+  "title is a descriptor": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0.98,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.46
+  },
+  "predicate name is a descriptor": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0.98,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.46
+  },
+  "examples are descriptors": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0.98,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.46
+  },
+  "specificity capped": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.1,
+    "total": 0.47
+  },
+  "templates add specificity": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.03,
+    "total": 0.4
+  },
+  "broad alias tokens add no specificity": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.38
+  },
+  "launcher bridge penalty": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0,
+    "total": 0.31
+  },
+  "launcher bridge penalty without evidence": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0,
+    "total": 0
+  },
+  "exact pattern": {
+    "exact_pattern": 0.98,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.98
+  },
+  "exact pattern for the launcher": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0,
+    "total": 0
+  },
+  "exact miss with evidence": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.02,
+    "total": 0.39
+  },
+  "exact miss without evidence": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.02,
+    "total": 0
+  },
+  "first scorer decides": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "no evidence": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "modal keyword": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.35
+  },
+  "modal may keyword": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.35
+  },
+  "stop-word keyword": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "broad-only keyword": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "broad keyword with a domain token": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0.03,
+    "specificity_bonus": 0.01,
+    "total": 0.32
+  },
+  "catalog usage hints": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0.67,
+    "usage_match": 0.6,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.02,
+    "total": 0.48
+  },
+  "no usage hints anywhere": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.38
+  },
+  "uppercase keyword stems": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "ies stem above five letters": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "ies stem at five letters": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "ies at five letters strips s": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "ing stem above four letters": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "ing stem at four letters": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "ed stem above four letters": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "ed stem at four letters": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "s stem above four letters": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "s stem at four letters": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "ies needs the suffix": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "ing needs the suffix": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word a": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word an": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word and": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word are": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word as": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word at": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word be": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word because": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word by": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word can": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.35
+  },
+  "stop word for": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word from": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word has": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word have": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word if": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word in": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word is": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word it": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word may": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.35
+  },
+  "stop word must": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word of": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word on": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word or": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word should": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word shall": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word the": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word their": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word then": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word this": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word to": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word when": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word where": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "stop word with": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0
+  },
+  "broad keyword change": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "broad keyword changes": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "broad keyword component": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "broad keyword data": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "broad keyword published": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "broad keyword project": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "broad keyword state": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "broad keyword system": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "broad keyword value": {
+    "exact_pattern": 0,
+    "keyword_hits": 0,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0,
+    "specificity_bonus": 0.01,
+    "total": 0.23
+  },
+  "broad text change": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0.03,
+    "specificity_bonus": 0.01,
+    "total": 0.36
+  },
+  "broad text changes": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0.03,
+    "specificity_bonus": 0.01,
+    "total": 0.36
+  },
+  "broad text component": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0.03,
+    "specificity_bonus": 0.01,
+    "total": 0.36
+  },
+  "broad text data": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0.03,
+    "specificity_bonus": 0.01,
+    "total": 0.36
+  },
+  "broad text published": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0.03,
+    "specificity_bonus": 0.01,
+    "total": 0.36
+  },
+  "broad text project": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0.03,
+    "specificity_bonus": 0.01,
+    "total": 0.36
+  },
+  "broad text state": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0.03,
+    "specificity_bonus": 0.01,
+    "total": 0.36
+  },
+  "broad text system": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0.03,
+    "specificity_bonus": 0.01,
+    "total": 0.36
+  },
+  "broad text value": {
+    "exact_pattern": 0,
+    "keyword_hits": 1,
+    "descriptor_overlap": 0,
+    "usage_match": 0,
+    "negative_evidence": 0,
+    "broad_token_penalty": 0.03,
+    "specificity_bonus": 0.01,
+    "total": 0.36
+  }
+}

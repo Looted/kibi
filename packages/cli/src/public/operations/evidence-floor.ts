@@ -131,8 +131,10 @@ function suggestionFor(row: EvidenceFloorRow): string {
   if (row.status === "pending_reproof")
     return `Run kibi prove for the tests behind ${row.id} so its receipts match the current code, then rerun kibi check --fresh-evidence.`;
   switch (row.requiredEvidence) {
-    case "proved":
-      return `Prove every applicable claim of ${row.id}${(row.gapDetails?.unprovedClaims ?? []).length > 0 ? ` (unproved: ${(row.gapDetails?.unprovedClaims ?? []).join(", ")})` : ""}: model each as a set fact (prove it with exhaustive or typecheck), a numeric fact (arithmetic or smt), a rule, predicate or set fact about a predicate (rule or state_machine) or a string fact (regex), name it in a certificate test's proof_contract.proves, and run kibi prove; kibi proof explain ${row.id} shows each claim's bindings. A claim with no such fact can only be attested, so lower required_evidence to tested with the reason in the requirement if that is enough.`;
+    case "proved": {
+      const unproved = row.gapDetails?.unprovedClaims ?? [];
+      return `Prove every applicable claim of ${row.id}${unproved.length > 0 ? ` (unproved: ${unproved.join(", ")})` : ""}: model each as a set fact (prove it with exhaustive or typecheck), a numeric fact (arithmetic or smt), a rule, predicate or set fact about a predicate (rule or state_machine) or a string fact (regex), name it in a certificate test's proof_contract.proves, and run kibi prove; kibi proof explain ${row.id} shows each claim's bindings. A claim with no such fact can only be attested, so lower required_evidence to tested with the reason in the requirement if that is enough.`;
+    }
     case "tested":
       return `Link ${row.id} to a scenario with an end-to-end test that has a proof contract, run kibi prove, and fix its proof gaps (${row.proofGaps.join(", ") || "none listed"}${gapDetailLines(row).length > 0 ? `; ${gapDetailLines(row).join("; ")}` : ""}); kibi proof explain ${row.id} shows each one. Or lower required_evidence if a person decides it does not need tests.`;
     default:

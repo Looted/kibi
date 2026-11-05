@@ -40,10 +40,11 @@ const RETIRED_STATUS =
 
 /** Lowercase word stems of an identifier, path segment or title. */
 function words(text: string): string[] {
+  // Runs of separators leave empty pieces that the length filter drops.
   return text
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .toLowerCase()
-    .split(/[^a-z0-9]+/)
+    .split(/[^a-z0-9]/)
     .filter((word) => word.length >= 3 && !/\d/.test(word))
     .map((word) =>
       word.length > 4 && word.endsWith("s") && !word.endsWith("ss")
@@ -59,13 +60,11 @@ function words(text: string): string[] {
  * `dashboard`).
  */
 export function pathTopicWords(relativePath: string): string[] {
-  const segments = relativePath.split(/[\\/]/).filter(Boolean);
-  const last = segments.pop() ?? "";
-  const dot = last.indexOf(".");
-  const parts = dot >= 0 ? [last.slice(0, dot), last.slice(dot + 1)] : [last];
-  const found = [...segments, ...parts]
-    .flatMap(words)
-    .filter((word) => !LAYOUT_WORDS.has(word) && !FILLER_WORDS.has(word));
+  // words() already splits on separators and dots, and a camel-case break
+  // never spans one, so the whole path reads like its segments one by one.
+  const found = words(relativePath).filter(
+    (word) => !LAYOUT_WORDS.has(word) && !FILLER_WORDS.has(word),
+  );
   return [...new Set(found)];
 }
 
@@ -87,19 +86,16 @@ export function rankRequirementCandidates(
   requirements: readonly RequirementCandidate[],
   limit: number = MAX_CANDIDATES,
 ): RequirementCandidate[] {
+  // A path without topic words shares none with any title, so ranks nothing.
   const topic = new Set(pathTopicWords(relativePath));
-  if (topic.size === 0) return [];
   const scored: {
     requirement: RequirementCandidate;
     shared: number;
     uses: number;
   }[] = [];
   for (const requirement of requirements) {
-    if (
-      requirement.status !== undefined &&
-      RETIRED_STATUS.test(requirement.status)
-    )
-      continue;
+    // A missing status reads as "undefined", which no retired word matches.
+    if (RETIRED_STATUS.test(String(requirement.status))) continue;
     const matched = words(requirement.title).filter((word) => topic.has(word));
     const shared = new Set(matched).size;
     if (shared > 0) scored.push({ requirement, shared, uses: matched.length });
@@ -132,13 +128,14 @@ function readRequirementHead(file: string): RequirementCandidate | undefined {
   } catch {
     return undefined;
   }
-  const lines = head.split(/\r?\n/);
-  if (lines[0]?.trim() !== "---") return undefined;
+  const [opening, ...lines] = head.split(/\r?\n/) as [string, ...string[]];
+  if (opening.trim() !== "---") return undefined;
   const fields: Record<string, string> = {};
-  for (const line of lines.slice(1)) {
+  for (const line of lines) {
     if (line.trim() === "---") break;
-    const match = /^(id|title|status):\s*(.+)$/.exec(line);
-    if (match?.[1] && match[2]) fields[match[1]] = unquote(match[2]);
+    // Both groups take part in every match.
+    const match = /^(id|title|status):\s*(.+)/.exec(line);
+    if (match) fields[match[1] as string] = unquote(match[2] as string);
   }
   if (!fields.id || !fields.title) return undefined;
   return {
@@ -193,7 +190,6 @@ export function createUnownedFileDiagnostics(
   const files = [...new Set(options.requestedFiles)].filter(
     (file) => !options.linkedSourceFiles.has(file) && !isKnowledgeOrProse(file),
   );
-  if (files.length === 0) return [];
   const requirements = readRequirementHeads(options.workspaceRoot);
   return files.map((file) => {
     const candidates = rankRequirementCandidates(file, requirements);

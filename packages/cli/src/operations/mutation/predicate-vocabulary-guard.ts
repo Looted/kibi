@@ -28,6 +28,9 @@ import {
   predicateVocabularyFromEntity,
 } from "../modeling/predicate-vocabulary.js";
 
+/** A write outside a plan: no earlier step stages anything. */
+const NOTHING_STAGED = { entities: new Map() } as const;
+
 function text(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() !== ""
     ? value.trim()
@@ -43,9 +46,9 @@ function text(value: unknown): string | undefined {
 export async function assertPredicateArgumentVocabulary(
   prolog: Pick<PrologPort, "query">,
   entity: Readonly<Record<string, unknown>>,
-  staged?: Readonly<{
+  staged: Readonly<{
     entities: ReadonlyMap<string, Readonly<Record<string, unknown>>>;
-  }>,
+  }> = NOTHING_STAGED,
 ): Promise<void> {
   if (entity.type !== "fact" || entity.fact_kind !== "predicate") return;
   const name = text(entity.predicate_name);
@@ -64,12 +67,15 @@ export async function assertPredicateArgumentVocabulary(
       `Predicate schema lookup failed: ${result.error ?? "unknown error"}`,
     );
   }
-  const stored = result.bindings.Results
-    ? parseListOfLists(result.bindings.Results).map(parseEntityFromList)
-    : [];
+  const stored = parseListOfLists(
+    // rationale: parseListOfLists reads every non-list text as no rows, so any
+    // fallback for an absent binding behaves like the empty list.
+    // Stryker disable next-line StringLiteral
+    result.bindings.Results ?? "[]",
+  ).map(parseEntityFromList);
   // Schemas an earlier plan step writes replace the stored version of the
   // same id and count as declared.
-  const plannedSchemas = [...(staged?.entities.values() ?? [])].filter(
+  const plannedSchemas = [...staged.entities.values()].filter(
     (candidate) =>
       candidate.type === "fact" &&
       candidate.fact_kind === "predicate_schema" &&
@@ -78,9 +84,7 @@ export async function assertPredicateArgumentVocabulary(
       Number(candidate.predicate_arity) === args.length,
   );
   const schemas = [
-    ...stored.filter(
-      (schema) => !staged?.entities.has(String(schema.id ?? "")),
-    ),
+    ...stored.filter((schema) => !staged.entities.has(String(schema.id))),
     ...plannedSchemas,
   ];
   const problems: string[] = [];

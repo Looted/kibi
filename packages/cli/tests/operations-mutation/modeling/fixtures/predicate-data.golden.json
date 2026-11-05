@@ -1,0 +1,2275 @@
+{
+  "PREDICATE_CATALOG_1": [
+    {
+      "id": "FACT-SCHEMA-STATE",
+      "predicate_name": "state",
+      "title": "State assertion",
+      "description": "A subject has or enters a named state.",
+      "argument_names": ["subject", "state"],
+      "argument_types": ["entity", "state"],
+      "keywords": ["state", "mode", "idle", "active", "draft", "edit"],
+      "examples": ["state(editor.annotation, idle)"],
+      "tags": ["state", "workflow"]
+    },
+    {
+      "id": "FACT-SCHEMA-TRANSITION",
+      "predicate_name": "transition",
+      "title": "State transition",
+      "description": "A subject transitions between states because of a trigger.",
+      "argument_names": ["subject", "from_state", "to_state", "trigger"],
+      "argument_types": ["entity", "state", "state", "trigger"],
+      "argument_constants": {
+        "trigger": [
+          "escape",
+          "cancel",
+          "submit",
+          "navigation",
+          "click",
+          "timeout"
+        ]
+      },
+      "argument_aliases": {
+        "trigger": {
+          "esc": "escape",
+          "escape_key": "escape",
+          "cancellation": "cancel",
+          "submission": "submit",
+          "navigate": "navigation",
+          "navigates": "navigation",
+          "navigating": "navigation",
+          "navigation_away": "navigation",
+          "clicks": "click",
+          "time_out": "timeout",
+          "timed_out": "timeout"
+        }
+      },
+      "keywords": [
+        "transition",
+        "enter",
+        "leave",
+        "idle",
+        "navigate",
+        "navigates",
+        "cancel",
+        "escape"
+      ],
+      "examples": ["transition(editor.annotation, draft, idle, navigation)"],
+      "tags": ["state", "workflow"]
+    },
+    {
+      "id": "FACT-SCHEMA-GUARD",
+      "predicate_name": "guard",
+      "title": "Behavior guard",
+      "description": "A condition gates or forbids behavior for a subject.",
+      "argument_names": ["subject", "condition", "expected"],
+      "argument_types": ["entity", "condition", "boolean"],
+      "keywords": [
+        "guard",
+        "unless",
+        "readonly",
+        "scrubbing",
+        "disabled until"
+      ],
+      "examples": ["guard(editor.annotation, isReadOnly, false)"],
+      "tags": ["guard", "workflow"]
+    },
+    {
+      "id": "FACT-SCHEMA-EXCEPTION-RULE",
+      "predicate_name": "exception_rule",
+      "title": "Exception rule",
+      "description": "A required behavior is skipped when a named exception condition holds.",
+      "argument_names": ["subject", "behavior", "exception"],
+      "argument_types": ["entity", "behavior", "condition"],
+      "keywords": ["unless", "except", "except when", "opted out", "exception"],
+      "examples": [
+        "exception_rule(notification.service, send_email, user_has_opted_out)"
+      ],
+      "tags": ["exception", "conditional"]
+    },
+    {
+      "id": "FACT-SCHEMA-MUTUAL-EXCLUSION",
+      "predicate_name": "mutual_exclusion",
+      "title": "Mutual exclusion",
+      "description": "Two modes, states, options, or behaviors cannot be true or active together.",
+      "argument_names": ["left", "right"],
+      "argument_types": ["entity", "entity"],
+      "keywords": [
+        "mutually exclusive",
+        "exclusive",
+        "cannot overlap",
+        "not both"
+      ],
+      "examples": ["mutual_exclusion(practice_mode, exam_mode)"],
+      "tags": ["constraint", "exclusivity"]
+    },
+    {
+      "id": "FACT-SCHEMA-DEPENDENCY-RULE",
+      "predicate_name": "dependency_rule",
+      "title": "Dependency rule",
+      "description": "A subject requires a prerequisite before a dependent action or state can proceed.",
+      "argument_names": ["subject", "prerequisite", "dependent"],
+      "argument_types": ["entity", "condition", "action"],
+      "keywords": ["requires", "depends on", "prerequisite", "before"],
+      "examples": [
+        "dependency_rule(checkout, payment_authorization, order_submission)"
+      ],
+      "tags": ["dependency", "workflow"]
+    },
+    {
+      "id": "FACT-SCHEMA-OWNERSHIP-RULE",
+      "predicate_name": "ownership_rule",
+      "title": "Ownership rule",
+      "description": "A resource or behavior is owned by a service, team, role, or component.",
+      "argument_names": ["resource", "owner"],
+      "argument_types": ["entity", "owner"],
+      "keywords": ["owned by", "owner", "responsible for"],
+      "examples": ["ownership_rule(account_settings, profile_service)"],
+      "tags": ["ownership", "governance"]
+    },
+    {
+      "id": "FACT-SCHEMA-RETRY-POLICY",
+      "predicate_name": "retry_policy",
+      "title": "Retry policy",
+      "description": "A failed subject or action retries up to a bounded attempt count.",
+      "argument_names": ["subject", "count", "unit"],
+      "argument_types": ["entity", "number", "unit"],
+      "keywords": ["retry", "retries", "up to", "attempts", "times"],
+      "examples": ["retry_policy(failed_webhook_delivery, 3, times)"],
+      "tags": ["retry", "resilience"]
+    },
+    {
+      "id": "FACT-SCHEMA-ESCALATION-RULE",
+      "predicate_name": "escalation_rule",
+      "title": "Escalation rule",
+      "description": "A failed or unresolved subject escalates to an owner after a bounded delay.",
+      "argument_names": ["subject", "target", "delay", "unit"],
+      "argument_types": ["entity", "owner", "number", "unit"],
+      "keywords": ["escalate", "escalates", "escalation", "after", "support"],
+      "examples": [
+        "escalation_rule(failed_payment_disputes, support, 48, hours)"
+      ],
+      "tags": ["escalation", "operations"]
+    },
+    {
+      "id": "FACT-SCHEMA-AVAILABILITY-SLA",
+      "predicate_name": "availability_sla",
+      "title": "Availability SLA",
+      "description": "A service or API must meet a minimum availability target over a reporting window.",
+      "argument_names": ["subject", "threshold", "unit", "window"],
+      "argument_types": ["entity", "number", "unit", "duration"],
+      "keywords": ["availability", "at least", "percent", "monthly", "sla"],
+      "examples": ["availability_sla(checkout_api, 99.9, percent, monthly)"],
+      "tags": ["sla", "availability"]
+    },
+    {
+      "id": "FACT-SCHEMA-NOTIFICATION-ROUTE",
+      "predicate_name": "notification_route",
+      "title": "Notification route",
+      "description": "A subject notifies a target recipient through a specific channel.",
+      "argument_names": ["subject", "recipient", "channel"],
+      "argument_types": ["entity", "recipient", "channel"],
+      "keywords": ["notify", "notifies", "notification", "by email", "by sms"],
+      "examples": ["notification_route(fraud_alerts, risk_operations, email)"],
+      "tags": ["notification", "routing"]
+    },
+    {
+      "id": "FACT-SCHEMA-IDEMPOTENCY-RULE",
+      "predicate_name": "idempotency_rule",
+      "title": "Idempotency rule",
+      "description": "A request or operation must deduplicate repeated execution by a stable idempotency key.",
+      "argument_names": ["subject", "key"],
+      "argument_types": ["entity", "key"],
+      "keywords": [
+        "idempotent",
+        "idempotency",
+        "idempotency key",
+        "dedupe",
+        "deduplicated",
+        "redundant",
+        "concurrent"
+      ],
+      "examples": [
+        "idempotency_rule(payment_capture_requests, idempotency_key)"
+      ],
+      "tags": ["idempotency", "resilience"]
+    },
+    {
+      "id": "FACT-SCHEMA-DATA-RESIDENCY-RULE",
+      "predicate_name": "data_residency_rule",
+      "title": "Data residency rule",
+      "description": "A data set must be stored, processed, or kept within a named region or jurisdiction.",
+      "argument_names": ["subject", "region"],
+      "argument_types": ["entity", "region"],
+      "keywords": ["data residency", "stored in", "region", "jurisdiction"],
+      "examples": ["data_residency_rule(eu_customer_data, eu_region)"],
+      "tags": ["privacy", "data-residency"]
+    },
+    {
+      "id": "FACT-SCHEMA-AUDIT-EVENT-RULE",
+      "predicate_name": "audit_event_rule",
+      "title": "Audit event rule",
+      "description": "An action, change, or security-relevant event must be recorded in an audit log or audit trail.",
+      "argument_names": ["subject", "log"],
+      "argument_types": ["entity", "log"],
+      "keywords": ["audit log", "audit trail", "recorded", "logged", "audited"],
+      "examples": ["audit_event_rule(admin_access_changes, audit_log)"],
+      "tags": ["audit", "logging", "governance"]
+    },
+    {
+      "id": "FACT-SCHEMA-CONSENT-RULE",
+      "predicate_name": "consent_rule",
+      "title": "Consent rule",
+      "description": "An action or processing purpose requires a named consent before it proceeds.",
+      "argument_names": ["subject", "consent", "purpose"],
+      "argument_types": ["entity", "consent", "purpose"],
+      "keywords": ["consent", "requires consent", "before processing"],
+      "examples": ["consent_rule(marketing_emails, user_consent, processing)"],
+      "tags": ["privacy", "consent"]
+    },
+    {
+      "id": "FACT-SCHEMA-LIFECYCLE-RULE",
+      "predicate_name": "lifecycle_rule",
+      "title": "Lifecycle rule",
+      "description": "An entity must be archived, deleted, expired, or lifecycle-transitioned after a duration.",
+      "argument_names": ["subject", "action", "duration", "unit"],
+      "argument_types": ["entity", "action", "number", "unit"],
+      "argument_constants": {
+        "action": ["archived", "deleted", "expired"]
+      },
+      "argument_aliases": {
+        "action": {
+          "archive": "archived",
+          "delete": "deleted",
+          "expire": "expired"
+        }
+      },
+      "keywords": [
+        "archive",
+        "archived",
+        "delete",
+        "deleted",
+        "expire",
+        "after"
+      ],
+      "examples": ["lifecycle_rule(expired_sessions, archived, 30, days)"],
+      "tags": ["lifecycle", "retention"]
+    }
+  ],
+  "PREDICATE_CATALOG_2": [
+    {
+      "id": "FACT-SCHEMA-CONFLICT-RESOLUTION-RULE",
+      "predicate_name": "conflict_resolution_rule",
+      "title": "Conflict resolution rule",
+      "description": "Concurrent or synchronized updates resolve conflicts with a named strategy.",
+      "argument_names": ["subject", "strategy"],
+      "argument_types": ["entity", "strategy"],
+      "keywords": ["conflict", "conflicts", "latest write wins", "merge"],
+      "examples": [
+        "conflict_resolution_rule(profile_updates, latest_write_wins)"
+      ],
+      "tags": ["sync", "conflict-resolution"]
+    },
+    {
+      "id": "FACT-SCHEMA-FALLBACK-RULE",
+      "predicate_name": "fallback_rule",
+      "title": "Fallback rule",
+      "description": "A degraded or unavailable dependency causes a subject to fall back to an alternative behavior.",
+      "argument_names": ["condition", "subject", "fallback"],
+      "argument_types": ["condition", "entity", "behavior"],
+      "keywords": ["fall back", "fallback", "unavailable", "degraded"],
+      "examples": [
+        "fallback_rule(payment_provider_is_unavailable, checkout, manual_review)"
+      ],
+      "tags": ["fallback", "resilience"]
+    },
+    {
+      "id": "FACT-SCHEMA-BATCH-OPERATION-RULE",
+      "predicate_name": "batch_operation_rule",
+      "title": "Batch operation rule",
+      "description": "A bulk operation processes a resource in batches of a bounded size.",
+      "argument_names": ["subject", "resource", "batch_size"],
+      "argument_types": ["entity", "resource", "number"],
+      "keywords": ["batch", "batches", "bulk", "process"],
+      "examples": ["batch_operation_rule(invoice_exports, records, 500)"],
+      "tags": ["batching", "bulk"]
+    },
+    {
+      "id": "FACT-SCHEMA-CONSISTENCY-RULE",
+      "predicate_name": "consistency_rule",
+      "title": "Consistency rule",
+      "description": "An entity reference or value must remain consistent with another existing entity or invariant.",
+      "argument_names": ["subject", "target"],
+      "argument_types": ["entity", "entity"],
+      "keywords": ["reference", "references", "existing", "consistent"],
+      "examples": ["consistency_rule(order_items, existing_order)"],
+      "tags": ["consistency", "referential-integrity"]
+    },
+    {
+      "id": "FACT-SCHEMA-BUILD-CONSTRAINT",
+      "predicate_name": "build_constraint",
+      "title": "Build constraint",
+      "description": "Build-time generation or deployment configuration must satisfy a deterministic property.",
+      "argument_names": ["subject", "property", "scope"],
+      "argument_types": ["entity", "property", "scope"],
+      "keywords": ["build time", "deterministic", "generator", "deployment"],
+      "examples": [
+        "build_constraint(share_manifest_generation, deterministic, build_time)"
+      ],
+      "tags": ["build", "determinism"]
+    },
+    {
+      "id": "FACT-SCHEMA-ENVIRONMENT-SAFETY-RULE",
+      "predicate_name": "environment_safety_rule",
+      "title": "Environment safety rule",
+      "description": "A named action is allowed or forbidden in a deployment environment.",
+      "argument_names": ["action", "decision", "environment"],
+      "argument_types": ["action", "decision", "environment"],
+      "argument_constants": {
+        "decision": ["allowed", "forbidden", "read-only"]
+      },
+      "argument_aliases": {
+        "decision": {
+          "allow": "allowed",
+          "deny": "forbidden",
+          "denied": "forbidden",
+          "read_only": "read-only",
+          "readonly": "read-only"
+        }
+      },
+      "keywords": ["production", "staging", "forbidden", "destructive"],
+      "examples": [
+        "environment_safety_rule(destructive_operations, forbidden, production)"
+      ],
+      "tags": ["environment", "safety"]
+    },
+    {
+      "id": "FACT-SCHEMA-SCHEMA-INVARIANT-RULE",
+      "predicate_name": "schema_invariant_rule",
+      "title": "Schema invariant rule",
+      "description": "A schema field has an invariant such as immutability, type, enum, or value range.",
+      "argument_names": ["field", "invariant", "scope"],
+      "argument_types": ["field", "invariant", "scope"],
+      "keywords": ["immutable", "schema", "field", "enum", "range"],
+      "examples": [
+        "schema_invariant_rule(user_email, immutable, after_creation)"
+      ],
+      "tags": ["schema", "invariant"]
+    },
+    {
+      "id": "FACT-SCHEMA-CODING-STANDARD-RULE",
+      "predicate_name": "coding_standard_rule",
+      "title": "Coding standard rule",
+      "description": "Developer-facing code must use or avoid a framework API, pattern, or documentation practice.",
+      "argument_names": ["subject", "action", "target"],
+      "argument_types": ["entity", "action", "api"],
+      "argument_constants": {
+        "action": ["use", "avoid"]
+      },
+      "keywords": ["computed", "signals", "must use", "must not use"],
+      "examples": [
+        "coding_standard_rule(derived_state, use, computed_signals)"
+      ],
+      "tags": ["coding-standard", "agent-guidance"]
+    },
+    {
+      "id": "FACT-SCHEMA-MIGRATION-BOUNDARY-RULE",
+      "predicate_name": "migration_boundary_rule",
+      "title": "Migration boundary rule",
+      "description": "Legacy data or APIs may only be used for migration or compatibility input.",
+      "argument_names": ["subject", "allowed_action", "scope"],
+      "argument_types": ["entity", "action", "scope"],
+      "keywords": [
+        "legacy",
+        "migration input",
+        "only be read",
+        "canonical-only"
+      ],
+      "aliases": [
+        "canonical data only",
+        "never fall back to legacy",
+        "read canonical only"
+      ],
+      "examples": [
+        "migration_boundary_rule(legacy_fabricdata, read, migration_input)"
+      ],
+      "tags": ["migration", "compatibility"]
+    },
+    {
+      "id": "FACT-SCHEMA-ABSENCE-REQUIREMENT",
+      "predicate_name": "absence_requirement",
+      "title": "Absence requirement",
+      "description": "A component, extension, RPC, schema, or feature must be absent, removed, or not exist.",
+      "argument_names": ["subject", "state"],
+      "argument_types": ["entity", "state"],
+      "keywords": ["absent", "removed", "must not exist", "not exist", "no"],
+      "examples": ["absence_requirement(pg_graphql_extension, absent)"],
+      "tags": ["absence", "security"]
+    },
+    {
+      "id": "FACT-SCHEMA-OFFLINE-BEHAVIOR-RULE",
+      "predicate_name": "offline_behavior_rule",
+      "title": "Offline behavior rule",
+      "description": "Synchronization or gameplay behavior remains non-blocking or resilient during offline conditions.",
+      "argument_names": ["subject", "behavior", "condition"],
+      "argument_types": ["entity", "behavior", "condition"],
+      "keywords": ["offline", "non-blocking", "resilient", "synchronization"],
+      "examples": [
+        "offline_behavior_rule(cloud_synchronization, non-blocking, offline_conditions)"
+      ],
+      "tags": ["offline", "sync"]
+    },
+    {
+      "id": "FACT-SCHEMA-RELEASE-GATE-RULE",
+      "predicate_name": "release_gate_rule",
+      "title": "Release gate rule",
+      "description": "A build or release must pass named gates before distribution, review, or deployment.",
+      "argument_names": ["subject", "gate", "target"],
+      "argument_types": ["entity", "gate", "release_target"],
+      "keywords": ["release", "gates", "before", "testflight", "distribution"],
+      "examples": [
+        "release_gate_rule(ios_builds, configuration_gates, testflight_distribution)"
+      ],
+      "tags": ["release", "gate"]
+    },
+    {
+      "id": "FACT-SCHEMA-PLATFORM-CONSISTENCY-RULE",
+      "predicate_name": "platform_consistency_rule",
+      "title": "Platform consistency rule",
+      "description": "A state or entitlement synchronizes across named platforms.",
+      "argument_names": ["subject", "platforms"],
+      "argument_types": ["entity", "platform_list"],
+      "keywords": [
+        "synchronize",
+        "across",
+        "platforms",
+        "ios",
+        "android",
+        "web"
+      ],
+      "examples": [
+        "platform_consistency_rule(premium_status, ios,android,web)"
+      ],
+      "tags": ["platform", "consistency"]
+    },
+    {
+      "id": "FACT-SCHEMA-PRESERVATION-RULE",
+      "predicate_name": "preservation_rule",
+      "title": "Preservation rule",
+      "description": "Child data or feedback is preserved across deletion or removal of a parent resource.",
+      "argument_names": ["subject", "preserved", "condition"],
+      "argument_types": ["action", "entity", "condition"],
+      "keywords": ["preserve", "preserved", "deletion", "removed"],
+      "examples": [
+        "preservation_rule(soft_deletion, annotations, video_is_removed)"
+      ],
+      "tags": ["preservation", "deletion"]
+    },
+    {
+      "id": "FACT-SCHEMA-ABSTRACTION-BOUNDARY-RULE",
+      "predicate_name": "abstraction_boundary_rule",
+      "title": "Abstraction boundary rule",
+      "description": "Persisted data, APIs, or contracts must stay neutral to a renderer, vendor, runtime, or implementation detail.",
+      "argument_names": ["subject", "relation", "contract"],
+      "argument_types": ["entity", "relation", "contract"],
+      "keywords": [
+        "renderer-neutral",
+        "contract",
+        "runtime snapshots",
+        "vendor",
+        "renderer replacements",
+        "swappable"
+      ],
+      "aliases": [
+        "renderer-neutral persistence",
+        "loadable across renderer replacements"
+      ],
+      "examples": [
+        "abstraction_boundary_rule(annotation_drawing_data, persisted_as, renderer-neutral_scene_contract)"
+      ],
+      "tags": ["architecture", "abstraction"]
+    },
+    {
+      "id": "FACT-SCHEMA-SECURITY-CONFIGURATION-RULE",
+      "predicate_name": "security_configuration_rule",
+      "title": "Security configuration rule",
+      "description": "A security-sensitive component must have an explicit configuration value.",
+      "argument_names": ["subject", "setting", "value"],
+      "argument_types": ["entity", "setting", "value"],
+      "keywords": ["explicit", "search_path", "security", "configuration"],
+      "examples": [
+        "security_configuration_rule(trigger_functions, search_path, public)"
+      ],
+      "tags": ["security", "configuration"]
+    }
+  ],
+  "PREDICATE_CATALOG_3": [
+    {
+      "id": "FACT-SCHEMA-ORDERED-STRATEGY-RULE",
+      "predicate_name": "ordered_strategy_rule",
+      "title": "Ordered strategy rule",
+      "description": "A subject must use strategies in a required priority order.",
+      "argument_names": ["subject", "strategy_kind", "ordered_values"],
+      "argument_types": ["entity", "strategy_kind", "ordered_list"],
+      "keywords": ["priority order", "selector strategies", "fallback order"],
+      "examples": [
+        "ordered_strategy_rule(poms, selector_strategies, data-testid,visible,text)"
+      ],
+      "tags": ["strategy", "priority"]
+    },
+    {
+      "id": "FACT-SCHEMA-REFRESH-POLICY-RULE",
+      "predicate_name": "refresh_policy_rule",
+      "title": "Refresh policy rule",
+      "description": "A subject refreshes a target automatically or by a named policy.",
+      "argument_names": ["subject", "target", "policy"],
+      "argument_types": ["entity", "target", "policy"],
+      "argument_constants": {
+        "policy": ["automatic", "manual", "on_demand"]
+      },
+      "argument_aliases": {
+        "policy": {
+          "auto": "automatic",
+          "automatically": "automatic",
+          "manually": "manual",
+          "on-demand": "on_demand"
+        }
+      },
+      "keywords": ["automatically refresh", "manual page reload", "refresh"],
+      "examples": [
+        "refresh_policy_rule(dashboard, processing_videos, automatic)"
+      ],
+      "tags": ["refresh", "ui"]
+    },
+    {
+      "id": "FACT-SCHEMA-SCOPED-AUTHORIZATION-RULE",
+      "predicate_name": "scoped_authorization_rule",
+      "title": "Scoped authorization rule",
+      "description": "A scoped actor is allowed or denied an action because of assignment, ownership, or membership.",
+      "argument_names": ["actor_scope", "action", "decision"],
+      "argument_types": ["actor_scope", "action", "decision"],
+      "argument_constants": {
+        "decision": ["allow", "deny"]
+      },
+      "argument_aliases": {
+        "decision": {
+          "assert": "allow",
+          "allowed": "allow",
+          "permit": "allow",
+          "permitted": "allow",
+          "denied": "deny",
+          "forbid": "deny",
+          "forbidden": "deny"
+        }
+      },
+      "keywords": ["unassigned", "assigned", "denied", "scoped"],
+      "examples": [
+        "scoped_authorization_rule(unassigned_instructors, signed_url_generation, deny)"
+      ],
+      "tags": ["authorization", "scope"]
+    },
+    {
+      "id": "FACT-SCHEMA-DOCUMENTATION-STANDARD-RULE",
+      "predicate_name": "documentation_standard_rule",
+      "title": "Documentation standard rule",
+      "description": "A subject must be documented in a named documentation artifact.",
+      "argument_names": ["subject", "relation", "artifact"],
+      "argument_types": ["entity", "relation", "artifact"],
+      "keywords": ["documented", "docs", "symbols", "documentation"],
+      "examples": [
+        "documentation_standard_rule(code_symbols, documented_in, docs_symbols_yaml)"
+      ],
+      "tags": ["documentation", "standard"]
+    },
+    {
+      "id": "FACT-SCHEMA-WARMUP-POLICY-RULE",
+      "predicate_name": "warmup_policy_rule",
+      "title": "Warmup policy rule",
+      "description": "A subject must warm up on a named trigger or entry point.",
+      "argument_names": ["subject", "trigger"],
+      "argument_types": ["entity", "trigger"],
+      "keywords": ["warm up", "warmup", "on entry"],
+      "examples": ["warmup_policy_rule(editor_video, entry)"],
+      "tags": ["warmup", "performance"]
+    },
+    {
+      "id": "FACT-SCHEMA-VISUAL-LAYOUT-RULE",
+      "predicate_name": "visual_layout_rule",
+      "title": "Visual layout rule",
+      "description": "A UI subject must remain visually aligned or layout-consistent with a target.",
+      "argument_names": ["subject", "relation", "target"],
+      "argument_types": ["ui_entity", "relation", "ui_entity"],
+      "keywords": ["visually aligned", "layout", "aligned with"],
+      "examples": [
+        "visual_layout_rule(processing_video_cards, aligned_with, ready_cards)"
+      ],
+      "tags": ["visual", "layout"]
+    },
+    {
+      "id": "FACT-SCHEMA-ENFORCEMENT-LOCATION-RULE",
+      "predicate_name": "enforcement_location_rule",
+      "title": "Enforcement location rule",
+      "description": "A constraint or policy must be enforced at a named system layer.",
+      "argument_names": ["subject", "location"],
+      "argument_types": ["constraint", "system_layer"],
+      "keywords": ["enforced at", "database level", "application level"],
+      "examples": [
+        "enforcement_location_rule(foreign_key_constraints, database_level)"
+      ],
+      "tags": ["enforcement", "architecture"]
+    },
+    {
+      "id": "FACT-SCHEMA-RECONCILIATION-RULE",
+      "predicate_name": "reconciliation_rule",
+      "title": "Reconciliation rule",
+      "description": "A trigger reconciles a target and performs a stale-data cleanup action.",
+      "argument_names": ["subject", "trigger", "target", "action"],
+      "argument_types": ["entity", "trigger", "target", "action"],
+      "keywords": ["reconcile", "clear stale", "stale notifications"],
+      "examples": [
+        "reconciliation_rule(system, login, analysis_notifications, clear_stale_notifications)"
+      ],
+      "tags": ["reconciliation", "cleanup"]
+    },
+    {
+      "id": "FACT-SCHEMA-THROTTLE-POLICY-RULE",
+      "predicate_name": "throttle_policy_rule",
+      "title": "Throttle policy rule",
+      "description": "Handlers or operations must be throttled for a named activity class.",
+      "argument_names": ["subject", "condition"],
+      "argument_types": ["entity", "condition"],
+      "keywords": ["throttled", "high-frequency", "event handlers"],
+      "examples": [
+        "throttle_policy_rule(event_handlers, high-frequency_operations)"
+      ],
+      "tags": ["throttle", "performance"]
+    },
+    {
+      "id": "FACT-SCHEMA-HAS-UNSAVED-CHANGES",
+      "predicate_name": "has_unsaved_changes",
+      "title": "Unsaved change state",
+      "description": "A subject has unsaved or dirty local edits.",
+      "argument_names": ["subject", "expected"],
+      "argument_types": ["entity", "boolean"],
+      "keywords": ["unsaved", "dirty", "draft", "edits", "changes"],
+      "examples": ["has_unsaved_changes(editor.annotation, true)"],
+      "tags": ["state", "persistence"]
+    },
+    {
+      "id": "FACT-SCHEMA-COMMIT-ACTION",
+      "predicate_name": "commit_action",
+      "title": "Commit or save action",
+      "description": "A trigger commits, saves, or persists a subject within a scope.",
+      "argument_names": ["subject", "trigger", "scope"],
+      "argument_types": ["entity", "trigger", "scope"],
+      "argument_constants": {
+        "trigger": [
+          "escape",
+          "cancel",
+          "submit",
+          "navigation",
+          "click",
+          "timeout"
+        ]
+      },
+      "argument_aliases": {
+        "trigger": {
+          "esc": "escape",
+          "escape_key": "escape",
+          "cancellation": "cancel",
+          "submission": "submit",
+          "navigate": "navigation",
+          "navigates": "navigation",
+          "navigating": "navigation",
+          "navigation_away": "navigation",
+          "clicks": "click",
+          "time_out": "timeout",
+          "timed_out": "timeout"
+        }
+      },
+      "keywords": [
+        "save",
+        "saves",
+        "saved",
+        "auto-save",
+        "autosave",
+        "commit",
+        "persist",
+        "navigation",
+        "navigates",
+        "draft"
+      ],
+      "examples": ["commit_action(editor.annotation, navigation, draft)"],
+      "tags": ["persistence", "workflow"]
+    },
+    {
+      "id": "FACT-SCHEMA-DISCARD-ACTION",
+      "predicate_name": "discard_action",
+      "title": "Discard action",
+      "description": "A trigger discards or cancels changes for a subject within a scope.",
+      "argument_names": ["subject", "trigger", "scope"],
+      "argument_types": ["entity", "trigger", "scope"],
+      "argument_constants": {
+        "trigger": [
+          "escape",
+          "cancel",
+          "submit",
+          "navigation",
+          "click",
+          "timeout"
+        ]
+      },
+      "argument_aliases": {
+        "trigger": {
+          "esc": "escape",
+          "escape_key": "escape",
+          "cancellation": "cancel",
+          "submission": "submit",
+          "navigate": "navigation",
+          "navigates": "navigation",
+          "navigating": "navigation",
+          "navigation_away": "navigation",
+          "clicks": "click",
+          "time_out": "timeout",
+          "timed_out": "timeout"
+        }
+      },
+      "keywords": ["discard", "cancel", "escape", "revert", "without save"],
+      "examples": [
+        "discard_action(editor.annotation, escape, active_annotation)"
+      ],
+      "tags": ["persistence", "workflow"]
+    },
+    {
+      "id": "FACT-SCHEMA-ACCESSIBILITY",
+      "predicate_name": "accessibility_requirement",
+      "title": "Accessibility requirement",
+      "description": "A subject must satisfy an accessibility standard or severity target.",
+      "argument_names": ["subject", "standard", "severity"],
+      "argument_types": ["entity", "standard", "severity"],
+      "keywords": [
+        "accessibility",
+        "a11y",
+        "wcag",
+        "keyboard",
+        "screen reader"
+      ],
+      "examples": ["accessibility_requirement(game.flow, WCAG, high)"],
+      "tags": ["accessibility", "quality"]
+    },
+    {
+      "id": "FACT-SCHEMA-RETENTION-POLICY",
+      "predicate_name": "retention_policy",
+      "title": "Retention policy",
+      "description": "A subject is retained for a bounded duration.",
+      "argument_names": ["subject", "duration", "unit"],
+      "argument_types": ["entity", "number", "unit"],
+      "argument_constants": {
+        "unit": ["days", "months", "years"]
+      },
+      "argument_aliases": {
+        "unit": {
+          "day": "days",
+          "month": "months",
+          "year": "years"
+        }
+      },
+      "keywords": [
+        "retain",
+        "retained",
+        "retention",
+        "days",
+        "months",
+        "years"
+      ],
+      "examples": ["retention_policy(customer.data, 7, years)"],
+      "tags": ["data", "policy"]
+    },
+    {
+      "id": "FACT-SCHEMA-RESOURCE-CONSTRAINT",
+      "predicate_name": "resource_constraint",
+      "title": "Resource constraint",
+      "description": "A subject constrains a resource by operator, threshold, and unit.",
+      "argument_names": [
+        "subject",
+        "resource",
+        "operator",
+        "threshold",
+        "unit"
+      ],
+      "argument_types": ["entity", "resource", "operator", "number", "unit"],
+      "argument_constants": {
+        "operator": ["lt", "lte", "eq", "neq", "gte", "gt"]
+      },
+      "argument_aliases": {
+        "operator": {
+          "le": "lte",
+          "ge": "gte",
+          "ne": "neq"
+        }
+      },
+      "keywords": [
+        "limit",
+        "maximum",
+        "minimum",
+        "latency",
+        "timeout",
+        "size",
+        "fps",
+        "frame rate",
+        "complete in",
+        "time budget"
+      ],
+      "paraphrase_templates": [
+        "must complete in under a bounded duration",
+        "must stay at a bounded frame rate",
+        "must respond within a time budget"
+      ],
+      "examples": ["resource_constraint(api.search, latency, lte, 200, ms)"],
+      "tags": ["performance", "constraint"]
+    }
+  ],
+  "PREDICATE_CATALOG_4": [
+    {
+      "id": "FACT-SCHEMA-DEPENDENCY-RESOLUTION-POLICY",
+      "predicate_name": "dependency_resolution_policy",
+      "title": "Dependency resolution policy",
+      "description": "Defines where a component may resolve a dependency and how it may acquire it.",
+      "argument_names": [
+        "component",
+        "dependency",
+        "allowed_scope",
+        "acquisition_policy"
+      ],
+      "argument_types": ["component", "dependency", "scope", "policy"],
+      "argument_descriptions": [
+        "Component performing resolution.",
+        "Dependency to resolve.",
+        "Permitted resolution scope.",
+        "Allowed acquisition behavior."
+      ],
+      "keywords": [
+        "dependency",
+        "resolve",
+        "resolution",
+        "local",
+        "workspace",
+        "download",
+        "acquire"
+      ],
+      "aliases": ["dependency lookup policy", "dependency acquisition policy"],
+      "examples": [
+        "dependency_resolution_policy(plugin_launcher, mcp_server, consumer_local, no_download)"
+      ],
+      "tags": ["dependency", "resolution", "policy"]
+    },
+    {
+      "id": "FACT-SCHEMA-ORDERED-RESOLUTION-STRATEGY",
+      "predicate_name": "ordered_resolution_strategy",
+      "title": "Ordered resolution strategy",
+      "description": "Defines ordered sources for resolving a dependency and the condition for fallback.",
+      "argument_names": ["resolver", "ordered_sources", "fallback_condition"],
+      "argument_types": ["component", "source_list", "condition"],
+      "argument_descriptions": [
+        "Resolver applying the strategy.",
+        "Sources tried in order.",
+        "Condition permitting fallback."
+      ],
+      "keywords": [
+        "ordered",
+        "first",
+        "then",
+        "fallback",
+        "candidate",
+        "workspace",
+        "cwd"
+      ],
+      "aliases": ["ordered lookup", "resolution fallback order"],
+      "examples": [
+        "ordered_resolution_strategy(launcher, workspace_node_modules|root_node_modules, missing_candidate)"
+      ],
+      "tags": ["resolution", "ordering", "fallback"]
+    },
+    {
+      "id": "FACT-SCHEMA-RESOLUTION-FAILURE-POLICY",
+      "predicate_name": "resolution_failure_policy",
+      "title": "Resolution failure policy",
+      "description": "Defines the required outcome when dependency resolution encounters invalid or ambiguous inputs.",
+      "argument_names": ["resolver", "invalid_condition", "required_outcome"],
+      "argument_types": ["component", "condition", "outcome"],
+      "argument_descriptions": [
+        "Resolver enforcing the policy.",
+        "Invalid or ambiguous condition.",
+        "Required failure outcome."
+      ],
+      "keywords": [
+        "invalid",
+        "ambiguous",
+        "reject",
+        "resolution",
+        "error",
+        "fail clearly"
+      ],
+      "aliases": ["invalid resolution handling", "resolution rejection policy"],
+      "examples": [
+        "resolution_failure_policy(launcher, invalid_placeholder, clear_error)"
+      ],
+      "tags": ["resolution", "failure", "validation"]
+    },
+    {
+      "id": "FACT-SCHEMA-PROCESS-DELEGATION-CONTRACT",
+      "predicate_name": "process_delegation_contract",
+      "title": "Process delegation contract",
+      "description": "Defines executable, working-directory, environment, stdio, and termination behavior for a delegated child process.",
+      "argument_names": [
+        "launcher",
+        "executable_policy",
+        "cwd_policy",
+        "environment_policy",
+        "stdio_policy",
+        "termination_policy"
+      ],
+      "argument_types": [
+        "component",
+        "policy",
+        "policy",
+        "policy",
+        "policy",
+        "policy"
+      ],
+      "argument_descriptions": [
+        "Launcher delegating the process.",
+        "Executable selection policy.",
+        "Working-directory policy.",
+        "Environment policy.",
+        "Standard I/O policy.",
+        "Termination and exit propagation policy."
+      ],
+      "keywords": [
+        "child process",
+        "spawn",
+        "executable",
+        "cwd",
+        "environment",
+        "stdio",
+        "terminate"
+      ],
+      "aliases": ["child process contract", "process launch contract"],
+      "examples": [
+        "process_delegation_contract(launcher, resolved_executable, consumer_cwd, inherited_env, piped_stdio, propagate_exit)"
+      ],
+      "tags": ["process", "execution", "contract"]
+    },
+    {
+      "id": "FACT-SCHEMA-FAILURE-BEHAVIOR",
+      "predicate_name": "failure_behavior",
+      "title": "Failure behavior",
+      "description": "Defines the required outcome when a component encounters a named failure condition.",
+      "argument_names": ["component", "failure_condition", "required_outcome"],
+      "argument_types": ["component", "condition", "outcome"],
+      "argument_descriptions": [
+        "Component experiencing failure.",
+        "Failure condition.",
+        "Required observable outcome."
+      ],
+      "keywords": [
+        "missing dependency",
+        "failure",
+        "error",
+        "must report",
+        "required outcome"
+      ],
+      "aliases": ["failure handling", "error behavior"],
+      "examples": [
+        "failure_behavior(plugin_launcher, missing_dependency, actionable_error)"
+      ],
+      "tags": ["failure", "error", "behavior"]
+    },
+    {
+      "id": "FACT-SCHEMA-FEATURE-GATE",
+      "predicate_name": "feature_gate",
+      "title": "Feature gate",
+      "description": "A subject is controlled by a runtime or configuration gate.",
+      "argument_names": ["subject", "gate", "expected"],
+      "argument_types": ["entity", "flag", "boolean"],
+      "keywords": [
+        "flag",
+        "feature gate",
+        "enabled",
+        "disabled",
+        "kill switch"
+      ],
+      "examples": ["feature_gate(checkout.v2, checkoutV2Enabled, true)"],
+      "tags": ["flag", "runtime"]
+    },
+    {
+      "id": "FACT-SCHEMA-EVENT-PUBLISH",
+      "predicate_name": "publishes_event",
+      "title": "Event publication",
+      "description": "A subject publishes a domain or system event.",
+      "argument_names": ["subject", "event"],
+      "argument_types": ["entity", "event"],
+      "keywords": ["publish", "publishes", "emit", "emits", "event"],
+      "examples": ["publishes_event(order.checkout, OrderSubmitted)"],
+      "tags": ["event", "architecture"]
+    },
+    {
+      "id": "FACT-SCHEMA-ACCEPTANCE-RULE",
+      "predicate_name": "acceptance_rule",
+      "title": "Acceptance rule",
+      "description": "A subject has an observable acceptance outcome.",
+      "argument_names": ["subject", "outcome"],
+      "argument_types": ["entity", "outcome"],
+      "keywords": [
+        "acceptance",
+        "observable",
+        "outcome",
+        "must show",
+        "must display"
+      ],
+      "examples": ["acceptance_rule(search.results, shows_empty_state)"],
+      "tags": ["acceptance", "quality"]
+    },
+    {
+      "id": "FACT-SCHEMA-PERMISSION-RULE",
+      "predicate_name": "permission_rule",
+      "title": "Permission rule",
+      "description": "An actor is allowed or denied an action against a resource.",
+      "argument_names": ["actor", "action", "resource", "decision"],
+      "argument_types": ["actor", "action", "resource", "decision"],
+      "argument_constants": {
+        "decision": ["allow", "deny"]
+      },
+      "argument_aliases": {
+        "decision": {
+          "assert": "allow",
+          "allowed": "allow",
+          "permit": "allow",
+          "permitted": "allow",
+          "denied": "deny",
+          "forbid": "deny",
+          "forbidden": "deny"
+        }
+      },
+      "key_arguments": ["actor", "action", "resource"],
+      "keywords": [
+        "may",
+        "can",
+        "allowed",
+        "permitted",
+        "able to",
+        "entitled",
+        "permission to",
+        "denied",
+        "forbidden",
+        "must not",
+        "cannot",
+        "can't",
+        "export",
+        "permission"
+      ],
+      "examples": ["permission_rule(guest, export, customer_data, deny)"],
+      "tags": ["permission", "policy"]
+    },
+    {
+      "id": "FACT-SCHEMA-DEFAULT-VALUE",
+      "predicate_name": "default_value",
+      "title": "Default value",
+      "description": "A subject property defaults to a value.",
+      "argument_names": ["subject", "property", "value"],
+      "argument_types": ["entity", "property", "value"],
+      "keywords": [
+        "default",
+        "defaults",
+        "defaulted",
+        "initial",
+        "mode",
+        "tool"
+      ],
+      "examples": ["default_value(annotation.tool, mode, move)"],
+      "tags": ["default", "configuration"]
+    },
+    {
+      "id": "FACT-SCHEMA-UNIQUENESS-CONSTRAINT",
+      "predicate_name": "uniqueness_constraint",
+      "title": "Uniqueness constraint",
+      "description": "A subject is unique within one or more scope keys.",
+      "argument_names": ["subject", "scope"],
+      "argument_types": ["entity", "scope"],
+      "keywords": ["unique", "uniqueness", "at most one", "one", "per"],
+      "examples": ["uniqueness_constraint(annotation, video,timeKey)"],
+      "tags": ["constraint", "identity"]
+    },
+    {
+      "id": "FACT-SCHEMA-STATE-MEMBERSHIP",
+      "predicate_name": "state_membership",
+      "title": "State membership",
+      "description": "A state-valued subject has a closed set of allowed states.",
+      "argument_names": ["subject", "states"],
+      "argument_types": ["entity", "state_list"],
+      "keywords": [
+        "terminal states",
+        "states are",
+        "one of",
+        "ready",
+        "anonymous"
+      ],
+      "examples": [
+        "state_membership(auth.status, ready,anonymous,profile-error)"
+      ],
+      "tags": ["state", "workflow"]
+    },
+    {
+      "id": "FACT-SCHEMA-TEMPORAL-ORDER",
+      "predicate_name": "temporal_order",
+      "title": "Temporal order",
+      "description": "One event or state must occur before or after another.",
+      "argument_names": ["subject", "before_event", "after_event"],
+      "argument_types": ["entity", "event", "event"],
+      "keywords": ["before", "after", "saved", "completes", "navigation"],
+      "examples": [
+        "temporal_order(draft.changes, saved, navigation_completes)"
+      ],
+      "tags": ["temporal", "workflow"]
+    },
+    {
+      "id": "FACT-SCHEMA-CONDITIONAL-BEHAVIOR",
+      "predicate_name": "conditional_behavior",
+      "title": "Conditional behavior",
+      "description": "A behavior follows when a condition is true.",
+      "argument_names": ["subject", "condition", "behavior"],
+      "argument_types": ["entity", "condition", "behavior"],
+      "keywords": ["if", "during", "becomes", "condition", "provided that"],
+      "examples": [
+        "conditional_behavior(card, fails_during_session, becomes_tainted)"
+      ],
+      "tags": ["conditional", "workflow"]
+    },
+    {
+      "id": "FACT-SCHEMA-STATE-TRANSITION",
+      "predicate_name": "state_transition",
+      "title": "State transition",
+      "description": "A subject moves from one state to another because of a trigger.",
+      "argument_names": ["subject", "from_state", "to_state", "trigger"],
+      "argument_types": ["entity", "state", "state", "trigger"],
+      "keywords": [
+        "transitions from",
+        "transition from",
+        "from draft",
+        "to idle"
+      ],
+      "examples": [
+        "state_transition(editor, draft, idle, navigation_completes)"
+      ],
+      "tags": ["state", "workflow"]
+    },
+    {
+      "id": "FACT-SCHEMA-RATE-LIMIT",
+      "predicate_name": "rate_limit",
+      "title": "Rate limit",
+      "description": "An action is limited to a count within a time window.",
+      "argument_names": ["subject", "action", "window", "count"],
+      "argument_types": ["entity", "action", "duration", "number"],
+      "keywords": [
+        "rate limited",
+        "rate limit",
+        "attempts",
+        "per hour",
+        "per minute"
+      ],
+      "examples": ["rate_limit(password_reset.request, attempts, hour, 5)"],
+      "tags": ["rate-limit", "security"]
+    }
+  ],
+  "PREDICATE_CATALOG_5": [
+    {
+      "id": "FACT-SCHEMA-FAIL-CLOSED-AUTHORIZATION-RULE",
+      "predicate_name": "fail_closed_authorization_rule",
+      "title": "Fail-closed authorization rule",
+      "description": "On invalid, missing, or failed authorization input the subject must deny access or stay unauthenticated instead of falling back to a default identity.",
+      "argument_names": ["subject", "trigger", "denied_outcome"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "argument_descriptions": [
+        "Component or route that must fail closed.",
+        "Invalid, missing, or failed authorization condition.",
+        "Required denied outcome, such as staying unauthenticated or redirecting to login."
+      ],
+      "keywords": [
+        "fail closed",
+        "fail-closed",
+        "deny",
+        "denied",
+        "unauthenticated",
+        "invalid role",
+        "missing role",
+        "default identity"
+      ],
+      "aliases": ["fail closed without creating", "must fail closed"],
+      "examples": [
+        "fail_closed_authorization_rule(protected_routes, invalid_or_missing_fallback_role, stay_unauthenticated)"
+      ],
+      "tags": ["authorization", "security", "fail-closed"]
+    },
+    {
+      "id": "FACT-SCHEMA-DEPLOYMENT-PRECONDITION-RULE",
+      "predicate_name": "deployment_precondition_rule",
+      "title": "Deployment precondition rule",
+      "description": "A deployment or rollout must hold or abort until a named precondition holds, such as no unsupported legacy data remaining.",
+      "argument_names": ["system", "precondition", "action"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "argument_descriptions": [
+        "System, service, or release being deployed.",
+        "Precondition that must hold before deployment proceeds.",
+        "Required action when the precondition fails, such as holding deployment."
+      ],
+      "keywords": [
+        "deployment",
+        "deploy",
+        "hold",
+        "precondition",
+        "unsupported data",
+        "abort",
+        "rollout"
+      ],
+      "aliases": ["deployment must hold", "block deployment"],
+      "examples": [
+        "deployment_precondition_rule(annotation_storage, unsupported_legacy_rows_absent, hold_deployment)"
+      ],
+      "tags": ["deployment", "release", "precondition"]
+    },
+    {
+      "id": "FACT-SCHEMA-DATA-MIGRATION-RULE",
+      "predicate_name": "data_migration_rule",
+      "title": "Data migration rule",
+      "description": "Legacy data converts to the canonical form in a bounded, verified sequence, typically once and without data loss, before canonical-only operation begins.",
+      "argument_names": ["legacy_surface", "canonical_surface", "sequencing"],
+      "argument_types": ["entity", "entity", "action"],
+      "argument_descriptions": [
+        "Legacy payload, table, or format being converted.",
+        "Canonical payload, table, or format produced by the conversion.",
+        "Sequencing contract, such as one-time conversion or conversion before canonical-only reads."
+      ],
+      "keywords": [
+        "one-time conversion",
+        "converted once",
+        "no data loss",
+        "canonical",
+        "migration sequencing",
+        "conversion"
+      ],
+      "aliases": [
+        "converted once with no data loss",
+        "one-time persisted conversion"
+      ],
+      "examples": [
+        "data_migration_rule(fabricData, sceneData, one_time_conversion_before_canonical_only_reads)"
+      ],
+      "tags": ["migration", "data", "sequencing"]
+    },
+    {
+      "id": "FACT-SCHEMA-DIAGNOSTIC-VISIBILITY-RULE",
+      "predicate_name": "diagnostic_visibility_rule",
+      "title": "Diagnostic visibility rule",
+      "description": "Internal error and transport detail stays confined to logs or debugging surfaces while user-facing surfaces show actionable, friendly messages.",
+      "argument_names": [
+        "subject",
+        "internal_detail",
+        "user_surface",
+        "log_surface"
+      ],
+      "argument_types": ["entity", "detail", "surface", "surface"],
+      "argument_descriptions": [
+        "Flow or component whose diagnostics are governed.",
+        "Internal detail such as raw payloads, status lines, or backend errors.",
+        "User-facing surface and its required message style.",
+        "Log or debugging surface where internal detail is confined."
+      ],
+      "keywords": [
+        "logged",
+        "log only",
+        "not shown",
+        "must not be shown",
+        "actionable",
+        "user-friendly",
+        "debugging",
+        "raw transport"
+      ],
+      "aliases": ["logged and must not be shown", "actionable error messages"],
+      "examples": [
+        "diagnostic_visibility_rule(video_upload, tus_payload_and_http_status, friendly_terminal_recovery_message, server_logs)"
+      ],
+      "tags": ["errors", "diagnostics", "ux"]
+    },
+    {
+      "id": "FACT-SCHEMA-MUTATION-AUTHORITY-RULE",
+      "predicate_name": "mutation_authority_rule",
+      "title": "Mutation authority rule",
+      "description": "A client-facing surface exposes only its declared mutation scope; authority for other mutations stays server-side.",
+      "argument_names": ["surface", "mutation_scope", "authority"],
+      "argument_types": ["entity", "scope", "entity"],
+      "argument_descriptions": [
+        "Client, view, API, or table surface being constrained.",
+        "Declared mutation scope, such as read-only or no direct writes.",
+        "Server-side authority, such as database triggers or an RPC, that owns other mutations."
+      ],
+      "keywords": [
+        "read-only",
+        "read only",
+        "server-side",
+        "row-level security",
+        "rls",
+        "triggers",
+        "mutation"
+      ],
+      "aliases": ["read-only for the client", "must happen server-side"],
+      "examples": [
+        "mutation_authority_rule(notifications_table, client_read_only, server_side_database_triggers)"
+      ],
+      "tags": ["security", "architecture", "api"]
+    },
+    {
+      "id": "FACT-SCHEMA-REQUEST-DEDUPLICATION-RULE",
+      "predicate_name": "request_deduplication_rule",
+      "title": "Request deduplication rule",
+      "description": "Concurrent duplicate requests for the same resource are coalesced into one underlying operation, preventing redundant work.",
+      "argument_names": ["subject", "request", "scope"],
+      "argument_types": ["entity", "action", "scope"],
+      "argument_descriptions": [
+        "Component issuing the requests.",
+        "Request or query being deduplicated.",
+        "Scope of deduplication, such as the same user or key."
+      ],
+      "keywords": [
+        "deduplicated",
+        "deduplication",
+        "dedupe",
+        "in-flight",
+        "coalesce",
+        "parallel requests",
+        "redundant"
+      ],
+      "aliases": ["must be deduplicated", "prevent redundant"],
+      "examples": [
+        "request_deduplication_rule(profile_service, profile_fetch, same_user)"
+      ],
+      "tags": ["performance", "reliability"]
+    },
+    {
+      "id": "FACT-SCHEMA-ASYNC-BOUNDARY-RULE",
+      "predicate_name": "async_boundary_rule",
+      "title": "Async boundary rule",
+      "description": "A callback or handler must return synchronously, without awaiting, while work runs deferred or in the background.",
+      "argument_names": ["subject", "operation", "execution_policy"],
+      "argument_types": ["entity", "action", "policy"],
+      "argument_descriptions": [
+        "Callback, handler, or API boundary.",
+        "Operation that must not block the caller.",
+        "Required policy, such as return synchronously or defer to background."
+      ],
+      "keywords": [
+        "synchronously",
+        "return synchronously",
+        "not await",
+        "deferred",
+        "background",
+        "in flight",
+        "non-blocking"
+      ],
+      "aliases": [
+        "must return synchronously",
+        "without setting a loading state"
+      ],
+      "examples": [
+        "async_boundary_rule(onAuthStateChange, supabase_client_operations, return_synchronously_defer_work)"
+      ],
+      "tags": ["async", "concurrency", "api"]
+    },
+    {
+      "id": "FACT-SCHEMA-CANONICAL-IDENTIFIER-RULE",
+      "predicate_name": "canonical_identifier_rule",
+      "title": "Canonical identifier rule",
+      "description": "References to a domain entity must resolve through one canonical identifier or key.",
+      "argument_names": ["domain", "canonical_key", "resolution"],
+      "argument_types": ["entity", "key", "action"],
+      "argument_descriptions": [
+        "Domain entity or flow being referenced.",
+        "The canonical identifier or key.",
+        "Required resolution behavior for routes, lookups, or messaging."
+      ],
+      "keywords": [
+        "canonical id",
+        "canonical identifier",
+        "canonical",
+        "resolve against",
+        "single source of truth",
+        "videoid"
+      ],
+      "aliases": ["resolve against a canonical", "canonical identity"],
+      "examples": [
+        "canonical_identifier_rule(review_routes_and_messaging, canonical_video_id, resolve_routes_against_canonical_id)"
+      ],
+      "tags": ["identity", "architecture"]
+    },
+    {
+      "id": "FACT-SCHEMA-RESPONSIVE-BREAKPOINT-RULE",
+      "predicate_name": "responsive_breakpoint_rule",
+      "title": "Responsive breakpoint rule",
+      "description": "A viewport is classified by explicit responsive breakpoints, such as landscape phones counting as mobile below a height threshold.",
+      "argument_names": ["subject", "viewport", "classification"],
+      "argument_types": ["entity", "condition", "category"],
+      "argument_descriptions": [
+        "UI or layout being classified.",
+        "Viewport condition with explicit dimensions.",
+        "Resulting classification, such as mobile or desktop."
+      ],
+      "keywords": [
+        "breakpoint",
+        "landscape",
+        "portrait",
+        "viewport",
+        "responsive",
+        "mobile",
+        "width",
+        "height"
+      ],
+      "aliases": ["treat as mobile", "counts as mobile"],
+      "examples": [
+        "responsive_breakpoint_rule(app_shell, height_below_768px_in_landscape, mobile)"
+      ],
+      "tags": ["ui", "responsive", "layout"]
+    },
+    {
+      "id": "FACT-SCHEMA-OPERATIONAL-PAUSE-RULE",
+      "predicate_name": "operational_pause_rule",
+      "title": "Operational pause rule",
+      "description": "An operational pause or kill switch blocks new operations of a kind while preserving already-started or completed work.",
+      "argument_names": ["subject", "blocked_action", "preserved_action"],
+      "argument_types": ["entity", "action", "action"],
+      "argument_descriptions": [
+        "Operational control being paused.",
+        "New operations the pause must block.",
+        "Existing work the pause must preserve, such as resumable sessions."
+      ],
+      "keywords": [
+        "pause",
+        "paused",
+        "kill switch",
+        "block new",
+        "preserve",
+        "resumable",
+        "suspend"
+      ],
+      "aliases": ["upload pause", "operational pause"],
+      "examples": [
+        "operational_pause_rule(uploads, new_upload_sessions, existing_and_resumable_sessions)"
+      ],
+      "tags": ["operations", "safety"]
+    }
+  ],
+  "PREDICATE_CATALOG_6": [
+    {
+      "id": "FACT-SCHEMA-UI-PATTERN",
+      "predicate_name": "ui_pattern",
+      "title": "UI pattern",
+      "description": "A UI concept must be presented with a named visual pattern, such as a line-and-dots timeline or a card list.",
+      "argument_names": ["subject", "pattern"],
+      "argument_types": ["ui_entity", "ui_pattern"],
+      "argument_descriptions": [
+        "The UI concept or region, such as an annotation list.",
+        "The agreed visual pattern for that concept."
+      ],
+      "keywords": [
+        "pattern",
+        "design pattern",
+        "presented as",
+        "rendered as",
+        "displayed as",
+        "timeline",
+        "card list",
+        "layout pattern"
+      ],
+      "aliases": ["visual pattern", "design direction"],
+      "examples": ["ui_pattern(annotation_list, line_dots_timeline)"],
+      "tags": ["ui", "design", "pattern"]
+    },
+    {
+      "id": "FACT-SCHEMA-SAME-PATTERN",
+      "predicate_name": "same_pattern",
+      "title": "Same pattern across variants",
+      "description": "Two variants of a UI concept (roles, viewports, presentations) must use the same visual pattern.",
+      "argument_names": ["subject", "variant", "other_variant"],
+      "argument_types": ["ui_entity", "ui_variant", "ui_variant"],
+      "argument_descriptions": [
+        "The UI concept whose variants must not diverge.",
+        "One variant, such as a role or presentation.",
+        "The variant that must match it."
+      ],
+      "keywords": [
+        "same pattern",
+        "same design",
+        "consistent",
+        "for both",
+        "same timeline",
+        "must match"
+      ],
+      "aliases": ["consistent across roles", "no divergent variant"],
+      "examples": [
+        "same_pattern(annotation_list, editor_view, read_only_view)"
+      ],
+      "tags": ["ui", "design", "consistency"]
+    },
+    {
+      "id": "FACT-SCHEMA-PATTERN-MARKER",
+      "predicate_name": "pattern_marker",
+      "title": "Pattern marker",
+      "description": "A visual pattern is recognisable in code by a stable marker such as a CSS class or test id.",
+      "argument_names": ["subject", "marker"],
+      "argument_types": ["ui_pattern", "ui_marker"],
+      "argument_descriptions": [
+        "The visual pattern the marker belongs to.",
+        "Literal class name or test id that implementations of the pattern contain."
+      ],
+      "keywords": [
+        "marker",
+        "marked by",
+        "class name",
+        "test id",
+        "data-testid",
+        "css class"
+      ],
+      "aliases": ["pattern anchor"],
+      "examples": ["pattern_marker(line_dots_timeline, timeline_dot)"],
+      "tags": ["ui", "design", "pattern"]
+    },
+    {
+      "id": "FACT-SCHEMA-UI-CONTAINER",
+      "predicate_name": "ui_container",
+      "title": "UI container",
+      "description": "A UI region must sit in a container of a given size with a given overflow behaviour.",
+      "argument_names": ["subject", "size", "overflow"],
+      "argument_types": ["ui_entity", "ui_size", "ui_overflow"],
+      "argument_descriptions": [
+        "The UI region the container holds.",
+        "Container size, such as half_page or full_height.",
+        "Overflow behaviour, such as scroll or clip."
+      ],
+      "keywords": [
+        "container",
+        "half page",
+        "half-page",
+        "scrollbar",
+        "scrollable",
+        "panel",
+        "overflow"
+      ],
+      "aliases": ["layout shell"],
+      "examples": ["ui_container(review_panel, half_page, scroll)"],
+      "tags": ["ui", "design", "layout"]
+    }
+  ],
+  "PREDICATE_USAGE_HINTS_1": {
+    "state": {
+      "use_when": [
+        "Use for one subject being in, entering, or requiring one named state."
+      ],
+      "do_not_use_when": [
+        "Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead."
+      ]
+    },
+    "transition": {
+      "use_when": [
+        "Use for workflow prose where a subject moves between states because of a trigger."
+      ],
+      "do_not_use_when": [
+        "Do not use for one current state, allowed terminal states, or non-state conditional behavior."
+      ]
+    },
+    "guard": {
+      "use_when": [
+        "Use when a boolean condition gates whether behavior is active or permitted."
+      ],
+      "do_not_use_when": [
+        "Do not use for explicit unless/except exceptions, actor authorization, feature flags, or scalar thresholds."
+      ]
+    },
+    "exception_rule": {
+      "use_when": [
+        "Use for unless/except clauses where a normally required behavior is skipped under a named exception."
+      ],
+      "do_not_use_when": [
+        "Do not use for generic boolean guards without an exception clause, actor permissions, or feature flags."
+      ]
+    },
+    "mutual_exclusion": {
+      "use_when": [
+        "Use when two modes, states, options, or behaviors cannot be true or active together."
+      ],
+      "do_not_use_when": [
+        "Do not use for uniqueness per scope, allowed state sets, or ordinary permission denials."
+      ]
+    },
+    "dependency_rule": {
+      "use_when": [
+        "Use when one action, state, or resource requires another prerequisite before it can proceed."
+      ],
+      "do_not_use_when": [
+        "Do not use for temporal ordering without a required prerequisite, ownership, or feature gates."
+      ]
+    },
+    "ownership_rule": {
+      "use_when": [
+        "Use when a resource, domain area, or behavior is owned by a service, team, role, or component."
+      ],
+      "do_not_use_when": [
+        "Do not use for permission to access a resource or event publication."
+      ]
+    },
+    "retry_policy": {
+      "use_when": [
+        "Use when a failed action must be retried a bounded number of times or attempts."
+      ],
+      "do_not_use_when": [
+        "Do not use for rate limits, backoff timing without retries, or escalation after a delay."
+      ]
+    },
+    "escalation_rule": {
+      "use_when": [
+        "Use when an unresolved or failed condition is escalated to an owner, role, queue, or service after a delay."
+      ],
+      "do_not_use_when": [
+        "Do not use for ownership assignments, retry counts, or simple notification routing."
+      ]
+    },
+    "availability_sla": {
+      "use_when": [
+        "Use when an API, service, or system has a minimum availability target over a reporting window."
+      ],
+      "do_not_use_when": [
+        "Do not use for latency thresholds, retention durations, or generic resource constraints."
+      ]
+    },
+    "notification_route": {
+      "use_when": [
+        "Use when a subject must notify a recipient, team, or role through a specific channel."
+      ],
+      "do_not_use_when": [
+        "Do not use for event publication, ownership assignment, or escalation after a delay."
+      ]
+    },
+    "idempotency_rule": {
+      "use_when": [
+        "Use when repeated, redundant, or concurrent requests or operations must be safely deduplicated by an idempotency key or equivalent identity."
+      ],
+      "do_not_use_when": [
+        "Do not use for general uniqueness constraints, retry counts, or rate limits; choose the more specific predicate instead."
+      ]
+    },
+    "data_residency_rule": {
+      "use_when": [
+        "Use when data must be stored, processed, or kept within a named region or jurisdiction."
+      ],
+      "do_not_use_when": [
+        "Do not use for retention durations, access permissions, or notification routing."
+      ]
+    },
+    "audit_event_rule": {
+      "use_when": [
+        "Use when an action, change, or security-relevant event must be recorded in an audit log or audit trail."
+      ],
+      "do_not_use_when": [
+        "Do not use for user-facing notifications, event publication, or generic dirty-change state."
+      ]
+    },
+    "consent_rule": {
+      "use_when": [
+        "Use when an action or data-processing purpose requires explicit user consent before it proceeds."
+      ],
+      "do_not_use_when": [
+        "Do not use for data residency, permission denials, or retention durations."
+      ]
+    },
+    "lifecycle_rule": {
+      "use_when": [
+        "Use when an entity must be archived, deleted, expired, or otherwise lifecycle-transitioned after a duration."
+      ],
+      "do_not_use_when": [
+        "Do not use for passive retention duration requirements; use retention_policy when data is simply kept for a period."
+      ]
+    },
+    "conflict_resolution_rule": {
+      "use_when": [
+        "Use when synchronization or concurrent updates require a named conflict-resolution strategy."
+      ],
+      "do_not_use_when": [
+        "Do not use for ordinary state transitions, dependency ordering, or fallback behavior."
+      ]
+    },
+    "fallback_rule": {
+      "use_when": [
+        "Use when a degraded or unavailable dependency causes a subject to fall back to a named alternative behavior."
+      ],
+      "do_not_use_when": [
+        "Do not use for escalation after a delay, notification routing, or retry policies."
+      ]
+    },
+    "batch_operation_rule": {
+      "use_when": [
+        "Use when a bulk operation must process a resource in batches of a specific size."
+      ],
+      "do_not_use_when": [
+        "Do not use for rate limits, retry counts, or general resource thresholds."
+      ]
+    },
+    "consistency_rule": {
+      "use_when": [
+        "Use when one entity must reference, match, or remain consistent with another existing entity or invariant."
+      ],
+      "do_not_use_when": [
+        "Do not use for ownership, permission checks, or prerequisite workflow dependencies."
+      ]
+    },
+    "build_constraint": {
+      "use_when": [
+        "Use when build-time generation or deployment configuration must satisfy a deterministic property."
+      ],
+      "do_not_use_when": [
+        "Do not use for runtime feature gates or ordinary resource thresholds."
+      ]
+    },
+    "environment_safety_rule": {
+      "use_when": [
+        "Use when an action is allowed or forbidden in a named environment such as production or staging."
+      ],
+      "do_not_use_when": [
+        "Do not use for actor permissions that are independent of deployment environment."
+      ]
+    },
+    "schema_invariant_rule": {
+      "use_when": [
+        "Use when a schema field has an invariant such as immutability, type, enum, or value-range constraints."
+      ],
+      "do_not_use_when": [
+        "Do not use for cross-entity references; use consistency_rule for referential integrity."
+      ]
+    },
+    "coding_standard_rule": {
+      "use_when": [
+        "Use when developer-facing code must use or avoid a framework API, pattern, or documentation practice."
+      ],
+      "do_not_use_when": [
+        "Do not use for user-facing product behavior or role-based access control."
+      ]
+    },
+    "migration_boundary_rule": {
+      "use_when": [
+        "Use when legacy data or APIs may only be used for migration or compatibility input."
+      ],
+      "do_not_use_when": [
+        "Do not use for general lifecycle archive/delete timing rules."
+      ]
+    },
+    "absence_requirement": {
+      "use_when": [
+        "Use when a component, extension, RPC, schema, or feature must be absent, removed, or not exist."
+      ],
+      "do_not_use_when": [
+        "Do not use for denied user actions; use permission_rule for actor/action/resource denials."
+      ]
+    }
+  },
+  "PREDICATE_USAGE_HINTS_2": {
+    "offline_behavior_rule": {
+      "use_when": [
+        "Use when synchronization or gameplay behavior must remain non-blocking or resilient during offline conditions."
+      ],
+      "do_not_use_when": [
+        "Do not use for generic fallback behavior without an offline/resilient synchronization condition."
+      ]
+    },
+    "release_gate_rule": {
+      "use_when": [
+        "Use when builds or releases must pass named gates before distribution, review, or deployment."
+      ],
+      "do_not_use_when": [
+        "Do not use for runtime dependency prerequisites; use dependency_rule for product workflow dependencies."
+      ]
+    },
+    "platform_consistency_rule": {
+      "use_when": [
+        "Use when a state or entitlement must synchronize across named platforms."
+      ],
+      "do_not_use_when": [
+        "Do not use for referential integrity within one data model; use consistency_rule instead."
+      ]
+    },
+    "preservation_rule": {
+      "use_when": [
+        "Use when child data or feedback must be preserved across deletion/removal of a parent resource."
+      ],
+      "do_not_use_when": [
+        "Do not use for simple archive/delete timing rules without a preservation target."
+      ]
+    },
+    "abstraction_boundary_rule": {
+      "use_when": [
+        "Use when persisted data, APIs, or contracts must remain neutral to a renderer, vendor, runtime, or implementation detail."
+      ],
+      "do_not_use_when": [
+        "Do not use for generic coding standards without a boundary/contract target; use coding_standard_rule instead."
+      ]
+    },
+    "security_configuration_rule": {
+      "use_when": [
+        "Use when infrastructure, database, trigger, RPC, or deployment components must carry an explicit security configuration value."
+      ],
+      "do_not_use_when": [
+        "Do not use for actor authorization decisions; use permission_rule or scoped_authorization_rule instead."
+      ]
+    },
+    "ordered_strategy_rule": {
+      "use_when": [
+        "Use when a subject must apply named strategies in a required priority or fallback order."
+      ],
+      "do_not_use_when": [
+        "Do not use for unordered enum membership; use strict allowed_values or state_membership instead."
+      ]
+    },
+    "refresh_policy_rule": {
+      "use_when": [
+        "Use when a UI, dashboard, cache, or list must refresh a target automatically or on a named cadence/trigger."
+      ],
+      "do_not_use_when": [
+        "Do not use for save/commit actions or notification routing; use commit_action or notification_route instead."
+      ]
+    },
+    "scoped_authorization_rule": {
+      "use_when": [
+        "Use when an actor is allowed or denied an action because they are assigned, unassigned, owner, member, or otherwise scoped to a resource."
+      ],
+      "do_not_use_when": [
+        "Do not use for simple actor/action/resource permissions without a scope qualifier; use permission_rule instead."
+      ]
+    },
+    "documentation_standard_rule": {
+      "use_when": [
+        "Use when code symbols, APIs, tests, or project artifacts must be documented in a named documentation source."
+      ],
+      "do_not_use_when": [
+        "Do not use for runtime persistence or user-facing display labels."
+      ]
+    },
+    "warmup_policy_rule": {
+      "use_when": [
+        "Use when a component, media element, cache, or service must warm up on a named entry or trigger."
+      ],
+      "do_not_use_when": [
+        "Do not use for generic state transitions without warmup behavior."
+      ]
+    },
+    "visual_layout_rule": {
+      "use_when": [
+        "Use when UI elements must remain visually aligned, consistent, or layout-compatible with another element."
+      ],
+      "do_not_use_when": [
+        "Do not use for generic acceptance outcomes without a visual/layout relationship."
+      ]
+    },
+    "enforcement_location_rule": {
+      "use_when": [
+        "Use when a constraint or policy must be enforced at a named layer such as database, application, edge, or client level."
+      ],
+      "do_not_use_when": [
+        "Do not use for the constraint itself when the enforcement location is not stated."
+      ]
+    },
+    "reconciliation_rule": {
+      "use_when": [
+        "Use when a trigger requires reconciling a target and clearing stale or inconsistent records."
+      ],
+      "do_not_use_when": [
+        "Do not use for ordinary archive/delete timing without reconciliation."
+      ]
+    },
+    "throttle_policy_rule": {
+      "use_when": [
+        "Use when handlers, operations, or streams must be throttled for high-frequency activity."
+      ],
+      "do_not_use_when": [
+        "Do not use for numeric API request quotas; use rate_limit instead."
+      ]
+    },
+    "has_unsaved_changes": {
+      "use_when": [
+        "Use for dirty, draft, or unsaved local-edit state on a subject."
+      ],
+      "do_not_use_when": [
+        "Do not use for the action that saves or discards those changes."
+      ]
+    },
+    "commit_action": {
+      "use_when": [
+        "Use when a trigger saves, commits, persists, or auto-saves a subject in a scope."
+      ],
+      "do_not_use_when": [
+        "Do not use for cancel, discard, revert, or abandon behavior."
+      ]
+    },
+    "discard_action": {
+      "use_when": [
+        "Use when a trigger discards, cancels, reverts, or abandons changes in a scope."
+      ],
+      "do_not_use_when": ["Do not use for persistence or save behavior."]
+    },
+    "accessibility_requirement": {
+      "use_when": [
+        "Use for WCAG, keyboard, screen-reader, or accessibility target requirements."
+      ],
+      "do_not_use_when": [
+        "Do not use for generic acceptance outcomes or performance constraints."
+      ]
+    },
+    "retention_policy": {
+      "use_when": [
+        "Use when records or data must be retained for a bounded duration."
+      ],
+      "do_not_use_when": [
+        "Do not use for request rate windows, session expiry, or latency thresholds."
+      ]
+    },
+    "resource_constraint": {
+      "use_when": [
+        "Use for resource, latency, timeout, size, quota, or numeric threshold constraints."
+      ],
+      "do_not_use_when": [
+        "Do not use for uniqueness, rate limits, feature gates, or actor permissions."
+      ]
+    },
+    "feature_gate": {
+      "use_when": [
+        "Use when behavior is controlled by a runtime/config flag, kill switch, or feature gate."
+      ],
+      "do_not_use_when": [
+        "Do not use for actor authorization or ordinary scalar enabled/disabled properties."
+      ]
+    },
+    "publishes_event": {
+      "use_when": [
+        "Use when a subject publishes, emits, or raises a domain/system event."
+      ],
+      "do_not_use_when": [
+        "Do not use for consuming events or observable UI acceptance outcomes."
+      ]
+    },
+    "acceptance_rule": {
+      "use_when": [
+        "Use for observable acceptance outcomes such as visible empty states or displayed results."
+      ],
+      "do_not_use_when": [
+        "Do not use for internal state machines, event publication, or accessibility standards."
+      ]
+    },
+    "permission_rule": {
+      "use_when": [
+        "Use for allow/deny permission statements with an actor, action, and resource."
+      ],
+      "do_not_use_when": [
+        "Do not use for scalar quotas, feature flags, or state transitions; choose a more specific predicate or strict property instead."
+      ]
+    },
+    "default_value": {
+      "use_when": [
+        "Use when behavior defines a default mode, state, status, option, or value."
+      ],
+      "do_not_use_when": [
+        "Do not use for current-state assertions or allowed value sets."
+      ]
+    }
+  },
+  "PREDICATE_USAGE_HINTS_3": {
+    "dependency_resolution_policy": {
+      "use_when": [
+        "Use when a component's permitted dependency scope and acquisition/download policy are normative."
+      ],
+      "do_not_use_when": [
+        "Do not use for ordering among multiple candidates, invalid-input outcomes, or child-process execution details."
+      ]
+    },
+    "ordered_resolution_strategy": {
+      "use_when": [
+        "Use when resolution must try named sources in a defined order with a conditional fallback."
+      ],
+      "do_not_use_when": [
+        "Do not use for a general dependency scope policy, invalid resolution errors, or process launch behavior."
+      ]
+    },
+    "resolution_failure_policy": {
+      "use_when": [
+        "Use when invalid placeholders, ambiguous roots, or other resolution inputs require a specific rejection outcome."
+      ],
+      "do_not_use_when": [
+        "Do not use for ordinary missing-dependency reporting or successful lookup ordering."
+      ]
+    },
+    "process_delegation_contract": {
+      "use_when": [
+        "Use when a launcher delegates to a child process and specifies executable, cwd, environment, stdio, or termination behavior."
+      ],
+      "do_not_use_when": [
+        "Do not use for dependency lookup, package-manager exceptions, or generic failure reporting."
+      ]
+    },
+    "failure_behavior": {
+      "use_when": [
+        "Use when a component must define the observable outcome of a named failure such as a missing dependency."
+      ],
+      "do_not_use_when": [
+        "Do not use for resolution ordering, invalid-input policy details, or exception clauses that exempt a normal rule."
+      ]
+    },
+    "uniqueness_constraint": {
+      "use_when": ["Use for at-most-one or unique-per-scope constraints."],
+      "do_not_use_when": [
+        "Do not use for numeric caps where more than one instance may be valid."
+      ]
+    },
+    "state_membership": {
+      "use_when": ["Use for terminal, allowed, or enumerated state sets."],
+      "do_not_use_when": [
+        "Do not use for one current state or a transition between states."
+      ]
+    },
+    "temporal_order": {
+      "use_when": [
+        "Use for before/after ordering requirements between events, states, or actions."
+      ],
+      "do_not_use_when": [
+        "Do not use when source state, target state, and trigger are all explicit; use state_transition instead."
+      ]
+    },
+    "conditional_behavior": {
+      "use_when": [
+        "Use for if/when conditional prose where a condition leads to a behavior."
+      ],
+      "do_not_use_when": [
+        "Do not use for simple boolean guards or actor permission rules."
+      ]
+    },
+    "state_transition": {
+      "use_when": [
+        "Use for explicit transitions from one named state to another with a trigger."
+      ],
+      "do_not_use_when": [
+        "Do not use for a single state assertion or an allowed terminal-state set."
+      ]
+    },
+    "rate_limit": {
+      "use_when": ["Use for per-window request, attempt, or action limits."],
+      "do_not_use_when": [
+        "Do not use for resource thresholds that lack a repeated action and time window."
+      ]
+    }
+  },
+  "PREDICATE_USAGE_HINTS_4": {
+    "fail_closed_authorization_rule": {
+      "use_when": [
+        "Use when invalid, missing, or failed authorization input must deny access or stay unauthenticated."
+      ],
+      "do_not_use_when": [
+        "Do not use when a degraded dependency legitimately falls back to a named alternative behavior."
+      ]
+    },
+    "deployment_precondition_rule": {
+      "use_when": [
+        "Use when a deployment or rollout must hold or abort until a named precondition holds."
+      ],
+      "do_not_use_when": [
+        "Do not use for feature flags, checkout flows, or ordinary release test gates."
+      ]
+    },
+    "data_migration_rule": {
+      "use_when": [
+        "Use when legacy data converts to a canonical form once, without data loss, before canonical-only operation."
+      ],
+      "do_not_use_when": [
+        "Do not use for a standing boundary that only permits legacy reads as migration input."
+      ]
+    },
+    "diagnostic_visibility_rule": {
+      "use_when": [
+        "Use when internal error or transport detail must stay in logs while users see actionable messages."
+      ],
+      "do_not_use_when": [
+        "Do not use for audit-trail requirements or consent handling."
+      ]
+    },
+    "mutation_authority_rule": {
+      "use_when": [
+        "Use when a client surface is read-only or scoped and a server-side authority owns the other mutations."
+      ],
+      "do_not_use_when": [
+        "Do not use for individual permission denials such as delete or export rights."
+      ]
+    },
+    "request_deduplication_rule": {
+      "use_when": [
+        "Use when concurrent duplicate requests for the same resource must coalesce into one operation."
+      ],
+      "do_not_use_when": [
+        "Do not use for per-window rate limits or batch-size constraints."
+      ]
+    },
+    "async_boundary_rule": {
+      "use_when": [
+        "Use when a callback must return synchronously while work runs deferred or in the background."
+      ],
+      "do_not_use_when": [
+        "Do not use for timeout durations or request rate constraints."
+      ]
+    },
+    "canonical_identifier_rule": {
+      "use_when": [
+        "Use when references to a domain entity must resolve through one canonical identifier or key."
+      ],
+      "do_not_use_when": [
+        "Do not use for renderer neutrality or legacy-format boundaries."
+      ]
+    },
+    "responsive_breakpoint_rule": {
+      "use_when": [
+        "Use when explicit viewport dimensions determine a responsive classification such as mobile."
+      ],
+      "do_not_use_when": [
+        "Do not use for server-side size limits or database constraints."
+      ]
+    },
+    "operational_pause_rule": {
+      "use_when": [
+        "Use when an operational pause blocks new work of a kind while preserving existing or resumable work."
+      ],
+      "do_not_use_when": [
+        "Do not use for soft deletion or data preservation rules without an operational switch."
+      ]
+    },
+    "ui_pattern": {
+      "use_when": [
+        "Use when a UI concept must be presented with a named visual pattern that other screens or variants must not replace."
+      ],
+      "do_not_use_when": [
+        "Do not use for alignment between two elements (visual_layout_rule) or for colours and spacing a linter can check."
+      ]
+    },
+    "same_pattern": {
+      "use_when": [
+        "Use when two variants of one UI concept, such as roles or presentations, must render the same visual pattern."
+      ],
+      "do_not_use_when": [
+        "Do not use when the variants are intentionally different; record that difference in the requirement instead."
+      ]
+    },
+    "pattern_marker": {
+      "use_when": [
+        "Use to name a stable class or test id that every implementation of a visual pattern contains."
+      ],
+      "do_not_use_when": [
+        "Do not use for markers that change with content or styling, such as generated class names."
+      ]
+    },
+    "ui_container": {
+      "use_when": [
+        "Use when a UI region must sit in a container of a named size with a named overflow behaviour, such as a half-page scroll panel."
+      ],
+      "do_not_use_when": [
+        "Do not use for exact pixel sizes or brand tokens a linter or stylesheet already enforces."
+      ]
+    }
+  },
+  "CODING_STANDARD_ACTION_VOCABULARY": {
+    "constants": ["use", "avoid"],
+    "aliases": {}
+  },
+  "DECISION_VOCABULARY": {
+    "constants": ["allow", "deny"],
+    "aliases": {
+      "assert": "allow",
+      "allowed": "allow",
+      "permit": "allow",
+      "permitted": "allow",
+      "denied": "deny",
+      "forbid": "deny",
+      "forbidden": "deny"
+    }
+  },
+  "ENVIRONMENT_DECISION_VOCABULARY": {
+    "constants": ["allowed", "forbidden", "read-only"],
+    "aliases": {
+      "allow": "allowed",
+      "deny": "forbidden",
+      "denied": "forbidden",
+      "read_only": "read-only",
+      "readonly": "read-only"
+    }
+  },
+  "LIFECYCLE_ACTION_VOCABULARY": {
+    "constants": ["archived", "deleted", "expired"],
+    "aliases": {
+      "archive": "archived",
+      "delete": "deleted",
+      "expire": "expired"
+    }
+  },
+  "OPERATOR_VOCABULARY": {
+    "constants": ["lt", "lte", "eq", "neq", "gte", "gt"],
+    "aliases": {
+      "le": "lte",
+      "ge": "gte",
+      "ne": "neq"
+    }
+  },
+  "REFRESH_POLICY_VOCABULARY": {
+    "constants": ["automatic", "manual", "on_demand"],
+    "aliases": {
+      "auto": "automatic",
+      "automatically": "automatic",
+      "manually": "manual",
+      "on-demand": "on_demand"
+    }
+  },
+  "RETENTION_UNIT_VOCABULARY": {
+    "constants": ["days", "months", "years"],
+    "aliases": {
+      "day": "days",
+      "month": "months",
+      "year": "years"
+    }
+  },
+  "TRIGGER_VOCABULARY": {
+    "constants": [
+      "escape",
+      "cancel",
+      "submit",
+      "navigation",
+      "click",
+      "timeout"
+    ],
+    "aliases": {
+      "esc": "escape",
+      "escape_key": "escape",
+      "cancellation": "cancel",
+      "submission": "submit",
+      "navigate": "navigation",
+      "navigates": "navigation",
+      "navigating": "navigation",
+      "navigation_away": "navigation",
+      "clicks": "click",
+      "time_out": "timeout",
+      "timed_out": "timeout"
+    }
+  },
+  "DEFAULT_USAGE_HINTS": {
+    "use_when": [
+      "Use when the prose matches this predicate signature and all required arguments can be named explicitly."
+    ],
+    "do_not_use_when": [
+      "Do not use when a stricter scalar property, a more specific predicate, or an ontology-gap observation better preserves the claim."
+    ]
+  }
+}
