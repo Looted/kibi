@@ -1,0 +1,82 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "kb_semantic_advisor: Requirement prose appears normative but needs review before it can participate in logic checks. Suggestions: none."
+    }
+  ],
+  "structuredContent": {
+    "receipt": {
+      "version": "semantic-advisor-v2",
+      "payload_hash": "aeeb515370fb09d1749b5e87d05b5bcdb792da477dbca956cd3bdad8028dafa0",
+      "inventory_contract": {
+        "version": "kibi.semantic-inventory.v1",
+        "source_field": "semantic_text",
+        "source_hash": "366444d6f34de4d1efbdcfe27095a2366b1ecc24e5d50c03c671d16d470646f2"
+      },
+      "logic_readiness": "needs_modeling",
+      "candidate_lane": "observation_review",
+      "signals": [],
+      "ambiguity_witnesses": [],
+      "propositions": [
+        {
+          "claim_key": "CLAIM-CCD01E283FBAC3A2",
+          "claim_text": "Users must export at most 5 reports per minute",
+          "role": "normative",
+          "status": "missing",
+          "span": {
+            "start": 0,
+            "end": 46
+          },
+          "payload_hash": "aeeb515370fb09d1749b5e87d05b5bcdb792da477dbca956cd3bdad8028dafa0",
+          "reason": "No accepted typed interpretation grounds this assertive proposition.",
+          "dimension": {
+            "quantifier": "at_most",
+            "rewrites": ["bound"]
+          }
+        }
+      ],
+      "interpretations": [],
+      "shadow_analysis": [
+        {
+          "kind": "modal",
+          "evidence": "deontic modal",
+          "represented": false
+        },
+        {
+          "kind": "quantifier",
+          "evidence": "quantifier/cardinality",
+          "represented": false
+        },
+        {
+          "kind": "numeric",
+          "evidence": "numeric or cardinality value",
+          "represented": false
+        }
+      ],
+      "suggestions": [],
+      "clauses": [
+        {
+          "claim_key": "CLAIM-CCD01E283FBAC3A2",
+          "text": "Users must export at most 5 reports per minute",
+          "index": 0,
+          "normative": true,
+          "source": "detected",
+          "suggestion_indexes": []
+        }
+      ],
+      "logic_coverage": {
+        "status": "unverified",
+        "expected_claim_keys": ["CLAIM-CCD01E283FBAC3A2"],
+        "declared_claim_keys": [],
+        "missing_claim_keys": ["CLAIM-CCD01E283FBAC3A2"],
+        "unresolved_claim_keys": ["CLAIM-CCD01E283FBAC3A2"]
+      },
+      "suggested_next_tools": ["kb_model_requirement", "kb_suggest_predicates"],
+      "summary": "Requirement prose appears normative but needs review before it can participate in logic checks."
+    },
+    "warnings": [
+      "Semantic advisor: Requirement prose appears normative but needs review before it can participate in logic checks. Next action: call kb_model (mode requirement) or kb_model (mode predicates) before treating this requirement as Prolog-checkable."
+    ]
+  }
+}

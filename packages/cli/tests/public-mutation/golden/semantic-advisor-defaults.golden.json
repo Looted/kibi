@@ -1,0 +1,268 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "kb_semantic_advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Suggestions: strict_property."
+    }
+  ],
+  "structuredContent": {
+    "receipt": {
+      "version": "semantic-advisor-v2",
+      "payload_hash": "d12abef9c5e5b9547b567a70395dd2fdfc61c714775de4a8f3410a4723bbc559",
+      "inventory_contract": {
+        "version": "kibi.semantic-inventory.v1",
+        "source_field": "semantic_text",
+        "source_hash": "366444d6f34de4d1efbdcfe27095a2366b1ecc24e5d50c03c671d16d470646f2"
+      },
+      "logic_readiness": "needs_modeling",
+      "candidate_lane": "strict_property",
+      "signals": [
+        {
+          "kind": "numeric_cardinality",
+          "evidence": "at most 5",
+          "candidate_lane": "strict_property",
+          "confidence": 0.92
+        },
+        {
+          "kind": "normative_modal",
+          "evidence": "must",
+          "candidate_lane": "observation_review",
+          "confidence": 0.65
+        }
+      ],
+      "ambiguity_witnesses": [
+        {
+          "signal_kind": "numeric_cardinality",
+          "evidence": "at most 5",
+          "interpretations": [
+            "exactly",
+            "at_most",
+            "at_least",
+            "named_membership",
+            "illustrative_example"
+          ],
+          "message": "Numeric cardinality prose can mean an exact count, an upper/lower bound, named membership, or an example; model it explicitly before relying on contradiction checks."
+        }
+      ],
+      "propositions": [
+        {
+          "claim_key": "CLAIM-CCD01E283FBAC3A2",
+          "claim_text": "Users must export at most 5 reports per minute",
+          "role": "normative",
+          "status": "missing",
+          "span": {
+            "start": 0,
+            "end": 46
+          },
+          "payload_hash": "d12abef9c5e5b9547b567a70395dd2fdfc61c714775de4a8f3410a4723bbc559",
+          "reason": "No accepted typed interpretation grounds this assertive proposition.",
+          "dimension": {
+            "quantifier": "at_most",
+            "rewrites": ["bound"]
+          }
+        }
+      ],
+      "interpretations": [],
+      "shadow_analysis": [
+        {
+          "kind": "modal",
+          "evidence": "deontic modal",
+          "represented": false
+        },
+        {
+          "kind": "quantifier",
+          "evidence": "quantifier/cardinality",
+          "represented": false
+        },
+        {
+          "kind": "numeric",
+          "evidence": "numeric or cardinality value",
+          "represented": false
+        }
+      ],
+      "suggestions": [
+        {
+          "kind": "strict_property",
+          "claim_key": "CLAIM-CCD01E283FBAC3A2",
+          "claim_text": "Users must export at most 5 reports per minute",
+          "confidence": 0.9,
+          "evidence": "at most 5",
+          "rationale": "Bounded cardinality is a strict numeric property and should be modeled explicitly.",
+          "suggested_next_tool": "kb_model_requirement",
+          "claim": {
+            "subject_key": "reports.per.minute",
+            "property_key": "count",
+            "operator": "lte",
+            "value_type": "int",
+            "value_int": 5
+          },
+          "casesPreview": {
+            "cases": [
+              {
+                "generator": "boundary",
+                "constraint": "eq 5",
+                "predicted": "success",
+                "assumption": {
+                  "fact_kind": "property_value",
+                  "subject_key": "reports.per.minute",
+                  "property_key": "count",
+                  "operator": "eq",
+                  "value_type": "int",
+                  "value": 5
+                }
+              },
+              {
+                "generator": "boundary",
+                "constraint": "gt 5",
+                "predicted": "rejection",
+                "assumption": {
+                  "fact_kind": "property_value",
+                  "subject_key": "reports.per.minute",
+                  "property_key": "count",
+                  "operator": "gt",
+                  "value_type": "int",
+                  "value": 5
+                }
+              },
+              {
+                "generator": "cardinality",
+                "constraint": "eq 0",
+                "predicted": "success",
+                "assumption": {
+                  "fact_kind": "property_value",
+                  "subject_key": "reports.per.minute",
+                  "property_key": "count",
+                  "operator": "eq",
+                  "value_type": "int",
+                  "value": 0
+                }
+              },
+              {
+                "generator": "cardinality",
+                "constraint": "eq 1",
+                "predicted": "success",
+                "assumption": {
+                  "fact_kind": "property_value",
+                  "subject_key": "reports.per.minute",
+                  "property_key": "count",
+                  "operator": "eq",
+                  "value_type": "int",
+                  "value": 1
+                }
+              }
+            ],
+            "limitReached": false
+          },
+          "rejected_alternatives": ["predicate", "observation_review"],
+          "applyPlan": [
+            {
+              "type": "fact",
+              "id": "FACT-SUBJECT-e150e0136a63",
+              "properties": {
+                "title": "reports.per.minute subject",
+                "status": "active",
+                "source": "mcp://kibi/semantic-advisor",
+                "fact_kind": "subject",
+                "subject_key": "reports.per.minute",
+                "canonical_key": "reports.per.minute",
+                "tags": ["lane:strict", "semantic-advisor-suggestion"],
+                "claim_key": "CLAIM-CCD01E283FBAC3A2",
+                "claim_text": "Users must export at most 5 reports per minute",
+                "claim_span_start": 0,
+                "claim_span_end": 46
+              },
+              "relationships": []
+            },
+            {
+              "type": "fact",
+              "id": "FACT-PROP-d87557869fe2",
+              "properties": {
+                "title": "reports.per.minute count",
+                "status": "active",
+                "source": "mcp://kibi/semantic-advisor",
+                "fact_kind": "property_value",
+                "subject_key": "reports.per.minute",
+                "property_key": "count",
+                "operator": "lte",
+                "value_type": "int",
+                "value_int": 5,
+                "canonical_key": "reports.per.minute.count.lte.5",
+                "tags": ["lane:strict", "semantic-advisor-suggestion"],
+                "claim_key": "CLAIM-CCD01E283FBAC3A2",
+                "claim_text": "Users must export at most 5 reports per minute",
+                "claim_span_start": 0,
+                "claim_span_end": 46
+              },
+              "relationships": []
+            },
+            {
+              "type": "req",
+              "id": "REQ-SEMANTIC-ADVISOR-PREVIEW",
+              "properties": {
+                "title": "Users must export at most 5 reports per minute",
+                "status": "open",
+                "source": "mcp://kibi/semantic-advisor",
+                "semantic_text": "Users must export at most 5 reports per minute.",
+                "tags": ["semantic-advisor-suggestion"],
+                "logic_claims": ["CLAIM-CCD01E283FBAC3A2"],
+                "semantic_clauses": [
+                  "Users must export at most 5 reports per minute"
+                ],
+                "semantic_inventory_version": "kibi.semantic-inventory.v1",
+                "semantic_source_field": "semantic_text",
+                "semantic_source_hash": "366444d6f34de4d1efbdcfe27095a2366b1ecc24e5d50c03c671d16d470646f2",
+                "semantic_inventory": [
+                  {
+                    "claim_key": "CLAIM-CCD01E283FBAC3A2",
+                    "claim_text": "Users must export at most 5 reports per minute",
+                    "role": "normative",
+                    "status": "modeled",
+                    "span": {
+                      "start": 0,
+                      "end": 46
+                    },
+                    "reason": "Draft apply plan contains a typed grounding for this proposition."
+                  }
+                ]
+              },
+              "relationships": [
+                {
+                  "type": "constrains",
+                  "from": "REQ-SEMANTIC-ADVISOR-PREVIEW",
+                  "to": "FACT-SUBJECT-e150e0136a63"
+                },
+                {
+                  "type": "requires_property",
+                  "from": "REQ-SEMANTIC-ADVISOR-PREVIEW",
+                  "to": "FACT-PROP-d87557869fe2"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "clauses": [
+        {
+          "claim_key": "CLAIM-CCD01E283FBAC3A2",
+          "text": "Users must export at most 5 reports per minute",
+          "index": 0,
+          "normative": true,
+          "source": "detected",
+          "suggestion_indexes": [0]
+        }
+      ],
+      "logic_coverage": {
+        "status": "unverified",
+        "expected_claim_keys": ["CLAIM-CCD01E283FBAC3A2"],
+        "declared_claim_keys": [],
+        "missing_claim_keys": ["CLAIM-CCD01E283FBAC3A2"],
+        "unresolved_claim_keys": ["CLAIM-CCD01E283FBAC3A2"]
+      },
+      "suggested_next_tools": ["kb_model_requirement"],
+      "summary": "Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts."
+    },
+    "warnings": [
+      "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
+    ]
+  }
+}
