@@ -293,6 +293,8 @@ async function check(name: string): Promise<Check | undefined> {
 
 function hook(name: string, content: string, mode = 0o755): string {
   const file = path.join(hooksDir, name);
+  // A previous mode may deny the owner write access when not running as root.
+  rmSync(file, { force: true });
   writeFileSync(file, content);
   chmodSync(file, mode);
   return file;
@@ -1908,7 +1910,8 @@ describe("pre-commit hook check", () => {
       ],
       [
         `${begin}\nKIBI_BIN=x\n"$KIBI_BIN" check --staged\n`,
-        0o010,
+        // Owner-readable, so the content check runs without root.
+        0o410,
         {
           passed: true,
         },
@@ -2015,7 +2018,7 @@ describe("post-rewrite hook check", () => {
         0o755,
         { passed: true, message: "Installed and executable" },
       ],
-      [`${begin}\nKIBI_BIN=x\n"$KIBI_BIN" sync\n`, 0o010, { passed: true }],
+      [`${begin}\nKIBI_BIN=x\n"$KIBI_BIN" sync\n`, 0o410, { passed: true }],
       [
         `${begin}\nKIBI_BIN=x\n"$KIBI_BIN" sync\n`,
         0o644,
