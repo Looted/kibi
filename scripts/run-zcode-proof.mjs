@@ -256,12 +256,13 @@ export function validateProofTestIds(value) {
   return parsed;
 }
 
+const LINUX_ONLY = "ZCode packed consumer proof is Linux/WSL-only";
+
 export function runZcodeProof(options = {}) {
   const workspaceRoot = options.workspaceRoot ?? process.cwd();
   const outputPath = options.outputPath ?? process.env.KIBI_PROOF_OUTPUT;
   if (!outputPath) throw new Error("KIBI_PROOF_OUTPUT is required");
-  if (process.platform === "win32")
-    throw new Error("ZCode packed consumer proof is Linux/WSL-only");
+  if (process.platform === "win32") throw new Error(LINUX_ONLY);
   validateProofTestIds(
     options.testIds ?? process.env.KIBI_PROOF_TEST_IDS ?? null,
   );
@@ -318,10 +319,13 @@ export function main() {
   return runZcodeProof();
 }
 
-if (
-  process.argv[1] &&
-  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
-) {
+/** Runs `main` when this file is the invoked script; reports failures. */
+export function runIfInvoked(invokedPath = process.argv[1]) {
+  if (
+    !invokedPath ||
+    path.resolve(invokedPath) !== fileURLToPath(import.meta.url)
+  )
+    return;
   try {
     main();
   } catch (error) {
@@ -331,3 +335,5 @@ if (
     process.exitCode = 1;
   }
 }
+
+runIfInvoked();

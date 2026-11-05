@@ -158,7 +158,7 @@ function git(args: readonly string[]): string {
   return result.stdout.trim();
 }
 
-function main(argv: readonly string[]): number {
+export function main(argv: readonly string[]): number {
   const dryRun = argv.includes("--dry-run");
   const keep = argv.includes("--keep");
   const root = git(["rev-parse", "--show-toplevel"]);

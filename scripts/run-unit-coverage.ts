@@ -165,14 +165,16 @@ const CLI_OPERATIONS_TESTS = CLI_OPERATIONS_DIRS.flatMap((directory) =>
     .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
     .map((entry) => `${directory}/${entry}`),
 ).sort();
-const CLI_COMMANDS_COVERAGE_DIR = "./packages/cli/tests/commands-coverage";
-const CLI_COMMANDS_COVERAGE_TESTS = readdirSync(CLI_COMMANDS_COVERAGE_DIR, {
-  recursive: true,
-  encoding: "utf8",
-})
-  .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
-  .map((entry) => `${CLI_COMMANDS_COVERAGE_DIR}/${entry}`)
-  .sort();
+const CLI_COMMANDS_COVERAGE_DIRS = [
+  "./packages/cli/tests/commands-coverage",
+  "./packages/cli/tests/commands-mutation",
+];
+const CLI_COMMANDS_COVERAGE_TESTS = CLI_COMMANDS_COVERAGE_DIRS.flatMap(
+  (directory) =>
+    readdirSync(directory, { recursive: true, encoding: "utf8" })
+      .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
+      .map((entry) => `${directory}/${entry}`),
+).sort();
 const CLI_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
   .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
   .map((entry) => `${CLI_COMMANDS_DIR}/${entry}`);

@@ -471,15 +471,10 @@ export async function setupThinRootKb(
 export async function runSeededFixtureTest(
   workspaceTarget: string,
   testPath: string = FIXTURE_TEST_PATH,
+  timeoutMs: number = FIXTURE_TEST_TIMEOUT_MS,
 ): Promise<void> {
   const child = Bun.spawn(
-    [
-      process.execPath,
-      "test",
-      "--timeout",
-      String(FIXTURE_TEST_TIMEOUT_MS),
-      testPath,
-    ],
+    [process.execPath, "test", "--timeout", String(timeoutMs), testPath],
     {
       cwd: workspaceTarget,
       env: process.env,
@@ -491,7 +486,7 @@ export async function runSeededFixtureTest(
   const timeout = setTimeout(() => {
     timedOut = true;
     child.kill();
-  }, FIXTURE_TEST_TIMEOUT_MS);
+  }, timeoutMs);
   const [exitCode, stdout, stderr] = await Promise.all([
     child.exited,
     new Response(child.stdout).text(),

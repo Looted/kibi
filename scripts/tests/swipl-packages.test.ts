@@ -1,5 +1,5 @@
 // executable_for TEST-prolog-bundled-runtime
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 import {
   mkdirSync,
@@ -12,7 +12,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { PLATFORM_PACKAGES } from "../../packages/swipl/index.js";
 import { PACKAGE_CATALOG } from "../package-catalog.ts";
-import { verifySwiplPayload } from "../verify-swipl-payload.mjs";
+import { prepack, verifySwiplPayload } from "../verify-swipl-payload.mjs";
 
 const ROOT = path.join(import.meta.dir, "..", "..");
 const PLATFORMS = Object.entries(PLATFORM_PACKAGES);
@@ -202,6 +202,53 @@ describe("verifySwiplPayload", () => {
     expect(verifySwiplPayload(emptyLicense)).toEqual([
       "licenses/ has no non-empty pcre2 licence text",
     ]);
+  });
+
+  test("refuses a package without a target, a broken manifest or a binary", () => {
+    const noTarget = populated();
+    writeFileSync(path.join(noTarget, "package.json"), "{}");
+    expect(verifySwiplPayload(noTarget)).toEqual([
+      "package.json must declare kibi.target and kibi.swiplVersion",
+    ]);
+    const broken = populated();
+    writeFileSync(path.join(broken, "build-manifest.json"), "{");
+    expect(verifySwiplPayload(broken)[0]).toStartWith(
+      "build-manifest.json is not valid JSON: ",
+    );
+    const noBinary = populated((root) =>
+      rmSync(path.join(root, "bin", "swipl")),
+    );
+    expect(verifySwiplPayload(noBinary)).toEqual(["bin/swipl is missing"]);
+    const noLicenses = populated((root) =>
+      rmSync(path.join(root, "licenses"), { recursive: true }),
+    );
+    expect(verifySwiplPayload(noLicenses)).toEqual(
+      ["swi-prolog", "openssl", "pcre2", "zlib"].map(
+        (needle) => `licenses/ has no non-empty ${needle} licence text`,
+      ),
+    );
+  });
+
+  test("prepack reports the verdict and returns the exit code", () => {
+    const lines: string[] = [];
+    const error = spyOn(console, "error").mockImplementation((line) => {
+      lines.push(String(line));
+    });
+    try {
+      const good = populated();
+      expect(prepack(good)).toBe(0);
+      const bad = populated((root) =>
+        rmSync(path.join(root, "lib"), { recursive: true }),
+      );
+      expect(prepack(bad)).toBe(1);
+      expect(lines).toEqual([
+        `Verified SWI-Prolog payload: ${path.basename(good)}`,
+        `Refusing to pack ${path.basename(bad)}: bundled SWI-Prolog payload is not valid:`,
+        "  - lib/swipl (SWI_HOME_DIR) is missing",
+      ]);
+    } finally {
+      error.mockRestore();
+    }
   });
 
   test("refuses a manifest for a different version", () => {

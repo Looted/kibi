@@ -166,6 +166,9 @@ describe("SkillOpt harness selection", () => {
     expect(() => extractHostOption(["optimize", "--host"], {})).toThrow(
       CliUsageError,
     );
+    expect(() =>
+      extractHostOption(["optimize", "--host", "bogus"], {}),
+    ).toThrow(new CliUsageError("--host must be one of codex|claude-code"));
     let called = false;
     const dependencies = {
       runPreflight: async () => {

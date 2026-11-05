@@ -12,7 +12,7 @@ set -euo pipefail
 
 # Bun pin. Keep in sync with .github/workflows/ci.yml (bun-version) and the
 # package.json "engines.bun" range.
-BUN_VERSION="1.4.2"
+BUN_VERSION="1.4.4"
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${repo_root}"

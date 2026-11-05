@@ -22,6 +22,7 @@ import {
 // Every child process here is an in-memory fake: no SWI-Prolog runs.
 const KB = "/kb/src/kb.pl";
 const FRAME = "__KIBI_QUERY_FRAME_END__\ntrue.\n\n";
+const STDERR_END = "__KIBI_QUERY_STDERR_END__\n";
 const UTF8 =
   "set_prolog_flag(encoding, utf8), set_stream(user_input, encoding(utf8)), set_stream(user_output, encoding(utf8)), set_stream(user_error, encoding(utf8))";
 const ENV_KEYS = [
@@ -108,6 +109,7 @@ function interactive(script: (goal: string) => Reply = () => ({})) {
     }
     const reply = script(chunk);
     if (reply.chunks) {
+      child.err(STDERR_END);
       const emitNext = () => {
         const next = reply.chunks?.shift();
         if (next === undefined) return;
@@ -126,6 +128,7 @@ function interactive(script: (goal: string) => Reply = () => ({})) {
     }
     queueMicrotask(() => {
       if (reply.err !== undefined) child.err(reply.err);
+      if (reply.frame !== false) child.err(STDERR_END);
       child.out(reply.out ?? "true.\n\n");
       if (reply.frame !== false) child.out(FRAME);
       if (reply.exit) child.close(1, null);
@@ -253,7 +256,7 @@ function wrapped(goal: string): string {
   const body = /^once\s*\(/.test(goal)
     ? `catch(${goal}, _E, ${report})`
     : `catch(once((${goal})), _E, ${report})`;
-  return `${body}.\nwriteln('__KIBI_QUERY_FRAME_END__').\n`;
+  return `${body}.\nwriteln(user_error, '__KIBI_QUERY_STDERR_END__'), writeln('__KIBI_QUERY_FRAME_END__').\n`;
 }
 
 describe("resolveKbPlPath", () => {
@@ -841,7 +844,7 @@ describe("interactive queries", () => {
       wrapped("once (kb_y(a))"),
     ]);
     expect(child.written[4]).toBe(
-      "catch(once(kb_x(a)), _E, (write(user_error, '__KIBI_ERROR__:'), write_term(user_error, _E, [quoted(true), max_depth(8)]), nl(user_error), print_message(error, _E), fail)).\nwriteln('__KIBI_QUERY_FRAME_END__').\n",
+      "catch(once(kb_x(a)), _E, (write(user_error, '__KIBI_ERROR__:'), write_term(user_error, _E, [quoted(true), max_depth(8)]), nl(user_error), print_message(error, _E), fail)).\nwriteln(user_error, '__KIBI_QUERY_STDERR_END__'), writeln('__KIBI_QUERY_FRAME_END__').\n",
     );
   });
 
@@ -1621,7 +1624,11 @@ describe("edge cases", () => {
           ready = true;
           fresh.out("true.\n\n");
         }, 20);
-      else queueMicrotask(() => fresh.out(`N = 9.\n\n${FRAME}`));
+      else
+        queueMicrotask(() => {
+          fresh.err(STDERR_END);
+          fresh.out(`N = 9.\n\n${FRAME}`);
+        });
     });
     queue.push(next);
     await prolog.start();
@@ -1819,7 +1826,11 @@ describe("edge cases", () => {
       "Query exceeded bounded Prolog output capacity (ENOBUFS); narrow the operation or reduce stored entity size",
     );
     const cap = 7 + FRAME.length;
-    const errs: Reply[] = [{ err: "x".repeat(cap) }, { silent: true }];
+    // With its stderr frame end, the first report fills the cap exactly.
+    const errs: Reply[] = [
+      { err: "x".repeat(cap - STDERR_END.length) },
+      { silent: true },
+    ];
     const noisy = await started(() => errs.shift() as Reply, {
       maxOutputBytes: cap,
     });
@@ -2181,5 +2192,97 @@ describe("query timers", () => {
     expect((await prolog.query("kb_ok")).success).toBe(true);
     await new Promise((resolve) => setTimeout(resolve, 1100));
     expect(groupKills).toStrictEqual([]);
+  });
+});
+
+describe("stderr frame end", () => {
+  // Every 50 ms poll is held back, so only an output wake can answer.
+  function holdPolls(): { count: number } {
+    const polls = { count: 0 };
+    const realSetTimeout = globalThis.setTimeout;
+    spyOn(globalThis, "setTimeout").mockImplementation(((
+      handler: () => void,
+      ms?: number,
+    ) => {
+      if (ms !== 50) return realSetTimeout(handler, ms);
+      polls.count += 1;
+      return realSetTimeout(handler, 60_000);
+    }) as never);
+    return polls;
+  }
+
+  const tick = (ms: number) =>
+    new Promise((resolve) => globalThis.setTimeout(resolve, ms));
+
+  test("wait for it after the stdout frame, then wake on it", async () => {
+    const { prolog, child } = await started(() => ({ silent: true }), {
+      timeout: 1000,
+    });
+    let settled = false;
+    const pending = prolog.query("kb_x(X)").then((result) => {
+      settled = true;
+      return result;
+    });
+    await tick(5);
+    child.out(`X = 1.\n\n${FRAME}`);
+    await tick(120);
+    expect(settled).toBe(false);
+    const polls = holdPolls();
+    child.err("__KIBI_QUERY_STDERR");
+    child.err("_END__\n");
+    expect(await pending).toStrictEqual({
+      success: true,
+      bindings: { X: "1" },
+    });
+    expect(polls.count).toBe(0);
+  });
+
+  test("wake only once both frame ends were read", async () => {
+    const polls = holdPolls();
+    const { prolog, child } = await started(() => ({ silent: true }), {
+      timeout: 1000,
+    });
+    const pending = prolog.query("kb_x(X)");
+    await tick(5);
+    child.out(`X = 1.\n\n${FRAME}`);
+    await tick(5);
+    child.err(STDERR_END);
+    expect((await pending).bindings).toStrictEqual({ X: "1" });
+    expect(polls.count).toBe(1);
+  });
+
+  test("classify a report read after the stdout frame", async () => {
+    holdPolls();
+    const { prolog, child } = await started(() => ({ silent: true }), {
+      timeout: 1000,
+    });
+    const pending = prolog.query("kb_x(X)");
+    await tick(5);
+    child.out(`false.\n\n${FRAME}`);
+    await tick(5);
+    child.err(`ERROR: late report\n${STDERR_END}`);
+    expect(await pending).toStrictEqual({
+      success: false,
+      bindings: {},
+      error: "late report",
+    });
+  });
+
+  test("keep it out of the error text", async () => {
+    const { prolog } = await started(() => ({ err: "ERROR:\n" }));
+    expect((await prolog.query("kb_x")).error).toBe("Unknown error");
+  });
+
+  test("wake on an overflow read with a pending wake", async () => {
+    holdPolls();
+    const { prolog, child } = await started(() => ({ silent: true }), {
+      timeout: 1000,
+      maxOutputBytes: 8,
+    });
+    const pending = prolog.query("kb_noisy");
+    await tick(5);
+    child.err("1234");
+    child.err("123456789");
+    expect((await pending).error).toBe(OVERFLOW);
   });
 });
