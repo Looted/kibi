@@ -643,3 +643,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f81fb6c60f96
+  - type: covered_by
+    from: SYM-collectSourceRelationshipParityViolations
+    to: TEST-kibi-duplicate-entity-declarations
+    created_at: 2026-11-05T11:49:12.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33e5324a4b4d

@@ -276,7 +276,7 @@ rule_description('symbol-traceability', 'Production symbols must directly implem
 rule_description('symbol-granularity', 'A symbol with traceability relationships must not link its source file coarsely while narrower behavioral symbols are available, unless it carries an allowed granularity_reason; the staged gate\'s symbol_granularity_violation evaluated KB-wide').
 rule_description('symbol-coordinates-missing', 'Advisory: an active symbol names a source file that exists, but Kibi could not place it there (the declaration was not found, the file is unreadable to the analyzer, or a declared plugin or grammar pack is missing), so its link is checked against no code').
 rule_description('no-dangling-refs', 'All relationship targets must exist in the KB').
-rule_description('source-relationship-parity', 'Authored Markdown and relationship-shard edges must exactly match the compiled KB').
+rule_description('source-relationship-parity', 'Authored Markdown and relationship-shard edges must exactly match the compiled KB, and authored sources must declare each entity id once').
 rule_description('branch-store-not-compiled', 'The current branch\'s KB store must be compiled from the authored .kb/ sources; a missing or empty store is reported once, naming kibi sync, instead of every store-backed rule reading an empty KB').
 rule_description('source-path-dangling', 'An authored entity\'s source field must name an existing workspace path (a #anchor suffix is ignored), an existing entity id, or an http(s) URL; a missing source is allowed').
 rule_description('no-cycles', 'No circular dependency chains in requirements').

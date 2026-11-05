@@ -1286,7 +1286,7 @@ export async function migrateCommand(
   const mergeDriverGaps = manifestMergeDriverGaps(cwd);
   if (mergeDriverGaps !== null && mergeDriverGaps.length > 0) {
     console.log(
-      `Tip: kibi merge-driver resolves .kb/symbols.yaml merges by record id, but it is not wired up (${mergeDriverGaps.join("; ")}). ${mergeDriverSetup(cwd)}`,
+      `Tip: kibi merge-driver resolves .kb/symbols.yaml merges by record id, but it is not wired up (${mergeDriverGaps.join("; ")}). ${mergeDriverSetup(cwd, mergeDriverGaps)}`,
     );
   }
   const gitignoreUpdated = updateGitIgnore(cwd);

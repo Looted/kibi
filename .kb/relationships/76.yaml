@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8285b20b7ee0
+  - type: validates
+    from: TEST-kibi-duplicate-entity-declarations
+    to: SCEN-kibi-duplicate-entity-declarations
+    created_at: 2026-11-05T11:48:04.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-576dc566d094
+  - type: validates
+    from: TEST-kibi-duplicate-entity-declarations
+    to: SCEN-NEG-kibi-duplicate-entity-declarations
+    created_at: 2026-11-05T11:48:04.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62faa53870ae

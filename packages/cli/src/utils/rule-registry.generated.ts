@@ -54,7 +54,7 @@ export const GENERATED_RULES = [
   {
     name: "source-relationship-parity",
     description:
-      "Authored Markdown and relationship-shard edges must exactly match the compiled KB",
+      "Authored Markdown and relationship-shard edges must exactly match the compiled KB, and authored sources must declare each entity id once",
     enforcementClass: "canonical",
     category: "integrity",
   },

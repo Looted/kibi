@@ -860,3 +860,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-538df08f8011
+  - type: implements
+    from: SYM-duplicateEntityViolations
+    to: REQ-kibi-duplicate-entity-declarations
+    created_at: 2026-11-05T11:49:05.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fd310546304
+  - type: covered_by
+    from: SYM-duplicateEntityViolations
+    to: TEST-kibi-duplicate-entity-declarations
+    created_at: 2026-11-05T11:49:05.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6decd8e7b6a

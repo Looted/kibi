@@ -5,6 +5,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+  MERGE_ATTRIBUTE_GAP,
+  MERGE_DRIVER_GAP,
   MERGE_DRIVER_SETUP,
   localKibiCommand,
   manifestMergeDriverGaps,
@@ -93,6 +95,50 @@ describe("merge driver setup details", () => {
       'Add to .gitattributes: ".kb/symbols.yaml merge=kibi" and ".kb/relationships/*.yaml merge=kibi"; then run: git config merge.kibi.driver "npm exec --no -- kibi merge-driver %O %A %B" (see docs/cli-reference.md#kibi-merge-driver-base-current-other).';
     expect(mergeDriverSetup()).toBe(expected);
     expect(MERGE_DRIVER_SETUP).toBe(expected);
+  });
+
+  test("the setup text names only the missing steps", () => {
+    const docs =
+      " (see docs/cli-reference.md#kibi-merge-driver-base-current-other).";
+    const attribute =
+      'Add to .gitattributes: ".kb/symbols.yaml merge=kibi" and ".kb/relationships/*.yaml merge=kibi"';
+    const driver =
+      'git config merge.kibi.driver "npm exec --no -- kibi merge-driver %O %A %B"';
+    expect(mergeDriverSetup(undefined, [MERGE_DRIVER_GAP])).toBe(
+      `Run: ${driver}${docs}`,
+    );
+    expect(mergeDriverSetup(undefined, [MERGE_ATTRIBUTE_GAP])).toBe(
+      `${attribute}${docs}`,
+    );
+    expect(
+      mergeDriverSetup(undefined, [MERGE_ATTRIBUTE_GAP, MERGE_DRIVER_GAP]),
+    ).toBe(`${attribute}; then run: ${driver}${docs}`);
+  });
+
+  test("a repository whose .gitattributes routes the manifests is told only to set the driver", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-merge-driver-routed-"));
+    try {
+      git(root, ["init", "-b", "main"]);
+      writeFileSync(join(root, "pnpm-lock.yaml"), "lockfileVersion: 9\n");
+      mkdirSync(join(root, ".kb"));
+      writeFileSync(
+        join(root, ".kb", "symbols.yaml"),
+        "symbols:\n  - id: SYM-a\n    title: a\n",
+      );
+      writeFileSync(
+        join(root, ".gitattributes"),
+        ".kb/symbols.yaml merge=kibi\n.kb/relationships/*.yaml merge=kibi\n",
+      );
+      const gaps = manifestMergeDriverGaps(root) ?? [];
+      expect(gaps).toEqual([MERGE_DRIVER_GAP]);
+      const setup = mergeDriverSetup(root, gaps);
+      expect(setup).not.toContain(".gitattributes");
+      expect(setup).toStartWith(
+        'Run: git config merge.kibi.driver "pnpm exec kibi merge-driver %O %A %B"',
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   test("outside a Git work tree there is nothing to report", () => {

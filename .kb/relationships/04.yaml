@@ -419,3 +419,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12fd04b266d0
+  - type: requires_predicate
+    from: REQ-kibi-duplicate-entity-declarations
+    to: FACT-PRED-duplicate-entity-declarations
+    created_at: 2026-11-05T11:47:15.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-615bf6b6787a
+  - type: specified_by
+    from: REQ-kibi-duplicate-entity-declarations
+    to: SCEN-kibi-duplicate-entity-declarations
+    created_at: 2026-11-05T11:48:35.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af6f38e557fd
+  - type: specified_by
+    from: REQ-kibi-duplicate-entity-declarations
+    to: SCEN-NEG-kibi-duplicate-entity-declarations
+    created_at: 2026-11-05T11:48:35.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fd5bf23ee62
+  - type: relates_to
+    from: REQ-kibi-duplicate-entity-declarations
+    to: REQ-kibi-uncompiled-source-visibility
+    created_at: 2026-11-05T11:48:35.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12419e23adf8

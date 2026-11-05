@@ -1249,7 +1249,7 @@ describe("merge driver check", () => {
         "Not configured: a; b. Merges of .kb/symbols.yaml fall back to line conflicts.",
       remediation: "Run: setup",
     });
-    expect(s.mergeSetup).toHaveBeenCalledWith(cwd);
+    expect(s.mergeSetup).toHaveBeenCalledWith(cwd, ["a", "b"]);
   });
 });
 

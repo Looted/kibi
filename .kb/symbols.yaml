@@ -29732,6 +29732,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-duplicate-entity-declarations
+      - type: covered_by
         target: TEST-kibi-source-relationship-parity
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
@@ -53552,6 +53554,8 @@ symbols:
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
       - type: covered_by
+        target: TEST-cli-doctor-merge-driver-remediation
+      - type: covered_by
         target: TEST-cli-doctor-workflows
       - type: implements
         target: REQ-cli-doctor
@@ -68763,3 +68767,120 @@ symbols:
         target: TEST-kibi-update-notice
       - type: implements
         target: REQ-kibi-update-notice
+  - id: SYM-kibi-duplicate-entity-declarations-verifier
+    title: Duplicate entity declarations verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/duplicate-entity-declarations.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T11:48:07.300Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-duplicate-entity-declarations
+  - id: SYM-cli-doctor-merge-driver-remediation-verifier
+    title: Doctor merge driver remediation verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/doctor-merge-driver-hint.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T11:48:12.481Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-doctor-merge-driver-remediation
+  - id: SYM-duplicateEntityViolations
+    title: duplicateEntityViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T11:49:03.618Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-duplicate-entity-declarations
+      - type: implements
+        target: REQ-kibi-duplicate-entity-declarations
+  - id: SYM-merge-driver-setup-mergeDriverSetup
+    title: mergeDriverSetup
+    status: active
+    sourceFile: packages/cli/src/utils/merge-driver-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T11:49:17.465Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-doctor-merge-driver-remediation
+      - type: implements
+        target: REQ-cli-doctor-merge-driver-remediation
+  - id: SYM-merge-driver-setup-MERGE_ATTRIBUTE_GAP
+    title: MERGE_ATTRIBUTE_GAP
+    status: active
+    sourceFile: packages/cli/src/utils/merge-driver-setup.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T11:49:24.013Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-doctor-merge-driver-remediation
+      - type: implements
+        target: REQ-cli-doctor-merge-driver-remediation
+  - id: SYM-merge-driver-setup-MERGE_DRIVER_GAP
+    title: MERGE_DRIVER_GAP
+    status: active
+    sourceFile: packages/cli/src/utils/merge-driver-setup.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T11:49:30.463Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-doctor-merge-driver-remediation
+      - type: implements
+        target: REQ-cli-doctor-merge-driver-remediation
+  - id: SYM-migrate-command-apply-plan-command
+    title: applyPlanCommand
+    status: active
+    sourceFile: packages/cli/src/commands/migrate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T12:07:09.209Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migrate-command-plan-changed-message
+    title: planChangedMessage
+    status: active
+    sourceFile: packages/cli/src/commands/migrate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T12:07:18.055Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-merge-driver-setup-localKibiCommand
+    title: localKibiCommand
+    status: active
+    sourceFile: packages/cli/src/utils/merge-driver-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T12:07:26.785Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-doctor-merge-driver-remediation
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-cli-doctor

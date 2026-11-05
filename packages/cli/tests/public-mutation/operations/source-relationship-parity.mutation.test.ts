@@ -239,6 +239,81 @@ describe("collectSourceRelationshipParityViolations", () => {
     );
   });
 
+  test("names each entity id declared more than once, before comparing links", async () => {
+    const root = gitWorkspace({
+      ".kb/requirements/REQ-c.md": requirement("REQ-c"),
+      ".kb/requirements/REQ-c-copy.md": requirement("REQ-c"),
+      ".kb/symbols.yaml": [
+        "symbols:",
+        "  - id: SYM-a",
+        "    title: a",
+        "    sourceFile: src/a.ts",
+        "  - id: SYM-b",
+        "    title: b",
+        "  - id: SYM-a",
+        "    title: A",
+        "    status: deprecated",
+        "",
+      ].join("\n"),
+    });
+    const port = engine();
+    const violations = await collectSourceRelationshipParityViolations(
+      root,
+      port,
+    );
+    expect(port.goals).toEqual([]);
+    const suggestion = (id: string, files: string) =>
+      `Keep one declaration of ${id} that carries the fields and links of every copy. When the copies differ only in their links, a kb_upsert of ${id} with its title and status merges them into one record. Otherwise edit ${files} by hand, then run kibi sync and rerun kb_check. Copies like these usually come from a merge without the Kibi merge driver; kibi doctor reports how to set it up.`;
+    expect(violations).toStrictEqual([
+      {
+        rule: "source-relationship-parity",
+        entityId: "REQ-c",
+        source: ".kb/requirements/REQ-c-copy.md, .kb/requirements/REQ-c.md",
+        description:
+          "REQ-c is declared 2 times ('REQ-c title' in .kb/requirements/REQ-c-copy.md; 'REQ-c title' in .kb/requirements/REQ-c.md), so the KB keeps only one of the declarations and the staged gate refuses every commit until one remains",
+        suggestion: suggestion(
+          "REQ-c",
+          ".kb/requirements/REQ-c-copy.md and .kb/requirements/REQ-c.md",
+        ),
+        evidence: {
+          direction: "duplicate_entity",
+          declarations: [
+            {
+              source: ".kb/requirements/REQ-c-copy.md",
+              title: "REQ-c title",
+              status: "open",
+            },
+            {
+              source: ".kb/requirements/REQ-c.md",
+              title: "REQ-c title",
+              status: "open",
+            },
+          ],
+        },
+      },
+      {
+        rule: "source-relationship-parity",
+        entityId: "SYM-a",
+        source: ".kb/symbols.yaml",
+        description:
+          "SYM-a is declared 2 times ('a' in .kb/symbols.yaml; 'A' in .kb/symbols.yaml), so the KB keeps only one of the declarations and the staged gate refuses every commit until one remains",
+        suggestion: suggestion("SYM-a", ".kb/symbols.yaml"),
+        evidence: {
+          direction: "duplicate_entity",
+          declarations: [
+            {
+              source: ".kb/symbols.yaml",
+              title: "a",
+              status: "active",
+              sourceFile: "src/a.ts",
+            },
+            { source: ".kb/symbols.yaml", title: "A", status: "deprecated" },
+          ],
+        },
+      },
+    ]);
+  });
+
   test("normalizes the separators of an authored source", async () => {
     const root = gitWorkspace({});
     spies.push(

@@ -147,6 +147,7 @@ describe("unit coverage runner contract", () => {
     ).toEqual([
       "./packages/cli/tests/commands/doctor-behavior.test.ts",
       "./packages/cli/tests/commands/doctor-git-context.test.ts",
+      "./packages/cli/tests/commands/doctor-merge-driver-hint.test.ts",
       "./packages/cli/tests/commands/doctor-remaining.coverage.test.ts",
       "./packages/cli/tests/commands/doctor-swipl-runtime.test.ts",
       "./packages/cli/tests/commands/doctor.in-process.test.ts",

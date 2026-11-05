@@ -4,7 +4,10 @@ import { sourceExtractionRemediation } from "../../commands/sync/cache.js";
 import { discoverSourceFiles } from "../../commands/sync/discovery.js";
 import { processExtractions } from "../../commands/sync/extraction.js";
 import { findUntrackedDocumentMatches } from "../../commands/sync/untracked-targets.js";
-import type { ExtractedRelationship } from "../../extractors/markdown.js";
+import type {
+  ExtractedRelationship,
+  ExtractionResult,
+} from "../../extractors/markdown.js";
 import { RELATIONSHIP_TYPES } from "../../operations/mutation/relationships.js";
 import { parseListOfLists, parsePrologValue } from "../../prolog/codec.js";
 import { readAllShards } from "../../relationships/shards.js";
@@ -239,6 +242,12 @@ export async function collectSourceRelationshipParityViolations(
     });
   }
 
+  const duplicates = duplicateEntityViolations(
+    workspaceRoot,
+    extraction.results,
+  );
+  if (duplicates.length > 0) return duplicates;
+
   const authored: RelationshipParityRecord[] = extraction.results.flatMap(
     ({ entity, relationships }) =>
       relationships.map((relationship) =>
@@ -258,6 +267,54 @@ export async function collectSourceRelationshipParityViolations(
     workspaceRoot,
     compareRelationshipParity(authored, await compiledRelationships(prolog)),
   );
+}
+
+/**
+ * Two authored declarations of one entity id compile into one store entity,
+ * so the store-backed rules cannot see the second copy, while the staged gate
+ * refuses every commit over it. One blocking finding per id names each
+ * declaration and the fix.
+ */
+// implements REQ-kibi-duplicate-entity-declarations
+export function duplicateEntityViolations(
+  workspaceRoot: string,
+  results: readonly ExtractionResult[],
+): Violation[] {
+  const byId = new Map<string, ExtractionResult[]>();
+  for (const result of results) {
+    const declarations = byId.get(result.entity.id);
+    if (declarations) declarations.push(result);
+    else byId.set(result.entity.id, [result]);
+  }
+  return [...byId].flatMap(([id, declarations]) => {
+    if (declarations.length < 2) return [];
+    // Ordered by file, and within a file as written, whatever order
+    // discovery listed the files in.
+    const shown = declarations
+      .map(({ entity, sourceFile }) => ({
+        source: path
+          .relative(workspaceRoot, path.resolve(workspaceRoot, entity.source))
+          .replaceAll(path.sep, "/"),
+        title: entity.title,
+        status: entity.status,
+        ...(sourceFile !== undefined ? { sourceFile } : {}),
+      }))
+      .sort((a, b) => (a.source < b.source ? -1 : a.source > b.source ? 1 : 0));
+    const sources = [...new Set(shown.map(({ source }) => source))];
+    return [
+      {
+        rule: "source-relationship-parity",
+        entityId: id,
+        source: sources.join(", "),
+        description: `${id} is declared ${declarations.length} times (${shown.map(({ source, title }) => `'${title}' in ${source}`).join("; ")}), so the KB keeps only one of the declarations and the staged gate refuses every commit until one remains`,
+        suggestion: `Keep one declaration of ${id} that carries the fields and links of every copy. When the copies differ only in their links, a kb_upsert of ${id} with its title and status merges them into one record. Otherwise edit ${sources.join(" and ")} by hand, then run kibi sync and rerun kb_check. Copies like these usually come from a merge without the Kibi merge driver; kibi doctor reports how to set it up.`,
+        evidence: {
+          direction: "duplicate_entity",
+          declarations: shown,
+        },
+      },
+    ];
+  });
 }
 
 /**
