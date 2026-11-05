@@ -1,0 +1,14 @@
+[
+  {
+    "rule": "source-relationship-parity",
+    "entityId": ".kb/requirements/REQ-bad.md",
+    "source": ".kb/requirements/REQ-bad.md",
+    "description": ".kb/requirements/REQ-bad.md cannot be compiled, so the entities and relationships it declares are missing from the KB: bad",
+    "suggestion": "Fix the front matter of .kb/requirements/REQ-bad.md named in the error (edit the file, or rewrite the entity with kb_upsert so the write replaces the failing field), then run kibi sync. Then rerun kb_check.",
+    "evidence": {
+      "direction": "source_extraction",
+      "file": ".kb/requirements/REQ-bad.md",
+      "error": "bad"
+    }
+  }
+]
