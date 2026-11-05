@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-025aeb0bcc79
+  - type: implements
+    from: SYM-kb-dependencies-kb-dependencies-path
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:53:54.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-075946432d1e
+  - type: covered_by
+    from: SYM-kb-dependencies-kb-dependencies-path
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:53:54.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb6319bc7b1e

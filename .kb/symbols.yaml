@@ -67502,6 +67502,708 @@ symbols:
         target: TEST-kibi-telemetry-expected-outcomes-cli
       - type: implements
         target: REQ-kibi-telemetry-agent-signals
+  - id: SYM-cli-json-command-with-console-on-stderr
+    title: withConsoleOnStderr
+    status: active
+    sourceFile: packages/cli/src/cli-json-command.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:03.902Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-json-command-write-optional-stderr
+    title: writeOptionalStderr
+    status: active
+    sourceFile: packages/cli/src/cli-json-command.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:09.920Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-deps-deps-command-options-type
+    title: DepsCommandOptions
+    status: active
+    sourceFile: packages/cli/src/commands/deps.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:16.050Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-deps-deps-fetch-command
+    title: depsFetchCommand
+    status: active
+    sourceFile: packages/cli/src/commands/deps.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:20.690Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-deps-deps-lock-command
+    title: depsLockCommand
+    status: active
+    sourceFile: packages/cli/src/commands/deps.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:25.338Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-deps-deps-status-command
+    title: depsStatusCommand
+    status: active
+    sourceFile: packages/cli/src/commands/deps.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:29.925Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-default-git-runner
+    title: defaultGitRunner
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:34.611Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-git-runner-type
+    title: GitRunner
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:39.512Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependencies-lock-path
+    title: KB_DEPENDENCIES_LOCK_PATH
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:44.265Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependencies-lock-version
+    title: KB_DEPENDENCIES_LOCK_VERSION
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:49.053Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependencies-path
+    title: KB_DEPENDENCIES_PATH
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:53.571Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependencies-version
+    title: KB_DEPENDENCIES_VERSION
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:57.932Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-cache-env
+    title: KB_DEPENDENCY_CACHE_ENV
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:54:02.486Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-min-schema-version
+    title: KB_DEPENDENCY_MIN_SCHEMA_VERSION
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:54:06.977Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-cache-root
+    title: kbDependencyCacheRoot
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:54:11.709Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-checkout-path
+    title: kbDependencyCheckoutPath
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:54:16.223Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-error-code
+    title: KbDependencyError.code
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:54:45.668Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-error
+    title: KbDependencyError
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:07.767Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-error-code-type
+    title: KbDependencyErrorCode
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:12.727Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-lock-type
+    title: KbDependencyLock
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:17.072Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-lock-entry-type
+    title: KbDependencyLockEntry
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:21.753Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-lock-outcome-type
+    title: KbDependencyLockOutcome
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:26.338Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-options-type
+    title: KbDependencyOptions
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:30.843Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-spec-type
+    title: KbDependencySpec
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:35.302Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-status
+    title: kbDependencyStatus
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:39.832Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-status-type
+    title: KbDependencyStatus
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:44.367Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-lock-entry-matches
+    title: lockEntryMatches
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:49.049Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-lock-kb-dependencies
+    title: lockKbDependencies
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:53.901Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-materialize-kb-dependency
+    title: materializeKbDependency
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:58.418Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-read-dependency-schema
+    title: readDependencySchema
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:02.882Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-read-kb-dependencies
+    title: readKbDependencies
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:07.515Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-read-kb-dependency-lock
+    title: readKbDependencyLock
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:12.152Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-resolved-kb-dependency-type
+    title: ResolvedKbDependency
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:16.654Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-resolve-git-ref
+    title: resolveGitRef
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:21.238Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-resolve-kb-dependency
+    title: resolveKbDependency
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:25.881Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-write-kb-dependency-lock
+    title: writeKbDependencyLock
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:30.446Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-cli-apply-kb-option
+    title: applyKbOption
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-cli.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:34.958Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-cli-kb-option-description
+    title: KB_OPTION_DESCRIPTION
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-cli.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:40.216Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-cli-scope-json-input-to-kb-dependency
+    title: scopeJsonInputToKbDependency
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-cli.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:44.653Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-enter-kb-dependency
+    title: enterKbDependency
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:48.765Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-kb-dependency-argument-name
+    title: KB_DEPENDENCY_ARGUMENT
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:51.892Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-kb-dependency-env
+    title: KB_DEPENDENCY_ENV
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:54.957Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-kb-dependency-input-schema
+    title: KB_DEPENDENCY_INPUT_SCHEMA
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:58.107Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-kb-dependency-argument
+    title: kbDependencyArgument
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:01.191Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-kb-dependency-label
+    title: kbDependencyLabel
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:04.422Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-without-kb-dependency-argument
+    title: withoutKbDependencyArgument
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:07.541Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-operation-reporting-with-branch-name
+    title: withBranchName
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:11.430Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-branch-resolver-detached-snapshot-kb-branch
+    title: DETACHED_SNAPSHOT_KB_BRANCH
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:16.690Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-branch-resolver-detached-head-write-refusal
+    title: detachedHeadWriteRefusal
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:21.092Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-branch-resolver-detached-read-only-attachment-type
+    title: DetachedReadOnlyAttachment
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:25.679Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-branch-resolver-resolve-read-branch-attachment
+    title: resolveReadBranchAttachment
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:30.090Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-branch-resolver-unreadable-migration-journal-error
+    title: unreadableMigrationJournalError
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:34.357Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-workspace-router-workspace-router-route-kb-dependency
+    title: WorkspaceRouter.routeKbDependency
+    status: active
+    sourceFile: packages/mcp/src/server/workspace-router.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:38.731Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-git-verifier
+    title: KB dependencies from git verifier
+    status: active
+    sourceFile: packages/cli/tests/dependencies/kb-dependency-commands.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:42.321Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-dependencies-git
   - id: SYM-test-kibi-release-version-script
     title: Kibi release script suite
     status: active

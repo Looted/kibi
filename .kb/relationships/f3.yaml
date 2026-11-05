@@ -311,3 +311,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-53d6d0810c87
+  - type: implements
+    from: SYM-kb-dependencies-kb-dependencies-lock-path
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:53:45.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd6c3c54b51d
+  - type: covered_by
+    from: SYM-kb-dependencies-kb-dependencies-lock-path
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:53:45.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cae7738ec5c

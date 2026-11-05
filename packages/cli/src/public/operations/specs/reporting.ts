@@ -1,3 +1,4 @@
+import { KB_DEPENDENCY_INPUT_SCHEMA } from "../../../dependencies/kb-dependency-scope.js";
 import { confirmMetaFreshness } from "../../../utils/content-freshness.js";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../../proof-receipt.js";
 import { executeStatus } from "../discovery-executors.js";
@@ -206,6 +207,7 @@ export const findGapsSpec = {
   businessInputSchema: {
     type: "object",
     properties: {
+      kb: KB_DEPENDENCY_INPUT_SCHEMA,
       type: {
         type: "string",
         enum: ENTITY_TYPES,
@@ -496,6 +498,7 @@ export const coverageSpec = {
   businessInputSchema: {
     type: "object",
     properties: {
+      kb: KB_DEPENDENCY_INPUT_SCHEMA,
       by: {
         type: "string",
         enum: ["req", "symbol", "type"],
@@ -631,6 +634,7 @@ export const graphSpec = {
     type: "object",
     required: ["seedIds"],
     properties: {
+      kb: KB_DEPENDENCY_INPUT_SCHEMA,
       seedIds: {
         type: "array",
         items: { type: "string" },

@@ -29,7 +29,12 @@ import {
   executeOperation,
   queryLimitExceededOf,
 } from "kibi-runtime";
-import { operationData, toKibiResult } from "kibi-runtime";
+import {
+  KB_DEPENDENCY_ARGUMENT,
+  kbDependencyArgument,
+  operationData,
+  toKibiResult,
+} from "kibi-runtime";
 import type { z } from "zod";
 import { routedBusinessArgs, routedOperationName } from "../diagnostics.js";
 import { isMcpDebugEnabled } from "../env.js";
@@ -325,6 +330,17 @@ function localDecision(
   return { kind: "local", args: rest };
 }
 
+/** Whether a tool's input schema takes the `kb` dependency scope. */
+// implements REQ-kb-dependencies-git
+function acceptsKbDependency(inputSchema: object): boolean {
+  const properties = (inputSchema as { properties?: unknown }).properties;
+  return (
+    typeof properties === "object" &&
+    properties !== null &&
+    KB_DEPENDENCY_ARGUMENT in properties
+  );
+}
+
 /** A result's diagnostics carry a routing or detached-HEAD notice when one applies. */
 function withWorkspaceNotice<T extends { diagnostics: readonly unknown[] }>(
   envelope: T,
@@ -399,6 +415,20 @@ export function addTool<TProlog>(
       // Without a router the decision is synchronous, so a plain call reaches
       // its handler without an extra microtask.
       const router = getWorkspaceRouter();
+      // implements REQ-kb-dependencies-git
+      // A `kb` scope is answered by that dependency's own kibi-mcp, never
+      // by this workspace's engine.
+      const dependency = acceptsKbDependency(inputSchema)
+        ? kbDependencyArgument(args)
+        : undefined;
+      if (dependency !== undefined) {
+        if (!router) {
+          throw new Error(
+            `KB dependency '${dependency}' can only be read through the Kibi MCP server's workspace router.`,
+          );
+        }
+        return await router.routeKbDependency(name, dependency, args);
+      }
       const routing = router
         ? await router.route(name, args)
         : localDecision(name, args);

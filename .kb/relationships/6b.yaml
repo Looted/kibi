@@ -468,3 +468,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8bad10a32f72
+  - type: implements
+    from: SYM-kb-dependencies-kb-dependency-error-code-type
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:55:13.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf1ad35d5606
+  - type: covered_by
+    from: SYM-kb-dependencies-kb-dependency-error-code-type
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:55:13.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d07661ddf7bd
+  - type: implements
+    from: SYM-branch-resolver-detached-head-write-refusal
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-11-04T10:57:22.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a0cdcfa142f
+  - type: covered_by
+    from: SYM-branch-resolver-detached-head-write-refusal
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-11-04T10:57:22.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e1a85309471

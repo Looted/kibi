@@ -7358,5 +7358,20 @@
         "./packages/cli/tests/update-check.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kb-dependencies-git",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "180000",
+        "./packages/cli/tests/dependencies/kb-dependencies.test.ts",
+        "./packages/cli/tests/dependencies/kb-dependency-commands.test.ts",
+        "./packages/mcp/tests/server/workspace-router-dependency.test.ts",
+        "./packages/mcp/tests/server/add-tool-paths.test.ts"
+      ]
+    ]
   }
 ]

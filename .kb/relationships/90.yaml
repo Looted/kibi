@@ -692,3 +692,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b4184b524cf
+  - type: implements
+    from: SYM-operation-reporting-with-branch-name
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-11-04T10:57:12.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-269283250279
+  - type: covered_by
+    from: SYM-operation-reporting-with-branch-name
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-11-04T10:57:12.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b52d26bb2a7

@@ -1078,6 +1078,7 @@ export function landingContent(args: {
         <li>Quick start</li>
         <li>Connect your coding agent</li>
         <li>Read the health report</li>
+        <li>Read the KBs of repositories you depend on</li>
       </ul>
       <span class="path-more">Start the guide &rarr;</span>
     </a>

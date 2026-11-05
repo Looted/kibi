@@ -107,6 +107,7 @@ function register(
     spec?: Spec;
     outputSchema?: object;
     server?: Record<string, unknown>;
+    inputSchema?: object;
   } = {},
 ): { call: Wrapped; config: Record<string, unknown> } {
   let call: Wrapped | undefined;
@@ -122,7 +123,7 @@ function register(
     server,
     name,
     "d",
-    { type: "object" },
+    options.inputSchema ?? { type: "object" },
     handler as never,
     tools,
     options.spec,
@@ -508,6 +509,68 @@ describe("tool results", () => {
       answer as never,
     );
     expect(handler).not.toHaveBeenCalled();
+  });
+});
+
+// implements REQ-kb-dependencies-git
+describe("KB dependency scope", () => {
+  const withKb = { type: "object", properties: { kb: { type: "string" } } };
+
+  test("a kb call is answered by the dependency route, not this workspace", async () => {
+    const answer = { content: [], structuredContent: { from: "dependency" } };
+    const calls: unknown[][] = [];
+    setWorkspaceRouter({
+      routeKbDependency: async (...args: unknown[]) => {
+        calls.push(args);
+        return answer;
+      },
+      route: async () => {
+        throw new Error("ordinary routing must not run");
+      },
+    } as unknown as WorkspaceRouter);
+    const handler = mock(async () => ({}));
+    const { tools } = runtime();
+    const { call } = register("kb_search", handler, tools, {
+      inputSchema: withKb,
+    });
+    expect(await call({ query: "q", kb: "billing" })).toBe(answer as never);
+    expect(calls).toEqual([
+      ["kb_search", "billing", { query: "q", kb: "billing" }],
+    ]);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  test("without a router a kb call fails instead of reading this KB", async () => {
+    const handler = mock(async () => ({}));
+    const { tools } = runtime();
+    const { call } = register("kb_search", handler, tools, {
+      inputSchema: withKb,
+    });
+    await expect(call({ kb: "billing" })).rejects.toThrow(
+      "KB dependency 'billing' can only be read through the Kibi MCP server's workspace router",
+    );
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  test("tools without the kb input and calls without a kb route as before", async () => {
+    const answer = { content: [], structuredContent: { from: "child" } };
+    const routed: unknown[] = [];
+    setWorkspaceRouter({
+      route: async (_name: string, args: unknown) => {
+        routed.push(args);
+        return { kind: "remote", result: answer };
+      },
+    } as unknown as WorkspaceRouter);
+    const { tools } = runtime();
+    const handler = mock(async () => ({}));
+    await register("kb_upsert", handler, tools).call({ kb: "billing" });
+    await register("kb_search", handler, tools, {
+      inputSchema: { type: "object", properties: null },
+    }).call({ kb: "billing" });
+    await register("kb_search", handler, tools, { inputSchema: withKb }).call({
+      kb: " ",
+    });
+    expect(routed).toEqual([{ kb: "billing" }, { kb: "billing" }, { kb: " " }]);
   });
 });
 

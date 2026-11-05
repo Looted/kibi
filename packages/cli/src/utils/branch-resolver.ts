@@ -340,6 +340,24 @@ function describeBranchesAtHead(branches: readonly string[]): string {
 }
 
 /**
+ * The read-only notice of a detached snapshot. A process serving a KB
+ * dependency (KIBI_KB_DEPENDENCY, set by the dependency scope) names the
+ * dependency and its pin instead of a detached HEAD a person checked out.
+ */
+// implements REQ-branch-store-recovery-v4, REQ-kb-dependencies-git
+function detachedSnapshotNotice(
+  head: string,
+  branches: readonly string[],
+  storePath: string,
+): string {
+  const dependency = process.env.KIBI_KB_DEPENDENCY?.trim();
+  if (dependency) {
+    return `KB dependency ${dependency}: read-only answers come from that repository's own KB at the pinned commit (store ${storePath}), kept apart from this project's KB; writes are refused.`;
+  }
+  return `Detached HEAD at ${head.slice(0, 12)}: ${describeBranchesAtHead(branches)}. Read-only answers come from a snapshot compiled from this checkout's tracked sources (store ${storePath}); writes are refused until a branch is checked out.`;
+}
+
+/**
  * Resolve the attachment for a read-only operation.
  *
  * Identical to {@link resolveBranchAttachment} except on a detached HEAD that
@@ -379,7 +397,7 @@ export function resolveReadBranchAttachment(
     readOnly: {
       head,
       branchesAtHead: branches,
-      notice: `Detached HEAD at ${head.slice(0, 12)}: ${describeBranchesAtHead(branches)}. Read-only answers come from a snapshot compiled from this checkout's tracked sources (store ${storePath}); writes are refused until a branch is checked out.`,
+      notice: detachedSnapshotNotice(head, branches, storePath),
     },
   };
 }
