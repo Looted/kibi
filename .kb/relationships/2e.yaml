@@ -35,13 +35,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a071525e7443
-  - type: implements
-    from: SYM-mcp-search-adapter
-    to: REQ-mcp-search-discovery
-    created_at: 2026-08-22T20:28:18.288Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-72d2de96df35
   - type: covered_by
     from: SYM-mcp-search-adapter
     to: TEST-kibi-operation-interface-parity

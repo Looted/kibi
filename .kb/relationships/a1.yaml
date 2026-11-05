@@ -41,13 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-87b4712a318a
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
-    to: REQ-agent-guided-migration-orchestration
-    created_at: 2026-08-21T19:53:00.838Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-902e12da934e
   - type: covered_by
     from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
     to: TEST-agent-guided-migration-orchestration

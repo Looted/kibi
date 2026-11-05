@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ef66272aa414
+  - type: assumes
+    from: SCEN-NEG-kibi-telemetry-agent-signals-RAW-RETRY-MARKER
+    to: FACT-NEG-kibi-telemetry-agent-signals-RAW-RETRY-MARKER
+    created_at: 2026-11-05T07:55:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5db50b4feb7e
+  - type: verified_by
+    from: SCEN-NEG-kibi-telemetry-agent-signals-RAW-RETRY-MARKER
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-05T07:55:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74e73e542988

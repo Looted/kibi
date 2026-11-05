@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e5a578cf062f
+  - type: assumes
+    from: SCEN-NEG-agent-guided-migration-orchestration-PLAN-WRITES
+    to: FACT-NEG-agent-guided-migration-orchestration-PLAN-WRITES
+    created_at: 2026-11-05T08:10:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8094d76f54c
+  - type: verified_by
+    from: SCEN-NEG-agent-guided-migration-orchestration-PLAN-WRITES
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-11-05T08:10:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cccac0d69d5d

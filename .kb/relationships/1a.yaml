@@ -314,3 +314,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01bcf87c9444
+  - type: constrains
+    from: REQ-kibi-uncompiled-source-reported
+    to: FACT-SUBJ-kibi-sync-uncompiled-sources
+    created_at: 2026-11-05T06:32:35.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92dc29631e12
+  - type: requires_property
+    from: REQ-kibi-uncompiled-source-reported
+    to: FACT-kibi-uncompiled-source-visibility-check-blocks
+    created_at: 2026-11-05T06:32:35.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-141b7ea85217
+  - type: requires_property
+    from: REQ-kibi-uncompiled-source-reported
+    to: FACT-kibi-uncompiled-source-visibility-status-not-fresh
+    created_at: 2026-11-05T06:32:35.996Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a1cbae9c26f
+  - type: specified_by
+    from: REQ-kibi-uncompiled-source-reported
+    to: SCEN-kibi-uncompiled-source-visibility
+    created_at: 2026-11-05T06:32:36.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b14c265a3b4
+  - type: specified_by
+    from: REQ-kibi-uncompiled-source-reported
+    to: SCEN-CASE-kibi-uncompiled-source-visibility-UNEXTRACTABLE-UNREPORTED
+    created_at: 2026-11-05T06:32:36.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bd776a93332
+  - type: verified_by
+    from: REQ-kibi-uncompiled-source-reported
+    to: TEST-kibi-uncompiled-source-visibility
+    created_at: 2026-11-05T06:32:36.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d941e35580eb
+  - type: supersedes
+    from: REQ-kibi-uncompiled-source-reported
+    to: REQ-kibi-uncompiled-source-visibility
+    created_at: 2026-11-05T06:32:36.136Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d146163a3a6

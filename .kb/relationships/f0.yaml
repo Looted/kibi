@@ -307,3 +307,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c0f3e4c6429a
+  - type: constrains
+    from: REQ-kibi-telemetry-evidence-correlation
+    to: FACT-SUBJECT-KIBI-TELEMETRY-REMEDIATION
+    created_at: 2026-11-05T06:50:40.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42acb129720b
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-evidence-correlation
+    to: FACT-TELEM-ADVISOR-CORRELATION
+    created_at: 2026-11-05T06:50:40.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a8af3690536
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-evidence-correlation
+    to: FACT-TELEM-PREFLIGHT-CORRELATION
+    created_at: 2026-11-05T06:50:40.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99363c8c7873
+  - type: specified_by
+    from: REQ-kibi-telemetry-evidence-correlation
+    to: SCEN-kibi-telemetry-remediation-evidence
+    created_at: 2026-11-05T06:50:40.167Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dca93939509e
+  - type: specified_by
+    from: REQ-kibi-telemetry-evidence-correlation
+    to: SCEN-NEG-kibi-telemetry-remediation-evidence-CROSS-ACTOR-PREFLIGHT
+    created_at: 2026-11-05T06:50:40.201Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afbcdf78b22f
+  - type: verified_by
+    from: REQ-kibi-telemetry-evidence-correlation
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-11-05T06:50:40.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03723603dd40
+  - type: supersedes
+    from: REQ-kibi-telemetry-evidence-correlation
+    to: REQ-kibi-telemetry-remediation-evidence
+    created_at: 2026-11-05T06:50:40.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5aa67a383fa4
+  - type: depends_on
+    from: REQ-kibi-telemetry-evidence-correlation
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-11-05T07:40:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-514f788c643b

@@ -251,3 +251,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a03962a15e87
+  - type: constrains
+    from: REQ-kibi-telemetry-remediation-report
+    to: FACT-SUBJECT-KIBI-TELEMETRY-REMEDIATION
+    created_at: 2026-11-05T06:51:09.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf4b0465010e
+  - type: requires_property
+    from: REQ-kibi-telemetry-remediation-report
+    to: FACT-TELEM-REPORT-CONTRACT
+    created_at: 2026-11-05T06:51:09.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81e5ba123fe3
+  - type: requires_property
+    from: REQ-kibi-telemetry-remediation-report
+    to: FACT-TELEM-EVENT-FIELDS
+    created_at: 2026-11-05T06:51:09.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a0b366224b8
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-remediation-report
+    to: FACT-TELEM-ORDERING
+    created_at: 2026-11-05T06:51:09.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6381d85d27d8
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-remediation-report
+    to: FACT-TELEM-COMMAND
+    created_at: 2026-11-05T06:51:09.936Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbf542d4615b
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-remediation-report
+    to: FACT-TELEM-MISSING-COVERAGE
+    created_at: 2026-11-05T06:51:09.968Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ff37974a65d
+  - type: specified_by
+    from: REQ-kibi-telemetry-remediation-report
+    to: SCEN-kibi-telemetry-remediation-evidence
+    created_at: 2026-11-05T06:51:09.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b02a9e2d7c3c
+  - type: specified_by
+    from: REQ-kibi-telemetry-remediation-report
+    to: SCEN-NEG-kibi-telemetry-remediation-evidence-CROSS-ACTOR-PREFLIGHT
+    created_at: 2026-11-05T06:51:10.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0906d9ba9f72
+  - type: specified_by
+    from: REQ-kibi-telemetry-remediation-report
+    to: SCEN-NEG-kibi-telemetry-remediation-evidence-COVERAGE-GAP-DROPPED
+    created_at: 2026-11-05T06:51:10.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6cd7a34e30ff
+  - type: verified_by
+    from: REQ-kibi-telemetry-remediation-report
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-11-05T06:51:10.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c45d9765574a
+  - type: supersedes
+    from: REQ-kibi-telemetry-remediation-report
+    to: REQ-kibi-telemetry-remediation-evidence
+    created_at: 2026-11-05T06:51:10.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ab63f7c45df
+  - type: depends_on
+    from: REQ-kibi-telemetry-remediation-report
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-11-05T07:40:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e86c77eeef7

@@ -146,10 +146,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c2922cac298f
-  - type: implements
-    from: SYM-agent-core-telemetry-signals-telemetrycrash
-    to: REQ-kibi-telemetry-agent-signals
-    created_at: 2026-11-03T14:23:18.069Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2fb6c000eca9

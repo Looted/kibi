@@ -20,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-85b10577a50d
-  - type: implements
-    from: SYM-operation-search-spec
-    to: REQ-mcp-search-discovery
-    created_at: 2026-08-22T20:30:26.888Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-666c0d301043
   - type: covered_by
     from: SYM-operation-search-spec
     to: TEST-kibi-operation-interface-parity

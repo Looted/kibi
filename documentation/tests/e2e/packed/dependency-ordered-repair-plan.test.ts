@@ -1,5 +1,6 @@
 import assert from "node:assert";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 
@@ -10,6 +11,7 @@ import {
   createSandbox,
   kibi,
   packAll,
+  run,
   stageSourceFile,
 } from "./helpers.js";
 
@@ -129,6 +131,31 @@ function assertLegacyMigrationPlan(plan: LegacyMigrationPlan) {
       ),
     );
   }
+}
+
+/** Git's view of the checkout plus a hash of every tracked file's bytes. */
+async function trackedState(sandbox: TestSandbox): Promise<string> {
+  const git = async (...args: string[]) => {
+    const result = await run("git", args, {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
+    assert.strictEqual(result.exitCode, 0, result.stderr);
+    return result.stdout;
+  };
+  const status = await git("status", "--porcelain=v1", "--untracked-files=all");
+  const files = (await git("ls-files", "-z")).split("\0").filter(Boolean);
+  const digest = createHash("sha256");
+  for (const file of files.sort()) {
+    digest.update(file).update("\0");
+    try {
+      digest.update(readFileSync(join(sandbox.repoDir, file)));
+    } catch {
+      digest.update("<missing>");
+    }
+    digest.update("\0");
+  }
+  return `${status}\n${digest.digest("hex")}`;
 }
 
 async function cliJson<T>(sandbox: TestSandbox, args: readonly string[]) {
@@ -470,6 +497,55 @@ if (RUN_NODE_TEST_SUITE) {
         }>(sandbox, ["status", "--format", "json"]);
         assert.strictEqual(afterStatus.snapshotId, beforeStatus.snapshotId);
         assert.strictEqual(afterStatus.dirty, beforeStatus.dirty);
+      },
+    );
+
+    it(
+      "builds migration plans from status, check and coverage without changing a tracked file",
+      { timeout: 300_000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+        const before = await trackedState(sandbox);
+
+        type PlanCarrier = {
+          migrationPlan?: { version: string; planHash: string };
+        };
+        const outputs = [
+          await kibi(sandbox, ["status", "--format", "json"]),
+          await kibi(sandbox, ["check", "--format", "json"]),
+          await kibi(sandbox, ["coverage", "--by", "req", "--format", "json"]),
+          await kibi(sandbox, ["migrate", "--format", "json"]),
+        ];
+        const plans = outputs.flatMap((result) => {
+          try {
+            const parsed = JSON.parse(result.stdout) as {
+              data?: PlanCarrier;
+              structuredContent?: PlanCarrier;
+            } & PlanCarrier;
+            const plan = (parsed.data ?? parsed.structuredContent ?? parsed)
+              .migrationPlan;
+            return plan === undefined ? [] : [plan];
+          } catch {
+            return [];
+          }
+        });
+        assert.ok(
+          plans.length > 0,
+          `no migration plan in: ${outputs.map((result) => result.stdout.slice(0, 200)).join(" | ")}`,
+        );
+        for (const plan of plans) {
+          assert.strictEqual(plan.version, "kibi.migration-plan.v2");
+          assert.match(plan.planHash, /^[a-f0-9]{64}$/);
+        }
+
+        assert.strictEqual(
+          await trackedState(sandbox),
+          before,
+          "building a migration plan must leave every tracked file unchanged",
+        );
       },
     );
 

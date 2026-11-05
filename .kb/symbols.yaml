@@ -44,10 +44,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-plan-contract
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
   - id: SYM-kibi-migrate-plan-command
     title: migratePlanCommand
     sourceFile: packages/cli/src/commands/migrate.ts
@@ -55,10 +55,10 @@ symbols:
     granularity_reason: extractor-miss
     status: active
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-plan-contract
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
   - id: SYM-kibi-migration-plan-version
     title: MIGRATION_PLAN_VERSION
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
@@ -79,10 +79,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-plan-contract
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
   - id: SYM-kibi-migration-check-actions
     title: buildActionsFromCheck
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
@@ -90,12 +90,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-plan-contract
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
       - type: covered_by
         target: TEST-kibi-predicate-vocabulary-migration-e2e
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
       - type: implements
         target: REQ-kibi-predicate-vocabulary-migration
   - id: SYM-kibi-migration-coverage-actions
@@ -105,10 +105,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-plan-contract
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
   - id: SYM-kibi-doctor-command
     title: doctorCommand
     status: active
@@ -158,10 +158,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-plan-contract
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
   - id: SYM-kibi-check-build-summary
     title: buildSummary
     sourceFile: packages/cli/src/public/operations/check-format-shared.ts
@@ -173,8 +173,6 @@ symbols:
         target: TEST-agent-guided-migration-orchestration
       - type: covered_by
         target: TEST-search-answer-hygiene
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
       - type: implements
         target: REQ-kb-check-unverified-requirement-statements
   - id: SYM-mcp-model-requirement-isolated-workspace-test
@@ -541,6 +539,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-apply-gate
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
       - type: covered_by
@@ -553,8 +553,6 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-predicate-vocabulary-migration-e2e
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
       - type: implements
         target: REQ-bootstrap-write-safety
   - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version
@@ -1974,10 +1972,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-discovery-inspection
       - type: covered_by
         target: TEST-mcp-search-discovery
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-cli-impact-AGGREGATE_KINDS
     title: AGGREGATE_KINDS
     sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
@@ -2400,6 +2398,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-uncompiled-source-reported
       - type: covered_by
         target: TEST-007
       - type: covered_by
@@ -2410,8 +2410,6 @@ symbols:
         target: TEST-kibi-uncompiled-source-visibility
       - type: implements
         target: REQ-core-extractors
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-cli-PrologProcess-query
     title: PrologProcess.query
     sourceFile: packages/cli/src/prolog.ts
@@ -2808,6 +2806,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-diagnostic-usage-records
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -2818,8 +2818,6 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-kibi-telemetry-remediation-evidence
   - id: SYM-cli-search-command
     title: searchCommand
     status: active
@@ -2827,6 +2825,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-discovery-search
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -2837,8 +2837,6 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-cli-skills-content-predicate-guidance-tests
     title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
@@ -4081,6 +4079,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-diagnostic-usage-records
       - type: covered_by
         target: TEST-005
       - type: covered_by
@@ -4091,8 +4091,6 @@ symbols:
         target: TEST-kibi-telemetry-remediation-evidence
       - type: implements
         target: REQ-kibi-telemetry-acceptance-gate-v2
-      - type: implements
-        target: REQ-kibi-telemetry-remediation-evidence
   - id: SYM-deriveFileOperationReminder
     title: deriveFileOperationReminder
     status: active
@@ -4240,6 +4238,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-discovery-search
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -4252,8 +4252,6 @@ symbols:
         target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-kibi-search-answer-layer-v2
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-discovery-execute-status
     title: executeStatus
     status: active
@@ -5361,6 +5359,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
+      - type: implements
+        target: REQ-kibi-discovery-inspection
       - type: covered_by
         target: TEST-cli-status-pre-first-sync
       - type: covered_by
@@ -5371,8 +5371,6 @@ symbols:
         target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-cli-status-pre-first-sync
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-KIBI-CONTAINER-ID
     title: KIBI_CONTAINER_ID
     sourceFile: packages/vscode/src/extensionIds.ts
@@ -5702,16 +5700,6 @@ symbols:
         target: REQ-kibi-bundled-skill-catalog
       - type: implements
         target: REQ-reusable-skill-subsystem
-  - id: SYM-loadMarkdownBody
-    title: loadMarkdownBody
-    sourceFile: packages/cli/src/search-ranking.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-search-discovery
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-loadSurface
     title: loadSurface
     sourceFile: scripts/skillopt-eval/offline-artifacts.ts
@@ -6098,6 +6086,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-discovery-search
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -6106,8 +6096,6 @@ symbols:
         target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-mcp-session-ensureBranchKbExists
     title: ensureBranchKbExists
     sourceFile: packages/mcp/src/server/session.ts
@@ -7492,6 +7480,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-discovery-search
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -7500,8 +7490,6 @@ symbols:
         target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-operation-semantic-advisor-spec
     title: semanticAdvisorSpec
     status: active
@@ -8423,10 +8411,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-discovery-search
       - type: covered_by
         target: TEST-mcp-search-discovery
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-readBundledSkillResource
     title: readBundledSkillResource
     sourceFile: packages/cli/src/public/skill-system/loader.ts
@@ -15655,14 +15643,14 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-evidence-correlation
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
       - type: implements
         target: REQ-kibi-telemetry-acceptance-gate-v2
-      - type: implements
-        target: REQ-kibi-telemetry-remediation-evidence
   - id: SYM-telemetry-acceptance-diagnostics
     title: createTelemetryAcceptanceDiagnostics
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
@@ -15754,10 +15742,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-diagnostic-usage-records
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
-      - type: implements
-        target: REQ-kibi-telemetry-remediation-evidence
   - id: SYM-telemetry-remediation-build
     title: buildTelemetryRemediationReport
     sourceFile: packages/cli/src/public/telemetry-remediation.ts
@@ -15766,10 +15754,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-report
+      - type: implements
+        target: REQ-kibi-telemetry-evidence-correlation
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
-      - type: implements
-        target: REQ-kibi-telemetry-remediation-evidence
   - id: SYM-telemetry-remediation-command
     title: usageRemediationCommand
     sourceFile: packages/cli/src/commands/usage-remediation.ts
@@ -15778,10 +15768,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-report
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
-      - type: implements
-        target: REQ-kibi-telemetry-remediation-evidence
   - id: SYM-test-packed-telemetry-remediation
     title: diagnosticTelemetry
     sourceFile: documentation/tests/e2e/packed/telemetry-remediation-evidence.test.ts
@@ -15796,10 +15786,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-diagnostic-usage-records
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
-      - type: implements
-        target: REQ-kibi-telemetry-remediation-evidence
   - id: SYM-reqcompiler-parity-version
     title: DISTRIBUTION_PARITY_VERSION
     sourceFile: packages/cli/src/public/distribution-parity.ts
@@ -15988,14 +15978,14 @@ symbols:
       - traceability
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-health-report-output
       - type: covered_by
         target: TEST-kibi-branded-health-report
       - type: covered_by
         target: TEST-kibi-html-health-report
       - type: implements
         target: REQ-kibi-branded-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
   - id: SYM-cli-report-render-html
     title: renderHtmlReport
     status: active
@@ -16008,6 +15998,8 @@ symbols:
       - traceability
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-health-report-content
       - type: covered_by
         target: TEST-kibi-branded-health-report
       - type: covered_by
@@ -16016,8 +16008,6 @@ symbols:
         target: TEST-kibi-html-health-report
       - type: implements
         target: REQ-kibi-branded-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
   - id: SYM-cli-report-proof-gates
     title: proofGates
     status: active
@@ -17156,14 +17146,14 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-uncompiled-source-reported
       - type: covered_by
         target: TEST-kibi-source-relationship-parity
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
       - type: implements
         target: REQ-kibi-source-relationship-parity
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-firstGitAdditionCommit
     title: firstGitAdditionCommit
     status: active
@@ -17817,10 +17807,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-health-report-content
       - type: covered_by
         target: TEST-kibi-html-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
   - id: SYM-cli-report-repository
     title: resolveReportRepository
     status: active
@@ -17828,10 +17818,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-health-report-content
       - type: covered_by
         target: TEST-kibi-html-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
   - id: SYM-cli-report-relative-time
     title: formatRelativeAge
     status: active
@@ -17839,10 +17829,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-health-report-content
       - type: covered_by
         target: TEST-kibi-html-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
   - id: SYM-core-proof-issues
     title: proof_issues
     status: active
@@ -17863,54 +17853,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-health-report-content
       - type: covered_by
         target: TEST-kibi-html-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
-  - id: SYM-cli-report-short-sha
-    title: shortCommitSha
-    status: active
-    sourceFile: packages/cli/src/report/repository.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-html-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
-  - id: SYM-cli-report-commit-web-url
-    title: commitWebUrl
-    status: active
-    sourceFile: packages/cli/src/report/repository.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-html-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
-  - id: SYM-cli-report-source-web-url
-    title: sourceWebUrl
-    status: active
-    sourceFile: packages/cli/src/report/repository.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-html-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
-  - id: SYM-cli-report-format-source-coordinate
-    title: formatSourceCoordinate
-    status: active
-    sourceFile: packages/cli/src/report/repository.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-html-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
   - id: SYM-cli-report-filters
     title: REPORT_FILTERS
     status: active
@@ -17944,10 +17890,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-health-report-content
       - type: covered_by
         target: TEST-kibi-html-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
   - id: SYM-cli-report-parse-timestamp
     title: parseTimestamp
     status: active
@@ -17955,10 +17901,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-health-report-content
       - type: covered_by
         target: TEST-kibi-html-health-report
-      - type: implements
-        target: REQ-kibi-html-health-report
   - id: SYM-opencode-classify-risk-params
     title: ClassifyRiskParams
     status: active
@@ -21666,10 +21612,10 @@ symbols:
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-apply-gate
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
   - id: SYM-staged-file-coverage-version
     title: STAGED_FILE_COVERAGE_RESULT_VERSION
     status: active
@@ -23155,6 +23101,8 @@ symbols:
     sourceFile: packages/cli/src/commands/doctor.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-apply-gate
       - type: covered_by
         target: TEST-001
       - type: covered_by
@@ -23163,14 +23111,14 @@ symbols:
         target: TEST-cli-doctor-packed-provenance
       - type: covered_by
         target: TEST-cli-doctor-workflows
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
   - id: SYM-doctor-package-migration-actions
     title: packageMigrationActions
     status: active
     sourceFile: packages/cli/src/commands/doctor.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-apply-gate
       - type: covered_by
         target: TEST-001
       - type: covered_by
@@ -23179,8 +23127,6 @@ symbols:
         target: TEST-cli-doctor-packed-provenance
       - type: covered_by
         target: TEST-cli-doctor-workflows
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
   - id: SYM-doctor-next-ancestor-directory
     title: nextAncestorDirectory
     status: active
@@ -23500,10 +23446,10 @@ symbols:
     sourceFile: packages/cli/src/public/operations/result-envelope.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-diagnostic-usage-records
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
-      - type: implements
-        target: REQ-kibi-telemetry-remediation-evidence
   - id: SYM-appendPayloadCountField
     title: appendPayloadCountField
     status: active
@@ -23511,14 +23457,14 @@ symbols:
     sourceFile: packages/cli/src/public/operations/result-envelope.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-diagnostic-usage-records
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
       - type: implements
         target: REQ-kibi-telemetry-acceptance-gate-v2
-      - type: implements
-        target: REQ-kibi-telemetry-remediation-evidence
   - id: SYM-diagnosticModeRequested
     title: diagnosticModeRequested
     status: active
@@ -23526,12 +23472,12 @@ symbols:
     sourceFile: packages/mcp/src/diagnostics.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-diagnostic-usage-records
       - type: covered_by
         target: TEST-001
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
-      - type: implements
-        target: REQ-kibi-telemetry-remediation-evidence
   - id: SYM-cursor-preEditGuidance
     title: preEditGuidance
     status: active
@@ -23573,6 +23519,8 @@ symbols:
     sourceFile: packages/cli/src/public/operations/discovery-entities.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-discovery-search
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -23581,8 +23529,6 @@ symbols:
         target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-cli-discovery-search-candidate-page-size
     title: SEARCH_CANDIDATE_PAGE_SIZE
     status: active
@@ -23803,20 +23749,20 @@ symbols:
     sourceFile: packages/cli/src/public/operations/discovery-entities.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-discovery-search
       - type: covered_by
         target: TEST-mcp-search-discovery
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-cli-reloadFullEntities
     title: reloadFullEntities
     status: active
     sourceFile: packages/cli/src/public/operations/discovery-entities.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-discovery-search
       - type: covered_by
         target: TEST-mcp-search-discovery
-      - type: implements
-        target: REQ-mcp-search-discovery
   - id: SYM-cli-queryEntitiesViaQuery
     title: queryEntitiesViaQuery
     status: active
@@ -27412,10 +27358,10 @@ symbols:
     sourceFile: packages/cli/src/public/diagnostic-usage.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-diagnostic-usage-records
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
-      - type: implements
-        target: REQ-kibi-telemetry-remediation-evidence
   - id: SYM-telemetry-acceptance-threshold-status
     title: thresholdStatus
     status: active
@@ -31206,14 +31152,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T12:57:46.011Z
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-apply-gate
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
       - type: covered_by
         target: TEST-cli-migrate-legacy-requirement-status
       - type: covered_by
         target: TEST-kibi-schema6-migration-cli
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
       - type: implements
         target: REQ-cli-schema-migration
   - id: SYM-decision-firmness-firm-unreferenced-rule
@@ -31347,10 +31293,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T12:58:46.987Z
     relationships:
+      - type: implements
+        target: REQ-kibi-migration-plan-contract
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
   - id: SYM-migration-plan-predicate-schema-alignment-code
     title: PREDICATE_SCHEMA_ALIGNMENT_CODE
     status: active
@@ -31383,8 +31329,6 @@ symbols:
         target: TEST-agent-guided-migration-orchestration
       - type: covered_by
         target: TEST-proof-untracked-sources-code
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
       - type: implements
         target: REQ-agent-migration-plan-codes
   - id: SYM-migration-plan-freshness-resync
@@ -32175,12 +32119,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T09:03:20.179Z
     relationships:
+      - type: implements
+        target: REQ-kibi-uncompiled-source-reported
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
       - type: implements
         target: REQ-kibi-uncompiled-source-semantic-baseline
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-upsert-read-uncompiled-authored-source
     title: readUncompiledAuthoredSource
     status: active
@@ -32190,12 +32134,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T09:03:39.294Z
     relationships:
+      - type: implements
+        target: REQ-kibi-uncompiled-source-upsert-guard
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
       - type: implements
         target: REQ-kibi-uncompiled-source-semantic-baseline
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-upsert-authored-entity-lookup
     title: authoredEntityLookup
     status: active
@@ -32205,12 +32149,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T09:03:53.878Z
     relationships:
+      - type: implements
+        target: REQ-kibi-uncompiled-source-upsert-guard
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
       - type: implements
         target: REQ-kibi-uncompiled-source-semantic-baseline
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-upsert-assert-authored-write-compiles
     title: assertAuthoredWriteCompiles
     status: active
@@ -32220,10 +32164,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T09:04:07.380Z
     relationships:
+      - type: implements
+        target: REQ-kibi-uncompiled-source-upsert-guard
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-source-authoring-new-entity-source-target
     title: newEntitySourceTarget
     status: active
@@ -32233,10 +32177,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T09:04:20.739Z
     relationships:
+      - type: implements
+        target: REQ-kibi-uncompiled-source-upsert-guard
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-sync-source-extraction-failed-code
     title: SOURCE_EXTRACTION_FAILED
     status: active
@@ -32354,10 +32298,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T10:13:18.774Z
     relationships:
+      - type: implements
+        target: REQ-kibi-uncompiled-source-upsert-guard
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-source-authoring-is-untracked-by-git
     title: isUntrackedByGit
     status: active
@@ -32412,6 +32356,8 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T10:13:43.411Z
     relationships:
+      - type: implements
+        target: REQ-kibi-uncompiled-source-upsert-guard
       - type: covered_by
         target: TEST-e2e-plan-compiler-hash
       - type: covered_by
@@ -32422,8 +32368,6 @@ symbols:
         target: TEST-kibi-uncompiled-source-visibility
       - type: implements
         target: REQ-kb-upsert-statement-follows-semantic-text
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-source-authoring-republish-pending-source-receipt
     title: republishPendingSourceReceipt
     status: active
@@ -33561,10 +33505,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T21:22:35.415Z
     relationships:
+      - type: implements
+        target: REQ-kibi-uncompiled-source-reported
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-diagnostics-createInvalidAuthoringDiagnostic
     title: createInvalidAuthoringDiagnostic
     status: active
@@ -33574,10 +33518,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T21:22:42.229Z
     relationships:
+      - type: implements
+        target: REQ-kibi-uncompiled-source-reported
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-diagnostics-formatDiagnosticsForMcp
     title: formatDiagnosticsForMcp
     status: active
@@ -33587,10 +33531,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T21:22:48.861Z
     relationships:
+      - type: implements
+        target: REQ-kibi-uncompiled-source-reported
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
-      - type: implements
-        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-intent-claim-kinds
     title: INTENT_CLAIM_KINDS
     status: active
@@ -44176,10 +44120,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:22:50.132Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-session-signals
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
   - id: SYM-agent-core-telemetry-signals-telemetryfield
     title: telemetryField
     status: active
@@ -44189,10 +44133,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:22:59.623Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-event-contents
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
   - id: SYM-agent-core-telemetry-signals-telemetryrule
     title: telemetryRule
     status: active
@@ -44202,10 +44146,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:23:08.034Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-event-contents
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
   - id: SYM-agent-core-telemetry-signals-telemetrycrash
     title: telemetryCrash
     status: active
@@ -44215,10 +44159,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:23:15.809Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-event-contents
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
   - id: SYM-agent-core-telemetry-signals-kibiskillload
     title: kibiSkillLoad
     status: active
@@ -44228,10 +44172,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:23:24.697Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-session-signals
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
   - id: SYM-agent-core-telemetry-signals-recalloperation
     title: recallOperation
     status: active
@@ -44241,10 +44185,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:23:33.451Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-session-signals
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
   - id: SYM-agent-core-telemetry-signals-rememberskillload
     title: rememberSkillLoad
     status: active
@@ -44254,10 +44198,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:23:42.887Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-session-signals
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
   - id: SYM-agent-core-usage-telemetry-remembertelemetryskillload
     title: rememberTelemetrySkillLoad
     status: active
@@ -44267,10 +44211,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:23:51.867Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-session-signals
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
   - id: SYM-agent-core-hook-usage-log-skillloadtrace
     title: skillLoadTrace
     status: active
@@ -44280,10 +44224,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:24:01.301Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-session-signals
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
   - id: SYM-cli-telemetry-details-operationtelemetrysignals
     title: operationTelemetrySignals
     status: active
@@ -44293,10 +44237,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:24:10.680Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-session-signals
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
   - id: SYM-cli-telemetry-details-schemaissues
     title: schemaIssues
     status: active
@@ -44306,10 +44250,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:24:20.426Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-event-contents
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
   - id: SYM-cli-telemetry-details-kibischemafieldnames
     title: kibiSchemaFieldNames
     status: active
@@ -44319,23 +44263,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:24:39.063Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-event-contents
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
-  - id: SYM-cli-usage-telemetry-noteclioperationcall
-    title: noteCliOperationCall
-    status: active
-    sourceFile: packages/cli/src/usage-telemetry.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-03T14:24:48.282Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-telemetry-expected-outcomes-cli
-      - type: implements
-        target: REQ-kibi-telemetry-agent-signals
   - id: SYM-test-kibi-release-version-script
     title: Kibi release script suite
     status: active
@@ -44491,3 +44422,19 @@ symbols:
         target: TEST-kibi-release-version
       - type: implements
         target: REQ-kibi-release-version
+  - id: SYM-cli-report-assert-complete-rows
+    title: assertCompleteRequirementRows
+    status: active
+    sourceFile: packages/cli/src/commands/report.ts
+    symbol_role: behavioral
+    tags:
+      - cli
+      - report
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T06:56:39.851Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-html-health-report
+      - type: implements
+        target: REQ-kibi-health-report-complete-data

@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9f8493aaa6eb
+  - type: assumes
+    from: SCEN-NEG-kibi-html-health-report-OPEN-AFTER-FAILED-WRITE
+    to: FACT-NEG-kibi-html-health-report-OPEN-AFTER-FAILED-WRITE
+    created_at: 2026-11-05T07:20:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-278e7beeb96b
+  - type: verified_by
+    from: SCEN-NEG-kibi-html-health-report-OPEN-AFTER-FAILED-WRITE
+    to: TEST-kibi-html-health-report
+    created_at: 2026-11-05T07:20:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d6001259a14

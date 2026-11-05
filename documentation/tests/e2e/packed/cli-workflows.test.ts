@@ -993,6 +993,123 @@ if (RUN_NODE_TEST_SUITE) {
       }
     });
 
+    it("should escape knowledge-base markup in the health report", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      const markupPath = ".kb/requirements/REQ-MARKUP.md";
+      await createInventoriedRequirement(
+        sandbox,
+        markupPath,
+        {
+          id: "REQ-MARKUP",
+          title: "Markup <script>window.pwned=1</script> & <b>bold</b> title",
+          status: "open",
+          tags: ["test"],
+        },
+        [
+          "The report must render this requirement title as text.",
+          "",
+          "## Context",
+          "",
+          "Requirement text is authored by people and agents, so markup in it must never become live markup in the report.",
+        ].join("\n"),
+      );
+      try {
+        const synced = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(synced.exitCode, 0, synced.stdout + synced.stderr);
+
+        const { stdout, stderr, exitCode } = await kibi(
+          sandbox,
+          ["report", "--output", "kibi-report-markup"],
+          { timeoutMs: 120000 },
+        );
+        assert.strictEqual(exitCode, 0, stdout + stderr);
+        const html = await readFile(
+          path.join(sandbox.repoDir, "kibi-report-markup", "index.html"),
+          "utf8",
+        );
+        assert.match(html, /REQ-MARKUP/);
+        assert.match(
+          html,
+          /Markup &lt;script&gt;window\.pwned=1&lt;\/script&gt; &amp; &lt;b&gt;bold&lt;\/b&gt; title/,
+        );
+        assert.doesNotMatch(html, /<script>window\.pwned=1<\/script>/);
+        assert.doesNotMatch(html, /<b>bold<\/b>/);
+      } finally {
+        await run("git", ["rm", "-q", "-f", "--", markupPath], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        await kibi(sandbox, ["sync"]);
+      }
+    });
+
+    it("should open the health report only after it was written", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      // A stand-in browser launcher records every file it is asked to open.
+      const launcherDir = path.join(sandbox.repoDir, ".launcher-bin");
+      const launches = path.join(sandbox.repoDir, ".launcher-calls");
+      await mkdir(launcherDir, { recursive: true });
+      await writeFile(
+        path.join(launcherDir, "xdg-open"),
+        `#!/bin/sh\necho "$1" >> "${launches}"\n`,
+        { mode: 0o755 },
+      );
+      const env = {
+        ...sandbox.env,
+        PATH: `${launcherDir}${path.delimiter}${sandbox.env.PATH ?? ""}`,
+      };
+      // A regular file where the output directory should be makes the write fail.
+      await writeFile(path.join(sandbox.repoDir, "report-blocker"), "file\n");
+
+      const failed = await run(
+        "node",
+        [
+          sandbox.kibiBin,
+          "report",
+          "--output",
+          "report-blocker/index.html",
+          "--open",
+        ],
+        { cwd: sandbox.repoDir, env, timeoutMs: 120000 },
+      );
+      assert.notStrictEqual(
+        failed.exitCode,
+        0,
+        `a failed write must fail the report. Output: ${failed.stdout}${failed.stderr}`,
+      );
+      await assert.rejects(
+        readFile(launches, "utf8"),
+        "the browser must not open after a failed write",
+      );
+
+      const opened = await run(
+        "node",
+        [sandbox.kibiBin, "report", "--output", "kibi-report-open", "--open"],
+        { cwd: sandbox.repoDir, env, timeoutMs: 120000 },
+      );
+      assert.strictEqual(opened.exitCode, 0, opened.stdout + opened.stderr);
+      const expected = path.join(
+        sandbox.repoDir,
+        "kibi-report-open",
+        "index.html",
+      );
+      let calls = "";
+      for (let attempt = 0; attempt < 50 && calls === ""; attempt += 1) {
+        calls = await readFile(launches, "utf8").catch(() => "");
+        if (calls === "") await new Promise((done) => setTimeout(done, 100));
+      }
+      assert.match(calls, new RegExp(path.basename(path.dirname(expected))));
+      assert.match(calls, /index\.html/);
+    });
+
     it(
       "keeps typed predicate fields in the staged overlay so a staged decision conflict is reported",
       { timeout: 120000 },

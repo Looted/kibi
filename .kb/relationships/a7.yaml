@@ -38,13 +38,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28d885fc400a
-  - type: implements
-    from: SYM-cli-report-format-absolute-utc
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T20:40:53.096Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-991e794a72aa
   - type: covered_by
     from: SYM-cli-report-format-absolute-utc
     to: TEST-kibi-html-health-report
@@ -192,3 +185,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d95f1b723ba
+  - type: requires_predicate
+    from: REQ-kibi-health-report-complete-data
+    to: FACT-PRED-775E3CA717FB
+    created_at: 2026-11-05T06:46:36.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c831d40ce55
+  - type: requires_predicate
+    from: REQ-kibi-health-report-complete-data
+    to: FACT-PRED-B606CED833B8
+    created_at: 2026-11-05T06:46:36.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af47e5bae312
+  - type: specified_by
+    from: REQ-kibi-health-report-complete-data
+    to: SCEN-kibi-html-health-report
+    created_at: 2026-11-05T06:46:36.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4a82079c15c
+  - type: specified_by
+    from: REQ-kibi-health-report-complete-data
+    to: SCEN-NEG-kibi-html-health-report-partial-coverage-page
+    created_at: 2026-11-05T06:46:36.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c52264d5cbf5
+  - type: verified_by
+    from: REQ-kibi-health-report-complete-data
+    to: TEST-kibi-html-health-report
+    created_at: 2026-11-05T06:46:36.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90f3d9e082cf
+  - type: supersedes
+    from: REQ-kibi-health-report-complete-data
+    to: REQ-kibi-html-health-report
+    created_at: 2026-11-05T06:46:36.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a2794b39390

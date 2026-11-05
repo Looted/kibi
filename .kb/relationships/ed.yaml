@@ -83,13 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4952189ca2ed
-  - type: implements
-    from: SYM-doctor-package-migration-actions
-    to: REQ-agent-guided-migration-orchestration
-    created_at: 2026-09-22T11:35:30.686Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f2278830ea0a
   - type: covered_by
     from: SYM-doctor-package-migration-actions
     to: TEST-001
@@ -433,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ec236f84961
+  - type: assumes
+    from: SCEN-NEG-kibi-html-health-report-UNESCAPED-MARKUP
+    to: FACT-NEG-kibi-html-health-report-UNESCAPED-MARKUP
+    created_at: 2026-11-05T07:20:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe2eeffcc456
+  - type: verified_by
+    from: SCEN-NEG-kibi-html-health-report-UNESCAPED-MARKUP
+    to: TEST-kibi-html-health-report
+    created_at: 2026-11-05T07:20:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36766b733340

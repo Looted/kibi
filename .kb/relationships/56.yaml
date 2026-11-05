@@ -328,3 +328,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-834188b947f6
+  - type: requires_predicate
+    from: REQ-kibi-health-report-content
+    to: FACT-PRED-FBED98927CA2
+    created_at: 2026-11-05T06:46:53.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c5e614af0f7
+  - type: requires_predicate
+    from: REQ-kibi-health-report-content
+    to: FACT-PRED-5B296D9EA88F
+    created_at: 2026-11-05T06:46:53.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ddabdefe9a4
+  - type: specified_by
+    from: REQ-kibi-health-report-content
+    to: SCEN-kibi-html-health-report
+    created_at: 2026-11-05T06:46:53.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af4236536f4c
+  - type: specified_by
+    from: REQ-kibi-health-report-content
+    to: SCEN-NEG-kibi-html-health-report-UNESCAPED-MARKUP
+    created_at: 2026-11-05T06:46:53.494Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae5379630f76
+  - type: verified_by
+    from: REQ-kibi-health-report-content
+    to: TEST-kibi-html-health-report
+    created_at: 2026-11-05T06:46:53.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8aa8ed9665bc
+  - type: supersedes
+    from: REQ-kibi-health-report-content
+    to: REQ-kibi-html-health-report
+    created_at: 2026-11-05T06:46:53.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9158b712832

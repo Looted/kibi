@@ -328,3 +328,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-543472e414d6
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-session-signals
+    to: FACT-PRED-telemetry-upsert-attempt
+    created_at: 2026-11-05T07:00:14.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-041efaf61d46
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-session-signals
+    to: FACT-PRED-telemetry-search-result-count
+    created_at: 2026-11-05T07:00:14.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ec1d6aad392
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-session-signals
+    to: FACT-PRED-telemetry-recall-markers-local
+    created_at: 2026-11-05T07:00:14.980Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-700614f07c54
+  - type: specified_by
+    from: REQ-kibi-telemetry-session-signals
+    to: SCEN-kibi-telemetry-agent-signals
+    created_at: 2026-11-05T07:00:15.017Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3a2ce670445
+  - type: specified_by
+    from: REQ-kibi-telemetry-session-signals
+    to: SCEN-NEG-kibi-telemetry-agent-signals-RAW-RETRY-MARKER
+    created_at: 2026-11-05T07:00:15.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e3154f4d726
+  - type: verified_by
+    from: REQ-kibi-telemetry-session-signals
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-05T07:00:15.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fef9d8a9453f
+  - type: relates_to
+    from: REQ-kibi-telemetry-session-signals
+    to: REQ-kibi-anonymous-usage-telemetry
+    created_at: 2026-11-05T07:00:15.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95e03030941f
+  - type: supersedes
+    from: REQ-kibi-telemetry-session-signals
+    to: REQ-kibi-telemetry-agent-signals
+    created_at: 2026-11-05T07:00:15.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-524a8f4fd475

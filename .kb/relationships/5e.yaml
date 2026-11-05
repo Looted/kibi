@@ -237,3 +237,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-851f18c4239b
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-event-contents
+    to: FACT-PRED-telemetry-refusal-names-rule-and-field
+    created_at: 2026-11-05T06:59:05.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-041523cbb51a
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-event-contents
+    to: FACT-PRED-telemetry-unknown-field-as-other
+    created_at: 2026-11-05T06:59:05.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b659904c1986
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-event-contents
+    to: FACT-PRED-telemetry-crash-kibi-frames-only
+    created_at: 2026-11-05T06:59:05.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a344cead0974
+  - type: specified_by
+    from: REQ-kibi-telemetry-event-contents
+    to: SCEN-kibi-telemetry-agent-signals
+    created_at: 2026-11-05T06:59:05.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6540e28f07c8
+  - type: specified_by
+    from: REQ-kibi-telemetry-event-contents
+    to: SCEN-NEG-kibi-telemetry-agent-signals-invented-field
+    created_at: 2026-11-05T06:59:05.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8250dc43468
+  - type: verified_by
+    from: REQ-kibi-telemetry-event-contents
+    to: TEST-kibi-telemetry-expected-outcomes-cli
+    created_at: 2026-11-05T06:59:05.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f88364e629d9
+  - type: relates_to
+    from: REQ-kibi-telemetry-event-contents
+    to: REQ-kibi-telemetry-expected-outcomes
+    created_at: 2026-11-05T06:59:05.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-503c4cc07eab
+  - type: relates_to
+    from: REQ-kibi-telemetry-event-contents
+    to: REQ-kibi-anonymous-usage-telemetry
+    created_at: 2026-11-05T06:59:05.852Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80ffcd831ddc
+  - type: supersedes
+    from: REQ-kibi-telemetry-event-contents
+    to: REQ-kibi-telemetry-agent-signals
+    created_at: 2026-11-05T06:59:05.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efda5da87992

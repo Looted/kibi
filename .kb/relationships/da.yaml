@@ -556,3 +556,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2275af5b079
+  - type: constrains
+    from: REQ-kibi-migration-plan-contract
+    to: FACT-SUBJ-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION
+    created_at: 2026-11-05T07:07:31.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3b1e27e29d0
+  - type: requires_property
+    from: REQ-kibi-migration-plan-contract
+    to: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C01
+    created_at: 2026-11-05T07:07:31.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6cf9d7a8e4c7
+  - type: requires_property
+    from: REQ-kibi-migration-plan-contract
+    to: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C02
+    created_at: 2026-11-05T07:07:31.632Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83ae26fe6b90
+  - type: requires_property
+    from: REQ-kibi-migration-plan-contract
+    to: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C03
+    created_at: 2026-11-05T07:07:31.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-746c08353c7e
+  - type: specified_by
+    from: REQ-kibi-migration-plan-contract
+    to: SCEN-agent-guided-migration-orchestration
+    created_at: 2026-11-05T07:07:31.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d677834f6e8a
+  - type: specified_by
+    from: REQ-kibi-migration-plan-contract
+    to: SCEN-NEG-agent-guided-migration-orchestration-PLAN-WRITES
+    created_at: 2026-11-05T07:07:31.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba16e060953f
+  - type: verified_by
+    from: REQ-kibi-migration-plan-contract
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-11-05T07:07:31.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbcc5f7aefe4
+  - type: supersedes
+    from: REQ-kibi-migration-plan-contract
+    to: REQ-agent-guided-migration-orchestration
+    created_at: 2026-11-05T07:07:31.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29eec15f920e
