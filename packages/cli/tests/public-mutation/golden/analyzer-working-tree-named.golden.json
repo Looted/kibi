@@ -1,0 +1,150 @@
+{
+  "impactDiagnostics": [
+    {
+      "id": "source_file_unowned",
+      "severity": "info",
+      "blocking": false,
+      "category": "requirement",
+      "files": ["src/fresh.ts"],
+      "docs": ["docs/symbol-traceability-taxonomy.md"],
+      "message": "No symbol in src/fresh.ts is linked to a requirement, so this check finds no owner for it; that does not mean no recorded rule covers the behavior it implements.",
+      "suggestion": "kb_search({query:\"<the behavior>\", sourceLocations:[{path:\"src/fresh.ts\"}]}) for a requirement that already describes it. If none does and the change adds behavior, record a requirement with a scenario and link it with implements as part of this change; if behavior is unchanged, say so in the final report.",
+      "evidence": {
+        "candidates": []
+      }
+    },
+    {
+      "id": "source_file_unowned",
+      "severity": "info",
+      "blocking": false,
+      "category": "requirement",
+      "files": ["src/loose.ts"],
+      "docs": ["docs/symbol-traceability-taxonomy.md"],
+      "message": "No symbol in src/loose.ts is linked to a requirement, so this check finds no owner for it; that does not mean no recorded rule covers the behavior it implements.",
+      "suggestion": "kb_search({query:\"<the behavior>\", sourceLocations:[{path:\"src/loose.ts\"}]}) for a requirement that already describes it. If none does and the change adds behavior, record a requirement with a scenario and link it with implements as part of this change; if behavior is unchanged, say so in the final report.",
+      "evidence": {
+        "candidates": []
+      }
+    },
+    {
+      "id": "requirement_statement_unverified",
+      "severity": "warning",
+      "blocking": false,
+      "category": "requirement",
+      "entityId": "REQ-upload",
+      "files": ["src/upload.ts"],
+      "docs": ["docs/symbol-traceability-taxonomy.md"],
+      "message": "The change edits upload, which implements REQ-upload [firm: ask before changing]: \"Uploads keep their name.\" Kibi compared links and facts, not the code with this statement, so no violation here does not mean the change keeps it.",
+      "suggestion": "Confirm the changed code still does what REQ-upload says. If it no longer does, the request conflicts with a rule a person set: stop and ask whether to change REQ-upload; change it only with their words in origin.ref, and say in the final answer which rule changed.",
+      "evidence": {
+        "requirement": "REQ-upload",
+        "firmness": "firm",
+        "statement": "Uploads keep their name.",
+        "symbols": ["upload"]
+      }
+    },
+    {
+      "id": "symbol_semantic_review_needed",
+      "severity": "warning",
+      "blocking": false,
+      "category": "symbol",
+      "files": ["src/fresh.ts"],
+      "docs": ["docs/symbol-traceability-taxonomy.md"],
+      "message": "Changed behavioral symbol fresh is in a file no requirement owns, so no recorded intent covers the behavior it has after this change",
+      "suggestion": "If the change adds or alters behavior, record it as part of this change; that is part of finishing it, not a separate request, so it needs no permission: kb_search({query:\"<the behavior>\", sourceLocations:[{path:\"src/fresh.ts\"}]}) for a requirement that already describes it and link fresh to it; if none does, kb_upsert a requirement with a scenario and link the symbol with implements. If behavior is unchanged (a refactor, renaming), say so in the final report instead."
+    },
+    {
+      "id": "symbol_semantic_review_needed",
+      "severity": "warning",
+      "blocking": false,
+      "category": "symbol",
+      "files": ["src/loose.ts"],
+      "docs": ["docs/symbol-traceability-taxonomy.md"],
+      "message": "Changed behavioral symbol loose is in a file no requirement owns, so no recorded intent covers the behavior it has after this change",
+      "suggestion": "If the change adds or alters behavior, record it as part of this change; that is part of finishing it, not a separate request, so it needs no permission: kb_search({query:\"<the behavior>\", sourceLocations:[{path:\"src/loose.ts\"}]}) for a requirement that already describes it and link loose to it; if none does, kb_upsert a requirement with a scenario and link the symbol with implements. If behavior is unchanged (a refactor, renaming), say so in the final report instead."
+    },
+    {
+      "id": "symbol_semantic_review_needed",
+      "severity": "warning",
+      "blocking": false,
+      "category": "symbol",
+      "files": ["src/upload.ts"],
+      "docs": ["docs/symbol-traceability-taxonomy.md"],
+      "message": "Changed behavioral symbol upload needs semantic review against linked Kibi coverage: REQ-upload",
+      "suggestion": "Use kb_search and kb_query for src/upload.ts, then verify that REQ-upload actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh."
+    }
+  ],
+  "sourceFiles": ["src/fresh.ts", "src/loose.ts", "src/upload.ts"],
+  "extractedSymbols": [
+    {
+      "id": "c1a094aaab0ffea5",
+      "name": "fresh",
+      "kind": "function",
+      "role": "behavioral",
+      "location": {
+        "file": "src/fresh.ts",
+        "startLine": 1,
+        "endLine": 3
+      },
+      "hunkRanges": [
+        {
+          "start": 1,
+          "end": 4
+        }
+      ],
+      "linkedEntityIds": []
+    },
+    {
+      "id": "SYM-loose",
+      "name": "loose",
+      "kind": "function",
+      "role": "behavioral",
+      "location": {
+        "file": "src/loose.ts",
+        "startLine": 1,
+        "endLine": 3
+      },
+      "hunkRanges": [
+        {
+          "start": 1,
+          "end": 4
+        }
+      ],
+      "linkedEntityIds": []
+    },
+    {
+      "id": "SYM-upload",
+      "name": "upload",
+      "kind": "function",
+      "role": "behavioral",
+      "location": {
+        "file": "src/upload.ts",
+        "startLine": 1,
+        "endLine": 3
+      },
+      "hunkRanges": [
+        {
+          "start": 1,
+          "end": 4
+        }
+      ],
+      "linkedEntityIds": ["REQ-upload"]
+    }
+  ],
+  "linkedEntities": [
+    {
+      "id": "REQ-upload",
+      "relationshipType": "implements",
+      "sourceSymbolId": "SYM-upload",
+      "sourceSymbolName": "upload"
+    }
+  ],
+  "nextActions": [
+    "kb_search({ query: \"src/fresh.ts src/loose.ts src/upload.ts\" }) to discover requirements/tests that may describe the changed behavior.",
+    "kb_query({ sourceFile: \"src/fresh.ts\" }) to inspect exact source-linked Kibi entities before deciding whether requirements/tests need updates.",
+    "kb_query({ sourceFile: \"src/loose.ts\" }) to inspect exact source-linked Kibi entities before deciding whether requirements/tests need updates.",
+    "kb_query({ sourceFile: \"src/upload.ts\" }) to inspect exact source-linked Kibi entities before deciding whether requirements/tests need updates.",
+    "Update narrower symbols, requirements, tests, or strict facts when diagnostics show broad or stale modeling.",
+    "rerun kb_check with the same sourceFiles/impact options after Kibi updates."
+  ]
+}
