@@ -16,3 +16,4 @@ Fix several `kibi migrate` and semantic advisor edge cases found while tightenin
 - Re-deriving the semantic inventory of a requirement whose current prose has only context claims (rationale, examples) now removes `logic_claims` instead of writing an empty list the schema rejects. Before, `kibi migrate` stopped with a schema error for such a requirement.
 - A rule suggestion built from a host interpretation now keeps its confidence within 0 to 1, as the interpretation result already did, instead of repeating an out-of-range value.
 - Marking coarse symbol links `legacy-link` now keeps the final newline of `.kb/symbols.yaml`. Before, a reason added to the last symbol was written after a blank line, at the very end of the file without a newline.
+- `kb_compile_intent` no longer writes an empty `logic_claims` list for an intent with only context claims (rationale, examples). Such a plan used to need resolution with a schema error instead of being ready.
