@@ -7373,5 +7373,31 @@
         "./packages/mcp/tests/server/add-tool-paths.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-duplicate-entity-declarations",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/commands/duplicate-entity-declarations.test.ts",
+        "./packages/cli/tests/public-mutation/operations/source-relationship-parity.mutation.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-doctor-merge-driver-remediation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/commands/doctor-merge-driver-hint.test.ts",
+        "./packages/cli/tests/utils/merge-driver-setup.test.ts"
+      ]
+    ]
   }
 ]

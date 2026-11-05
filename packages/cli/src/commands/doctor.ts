@@ -1051,7 +1051,7 @@ function checkManifestMergeDriver(): DoctorCheckResult {
     passed: true,
     warning: true,
     message: `Not configured: ${gaps.join("; ")}. Merges of .kb/symbols.yaml fall back to line conflicts.`,
-    remediation: mergeDriverSetup(process.cwd()),
+    remediation: mergeDriverSetup(process.cwd(), gaps),
   };
 }
 

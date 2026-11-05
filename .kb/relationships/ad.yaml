@@ -353,3 +353,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1428eca1cdcf
+  - type: implements
+    from: SYM-merge-driver-setup-MERGE_DRIVER_GAP
+    to: REQ-cli-doctor-merge-driver-remediation
+    created_at: 2026-11-05T11:49:32.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc752764de24
+  - type: covered_by
+    from: SYM-merge-driver-setup-MERGE_DRIVER_GAP
+    to: TEST-cli-doctor-merge-driver-remediation
+    created_at: 2026-11-05T11:49:32.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0df52f8bc536

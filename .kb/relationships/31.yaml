@@ -619,3 +619,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38bca03b1681
+  - type: requires_predicate
+    from: REQ-cli-doctor-merge-driver-remediation
+    to: FACT-PRED-doctor-merge-driver-remediation
+    created_at: 2026-11-05T11:47:16.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53b17ced9cfd
+  - type: specified_by
+    from: REQ-cli-doctor-merge-driver-remediation
+    to: SCEN-cli-doctor-merge-driver-remediation
+    created_at: 2026-11-05T11:48:38.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f41925f18ddf
+  - type: specified_by
+    from: REQ-cli-doctor-merge-driver-remediation
+    to: SCEN-NEG-cli-doctor-merge-driver-remediation
+    created_at: 2026-11-05T11:48:38.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f70c9e29101
+  - type: relates_to
+    from: REQ-cli-doctor-merge-driver-remediation
+    to: REQ-cli-doctor
+    created_at: 2026-11-05T11:48:38.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-186bcbc90005

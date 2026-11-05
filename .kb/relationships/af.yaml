@@ -279,3 +279,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-292f7680f983
+  - type: assumes
+    from: SCEN-NEG-kibi-duplicate-entity-declarations
+    to: FACT-NEG-duplicate-entity-declarations
+    created_at: 2026-11-05T11:47:36.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fe7b5b00a38
+  - type: implements
+    from: SYM-merge-driver-setup-mergeDriverSetup
+    to: REQ-cli-doctor-merge-driver-remediation
+    created_at: 2026-11-05T11:49:19.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd9de420207c
+  - type: implements
+    from: SYM-merge-driver-setup-mergeDriverSetup
+    to: REQ-cli-doctor
+    created_at: 2026-11-05T11:49:19.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57907bb3fbe2
+  - type: covered_by
+    from: SYM-merge-driver-setup-mergeDriverSetup
+    to: TEST-cli-doctor-merge-driver-remediation
+    created_at: 2026-11-05T11:49:19.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2926d42dd6c5

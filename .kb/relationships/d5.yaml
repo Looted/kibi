@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6ff63dc959b7
+  - type: validates
+    from: TEST-cli-doctor-merge-driver-remediation
+    to: SCEN-cli-doctor-merge-driver-remediation
+    created_at: 2026-11-05T11:48:06.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4bd89145617
+  - type: validates
+    from: TEST-cli-doctor-merge-driver-remediation
+    to: SCEN-NEG-cli-doctor-merge-driver-remediation
+    created_at: 2026-11-05T11:48:06.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-481cad9caaf0

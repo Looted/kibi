@@ -1280,7 +1280,7 @@ describe("schema upgrade", () => {
     expect(s.refresh).toHaveBeenCalledWith(cwd, { bytes: "before" });
     expect(s.untrack).toHaveBeenCalledWith(cwd);
     expect(s.gaps).toHaveBeenCalledWith(cwd);
-    expect(s.setup).toHaveBeenCalledWith(cwd);
+    expect(s.setup).toHaveBeenCalledWith(cwd, ["no attr", "no config"]);
     expect(s.acknowledged).toHaveBeenCalledWith({
       targets: [{ type: "req" }],
       skipped: [{ path: "t.md", reason: "bad" }],
