@@ -1,0 +1,77 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Branch kb-main is fresh (snapshot snap-1, dirty=false, proofSnapshot=ws-hash)"
+    }
+  ],
+  "structuredContent": {
+    "branch": "kb-main",
+    "snapshotId": "snap-1",
+    "syncedAt": "2026-01-01",
+    "dirty": false,
+    "syncState": "fresh",
+    "staleReasons": [],
+    "branchAttachment": {
+      "gitBranch": "main",
+      "kbBranch": "kb-main",
+      "kind": "exact",
+      "migrationRequired": false
+    },
+    "branchStore": {
+      "state": "healthy",
+      "path": "/ws/.kb/branches/kb-main"
+    },
+    "staleReasonCount": 0,
+    "staleReasonsTruncated": false,
+    "proofSnapshot": "ws-hash",
+    "proofSnapshotAvailable": true,
+    "proofSnapshotDirty": true,
+    "proofSnapshotFileCount": 3,
+    "proofSnapshotVersion": "v1",
+    "proofSnapshotChanges": [
+      {
+        "path": "a"
+      }
+    ],
+    "proofSnapshotChangeCount": 1,
+    "proofSnapshotChangesTruncated": true,
+    "schemaStatus": {
+      "needsMigration": false
+    },
+    "migrationPlan": {
+      "planFrom": {
+        "workspaceRoot": "/ws",
+        "branchAttachment": {
+          "gitBranch": "main",
+          "kbBranch": "kb-main",
+          "kind": "exact",
+          "migrationRequired": false
+        },
+        "branchStore": {
+          "state": "healthy",
+          "path": "/ws/.kb/branches/kb-main"
+        },
+        "staleReasons": [],
+        "proofSnapshotAvailable": true,
+        "proofSnapshotDirty": true,
+        "kbSnapshotId": "snap-1",
+        "workspaceSnapshot": "ws-hash",
+        "configStatus": {
+          "needsMigration": false
+        }
+      }
+    },
+    "bootstrap": {
+      "activationState": "root_active",
+      "activationMode": "full",
+      "planEligible": false,
+      "reason": "ready",
+      "nextAction": {
+        "operation": "continue-kibi-workflow",
+        "reason": "ready",
+        "required": false
+      }
+    }
+  }
+}

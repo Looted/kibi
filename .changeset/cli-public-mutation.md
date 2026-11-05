@@ -9,3 +9,5 @@ The coverage repair plan no longer crashes on an uncovered case whose assumption
 The operation catalog now rejects an operation that declares the same effect twice; the uniqueness check could never fire before.
 
 Source-backed proofs now read a `tsconfig.json` that has block comments and `paths` patterns such as `"@app/*"` correctly; the comment stripper no longer treats `/*` inside a string as the start of a comment, which dropped the aliases from the import closure. A SQL schema replay keeps foreign keys pointing at a table or column renamed by `ALTER TABLE ... RENAME`, including multi-column keys and keys declared in other tables. A JSON or YAML source path whose list index is out of range now reports that the document has nothing at that path instead of calling it empty.
+
+When a positional `args` fact question in `kb_query` finds nothing, the suggested follow-up call names every argument in `where` instead of adding `where` beside `args`, a combination `kb_query` refuses; the distinct-count suggestion also skips arguments the `args` already fix.

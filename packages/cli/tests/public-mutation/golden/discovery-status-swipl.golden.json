@@ -1,0 +1,99 @@
+{
+  "branch": "kb-main",
+  "snapshotId": "unavailable",
+  "syncedAt": null,
+  "dirty": true,
+  "syncState": "unknown",
+  "kbPath": "/ws/.kb/branches/kb-main",
+  "lastSyncSource": "unavailable",
+  "staleReasons": [
+    {
+      "code": "swipl_not_found",
+      "path": "/ws/.kb/branches/kb-main",
+      "entityIds": [],
+      "detail": "no swipl",
+      "remediation": {
+        "command_argv": ["kibi", "doctor"],
+        "applyRequired": false
+      }
+    }
+  ],
+  "staleReasonCount": 1,
+  "staleReasonsTruncated": false,
+  "branchAttachment": {
+    "gitBranch": "main",
+    "kbBranch": "kb-main",
+    "kind": "exact",
+    "migrationRequired": false
+  },
+  "branchStore": {
+    "state": "healthy",
+    "path": "/ws/.kb/branches/kb-main"
+  },
+  "engineStatus": {
+    "state": "unavailable",
+    "errorCode": "swipl_not_found",
+    "detail": "no swipl",
+    "recoveryRequired": false
+  },
+  "proofSnapshot": "ws-hash",
+  "proofSnapshotAvailable": true,
+  "proofSnapshotDirty": true,
+  "proofSnapshotFileCount": 3,
+  "proofSnapshotVersion": "v1",
+  "proofSnapshotChanges": [
+    {
+      "path": "a"
+    }
+  ],
+  "proofSnapshotChangeCount": 1,
+  "proofSnapshotChangesTruncated": true,
+  "schemaStatus": {
+    "needsMigration": false
+  },
+  "migrationPlan": {
+    "planFrom": {
+      "workspaceRoot": "/ws",
+      "branchAttachment": {
+        "gitBranch": "main",
+        "kbBranch": "kb-main",
+        "kind": "exact",
+        "migrationRequired": false
+      },
+      "branchStore": {
+        "state": "healthy",
+        "path": "/ws/.kb/branches/kb-main"
+      },
+      "staleReasons": [
+        {
+          "code": "swipl_not_found",
+          "path": "/ws/.kb/branches/kb-main",
+          "entityIds": [],
+          "detail": "no swipl",
+          "remediation": {
+            "command_argv": ["kibi", "doctor"],
+            "applyRequired": false
+          }
+        }
+      ],
+      "proofSnapshotAvailable": true,
+      "proofSnapshotDirty": true,
+      "kbSnapshotId": "unavailable",
+      "workspaceSnapshot": "ws-hash",
+      "configStatus": {
+        "needsMigration": false
+      }
+    }
+  },
+  "bootstrap": {
+    "activationState": "root_active",
+    "activationMode": "full",
+    "planEligible": false,
+    "reason": "ready",
+    "nextAction": {
+      "operation": "continue-kibi-workflow",
+      "reason": "ready",
+      "required": false
+    }
+  }
+}

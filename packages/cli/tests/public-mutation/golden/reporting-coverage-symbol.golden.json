@@ -21,11 +21,7 @@
       "configHash": null
     },
     "scope": {
-      "evaluatedDomains": [
-        "proof",
-        "semantic",
-        "symbol"
-      ],
+      "evaluatedDomains": ["proof", "semantic", "symbol"],
       "incompleteDomains": [],
       "complete": true
     },

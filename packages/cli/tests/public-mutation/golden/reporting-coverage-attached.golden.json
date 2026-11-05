@@ -28,12 +28,7 @@
         "configHash": null
       },
       "scope": {
-        "evaluatedDomains": [
-          "branch",
-          "proof",
-          "semantic",
-          "symbol"
-        ],
+        "evaluatedDomains": ["branch", "proof", "semantic", "symbol"],
         "incompleteDomains": [],
         "complete": true
       },
