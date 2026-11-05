@@ -18,3 +18,4 @@ Fix several `kibi migrate`, `kibi check` and semantic advisor edge cases found w
 - Marking coarse symbol links `legacy-link` now keeps the final newline of `.kb/symbols.yaml`. Before, a reason added to the last symbol was written after a blank line, at the very end of the file without a newline.
 - `kb_compile_intent` no longer writes an empty `logic_claims` list for an intent with only context claims (rationale, examples). Such a plan used to need resolution with a schema error instead of being ready.
 - The `kibi check` integrity rules now read a quoted entity id that contains a comma as one id. Before, such an id was split in two and reported as dangling.
+- `kibi sync` now keeps a backslash in a staged file name as it is when it lists new staged sources. Before, the backslash was read as a folder separator, so such a file was not recognized as newly staged.

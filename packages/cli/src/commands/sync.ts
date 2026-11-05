@@ -135,35 +135,52 @@ import {
 
 export { SyncError };
 
-function relationshipKey(relationship: ExtractedRelationship): string {
+/** The output of a git command run in `cwd`; throws when git fails. */
+export function gitText(cwd: string, command: string): string {
+  return execSync(command, {
+    cwd,
+    encoding: "utf8",
+    timeout: 5000,
+    // rationale: stdio only keeps git's stderr off the terminal; the output
+    // read here is the same either way, so no test can observe it.
+    // Stryker disable next-line ArrayDeclaration,StringLiteral
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+}
+
+export function relationshipKey(relationship: ExtractedRelationship): string {
   return `${relationship.type}\0${relationship.from}\0${relationship.to}`;
 }
 
-function relationshipFromKey(key: string): ExtractedRelationship {
-  const [type, from, to] = key.split("\0");
-  if (type === undefined || from === undefined || to === undefined) {
+export function relationshipFromKey(key: string): ExtractedRelationship {
+  const parts = key.split("\0");
+  if (parts.length < 3) {
     throw new SyncError(`Invalid cached relationship key: ${key}`);
   }
+  const [type, from, to] = parts as [string, string, string];
   return { type, from, to };
 }
 
-function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
-  let conflicted = "";
+/** The non-empty entries of a git command's output, or none when git fails. */
+function gitEntries(cwd: string, command: string, separator: string): string[] {
   try {
-    conflicted = execSync("git diff --name-only --diff-filter=U --", {
-      cwd: workspaceRoot,
-      encoding: "utf8",
-      timeout: 5000,
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
+    return gitText(cwd, command).split(separator).filter(Boolean);
   } catch {
-    // A non-Git workspace is handled by branch resolution below. Do not turn
-    // a missing Git binary into a misleading conflict diagnostic.
-    return;
+    return [];
   }
-  if (conflicted) {
+}
+
+export function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
+  // A non-Git workspace is handled by branch resolution below. Do not turn
+  // a missing Git binary into a misleading conflict diagnostic.
+  const conflicted = gitEntries(
+    workspaceRoot,
+    "git diff --name-only --diff-filter=U --",
+    "\n",
+  );
+  if (conflicted.length > 0) {
     throw new SyncError(
-      `Unresolved Git conflicts block Kibi compilation; resolve these authored files first: ${conflicted.split("\n").join(", ")}`,
+      `Unresolved Git conflicts block Kibi compilation; resolve these authored files first: ${conflicted.join(", ")}`,
     );
   }
 }
@@ -179,30 +196,20 @@ function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
  */
 // implements REQ-kibi-proposition-complete-ingestion
 export function stagedNewSourceKeys(workspaceRoot: string): Set<string> {
-  try {
-    return new Set(
-      execSync(
-        // --no-renames: a staged rename is a new source key too, judged on
-        // the parent branch like any other addition.
-        "git diff --cached --no-renames --name-only --relative --diff-filter=A -z HEAD",
-        {
-          cwd: workspaceRoot,
-          encoding: "utf8",
-          timeout: 5000,
-          stdio: ["pipe", "pipe", "pipe"],
-        },
-      )
-        .split("\0")
-        .filter(Boolean)
-        .map((file) => file.replaceAll("\\", "/")),
-    );
-  } catch {
-    return new Set();
-  }
+  // Git prints forward-slash paths on every platform.
+  return new Set(
+    gitEntries(
+      workspaceRoot,
+      // --no-renames: a staged rename is a new source key too, judged on
+      // the parent branch like any other addition.
+      "git diff --cached --no-renames --name-only --relative --diff-filter=A -z HEAD",
+      "\0",
+    ),
+  );
 }
 
 /** Whether a branch store other than `livePath` has a non-empty sync cache. */
-function anotherBranchStoreSynced(
+export function anotherBranchStoreSynced(
   workspaceRoot: string,
   livePath: string,
 ): boolean {
@@ -220,10 +227,10 @@ function anotherBranchStoreSynced(
       const cache = JSON.parse(
         readFileSync(path.join(storePath, "sync-cache.json"), "utf8"),
       ) as { hashes?: unknown };
+      // Null hashes throw here: such a cache is unreadable too.
       if (
-        cache.hashes !== null &&
         typeof cache.hashes === "object" &&
-        Object.keys(cache.hashes).length > 0
+        Object.keys(cache.hashes as object).length > 0
       )
         return true;
     } catch {
@@ -237,20 +244,15 @@ export function trackedRelationshipFiles(
   workspaceRoot: string,
   relationshipsDir: string,
   recoverMissingPendingSources = false,
-  recoveredPendingReceiptPaths: PendingSourceReceiptSnapshot[] = [],
+  recoveredPendingReceiptPaths?: PendingSourceReceiptSnapshot[],
 ): string[] {
   let tracked: Set<string>;
   try {
     tracked = new Set(
-      execSync("git ls-files --cached -- .kb/relationships", {
-        cwd: workspaceRoot,
-        encoding: "utf8",
-        timeout: 5000,
-        stdio: ["pipe", "pipe", "pipe"],
-      })
-        .split("\n")
-        .filter(Boolean)
-        .map((file) => file.replaceAll("\\", "/")),
+      gitText(
+        workspaceRoot,
+        "git ls-files --cached -- .kb/relationships",
+      ).split("\n"),
     );
   } catch {
     // A non-Git workspace has no tracked relationship inputs. The caller's
@@ -294,11 +296,11 @@ export function trackedRelationshipFiles(
         if (recoverMissingPendingSources) {
           const receiptPath = path.join(pendingRoot, receiptName);
           if (
-            !recoveredPendingReceiptPaths.some(
+            !recoveredPendingReceiptPaths?.some(
               (candidate) => candidate.receiptPath === receiptPath,
             )
           ) {
-            recoveredPendingReceiptPaths.push({
+            recoveredPendingReceiptPaths?.push({
               receiptPath,
               path: relative,
               afterHash: receipt.afterHash,
@@ -321,23 +323,25 @@ export function trackedRelationshipFiles(
     }
   }
 
+  let names: string[];
   try {
-    return readdirSync(relationshipsDir)
-      .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
-      .map((file) => path.join(relationshipsDir, file))
-      .filter((file) => {
-        const relative = path
-          .relative(workspaceRoot, file)
-          .replaceAll(path.sep, "/");
-        return tracked.has(relative) || pending.has(relative);
-      })
-      .sort();
+    names = readdirSync(relationshipsDir);
   } catch {
     return [];
   }
+  return names
+    .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
+    .map((file) => path.join(relationshipsDir, file))
+    .filter((file) => {
+      const relative = path
+        .relative(workspaceRoot, file)
+        .replaceAll(path.sep, "/");
+      return tracked.has(relative) || pending.has(relative);
+    })
+    .sort();
 }
 
-function normalizedEntityHash(result: ExtractionResult): string {
+export function normalizedEntityHash(result: ExtractionResult): string {
   const entity = { ...result.entity } as Record<string, unknown>;
   // Manifest defaults are generated at extraction time. They must not turn a
   // one-record edit into 10,000 false-positive symbol updates.
@@ -353,7 +357,7 @@ function normalizedEntityHash(result: ExtractionResult): string {
 }
 
 // implements REQ-kibi-proposition-complete-ingestion
-function semanticBoundaryRelationships(
+export function semanticBoundaryRelationships(
   result: ExtractionResult,
   shardRelationships: readonly ExtractedRelationship[],
 ): ExtractedRelationship[] {
@@ -365,7 +369,7 @@ function semanticBoundaryRelationships(
   return [...relationships.values()];
 }
 
-async function checkpointNoopSync(
+export async function checkpointNoopSync(
   workspaceRoot: string,
   branch: string,
 ): Promise<void> {
@@ -389,7 +393,7 @@ async function checkpointNoopSync(
 
 /** Whether the branch's compiled store already holds any of `ids`. */
 // implements REQ-cli-status-pre-first-sync
-async function storeHoldsAnyEntity(
+export async function storeHoldsAnyEntity(
   workspaceRoot: string,
   branch: string,
   ids: readonly string[],
@@ -437,7 +441,7 @@ interface SyncCommandRuntime {
   acquireSymbolCompilerLock?: typeof acquireSymbolCompilerLock;
 }
 
-function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
+export function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
   return (
     cache.entityHashes !== undefined && cache.sourceEntityIds !== undefined
   );
@@ -449,7 +453,7 @@ function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
  * without a pending-source receipt): staging that file is the fix.
  */
 // implements REQ-core-persistence
-function reportDanglingRelationships(
+export function reportDanglingRelationships(
   workspaceRoot: string,
   validationErrors: ReturnType<typeof validateRelationships>,
 ): void {
@@ -477,7 +481,7 @@ function reportDanglingRelationships(
   }
 }
 
-function compilerCacheIsFresh(
+export function compilerCacheIsFresh(
   cache: SyncCache,
   workspaceRoot: string,
   sourceFiles: readonly string[],
@@ -488,18 +492,16 @@ function compilerCacheIsFresh(
     return false;
   }
   return sourceKeys.every((key) => {
-    const lastSeen = cache.seenAt[key];
-    const lastSeenMs = lastSeen ? Date.parse(lastSeen) : Number.NaN;
+    // A missing or unreadable sighting parses to NaN, which is never fresh.
+    const lastSeenMs = Date.parse(String(cache.seenAt[key]));
     return (
       typeof cache.hashes[key] === "string" &&
-      lastSeen !== undefined &&
-      !Number.isNaN(lastSeenMs) &&
       nowMs - lastSeenMs <= SYNC_CACHE_TTL_MS
     );
   });
 }
 
-function compilerCacheFilesMatch(
+export function compilerCacheFilesMatch(
   cache: SyncCache,
   workspaceRoot: string,
   sourceFiles: readonly string[],
@@ -576,11 +578,7 @@ export function maybePushDocsNotIndexedDiagnostic(
   markdownFileCount: number,
   entityCount: number,
 ): void {
-  if (
-    performedFullReindex &&
-    markdownFileCount > 0 &&
-    entityCount < markdownFileCount
-  ) {
+  if (performedFullReindex && entityCount < markdownFileCount) {
     diagnostics.push(
       createDocsNotIndexedDiagnostic(markdownFileCount, entityCount),
     );
@@ -632,12 +630,7 @@ export async function syncCommand(
 
   const getCurrentCommit = (): string | undefined => {
     try {
-      return execSync("git rev-parse HEAD", {
-        cwd: workspaceRoot,
-        encoding: "utf8",
-        timeout: 5000,
-        stdio: ["pipe", "pipe", "pipe"],
-      }).trim();
+      return gitText(workspaceRoot, "git rev-parse HEAD").trim();
     } catch {
       return undefined;
     }
