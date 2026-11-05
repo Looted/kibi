@@ -12,7 +12,7 @@ value_set:
   - warning
 claim_text: 'kibi-codex hooks must never deny a tool call: they add reminders and warnings, and at Stop they ask the agent to continue'
 claim_key: CLAIM-2104EF055497A0C9
-text_ref: REQ-codex-kibi-plugin-v1
+text_ref: REQ-codex-hook-limits
 origin:
   kind: agent
   recorded_at: '2026-10-27T07:48:11.185Z'

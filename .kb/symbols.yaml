@@ -2949,10 +2949,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-codex-adapter-package
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-addDirtyPaths
     title: addDirtyPaths
     sourceFile: packages/codex/src/hook-state.ts
@@ -2961,10 +2961,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-codex-hook-limits
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-clearDirtyPaths
     title: clearDirtyPaths
     sourceFile: packages/codex/src/hook-state.ts
@@ -2973,10 +2973,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-codex-hook-limits
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-directKbEditWarning
     title: DIRECT_KB_EDIT_WARNING
     sourceFile: packages/codex/src/messages.ts
@@ -2985,34 +2985,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-codex-hook-limits
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-extractExplicitPathFields
-    title: extractExplicitPathFields
-    sourceFile: packages/codex/src/path-policy.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-extractKbMcpToolCall
-    title: extractKbMcpToolCall
-    sourceFile: packages/codex/src/kb-mcp-tools.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-freshnessReminder
     title: freshnessReminder
     sourceFile: packages/codex/src/messages.ts
@@ -3021,22 +2997,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-codex-hook-limits
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-hookRunnerPath
-    title: hookRunnerPath
-    sourceFile: packages/codex/src/hook-runner.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-impactCheckReminder
     title: impactCheckReminder
     sourceFile: packages/codex/src/messages.ts
@@ -3045,46 +3009,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-codex-hook-limits
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-isDirectKbPath
-    title: isDirectKbPath
-    sourceFile: packages/codex/src/path-policy.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-isMeaningfulTrackedPath
-    title: isMeaningfulTrackedPath
-    sourceFile: packages/codex/src/path-policy.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-isSourceImpactRelevantPath
-    title: isSourceImpactRelevantPath
-    sourceFile: packages/codex/src/path-policy.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-main
     title: main
     sourceFile: packages/codex/src/hook-runner.ts
@@ -3093,56 +3021,20 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-codex-hook-limits
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-packageName
     title: packageName
     sourceFile: packages/codex/src/index.ts
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-codex-adapter-package
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-parseHookInput
-    title: parseHookInput
-    sourceFile: packages/codex/src/hook-input.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-parseStdinJson
-    title: parseStdinJson
-    sourceFile: packages/codex/src/hook-input.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-readStdin
-    title: readStdin
-    sourceFile: packages/codex/src/hook-input.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-recordKbMcpTool
     title: recordKbMcpTool
     sourceFile: packages/codex/src/hook-state.ts
@@ -3151,10 +3043,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-codex-hook-limits
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-resolveKibiWorkspace
     title: resolveKibiWorkspace
     sourceFile: packages/codex/src/workspace-optin.ts
@@ -3163,10 +3055,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-codex-adapter-package
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-resolveWorkspaceStateDir
     title: resolveWorkspaceStateDir
     sourceFile: packages/codex/src/hook-state.ts
@@ -3175,22 +3067,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-codex-hook-limits
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-runHookCliIfMain
-    title: runHookCliIfMain
-    sourceFile: packages/codex/src/hook-runner.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-CodexRuntimeError-name
     title: CodexRuntimeError.name
     sourceFile: scripts/skillopt-eval/real-workflow-types.ts
@@ -24458,16 +24338,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-claude-code-kibi-plugin-v1
-  - id: SYM-codex-canonicalKbToolName
-    title: canonicalKbToolName
-    status: active
-    sourceFile: packages/codex/src/kb-mcp-tools.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-cursor-canonicalKbToolName
     title: canonicalKbToolName
     status: active
@@ -24815,30 +24685,30 @@ symbols:
     sourceFile: packages/agent-core/src/path-policy.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-agent-core-shared-hook-inputs
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-agent-core-isMeaningfulTrackedPath
     title: isMeaningfulTrackedPath
     status: active
     sourceFile: packages/agent-core/src/path-policy.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-agent-core-shared-hook-inputs
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-agent-core-isSourceImpactRelevantPath
     title: isSourceImpactRelevantPath
     status: active
     sourceFile: packages/agent-core/src/path-policy.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-agent-core-shared-hook-inputs
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-agent-core-isDocumentationTrackedPath
     title: isDocumentationTrackedPath
     status: active
@@ -27450,10 +27320,10 @@ symbols:
     symbol_role: module
     granularity_reason: extractor-miss
     relationships:
+      - type: implements
+        target: REQ-codex-adapter-package
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
       - type: implements
         target: REQ-codex-plugin-package
   - id: SYM-cursor-hasDeclaredProjectDependency

@@ -9,7 +9,7 @@ value_type: string
 value_string: optional
 claim_text: The kibi-codex package must remain optional
 claim_key: CLAIM-943C2A092AF02D7A
-text_ref: REQ-codex-kibi-plugin-v1
+text_ref: REQ-codex-adapter-package
 origin:
   kind: agent
   recorded_at: '2026-10-27T07:48:07.352Z'
