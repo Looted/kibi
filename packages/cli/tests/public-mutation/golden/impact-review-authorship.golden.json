@@ -1,0 +1,24 @@
+{
+  "templateVersion": "kibi.impact-review-authoring-template.v1",
+  "isValidImpactReviewRecord": false,
+  "instructions": "This template is reviewer input only. Author every decision, required analysis review, rationale, reviewer id, and reviewedAt before strict record validation. It is not an approval, signature, or proof receipt.",
+  "authoredFields": [
+    "files[].decision",
+    "files[].analysisReviews",
+    "reviewer.id",
+    "reviewedAt"
+  ],
+  "decisionSchema": {
+    "$ref": "urn:kibi:impact-review:v1#/$defs/decision"
+  },
+  "analysisReviewSchema": {
+    "oneOf": [
+      {
+        "$ref": "urn:kibi:impact-review:v1#/$defs/unsupportedReview"
+      },
+      {
+        "$ref": "urn:kibi:impact-review:v1#/$defs/partialReview"
+      }
+    ]
+  }
+}

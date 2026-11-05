@@ -1,0 +1,59 @@
+[
+  {
+    "rule": "source-relationship-parity",
+    "entityId": "REQ-a",
+    "description": "Authored relationship is missing from the compiled KB: specified_by REQ-a->SCEN-1",
+    "suggestion": "Run kibi sync after resolving semantic/source errors; do not delete authored links merely to make the compiled snapshot pass.",
+    "evidence": {
+      "direction": "authored_to_compiled",
+      "relationship": {
+        "type": "specified_by",
+        "from": "REQ-a",
+        "to": "SCEN-1"
+      }
+    }
+  },
+  {
+    "rule": "source-relationship-parity",
+    "entityId": "REQ-b",
+    "description": "Authored relationship is missing from the compiled KB: verified_by REQ-b->T-1",
+    "suggestion": "Run kibi sync after resolving semantic/source errors; do not delete authored links merely to make the compiled snapshot pass.",
+    "source": "docs/b.md",
+    "evidence": {
+      "direction": "authored_to_compiled",
+      "relationship": {
+        "type": "verified_by",
+        "from": "REQ-b",
+        "to": "T-1"
+      }
+    }
+  },
+  {
+    "rule": "source-relationship-parity",
+    "entityId": "REQ-c",
+    "description": "Compiled relationship has no authored Markdown or relationship-shard source: relates_to REQ-c->REQ-d",
+    "suggestion": "Restore the canonical authored relationship through kb_upsert, or remove the stale compiled edge through kb_delete after dependency review.",
+    "evidence": {
+      "direction": "compiled_to_authored",
+      "relationship": {
+        "type": "relates_to",
+        "from": "REQ-c",
+        "to": "REQ-d"
+      }
+    }
+  },
+  {
+    "rule": "source-relationship-parity",
+    "entityId": "REQ-z",
+    "description": "Compiled relationship has no authored Markdown or relationship-shard source: relates_to REQ-z->REQ-y",
+    "suggestion": "Restore the canonical authored relationship through kb_upsert, or remove the stale compiled edge through kb_delete after dependency review.",
+    "evidence": {
+      "direction": "compiled_to_authored",
+      "relationship": {
+        "type": "relates_to",
+        "from": "REQ-z",
+        "to": "REQ-y"
+      }
+    }
+  }
+]

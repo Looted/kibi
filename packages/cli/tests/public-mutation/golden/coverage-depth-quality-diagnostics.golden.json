@@ -1,0 +1,191 @@
+[
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "R-direct-unit",
+    "source": ".kb/req/R-direct-unit.md",
+    "files": [".kb/req/R-direct-unit.md"],
+    "message": "Requirement R-direct-unit (R-direct-unit title) has unit_only coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Keep unit coverage where appropriate; add or link a passing end-to-end or scenario-backed test when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "R-direct-unit",
+      "title": "R-direct-unit title",
+      "source": ".kb/req/R-direct-unit.md",
+      "coverageDepth": "unit_only",
+      "directTests": ["T-unit", "T-unit2"],
+      "scenarioTests": [],
+      "testStatuses": ["passing"],
+      "verificationScopes": ["unit"]
+    }
+  },
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "R-failing",
+    "source": ".kb/req/R-failing.md",
+    "files": [".kb/req/R-failing.md"],
+    "message": "Requirement R-failing (R-failing title) has open_or_nonpassing_tests_only coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Add or link passing tests, preferably end-to-end or scenario-backed when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "R-failing",
+      "title": "R-failing title",
+      "source": ".kb/req/R-failing.md",
+      "coverageDepth": "open_or_nonpassing_tests_only",
+      "directTests": ["T-failing-e2e"],
+      "scenarioTests": [],
+      "testStatuses": ["failing"],
+      "verificationScopes": ["end_to_end"]
+    }
+  },
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "R-failing-scenario",
+    "source": ".kb/req/R-failing-scenario.md",
+    "files": [".kb/req/R-failing-scenario.md"],
+    "message": "Requirement R-failing-scenario (R-failing-scenario title) has open_or_nonpassing_tests_only coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Add or link passing tests, preferably end-to-end or scenario-backed when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "R-failing-scenario",
+      "title": "R-failing-scenario title",
+      "source": ".kb/req/R-failing-scenario.md",
+      "coverageDepth": "open_or_nonpassing_tests_only",
+      "directTests": [],
+      "scenarioTests": ["T-failing-int"],
+      "testStatuses": ["failing"],
+      "verificationScopes": ["integration"]
+    }
+  },
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "R-mixed-unit",
+    "source": ".kb/req/R-mixed-unit.md",
+    "files": [".kb/req/R-mixed-unit.md"],
+    "message": "Requirement R-mixed-unit (R-mixed-unit title) has open_or_nonpassing_tests_only coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Add or link passing tests, preferably end-to-end or scenario-backed when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "R-mixed-unit",
+      "title": "R-mixed-unit title",
+      "source": ".kb/req/R-mixed-unit.md",
+      "coverageDepth": "open_or_nonpassing_tests_only",
+      "directTests": ["T-unit", "T-unknown"],
+      "scenarioTests": [],
+      "testStatuses": ["passing"],
+      "verificationScopes": ["unit", "unknown"]
+    }
+  },
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "R-none",
+    "source": ".kb/req/R-none.md",
+    "files": [".kb/req/R-none.md"],
+    "message": "Requirement R-none (R-none title) has no_test_evidence coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Add or link passing tests, preferably end-to-end or scenario-backed when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "R-none",
+      "title": "R-none title",
+      "source": ".kb/req/R-none.md",
+      "coverageDepth": "no_test_evidence",
+      "directTests": [],
+      "scenarioTests": [],
+      "testStatuses": [],
+      "verificationScopes": []
+    }
+  },
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "R-order",
+    "source": ".kb/req/R-order.md",
+    "files": [".kb/req/R-order.md"],
+    "message": "Requirement R-order (R-order title) has open_or_nonpassing_tests_only coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Add or link passing tests, preferably end-to-end or scenario-backed when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "R-order",
+      "title": "R-order title",
+      "source": ".kb/req/R-order.md",
+      "coverageDepth": "open_or_nonpassing_tests_only",
+      "directTests": ["T-unit", "T-unknown"],
+      "scenarioTests": [],
+      "testStatuses": ["passing"],
+      "verificationScopes": ["unit", "unknown"]
+    }
+  },
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "R-scenario-only",
+    "source": ".kb/req/R-scenario-only.md",
+    "files": [".kb/req/R-scenario-only.md"],
+    "message": "Requirement R-scenario-only (R-scenario-only title) has scenario_only_no_test coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Add or link passing tests, preferably end-to-end or scenario-backed when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "R-scenario-only",
+      "title": "R-scenario-only title",
+      "source": ".kb/req/R-scenario-only.md",
+      "coverageDepth": "scenario_only_no_test",
+      "directTests": [],
+      "scenarioTests": [],
+      "testStatuses": [],
+      "verificationScopes": []
+    }
+  },
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "R-scenario-unit",
+    "source": ".kb/req/R-scenario-unit.md",
+    "files": [".kb/req/R-scenario-unit.md"],
+    "message": "Requirement R-scenario-unit (R-scenario-unit title) has unit_only coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Keep unit coverage where appropriate; add or link a passing end-to-end or scenario-backed test when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "R-scenario-unit",
+      "title": "R-scenario-unit title",
+      "source": ".kb/req/R-scenario-unit.md",
+      "coverageDepth": "unit_only",
+      "directTests": [],
+      "scenarioTests": ["T-unit"],
+      "testStatuses": ["passing"],
+      "verificationScopes": ["unit"]
+    }
+  },
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "R-symbol",
+    "source": ".kb/req/R-symbol.md",
+    "files": [".kb/req/R-symbol.md"],
+    "message": "Requirement R-symbol (R-symbol title) has no_test_evidence coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Add or link passing tests, preferably end-to-end or scenario-backed when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "R-symbol",
+      "title": "R-symbol title",
+      "source": ".kb/req/R-symbol.md",
+      "coverageDepth": "no_test_evidence",
+      "directTests": [],
+      "scenarioTests": [],
+      "testStatuses": [],
+      "verificationScopes": []
+    }
+  }
+]

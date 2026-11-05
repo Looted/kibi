@@ -1,0 +1,213 @@
+[
+  {
+    "id": "coverage-b1",
+    "code": "coverage_source_coordinates",
+    "category": "semantic",
+    "state": "ready",
+    "safety": "automatic",
+    "invocation": {
+      "kind": "cli",
+      "command_argv": ["kibi", "sync", "--refresh-symbol-coordinates"]
+    },
+    "affectedEntityIds": ["REQ-1"],
+    "affectedFiles": [],
+    "dependsOn": ["coverage-b0"],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "batch": {
+        "id": "b1",
+        "phase": "source_coordinates",
+        "requirementId": "REQ-1",
+        "state": "ready",
+        "writePolicy": "refresh_then_sync",
+        "dependsOn": ["b0", 3]
+      }
+    },
+    "autoApplicable": true,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "coverage-b2",
+    "code": "coverage_source_coordinates",
+    "category": "semantic",
+    "state": "blocked",
+    "safety": "automatic",
+    "invocation": {
+      "kind": "cli",
+      "command_argv": ["kibi", "sync", "--refresh-symbol-coordinates"]
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "batch": {
+        "id": "b2",
+        "phase": "source_coordinates",
+        "state": "blocked",
+        "writePolicy": "refresh_then_sync"
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "coverage-b3",
+    "code": "coverage_source_coordinates",
+    "category": "semantic",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review it."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "batch": {
+        "id": "b3",
+        "phase": "source_coordinates",
+        "state": "ready",
+        "writePolicy": "review_then_sequential_upsert",
+        "objective": "Review it."
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "coverage-b4",
+    "code": "coverage_proof_evidence",
+    "category": "proof",
+    "state": "ready",
+    "safety": "execution",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Apply the dependency-ordered coverage repair batch."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "batch": {
+        "id": "b4",
+        "phase": "proof_evidence",
+        "state": "ready"
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "coverage-repair-batch",
+    "code": "coverage_review",
+    "category": "semantic",
+    "state": "blocked",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Apply the dependency-ordered coverage repair batch."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "batch": {
+        "phase": 1,
+        "requirementId": 2,
+        "dependsOn": "b1"
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "symbol-refresh_coordinates-SYM-1",
+    "code": "symbol_refresh_coordinates",
+    "category": "symbol",
+    "state": "ready",
+    "safety": "automatic",
+    "invocation": {
+      "kind": "cli",
+      "command_argv": ["kibi", "sync", "--refresh-symbol-coordinates"]
+    },
+    "affectedEntityIds": ["SYM-1"],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "repair": {
+        "symbolId": "SYM-1",
+        "action": "refresh_coordinates"
+      }
+    },
+    "autoApplicable": true,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "symbol-relink-SYM-2",
+    "code": "symbol_relink",
+    "category": "symbol",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review relink for SYM-2 using current extraction and Git evidence. Query the symbol and validate/upsert a corrected sourceFile/title or an intentional granularity_reason: extractor-miss when extraction cannot locate it."
+    },
+    "affectedEntityIds": ["SYM-2"],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "repair": {
+        "symbolId": "SYM-2",
+        "action": "relink"
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "symbol-review-symbol",
+    "code": "symbol_review",
+    "category": "symbol",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review review for symbol using current extraction and Git evidence. Query the symbol and validate/upsert a corrected sourceFile/title or an intentional granularity_reason: extractor-miss when extraction cannot locate it."
+    },
+    "affectedEntityIds": ["symbol"],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "repair": {
+        "symbolId": 1,
+        "action": 2
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  }
+]

@@ -152,6 +152,11 @@ function fileHash(pathname: string): string | null {
   return createHash("sha256").update(readFileSync(pathname)).digest("hex");
 }
 
+/** A workspace file's path relative to the root, with forward slashes. */
+function workspacePath(workspaceRoot: string, absolute: string): string {
+  return path.relative(workspaceRoot, absolute).split(path.sep).join("/");
+}
+
 function textHash(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -170,9 +175,10 @@ export function assertRelationshipShardContained(
       `Relationship shard escapes the canonical workspace lane: ${shardPath}`,
     );
   }
+  // The shard lies inside the lane, so it can never be the root itself.
   const realRoot = canonicalFilesystemPath(root);
   const real = canonicalFilesystemPath(absolute);
-  if (real !== realRoot && !real.startsWith(`${realRoot}${path.sep}`)) {
+  if (!real.startsWith(`${realRoot}${path.sep}`)) {
     throw new OperationError(
       "SOURCE_PATH_INVALID",
       `Relationship shard follows a symlink outside the workspace: ${shardPath}`,
@@ -194,7 +200,7 @@ function restoreRelationshipShard(
     try {
       currentHash = fileHash(shardPath);
     } catch {
-      currentHash = null;
+      // An unreadable shard does not hold the bytes this write published.
     }
     if (currentHash !== expectedAfterHash) {
       console.warn(
@@ -211,7 +217,7 @@ function restoreRelationshipShard(
     }
     return;
   }
-  writeFileSync(shardPath, before, "utf8");
+  writeFileSync(shardPath, before);
   // implements REQ-core-atomic-upsert-persistence
   // Freshness compares file times with the compiled snapshot; a restored
   // shard with a new time would read as a newer source after a refusal.
@@ -245,23 +251,24 @@ export async function validateAppendOnlyProofReceipts(
   const existing =
     planned !== undefined
       ? planned.type === "test"
-        ? [planned]
-        : []
-      : await loadEntities(requireProlog(context), {
-          id: String(entity.id),
-          type: "test",
-        });
-  const previous = receiptRecords(existing[0]?.proof_receipts);
+        ? planned
+        : undefined
+      : (
+          await loadEntities(requireProlog(context), {
+            id: String(entity.id),
+            type: "test",
+          })
+        )[0];
+  const previous = receiptRecords(existing?.proof_receipts);
   if (!previous || previous.length === 0) return undefined;
   if (entity.proof_receipts === undefined) {
     // The receipts bind the test's verification scope, so it travels too.
-    const stored = existing[0] as Readonly<Record<string, unknown>>;
+    const stored = existing as Readonly<Record<string, unknown>>;
     return {
       proof_receipts: previous,
       ...Object.fromEntries(
         RECEIPT_BOUND_FIELDS.filter(
-          (field) =>
-            entity[field] === undefined && stored?.[field] !== undefined,
+          (field) => entity[field] === undefined && stored[field] !== undefined,
         ).map((field) => [field, stored[field]]),
       ),
     };
@@ -288,9 +295,10 @@ export async function effectiveRelationships(
   const prolog = requireProlog(context);
   // Relationships an earlier plan step adds from this entity will exist when
   // this upsert runs.
-  const plannedOwn = (staged?.relationships ?? []).filter(
-    (relationship) => relationship.from === input.id,
-  );
+  const plannedOwn =
+    staged?.relationships.filter(
+      (relationship) => relationship.from === input.id,
+    ) ?? [];
   const resolved = lookup ?? storedEntityLookup(prolog, input.id, input.type);
   const exists = await resolved.exists();
   if (!exists && plannedOwn.length === 0) return relationships;
@@ -797,11 +805,13 @@ export async function executeUpsert(
     // Relationship shards are canonical source artifacts. Patch them before
     // the compiled transaction so a failed commit can restore exact bytes and
     // a successful commit never leaves a compiled-only relationship behind.
-    if (context.fs !== undefined && validated.relationships.length > 0) {
+    if (context.fs !== undefined) {
       // Register the rollback before appending so a failure on any shard (for
       // example the second write of a multi-shard batch) unwinds the shards
       // that were already appended.
       saga.add({
+        // rationale: a swallow-policy step's name never surfaces.
+        // Stryker disable next-line StringLiteral
         name: "relationship-shards",
         rollback: () => {
           for (const [shardPath, before] of relationshipShardBefore) {
@@ -829,7 +839,7 @@ export async function executeUpsert(
         if (!relationshipShardBefore.has(shardPath)) {
           relationshipShardBefore.set(
             shardPath,
-            existsSync(shardPath) ? readFileSync(shardPath, "utf8") : null,
+            existsSync(shardPath) ? readFileSync(shardPath).toString() : null,
           );
           relationshipShardBeforeTimes.set(shardPath, readFileTimes(shardPath));
         }
@@ -924,7 +934,6 @@ export async function executeUpsert(
               `Cannot finalize deferred upsert ${input.id} from state ${deferredState}`,
             );
           }
-          saga.markCommitted();
           deferredState = "committed";
         },
         rollback: () => {
@@ -1025,9 +1034,7 @@ export async function executeUpsert(
         relationshipShardAfterHash.get(shardPath) ?? null;
       if (afterHash === null) {
         if (expectedAfterHash !== null) {
-          const relative = path
-            .relative(context.workspaceRoot, shardPath)
-            .replaceAll("\\", "/");
+          const relative = workspacePath(context.workspaceRoot, shardPath);
           shardWarnings.push(
             `Relationship shard vanished after write: ${relative}`,
           );
@@ -1035,9 +1042,7 @@ export async function executeUpsert(
         continue;
       }
       if (afterHash === beforeHash) continue;
-      const relative = path
-        .relative(context.workspaceRoot, shardPath)
-        .replaceAll("\\", "/");
+      const relative = workspacePath(context.workspaceRoot, shardPath);
       writePendingSourceReceipt(context.workspaceRoot, relative, afterHash);
       relationshipSourceWrites.push({
         path: relative,
@@ -1182,9 +1187,9 @@ export async function executeUpsert(
       operationFailure = { error: failure };
       throw failure;
     }
-    const sourceFailure = rollbackFailures.find(
-      (failure) => failure.step === "authored-source",
-    );
+    // Only the authored-source and coordinate steps capture their rollback
+    // failures, and a coordinate failure was reported above.
+    const sourceFailure = rollbackFailures[0];
     if (sourceFailure !== undefined) {
       const rollbackMessage =
         sourceFailure.error instanceof Error

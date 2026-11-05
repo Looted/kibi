@@ -73,12 +73,24 @@ function entryKey(file: string, content: string): string {
  * build does not bump; its built files' sizes and times stand in for its
  * code so a rebuilt analyzer starts a fresh cache.
  */
+const resolveInstalledBuiltinManifest = (): string =>
+  createRequire(import.meta.url).resolve("kibi-plugin-builtin/package.json");
+let resolveBuiltinManifest = resolveInstalledBuiltinManifest;
+
+/**
+ * Replace how the builtin analyzer package is found, for tests; with no
+ * argument, restore the installed package lookup.
+ */
+export function setBuiltinManifestResolverForTests(
+  resolve: () => string = resolveInstalledBuiltinManifest,
+): void {
+  resolveBuiltinManifest = resolve;
+}
+
 function builtinBuildStamp(): string {
   const hash = createHash("sha256");
   try {
-    const manifest = createRequire(import.meta.url).resolve(
-      "kibi-plugin-builtin/package.json",
-    );
+    const manifest = resolveBuiltinManifest();
     const symbolsDir = path.join(path.dirname(manifest), "dist", "symbols");
     // rationale: readdir lists this directory in name order on the supported
     // filesystems, so the sort only guards odd ones and no test can tell.

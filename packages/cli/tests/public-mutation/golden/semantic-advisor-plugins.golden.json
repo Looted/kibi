@@ -1,0 +1,353 @@
+{
+  "builtin": {
+    "receipt": {
+      "version": "semantic-advisor-v2",
+      "payload_hash": "5d56ebaa910bc8ba643614f4934bac38591f11a6d21c6fd5a03ed30a5398125d",
+      "inventory_contract": {
+        "version": "kibi.semantic-inventory.v1",
+        "source_field": "semantic_text",
+        "source_hash": "d9f9b5a1a1db132f02e4fca406503ac528d91c210014955d513a58e6d1e349e7"
+      },
+      "logic_readiness": "needs_modeling",
+      "candidate_lane": "predicate",
+      "signals": [],
+      "ambiguity_witnesses": [],
+      "propositions": [
+        {
+          "claim_key": "CLAIM-03E26D870FD5AC5E",
+          "claim_text": "Checkout requires payment authorization before submission",
+          "role": "normative",
+          "status": "missing",
+          "span": {
+            "start": 0,
+            "end": 57
+          },
+          "payload_hash": "5d56ebaa910bc8ba643614f4934bac38591f11a6d21c6fd5a03ed30a5398125d",
+          "reason": "No accepted typed interpretation grounds this assertive proposition."
+        }
+      ],
+      "interpretations": [],
+      "shadow_analysis": [
+        {
+          "kind": "nominalization",
+          "evidence": "nominalized domain term",
+          "represented": false
+        },
+        {
+          "kind": "prerequisite",
+          "evidence": "prerequisite/order relation",
+          "represented": false
+        },
+        {
+          "kind": "temporal",
+          "evidence": "temporal qualifier",
+          "represented": false
+        }
+      ],
+      "suggestions": [
+        {
+          "kind": "predicate",
+          "claim_key": "CLAIM-03E26D870FD5AC5E",
+          "claim_text": "Checkout requires payment authorization before submission",
+          "confidence": 0.84,
+          "evidence": "Checkout requires payment authorization before submission",
+          "rationale": "Requires-before prose defines a prerequisite relationship and should be queryable as a predicate.",
+          "suggested_next_tool": "kb_suggest_predicates",
+          "predicate": {
+            "predicate_name": "dependency_rule",
+            "predicate_args": [
+              "checkout",
+              "payment_authorization",
+              "submission"
+            ],
+            "canonical_key": "dependency_rule(checkout,payment_authorization,submission)",
+            "polarity": "assert"
+          },
+          "rejected_alternatives": ["strict_property"],
+          "applyPlan": [
+            {
+              "type": "fact",
+              "id": "FACT-PRED-a9109ed4d6f4",
+              "properties": {
+                "title": "dependency_rule suggestion",
+                "status": "active",
+                "source": "mcp://kibi/semantic-advisor",
+                "fact_kind": "predicate",
+                "predicate_name": "dependency_rule",
+                "predicate_args": [
+                  "checkout",
+                  "payment_authorization",
+                  "submission"
+                ],
+                "canonical_key": "dependency_rule(checkout,payment_authorization,submission)",
+                "polarity": "assert",
+                "tags": ["lane:ontology", "semantic-advisor-suggestion"],
+                "claim_key": "CLAIM-03E26D870FD5AC5E",
+                "claim_text": "Checkout requires payment authorization before submission",
+                "claim_span_start": 0,
+                "claim_span_end": 57
+              },
+              "relationships": []
+            }
+          ],
+          "relationshipPlan": {
+            "applyAfter": "FACT-PRED-a9109ed4d6f4",
+            "requiresExistingReq": "REQ-SEMANTIC-ADVISOR-PREVIEW",
+            "relationship": {
+              "type": "requires_predicate",
+              "from": "REQ-SEMANTIC-ADVISOR-PREVIEW",
+              "to": "FACT-PRED-a9109ed4d6f4"
+            },
+            "claimKey": "CLAIM-03E26D870FD5AC5E",
+            "claimText": "Checkout requires payment authorization before submission",
+            "logicClaims": ["CLAIM-03E26D870FD5AC5E"],
+            "semanticClauses": [
+              "Checkout requires payment authorization before submission"
+            ],
+            "semanticInventory": [
+              {
+                "claim_key": "CLAIM-03E26D870FD5AC5E",
+                "claim_text": "Checkout requires payment authorization before submission",
+                "role": "normative",
+                "status": "modeled",
+                "span": {
+                  "start": 0,
+                  "end": 57
+                },
+                "reason": "Draft apply plan contains a typed grounding for this proposition."
+              }
+            ],
+            "inventoryContract": {
+              "version": "kibi.semantic-inventory.v1",
+              "source_field": "semantic_text",
+              "source_hash": "d9f9b5a1a1db132f02e4fca406503ac528d91c210014955d513a58e6d1e349e7"
+            },
+            "instructions": "Create the predicate fact, merge the returned logicClaims into the requirement logic_claims manifest, then add requires_predicate without overwriting other requirement metadata."
+          }
+        }
+      ],
+      "clauses": [
+        {
+          "claim_key": "CLAIM-03E26D870FD5AC5E",
+          "text": "Checkout requires payment authorization before submission",
+          "index": 0,
+          "normative": true,
+          "source": "detected",
+          "suggestion_indexes": [0]
+        }
+      ],
+      "logic_coverage": {
+        "status": "unverified",
+        "expected_claim_keys": ["CLAIM-03E26D870FD5AC5E"],
+        "declared_claim_keys": [],
+        "missing_claim_keys": ["CLAIM-03E26D870FD5AC5E"],
+        "unresolved_claim_keys": ["CLAIM-03E26D870FD5AC5E"]
+      },
+      "suggested_next_tools": ["kb_suggest_predicates"],
+      "summary": "Requirement prose appears to contain relational or behavioral logic that should be modeled with ontology predicates. Classifier routing: predicate → kb_suggest_predicates."
+    },
+    "warnings": [
+      "Semantic advisor: Requirement prose appears to contain relational or behavioral logic that should be modeled with ontology predicates. Next action: call kb_model (mode predicates) before treating this requirement as Prolog-checkable.",
+      "Classifier recommends predicate/ontology review; unresolved claims remain unresolved until grounded.",
+      "Capability plugins consulted: builtin/cap-builtin, builtin/cap-builtin."
+    ],
+    "capabilityPlugins": {
+      "stamps": [
+        {
+          "pluginId": "builtin",
+          "pluginVersion": "1",
+          "capability": "cap-builtin",
+          "mode": "augment",
+          "external": true,
+          "network": false,
+          "metered": false
+        },
+        {
+          "pluginId": "builtin",
+          "pluginVersion": "1",
+          "capability": "cap-builtin",
+          "mode": "augment",
+          "external": true,
+          "network": false,
+          "metered": false
+        }
+      ],
+      "classification": {
+        "fallbackUsed": false,
+        "decisions": [
+          {
+            "claimKey": "CLAIM-03E26D870FD5AC5E",
+            "lane": "none",
+            "confidence": 0
+          }
+        ],
+        "shadowComparisons": []
+      },
+      "ontology": {
+        "replaced": false,
+        "matchCount": 0,
+        "shadowMatchCount": 0,
+        "shadowMatches": []
+      }
+    }
+  },
+  "shadowClassifier": {
+    "stamps": [
+      {
+        "pluginId": "builtin",
+        "pluginVersion": "1",
+        "capability": "cap-builtin",
+        "mode": "augment",
+        "external": true,
+        "network": false,
+        "metered": false
+      },
+      {
+        "pluginId": "shadowc",
+        "pluginVersion": "1",
+        "capability": "cap-shadowc",
+        "mode": "shadow",
+        "external": true,
+        "network": false,
+        "metered": false
+      },
+      {
+        "pluginId": "builtin",
+        "pluginVersion": "1",
+        "capability": "cap-builtin",
+        "mode": "augment",
+        "external": true,
+        "network": false,
+        "metered": false
+      }
+    ],
+    "classification": {
+      "fallbackUsed": false,
+      "decisions": [
+        {
+          "claimKey": "CLAIM-03E26D870FD5AC5E",
+          "lane": "none",
+          "confidence": 0
+        }
+      ],
+      "shadowComparisons": [
+        {
+          "pluginId": "shadowc",
+          "pluginVersion": "1",
+          "capability": "cap-shadowc",
+          "mode": "shadow",
+          "external": true,
+          "network": false,
+          "metered": false,
+          "decisions": [
+            {
+              "claimKey": "CLAIM-03E26D870FD5AC5E",
+              "lane": "predicate",
+              "confidence": 0.75
+            }
+          ]
+        }
+      ]
+    },
+    "ontology": {
+      "replaced": false,
+      "matchCount": 0,
+      "shadowMatchCount": 0,
+      "shadowMatches": []
+    }
+  },
+  "shadowPack": {
+    "stamps": [
+      {
+        "pluginId": "builtin",
+        "pluginVersion": "1",
+        "capability": "cap-builtin",
+        "mode": "augment",
+        "external": true,
+        "network": false,
+        "metered": false
+      },
+      {
+        "pluginId": "builtin",
+        "pluginVersion": "1",
+        "capability": "cap-builtin",
+        "mode": "augment",
+        "external": true,
+        "network": false,
+        "metered": false
+      },
+      {
+        "pluginId": "shadowp",
+        "pluginVersion": "1",
+        "capability": "cap-shadowp",
+        "mode": "shadow",
+        "external": true,
+        "network": false,
+        "metered": false
+      }
+    ],
+    "classification": {
+      "fallbackUsed": false,
+      "decisions": [
+        {
+          "claimKey": "CLAIM-03E26D870FD5AC5E",
+          "lane": "none",
+          "confidence": 0
+        }
+      ],
+      "shadowComparisons": []
+    },
+    "ontology": {
+      "replaced": false,
+      "matchCount": 0,
+      "shadowMatchCount": 1,
+      "shadowMatches": [
+        {
+          "packId": "shadowp",
+          "schemaId": "shadowp.holds",
+          "predicateName": "holds",
+          "confidence": 0.5
+        }
+      ]
+    }
+  },
+  "replaced": {
+    "stamps": [
+      {
+        "pluginId": "builtin",
+        "pluginVersion": "1",
+        "capability": "cap-builtin",
+        "mode": "augment",
+        "external": true,
+        "network": false,
+        "metered": false
+      },
+      {
+        "pluginId": "replacer",
+        "pluginVersion": "1",
+        "capability": "cap-replacer",
+        "mode": "replace",
+        "external": true,
+        "network": false,
+        "metered": false
+      }
+    ],
+    "classification": {
+      "fallbackUsed": false,
+      "decisions": [
+        {
+          "claimKey": "CLAIM-03E26D870FD5AC5E",
+          "lane": "none",
+          "confidence": 0
+        }
+      ],
+      "shadowComparisons": []
+    },
+    "ontology": {
+      "replaced": true,
+      "matchCount": 0,
+      "shadowMatchCount": 0,
+      "shadowMatches": []
+    }
+  }
+}

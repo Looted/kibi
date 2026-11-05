@@ -1,0 +1,354 @@
+{
+  "preparationVersion": "kibi.impact-review-preparation.v1",
+  "status": "ready_for_authoring",
+  "recordHeaders": {
+    "contractVersion": "kibi.impact-review.v1",
+    "policy": {
+      "id": "policy-1",
+      "version": "3",
+      "fingerprint": "policy-fp"
+    },
+    "evaluator": {
+      "contractVersion": "kibi.impact-evaluator.v1",
+      "fingerprint": "evaluator-fp"
+    },
+    "scope": {
+      "fingerprint": "scope-fp",
+      "knowledgeFingerprint": "knowledge-fp",
+      "providerSetFingerprint": "provider-fp"
+    }
+  },
+  "files": [
+    {
+      "path": "a.ts",
+      "newHunkRanges": [],
+      "before": null,
+      "after": {
+        "analysis": {
+          "providerId": "prov",
+          "providerFingerprint": "pf",
+          "diagnosticCodes": [],
+          "status": "unsupported",
+          "obligation": {
+            "kind": "unsupported_review"
+          }
+        }
+      }
+    },
+    {
+      "path": "m.ts",
+      "newHunkRanges": [],
+      "before": {
+        "analysis": {
+          "providerId": "prov",
+          "providerFingerprint": "pf",
+          "diagnosticCodes": [],
+          "obligation": {
+            "kind": "none"
+          }
+        }
+      },
+      "after": {
+        "analysis": {
+          "providerId": "prov",
+          "providerFingerprint": "pf",
+          "diagnosticCodes": [],
+          "status": "failed",
+          "obligation": {
+            "kind": "blocked"
+          }
+        }
+      }
+    },
+    {
+      "path": "n.ts",
+      "newHunkRanges": [],
+      "after": {}
+    },
+    {
+      "path": "z.ts",
+      "newHunkRanges": [
+        {
+          "start": 1,
+          "end": 2
+        }
+      ],
+      "before": {
+        "analysis": {
+          "providerId": "prov",
+          "providerFingerprint": "pf",
+          "diagnosticCodes": ["b", "a"],
+          "status": "unsupported",
+          "obligation": {
+            "kind": "unsupported_review"
+          }
+        }
+      },
+      "after": {
+        "analysis": {
+          "providerId": "prov",
+          "providerFingerprint": "pf",
+          "diagnosticCodes": ["C1", "C0"],
+          "status": "partial",
+          "obligation": {
+            "kind": "partial_review",
+            "ranges": [
+              {
+                "startLine": 3,
+                "endLine": 4
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "requirementScopes": [
+    {
+      "path": "a.ts",
+      "requirementIds": ["REQ-missing"],
+      "before": [
+        {
+          "id": "REQ-missing",
+          "state": "absent",
+          "entityFingerprint": null,
+          "artifactPath": null,
+          "sourcePath": null,
+          "relationships": [],
+          "relatedEntities": []
+        }
+      ],
+      "after": [
+        {
+          "id": "REQ-missing",
+          "state": "absent",
+          "entityFingerprint": null,
+          "artifactPath": null,
+          "sourcePath": null,
+          "relationships": [],
+          "relatedEntities": []
+        }
+      ]
+    },
+    {
+      "path": "z.ts",
+      "requirementIds": ["REQ-a", "REQ-b"],
+      "before": [
+        {
+          "id": "REQ-a",
+          "state": "present",
+          "entityFingerprint": "fa",
+          "artifactPath": ".kb/a.md",
+          "sourcePath": null,
+          "entity": {
+            "id": "REQ-a",
+            "title": "A",
+            "type": "req",
+            "zeta": 1
+          },
+          "relationships": [
+            {
+              "type": "constrains",
+              "from": "REQ-a",
+              "to": "REQ-b"
+            },
+            {
+              "type": "depends_on",
+              "from": "REQ-a",
+              "to": "REQ-c"
+            },
+            {
+              "type": "requires_predicate",
+              "from": "REQ-a",
+              "to": "REQ-c"
+            },
+            {
+              "type": "requires_property",
+              "from": "REQ-a",
+              "to": "REQ-c"
+            },
+            {
+              "type": "requires_rule",
+              "from": "REQ-a",
+              "to": "REQ-c"
+            },
+            {
+              "type": "specified_by",
+              "from": "REQ-a",
+              "to": "REQ-c"
+            },
+            {
+              "type": "supersedes",
+              "from": "REQ-a",
+              "to": "REQ-c"
+            },
+            {
+              "type": "validates",
+              "from": "REQ-a",
+              "to": "REQ-gone"
+            },
+            {
+              "type": "validates",
+              "from": "REQ-ab",
+              "to": "REQ-a"
+            },
+            {
+              "type": "verified_by",
+              "from": "REQ-c",
+              "to": "REQ-a"
+            }
+          ],
+          "relatedEntities": [
+            {
+              "id": "REQ-ab",
+              "type": "test",
+              "entityFingerprint": null,
+              "artifactPath": null,
+              "sourcePath": null,
+              "entity": {
+                "id": "REQ-ab",
+                "type": "test"
+              }
+            },
+            {
+              "id": "REQ-b",
+              "type": "req",
+              "entityFingerprint": "fb",
+              "artifactPath": ".kb/b.md",
+              "sourcePath": "src/b",
+              "entity": {
+                "id": "REQ-b",
+                "title": "B",
+                "type": "req"
+              }
+            },
+            {
+              "id": "REQ-c",
+              "type": null,
+              "entityFingerprint": null,
+              "artifactPath": null,
+              "sourcePath": ".kb/c.md",
+              "entity": {
+                "id": "REQ-c",
+                "title": "C"
+              }
+            }
+          ]
+        },
+        {
+          "id": "REQ-b",
+          "state": "present",
+          "entityFingerprint": "fb",
+          "artifactPath": ".kb/b.md",
+          "sourcePath": "src/b",
+          "entity": {
+            "id": "REQ-b",
+            "title": "B",
+            "type": "req"
+          },
+          "relationships": [
+            {
+              "type": "constrains",
+              "from": "REQ-a",
+              "to": "REQ-b"
+            }
+          ],
+          "relatedEntities": [
+            {
+              "id": "REQ-a",
+              "type": "req",
+              "entityFingerprint": "fa",
+              "artifactPath": ".kb/a.md",
+              "sourcePath": null,
+              "entity": {
+                "id": "REQ-a",
+                "title": "A",
+                "type": "req",
+                "zeta": 1
+              }
+            }
+          ]
+        }
+      ],
+      "after": [
+        {
+          "id": "REQ-a",
+          "state": "present",
+          "entityFingerprint": "fa2",
+          "artifactPath": ".kb/a.md",
+          "sourcePath": ".kb/a.md",
+          "entity": {
+            "id": "REQ-a",
+            "title": "A2",
+            "type": "req"
+          },
+          "relationships": [
+            {
+              "type": "depends_on",
+              "from": "REQ-b",
+              "to": "REQ-a"
+            }
+          ],
+          "relatedEntities": [
+            {
+              "id": "REQ-b",
+              "type": "req",
+              "entityFingerprint": null,
+              "artifactPath": null,
+              "sourcePath": null,
+              "entity": {
+                "id": "REQ-b",
+                "title": "B",
+                "type": "req"
+              }
+            }
+          ]
+        },
+        {
+          "id": "REQ-b",
+          "state": "absent",
+          "entityFingerprint": null,
+          "artifactPath": null,
+          "sourcePath": null,
+          "relationships": [],
+          "relatedEntities": []
+        }
+      ]
+    }
+  ],
+  "residualReviewObligations": [
+    {
+      "path": "a.ts",
+      "side": "after",
+      "status": "unsupported",
+      "diagnosticCodes": [],
+      "kind": "unsupported_review",
+      "wholeFile": true,
+      "pending": true
+    },
+    {
+      "path": "z.ts",
+      "side": "after",
+      "status": "partial",
+      "diagnosticCodes": ["C0", "C1"],
+      "kind": "partial_review",
+      "limitationClass": "local",
+      "ranges": [
+        {
+          "startLine": 3,
+          "endLine": 4
+        }
+      ],
+      "pending": true
+    },
+    {
+      "path": "z.ts",
+      "side": "before",
+      "status": "unsupported",
+      "diagnosticCodes": ["a", "b"],
+      "kind": "unsupported_review",
+      "wholeFile": true,
+      "pending": true
+    }
+  ]
+}

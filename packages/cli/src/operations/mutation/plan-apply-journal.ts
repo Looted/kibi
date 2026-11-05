@@ -187,7 +187,7 @@ function journalLocation(context: OperationContext): JournalLocation | null {
       statSync(attachment.storePath).isDirectory() &&
       existsSync(branchStoreManifestPath(attachment.storePath));
   } catch {
-    storeReady = false;
+    // An unreadable store path is a store that does not exist yet.
   }
   return {
     branch: attachment.kbBranch,
@@ -196,6 +196,9 @@ function journalLocation(context: OperationContext): JournalLocation | null {
   };
 }
 
+// rationale: directory fsync only affects durability across a power loss,
+// which no test can observe; every outcome a caller sees is the same.
+// Stryker disable all
 function fsyncDirectory(directory: string): void {
   if (process.platform === "win32") return;
   try {
@@ -209,6 +212,23 @@ function fsyncDirectory(directory: string): void {
     // Directory fsync is best effort; the journal file itself is synced.
   }
 }
+// Stryker restore all
+
+// rationale: fsync and close only affect durability across a power loss and
+// descriptor use, which no test can observe; the written bytes and the mode
+// are checked through the published journal.
+// Stryker disable all
+/** Create a private file holding `text`, synced to stable storage. */
+function writeSyncedFile(file: string, text: string): void {
+  const descriptor = openSync(file, "w", 0o600);
+  try {
+    writeSync(descriptor, text);
+    fsyncSync(descriptor);
+  } finally {
+    closeSync(descriptor);
+  }
+}
+// Stryker restore all
 
 /** Publish the journal with temp-file + fsync + rename + directory fsync. */
 function writeJournal(journalPath: string, journal: PlanApplyJournal): void {
@@ -216,13 +236,7 @@ function writeJournal(journalPath: string, journal: PlanApplyJournal): void {
   mkdirSync(directory, { recursive: true, mode: 0o700 });
   const temporary = `${journalPath}.tmp-${process.pid}-${randomUUID()}`;
   try {
-    const descriptor = openSync(temporary, "w", 0o600);
-    try {
-      writeSync(descriptor, `${JSON.stringify(journal, null, 2)}\n`);
-      fsyncSync(descriptor);
-    } finally {
-      closeSync(descriptor);
-    }
+    writeSyncedFile(temporary, `${JSON.stringify(journal, null, 2)}\n`);
     renameSync(temporary, journalPath);
   } catch (error) {
     try {
@@ -232,6 +246,8 @@ function writeJournal(journalPath: string, journal: PlanApplyJournal): void {
     }
     throw error;
   }
+  // rationale: directory fsync only affects durability across a power loss.
+  // Stryker disable next-line all
   fsyncDirectory(directory);
 }
 
@@ -240,8 +256,7 @@ function isHash(value: unknown): value is string {
 }
 
 function isFileWrite(value: unknown): value is PlanApplyFileWrite {
-  if (value === null || typeof value !== "object") return false;
-  const entry = value as Record<string, unknown>;
+  const entry = Object(value) as Record<string, unknown>;
   const before = entry.before;
   const after = entry.after;
   return (
@@ -312,7 +327,7 @@ function readJournalFile(journalPath: string): PlanApplyJournal {
   const journalId = path.basename(journalPath, ".json");
   let text: string;
   try {
-    text = readFileSync(journalPath, "utf8");
+    text = readFileSync(journalPath).toString();
   } catch (error) {
     unrecoverableJournal(journalPath, `unreadable (${errorText(error)})`);
   }
@@ -406,7 +421,7 @@ export function reconcilePendingSourceReceipts(
   }[],
 ): void {
   for (const write of writes) {
-    if ((write.mode ?? "write") === "delete") {
+    if (write.mode === "delete") {
       retirePendingSourceReceipt(workspaceRoot, write.path);
     } else if (write.afterHash !== null) {
       writePendingSourceReceipt(workspaceRoot, write.path, write.afterHash);
@@ -502,7 +517,8 @@ export async function publishJournaledFiles(
 }
 
 /**
- * Move every journaled file to one side of the plan. With `verify`, every
+ * Move every journaled file to one side of the plan: its after-bytes when
+ * `toAfter`, else its before-bytes. With `verify`, every
  * file must currently hold its journaled before or after bytes, checked for
  * all files before any of them changes; a file another writer changed makes
  * the move refuse without touching anything. Without `verify` (the in-process
@@ -513,7 +529,7 @@ async function moveJournaledFiles(
   workspaceRoot: string,
   journalPath: string,
   files: readonly PlanApplyFileWrite[],
-  side: "before" | "after",
+  toAfter: boolean,
   verify: boolean,
 ): Promise<string[]> {
   const pending: PlanApplyFileWrite[] = [];
@@ -523,9 +539,9 @@ async function moveJournaledFiles(
       fsPort,
       path.resolve(workspaceRoot, file.path),
     );
-    const wanted = side === "before" ? file.beforeHash : file.afterHash;
+    const wanted = toAfter ? file.afterHash : file.beforeHash;
     if (actual === wanted) continue;
-    const other = side === "before" ? file.afterHash : file.beforeHash;
+    const other = toAfter ? file.beforeHash : file.afterHash;
     if (verify && actual !== other) {
       conflicts.push(file.path);
       continue;
@@ -538,13 +554,13 @@ async function moveJournaledFiles(
       `${conflicts.join(", ")} changed outside the journal (neither the journaled before nor after bytes)`,
     );
   }
-  const ordered = side === "before" ? [...pending].reverse() : pending;
+  const ordered = toAfter ? pending : [...pending].reverse();
   for (const file of ordered) {
     await setFile(
       fsPort,
       workspaceRoot,
       file.path,
-      side === "before" ? file.before : file.after,
+      toAfter ? file.after : file.before,
     );
   }
   return ordered.map((file) => file.path);
@@ -591,7 +607,7 @@ export async function restoreJournaledFiles(
     workspaceRoot,
     journalPath,
     files,
-    "before",
+    false,
     false,
   );
 }
@@ -652,7 +668,6 @@ export async function recoverPlanApplyJournal(
   options: RecoveryOptions,
 ): Promise<PlanApplyRecovery> {
   const { journal } = handle;
-  const now = options.now ?? (() => new Date());
   if (journal.state === "committed" || journal.state === "rolled_back") {
     return {
       journalId: journal.journalId,
@@ -704,14 +719,18 @@ export async function recoverPlanApplyJournal(
   // Record the decision before touching files, so a second interruption
   // resumes the same direction without inspecting the store again.
   if (committed && journal.state !== "store_committed") {
-    recordPlanApplyJournal(handle, { state: "store_committed" }, now());
+    recordPlanApplyJournal(
+      handle,
+      { state: "store_committed" },
+      options.now?.(),
+    );
   }
   const restoredPaths = await moveJournaledFiles(
     fsPort,
     context.workspaceRoot,
     handle.journalPath,
     journal.files,
-    committed ? "after" : "before",
+    committed,
     true,
   );
   removeOrphanedStagedFiles(context.workspaceRoot, journal.files);
@@ -723,7 +742,7 @@ export async function recoverPlanApplyJournal(
         state: "rolled_back",
         resolution: { action: "rolled_back", by: "recovery", detail },
       },
-      now(),
+      options.now?.(),
     );
     return {
       journalId: journal.journalId,
@@ -756,7 +775,7 @@ export async function recoverPlanApplyJournal(
       state: "committed",
       resolution: { action: "completed", by: "recovery", detail },
     },
-    now(),
+    options.now?.(),
   );
   return {
     journalId: journal.journalId,

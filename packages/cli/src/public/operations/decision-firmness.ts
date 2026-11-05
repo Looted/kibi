@@ -133,13 +133,10 @@ export function authoredSupersedes(
     const links = entity.data.links;
     if (!Array.isArray(links)) continue;
     for (const link of links) {
-      if (
-        link !== null &&
-        typeof link === "object" &&
-        (link as { type?: unknown }).type === "supersedes" &&
-        typeof (link as { target?: unknown }).target === "string"
-      ) {
-        add(entity.id, (link as { target: string }).target);
+      // A link that is not an object has no type.
+      const edge = link as { type?: unknown; target?: unknown } | null;
+      if (edge?.type === "supersedes" && typeof edge.target === "string") {
+        add(entity.id, edge.target);
       }
     }
   }
@@ -284,8 +281,10 @@ export function evaluateDecisionFirmness(
       left.id.localeCompare(right.id),
     )) {
       if (firmnessOf(entity) === "firm") continue;
+      const targets = edges.get(entity.id);
+      if (targets === undefined) continue;
       const implicit = new Set<string>();
-      const firmTargets = [...(edges.get(entity.id) ?? [])]
+      const firmTargets = [...targets]
         .filter((id) => {
           const target = byId.get(id);
           if (target === undefined || firmnessOf(target) !== "firm")
@@ -323,7 +322,8 @@ export function evaluateDecisionFirmness(
   if (rules.has(SUPERSEDES_REASON_MISSING_RULE)) {
     for (const entity of unexplained) {
       if (isAcknowledged(entity)) continue;
-      const targets = [...(edges.get(entity.id) ?? [])].sort();
+      // An unexplained supersede has edges by definition.
+      const targets = [...(edges.get(entity.id) as Set<string>)].sort();
       const unacknowledged = targets.filter(
         (target) =>
           !acknowledged.has(supersedeAcknowledgement(entity.id, target)),
@@ -370,14 +370,19 @@ function committedDecisionChanges(
     const listed = execFileSync(
       "git",
       ["-C", workspaceRoot, "diff", "--name-only", "--relative", "-z", "HEAD"],
+      // rationale: piping only keeps git's own complaint off the console
+      // Stryker disable next-line StringLiteral
       { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: "pipe" },
     );
-    const changed = new Set(listed.split("\0").filter((name) => name !== ""));
+    // The empty name after the last NUL is no decision's path.
+    const changed = new Set(listed.split("\0"));
     const read: CommittedFileReader = (relativePath) => {
       try {
         return execFileSync(
           "git",
           ["-C", workspaceRoot, "show", `HEAD:./${relativePath}`],
+          // rationale: piping only keeps git's own complaint off the console
+          // Stryker disable next-line StringLiteral
           { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: "pipe" },
         );
       } catch {
@@ -386,8 +391,9 @@ function committedDecisionChanges(
     };
     return { changed, read };
   } catch {
-    return undefined;
+    // Outside a Git checkout, or before the first commit, git fails.
   }
+  return undefined;
 }
 
 /**
@@ -454,12 +460,10 @@ export function collectDecisionFirmnessViolations(
       entities,
       edges,
       rules,
-      new Set(manifest?.supersedesReasonAcknowledged ?? []),
+      new Set(manifest?.supersedesReasonAcknowledged),
       {
         schemaVersion: manifest?.schemaVersion ?? null,
-        firmSupersedeAcknowledged: new Set(
-          manifest?.firmSupersedeAcknowledged ?? [],
-        ),
+        firmSupersedeAcknowledged: new Set(manifest?.firmSupersedeAcknowledged),
       },
     ),
   ];

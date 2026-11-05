@@ -1,0 +1,16 @@
+[
+  {
+    "rule": "predicate-schema-conformance",
+    "entityId": "SCH-bad",
+    "description": "Predicate schema SCH-bad declares an invalid argument vocabulary: argument_constants.y is not one of argument_names (x); argument_constants.x must be a non-empty list of non-empty strings",
+    "suggestion": "Key argument_constants and argument_aliases by argument_names, and map every alias to a declared constant.",
+    "source": "docs/bad.md",
+    "evidence": {
+      "schemaId": "SCH-bad",
+      "errors": [
+        "argument_constants.y is not one of argument_names (x)",
+        "argument_constants.x must be a non-empty list of non-empty strings"
+      ]
+    }
+  }
+]

@@ -1,0 +1,6 @@
+[
+  {
+    "type": "text",
+    "text": "kb_semantic_advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Suggestions: strict_property, predicate."
+  }
+]

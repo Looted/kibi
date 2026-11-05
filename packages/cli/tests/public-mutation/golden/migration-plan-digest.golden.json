@@ -1,0 +1,202 @@
+{
+  "version": "kibi.migration-plan-digest.v2",
+  "planHash": "659b54ccb1168d8839891d9a37b8b3bf254da1119c4bf8ab1bce809b1626bb62",
+  "status": "partial",
+  "expected": {
+    "branch": null,
+    "kbBranch": null,
+    "kbSnapshotId": null,
+    "workspaceSnapshot": null,
+    "configHash": null
+  },
+  "scope": {
+    "evaluatedDomains": [],
+    "incompleteDomains": [],
+    "complete": true
+  },
+  "summary": {
+    "actionCount": 27,
+    "readyActionCount": 25,
+    "blockedActionCount": 2,
+    "automaticActionCount": 22,
+    "reviewActionCount": 4,
+    "operatorActionCount": 1,
+    "executionActionCount": 0
+  },
+  "automaticActions": [
+    {
+      "id": "auto-21",
+      "code": "code_auto-21",
+      "state": "blocked",
+      "autoApplicable": false,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-00",
+      "code": "code_auto-00",
+      "state": "ready",
+      "autoApplicable": true,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-01",
+      "code": "code_auto-01",
+      "state": "ready",
+      "autoApplicable": false,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-02",
+      "code": "code_auto-02",
+      "state": "ready",
+      "autoApplicable": true,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-03",
+      "code": "code_auto-03",
+      "state": "ready",
+      "autoApplicable": false,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-04",
+      "code": "code_auto-04",
+      "state": "ready",
+      "autoApplicable": true,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-05",
+      "code": "code_auto-05",
+      "state": "ready",
+      "autoApplicable": false,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-06",
+      "code": "code_auto-06",
+      "state": "ready",
+      "autoApplicable": true,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-07",
+      "code": "code_auto-07",
+      "state": "ready",
+      "autoApplicable": false,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-08",
+      "code": "code_auto-08",
+      "state": "ready",
+      "autoApplicable": true,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-09",
+      "code": "code_auto-09",
+      "state": "ready",
+      "autoApplicable": false,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-10",
+      "code": "code_auto-10",
+      "state": "ready",
+      "autoApplicable": true,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-11",
+      "code": "code_auto-11",
+      "state": "ready",
+      "autoApplicable": false,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-12",
+      "code": "code_auto-12",
+      "state": "ready",
+      "autoApplicable": true,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-13",
+      "code": "code_auto-13",
+      "state": "ready",
+      "autoApplicable": false,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-14",
+      "code": "code_auto-14",
+      "state": "ready",
+      "autoApplicable": true,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-15",
+      "code": "code_auto-15",
+      "state": "ready",
+      "autoApplicable": false,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-16",
+      "code": "code_auto-16",
+      "state": "ready",
+      "autoApplicable": true,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-17",
+      "code": "code_auto-17",
+      "state": "ready",
+      "autoApplicable": false,
+      "dependsOn": []
+    },
+    {
+      "id": "auto-18",
+      "code": "code_auto-18",
+      "state": "ready",
+      "autoApplicable": true,
+      "dependsOn": []
+    }
+  ],
+  "automaticSummary": {
+    "total": 22,
+    "ready": 11,
+    "blocked": 1,
+    "omitted": 2
+  },
+  "actionGroups": [
+    {
+      "code": "b_code",
+      "safety": "review",
+      "state": "ready",
+      "count": 2
+    },
+    {
+      "code": "a_code",
+      "safety": "review",
+      "state": "blocked",
+      "count": 1
+    },
+    {
+      "code": "a_code",
+      "safety": "review",
+      "state": "ready",
+      "count": 1
+    },
+    {
+      "code": "c_code",
+      "safety": "operator",
+      "state": "ready",
+      "count": 1
+    }
+  ],
+  "diagnostics": [],
+  "next": "This digest cannot be applied. Run kb_status, kb_check and kb_coverage (or kibi migrate) for the full plan and its action details. 1 automatic action is blocked: it waits for the actions in its dependsOn and needs no approval until a later plan shows it ready."
+}

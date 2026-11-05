@@ -1,0 +1,15 @@
+[
+  "json a.json",
+  "yaml a.yaml at x.y (id of each item)",
+  "openapi o.yaml",
+  "files matching a/*, b/*",
+  "files matching a/*",
+  "env references in src/**",
+  "sql schema m/*.sql, n/*.sql",
+  "drizzle schema s.ts (tables u*)",
+  "routes of app in a.ts",
+  "routes of app in a.ts under /api",
+  "validator User in v.ts",
+  "r/1 facts in k.pl",
+  "r/2 facts in k.pl (argument 2)"
+]

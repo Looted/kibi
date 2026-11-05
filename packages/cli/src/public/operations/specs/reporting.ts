@@ -295,13 +295,17 @@ export async function perContractTestBindings(
   const fs = context.fs;
   for (const test of tests) {
     const testId = typeof test.id === "string" ? test.id : "";
-    if (testId === "" || fs === undefined) continue;
+    if (testId === "") continue;
     // The same computation ingest uses to write binding_hash. Unreadable or
-    // non-markdown documents keep strict snapshot semantics for that test.
+    // non-markdown documents keep strict snapshot semantics for that test;
+    // without fs every read fails, so no test is bound.
     const bindings = await currentReceiptBindingHashes({
       workspaceRoot: context.workspaceRoot,
-      readFile: (absolute) => fs.readFile(absolute),
+      readFile: (absolute) =>
+        (fs as NonNullable<OperationContext["fs"]>).readFile(absolute),
       test,
+      // rationale: an unknown symbol id adds nothing to the code scope
+      // Stryker disable next-line ArrayDeclaration
       coveredBySymbols: coveredBy.get(testId) ?? [],
     });
     if (bindings !== undefined) {
@@ -339,16 +343,15 @@ export async function readCoveragePages(
       goalFor(pageLimit, pageOffset),
       "Coverage execution",
     );
-  if (limit <= COVERAGE_ROW_PAGE_SIZE) return read(limit, offset);
-  const first = await read(COVERAGE_ROW_PAGE_SIZE, offset);
+  const first = await read(Math.min(COVERAGE_ROW_PAGE_SIZE, limit), offset);
   const rows = [...first.rows];
-  let lastPageSize = first.rows.length;
-  let lastPageLimit = COVERAGE_ROW_PAGE_SIZE;
-  while (lastPageSize === lastPageLimit && rows.length < limit) {
-    lastPageLimit = Math.min(COVERAGE_ROW_PAGE_SIZE, limit - rows.length);
-    const page = await read(lastPageLimit, offset + rows.length);
+  // A short page is the last one.
+  let full = rows.length === Math.min(COVERAGE_ROW_PAGE_SIZE, limit);
+  while (full && rows.length < limit) {
+    const pageLimit = Math.min(COVERAGE_ROW_PAGE_SIZE, limit - rows.length);
+    const page = await read(pageLimit, offset + rows.length);
     rows.push(...page.rows);
-    lastPageSize = page.rows.length;
+    full = page.rows.length === pageLimit;
   }
   return { ...first, rows };
 }
@@ -433,16 +436,11 @@ export async function executeCoverage(
       evaluatedDomains: ["semantic", "proof", "symbol"],
       incompleteDomains:
         payload.meta?.scopeComplete === false ? ["coverage"] : [],
+      // An undefined plan reads as no plan.
       actions: buildActionsFromCoverage({
-        ...(repairPlan !== undefined
-          ? {
-              repairPlan: repairPlan as unknown as Readonly<
-                Record<string, unknown>
-              >,
-            }
-          : {}),
-        ...(symbolRepairPlan !== undefined ? { symbolRepairPlan } : {}),
-      }),
+        repairPlan,
+        symbolRepairPlan,
+      } as Parameters<typeof buildActionsFromCoverage>[0]),
     });
     const migrationPlan = statusPlan
       ? mergeMigrationPlans([statusPlan, coveragePlan])

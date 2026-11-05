@@ -1,0 +1,143 @@
+[
+  {
+    "rule": "policy-ownership",
+    "entityId": "kibi-plugin-broken",
+    "description": "Check policy from 'kibi-plugin-broken' could not be read: missing",
+    "suggestion": "Install the activated plugin package in this workspace, or remove its kibi.check-policy.v1 entry from package.json#kibi.plugins. Kibi does not skip an activated policy it cannot read.",
+    "evidence": {
+      "package": "kibi-plugin-broken"
+    }
+  },
+  {
+    "rule": "policy-ownership",
+    "entityId": "S-unowned",
+    "description": "S-unowned (src/b.ts) is in scope of kibi-plugin-ui rule 'widgets' but implements no current requirement grounded in ui_pattern, ui_role",
+    "suggestion": "Widgets implement a design requirement. Link the symbol with implements to a requirement that carries one of these predicates via requires_predicate, or create that requirement first; tag the symbol 'review:free' only when it is intentionally unconstrained.",
+    "source": "src/b.ts",
+    "evidence": {
+      "policy": "ui-design",
+      "package": "kibi-plugin-ui",
+      "policyRule": "widgets",
+      "requirePredicates": ["ui_pattern", "ui_role"],
+      "implements": []
+    }
+  },
+  {
+    "rule": "policy-ownership",
+    "entityId": "S-retired",
+    "description": "S-retired (src/c.ts) is in scope of kibi-plugin-ui rule 'widgets' but implements no current requirement grounded in ui_pattern, ui_role",
+    "suggestion": "Widgets implement a design requirement. Link the symbol with implements to a requirement that carries one of these predicates via requires_predicate, or create that requirement first; tag the symbol 'review:free' only when it is intentionally unconstrained.",
+    "source": "src/c.ts",
+    "evidence": {
+      "policy": "ui-design",
+      "package": "kibi-plugin-ui",
+      "policyRule": "widgets",
+      "requirePredicates": ["ui_pattern", "ui_role"],
+      "implements": []
+    }
+  },
+  {
+    "rule": "policy-ownership",
+    "entityId": "S-denied",
+    "description": "S-denied (src/d.ts) is in scope of kibi-plugin-ui rule 'widgets' but implements no current requirement grounded in ui_pattern, ui_role",
+    "suggestion": "Widgets implement a design requirement. Link the symbol with implements to a requirement that carries one of these predicates via requires_predicate, or create that requirement first; tag the symbol 'review:free' only when it is intentionally unconstrained.",
+    "source": "src/d.ts",
+    "evidence": {
+      "policy": "ui-design",
+      "package": "kibi-plugin-ui",
+      "policyRule": "widgets",
+      "requirePredicates": ["ui_pattern", "ui_role"],
+      "implements": ["REQ-deny"]
+    }
+  },
+  {
+    "rule": "policy-ownership",
+    "entityId": "S-other",
+    "description": "S-other (src/e.ts) is in scope of kibi-plugin-ui rule 'widgets' but implements no current requirement grounded in ui_pattern, ui_role",
+    "suggestion": "Widgets implement a design requirement. Link the symbol with implements to a requirement that carries one of these predicates via requires_predicate, or create that requirement first; tag the symbol 'review:free' only when it is intentionally unconstrained.",
+    "source": "src/e.ts",
+    "evidence": {
+      "policy": "ui-design",
+      "package": "kibi-plugin-ui",
+      "policyRule": "widgets",
+      "requirePredicates": ["ui_pattern", "ui_role"],
+      "implements": ["REQ-other"]
+    }
+  },
+  {
+    "rule": "policy-ownership",
+    "entityId": "S-ghost",
+    "description": "S-ghost (src/f.ts) is in scope of kibi-plugin-ui rule 'widgets' but implements no current requirement grounded in ui_pattern, ui_role",
+    "suggestion": "Widgets implement a design requirement. Link the symbol with implements to a requirement that carries one of these predicates via requires_predicate, or create that requirement first; tag the symbol 'review:free' only when it is intentionally unconstrained.",
+    "source": "src/f.ts",
+    "evidence": {
+      "policy": "ui-design",
+      "package": "kibi-plugin-ui",
+      "policyRule": "widgets",
+      "requirePredicates": ["ui_pattern", "ui_role"],
+      "implements": ["REQ-ghost"]
+    }
+  },
+  {
+    "rule": "policy-ownership",
+    "entityId": "S-lib-2",
+    "description": "S-lib-2 (lib/y.ts) is in scope of kibi-plugin-ui rule 'library' but implements no current requirement grounded in lib_rule",
+    "suggestion": "Library code follows a rule. Link the symbol with implements to a requirement that carries one of these predicates via requires_predicate, or create that requirement first.",
+    "source": "lib/y.ts",
+    "evidence": {
+      "policy": "ui-design",
+      "package": "kibi-plugin-ui",
+      "policyRule": "library",
+      "requirePredicates": ["lib_rule"],
+      "implements": []
+    }
+  },
+  {
+    "rule": "policy-markers",
+    "entityId": "S-owned",
+    "description": "S-owned implements REQ-ui, which uses pattern 'card', but none of src/a.ts, src/a.html contains its marker 'missing_one'",
+    "suggestion": "Markers stay. Restore the pattern in the implementation, or if the design changed on purpose, supersede REQ-ui with a requirement naming the new pattern.",
+    "source": "src/a.ts",
+    "evidence": {
+      "policy": "ui-design",
+      "package": "kibi-plugin-ui",
+      "policyRule": "ui-markers",
+      "requirement": "REQ-ui",
+      "pattern": "card",
+      "marker": "missing_one",
+      "searchedFiles": ["src/a.ts", "src/a.html"]
+    }
+  },
+  {
+    "rule": "policy-markers",
+    "entityId": "S-owned",
+    "description": "S-owned implements REQ-ui, which uses pattern 'card', but none of src/a.ts, src/a.html contains its marker 'missing_two'",
+    "suggestion": "Markers stay. Restore the pattern in the implementation, or if the design changed on purpose, supersede REQ-ui with a requirement naming the new pattern.",
+    "source": "src/a.ts",
+    "evidence": {
+      "policy": "ui-design",
+      "package": "kibi-plugin-ui",
+      "policyRule": "ui-markers",
+      "requirement": "REQ-ui",
+      "pattern": "card",
+      "marker": "missing_two",
+      "searchedFiles": ["src/a.ts", "src/a.html"]
+    }
+  },
+  {
+    "rule": "policy-markers",
+    "entityId": "S-lib-3",
+    "description": "S-lib-3 implements REQ-lib-2, which uses pattern 'lib-marked', but none of lib/z.ts contains its marker 'lib_mark'",
+    "suggestion": "Library markers stay. Restore the pattern in the implementation, or if the design changed on purpose, supersede REQ-lib-2 with a requirement naming the new pattern.",
+    "source": "lib/z.ts",
+    "evidence": {
+      "policy": "ui-design",
+      "package": "kibi-plugin-ui",
+      "policyRule": "lib-markers",
+      "requirement": "REQ-lib-2",
+      "pattern": "lib-marked",
+      "marker": "lib_mark",
+      "searchedFiles": ["lib/z.ts"]
+    }
+  }
+]

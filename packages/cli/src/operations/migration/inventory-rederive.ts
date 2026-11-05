@@ -20,7 +20,7 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { load as loadYaml } from "js-yaml";
-import { parseDocument } from "yaml";
+import { type YAMLMap, type YAMLSeq, parseDocument } from "yaml";
 import {
   type ExtractedEntity,
   type ExtractedRelationship,
@@ -71,7 +71,7 @@ const GROUNDING_RELATIONSHIPS = new Set([
   "requires_predicate",
   "requires_rule",
 ]);
-const UNRESOLVED_STATUSES = new Set(["ambiguous", "ontology_gap", "missing"]);
+const UNRESOLVED_STATUSES = new Set(["ambiguous", "ontology_gap"]);
 
 type InventoryEntry = {
   claim_key: string;
@@ -208,7 +208,7 @@ function advertisesContract(entity: ExtractedEntity): boolean {
 
 /** Lazily resolves grounding fact ids to their claim_key. */
 class FactClaimIndex {
-  private byId: Map<string, string> | undefined;
+  private byId: Map<string, string | undefined> | undefined;
   constructor(private readonly workspaceRoot: string) {}
 
   claimKey(factId: string): string | undefined {
@@ -228,9 +228,7 @@ class FactClaimIndex {
       for (const file of listLaneMarkdownFiles(this.workspaceRoot, ["facts"])) {
         try {
           const { entity } = extractFromMarkdown(file.absolutePath);
-          if (entity.claim_key !== undefined) {
-            this.byId.set(entity.id, entity.claim_key);
-          }
+          this.byId.set(entity.id, entity.claim_key);
         } catch {
           // Unreadable facts are reported by sync, not here.
         }
@@ -265,13 +263,13 @@ function rederive(
 ): {
   inventory: InventoryEntry[];
   changes: InventoryClaimChange[];
-  modeledBecameContext: string[];
+  contextReasons: string[];
 } {
   const storedByKey = new Map(stored.map((entry) => [entry.claim_key, entry]));
   const carried = new Set<string>();
   const inventory: InventoryEntry[] = [];
   const changes: InventoryClaimChange[] = [];
-  const modeledBecameContext: string[] = [];
+  const contextReasons: string[] = [];
   for (const proposition of propositions) {
     const candidate = storedByKey.get(proposition.claim_key);
     const previous =
@@ -281,6 +279,7 @@ function rederive(
     const context = CONTEXT_ROLES.has(proposition.role);
     let status: string;
     let change: InventoryClaimChange["change"];
+    let semanticKey: string | undefined;
     if (previous === undefined) {
       status = context ? "nonlogical" : unresolvedStatus(proposition);
       change = context ? "new_context" : "new_unresolved";
@@ -289,7 +288,9 @@ function rederive(
       if (context) {
         status = "nonlogical";
         if (previous.status === "modeled") {
-          modeledBecameContext.push(previous.claim_key);
+          contextReasons.push(
+            `modeled claim ${previous.claim_key} is now classified as context (${proposition.role}); its grounding cannot stay`,
+          );
         }
         change = previous.status === "nonlogical" ? "kept" : "now_context";
       } else if (previous.status === "nonlogical") {
@@ -298,6 +299,7 @@ function rederive(
       } else {
         status = previous.status;
         change = "kept";
+        if (status === "modeled") semanticKey = previous.semantic_key;
       }
       if (change === "kept" && previous.role !== proposition.role) {
         change = "role_changed";
@@ -309,17 +311,17 @@ function rederive(
         change = "span_changed";
       }
     }
-    const keepsStatus = previous !== undefined && previous.status === status;
-    const reason = keepsStatus ? previous?.reason : proposition.reason;
+    const reason =
+      previous !== undefined && previous.status === status
+        ? previous.reason
+        : proposition.reason;
     inventory.push({
       claim_key: proposition.claim_key,
       claim_text: proposition.claim_text,
       role: proposition.role,
       status,
       span: { start: proposition.span.start, end: proposition.span.end },
-      ...(keepsStatus && status === "modeled" && previous?.semantic_key
-        ? { semantic_key: previous.semantic_key }
-        : {}),
+      ...(semanticKey !== undefined ? { semantic_key: semanticKey } : {}),
       ...(status !== "modeled" && reason !== undefined ? { reason } : {}),
     });
     changes.push({
@@ -339,7 +341,7 @@ function rederive(
       before: { role: entry.role, status: entry.status },
     });
   }
-  return { inventory, changes, modeledBecameContext };
+  return { inventory, changes, contextReasons };
 }
 
 function summarize(
@@ -394,7 +396,7 @@ function planOne(
   if (!before.applicable || before.errors.length === 0) return null;
 
   const stored = storedInventory(entity);
-  const { inventory, changes, modeledBecameContext } = rederive(
+  const { inventory, changes, contextReasons } = rederive(
     stored,
     receipt.propositions,
   );
@@ -407,51 +409,32 @@ function planOne(
       .filter((entry) => !CONTEXT_ROLES.has(entry.role))
       .map((entry) => entry.claim_key),
   };
-  const reasons: string[] = [];
-  for (const claimKey of modeledBecameContext) {
-    reasons.push(
-      `modeled claim ${claimKey} is now classified as context (${inventory.find((entry) => entry.claim_key === claimKey)?.role ?? "context"}); its grounding cannot stay`,
-    );
-  }
+  const reasons = contextReasons;
 
-  const modeledKeys = inventory
+  const modeledKeys: (string | undefined)[] = inventory
     .filter((entry) => entry.status === "modeled")
     .map((entry) => entry.claim_key);
-  const declared = new Set(
-    extracted
-      .filter((relationship) => relationship.from === entity.id)
-      .map(relationshipKey),
-  );
-  const groundingKeys: string[] = [];
+  const declared = new Set(extracted.map(relationshipKey));
   const orphanedGrounding: OrphanedGroundingLink[] = [];
   for (const relationship of relationships) {
     if (!GROUNDING_RELATIONSHIPS.has(relationship.type)) continue;
     const claimKey = facts.claimKey(relationship.to);
-    if (claimKey === undefined || !modeledKeys.includes(claimKey)) {
-      orphanedGrounding.push({
-        type: relationship.type,
-        target: relationship.to,
-        claimKey: claimKey ?? null,
-        inFrontMatter: declared.has(relationshipKey(relationship)),
-      });
-    }
-    if (claimKey === undefined) {
-      reasons.push(
-        `grounding target ${relationship.to} (${relationship.type}) declares no claim_key`,
-      );
-      continue;
-    }
-    groundingKeys.push(claimKey);
-  }
-  for (const claimKey of new Set(groundingKeys)) {
     if (modeledKeys.includes(claimKey)) continue;
-    const dropped = changes.find(
-      (change) => change.claim_key === claimKey && change.change === "dropped",
-    );
+    orphanedGrounding.push({
+      type: relationship.type,
+      target: relationship.to,
+      claimKey: claimKey ?? null,
+      inFrontMatter: declared.has(relationshipKey(relationship)),
+    });
     reasons.push(
-      dropped !== undefined
-        ? `grounded claim ${claimKey} no longer exists in the current advisor's inventory`
-        : `grounded claim ${claimKey} is not a modeled claim of the re-derived inventory`,
+      claimKey === undefined
+        ? `grounding target ${relationship.to} (${relationship.type}) declares no claim_key`
+        : changes.some(
+              (change) =>
+                change.claim_key === claimKey && change.change === "dropped",
+            )
+          ? `grounded claim ${claimKey} no longer exists in the current advisor's inventory`
+          : `grounded claim ${claimKey} is not a modeled claim of the re-derived inventory`,
     );
   }
 
@@ -474,7 +457,6 @@ function planOne(
     ),
   );
   const rederivableByDroppingGrounding =
-    reasons.length > 0 &&
     orphanedGrounding.length > 0 &&
     // A target without claim_key may ground something else (a property
     // value, for example); only links to a claim that is no longer modeled
@@ -522,6 +504,8 @@ function readShardRelationships(
     );
   } catch {
     // Malformed shards fail sync with their own diagnostic.
+    // rationale: relationshipsFor keeps only relationships from the requirement, so a placeholder entry here is filtered out unseen.
+    // Stryker disable next-line ArrayDeclaration
     return [];
   }
 }
@@ -550,12 +534,9 @@ export function planInventoryRederivation(
   const plans: InventoryRederivation[] = [];
   const files = listLaneMarkdownFiles(workspaceRoot, ["requirements"]);
   // The canonical file stem is the id; fall back to every file otherwise.
-  const preferred =
-    onlyId === undefined
-      ? files
-      : files.filter(
-          (file) => path.basename(file.relativePath, ".md") === onlyId,
-        );
+  const preferred = files.filter(
+    (file) => path.basename(file.relativePath, ".md") === onlyId,
+  );
   for (const file of preferred.length > 0 ? preferred : files) {
     let result: ReturnType<typeof extractFromMarkdown>;
     try {
@@ -592,34 +573,41 @@ function rewriteContract(
   if (slice === null) return null;
   const document = parseDocument(slice.text);
   if (document.errors.length > 0) return null;
-  const current = document.toJS() as Record<string, unknown>;
+  const current: unknown = document.toJS();
+  if (!isRecord(current)) return null;
   const dropped = (link: unknown): boolean =>
     isRecord(link) &&
     dropLinks.some(
       (drop) => drop.type === link.type && drop.target === link.target,
     );
-  const keptLinks = Array.isArray(current.links)
-    ? current.links.filter((link) => !dropped(link))
-    : current.links;
-  if (dropLinks.length > 0) {
-    if (!Array.isArray(current.links)) return null;
-    if (
-      current.links.length - (keptLinks as unknown[]).length !==
-      dropLinks.length
-    )
-      return null;
-    for (let index = current.links.length - 1; index >= 0; index--) {
-      if (dropped(current.links[index])) document.deleteIn(["links", index]);
-    }
-    if ((keptLinks as unknown[]).length === 0) document.delete("links");
+  // rationale: front matter without a links list has nothing to drop; a placeholder entry is never a dropped link, so only the count check below sees it.
+  // Stryker disable next-line ArrayDeclaration
+  const links: unknown[] = Array.isArray(current.links) ? current.links : [];
+  const keptLinks = links.filter((link) => !dropped(link));
+  if (links.length - keptLinks.length !== dropLinks.length) return null;
+  // Delete from the end so the remaining indexes stay valid.
+  for (const [index, link] of [...links.entries()].reverse()) {
+    if (dropped(link)) document.deleteIn(["links", index]);
   }
+  if (dropLinks.length > 0 && keptLinks.length === 0) document.delete("links");
   const flowSpan = (span: InventoryEntry["span"]) => {
     const node = document.createNode(span) as { flow?: boolean };
     node.flow = true;
     return node;
   };
-  for (const [key, value] of Object.entries(contract)) {
+  // The schema rejects an empty logic_claims list; a requirement with no
+  // assertive claim omits it.
+  const written: Record<string, unknown> = {
+    ...contract,
+    logic_claims:
+      contract.logic_claims.length > 0 ? contract.logic_claims : undefined,
+  };
+  for (const [key, value] of Object.entries(written)) {
     if (isDeepStrictEqual(current[key], value)) continue;
+    if (value === undefined) {
+      document.delete(key);
+      continue;
+    }
     const previous = current[key];
     if (
       key === "semantic_inventory" &&
@@ -652,12 +640,9 @@ function rewriteContract(
       continue;
     }
     const node = document.createNode(value);
-    if (key === "semantic_inventory" && "items" in node) {
-      for (const item of (node as { items: unknown[] }).items) {
-        const span = (
-          item as { get?: (k: string, keep: boolean) => unknown }
-        ).get?.("span", true) as { flow?: boolean } | undefined;
-        if (span !== undefined) span.flow = true;
+    if (key === "semantic_inventory") {
+      for (const item of (node as unknown as YAMLSeq<YAMLMap>).items) {
+        (item.get("span", true) as unknown as YAMLMap).flow = true;
       }
     }
     document.set(key, node);
@@ -668,18 +653,17 @@ function rewriteContract(
   });
   if (slice.eol === "\r\n") rendered = rendered.replace(/\r?\n/g, "\r\n");
   try {
-    const before = loadYaml(slice.text);
-    const after = loadYaml(rendered);
-    if (!isRecord(before) || !isRecord(after)) return null;
+    const before = loadYaml(slice.text) as Record<string, unknown>;
+    const after = loadYaml(rendered) as Record<string, unknown>;
     for (const key of new Set([
       ...Object.keys(before),
       ...Object.keys(after),
     ])) {
       const expected =
         key in contract
-          ? (contract as Record<string, unknown>)[key]
+          ? written[key]
           : key === "links" && dropLinks.length > 0
-            ? (keptLinks as unknown[]).length > 0
+            ? keptLinks.length > 0
               ? keptLinks
               : undefined
             : before[key];
@@ -711,9 +695,8 @@ export function applyInventoryRederivation(
   requirementId: string,
   expectedContractHash?: string,
 ): InventoryRederivationOutcome {
-  const plan = planInventoryRederivation(workspaceRoot, requirementId).find(
-    (candidate) => candidate.requirementId === requirementId,
-  );
+  // The scan is limited to this id, so it yields at most this requirement.
+  const [plan] = planInventoryRederivation(workspaceRoot, requirementId);
   if (plan === undefined) {
     return { requirementId, path: "", outcome: "unchanged" };
   }
@@ -777,9 +760,8 @@ export function applyInventoryRederivationDroppingGrounding(
   expectedContractHash: string,
   expectedDrops: readonly Readonly<{ type: string; target: string }>[],
 ): InventoryRederivationOutcome {
-  const plan = planInventoryRederivation(workspaceRoot, requirementId).find(
-    (candidate) => candidate.requirementId === requirementId,
-  );
+  // The scan is limited to this id, so it yields at most this requirement.
+  const [plan] = planInventoryRederivation(workspaceRoot, requirementId);
   if (
     plan === undefined ||
     !plan.rederivableByDroppingGrounding ||

@@ -58,24 +58,39 @@ async function previewSourceWrite(
   entity: Readonly<Record<string, unknown>>,
   context: OperationContext,
 ): Promise<string | undefined> {
-  const fs = context.fs;
-  if (fs === undefined || context.sourceFirst === false) return undefined;
-  if (context.prolog === undefined) {
-    // No store, so no write either: only locate the document for the
-    // context warning.
-    try {
-      return canonicalSourcePath(context, input, entity);
-    } catch {
-      return undefined;
-    }
-  }
   const scope = await sourceWriteScope(input, context);
   if (scope === null) return undefined;
-  const { relative } = await renderSourceWrite(input, entity, scope.existing, {
-    ...context,
-    fs,
-  });
+  // sourceWriteScope returns a scope only for a runtime with a filesystem.
+  const { relative } = await renderSourceWrite(
+    input,
+    entity,
+    scope.existing,
+    context as OperationContext & {
+      readonly fs: NonNullable<OperationContext["fs"]>;
+    },
+  );
   return relative;
+}
+
+// implements REQ-kibi-operation-interface-parity, REQ-kb-entity-body-context
+/**
+ * Without a store there is no write either: only locate the document the
+ * write would update, for the context warning. Undefined when the runtime
+ * writes no document or the document cannot be located.
+ */
+function locateSourceDocument(
+  input: UpsertInput,
+  entity: Readonly<Record<string, unknown>>,
+  context: OperationContext,
+): string | undefined {
+  if (context.fs === undefined || context.sourceFirst === false)
+    return undefined;
+  try {
+    return canonicalSourcePath(context, input, entity);
+  } catch {
+    // A document the write could not locate gets no target path.
+  }
+  return undefined;
 }
 
 // implements REQ-kibi-operation-interface-parity, REQ-kibi-truthful-consistency
@@ -237,6 +252,21 @@ async function previewStagedContradictions(
   };
 }
 
+/** What a dry run validated, and the warnings only a store can tell. */
+type DryRunValidation = Readonly<{
+  entity: Readonly<Record<string, unknown>>;
+  semantic: UpsertSemanticAnalysis;
+  targetPath: string | undefined;
+  storeWarnings: readonly string[];
+  /** The planned facts staged ahead of the payload, and the batch's what-if. */
+  staged:
+    | Readonly<{
+        stagedFacts: readonly string[];
+        whatIf: NonNullable<ValidateUpsertPayload["whatIf"]>;
+      }>
+    | undefined;
+}>;
+
 /**
  * The validation chain for a runtime without a store: everything that does
  * not need to read the KB.
@@ -244,10 +274,11 @@ async function previewStagedContradictions(
 async function validateWithoutStore(
   input: UpsertInput,
   context: OperationContext,
-): Promise<{
-  entity: Readonly<Record<string, unknown>>;
-  semantic: UpsertSemanticAnalysis;
-}> {
+): Promise<DryRunValidation> {
+  if (input.plannedFacts !== undefined)
+    throw new Error(
+      "plannedFacts needs a KB store: the planned facts are staged against the current KB",
+    );
   const validated = validateUpsertInput(input, context.clock());
   await validateAppendOnlyProofReceipts(validated.entity, context);
   validateRelationshipSources(input.id, validated.relationships);
@@ -260,7 +291,80 @@ async function validateWithoutStore(
     ...input,
     relationships: validated.relationships,
   });
-  return { entity: validated.entity, semantic };
+  return {
+    entity: validated.entity,
+    semantic,
+    targetPath: locateSourceDocument(input, validated.entity, context),
+    storeWarnings: [],
+    staged: undefined,
+  };
+}
+
+/**
+ * The validation chain for a runtime with a store: validateUpsertForCommit,
+ * the exact validation a real kb_upsert runs before its first write, then
+ * the document render and the commit goal's own refusals.
+ */
+async function validateWithStore(
+  input: UpsertInput,
+  context: OperationContext,
+  prolog: PrologPort,
+): Promise<DryRunValidation> {
+  const facts = await stagePlannedFacts(input, context);
+  const result = await validateUpsertForCommit(
+    input,
+    context,
+    facts === null ? {} : { staged: facts.staged },
+  );
+  const { entity, relationships } = result.validated;
+  // The write publishes the authored document before its commit goal;
+  // render it (without writing) in the same order, so a source refusal
+  // surfaces here exactly as the write raises it.
+  const targetPath = await previewSourceWrite(input, entity, context);
+  // The commit goal refuses missing relationship endpoints, mixed symbol
+  // roles and requirement contradictions after the validations above; a dry
+  // run previews that goal as well, so "valid" means the commit would not
+  // refuse the write.
+  if (facts === null) await previewCommit(prolog, input, entity, relationships);
+  const staged =
+    facts === null
+      ? undefined
+      : {
+          stagedFacts: [...facts.staged.entities.keys()],
+          whatIf: await previewStagedContradictions(
+            prolog,
+            input,
+            entity,
+            relationships,
+            facts,
+          ),
+        };
+  // Style warnings apply only to entities this upsert would create, so the
+  // existence read happens only when the ID actually has a style issue.
+  const candidateIdStyleWarnings = entityIdStyleWarnings({
+    id: input.id,
+    sourcePath: typeof entity.source === "string" ? entity.source : undefined,
+  });
+  const idStyleWarnings =
+    candidateIdStyleWarnings.length > 0 &&
+    !(await entityExists(prolog, input.id))
+      ? candidateIdStyleWarnings
+      : [];
+  // The same symbol-coverage warning the write returns, so the dry run
+  // tells the agent before the write that kb_check will flag it.
+  const coverageWarnings = await symbolCoverageWarnings(
+    prolog,
+    relationships,
+    input.type,
+    input.id,
+  );
+  return {
+    entity,
+    semantic: result.semantic,
+    targetPath,
+    storeWarnings: [...coverageWarnings, ...idStyleWarnings],
+    staged,
+  };
 }
 
 function isModuleLoadFailure(error: unknown): boolean {
@@ -281,102 +385,28 @@ export async function executeValidateUpsert(
   context: OperationContext,
 ): Promise<OperationResult<ValidateUpsertPayload>> {
   try {
-    if (input.plannedFacts !== undefined && context.prolog === undefined)
-      throw new Error(
-        "plannedFacts needs a KB store: the planned facts are staged against the current KB",
-      );
-    let whatIf: ValidateUpsertPayload["whatIf"];
-    let stagedFacts: readonly string[] | undefined;
-    let relationships: readonly RelationshipInput[] = input.relationships ?? [];
-    let targetPath: string | undefined;
-    const { entity, semantic } =
+    const { entity, semantic, targetPath, storeWarnings, staged } =
       context.prolog !== undefined
-        ? await stagePlannedFacts(input, context).then(async (facts) => {
-            const result = await validateUpsertForCommit(
-              input,
-              context,
-              facts === null ? {} : { staged: facts.staged },
-            );
-            // The write publishes the authored document before its commit
-            // goal; render it (without writing) in the same order, so a
-            // source refusal surfaces here exactly as the write raises it.
-            targetPath = await previewSourceWrite(
-              input,
-              result.validated.entity,
-              context,
-            );
-            // The commit goal refuses missing relationship endpoints, mixed
-            // symbol roles and requirement contradictions after the
-            // validations above; a dry run previews that goal as well, so
-            // "valid" means the commit would not refuse the write.
-            if (facts === null) {
-              await previewCommit(
-                context.prolog as PrologPort,
-                input,
-                result.validated.entity,
-                result.validated.relationships,
-              );
-            } else {
-              stagedFacts = [...facts.staged.entities.keys()];
-              whatIf = await previewStagedContradictions(
-                context.prolog as PrologPort,
-                input,
-                result.validated.entity,
-                result.validated.relationships,
-                facts,
-              );
-            }
-            relationships = result.validated.relationships;
-            return {
-              entity: result.validated.entity,
-              semantic: result.semantic,
-            };
-          })
+        ? await validateWithStore(input, context, context.prolog)
         : await validateWithoutStore(input, context);
-    if (context.prolog === undefined)
-      targetPath = await previewSourceWrite(input, entity, context);
-    // Style warnings apply only to entities this upsert would create, so the
-    // existence read happens only when the ID actually has a style issue.
-    const candidateIdStyleWarnings = entityIdStyleWarnings({
-      id: input.id,
-      sourcePath: typeof entity.source === "string" ? entity.source : undefined,
-    });
-    const idStyleWarnings =
-      candidateIdStyleWarnings.length > 0 &&
-      context.prolog &&
-      !(await entityExists(context.prolog, input.id))
-        ? candidateIdStyleWarnings
-        : [];
-    // The same symbol-coverage warning the write returns, so the dry run
-    // tells the agent before the write that kb_check will flag it.
-    const coverageWarnings = context.prolog
-      ? await symbolCoverageWarnings(
-          context.prolog,
-          relationships,
-          input.type,
-          input.id,
-        )
-      : [];
     const payload: ValidateUpsertPayload = {
       valid: true,
       errors: [],
       warnings: [
         ...semantic.warnings,
-        ...coverageWarnings,
-        ...idStyleWarnings,
+        ...storeWarnings,
         ...entityContextWarnings(input, entity, context.workspaceRoot, {
           targetPath,
         }),
       ],
       semanticAdvisor: semantic.receipt,
       normalizedPreview: entity,
-      ...(stagedFacts !== undefined ? { stagedFacts } : {}),
-      ...(whatIf !== undefined ? { whatIf } : {}),
+      ...staged,
     };
     const stagedNote =
-      stagedFacts === undefined
+      staged === undefined
         ? ""
-        : ` ${stagedFacts.length} planned fact(s) were staged ahead of it (${stagedFacts.join(", ")}); the batch introduces ${whatIf?.introduced.length ?? 0} witness(es).`;
+        : ` ${staged.stagedFacts.length} planned fact(s) were staged ahead of it (${staged.stagedFacts.join(", ")}); the batch introduces ${staged.whatIf.introduced.length} witness(es).`;
     return {
       content: [
         {

@@ -326,9 +326,8 @@ export async function executeCheck(
               ...(uncompiled.source !== undefined
                 ? { file: uncompiled.source }
                 : {}),
-              ...(uncompiled.suggestion !== undefined
-                ? { suggestion: uncompiled.suggestion }
-                : {}),
+              // The uncompiled-store finding always carries a suggestion.
+              suggestion: uncompiled.suggestion as string,
             },
           ],
           qualityDiagnostics: [],

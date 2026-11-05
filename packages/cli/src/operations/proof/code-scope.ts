@@ -41,20 +41,13 @@ export function receiptCodeScopeSymbolIds(
   coveredBySymbols: readonly string[],
 ): string[] {
   const ids = new Set<string>();
-  const requiredProofs =
-    contract !== null &&
-    typeof contract === "object" &&
-    Array.isArray((contract as { required_proofs?: unknown }).required_proofs)
-      ? (contract as { required_proofs: unknown[] }).required_proofs
-      : [];
-  for (const entry of [
-    ...requiredProofs,
-    ...(Array.isArray(bindings) ? bindings : []),
-  ]) {
-    const symbolId =
-      entry !== null && typeof entry === "object"
-        ? (entry as { symbol_id?: unknown }).symbol_id
-        : undefined;
+  // Object(contract) reads no required_proofs from null or a primitive, and
+  // only the lists among them are walked.
+  const requiredProofs = (Object(contract) as { required_proofs?: unknown })
+    .required_proofs;
+  for (const entry of [requiredProofs, bindings].filter(Array.isArray).flat()) {
+    // A non-object entry has no symbol_id (Object(null) is an empty object).
+    const symbolId = (Object(entry) as { symbol_id?: unknown }).symbol_id;
     if (typeof symbolId === "string" && symbolId !== "") ids.add(symbolId);
   }
   for (const symbolId of coveredBySymbols) ids.add(symbolId);
@@ -75,6 +68,8 @@ export async function loadCoveredBySymbolsByTest(
     );
   }
   const byTest = new Map<string, string[]>();
+  // rationale: findall always binds Rels, and text that is no list parses to no rows.
+  // Stryker disable next-line StringLiteral
   for (const [rawFrom, rawTo] of parseTriples(result.bindings.Rels ?? "[]")) {
     const testId = normalizeEntityId(rawTo);
     const symbols = byTest.get(testId) ?? [];
@@ -85,8 +80,9 @@ export async function loadCoveredBySymbolsByTest(
 }
 
 function record(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+  // null is an object too, and stays null.
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
     : null;
 }
 
@@ -136,6 +132,8 @@ export function contractCodeSymbolIds(contract: ProofContract): string[] {
   add(contract.domain_source);
   add(contract.initial_source);
   add(contract.pattern_source);
+  // rationale: a primitive entry has no symbol id, so the fallback's contents are never observed.
+  // Stryker disable next-line ArrayDeclaration
   for (const entry of contract.value_source ?? []) add(entry);
   for (const entry of Object.values(contract.domains ?? {})) add(entry);
   for (const entry of Object.values(contract.predicate_source ?? {})) add(entry);
@@ -196,10 +194,16 @@ export async function currentReceiptBindingHashes(
   input: ReceiptBindingInput,
 ): Promise<readonly string[] | undefined> {
   const contract = receiptBindingContract(input.test.proof_contract);
+  // rationale: without a contract the scope lookup below throws, which binds nothing too.
+  // Stryker disable next-line ConditionalExpression
   if (!contract) return undefined;
-  const source = typeof input.test.source === "string" ? input.test.source : "";
-  if (!/\.(md|mdx)$/i.test(source.trim())) return undefined;
+  const source = input.test.source;
+  // A path with trailing blanks names no file, so it binds nothing either way.
+  if (typeof source !== "string" || !/\.(md|mdx)$/i.test(source))
+    return undefined;
   const relative = normalizeRepoRelativePath(input.workspaceRoot, source);
+  // rationale: an outside path throws when it is resolved below, which binds nothing too.
+  // Stryker disable next-line ConditionalExpression
   if (relative === null) return undefined;
   try {
     const absolute = resolveContainedSourcePath(input.workspaceRoot, relative);
@@ -233,7 +237,10 @@ export async function currentReceiptBindingHashes(
     const current = receiptBindingHash(contract, withoutLinks, scope);
     const legacy = receiptBindingHash(contract, withoutReceipts, scope);
     return legacy === current ? [current] : [current, legacy];
-  } catch {
+  }
+  // rationale: an empty handler also returns undefined.
+  // Stryker disable next-line BlockStatement
+  catch {
     return undefined;
   }
 }

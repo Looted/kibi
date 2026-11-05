@@ -99,9 +99,11 @@ const RATIONALE_HEADING = /^#{1,6}[ \t]+(?:rationale|why|context)\b/im;
  */
 // implements REQ-kibi-entity-origin
 export function markdownHasRationaleSection(content: string): boolean {
-  const body = content.startsWith("---")
-    ? content.replace(/^---\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/, "")
-    : content;
+  // The pattern only matches front matter at the very start.
+  const body = content.replace(
+    /^---\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/,
+    "",
+  );
   return RATIONALE_HEADING.test(body);
 }
 
@@ -125,7 +127,7 @@ export function rationaleSectionReader(
     try {
       found = markdownHasRationaleSection(readFileSync(file, "utf8"));
     } catch {
-      found = false;
+      // An unreadable file has no section.
     }
     cache.set(file, found);
     return found;
@@ -144,10 +146,9 @@ function sourceField(entity: Entity): { source?: string } {
 }
 
 function isCurrent(entity: Entity, superseded: ReadonlySet<string>): boolean {
-  const status = text(entity.status);
   return (
-    status !== undefined &&
-    CURRENT_REQUIREMENT_STATUSES.has(status) &&
+    // A missing status is no current one.
+    CURRENT_REQUIREMENT_STATUSES.has(text(entity.status) as string) &&
     !superseded.has(String(entity.id))
   );
 }
@@ -217,16 +218,20 @@ export function evaluateOriginReview(
   }
 
   if (rules.has(AGENT_REQUIREMENT_UNAPPROVED_RULE)) {
-    const unreviewed = current.filter((entity) => {
+    const unreviewed = current.flatMap((entity) => {
       const origin = readEntityOrigin(entity.origin);
-      return origin?.kind === "agent" && origin.approved_by === undefined;
+      return origin?.kind === "agent" && origin.approved_by === undefined
+        ? [{ entity, origin }]
+        : [];
     });
-    for (const entity of unreviewed.slice(0, AGENT_REQUIREMENT_REVIEW_LIMIT)) {
-      const origin = readEntityOrigin(entity.origin);
+    for (const { entity, origin } of unreviewed.slice(
+      0,
+      AGENT_REQUIREMENT_REVIEW_LIMIT,
+    )) {
       findings.push({
         rule: AGENT_REQUIREMENT_UNAPPROVED_RULE,
         entityId: String(entity.id),
-        description: `Requirement ${String(entity.id)} was authored by an agent${origin?.ref !== undefined ? ` (${origin.ref})` : ""} and no human has approved it`,
+        description: `Requirement ${String(entity.id)} was authored by an agent${origin.ref !== undefined ? ` (${origin.ref})` : ""} and no human has approved it`,
         suggestion:
           "Review the requirement text; when it states the intended behavior, record the reviewer in origin.approved_by (keep kind: agent and the rest of origin)",
         ...sourceField(entity),
@@ -246,7 +251,7 @@ export function evaluateOriginReview(
           listed: AGENT_REQUIREMENT_REVIEW_LIMIT,
           remainingIds: unreviewed
             .slice(AGENT_REQUIREMENT_REVIEW_LIMIT)
-            .map((entity) => String(entity.id)),
+            .map(({ entity }) => String(entity.id)),
         },
       });
     }
@@ -324,7 +329,8 @@ async function reviewRelationships(
       `Unable to read exempts, supersedes and ADR relationships: ${result.error ?? "query failed"}`,
     );
   }
-  return parseListOfLists(result.bindings.Rows ?? "[]").map(
+  // A missing binding reads as no rows.
+  return parseListOfLists(String(result.bindings.Rows)).map(
     ([type, from, to]) =>
       [
         String(parsePrologValue(type ?? "")),

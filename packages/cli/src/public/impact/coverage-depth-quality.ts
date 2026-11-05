@@ -11,12 +11,8 @@ type ReviewableCoverageDepth =
   | "scenario_only_no_test"
   | "no_test_evidence";
 
-type CoverageDepth =
-  | ReviewableCoverageDepth
-  | "direct_passing_integration"
-  | "scenario_passing_integration"
-  | "direct_passing_e2e"
-  | "scenario_passing_e2e";
+/** A passing end-to-end or integration test, direct or through a scenario. */
+type CoverageDepth = ReviewableCoverageDepth | "behavior_level";
 
 type RequirementCoverage = {
   readonly requirement: ExtractedEntity;
@@ -128,6 +124,11 @@ function testScope(test: ExtractedEntity): string {
   return test.source.toLowerCase().includes("e2e") ? "end_to_end" : "unknown";
 }
 
+const BEHAVIOR_LEVEL_SCOPES: ReadonlySet<string> = new Set([
+  "end_to_end",
+  "integration",
+]);
+
 function passingTests(
   tests: readonly ExtractedEntity[],
 ): readonly ExtractedEntity[] {
@@ -139,23 +140,11 @@ function classifyCoverageDepth(coverage: RequirementCoverage): CoverageDepth {
     ...coverage.directTests,
     ...coverage.scenarioTests,
   ]);
-  const directPassingTests = passingTests(coverage.directTests);
-  if (directPassingTests.some((test) => testScope(test) === "end_to_end")) {
-    return "direct_passing_e2e";
-  }
-  if (directPassingTests.some((test) => testScope(test) === "integration")) {
-    return "direct_passing_integration";
-  }
-
-  const scenarioPassingTests = passingTests(coverage.scenarioTests);
-  if (scenarioPassingTests.some((test) => testScope(test) === "end_to_end")) {
-    return "scenario_passing_e2e";
-  }
-  if (scenarioPassingTests.some((test) => testScope(test) === "integration")) {
-    return "scenario_passing_integration";
-  }
-
   const allPassingTests = passingTests(allTests);
+  if (
+    allPassingTests.some((test) => BEHAVIOR_LEVEL_SCOPES.has(testScope(test)))
+  )
+    return "behavior_level";
   if (
     allPassingTests.length > 0 &&
     allPassingTests.every((test) => testScope(test) === "unit")
@@ -166,17 +155,6 @@ function classifyCoverageDepth(coverage: RequirementCoverage): CoverageDepth {
   if (allTests.length > 0) return "open_or_nonpassing_tests_only";
   if (coverage.scenarioCount > 0) return "scenario_only_no_test";
   return "no_test_evidence";
-}
-
-function isReviewableCoverageDepth(
-  coverageDepth: CoverageDepth,
-): coverageDepth is ReviewableCoverageDepth {
-  return (
-    coverageDepth === "unit_only" ||
-    coverageDepth === "open_or_nonpassing_tests_only" ||
-    coverageDepth === "scenario_only_no_test" ||
-    coverageDepth === "no_test_evidence"
-  );
 }
 
 export function uniqueStrings(values: readonly string[]): readonly string[] {
@@ -206,7 +184,7 @@ function createDiagnostic(
     | undefined,
 ): QualityDiagnostic | undefined {
   const coverageDepth = classifyCoverageDepth(coverage);
-  if (!isReviewableCoverageDepth(coverageDepth)) return undefined;
+  if (coverageDepth === "behavior_level") return undefined;
 
   // Structural coverage and conservative proof are separate lanes. A current
   // scenario-backed E2E receipt is strong execution evidence even when the
@@ -287,7 +265,6 @@ function coverageForRequirement(
   ]);
   const scenarioTests = uniqueEntities(
     scenarios.flatMap((scenario) => {
-      const scenarioResult = resultsById.get(scenario.id);
       return [
         ...incomingSources({
           index,
@@ -295,14 +272,13 @@ function coverageForRequirement(
           relationshipType: "validates",
           type: "test",
         }),
-        ...(scenarioResult === undefined
-          ? []
-          : outgoingTargets({
-              result: scenarioResult,
-              relationshipType: "verified_by",
-              type: "test",
-              entities,
-            })),
+        ...outgoingTargets({
+          // A scenario target was found in the same results, so it has one.
+          result: resultsById.get(scenario.id) as ExtractionResult,
+          relationshipType: "verified_by",
+          type: "test",
+          entities,
+        }),
       ];
     }),
   );
@@ -331,13 +307,11 @@ function supersededRequirementIds(
   manifestResults: readonly ExtractionResult[],
 ): ReadonlySet<string> {
   return new Set(
-    manifestResults.flatMap((result) =>
-      result.entity.type === "req"
-        ? result.relationships.flatMap((relationship) =>
-            relationship.type === "supersedes" ? [relationship.to] : [],
-          )
-        : [],
-    ),
+    manifestResults
+      .filter((result) => result.entity.type === "req")
+      .flatMap((result) => result.relationships)
+      .filter((relationship) => relationship.type === "supersedes")
+      .map((relationship) => relationship.to),
   );
 }
 
@@ -350,7 +324,7 @@ function isReviewableRequirement(
   const status = requirement.status.trim().toLowerCase();
   if (REVIEWED_REQUIREMENT_STATUSES.has(status)) return true;
   return (
-    status === "closed" && (requirement.tags ?? []).includes("implemented")
+    status === "closed" && requirement.tags?.includes("implemented") === true
   );
 }
 
@@ -382,9 +356,12 @@ export function createCoverageDepthQualityDiagnostics(
       );
       return diagnostic === undefined ? [] : [diagnostic];
     })
-    .toSorted((left, right) =>
-      (left.entityId ?? "").localeCompare(right.entityId ?? ""),
-    );
+    .toSorted(byEntityId);
+}
+
+// Every row names its requirement.
+function byEntityId(left: QualityDiagnostic, right: QualityDiagnostic): number {
+  return (left.entityId as string).localeCompare(right.entityId as string);
 }
 
 const COARSE_REASONS: ReadonlySet<string> = new Set(COARSE_GRANULARITY_REASONS);
@@ -420,13 +397,13 @@ export function createCoarseAnchorQualityDiagnostics(
         isReviewableRequirement(result.entity, superseded),
     )
     .flatMap((result): QualityDiagnostic[] => {
-      const symbols = uniqueEntities(
-        anchorsByRequirement.get(result.entity.id) ?? [],
-      );
+      const anchors = anchorsByRequirement.get(result.entity.id);
+      if (anchors === undefined) return [];
+      const symbols = uniqueEntities(anchors);
+      // has(undefined) is false: a symbol without a reason is not coarse.
       if (
-        symbols.length === 0 ||
         !symbols.every((symbol) =>
-          COARSE_REASONS.has(symbol.granularity_reason ?? ""),
+          COARSE_REASONS.has(symbol.granularity_reason as string),
         )
       )
         return [];
@@ -448,13 +425,12 @@ export function createCoarseAnchorQualityDiagnostics(
             title: requirement.title,
             symbols: symbols.map((symbol) => ({
               id: symbol.id,
-              granularityReason: symbol.granularity_reason ?? "",
+              // Every symbol here has a coarse reason.
+              granularityReason: symbol.granularity_reason as string,
             })),
           },
         },
       ];
     })
-    .toSorted((left, right) =>
-      (left.entityId ?? "").localeCompare(right.entityId ?? ""),
-    );
+    .toSorted(byEntityId);
 }

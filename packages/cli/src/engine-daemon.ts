@@ -19,7 +19,7 @@ export function isEngineDaemonEntrypoint(
     return moduleUrl === import.meta.url;
   }
   const entry = argv[1];
-  if (typeof entry !== "string" || entry.length === 0) return false;
+  if (!entry) return false;
   try {
     return moduleUrl === pathToFileURL(path.resolve(entry)).href;
   } catch {

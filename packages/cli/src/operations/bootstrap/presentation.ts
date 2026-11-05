@@ -35,7 +35,8 @@ function knowledgeSources(
 ): readonly BootstrapKnowledgeSource[] {
   const seen = new Set<string>();
   const result: BootstrapKnowledgeSource[] = [];
-  for (const value of values ?? []) {
+  if (!values) return result;
+  for (const value of values) {
     const id = value.id?.trim();
     const title = value.title?.trim();
     const locator = value.locator?.trim();
@@ -71,7 +72,8 @@ function intentClaims(
 ): readonly BootstrapIntentClaim[] {
   const seen = new Set<string>();
   const result: BootstrapIntentClaim[] = [];
-  for (const value of values ?? []) {
+  if (!values) return result;
+  for (const value of values) {
     const statement = value.statement?.trim().replace(/\s+/g, " ");
     const sourceId = value.sourceId?.trim();
     const reference = value.reference?.trim();
@@ -104,15 +106,23 @@ function conflicts(
 ): readonly BootstrapClaimConflict[] {
   const seen = new Set<string>();
   const result: BootstrapClaimConflict[] = [];
-  for (const value of values ?? []) {
+  if (!values) return result;
+  for (const value of values) {
     const note = value.note?.trim().replace(/\s+/g, " ");
-    const refs = new Map<string, { sourceId: string; reference: string }>();
-    for (const ref of value.claimReferences ?? []) {
-      const sourceId = ref.sourceId?.trim();
-      const reference = ref.reference?.trim();
-      if (sourceId && reference)
-        refs.set(`${sourceId}\u0000${reference}`, { sourceId, reference });
-    }
+    const refs = new Map(
+      value.claimReferences?.flatMap((ref) => {
+        const sourceId = ref.sourceId?.trim();
+        const reference = ref.reference?.trim();
+        return sourceId && reference
+          ? [
+              [
+                `${sourceId}\u0000${reference}`,
+                { sourceId, reference },
+              ] as const,
+            ]
+          : [];
+      }),
+    );
     if (!note || refs.size < 2) continue;
     const claimReferences = [...refs.values()];
     const key = `${[...refs.keys()].sort().join("\u0001")}\u0002${note}`;
@@ -207,10 +217,10 @@ function claimAccounting(
   suppressed: readonly Readonly<Record<string, unknown>>[],
   signals: readonly SourceOnlySignal[],
 ): readonly ClaimAccounting[] {
-  return (declared.knowledgeSources ?? []).flatMap((source) => {
-    const count = (declared.intentClaims ?? []).filter(
-      (claim) => claim.sourceId === source.id,
-    ).length;
+  const accounting = declared.knowledgeSources?.flatMap((source) => {
+    const count =
+      declared.intentClaims?.filter((claim) => claim.sourceId === source.id)
+        .length ?? 0;
     if (count === 0) return [];
     const prefix = `claim:${source.id}:`;
     const planned = candidates.filter(
@@ -222,7 +232,7 @@ function claimAccounting(
     // never became a candidate (stale source, missing excerpt, activation).
     const sourceRows = suppressed.filter(
       (row) =>
-        String(row.candidateId ?? "").startsWith(prefix) ||
+        String(row.candidateId).startsWith(prefix) ||
         (!row.candidateId && row.sourceId === source.id),
     );
     const rows = (reasons: readonly string[]) =>
@@ -278,6 +288,7 @@ function claimAccounting(
       },
     ];
   });
+  return accounting ?? [];
 }
 
 /** One diagnostic line per source that names why claims were not planned. */
@@ -390,37 +401,42 @@ export function presentBootstrap(input: {
   );
   const actionIds = new Map<string, string>();
   rawActions.forEach(({ payload }, index) => {
+    const nested = (payload.properties as { id?: unknown } | null | undefined)
+      ?.id;
     const id =
       typeof payload.id === "string"
         ? payload.id
-        : typeof payload.properties === "object" &&
-            payload.properties !== null &&
-            "id" in payload.properties &&
-            typeof payload.properties.id === "string"
-          ? payload.properties.id
+        : typeof nested === "string"
+          ? nested
           : `candidate-${index + 1}`;
     actionIds.set(id, `bootstrap-upsert-${String(index + 1).padStart(4, "0")}`);
   });
   const actions: BootstrapAction[] = rawActions.map(
     ({ candidate, payload }, index) => {
       const id = `bootstrap-upsert-${String(index + 1).padStart(4, "0")}`;
-      const relationships = Array.isArray(payload.relationships)
-        ? payload.relationships
+      const dependsOn = Array.isArray(payload.relationships)
+        ? [
+            ...new Set(
+              payload.relationships
+                .map((relationship) =>
+                  relationship &&
+                  typeof relationship === "object" &&
+                  "to" in relationship
+                    ? actionIds.get(String(relationship.to))
+                    : undefined,
+                )
+                .filter(
+                  (value): value is string =>
+                    value !== undefined && value !== id,
+                )
+                .sort(),
+            ),
+          ]
         : [];
-      const dependsOn = relationships
-        .map((relationship) =>
-          relationship &&
-          typeof relationship === "object" &&
-          "to" in relationship
-            ? actionIds.get(String(relationship.to))
-            : undefined,
-        )
-        .filter((value): value is string => value !== undefined && value !== id)
-        .sort();
       return {
         id,
         kind: "upsert",
-        dependsOn: [...new Set(dependsOn)],
+        dependsOn,
         payload,
         candidateId: candidate.candidateId,
       };

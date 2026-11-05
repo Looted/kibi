@@ -100,11 +100,13 @@ function withRationale(
   rationale: string | undefined,
 ): Readonly<Record<string, unknown>> {
   if (!rationale) return step;
-  const properties =
-    step.properties !== null && typeof step.properties === "object"
-      ? (step.properties as Record<string, unknown>)
-      : {};
-  return { ...step, properties: { ...properties, rationale } };
+  return {
+    ...step,
+    properties: {
+      ...(step.properties as Record<string, unknown> | undefined),
+      rationale,
+    },
+  };
 }
 
 /**
@@ -163,11 +165,12 @@ function conflictCandidates(
   sources: ReadonlyMap<string, BootstrapKnowledgeSource>,
   existingIds: ReadonlySet<string>,
   minConfidence: number,
-): IntentClaimBuildResult {
-  const claims = new Set(
-    (declared.intentClaims ?? []).map(
-      (claim) => `${claim.sourceId}\u0000${claim.reference}`,
-    ),
+): Omit<IntentClaimBuildResult, "sourceOnlySignals"> {
+  const claims = new Map(
+    declared.intentClaims?.map((claim) => [
+      `${claim.sourceId}\u0000${claim.reference}`,
+      claim,
+    ]),
   );
   const candidates: Candidate[] = [];
   const suppressed: Readonly<Record<string, unknown>>[] = [];
@@ -209,13 +212,13 @@ function conflictCandidates(
     const title = `Conflict between ${refs.join(" and ")}: ${conflict.note}`;
     const evidenceLines = conflict.claimReferences.map((ref) => {
       const source = sources.get(ref.sourceId);
-      const claim = (declared.intentClaims ?? []).find(
-        (row) =>
-          row.sourceId === ref.sourceId && row.reference === ref.reference,
-      );
+      // Every reference was checked against the declared claims above.
+      const claim = claims.get(
+        `${ref.sourceId}\u0000${ref.reference}`,
+      ) as BootstrapIntentClaim;
       return [
-        `- ${[source?.title, ref.reference].filter(Boolean).join(" - ")}${claim ? `: ${claim.statement}` : ""}`,
-        ...(claim?.excerpt
+        `- ${[source?.title, ref.reference].filter(Boolean).join(" - ")}: ${claim.statement}`,
+        ...(claim.excerpt
           ? [`  > ${claim.excerpt.replace(/\s*\n\s*/g, " ")}`]
           : []),
       ].join("\n");
@@ -266,7 +269,7 @@ function conflictCandidates(
       ],
     });
   }
-  return { candidates, sourceOnlySignals: [], suppressed, diagnostics };
+  return { candidates, suppressed, diagnostics };
 }
 
 /**
@@ -302,7 +305,7 @@ export function buildIntentClaimCandidates(
   existingRequirements: readonly ExistingRequirement[] = [],
 ): IntentClaimBuildResult {
   const sources = new Map(
-    (declared.knowledgeSources ?? []).map((source) => [source.id, source]),
+    declared.knowledgeSources?.map((source) => [source.id, source]),
   );
   const candidates: Candidate[] = [];
   const sourceOnlySignals: SourceOnlySignal[] = [];
@@ -348,7 +351,7 @@ export function buildIntentClaimCandidates(
     const confidence = AUTHORITY_CONFIDENCE[source.authority];
     if (kind !== "intent") {
       const review = reviewClaimCandidate(source, claim, kind, confidence);
-      const id = String(review.applyPlan[0]?.id ?? "");
+      const id = String((review.applyPlan[0] as { id: string }).id);
       if (confidence < minConfidence || existingIds.has(id))
         suppressed.push({
           candidateId: review.candidateId,
@@ -383,7 +386,8 @@ export function buildIntentClaimCandidates(
       });
       continue;
     }
-    const nearRestatement = restatement?.kind === "near" ? restatement : null;
+    // An exact restatement was counted above, so any match left is near.
+    const nearRestatement = restatement;
     const evidence = [
       ...citation(source, claim),
       ...(nearRestatement
@@ -399,32 +403,30 @@ export function buildIntentClaimCandidates(
         confidence,
         provenance,
       );
-      const planned = modeled
-        ? planSubjectKey(
-            modeled.subjectKey,
-            modeled.propertyKey,
-            claim.component ?? source.component,
-            subjectKeys,
-            `${source.id}:${claim.reference}`,
-          )
-        : null;
-      const subjectKey = planned?.resolution ?? null;
-      diagnostics.push(...(planned?.diagnostics ?? []));
-      writeSet =
-        modeled && subjectKey?.ok
-          ? buildStrictWriteSet({
-              claim: { ...modeled, subjectKey: subjectKey.subjectKey },
-              statement: claim.statement,
-            })
-          : null;
-      if (!modeled)
+      if (!modeled) {
         diagnostics.push(
           `Intent claim needs authoring at ${source.id}:${claim.reference}: ${claim.statement}`,
         );
-      else if (subjectKey && !subjectKey.ok)
-        diagnostics.push(
-          `Intent claim at ${source.id}:${claim.reference} was not planned as a requirement: its ${subjectKey.reason}. Declare component on the claim or on knowledge source ${source.id} and re-plan, or author it with kb_model: ${claim.statement}`,
+      } else {
+        const planned = planSubjectKey(
+          modeled.subjectKey,
+          modeled.propertyKey,
+          claim.component ?? source.component,
+          subjectKeys,
+          provenance,
         );
+        const subjectKey = planned.resolution;
+        diagnostics.push(...planned.diagnostics);
+        if (subjectKey.ok)
+          writeSet = buildStrictWriteSet({
+            claim: { ...modeled, subjectKey: subjectKey.subjectKey },
+            statement: claim.statement,
+          });
+        else
+          diagnostics.push(
+            `Intent claim at ${source.id}:${claim.reference} was not planned as a requirement: its ${subjectKey.reason}. Declare component on the claim or on knowledge source ${source.id} and re-plan, or author it with kb_model: ${claim.statement}`,
+          );
+      }
     } catch (error) {
       diagnostics.push(
         `Intent claim extraction failed at ${source.id}:${claim.reference}: ${error instanceof Error ? error.message : String(error)}`,
