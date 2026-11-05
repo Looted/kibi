@@ -262,6 +262,8 @@ describe("workspace files and symbols", () => {
     expect(await loadSymbol(ctx, "SYM-b")).toEqual({ id: "SYM-b", title: "B", sourceFile: "b.ts" });
     expect(await loadSymbol(ctx, "SYM-c")).toEqual({ id: "SYM-c", title: "", sourceFile: "" });
     expect(await loadSymbol(ctx, "SYM-x")).toBeNull();
+    // An empty id would match any symbol in the store.
+    expect(await loadSymbol(ctx, "")).toBeNull();
     expect(
       await loadSymbol({ workspaceRoot: "/w" } as OperationContext, "SYM-a"),
     ).toBeNull();
@@ -1098,21 +1100,15 @@ describe("exhaustive certificates", () => {
     );
   });
 
-  test("read the export even when the contract names no domain_source", async () => {
+  test("refuse a contract that names no domain_source", async () => {
     const root = domainWorkspace();
-    evaluator(members);
-    expect(
-      await judged(context(root, domainEntities), contract({ domain_source: undefined }), bare),
-    ).toBe("the certificate does not cover Color as the code defines it (missing a, b)");
-    expect(
-      await judged(
-        context(root, domainEntities),
-        contract({ domain_source: undefined }, ["SYM-other"]),
-        bare,
-      ),
-    ).toBe(
-      "the proof does not import Color from src/d.ts, so its domain may be hand-listed (Kibi reads the export named by the symbol's title; set domain_source.export when the export has another name)",
-    );
+    const calls = evaluator(members);
+    // An empty id would otherwise read whichever symbol the store lists first.
+    for (const proofs of [["SYM-proof"], ["SYM-other"]])
+      expect(
+        await judged(context(root, domainEntities), contract({ domain_source: undefined }, proofs), bare),
+      ).toBe("the contract names no domain_source symbol");
+    expect(calls).toHaveLength(0);
   });
 });
 

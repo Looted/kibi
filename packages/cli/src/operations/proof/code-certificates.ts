@@ -95,7 +95,8 @@ export async function loadSymbol(
   context: OperationContext,
   symbolId: string,
 ): Promise<SymbolRow | null> {
-  if (context.prolog === undefined) return null;
+  // An empty id would match every symbol, so it names none.
+  if (context.prolog === undefined || symbolId === "") return null;
   const [row] = await loadEntities(context.prolog, {
     id: symbolId,
     type: "symbol",
@@ -999,6 +1000,11 @@ async function workspaceProblem(
     const named = text(record(certificate.domain)?.symbol_id);
     if (named !== domainId)
       return `the certificate's domain ${named || "(none)"} is not the contract's domain_source ${domainId}`;
+    if (domainId === "") return "the contract names no domain_source symbol";
+    // Past the check above the contract names a domain and the certificate
+    // names the same one.
+    const domainSource = contract.domain_source as NonNullable<ProofContract["domain_source"]>;
+    const certificateDomain = record(certificate.domain) as Record<string, unknown>;
     const domain = await loadSymbol(context, domainId);
     if (!domain || domain.sourceFile === "")
       return `the domain_source symbol ${domainId} has no source file`;
@@ -1015,7 +1021,7 @@ async function workspaceProblem(
             )
           ).map((symbol) => String(symbol?.sourceFile));
     // The export Kibi reads: domain_source.export, else the symbol's title.
-    const exportName = contract.domain_source?.export ?? domain.title;
+    const exportName = domainSource.export ?? domain.title;
     const importing = readers.some((reader) => {
       // An empty path resolves to the workspace itself, which is not a file
       // readWorkspaceFile reads.
@@ -1032,23 +1038,19 @@ async function workspaceProblem(
       );
     });
     if (!importing)
-      return `the proof does not import ${exportName || domainId} from ${domain.sourceFile}, so its domain may be hand-listed${contract.domain_source?.export === undefined ? ` (Kibi reads the export named by the symbol's title; set domain_source.export when the export has another name)` : ""}`;
+      return `the proof does not import ${exportName || domainId} from ${domain.sourceFile}, so its domain may be hand-listed${domainSource.export === undefined ? ` (Kibi reads the export named by the symbol's title; set domain_source.export when the export has another name)` : ""}`;
     if (kind === "exhaustive") {
       const evaluated = evaluateDomain(
         context.workspaceRoot,
         domain.sourceFile,
         exportName,
         {
-          ...(contract.domain_source?.field === undefined
-            ? {}
-            : { field: contract.domain_source.field }),
-          ...(contract.domain_source?.arg === undefined
-            ? {}
-            : { arg: contract.domain_source.arg }),
+          ...(domainSource.field === undefined ? {} : { field: domainSource.field }),
+          ...(domainSource.arg === undefined ? {} : { arg: domainSource.arg }),
         },
       );
       if (!evaluated.ok) return evaluated.reason;
-      const members = record(certificate.domain)?.members;
+      const members = certificateDomain.members;
       return domainCoverageProblem(
         exportName,
         evaluated,

@@ -326,7 +326,11 @@ export function extractScriptReferences(
         ts.isPropertyAssignment(parent) ||
         ts.isPropertyDeclaration(parent) ||
         ts.isMethodDeclaration(parent) ||
-        ts.isPropertySignature(parent)) &&
+        ts.isPropertySignature(parent) ||
+        ts.isInterfaceDeclaration(parent) ||
+        ts.isTypeAliasDeclaration(parent) ||
+        ts.isTypeParameterDeclaration(parent) ||
+        ts.isEnumDeclaration(parent)) &&
         (parent as { name?: Node }).name === node) ||
       // A statement label, and the label a break or continue names.
       (parent as { label?: Node }).label === node ||

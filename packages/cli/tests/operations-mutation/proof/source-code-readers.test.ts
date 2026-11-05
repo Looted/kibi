@@ -667,7 +667,15 @@ describe("shadowing and chains", () => {
     });
   });
   test("lets an interface shadow nothing", () => {
-    expect(refs("interface process {}\ng(process);", {"extract":"env"}).unresolved).toContain("2:process");
+    expect(refs("interface process {}\ng(process);", { extract: "env" })).toEqual({
+      members: [],
+      unresolved: ["2:process"],
+    });
+  });
+  test("never reads a type, type parameter or enum name as a loader", () => {
+    expect(
+      refs("interface require {}\ntype require = 1;\nfunction f<require>() {}\nenum require {}", { extract: "imports" }),
+    ).toEqual({ members: [], unresolved: [] });
   });
   test("lets a later file local shadow", () => {
     expect(refs("function f() { g(self); }\nconst self = pick();", {"extract":"env"})).toEqual({
