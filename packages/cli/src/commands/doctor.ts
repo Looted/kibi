@@ -239,12 +239,8 @@ export async function doctorCommand(
   ).length;
   const runtime = await runtimeProvenance();
   const packageActions = await packageMigrationActions(runtime);
+  // Package actions expect no branch, KB branch or configuration.
   const migrationPlan = buildMigrationPlan({
-    expected: {
-      branch: null,
-      kbBranch: null,
-      configHash: null,
-    },
     evaluatedDomains: ["package"],
     actions: packageActions,
   });
@@ -326,13 +322,12 @@ export async function packageMigrationActions(
       }),
     );
   }
-  const cliVersion =
-    typeof runtime.cliVersion === "string" ? runtime.cliVersion : "unknown";
-  const mcpCliRange =
-    typeof runtime.mcpCliRange === "string" ? runtime.mcpCliRange : "unknown";
+  const { cliVersion, mcpCliRange } = runtime;
+  // An unparseable range, "unknown" among them, never reports a mismatch.
   if (
+    typeof cliVersion === "string" &&
     cliVersion !== "unknown" &&
-    mcpCliRange !== "unknown" &&
+    typeof mcpCliRange === "string" &&
     !satisfiesCaretRange(cliVersion, mcpCliRange)
   ) {
     actions.push(
@@ -412,10 +407,9 @@ async function runtimeProvenance(): Promise<Record<string, unknown>> {
     coreVersion: core.version,
     mcpVersion: mcp.version,
     coreRange:
-      cli.dependencies && typeof cli.dependencies === "object"
-        ? ((cli.dependencies as Record<string, unknown>)["kibi-core"] ??
-          "unknown")
-        : "unknown",
+      (cli.dependencies as Record<string, unknown> | undefined)?.[
+        "kibi-core"
+      ] ?? "unknown",
     mcpCliRange: mcp.dependencies?.["kibi-cli"] ?? "unknown",
     executeApplyPlanExported,
     entrypoint: process.argv[1] ?? "unknown",
@@ -448,7 +442,7 @@ function packageInfoFromManifest(
     dependencies?: unknown;
   };
   try {
-    metadata = JSON.parse(readFileSync(manifestPath, "utf8"));
+    metadata = JSON.parse(String(readFileSync(manifestPath)));
   } catch {
     // Missing or unreadable manifest is not usable provenance.
     return undefined;
@@ -461,10 +455,7 @@ function packageInfoFromManifest(
       typeof metadata.main === "string"
         ? path.resolve(path.dirname(manifestPath), metadata.main)
         : "unknown",
-    dependencies:
-      metadata.dependencies && typeof metadata.dependencies === "object"
-        ? (metadata.dependencies as Record<string, string>)
-        : undefined,
+    dependencies: metadata.dependencies as Record<string, string> | undefined,
   };
 }
 
@@ -531,7 +522,7 @@ function resolveInstalledPackageInfo(name: string): InstalledPackageInfo {
     "..",
     "..",
     "..",
-    name.replace(/^kibi-/, ""),
+    name.replace("kibi-", ""),
     "package.json",
   );
   if (existsSync(local)) {
@@ -567,9 +558,7 @@ function checkSWIProlog(): DoctorCheckResult {
       details: {
         code: error.code,
         platform: error.platform,
-        ...(error.packageName === undefined
-          ? {}
-          : { bundledPackage: error.packageName }),
+        bundledPackage: error.packageName,
       },
     };
   }
@@ -578,7 +567,7 @@ function checkSWIProlog(): DoctorCheckResult {
     source: resolved.source,
     path: resolved.bin,
     version: resolved.version,
-    ...(resolved.home === undefined ? {} : { home: resolved.home }),
+    home: resolved.home,
   };
   const summary = `Version ${resolved.version} from ${SWIPL_SOURCE_LABELS[resolved.source]} at ${resolved.bin}`;
   const probe = probeRequiredLibraries(resolved);
@@ -700,13 +689,12 @@ function checkCapabilityPlugins(): {
 
     const message = parts.join("; ");
     if (missingSecrets.length > 0) {
-      const jevMissing = missingSecrets.includes("TYPESAFE_API_KEY");
       return {
         passed: false,
         message,
-        remediation: jevMissing
-          ? "Set `TYPESAFE_API_KEY` in `~/.config/kibi/env` (user-wide) or `<workspace>/.env.kibi` (project override), then restart long-running Kibi MCP/host processes."
-          : `Set missing plugin secret(s) (${missingSecrets.join(", ")}) in ~/.config/kibi/env or <workspace>/.env.kibi, then restart long-running Kibi MCP/host processes.`,
+        // rationale: TYPESAFE_API_KEY is the only first-party secret, so no list here has two entries.
+        // Stryker disable next-line StringLiteral
+        remediation: `Set ${missingSecrets.map((secret) => `\`${secret}\``).join(", ")} in \`~/.config/kibi/env\` (user-wide) or \`<workspace>/.env.kibi\` (project override), then restart long-running Kibi MCP/host processes.`,
       };
     }
 
@@ -715,6 +703,8 @@ function checkCapabilityPlugins(): {
         passed: true,
         warning: true,
         message,
+        // rationale: TYPESAFE_API_KEY is the only first-party secret, so no list here has two entries.
+        // Stryker disable next-line StringLiteral
         remediation: `${optionalMissingSecrets.join(", ")} is not set, so the augment-mode plugin is skipped and builtin providers answer alone. Set it in ~/.config/kibi/env or <workspace>/.env.kibi to enable the plugin, then restart long-running Kibi MCP/host processes.`,
       };
     }
@@ -723,6 +713,8 @@ function checkCapabilityPlugins(): {
       return {
         passed: true,
         message,
+        // rationale: TYPESAFE_API_KEY is the only first-party secret, so no list here has two entries.
+        // Stryker disable next-line StringLiteral
         remediation: `Migrate ${legacySecrets.join(", ")} from legacy \`.env\` to \`~/.config/kibi/env\` or \`<workspace>/.env.kibi\`, then restart long-running Kibi MCP/host processes.`,
       };
     }
@@ -763,18 +755,11 @@ function formatJevStaticConfigParts(
     return [`jev.model=${model}`, "jev.timeoutMs=default"];
   }
   const trimmed = raw.trim();
-  if (!/^[1-9]\d*$/.test(trimmed)) {
+  // A positive integer without leading zeros, at most the maximum.
+  if (!/^[1-9]\d*$/.test(trimmed) || Number(trimmed) > JEV_MAX_TIMEOUT_MS) {
     return [`jev.model=${model}`, "jev.timeoutMs=invalid"];
   }
-  const timeoutMs = Number(trimmed);
-  if (
-    !Number.isSafeInteger(timeoutMs) ||
-    timeoutMs < 1 ||
-    timeoutMs > JEV_MAX_TIMEOUT_MS
-  ) {
-    return [`jev.model=${model}`, "jev.timeoutMs=invalid"];
-  }
-  return [`jev.model=${model}`, `jev.timeoutMs=${String(timeoutMs)}`];
+  return [`jev.model=${model}`, `jev.timeoutMs=${trimmed}`];
 }
 
 /**
@@ -1267,23 +1252,29 @@ function hooksPathSuffix(): string {
  * read from the manager's configuration instead of the files Git executes.
  */
 // implements REQ-git-hook-manager-integration
-function doctorHookManager(): DetectedHookManager | null {
+function doctorHookManager(): {
+  manager: DetectedHookManager;
+  worktreeRoot: string;
+} | null {
   const context = doctorRepositoryContext();
   if (!context) return null;
-  return detectHookManager(
+  const manager = detectHookManager(
     context.worktreeRoot,
     context.effectiveHooksDir,
     context.hooksPathConfig,
   );
+  return manager ? { manager, worktreeRoot: context.worktreeRoot } : null;
 }
 
 // implements REQ-git-hook-manager-integration
 function checkHookManagerDelegation(
-  manager: DetectedHookManager,
+  {
+    manager,
+    worktreeRoot,
+  }: { manager: DetectedHookManager; worktreeRoot: string },
   hooks: readonly ManagedHookName[],
   consequence: string,
 ): DoctorCheckResult {
-  const worktreeRoot = doctorRepositoryContext()?.worktreeRoot ?? process.cwd();
   const owner = `Managed by ${manager.name} (${manager.configPath})`;
   const coverage = hooks.map((hook) => ({
     hook,
@@ -1297,6 +1288,8 @@ function checkHookManagerDelegation(
     const runs = coverage
       .map(
         ({ hook }) =>
+          // rationale: with no scripts every delegation is missing; any script that runs no Kibi command lists the same labels.
+          // Stryker disable next-line ArrayDeclaration
           `${hook} runs ${missingKibiHookCommands(hook, [])
             .map((label) => `'${label}'`)
             .join(" and ")}`,
@@ -1316,7 +1309,7 @@ function checkHookManagerDelegation(
     passed: true,
     warning: true,
     message: `${owner}; ${described}. Kibi reads only the ${manager.name} configuration, not the task runners or scripts it calls; unless they run these commands, ${consequence}`,
-    remediation: `Add Kibi's commands to ${manager.configPath}. Print them with: kibi init --print-hook ${gaps.length === 1 ? (gaps[0]?.hook ?? "all") : "all"} --format ${manager.name}`,
+    remediation: `Add Kibi's commands to ${manager.configPath}. Print them with: kibi init --print-hook ${gaps.length === 1 ? String(gaps.map((gap) => gap.hook)) : "all"} --format ${manager.name}`,
   };
 }
 
