@@ -154,7 +154,6 @@ interface SchemaMigrationStep {
   id: string;
   from: number;
   to: number;
-  description: string;
 }
 
 interface ResolvedBranch {
@@ -165,94 +164,102 @@ interface ResolvedBranch {
 const MIGRATION_AUDIT_VERSION = 1;
 
 const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
+  // Preserve legacy configuration while recording canonical schema metadata.
   {
     id: "config-canonical-v1",
     from: 0,
     to: 1,
-    description:
-      "Preserve legacy configuration while recording canonical schema metadata.",
   },
+  // Mark provable coarse traceability links as legacy-link.
   {
     id: "symbol-granularity-v2",
     from: 1,
     to: 2,
-    description: "Mark provable coarse traceability links as legacy-link.",
   },
+  // Record an audited compatibility no-op for schema v3.
   {
     id: "compatibility-v3",
     from: 2,
     to: 3,
-    description: "Record an audited compatibility no-op for schema v3.",
   },
+  // Mark semantic-advisor backfill as pending without inventing claims.
   {
     id: "semantic-backfill-v4",
     from: 3,
     to: 4,
-    description:
-      "Mark semantic-advisor backfill as pending without inventing claims.",
   },
+  // Move Kibi knowledge into the canonical .kb/ namespace and retire
+  // .kb/config.json.
   {
     id: "canonical-storage-v5",
     from: 4,
     to: 5,
-    description:
-      "Move Kibi knowledge into the canonical .kb/ namespace and retire .kb/config.json.",
   },
+  // Record origin {kind: migration} on authored entities written before schema
+  // 6, close superseded requirements, and repair authored source fields (point
+  // moved knowledge files at .kb/, remove redundant and dead values).
   {
     id: "entity-origin-v6",
     from: 5,
     to: 6,
-    description:
-      "Record origin {kind: migration} on authored entities written before schema 6, close superseded requirements, and repair authored source fields (point moved knowledge files at .kb/, remove redundant and dead values).",
   },
+  // Encode legacy polarity-only property facts as eq boolean true with
+  // require/forbid polarity; strict fact shapes are blocking.
   {
     id: "polarity-values-v7",
     from: 6,
     to: 7,
-    description:
-      "Encode legacy polarity-only property facts as eq boolean true with require/forbid polarity; strict fact shapes are blocking.",
   },
+  // Pin semantic_text on requirements that lack it (computed from the body
+  // before context sections stop counting), and tag current entities without
+  // body context review:context-missing; front matter only, bodies are
+  // preserved.
   {
     id: "entity-body-context-v8",
     from: 7,
     to: 8,
-    description:
-      "Pin semantic_text on requirements that lack it (computed from the body before context sections stop counting), and tag current entities without body context review:context-missing; front matter only, bodies are preserved.",
   },
+  // Accept firmness on requirements and ADRs, and acknowledge in the manifest
+  // the current supersedes recorded without a 'Why this changed' section; no
+  // source file is rewritten and no reason is invented.
   {
     id: "decision-firmness-v9",
     from: 8,
     to: 9,
-    description:
-      "Accept firmness on requirements and ADRs, and acknowledge in the manifest the current supersedes recorded without a 'Why this changed' section; no source file is rewritten and no reason is invented.",
   },
+  // Read a requirement or ADR without firmness as firm unless an agent wrote
+  // it, and acknowledge in the manifest the supersedes of such decisions
+  // recorded before; no source file is rewritten and no firmness is written.
   {
     id: "firmness-from-origin-v10",
     from: 9,
     to: 10,
-    description:
-      "Read a requirement or ADR without firmness as firm unless an agent wrote it, and acknowledge in the manifest the supersedes of such decisions recorded before; no source file is rewritten and no firmness is written.",
   },
+  // Check every current requirement's evidence level against its floor
+  // (required_evidence, else tested when firm), and record required_evidence:
+  // asserted on current firm requirements that have no scenario verified by a
+  // test with a proof contract; front matter only.
   {
     id: "evidence-floor-v11",
     from: 10,
     to: 11,
-    description:
-      "Check every current requirement's evidence level against its floor (required_evidence, else tested when firm), and record required_evidence: asserted on current firm requirements that have no scenario verified by a test with a proof contract; front matter only.",
   },
+  // Require every certificate-kind proof contract to name the requirement
+  // claims it proves, and pin proves on contracts whose test reaches exactly
+  // one claim the proof kind can derive an obligation for; front matter only.
+  // Other contracts are listed for a person to bind.
   {
     id: "claim-bound-proofs-v12",
     from: 11,
     to: 12,
-    description:
-      "Require every certificate-kind proof contract to name the requirement claims it proves, and pin proves on contracts whose test reaches exactly one claim the proof kind can derive an obligation for; front matter only. Other contracts are listed for a person to bind.",
   },
+  // Derive symbol coordinates on every sync instead of committing them: add
+  // .kb/symbol-coordinates.yaml to .gitignore and remove it from the Git index
+  // (the local file stays).
   {
     id: "derived-symbol-coordinates-v13",
     from: 12,
     to: 13,
-    description:
-      "Derive symbol coordinates on every sync instead of committing them: add .kb/symbol-coordinates.yaml to .gitignore and remove it from the Git index (the local file stays).",
   },
 ];
 
@@ -284,8 +291,7 @@ function printClaimBindingReview(
 }
 
 function toRelativePath(cwd: string, filePath: string): string {
-  const relativePath = path.relative(cwd, filePath);
-  return relativePath.length > 0 ? relativePath : path.basename(filePath);
+  return path.relative(cwd, filePath);
 }
 
 function resolveMigrationBranch(
@@ -325,7 +331,7 @@ function writeTextAtomically(filePath: string, content: string): void {
   mkdirSync(path.dirname(filePath), { recursive: true });
 
   const tempPath = `${filePath}.tmp-${process.pid}-${Date.now()}`;
-  writeFileSync(tempPath, content, "utf8");
+  writeFileSync(tempPath, content);
   renameSync(tempPath, filePath);
 }
 
@@ -462,22 +468,18 @@ function printManualRederivations(plans: readonly InventoryRederivation[]) {
 function rederiveDriftedInventories(
   cwd: string,
   dryRun: boolean,
-): { rederived: string[]; manual: number } {
+): { rederived: number; manual: number } {
   if (dryRun) {
     const plans = planInventoryRederivation(cwd);
-    for (const plan of plans.filter((candidate) => candidate.safe)) {
+    const safe = plans.filter((candidate) => candidate.safe);
+    for (const plan of safe) {
       console.log(
         `dry run: would re-derive the semantic inventory of ${describeRederivation(plan)}.`,
       );
     }
     const manual = plans.filter((candidate) => !candidate.safe);
     printManualRederivations(manual);
-    return {
-      rederived: plans
-        .filter((candidate) => candidate.safe)
-        .map((candidate) => candidate.requirementId),
-      manual: manual.length,
-    };
+    return { rederived: safe.length, manual: manual.length };
   }
   const plans = planInventoryRederivation(cwd);
   const result = applySafeInventoryRederivations(cwd);
@@ -492,7 +494,7 @@ function rederiveDriftedInventories(
     );
   }
   printManualRederivations(result.manual);
-  return { rederived, manual: result.manual.length };
+  return { rederived: rederived.length, manual: result.manual.length };
 }
 
 type LifecycleRepairOutcome = {
@@ -596,17 +598,24 @@ function repairLifecycleFindings(
 function describeDeliveredMappings(
   findings: readonly RequirementStatusFinding[],
 ): string {
-  const byStatus = new Map<string, RequirementStatusFinding[]>();
+  // The first finding of each status names the mapping for the group; a
+  // missing one means the delivered default.
+  const byStatus = new Map<
+    string,
+    { to: RequirementStatusFinding["automatic"]; ids: string[] }
+  >();
   for (const finding of findings) {
-    byStatus.set(finding.status, [
-      ...(byStatus.get(finding.status) ?? []),
-      finding,
-    ]);
+    const group = byStatus.get(finding.status) ?? {
+      to: finding.automatic,
+      ids: [],
+    };
+    group.ids.push(finding.requirementId);
+    byStatus.set(finding.status, group);
   }
   return [...byStatus]
     .map(
-      ([status, group]) =>
-        `legacy status ${status} -> ${group[0]?.automatic?.status ?? "closed"} (tag ${group[0]?.automatic?.tag ?? "implemented"}) on ${group.length} requirement(s): ${group.map((finding) => finding.requirementId).join(", ")}`,
+      ([status, { to, ids }]) =>
+        `legacy status ${status} -> ${to?.status ?? "closed"} (tag ${to?.tag ?? "implemented"}) on ${ids.length} requirement(s): ${ids.join(", ")}`,
     )
     .join("; ");
 }
@@ -793,8 +802,8 @@ export async function migrateCommand(
     storagePlan.moves.length > 0 ||
     storagePlan.removals.length > 0 ||
     storagePlan.legacyConfig !== "absent";
-  const needsSchemaUpgrade =
-    configStatus.needsMigration || normalizedVersion === null;
+  // A missing or invalid version needs migration too.
+  const needsSchemaUpgrade = configStatus.needsMigration;
   const migrationWarning =
     manifestStatus.state === "invalid" || manifestStatus.state === "future"
       ? manifestStatus.warning
@@ -816,10 +825,7 @@ export async function migrateCommand(
     return { exitCode: 1 };
   }
 
-  if (
-    configStatus.currentVersion !== null &&
-    configStatus.currentVersion > configStatus.latestVersion
-  ) {
+  if (configStatus.status === "newer") {
     console.error(
       `Unsupported schemaVersion ${configStatus.currentVersion}. Upgrade kibi-cli before migrating this KB.`,
     );
@@ -850,7 +856,7 @@ export async function migrateCommand(
       typesStated > 0 ||
       statuses.mapped > 0 ||
       legacyLinks > 0 ||
-      drift.rederived.length > 0 ||
+      drift.rederived > 0 ||
       lifecycle.closed > 0 ||
       lifecycle.rewritten > 0 ||
       lifecycle.removed > 0;
@@ -890,8 +896,10 @@ export async function migrateCommand(
     return { exitCode: 0 };
   }
 
+  // A KB without a manifest or a legacy version is "missing", not
+  // "invalid (null)"; a valid legacy version labels itself.
   const fromVersionLabel = formatSchemaVersion(
-    currentVersion,
+    manifestStatus.state === "missing" ? undefined : currentVersion,
     normalizedVersion,
   );
   const migrationSteps = migrationStepsFor(configStatus.currentVersion);
@@ -1014,11 +1022,8 @@ export async function migrateCommand(
         );
       printClaimBindingReview(claims, claimCandidates === null, true);
     }
-    if (
-      migrationSteps.some(
-        (step) => step.id === "derived-symbol-coordinates-v13",
-      )
-    ) {
+    // Every pending schema migration ends with the derived-coordinates step.
+    if (migrationSteps.length > 0) {
       const { isCoordinateArtifactTracked } = await import(
         "../operations/migration/untrack-symbol-coordinates.js"
       );
@@ -1120,23 +1125,26 @@ export async function migrateCommand(
     );
   // Pin before tagging: the pin reads the body as the old derivation did, and
   // tagging then judges context against the statement-only derivation.
-  const semanticTextPinned = bodyContextStep ? applySemanticTextPins(cwd) : 0;
-  if (semanticTextPinned > 0)
-    console.log(
-      `Pinned semantic_text on ${semanticTextPinned} requirement(s) that lacked it.`,
-    );
-  const contextPlan = bodyContextStep ? planContextMissingTags(cwd) : null;
-  const contextTagged = bodyContextStep ? applyContextMissingTags(cwd) : 0;
-  if (contextPlan !== null && contextTagged > 0)
-    console.log(
-      `Tagged ${contextTagged} current entit(ies) without body context review:context-missing (${Object.entries(
-        countByType(contextPlan.targets),
-      )
-        .map(([type, count]) => `${count} ${type}`)
-        .join(", ")}); no prose was written.`,
-    );
-  for (const skip of contextPlan?.skipped ?? [])
-    printWarning(`Cannot tag ${skip.path}: ${skip.reason}.`);
+  let contextPlan: ReturnType<typeof planContextMissingTags> | null = null;
+  if (bodyContextStep) {
+    const semanticTextPinned = applySemanticTextPins(cwd);
+    if (semanticTextPinned > 0)
+      console.log(
+        `Pinned semantic_text on ${semanticTextPinned} requirement(s) that lacked it.`,
+      );
+    contextPlan = planContextMissingTags(cwd);
+    const contextTagged = applyContextMissingTags(cwd);
+    if (contextTagged > 0)
+      console.log(
+        `Tagged ${contextTagged} current entit(ies) without body context review:context-missing (${Object.entries(
+          countByType(contextPlan.targets),
+        )
+          .map(([type, count]) => `${count} ${type}`)
+          .join(", ")}); no prose was written.`,
+      );
+    for (const skip of contextPlan.skipped)
+      printWarning(`Cannot tag ${skip.path}: ${skip.reason}.`);
+  }
   // Source rewrites run before the manifest records the new schema, so an
   // interrupted run is retried by the next 'kibi migrate --yes'; both are
   // idempotent.
@@ -1206,16 +1214,19 @@ export async function migrateCommand(
     console.log(
       `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.`,
     );
-  if ((evidenceFloorPlan?.kept.length ?? 0) > 0)
-    console.log(
-      evidenceFloorPlan?.decidedBy === "ladder"
-        ? `${evidenceFloorPlan?.kept.length} firm requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).`
-        : `${evidenceFloorPlan?.kept.length} firm requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).`,
-    );
-  for (const skip of evidenceFloorPlan?.skipped ?? [])
-    printWarning(
-      `Cannot record required_evidence on ${skip.path}: ${skip.reason}.`,
-    );
+  if (evidenceFloorPlan !== null) {
+    const kept = evidenceFloorPlan.kept.length;
+    if (kept > 0)
+      console.log(
+        evidenceFloorPlan.decidedBy === "ladder"
+          ? `${kept} firm requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).`
+          : `${kept} firm requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).`,
+      );
+    for (const skip of evidenceFloorPlan.skipped)
+      printWarning(
+        `Cannot record required_evidence on ${skip.path}: ${skip.reason}.`,
+      );
+  }
   if (claimPins !== null) {
     if (claimPins.targets.length > 0)
       console.log(
@@ -1279,9 +1290,8 @@ export async function migrateCommand(
     );
   }
   const gitignoreUpdated = updateGitIgnore(cwd);
-  if (
-    migrationSteps.some((step) => step.id === "derived-symbol-coordinates-v13")
-  ) {
+  // Every pending schema migration ends with the derived-coordinates step.
+  if (migrationSteps.length > 0) {
     const { untrackCoordinateArtifact } = await import(
       "../operations/migration/untrack-symbol-coordinates.js"
     );
@@ -1380,26 +1390,24 @@ async function buildWorkspaceMigrationPlan(
   const fragment = buildSchema6MigrationFragment({
     workspaceRoot,
     currentSchemaVersion,
+    // Number(null) is 0: a KB without a version is below every schema.
     ladderFloors:
-      currentSchemaVersion === null ||
-      currentSchemaVersion < EVIDENCE_FLOOR_SCHEMA_VERSION
+      Number(currentSchemaVersion) < EVIDENCE_FLOOR_SCHEMA_VERSION
         ? await readLadderFloorVerdicts(workspaceRoot)
         : null,
     claimCandidates:
-      currentSchemaVersion === null ||
-      currentSchemaVersion < CLAIM_BINDING_SCHEMA_VERSION
+      Number(currentSchemaVersion) < CLAIM_BINDING_SCHEMA_VERSION
         ? await readProofContractClaimCandidates(workspaceRoot)
         : null,
   });
   const fragmentActions = [...fragment.actions];
+  // rationale: every use of statusActions looks actions up by id, safety or dependency, which no placeholder entry has.
+  // Stryker disable next-line ArrayDeclaration
   const statusActions = status?.migrationPlan?.actions ?? [];
   const schemaUpgrade = statusActions.find(
     (action) => action.id === "schema-config-upgrade",
   );
-  if (
-    schemaUpgrade !== undefined &&
-    fragment.sourceRewriteActionIds.length > 0
-  ) {
+  if (schemaUpgrade !== undefined) {
     fragmentActions.push(
       migrationAction({
         ...schemaUpgrade,
@@ -1441,16 +1449,13 @@ async function buildWorkspaceMigrationPlan(
   // A check needs a compiled store: a never-synced store reports every
   // authored relationship as missing. A schema 5 store compiles the same
   // facts as schema 6, so its check findings are planned before the upgrade.
-  const storeHealthy = status?.branchStore?.state === "healthy";
-  const schemaCheckable =
-    status?.schemaStatus?.needsMigration !== true ||
-    (currentSchemaVersion !== null &&
-      currentSchemaVersion >= ORIGIN_SCHEMA_VERSION - 1);
-  const storeSynced = status?.snapshotId !== "missing";
   const checkable =
-    storeHealthy &&
-    schemaCheckable &&
-    status?.branchAttachment?.kind === "exact";
+    status !== undefined &&
+    status.branchStore?.state === "healthy" &&
+    (status.schemaStatus?.needsMigration !== true ||
+      Number(currentSchemaVersion) >= ORIGIN_SCHEMA_VERSION - 1) &&
+    status.branchAttachment?.kind === "exact";
+  const storeSynced = status?.snapshotId !== "missing";
   if (checkable && storeSynced) {
     const checkResult = await executeOperation(runtime, checkSpec, {});
     if (checkResult.structuredContent?.migrationPlan !== undefined) {
@@ -1490,9 +1495,6 @@ async function buildWorkspaceMigrationPlan(
   ) {
     plans.push(
       buildMigrationPlan({
-        ...(status?.migrationPlan !== undefined
-          ? { expected: status.migrationPlan.expected }
-          : {}),
         evaluatedDomains: ["schema", "semantic"],
         incompleteDomains: skippedCheck ? ["quality"] : [],
         actions: fragmentActions,
@@ -1548,15 +1550,7 @@ function orderStoreSyncAfterSourceRewrites(
   rewriteActionIds: readonly string[],
   reviewActionIds: readonly string[],
 ): MigrationPlan {
-  const affected = plan.actions.some(
-    (action) =>
-      STORE_SYNC_ACTION_IDS.has(action.id) && action.state === "ready",
-  );
-  if (
-    !affected ||
-    (rewriteActionIds.length === 0 && reviewActionIds.length === 0)
-  )
-    return plan;
+  // Rebuilding a plan whose actions did not change gives the same plan.
   const actions = plan.actions.map((action) => {
     if (!STORE_SYNC_ACTION_IDS.has(action.id) || action.state !== "ready")
       return action;
@@ -1657,19 +1651,20 @@ export function planChangedMessage(
   plan: MigrationPlan,
 ): string {
   const printed = findPrintedPlan(workspaceRoot, approvedPlanHash);
-  const changes = printed ? describePlanChange(printed, plan) : [];
-  const lines = [
-    printed
-      ? `The migration plan changed since ${approvedPlanHash} was printed (${printed.printedAt}); its hash is now ${plan.planHash}. Nothing was applied.`
-      : `${approvedPlanHash} is not the current migration plan; its hash is now ${plan.planHash}. Kibi has no record of printing ${approvedPlanHash} here, so it cannot say what changed. Nothing was applied.`,
-    ...(printed
-      ? changes.length > 0
-        ? ["What changed:", ...changes.map((change) => `- ${change}`)]
-        : ["Its actions and inputs are the same; only their details changed."]
-      : []),
-    `Review the current plan with 'kibi migrate', then apply it with: ${applyPlanCommand(plan.planHash)}`,
-  ];
-  return lines.join("\n");
+  const apply = `Review the current plan with 'kibi migrate', then apply it with: ${applyPlanCommand(plan.planHash)}`;
+  if (!printed)
+    return [
+      `${approvedPlanHash} is not the current migration plan; its hash is now ${plan.planHash}. Kibi has no record of printing ${approvedPlanHash} here, so it cannot say what changed. Nothing was applied.`,
+      apply,
+    ].join("\n");
+  const changes = describePlanChange(printed, plan);
+  return [
+    `The migration plan changed since ${approvedPlanHash} was printed (${printed.printedAt}); its hash is now ${plan.planHash}. Nothing was applied.`,
+    ...(changes.length > 0
+      ? ["What changed:", ...changes.map((change) => `- ${change}`)]
+      : ["Its actions and inputs are the same; only their details changed."]),
+    apply,
+  ].join("\n");
 }
 
 async function migratePlanCommand(
@@ -1679,12 +1674,10 @@ async function migratePlanCommand(
   const plan = await buildWorkspaceMigrationPlan(workspaceRoot);
   const applySafe = applySafeRequested(options);
   // `--yes` with JSON output applies every ready automatic action of the plan
-  // it would otherwise only print; `--dry-run` still only prints it.
+  // it would otherwise only print; `--dry-run` still only prints it. Only
+  // JSON output brings `--yes` here without `--apply-safe`.
   const approveWholePlan =
-    !applySafe &&
-    options.yes === true &&
-    options.dryRun !== true &&
-    options.format === "json";
+    !applySafe && options.yes === true && options.dryRun !== true;
   if (applySafe || approveWholePlan) {
     const inlineHash =
       typeof options.applySafe === "string" ? options.applySafe : undefined;
