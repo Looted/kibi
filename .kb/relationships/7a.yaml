@@ -105,13 +105,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-664b17aaa804
   - type: covered_by
-    from: SYM-cursor-isMeaningfulTrackedPath
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-05T15:39:06.465Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ab62d65145f6
-  - type: covered_by
     from: SYM-skillopt-with-exclusive-adoption-lock
     to: TEST-skillopt-automatic-adoption
     created_at: 2026-09-16T13:11:20.081Z

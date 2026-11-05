@@ -321,3 +321,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5546200db842
+  - type: constrains
+    from: REQ-cursor-hook-limits
+    to: FACT-SUBJ-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1
+    created_at: 2026-11-05T10:01:22.722Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef7c7f35bced
+  - type: requires_property
+    from: REQ-cursor-hook-limits
+    to: FACT-cursor-hooks-advisory-only
+    created_at: 2026-11-05T10:01:22.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94b957910a3e
+  - type: requires_property
+    from: REQ-cursor-hook-limits
+    to: FACT-cursor-hooks-no-kb-writes
+    created_at: 2026-11-05T10:01:22.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bae1daaa1456
+  - type: specified_by
+    from: REQ-cursor-hook-limits
+    to: SCEN-cursor-kibi-plugin-v1
+    created_at: 2026-11-05T10:01:22.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8082f620284
+  - type: specified_by
+    from: REQ-cursor-hook-limits
+    to: SCEN-CASE-cursor-kibi-plugin-v1-BLOCKING-HOOK
+    created_at: 2026-11-05T10:01:22.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05fa98cd6b10
+  - type: verified_by
+    from: REQ-cursor-hook-limits
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-11-05T10:01:22.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc6b28c59f18
+  - type: supersedes
+    from: REQ-cursor-hook-limits
+    to: REQ-cursor-kibi-plugin-v1
+    created_at: 2026-11-05T10:01:22.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccdda120d529

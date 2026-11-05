@@ -160,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-542a1a891696
-  - type: implements
-    from: SYM-cursor-getSourceLinkedRequirementIds
-    to: REQ-cursor-kibi-plugin-v1
-    created_at: 2026-09-25T16:15:15.829Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-37eed80e410c
   - type: covered_by
     from: SYM-execute-ingest-proof
     to: TEST-kibi-verification-receipts-v2
@@ -188,13 +181,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5be044d13b87
-  - type: implements
-    from: SYM-agent-core-canonicalKbToolName
-    to: REQ-cursor-kibi-plugin-v1
-    created_at: 2026-09-27T16:45:15.635Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-50d34ab8b78c
   - type: covered_by
     from: SYM-agent-core-canonicalKbToolName
     to: TEST-cursor-kibi-plugin-v1
