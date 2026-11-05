@@ -226,7 +226,8 @@ function formatTextUpsertError(
     /kb_contradiction\(\s*\[([^\]]+)\]\s*\)/,
   );
   if (contradiction) {
-    const details = contradiction[1] ?? "";
+    // The group is required by the pattern.
+    const details = contradiction[1] as string;
     const conflicts = [
       ...details.matchAll(
         /(?:'([^']+)'|"([^"\\]*(?:\\.[^"\\]*)*)")-'([^']+)'/g,
