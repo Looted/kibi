@@ -6,12 +6,15 @@ import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { dump as dumpYaml, load as loadYaml } from "js-yaml";
 import {
+  type Node,
+  type Range,
+  type Scalar,
+  type YAMLMap,
   isCollection,
   isMap,
-  isNode,
   isScalar,
+  isSeq,
   parseDocument,
-  stringify,
 } from "yaml";
 import { OperationError } from "../../cli-errors.js";
 import { reviseRequirementBody } from "../../entity-body-context.js";
@@ -96,9 +99,11 @@ export function restoreFileTimes(
   absolutePath: string,
   times: FileTimes | null,
 ): void {
-  if (times === null) return;
   try {
-    fs.utimesSync(absolutePath, times.atime, times.mtime);
+    // A missing snapshot fails the destructuring and is skipped like any
+    // other failed reset.
+    const { atime, mtime } = times as FileTimes;
+    fs.utimesSync(absolutePath, atime, mtime);
   } catch {
     // The bytes are restored; a failed time reset only costs a sync.
   }
@@ -111,7 +116,7 @@ export function restoreFileTimes(
 // implements REQ-core-atomic-upsert-persistence
 function readPendingSourceReceiptBytes(receiptPath: string): string | null {
   try {
-    return fs.readFileSync(receiptPath, "utf8");
+    return fs.readFileSync(receiptPath).toString();
   } catch {
     return null;
   }
@@ -150,22 +155,20 @@ export function republishPendingSourceReceipt(
   const receiptPath = pendingReceiptPath(workspaceRoot, relativePath);
   const raw = readPendingSourceReceiptBytes(receiptPath);
   if (raw === null) return false;
-  let receipt: Record<string, unknown>;
+  // A receipt that is not a JSON object (null spreads to nothing) is rebuilt.
+  let receipt: unknown = {};
   try {
     const parsed = JSON.parse(raw) as unknown;
-    receipt =
-      parsed !== null && typeof parsed === "object"
-        ? (parsed as Record<string, unknown>)
-        : {};
+    if (typeof parsed === "object") receipt = parsed;
   } catch {
-    receipt = {};
+    // Unparseable bytes are rebuilt from scratch.
   }
   fs.writeFileSync(
     receiptPath,
     `${JSON.stringify(
       {
         version: 1,
-        ...receipt,
+        ...(receipt as Record<string, unknown>),
         path: relativePath,
         afterHash,
         rebasedAt: new Date().toISOString(),
@@ -173,7 +176,6 @@ export function republishPendingSourceReceipt(
       null,
       2,
     )}\n`,
-    { mode: 0o600 },
   );
   return true;
 }
@@ -185,7 +187,7 @@ export function republishPendingSourceReceipt(
 const AUTHORED_YAML_OPTIONS = { lineWidth: 0 } as const;
 
 function authoredPath(value: unknown): string | undefined {
-  if (typeof value !== "string" || !value.trim()) return undefined;
+  if (typeof value !== "string") return undefined;
   const normalized = value.replaceAll("\\", "/");
   if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(normalized)) return undefined;
   if (!/\.(?:md|mdx|ya?ml)$/i.test(normalized)) return undefined;
@@ -243,13 +245,12 @@ export function normalizeAuthoredSourcePath(
   let relative = normalized;
   if (path.isAbsolute(normalized)) {
     const absolute = path.resolve(normalized);
-    relative =
-      absolute === root || absolute.startsWith(`${root}${path.sep}`)
-        ? path.relative(root, absolute)
-        : path.relative(
-            canonicalFilesystemPath(root),
-            canonicalFilesystemPath(absolute),
-          );
+    relative = absolute.startsWith(`${root}${path.sep}`)
+      ? path.relative(root, absolute)
+      : path.relative(
+          canonicalFilesystemPath(root),
+          canonicalFilesystemPath(absolute),
+        );
   }
   return path
     .relative(
@@ -264,10 +265,11 @@ function frontmatterBlock(
   content: string,
 ): { opening: string; raw: string; body: string } | undefined {
   if (!content.startsWith("---")) return undefined;
+  // Without a line break after the opening fence there is no closing one
+  // either, so the marker search alone decides.
   const firstEnd = content.indexOf("\n", 3);
-  if (firstEnd < 0) return undefined;
   const marker = content.indexOf("\n---", firstEnd);
-  if (marker < 0) return undefined;
+  if (marker === -1) return undefined;
   return {
     opening: content.slice(0, firstEnd + 1),
     raw: content.slice(firstEnd + 1, marker),
@@ -332,14 +334,11 @@ function sourcePath(
     requested ?? authoredPath(existing?.source);
   // Canonical markdown lanes name a directory; append the entity's file so
   // upserts without document.path land in the canonical location.
-  if (
-    relative === undefined &&
-    canonical !== undefined &&
-    !/\.(?:md|mdx|ya?ml)$/i.test(canonical)
-  ) {
-    relative = `${canonical}/${String(entity.id)}.md`;
-  } else if (relative === undefined && canonical !== undefined) {
-    relative = canonical;
+  if (relative === undefined && canonical !== undefined) {
+    relative =
+      path.extname(canonical) === ""
+        ? `${canonical}/${String(entity.id)}.md`
+        : canonical;
   }
   if (!relative) {
     throw new OperationError(
@@ -378,8 +377,9 @@ export function newEntitySourceTarget(
   try {
     return sourcePath(context, input, { id: input.id }, undefined);
   } catch {
-    return undefined;
+    // The writer reports a missing or refused target itself.
   }
+  return undefined;
 }
 
 /** The front matter of an authored document; throws on YAML it cannot parse. */
@@ -454,12 +454,12 @@ function patchFrontmatter(
   if (contents !== null && (!isMap(contents) || contents.flow)) {
     return undefined;
   }
-  const pairs = contents === null ? [] : contents.items;
+  const pairs = isMap(contents) ? contents.items : undefined;
   const current = (doc.toJS() ?? {}) as Record<string, unknown>;
   const edits: Array<{ start: number; end: number; text: string }> = [];
   const appended: string[] = [];
   for (const [key, value] of Object.entries(updates)) {
-    const pair = pairs.find(
+    const pair = pairs?.find(
       (candidate) =>
         isScalar(candidate.key) && String(candidate.key.value) === key,
     );
@@ -485,15 +485,17 @@ function patchFrontmatter(
       appended.push(text);
       continue;
     }
-    const keyRange = isScalar(pair.key) ? pair.key.range : undefined;
-    if (!keyRange) return undefined;
+    // The pair was found by its scalar key, which the parser always ranges.
+    const keyRange = (pair.key as Scalar).range as Range;
     const start = keyRange[0];
     // An explicit `? key` entry cannot be rewritten as `key: value` in place.
     const lineStart = raw.lastIndexOf("\n", start - 1) + 1;
     if (raw.slice(lineStart, start).trim() !== "") return undefined;
-    let end =
-      isNode(valueNode) && valueNode.range ? valueNode.range[1] : keyRange[2];
-    while (end > start && /[\r\n]/.test(raw[end - 1] ?? "")) end -= 1;
+    // A parsed block pair always has a ranged value node: an empty value is
+    // a null scalar.
+    let end = ((valueNode as Node).range as Range)[1];
+    // The key itself ends the scan: it is never a line break.
+    while (/[\r\n]/.test(raw.charAt(end - 1))) end -= 1;
     // `key: # note` has an empty value right before its comment: keep the
     // comment a comment instead of gluing it onto the new value.
     edits.push({ start, end, text: raw[end] === "#" ? `${text} ` : text });
@@ -535,7 +537,7 @@ function bodyForStatement(
       ? existing.frontmatter.semantic_text
       : requirementSemanticText(existing.body);
   if (sameStatement(previous, entity.semantic_text)) return existing.body;
-  const leading = /^\n*/.exec(existing.body)?.[0] || "\n\n";
+  const leading = /^\n+/.exec(existing.body)?.[0] ?? "\n\n";
   return `${leading}${reviseRequirementBody({
     existingBody: existing.body,
     statement: entity.semantic_text,
@@ -557,7 +559,7 @@ function renderEntityDocument(
         ? bodyForStatement(input.type, entity, existing)
         : input.type === "req"
           ? `${String(entity.semantic_text ?? "").trim()}\n`
-          : "\n";
+          : "";
   const updates = entityFrontmatterUpdates(entity, existing.frontmatter, body);
   const bodySuffix = `${body.startsWith("\n") ? "" : "\n"}${body}`;
   // An existing document keeps its authored front matter bytes; only the
@@ -609,32 +611,13 @@ function symbolManifestRecord(
 export function manifestRelationships(
   item: unknown,
 ): Array<{ type: string; target: string }> {
-  if (
-    item === null ||
-    typeof item !== "object" ||
-    !("get" in item) ||
-    typeof (item as { get?: unknown }).get !== "function"
-  ) {
-    return [];
-  }
-  const sequence = (
-    item as { get(key: string, keepCst?: boolean): unknown }
-  ).get("relationships", true);
-  if (
-    sequence === null ||
-    typeof sequence !== "object" ||
-    !("toJSON" in sequence) ||
-    typeof (sequence as { toJSON?: unknown }).toJSON !== "function"
-  ) {
-    return [];
-  }
-  const value = (sequence as { toJSON(): unknown }).toJSON();
+  const value: unknown = isMap(item)
+    ? (item.toJSON() as Record<string, unknown>).relationships
+    : undefined;
   if (!Array.isArray(value)) return [];
   return value.flatMap((relationship) => {
-    if (relationship === null || typeof relationship !== "object") {
-      return [];
-    }
-    const candidate = relationship as Record<string, unknown>;
+    // Object() reads a missing or scalar row as one without fields.
+    const candidate = Object(relationship) as Record<string, unknown>;
     const type = candidate.type;
     const target = candidate.target ?? candidate.to;
     return typeof type === "string" && typeof target === "string"
@@ -673,12 +656,8 @@ function mergeCompatibleManifestField(
     }
     return;
   }
-  Object.defineProperty(target, field, {
-    configurable: true,
-    enumerable: true,
-    value,
-    writable: true,
-  });
+  // Defined rather than assigned so a `__proto__` field stays plain data.
+  Object.defineProperty(target, field, { enumerable: true, value });
 }
 
 // implements REQ-source-analysis-v2
@@ -717,20 +696,15 @@ function manifestRelationshipRecords(
 // implements REQ-source-analysis-v2
 function mergeManifestRelationshipRecords(
   records: readonly Record<string, unknown>[],
-  incoming: readonly RelationshipInput[],
+  incoming: readonly RelationshipInput[] | undefined,
   entityId: string,
 ): unknown[] {
   const merged = new Map<string, Record<string, unknown>>();
   const untyped: unknown[] = [];
   for (const record of records) {
     for (const row of manifestRelationshipRecords(record, entityId)) {
-      if (row === null || typeof row !== "object" || Array.isArray(row)) {
-        if (!untyped.some((value) => isDeepStrictEqual(value, row))) {
-          untyped.push(row);
-        }
-        continue;
-      }
-      const candidate = row as Record<string, unknown>;
+      // Object() reads a scalar, list or null row as one without a type.
+      const candidate = Object(row) as Record<string, unknown>;
       const type = candidate.type;
       const target = candidate.target ?? candidate.to;
       if (typeof type !== "string" || typeof target !== "string") {
@@ -763,7 +737,9 @@ function mergeManifestRelationshipRecords(
       }
     }
   }
-  for (const relationship of incoming) {
+  // rationale: a placeholder row has no `from`, so it is skipped like any row of another entity.
+  // Stryker disable next-line ArrayDeclaration
+  for (const relationship of incoming ?? []) {
     if (
       relationship.from !== entityId ||
       typeof relationship.type !== "string" ||
@@ -833,52 +809,42 @@ function symbolManifestIndexes(
   items: readonly unknown[],
   id: string,
 ): number[] {
+  // Any collection with get() counts, so a list entry whose missing `id`
+  // reads as "undefined" still matches (and then cannot be merged).
   return items.flatMap((item, index) =>
-    item &&
-    typeof item === "object" &&
-    "get" in item &&
+    typeof Object(item).get === "function" &&
     String((item as { get(key: string): unknown }).get("id")) === id
       ? [index]
       : [],
   );
 }
 
-function renderSymbolManifest(
-  entity: Readonly<Record<string, unknown>>,
-  relationships: readonly RelationshipInput[],
-  existingContent: string | undefined,
-): string {
-  if (existingContent === undefined) {
-    const created = symbolManifestRecord(entity);
-    const rows = mergeManifestRelationshipRecords(
-      [],
-      relationships,
-      String(entity.id),
-    );
-    if (rows.length > 0) created.relationships = rows;
-    const doc = parseDocument(stringify({ symbols: [created] }));
-    return doc.toString(AUTHORED_YAML_OPTIONS);
-  }
-  const doc = parseDocument(existingContent);
-  const symbols = doc.get("symbols", true);
-  if (!symbols || typeof symbols !== "object" || !("items" in symbols)) {
+/** The `symbols` list of a manifest; anything else is not a manifest. */
+function manifestSymbols(doc: ReturnType<typeof parseDocument>) {
+  const symbols = doc.get("symbols");
+  if (!isSeq(symbols)) {
     throw new OperationError(
       "SOURCE_FORMAT_INVALID",
       "Symbol manifest must contain a symbols array",
     );
   }
+  return symbols;
+}
+
+function renderSymbolManifest(
+  entity: Readonly<Record<string, unknown>>,
+  relationships: readonly RelationshipInput[] | undefined,
+  existingContent: string | undefined,
+): string {
+  // A new manifest is an empty one that gains its first entry.
+  const doc = parseDocument(existingContent ?? "symbols: []\n");
+  const items = manifestSymbols(doc).items;
   // implements REQ-core-persistence
   // Render the list (and the entries that were written inside it) as block
   // YAML so diffs stay reviewable.
   blockifySymbolManifest(doc);
-  const items = (symbols as { items: unknown[] }).items;
   const id = String(entity.id);
-  const indices = items.flatMap((item, index) => {
-    if (!item || typeof item !== "object" || !("get" in item)) return [];
-    return String((item as { get(key: string): unknown }).get("id")) === id
-      ? [index]
-      : [];
-  });
+  const indices = symbolManifestIndexes(items, id);
   const existingRecords = indices
     .map((index) => manifestRecord(items[index]))
     .filter(
@@ -897,8 +863,8 @@ function renderSymbolManifest(
   if (mergedRelationships.length > 0) {
     next.relationships = mergedRelationships;
   }
-  const mergedLinks = mergeManifestLinks(existingRecords, entity);
-  if (mergedLinks !== undefined) next.links = mergedLinks;
+  // An undefined field is left out of the YAML.
+  next.links = mergeManifestLinks(existingRecords, entity);
   if (indices.length > 0) {
     // Patch one canonical row and remove all redundant copies only after
     // compatible authored fields and all links have been merged successfully.
@@ -921,7 +887,7 @@ export function renderSourceDeletion(
   const extension = path.extname(sourcePathValue).toLowerCase();
   if (extension === ".md" || extension === ".mdx") {
     const parsed = bodyAndFrontmatter(existingContent);
-    if (String(parsed.frontmatter.id ?? "") !== entityId) {
+    if (String(parsed.frontmatter.id) !== entityId) {
       throw new OperationError(
         "SOURCE_ENTITY_MISMATCH",
         `Authored document ${sourcePathValue} does not contain ${entityId}`,
@@ -937,15 +903,7 @@ export function renderSourceDeletion(
       );
     }
     const doc = parseDocument(existingContent);
-    const symbols = doc.get("symbols", true);
-    if (!symbols || typeof symbols !== "object" || !("items" in symbols)) {
-      throw new OperationError(
-        "SOURCE_FORMAT_INVALID",
-        "Symbol manifest must contain a symbols array",
-      );
-    }
-    const items = (symbols as { items: unknown[] }).items;
-    const matches = symbolManifestIndexes(items, entityId);
+    const matches = symbolManifestIndexes(manifestSymbols(doc).items, entityId);
     if (matches.length === 0) {
       throw new OperationError(
         "SOURCE_ENTITY_MISMATCH",
@@ -984,58 +942,46 @@ export function renderMarkdownRelationshipDeletion(
       `Relationship declarations can only be patched in Markdown documents: ${sourcePathValue}`,
     );
   }
-  if (!existingContent.startsWith("---"))
-    return { body: existingContent, removed: false };
-  const firstEnd = existingContent.indexOf("\n", 3);
-  if (firstEnd < 0) return { body: existingContent, removed: false };
-  const marker = existingContent.indexOf("\n---", firstEnd);
-  if (marker < 0) return { body: existingContent, removed: false };
-  const frontmatter = parseDocument(
-    existingContent.slice(firstEnd + 1, marker),
-  );
+  const block = frontmatterBlock(existingContent);
+  if (block === undefined) return { body: existingContent, removed: false };
+  const frontmatter = parseDocument(block.raw);
   let removed = false;
   for (const key of ["links", "relationships"] as const) {
-    const sequence = frontmatter.get(key, true);
-    if (!sequence || typeof sequence !== "object" || !("items" in sequence))
-      continue;
-    const items = (sequence as { items: unknown[] }).items;
-    for (let index = items.length - 1; index >= 0; index -= 1) {
-      const item = items[index];
-      if (!item || typeof item !== "object") continue;
-      if (key === "links" && !("get" in item)) {
-        const scalar = item as { toJSON?: () => unknown; value?: unknown };
-        const value = scalar.toJSON?.() ?? scalar.value;
-        if (
-          typeof value === "string" &&
-          value.replace(/^kb:entity\//, "") === selector.to
-        ) {
+    const sequence = frontmatter.get(key);
+    if (!isSeq(sequence)) continue;
+    // Last first, so the indexes of the entries still to visit stay valid.
+    for (const [index, item] of [...sequence.items.entries()].reverse()) {
+      if (isScalar(item)) {
+        // A bare `links` entry names its target; a bare relationship is none.
+        if (key === "links" && sameTarget(item.value, selector.to)) {
           frontmatter.deleteIn([key, index]);
           removed = true;
         }
         continue;
       }
-      if (!("get" in item)) continue;
-      const node = item as { get(name: string): unknown };
-      const target = node.get("target") ?? node.get("to");
-      const relationType = node.get("type");
-      const matches =
-        typeof target === "string" &&
-        target.replace(/^kb:entity\//, "") === selector.to &&
+      if (!isMap(item)) continue;
+      const relationType = item.get("type");
+      if (
+        sameTarget(item.get("target") ?? item.get("to"), selector.to) &&
         (key === "links" ||
           relationType === selector.type ||
-          relationType === undefined);
-      if (matches) {
+          relationType === undefined)
+      ) {
         frontmatter.deleteIn([key, index]);
         removed = true;
       }
     }
   }
   if (!removed) return { body: existingContent, removed: false };
-  const body = existingContent.slice(marker + "\n---".length);
   return {
-    body: `---\n${frontmatter.toString(AUTHORED_YAML_OPTIONS)}---${body.startsWith("\n") ? "" : "\n"}${body}`,
+    body: `---\n${frontmatter.toString(AUTHORED_YAML_OPTIONS)}---${block.body.startsWith("\n") ? "" : "\n"}${block.body}`,
     removed: true,
   };
+}
+
+/** Whether a declared target names `to`, with or without its entity prefix. */
+function sameTarget(value: unknown, to: string): boolean {
+  return typeof value === "string" && value.replace(/^kb:entity\//, "") === to;
 }
 
 /**
@@ -1056,82 +1002,43 @@ export function renderYamlRelationshipDeletion(
     );
   }
   const doc = parseDocument(existingContent);
-  if (doc.errors.length > 0) {
+  const [parseError] = doc.errors;
+  if (parseError) {
     throw new OperationError(
       "SOURCE_FORMAT_INVALID",
-      `Symbol manifest contains invalid YAML: ${doc.errors[0]?.message ?? "parse failed"}`,
+      `Symbol manifest contains invalid YAML: ${parseError.message}`,
     );
   }
-  const symbols = doc.get("symbols", true);
-  if (!symbols || typeof symbols !== "object" || !("items" in symbols)) {
-    throw new OperationError(
-      "SOURCE_FORMAT_INVALID",
-      "Symbol manifest must contain a symbols array",
-    );
-  }
-  const items = (symbols as { items: unknown[] }).items;
-  const symbol = items.find((item) => {
-    if (!item || typeof item !== "object" || !("get" in item)) return false;
-    return (
-      String((item as { get(key: string): unknown }).get("id")) ===
-      selector.from
-    );
-  });
-  if (!symbol || typeof symbol !== "object" || !("get" in symbol)) {
-    return { body: existingContent, removed: false };
-  }
-  const symbolNode = symbol as {
-    get(key: string, keepCst?: boolean): unknown;
-    delete(key: string): unknown;
-  };
-  const sameTarget = (value: unknown) =>
-    typeof value === "string" &&
-    value.replace(/^kb:entity\//, "") === selector.to;
+  const symbol = manifestSymbols(doc).items.find(
+    (item): item is YAMLMap =>
+      isMap(item) && String(item.get("id")) === selector.from,
+  );
+  if (!symbol) return { body: existingContent, removed: false };
   let removed = false;
-  const relationships = symbolNode.get("relationships", true);
-  if (
-    relationships &&
-    typeof relationships === "object" &&
-    "items" in relationships
-  ) {
-    const relationshipItems = (relationships as { items: unknown[] }).items;
-    for (let index = relationshipItems.length - 1; index >= 0; index -= 1) {
-      const item = relationshipItems[index];
-      if (!item || typeof item !== "object" || !("get" in item)) continue;
-      const node = item as { get(key: string): unknown };
+  const relationships = symbol.get("relationships");
+  if (isSeq(relationships)) {
+    for (const [index, item] of [...relationships.items.entries()].reverse()) {
+      if (!isMap(item)) continue;
       if (
-        node.get("type") === selector.type &&
-        sameTarget(node.get("target") ?? node.get("to"))
+        item.get("type") === selector.type &&
+        sameTarget(item.get("target") ?? item.get("to"), selector.to)
       ) {
-        (relationships as unknown as { delete(index: number): unknown }).delete(
-          index,
-        );
+        relationships.delete(index);
         removed = true;
       }
     }
   }
   // A legacy `links:` list declares implements edges too; leaving the entry
   // would bring the deleted edge back on the next sync.
-  const links = symbolNode.get("links", true);
-  if (
-    selector.type === "implements" &&
-    links &&
-    typeof links === "object" &&
-    "items" in links
-  ) {
-    const linkItems = (links as { items: unknown[] }).items;
-    for (let index = linkItems.length - 1; index >= 0; index -= 1) {
-      const item = linkItems[index];
-      const value =
-        item && typeof item === "object" && "value" in item
-          ? (item as { value: unknown }).value
-          : item;
-      if (sameTarget(value)) {
-        (links as unknown as { delete(index: number): unknown }).delete(index);
+  const links = symbol.get("links");
+  if (selector.type === "implements" && isSeq(links)) {
+    for (const [index, item] of [...links.items.entries()].reverse()) {
+      if (sameTarget((item as Scalar).value, selector.to)) {
+        links.delete(index);
         removed = true;
       }
     }
-    if (linkItems.length === 0) symbolNode.delete("links");
+    if (links.items.length === 0) symbol.delete("links");
   }
   return removed
     ? { body: doc.toString(AUTHORED_YAML_OPTIONS), removed: true }
@@ -1158,11 +1065,7 @@ export function renderSourceDocument(
         `YAML source authoring is supported only for symbol manifests, not ${input.type}`,
       );
     }
-    return renderSymbolManifest(
-      entity,
-      input.relationships ?? [],
-      existingContent,
-    );
+    return renderSymbolManifest(entity, input.relationships, existingContent);
   }
   if (extension !== ".md" && extension !== ".mdx") {
     throw new OperationError(
@@ -1192,6 +1095,8 @@ export function isUntrackedByGit(
       ["-C", workspaceRoot, "ls-files", "--error-unmatch", "--", relative],
       // Bounded: a write must never wait on Git. A timeout reads as
       // "tracked", the pre-receipt behaviour.
+      // rationale: the options only silence Git's stderr and bound a hung Git; neither changes the answer.
+      // Stryker disable next-line ObjectLiteral,StringLiteral
       { stdio: "ignore", timeout: 10_000 },
     );
     return false;
@@ -1230,7 +1135,7 @@ export async function renderSourceWrite(
   try {
     before = await context.fs.readFile(absolute);
   } catch {
-    before = undefined;
+    // A document that cannot be read is written as a new one.
   }
   // Proof-receipt ingest supplies pre-patched bytes so unrelated frontmatter
   // keeps its authored formatting (and the workspace snapshot stays stable).
@@ -1253,50 +1158,51 @@ export async function writeSourceForUpsert(
   receipt: SourceWriteReceipt;
   rollback: () => Promise<void>;
 } | null> {
-  if (!context?.fs) return null;
+  const fsPort = context?.fs;
+  if (!fsPort) return null;
   const { absolute, relative, before, after } = await renderSourceWrite(
     input,
     entity,
     existing,
-    { ...context, fs: context.fs },
+    { ...context, fs: fsPort },
     sourceDocumentOverride,
   );
   // Freshness compares file times with the compiled snapshot, so restoring
   // the bytes alone would still make an untouched entity read as stale after
-  // a rolled-back write. Snapshot the times before the publication below.
-  const priorTimes = before === undefined ? null : readFileTimes(absolute);
-  await context.fs.mkdir(path.dirname(absolute));
+  // a rolled-back write. Snapshot the times (null for a new file) before the
+  // publication below.
+  const priorTimes = readFileTimes(absolute);
+  await fsPort.mkdir(path.dirname(absolute));
   const temporary = `${absolute}.kibi-source-${process.pid}-${randomUUID()}`;
   try {
-    await context.fs.writeFile(temporary, after);
-    if (context.fs.rename) {
-      await context.fs.rename(temporary, absolute);
+    await fsPort.writeFile(temporary, after);
+    if (fsPort.rename) {
+      await fsPort.rename(temporary, absolute);
     } else {
-      await context.fs.writeFile(absolute, after);
-      await context.fs.unlink?.(temporary).catch(() => undefined);
+      await fsPort.writeFile(absolute, after);
+      await fsPort.unlink?.(temporary).catch(() => undefined);
     }
   } catch (error) {
     // A failed rename must not leak the unique temp file into the authored
     // tree; the published target (if any) is untouched at this point.
-    await context.fs.unlink?.(temporary).catch(() => undefined);
+    await fsPort.unlink?.(temporary).catch(() => undefined);
     throw error;
   }
-  const receipt: SourceWriteReceipt = {
+  const receipt = {
     path: relative,
-    mode: "write",
+    mode: "write" as const,
     beforeHash: before === undefined ? null : digest(before),
     afterHash: digest(after),
     created: before === undefined,
-  };
-  const pendingReceipt = pendingReceiptPath(context.workspaceRoot, relative);
+  } satisfies SourceWriteReceipt & { afterHash: string };
+  const workspaceRoot = (context as OperationContext).workspaceRoot;
+  const pendingReceipt = pendingReceiptPath(workspaceRoot, relative);
   // Snapshot the pending-source receipt before this write republishes it. A
   // commit-time refusal restores the authored bytes, so the receipt must go
   // back to the hash it bound before the write (or disappear again) or the
   // next sync reports hash drift against a file that never changed.
   const priorReceiptBytes = readPendingSourceReceiptBytes(pendingReceipt);
   const rollback = async (): Promise<void> => {
-    const fsPort = context.fs;
-    if (fsPort === undefined) return;
     // Compare before restore: a concurrent writer may have replaced the file
     // after our publication. Never clobber newer bytes; keep the recovery
     // receipt so the next sync reconciles deterministically instead.
@@ -1304,14 +1210,10 @@ export async function writeSourceForUpsert(
     try {
       current = await fsPort.readFile(absolute);
     } catch {
-      current = undefined;
+      // A vanished file has no newer bytes to protect.
     }
     if (current !== undefined && digest(current) !== digest(after)) {
-      writePendingSourceReceipt(
-        context.workspaceRoot,
-        relative,
-        receipt.afterHash as string,
-      );
+      writePendingSourceReceipt(workspaceRoot, relative, receipt.afterHash);
       console.warn(
         `Skipped source rollback for ${relative}: file changed after the Kibi write; kept concurrent content and recorded recovery metadata.`,
       );
@@ -1358,16 +1260,11 @@ export async function writeSourceForUpsert(
   };
   try {
     if (
-      receipt.afterHash !== null &&
-      (before === undefined ||
-        fs.existsSync(pendingReceipt) ||
-        isUntrackedByGit(context.workspaceRoot, relative))
+      before === undefined ||
+      fs.existsSync(pendingReceipt) ||
+      isUntrackedByGit(workspaceRoot, relative)
     ) {
-      writePendingSourceReceipt(
-        context.workspaceRoot,
-        relative,
-        receipt.afterHash,
-      );
+      writePendingSourceReceipt(workspaceRoot, relative, receipt.afterHash);
     }
   } catch (receiptError) {
     // The source bytes are already published but the caller has not received

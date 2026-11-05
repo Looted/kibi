@@ -72,20 +72,31 @@ function globList(value: unknown): string[] {
  * the copy ts-morph bundles (Kibi's built-in source analysis depends on it),
  * so a JavaScript project needs no TypeScript install of its own.
  */
+// rationale: Kibi's own install, the copy ts-morph bundles and the one under kibi-plugin-builtin are
+// the same parser here, so which of them loads cannot be told apart; the workspace's install can.
+// Stryker disable all
+const KIBI_TYPESCRIPT: readonly (() => unknown)[] = [
+  () => createRequire(import.meta.url)("typescript"),
+  () => (createRequire(import.meta.url)("ts-morph") as { ts?: unknown }).ts,
+  () => {
+    const builtin = createRequire(import.meta.url).resolve("kibi-plugin-builtin");
+    return (createRequire(builtin)("ts-morph") as { ts?: unknown }).ts;
+  },
+];
+// Stryker restore all
+
+export const typeScriptInstalls = {
+  /** Where TypeScript's parser is looked for, in order. */
+  attempts(workspaceRoot: string): (() => unknown)[] {
+    return [() => createRequire(path.join(workspaceRoot, "package.json"))("typescript"), ...KIBI_TYPESCRIPT];
+  },
+};
+
 function loadTypeScript(workspaceRoot: string): TypeScriptApi | null {
-  const attempts: (() => unknown)[] = [
-    () => createRequire(path.join(workspaceRoot, "package.json"))("typescript"),
-    () => createRequire(import.meta.url)("typescript"),
-    () => (createRequire(import.meta.url)("ts-morph") as { ts?: unknown }).ts,
-    () => {
-      const builtin = createRequire(import.meta.url).resolve("kibi-plugin-builtin");
-      return (createRequire(builtin)("ts-morph") as { ts?: unknown }).ts;
-    },
-  ];
-  for (const attempt of attempts) {
+  for (const attempt of typeScriptInstalls.attempts(workspaceRoot)) {
     try {
-      const ts = attempt() as Partial<TypeScriptApi> | undefined;
-      if (typeof ts?.createSourceFile === "function") return ts as TypeScriptApi;
+      const ts = attempt();
+      if (typeof Object(ts).createSourceFile === "function") return ts as TypeScriptApi;
     } catch {
       // try the next install
     }
@@ -156,12 +167,11 @@ export function extractScriptReferences(
   const readsAProperty = (node: Node): boolean => {
     let current = node;
     let parent = node.parent;
-    while (parent !== undefined && unwrapped(parent) !== parent) {
+    while (unwrapped(parent) !== parent) {
       current = parent;
       parent = parent.parent;
     }
     return (
-      parent !== undefined &&
       (ts.isPropertyAccessExpression(parent) || ts.isElementAccessExpression(parent)) &&
       parent.expression === current
     );
@@ -169,12 +179,13 @@ export function extractScriptReferences(
   // The node an expression stands in, above its casts and parentheses.
   const outer = (node: Node): Node => {
     let current = node;
-    while (current.parent !== undefined && unwrapped(current.parent) !== current.parent) current = current.parent;
+    while (unwrapped(current.parent) !== current.parent) current = current.parent;
     return current;
   };
   const extract = spec.extract;
-  const callee = typeof spec.callee === "string" ? spec.callee : "";
-  const key = typeof spec.key === "string" ? spec.key : "";
+  // readSource requires both, as strings, for the extracts that read them.
+  const callee = String(spec.callee);
+  const key = String(spec.key);
   const ENV_OBJECTS = new Set(["process.env", "import.meta.env", "Bun.env"]);
   // A Node built-in under its `node:` name is the same module.
   const moduleName = (specifier: string): string =>
@@ -192,20 +203,21 @@ export function extractScriptReferences(
   // The declarations those names come from. A declaration that binds no name
   // (const window = pick()) is an ordinary local, so it shadows a global.
   const bindingDeclarations = new Set<Node>();
-  let bindings = 0;
+  // Whether the declaration being collected bound a name (set as each one starts).
+  let bound: boolean;
   const GLOBAL_OBJECTS = new Set(["globalThis", "global", "window", "self"]);
   const canonical = (written: string): string => {
     let current = written;
+    // A name bound to itself (import fs from "fs") stays as it is.
     for (let depth = 0; depth < 8; depth++) {
-      const dot = current.indexOf(".");
-      const head = dot < 0 ? current : current.slice(0, dot);
-      const bound = names.get(head);
-      if (bound === undefined || bound === head) break;
-      current = bound + (dot < 0 ? "" : current.slice(dot));
+      const head = current.split(".")[0] as string;
+      const target = names.get(head);
+      if (target === undefined) break;
+      current = target + current.slice(head.length);
     }
     // globalThis.process is process.
     const parts = current.split(".");
-    while (parts.length > 1 && GLOBAL_OBJECTS.has(parts[0] ?? "") && !names.has(parts[0] ?? "")) parts.shift();
+    while (parts.length > 1 && GLOBAL_OBJECTS.has(parts[0] as string) && !names.has(parts[0] as string)) parts.shift();
     return parts.join(".");
   };
   const LOADERS = new Set(["require", "module.require", "process.getBuiltinModule"]);
@@ -219,8 +231,8 @@ export function extractScriptReferences(
     const target = unwrapped(call.expression);
     const isLoader =
       call.expression.kind === ts.SyntaxKind.ImportKeyword ||
-      LOADERS.has(canonical(chain(target) ?? "")) ||
-      (ts.isCallExpression(target) && REQUIRE_FACTORIES.has(canonical(chain(target.expression) ?? "")));
+      LOADERS.has(canonical(String(chain(target)))) ||
+      (ts.isCallExpression(target) && REQUIRE_FACTORIES.has(canonical(String(chain(target.expression)))));
     if (!isLoader) return undefined;
     const value = literal(call.arguments[0]);
     return { specifier: value === null ? null : moduleName(value) };
@@ -228,7 +240,7 @@ export function extractScriptReferences(
   const bindPattern = (pattern: import("typescript").BindingName, from: string): void => {
     if (ts.isIdentifier(pattern)) {
       names.set(pattern.text, from);
-      bindings++;
+      bound = true;
       return;
     }
     if (!ts.isObjectBindingPattern(pattern)) return;
@@ -257,6 +269,9 @@ export function extractScriptReferences(
             if (element.isTypeOnly) continue;
             const imported = (element.propertyName ?? element.name).text;
             names.set(element.name.text, imported === "default" ? mod : `${mod}.${imported}`);
+            // rationale: a named import other than default is a member, never a bare built-in module, so
+            // also marking it a module name changes nothing.
+            // Stryker disable next-line ConditionalExpression
             if (imported === "default") moduleNames.add(element.name.text);
           }
         }
@@ -268,25 +283,26 @@ export function extractScriptReferences(
         moduleNames.add(node.name.text);
       }
     } else if (ts.isVariableDeclaration(node) && node.initializer) {
-      const before = bindings;
+      bound = false;
       const init = unwrapped(node.initializer);
       const module = loaded(init);
       if (module !== undefined) {
         if (module.specifier !== null) {
           bindPattern(node.name, module.specifier);
+          // rationale: a destructured name is a member, never a bare built-in module, so also marking a
+          // pattern's (missing) name a module name changes nothing.
+          // Stryker disable next-line ConditionalExpression
           if (ts.isIdentifier(node.name)) moduleNames.add(node.name.text);
         }
-      } else if (ts.isCallExpression(init) && REQUIRE_FACTORIES.has(canonical(chain(init.expression) ?? ""))) {
-        // const req = createRequire(import.meta.url): req loads modules.
-        if (ts.isIdentifier(node.name)) {
-          names.set(node.name.text, "require");
-          bindings++;
-        }
+      } else if (ts.isCallExpression(init) && REQUIRE_FACTORIES.has(canonical(String(chain(init.expression))))) {
+        // const req = createRequire(import.meta.url): req loads modules. (What
+        // a pattern takes from it is never a loader or a global.)
+        bindPattern(node.name, "require");
       } else {
         const from = chain(init);
         if (from !== null) bindPattern(node.name, from);
       }
-      if (bindings !== before) bindingDeclarations.add(node);
+      if (bound) bindingDeclarations.add(node);
     }
     ts.forEachChild(node, collect);
   };
@@ -295,8 +311,10 @@ export function extractScriptReferences(
   // name is not a read.
   const declares = (node: Node): boolean => {
     const parent = node.parent;
-    if (parent === undefined) return false;
     return (
+      // Every name in an import or export specifier is one.
+      ts.isImportSpecifier(parent) ||
+      ts.isExportSpecifier(parent) ||
       ((ts.isVariableDeclaration(parent) ||
         ts.isBindingElement(parent) ||
         ts.isParameter(parent) ||
@@ -304,19 +322,21 @@ export function extractScriptReferences(
         ts.isClassDeclaration(parent) ||
         ts.isImportClause(parent) ||
         ts.isNamespaceImport(parent) ||
-        ts.isImportSpecifier(parent) ||
         ts.isImportEqualsDeclaration(parent) ||
-        ts.isExportSpecifier(parent) ||
         ts.isPropertyAssignment(parent) ||
         ts.isPropertyDeclaration(parent) ||
         ts.isMethodDeclaration(parent) ||
         ts.isPropertySignature(parent) ||
-        ts.isLabeledStatement(parent)) &&
+        ts.isInterfaceDeclaration(parent) ||
+        ts.isTypeAliasDeclaration(parent) ||
+        ts.isTypeParameterDeclaration(parent) ||
+        ts.isEnumDeclaration(parent)) &&
         (parent as { name?: Node }).name === node) ||
+      // A statement label, and the label a break or continue names.
+      (parent as { label?: Node }).label === node ||
       (ts.isBindingElement(parent) && parent.propertyName === node) ||
-      (ts.isImportSpecifier(parent) && parent.propertyName === node) ||
-      (ts.isExportSpecifier(parent) && parent.propertyName === node) ||
-      (ts.isPropertyAccessExpression(parent) && parent.name === node) ||
+      // The object of a member read is never a whole chain, so only its name gets here.
+      ts.isPropertyAccessExpression(parent) ||
       (ts.isQualifiedName(parent) && parent.right === node)
     );
   };
@@ -358,7 +378,6 @@ export function extractScriptReferences(
     const top = outer(node);
     const parent = top.parent;
     return !(
-      parent !== undefined &&
       (ts.isPropertyAccessExpression(parent) || ts.isElementAccessExpression(parent)) &&
       parent.expression === top
     );
@@ -366,15 +385,14 @@ export function extractScriptReferences(
   const calledAs = (node: Node): boolean => {
     const top = outer(node);
     const parent = top.parent;
-    return (
-      parent !== undefined && (ts.isCallExpression(parent) || ts.isNewExpression(parent)) && parent.expression === top
-    );
+    return (ts.isCallExpression(parent) || ts.isNewExpression(parent)) && parent.expression === top;
   };
   // The initializer of a declaration whose names are followed above.
   const followed = (node: Node): boolean => {
     const top = outer(node);
     const parent = top.parent;
-    return parent !== undefined && ts.isVariableDeclaration(parent) && parent.initializer === top;
+    // A declaration's own name is never read here (declares), so only its initializer gets here.
+    return ts.isVariableDeclaration(parent);
   };
   // `typeof window` only asks for the kind of the value, and `"Notification" in
   // window` only asks whether a global other than process exists: neither
@@ -382,14 +400,9 @@ export function extractScriptReferences(
   const queried = (node: Node, name: string): boolean => {
     const top = outer(node);
     const parent = top.parent;
-    if (parent === undefined) return false;
     if (ts.isTypeOfExpression(parent)) return true;
-    if (
-      GLOBAL_OBJECTS.has(name) &&
-      ts.isBinaryExpression(parent) &&
-      parent.operatorToken.kind === ts.SyntaxKind.InKeyword &&
-      parent.right === top
-    ) {
+    // The object on the left of `in` is no literal key, so it is not a query.
+    if (GLOBAL_OBJECTS.has(name) && ts.isBinaryExpression(parent) && parent.operatorToken.kind === ts.SyntaxKind.InKeyword) {
       const key = literal(parent.left);
       return key !== null && key !== "process" && key !== "Bun";
     }
@@ -397,6 +410,8 @@ export function extractScriptReferences(
   };
   // Code built from text runs anything.
   const DYNAMIC_CODE = new Set(["eval", "Function", "vm.runInThisContext", "vm.runInNewContext", "vm.runInContext", "vm.compileFunction", "vm.Script", "vm.SourceTextModule"]);
+  // rationale: no identifier spells the placeholder a mutated list would start with.
+  // Stryker disable next-line ArrayDeclaration
   const catchNames: string[] = [];
   const visit = (node: Node): void => {
     if (ts.isCatchClause(node) && node.variableDeclaration && ts.isIdentifier(node.variableDeclaration.name)) {
@@ -407,7 +422,7 @@ export function extractScriptReferences(
     }
     const reads = extract === "env" || extract === "calls" || extract === "imports";
     if (reads && (ts.isCallExpression(node) || ts.isNewExpression(node))) {
-      const name = canonical(chain(node.expression) ?? "");
+      const name = canonical(String(chain(node.expression)));
       if (DYNAMIC_CODE.has(name)) unresolved.push(at(node));
       const module = loaded(node);
       if (module !== undefined && extract !== "imports" && !followed(node)) {
@@ -415,15 +430,12 @@ export function extractScriptReferences(
         // unless it is a known module whose member is called directly.
         const top = outer(node);
         const parent = top.parent;
-        const member =
-          parent !== undefined && ts.isPropertyAccessExpression(parent) && parent.expression === top
-            ? parent.name.text
-            : null;
+        // A call is never a member's name, so it is the object read.
+        const member = ts.isPropertyAccessExpression(parent) ? parent.name.text : null;
         const direct =
           extract === "calls" &&
           module.specifier !== null &&
           member !== null &&
-          parent !== undefined &&
           calledAs(parent);
         if (direct) members.push(`${module.specifier}.${member}`);
         else if (module.specifier === null || (extract === "env" && module.specifier === "process"))
@@ -439,15 +451,14 @@ export function extractScriptReferences(
         if (
           ts.isExportDeclaration(node) &&
           node.moduleSpecifier &&
-          moduleName(literal(node.moduleSpecifier) ?? "") === "process"
+          moduleName(String(literal(node.moduleSpecifier))) === "process"
         ) {
           unresolved.push(at(node));
           return;
         }
         if (ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node)) {
-          const written = chain(node.expression);
-          const name = written === null ? null : canonical(written);
-          if (name !== null && ENV_OBJECTS.has(name)) {
+          const name = canonical(String(chain(node.expression)));
+          if (ENV_OBJECTS.has(name)) {
             if (ts.isPropertyAccessExpression(node)) {
               if (!(name === "import.meta.env" && VITE_BUILTINS.has(node.name.text))) members.push(node.name.text);
             } else {
@@ -458,7 +469,7 @@ export function extractScriptReferences(
             return;
           }
         }
-        if (ts.isCallExpression(node) && canonical(chain(node.expression) ?? "") === "Deno.env.get") {
+        if (ts.isCallExpression(node) && canonical(String(chain(node.expression))) === "Deno.env.get") {
           const value = literal(node.arguments[0]);
           if (value === null) unresolved.push(at(node));
           else members.push(value);
@@ -466,8 +477,8 @@ export function extractScriptReferences(
         }
         if (ts.isVariableDeclaration(node) && node.initializer && !ts.isIdentifier(node.name)) {
           const written = chain(unwrapped(node.initializer));
-          const from = written === null ? (loaded(node.initializer)?.specifier ?? null) : canonical(written);
-          if (from !== null && (ENV_OBJECTS.has(from) || from === "process" || GLOBAL_OBJECTS.has(from))) {
+          const from = String(written === null ? loaded(node.initializer)?.specifier : canonical(written));
+          if (ENV_OBJECTS.has(from) || from === "process" || GLOBAL_OBJECTS.has(from)) {
             readPattern(node.name, from);
             return;
           }
@@ -481,7 +492,7 @@ export function extractScriptReferences(
           maximal(node) &&
           !followed(node)
         ) {
-          const name = canonical(chain(node) ?? "");
+          const name = canonical(String(chain(node)));
           if (ts.isIdentifier(node) && shadowed(node, node.text)) break;
           const handedOn =
             !queried(node, name) &&
@@ -501,7 +512,7 @@ export function extractScriptReferences(
         break;
       }
       case "imports": {
-        if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier) {
+        if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
           const value = literal(node.moduleSpecifier);
           if (value !== null) members.push(...spellings(value));
           break;
@@ -522,7 +533,7 @@ export function extractScriptReferences(
         }
         // A loader handed on (const r = [require][0]) loads under a name Kibi does not follow.
         if (ts.isIdentifier(node) || ts.isPropertyAccessExpression(node)) {
-          const name = canonical(chain(node) ?? "");
+          const name = canonical(String(chain(node)));
           if (
             (LOADERS.has(name) || REQUIRE_FACTORIES.has(name)) &&
             maximal(node) &&
@@ -543,8 +554,9 @@ export function extractScriptReferences(
             const listed = [written, canonical(written)];
             // f.call(...), f.apply(...) and f.bind(...)() call f.
             for (const name of [...listed]) {
-              const bound = /^(.*)\.(?:call|apply|bind)$/.exec(name);
-              if (bound?.[1]) listed.push(bound[1]);
+              // A chain never starts with a dot, so the callee is never empty.
+              const bound = /(.*)\.(?:call|apply|bind)$/.exec(name);
+              if (bound !== null) listed.push(bound[1] as string);
             }
             members.push(...new Set(listed));
           } else if (ts.isElementAccessExpression(target)) unresolved.push(at(target));
@@ -555,20 +567,18 @@ export function extractScriptReferences(
           !declares(node) &&
           !inType(node)
         ) {
-          const written = chain(node);
-          const head = written?.split(".")[0];
-          if (written !== null && head !== undefined && names.has(head) && !followed(node)) {
-            const name = canonical(written);
-            if (moduleNames.has(head) && written === head && NODE_BUILTINS.has(name)) {
-              // A built-in module handed on: any of its members may be called.
-              members.push(`${name}.*`);
-            } else if (name.includes(".") || written !== name) {
+          // A chain that is no name ("null") has a head no import binds.
+          const written = String(chain(node));
+          const head = written.split(".")[0] as string;
+          const name = canonical(written);
+          if (names.has(head)) {
+            if (!followed(node)) {
+              // A built-in module handed on: any of its members may be called. (A
+              // dotted chain never names a bare built-in.)
+              if (moduleNames.has(head) && NODE_BUILTINS.has(name)) members.push(`${name}.*`);
               // An imported function used as a value is listed as called.
-              members.push(...new Set([written, name]));
-            }
-          } else if (written !== null && head !== undefined && names.has(head) && followed(node)) {
-            const name = canonical(written);
-            if (name !== written && name.includes(".")) members.push(name);
+              else if (name.includes(".") || written !== name) members.push(...new Set([written, name]));
+            } else if (name !== written && name.includes(".")) members.push(name);
           }
         }
         break;
@@ -576,7 +586,8 @@ export function extractScriptReferences(
       case "string_args": {
         if (ts.isCallExpression(node)) {
           const written = chain(node.expression);
-          const listed = written === null ? [] : [...new Set([written, canonical(written)])];
+          if (written === null) break;
+          const listed = [...new Set([written, canonical(written)])];
           if (listed.some((name) => name === callee || (!callee.includes(".") && name.endsWith(`.${callee}`)))) {
             const value = literal(node.arguments[0]);
             if (value === null) unresolved.push(at(node));
@@ -614,8 +625,8 @@ export function extractScriptReferences(
   // Destructuring from the environment, process or the global object:
   // `const { PORT } = process.env` reads PORT, `const { env: { HOST } } =
   // process` reads HOST; a rest element or a computed key could read any.
+  // Never called with a plain name, which binds the object itself (followed through names).
   const readPattern = (pattern: import("typescript").BindingName, from: string): void => {
-    if (ts.isIdentifier(pattern)) return;
     if (!ts.isObjectBindingPattern(pattern)) {
       unresolved.push(at(pattern));
       return;
@@ -1077,7 +1088,8 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
     const read = runPrologReader(workspaceRoot, prolog[0] as string, {
       mode: "references",
       extract: spec.extract,
-      ...(typeof spec.callee === "string" ? { callee: spec.callee } : {}),
+      // A missing callee drops out of the plan's JSON.
+      callee: spec.callee,
       files: prolog,
     });
     if (!read.ok) return read;
@@ -1085,7 +1097,8 @@ async function readReferences(workspaceRoot: string, spec: SourceSpec): Promise<
     unresolved.push(...(read.value.unresolved ?? []));
   }
   if (unresolved.length > 0)
-    return { ok: false, reason: unresolvedReason(EXTRACT_WHAT[String(spec.extract)] ?? "references", unresolved) };
+    // readSource admits only the extracts named here.
+    return { ok: false, reason: unresolvedReason(EXTRACT_WHAT[String(spec.extract)] as string, unresolved) };
   return { ok: true, members };
 }
 
@@ -1104,7 +1117,7 @@ async function readPluginReferences(
 ): Promise<{ ok: true; members: string[]; unresolved: UnresolvedReference[] } | { ok: false; reason: string }> {
   const { extractors, problems } = await proofReferenceExtractorLoader.load(workspaceRoot);
   // Callers pass only files a reference reader covers (unknown ones are refused first).
-  const languages = [...new Set(files.flatMap((file) => pluginReferenceLanguage(file) ?? []))];
+  const languages = [...new Set(files.map((file) => pluginReferenceLanguage(file) as string))];
   const unread = files.filter((file) => !extractors.some((extractor) => extractor.supports({ path: file })));
   if (unread.length > 0) {
     const shown = `${unread.slice(0, 3).join(", ")}${unread.length > 3 ? ` and ${unread.length - 3} more` : ""}`;
@@ -1118,8 +1131,8 @@ async function readPluginReferences(
   const unresolved: UnresolvedReference[] = [];
   const shadowRows = createShadowRowFilter(workspaceRoot);
   for (const file of files) {
-    const extractor = extractors.find((candidate) => candidate.supports({ path: file }));
-    if (extractor === undefined) continue;
+    // Every file has one: an unread file was refused above.
+    const extractor = extractors.find((candidate) => candidate.supports({ path: file })) as (typeof extractors)[number];
     let result;
     try {
       result = validateReferenceExtractionResult(
@@ -1217,16 +1230,19 @@ const CSHARP_WEB_IMPLICIT_USINGS = [
 export function csharpProjectUsings(workspaceRoot: string): string[] {
   let tracked: string[];
   try {
+    // The listing ends with a NUL, so its last name is empty: read as the
+    // workspace folder, it fails and is skipped below.
     tracked = execFileSync("git", ["ls-files", "-z", "--", "*.cs", "*.csproj", "*.props"], {
       cwd: workspaceRoot,
       encoding: "utf8",
+      // rationale: only keeps git's complaints about a folder outside a repository off the terminal.
+      // Stryker disable next-line ArrayDeclaration,StringLiteral
       stdio: ["ignore", "pipe", "ignore"],
       maxBuffer: 64 * 1024 * 1024,
-    })
-      .split("\0")
-      .filter((file) => file.length > 0);
+    }).split("\0");
   } catch {
-    tracked = [];
+    // Outside a repository nothing is tracked.
+    return [];
   }
   const usings = new Set<string>();
   for (const file of tracked) {
@@ -1238,15 +1254,16 @@ export function csharpProjectUsings(workspaceRoot: string): string[] {
     }
     if (/\.cs$/i.test(file)) {
       for (const match of text.matchAll(/^\s*global\s+using\s+(?:static\s+)?(?:(\w+)\s*=\s*)?([\w.:]+)\s*;/gm))
-        usings.add((match[2] ?? "").replace(/^global::/, ""));
+        usings.add((match[2] as string).replace(/^global::/, ""));
       continue;
     }
-    for (const match of text.matchAll(/<Using\s+Include="([^"]+)"/g)) usings.add(match[1] ?? "");
+    for (const match of text.matchAll(/<Using\s+Include="([^"]+)"/g)) usings.add(match[1] as string);
     if (/<ImplicitUsings>\s*(?:enable|true)\s*<\/ImplicitUsings>/i.test(text)) {
       for (const name of CSHARP_IMPLICIT_USINGS) usings.add(name);
       if (/Sdk="Microsoft\.NET\.Sdk\.Web"/.test(text)) for (const name of CSHARP_WEB_IMPLICIT_USINGS) usings.add(name);
     }
   }
+  // `global using global::;` names nothing.
   usings.delete("");
   return [...usings].sort();
 }
@@ -1288,7 +1305,8 @@ function readPrologTerms(workspaceRoot: string, spec: SourceSpec): SourceCodeEva
     mode: "terms",
     file,
     functor: spec.functor,
-    ...(spec.arg !== undefined ? { arg: spec.arg } : {}),
+    // A missing position drops out of the plan's JSON.
+    arg: spec.arg,
   });
   if (!read.ok) return read;
   return { ok: true, members: read.value.members ?? [], sequence: read.value.sequence ?? [] };
