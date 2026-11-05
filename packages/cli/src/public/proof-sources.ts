@@ -154,8 +154,9 @@ const KEYS: Readonly<Record<SourceReader, readonly string[]>> = {
 };
 
 function record(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+  // typeof null is "object", and null is returned as is.
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
     : null;
 }
 
@@ -189,11 +190,11 @@ export function sourceSpecErrors(value: unknown, label: string): string[] {
     errors.push(
       `${label} (reader ${reader}) does not take ${unknown.join(", ")}; it takes ${KEYS[reader].join(", ")}`,
     );
-  const file = (key: string, required: boolean) => {
+  // Every reader that names a file requires it.
+  const file = (key: string) => {
     const raw = row[key];
     if (raw === undefined) {
-      if (required)
-        errors.push(`${label}.${key} is required for reader ${reader}`);
+      errors.push(`${label}.${key} is required for reader ${reader}`);
       return;
     }
     if (!nonEmpty(raw) || !relativeSafe(raw))
@@ -227,7 +228,7 @@ export function sourceSpecErrors(value: unknown, label: string): string[] {
   switch (reader) {
     case "json":
     case "yaml":
-      file("file", true);
+      file("file");
       if (row.path !== undefined && typeof row.path !== "string")
         errors.push(`${label}.path must be a dotted path or a JSON pointer`);
       if (row.field !== undefined && !nonEmpty(row.field))
@@ -248,7 +249,7 @@ export function sourceSpecErrors(value: unknown, label: string): string[] {
         errors.push(`${label}.capture must be true or false`);
       break;
     case "openapi":
-      file("file", true);
+      file("file");
       break;
     case "references":
       globs("files", true);
@@ -278,7 +279,7 @@ export function sourceSpecErrors(value: unknown, label: string): string[] {
         if (row.file !== undefined)
           errors.push(`${label}.file does not apply to format sql; use files`);
       } else {
-        file("file", true);
+        file("file");
         if (row.files !== undefined)
           errors.push(`${label}.files applies only to format sql`);
       }
@@ -295,7 +296,7 @@ export function sourceSpecErrors(value: unknown, label: string): string[] {
         );
       break;
     case "routes":
-      file("file", true);
+      file("file");
       if (!nonEmpty(row.export))
         errors.push(
           `${label}.export is required for reader routes: name the app (or a function returning it)`,
@@ -319,14 +320,14 @@ export function sourceSpecErrors(value: unknown, label: string): string[] {
         );
       break;
     case "validator":
-      file("file", true);
+      file("file");
       if (!nonEmpty(row.export))
         errors.push(
           `${label}.export is required for reader validator: name the object schema`,
         );
       break;
     case "prolog":
-      file("file", true);
+      file("file");
       if (
         typeof row.functor !== "string" ||
         !/^[a-z][A-Za-z0-9_]*\/(?:0|[1-9][0-9]*)$/.test(row.functor)
@@ -371,7 +372,7 @@ const DEFAULT_IGNORE = ["**/node_modules/**", "**/.git/**", "**/.kb/**"];
 export function matchWorkspaceFiles(
   workspaceRoot: string,
   patterns: readonly string[],
-  ignore: readonly string[] = [],
+  ignore?: readonly string[],
   caseSensitive = true,
 ): string[] {
   // A symbolic link to a file is read as that file (git and compilers read
@@ -379,21 +380,20 @@ export function matchWorkspaceFiles(
   return fg
     .sync([...patterns], {
       cwd: workspaceRoot,
-      ignore: [...DEFAULT_IGNORE, ...ignore],
+      ignore:
+        ignore === undefined ? DEFAULT_IGNORE : [...DEFAULT_IGNORE, ...ignore],
       caseSensitiveMatch: caseSensitive,
       dot: true,
+      // Links are listed as entries and kept when they name a file.
       onlyFiles: false,
-      markDirectories: true,
       followSymbolicLinks: false,
     })
-    .filter((file) => {
-      if (file.endsWith("/")) return false;
-      try {
-        return statSync(path.join(workspaceRoot, file)).isFile();
-      } catch {
-        return false;
-      }
-    })
+    .filter(
+      (file) =>
+        statSync(path.join(workspaceRoot, file), {
+          throwIfNoEntry: false,
+        })?.isFile() === true,
+    )
     .map((file) => file.split(path.sep).join("/"))
     .sort();
 }
@@ -401,7 +401,8 @@ export function matchWorkspaceFiles(
 function readText(workspaceRoot: string, relative: string): string | null {
   const absolute = path.resolve(workspaceRoot, relative);
   const root = path.resolve(workspaceRoot);
-  if (absolute !== root && !absolute.startsWith(root + path.sep)) return null;
+  // The root itself is a folder, so only paths below it are read.
+  if (!absolute.startsWith(root + path.sep)) return null;
   if (!existsSync(absolute) || !statSync(absolute).isFile()) return null;
   return readFileSync(absolute, "utf8");
 }
@@ -449,24 +450,19 @@ export function sourceDependencies(
       });
       break;
     }
-    case "references":
-      for (const file of matchWorkspaceFiles(
+    case "references": {
+      const matched = matchWorkspaceFiles(
         workspaceRoot,
         globList(spec.files),
         globList(spec.ignore),
-      ))
-        addFile(file);
+      );
+      for (const file of matched) addFile(file);
       out.push({
         id: `source-glob:${globList(spec.files).join(",")}`,
-        hash: sha256(
-          matchWorkspaceFiles(
-            workspaceRoot,
-            globList(spec.files),
-            globList(spec.ignore),
-          ).join("\n"),
-        ),
+        hash: sha256(matched.join("\n")),
       });
       break;
+    }
     case "schema":
       if (spec.format === "sql") {
         const matched = matchWorkspaceFiles(
@@ -496,18 +492,23 @@ export function sourceDependencies(
     for (const file of [...files])
       for (const imported of importClosure(workspaceRoot, file))
         addFile(imported);
-  for (const file of [...files].sort()) {
-    const text = readText(workspaceRoot, file);
-    out.push({
-      id: `source-file:${file}`,
-      hash: text === null ? MISSING_FILE_HASH : sha256(text),
-    });
-  }
-  return out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  // Sorted by id: the files ("source-file:...") come before the one glob
+  // ("source-glob:...") a reader may list.
+  return [
+    ...[...files].sort().map((file) => {
+      const text = readText(workspaceRoot, file);
+      return {
+        id: `source-file:${file}`,
+        hash: text === null ? MISSING_FILE_HASH : sha256(text),
+      };
+    }),
+    ...out,
+  ];
 }
 
 const IMPORT_SPECIFIER =
-  /(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*|\bexport\s+\*\s+from\s*)["']([^"']+)["']/g;
+  // `export * from` is read through its `from`.
+  /(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*)["']([^"']+)["']/g;
 
 const MODULE_SUFFIXES = [
   "",
@@ -527,12 +528,39 @@ const MODULE_SUFFIXES = [
 
 type PathAliases = { base: string; paths: [string, string[]][] } | null;
 
+// The text without its // and /* */ comments. Strings are kept whole, so
+// a "@app/*" path pattern or a "https://" URL is not a comment.
+function stripJsonComments(text: string): string {
+  let out = "";
+  let index = 0;
+  while (index < text.length) {
+    const char = text[index] as string;
+    if (char === '"') {
+      const end = text
+        .slice(index)
+        .match(/^"(?:[^"\\]|\\.)*"?/s) as RegExpMatchArray;
+      out += end[0];
+      index += end[0].length;
+    } else if (text.startsWith("//", index)) {
+      const newline = text.indexOf("\n", index);
+      index = newline === -1 ? text.length : newline;
+    } else if (text.startsWith("/*", index)) {
+      const close = text.indexOf("*/", index + 2);
+      index = close === -1 ? text.length : close + 2;
+    } else {
+      out += char;
+      index += 1;
+    }
+  }
+  return out;
+}
+
 function readJsonc(file: string): Record<string, unknown> | null {
   try {
-    const text = readFileSync(file, "utf8")
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .replace(/(^|[^:"])\/\/.*$/gm, "$1")
-      .replace(/,(\s*[}\]])/g, "$1");
+    const text = stripJsonComments(readFileSync(file, "utf8")).replace(
+      /,(\s*[}\]])/g,
+      "$1",
+    );
     return record(JSON.parse(text));
   } catch {
     return null;
@@ -548,25 +576,26 @@ function tsconfigPaths(file: string, depth = 0): PathAliases {
   const dir = path.dirname(file);
   const options = record(config.compilerOptions);
   const paths = record(options?.paths);
-  if (paths)
+  if (paths) {
+    // paths came from compilerOptions, so they are there.
+    const baseUrl = (options as Record<string, unknown>).baseUrl;
     return {
-      base: path.resolve(
-        dir,
-        typeof options?.baseUrl === "string" ? options.baseUrl : ".",
-      ),
-      paths: Object.entries(paths).map(([key, targets]) => [
-        key,
-        Array.isArray(targets) ? targets.map(String) : [],
-      ]),
+      base: path.resolve(dir, typeof baseUrl === "string" ? baseUrl : ""),
+      paths: Object.entries(paths)
+        .filter((entry): entry is [string, unknown[]] =>
+          Array.isArray(entry[1]),
+        )
+        .map(([key, targets]) => [key, targets.map(String)]),
     };
+  }
   const parents = (
     Array.isArray(config.extends) ? config.extends : [config.extends]
   ).filter((parent): parent is string => typeof parent === "string");
   for (const parent of parents.reverse()) {
     if (!parent.startsWith(".")) continue;
     const target = path.resolve(dir, parent);
+    // A missing file reads as no config.
     const candidate = existsSync(target) ? target : `${target}.json`;
-    if (!existsSync(candidate)) continue;
     const inherited = tsconfigPaths(candidate, depth + 1);
     if (inherited === null) continue;
     // A baseUrl in the child re-roots inherited paths.
@@ -583,22 +612,47 @@ function tsconfigAliases(workspaceRoot: string, fromFile: string): PathAliases {
   for (;;) {
     const config = path.join(dir, "tsconfig.json");
     if (existsSync(config)) return tsconfigPaths(config);
-    if (dir === root || path.dirname(dir) === dir) return null;
+    // The walk starts inside the workspace, so it reaches the root.
+    if (dir === root) return null;
     dir = path.dirname(dir);
   }
 }
 
+// rationale: every base is checked for a file before it is used, so a
+// placeholder entry in an empty list names no file and changes nothing.
+// Stryker disable next-line ArrayDeclaration
+const NO_BASES: readonly string[] = [];
+
+const EXPORT_CONDITIONS = [
+  "source",
+  "import",
+  "module",
+  "default",
+  "require",
+  "node",
+];
+
+// The entry files a package export (a path or a condition object) names.
+function exportEntries(value: unknown): readonly string[] {
+  if (typeof value === "string") return [value];
+  const row = record(value);
+  return row === null
+    ? NO_BASES
+    : EXPORT_CONDITIONS.flatMap((key) => exportEntries(row[key]));
+}
+
 // A bare specifier that names a workspace package: node_modules/<name> is a
 // link into the repository (pnpm, yarn and npm workspaces), so its source is
-// part of the closure. A package installed from a registry is not.
+// part of the closure. A package installed from a registry resolves outside
+// the workspace or under node_modules, and resolveModule refuses it.
 function workspacePackageBases(
   root: string,
   fromFile: string,
   specifier: string,
-): string[] {
+): readonly string[] {
   const parts = specifier.split("/");
   const nameLength = specifier.startsWith("@") ? 2 : 1;
-  if (parts.length < nameLength || parts.some((part) => part === "")) return [];
+  if (parts.length < nameLength || parts.includes("")) return NO_BASES;
   const name = parts.slice(0, nameLength).join("/");
   const subpath = parts.slice(nameLength).join("/");
   let dir = path.dirname(path.resolve(root, fromFile));
@@ -606,41 +660,20 @@ function workspacePackageBases(
     const link = path.join(dir, "node_modules", name);
     // realpathSync throws for a missing or dangling link, which is the
     // same as no package at this level.
-    let found: string | null = null;
+    let real: string | null = null;
     try {
-      found = realpathSync(link);
-    } catch {
-      found = null;
-    }
-    if (found !== null) {
-      const real = found;
-      const relative = path.relative(root, real);
-      if (
-        relative.startsWith("..") ||
-        path.isAbsolute(relative) ||
-        relative.split(path.sep).includes("node_modules")
-      )
-        return [];
+      real = realpathSync(link);
+    } catch {}
+    if (real !== null) {
       if (subpath !== "")
         return [path.join(real, subpath), path.join(real, "src", subpath)];
       const manifest = readJsonc(path.join(real, "package.json"));
-      const entries: string[] = [];
-      const collect = (value: unknown): void => {
-        if (typeof value === "string") entries.push(value);
-        else if (record(value))
-          for (const key of [
-            "source",
-            "import",
-            "module",
-            "default",
-            "require",
-            "node",
-          ])
-            collect((value as Record<string, unknown>)[key]);
-      };
-      const exported = record(manifest?.exports)?.["."] ?? manifest?.exports;
-      collect(exported);
-      for (const key of ["source", "module", "main"]) collect(manifest?.[key]);
+      const entries = [
+        ...exportEntries(record(manifest?.exports)?.["."] ?? manifest?.exports),
+        ...["source", "module", "main"].flatMap((key) =>
+          exportEntries(manifest?.[key]),
+        ),
+      ];
       return [
         ...entries
           .filter((entry) => !entry.endsWith(".d.ts"))
@@ -649,7 +682,8 @@ function workspacePackageBases(
         path.join(real, "index"),
       ];
     }
-    if (path.resolve(dir) === root || path.dirname(dir) === dir) return [];
+    // The walk starts inside the workspace, so it reaches the root.
+    if (dir === root) return NO_BASES;
     dir = path.dirname(dir);
   }
 }
@@ -667,26 +701,26 @@ function resolveModule(
   else if (aliases !== null)
     for (const [key, targets] of aliases.paths) {
       const star = key.indexOf("*");
-      const prefix = star === -1 ? key : key.slice(0, star);
-      const suffix = star === -1 ? "" : key.slice(star + 1);
-      if (
-        star === -1
-          ? specifier !== key
-          : !specifier.startsWith(prefix) || !specifier.endsWith(suffix)
-      )
+      if (star === -1) {
+        if (specifier === key)
+          for (const target of targets)
+            bases.push(path.resolve(aliases.base, target));
         continue;
-      const middle =
-        star === -1
-          ? ""
-          : specifier.slice(prefix.length, specifier.length - suffix.length);
+      }
+      const prefix = key.slice(0, star);
+      const suffix = key.slice(star + 1);
+      if (!specifier.startsWith(prefix) || !specifier.endsWith(suffix))
+        continue;
+      const middle = specifier.slice(
+        prefix.length,
+        specifier.length - suffix.length,
+      );
       for (const target of targets)
         bases.push(path.resolve(aliases.base, target.replace("*", middle)));
     }
-  if (
-    bases.length === 0 &&
-    !specifier.startsWith(".") &&
-    !path.isAbsolute(specifier)
-  )
+  // A relative specifier always has its base; an absolute one names no
+  // package (its first part is empty).
+  if (bases.length === 0)
     bases.push(...workspacePackageBases(root, fromFile, specifier));
   for (const base of bases) {
     const stripped = base.replace(/\.[cm]?js$/, "");
@@ -695,12 +729,8 @@ function resolveModule(
       ...MODULE_SUFFIXES.map((suffix) => stripped + suffix),
     ]) {
       if (!existsSync(candidate) || !statSync(candidate).isFile()) continue;
-      let real = candidate;
-      try {
-        real = realpathSync(candidate);
-      } catch {
-        // A dangling link resolves to nothing.
-      }
+      // existsSync follows links, so a dangling link never gets here.
+      const real = realpathSync(candidate);
       const relative = path.relative(root, real);
       if (relative.startsWith("..") || path.isAbsolute(relative)) return null;
       if (relative.split(path.sep).includes("node_modules")) return null;
@@ -718,12 +748,12 @@ function resolveModule(
  */
 // implements REQ-kibi-source-proof-kinds
 export function importClosure(workspaceRoot: string, file: string): string[] {
-  const seen = new Set<string>();
-  const queue = [file.split(path.sep).join("/")];
+  const start = file.split(path.sep).join("/");
+  // Each module is queued once, when it is first seen.
+  const seen = new Set([start]);
+  const queue = [start];
   while (queue.length > 0 && seen.size < 5000) {
     const current = queue.pop() as string;
-    if (seen.has(current)) continue;
-    seen.add(current);
     const text = readText(workspaceRoot, current);
     if (text === null) continue;
     const aliases = tsconfigAliases(workspaceRoot, current);
@@ -731,13 +761,16 @@ export function importClosure(workspaceRoot: string, file: string): string[] {
       const resolved = resolveModule(
         workspaceRoot,
         current,
-        match[1] ?? "",
+        match[1] as string,
         aliases,
       );
-      if (resolved !== null && !seen.has(resolved)) queue.push(resolved);
+      if (resolved !== null && !seen.has(resolved)) {
+        seen.add(resolved);
+        queue.push(resolved);
+      }
     }
   }
-  seen.delete(file.split(path.sep).join("/"));
+  seen.delete(start);
   return [...seen].sort();
 }
 
@@ -747,11 +780,8 @@ function sortedUnique(values: Iterable<string>): string[] {
 
 function scalarText(value: unknown): string | null {
   if (typeof value === "string") return value;
-  if (
-    typeof value === "number" ||
-    typeof value === "boolean" ||
-    typeof value === "bigint"
-  )
+  // JSON and YAML documents hold no bigint.
+  if (typeof value === "number" || typeof value === "boolean")
     return String(value);
   return null;
 }
@@ -770,7 +800,12 @@ function navigate(
     : trimmed.split(".");
   let value: unknown = document;
   for (const part of parts) {
-    if (Array.isArray(value) && /^\d+$/.test(part)) value = value[Number(part)];
+    if (
+      Array.isArray(value) &&
+      /^\d+$/.test(part) &&
+      Number(part) < value.length
+    )
+      value = value[Number(part)];
     else if (
       record(value) !== null &&
       part in (value as Record<string, unknown>)
@@ -823,8 +858,9 @@ function readDocumentMembers(
   );
   if (!at.ok) return at;
   const value = at.value;
-  const select = typeof spec.select === "string" ? spec.select : undefined;
-  const field = typeof spec.field === "string" ? spec.field : undefined;
+  // A valid spec's select and field are strings when present.
+  const select = spec.select as string | undefined;
+  const field = spec.field as string | undefined;
   let raw: unknown[];
   if (Array.isArray(value)) {
     if (select === "keys")
@@ -993,12 +1029,12 @@ type Table = {
   constraints: Map<string, string>;
 };
 
+// Names come from trimmed parts and regex captures, never padded.
 function identifierName(raw: string): string {
-  const cleaned = raw.trim();
-  const parts = cleaned.match(
-    /("[^"]+"|`[^`]+`|\[[^\]]+\]|[A-Za-z_][\w$]*)/g,
-  ) ?? [cleaned];
-  return (parts[parts.length - 1] ?? cleaned).replace(/^["`[]|["`\]]$/g, "");
+  const last = raw
+    .match(/("[^"]+"|`[^`]+`|\[[^\]]+\]|[A-Za-z_][\w$]*)/g)
+    ?.at(-1);
+  return (last ?? raw).replace(/^["`[]|["`\]]$/g, "");
 }
 
 function splitTopLevel(body: string): string[] {
@@ -1020,7 +1056,8 @@ function splitTopLevel(body: string): string[] {
       current = "";
     } else current += char;
   }
-  if (current.trim() !== "") parts.push(current.trim());
+  const last = current.trim();
+  if (last !== "") parts.push(last);
   return parts;
 }
 
@@ -1031,52 +1068,38 @@ function stripSqlComments(text: string): string {
 // Statements split at top-level semicolons. Quoted text and dollar-quoted
 // bodies ($$ ... $$, $fn$ ... $fn$) stay whole, so a function body's
 // semicolons do not split it.
-function sqlStatements(text: string): string[] {
-  const statements: string[] = [];
-  let current = "";
-  let quote: string | null = null;
+function* sqlStatements(text: string): Generator<string> {
   const source = stripSqlComments(text);
-  for (let index = 0; index < source.length; index++) {
-    const char = source[index] as string;
-    if (quote !== null) {
-      if (quote.length > 1) {
-        if (source.startsWith(quote, index)) {
-          current += quote;
-          index += quote.length - 1;
-          quote = null;
-        } else current += char;
-        continue;
-      }
-      current += char;
-      if (char === quote) quote = null;
+  // A quote, a dollar-quote tag or a statement end.
+  const token = /\$[A-Za-z_]*\$|['"`;]/g;
+  let start = 0;
+  for (
+    let match = token.exec(source);
+    match !== null;
+    match = token.exec(source)
+  ) {
+    const found = match[0];
+    if (found === ";") {
+      yield source.slice(start, match.index);
+      start = token.lastIndex;
       continue;
     }
-    if (char === "$") {
-      const tag = source.slice(index).match(/^\$[A-Za-z_]*\$/)?.[0];
-      if (tag !== undefined) {
-        quote = tag;
-        current += tag;
-        index += tag.length - 1;
-        continue;
-      }
-    }
-    if (char === "'" || char === '"' || char === "`") quote = char;
-    if (char === ";") {
-      if (current.trim() !== "") statements.push(current.trim());
-      current = "";
-    } else current += char;
+    const close = source.indexOf(found, token.lastIndex);
+    // An unterminated quote runs to the end of the text.
+    if (close === -1) break;
+    token.lastIndex = close + found.length;
   }
-  if (current.trim() !== "") statements.push(current.trim());
-  return statements;
+  yield source.slice(start);
 }
 
 // One name part, and a possibly schema-qualified name: users, public.users,
-// "public"."users", [dbo].[users].
+// "public"."users", [dbo].[users]. The patterns below read statements whose
+// whitespace is already collapsed to single spaces.
 const SQL_NAME_PART = '(?:"[^"]+"|`[^`]+`|\\[[^\\]]+\\]|[\\w$]+)';
-const SQL_NAME = String.raw`(${SQL_NAME_PART}(?:\s*\.\s*${SQL_NAME_PART})*)`;
+const SQL_NAME = String.raw`(${SQL_NAME_PART}(?: ?\. ?${SQL_NAME_PART})*)`;
 
 const COLUMN_CONSTRAINT_START =
-  /^(?:constraint|primary\s+key|foreign\s+key|unique|check|key|index|exclude)\b/i;
+  /^(?:constraint|primary key|foreign key|unique|check|key|index|exclude)\b/i;
 
 function foreignKeyText(
   table: string,
@@ -1086,14 +1109,12 @@ function foreignKeyText(
   rest: string,
 ): string {
   const onDelete = rest.match(
-    /\bon\s+delete\s+(cascade|restrict|set\s+null|set\s+default|no\s+action)/i,
+    /\bon delete (cascade|restrict|set null|set default|no action)/i,
   );
   const from = splitTopLevel(columns).map(identifierName).join(",");
   const to = splitTopLevel(targetColumns).map(identifierName).join(",");
   return `${table}.${from}->${identifierName(target)}.${to}${
-    onDelete?.[1]
-      ? ` on delete ${onDelete[1].toLowerCase().replace(/\s+/g, " ")}`
-      : ""
+    onDelete?.[1] ? ` on delete ${onDelete[1].toLowerCase()}` : ""
   }`;
 }
 
@@ -1120,26 +1141,22 @@ function sqlColumn(table: Table, definition: string): void {
   const head = definition.match(new RegExp(`^${SQL_NAME_PART}`))?.[0] ?? "";
   const name = identifierName(head);
   const rest = definition.slice(head.length);
-  const notNull =
-    /\bnot\s+null\b/i.test(rest) || /\bprimary\s+key\b/i.test(rest);
+  const notNull = /\bnot null\b/i.test(rest) || /\bprimary key\b/i.test(rest);
   table.columns.set(name, { name, nullable: !notNull, optional: false });
   const reference = rest.match(
-    new RegExp(String.raw`\breferences\s+${SQL_NAME}\s*\(([^)]*)\)(.*)$`, "is"),
+    new RegExp(String.raw`\breferences ${SQL_NAME} ?\(([^)]*)\)(.*)$`, "is"),
   );
   if (reference) {
     const constraint = rest.match(
-      new RegExp(
-        String.raw`\bconstraint\s+(${SQL_NAME_PART})\s+references\b`,
-        "i",
-      ),
+      new RegExp(String.raw`\bconstraint (${SQL_NAME_PART}) references\b`, "i"),
     )?.[1];
     addForeignKey(
       table,
       constraint,
       name,
-      reference[1] ?? "",
-      reference[2] ?? "",
-      reference[3] ?? "",
+      reference[1] as string,
+      reference[2] as string,
+      reference[3] as string,
     );
   }
 }
@@ -1155,24 +1172,54 @@ function setPrimaryKey(table: Table, columns: string): void {
 // the foreign keys: row level security, triggers, ownership, storage,
 // defaults, column types, statistics and comments.
 const SCHEMA_NEUTRAL_ALTER =
-  /^(?:(?:enable|disable|force|no\s+force)\s+row\s+level\s+security|(?:enable|disable)\s+(?:always\s+|replica\s+)?(?:trigger|rule)\b|replica\s+identity\b|owner\s+to\b|set\s+(?:schema|tablespace|logged|unlogged|without\s+(?:oids|cluster)|access\s+method)\b|set\s*\(|reset\s*\(|cluster\s+on\b|inherit\b|no\s+inherit\b|validate\s+constraint\b|rename\s+constraint\b|alter\s+constraint\b|alter\s+(?:column\s+)?\S+\s+(?:set\s+default|drop\s+default|(?:set\s+data\s+)?type|set\s+statistics|set\s+storage|set\s+compression|add\s+generated|set\s+generated|drop\s+identity|drop\s+expression|reset\s*\(|set\s*\(|options\s*\())/i;
+  /^(?:(?:enable|disable|force|no force) row level security|(?:enable|disable) (?:always |replica )?(?:trigger|rule)\b|replica identity\b|owner to\b|set (?:schema|tablespace|logged|unlogged|without (?:oids|cluster)|access method)\b|set ?\(|reset ?\(|cluster on\b|inherit\b|no inherit\b|validate constraint\b|rename constraint\b|alter constraint\b|alter (?:column )?\S+ (?:set default|drop default|(?:set data )?type|set statistics|set storage|set compression|add generated|set generated|drop identity|drop expression|reset ?\(|set ?\(|options ?\())/i;
 
-function applyAlterAction(table: Table, action: string): string | null {
-  const add = action.match(
-    /^add\s+(?:column\s+)?(?:if\s+not\s+exists\s+)?(.*)$/is,
-  );
-  if (add && !COLUMN_CONSTRAINT_START.test(add[1] ?? "")) {
-    sqlColumn(table, add[1] ?? "");
+type ForeignKeySide = { table: string; columns: string[] };
+
+// Rewrites both ends of every foreign key in the replay, as PostgreSQL
+// keeps a foreign key pointing at a renamed table or column.
+function rewriteForeignKeys(
+  tables: ReadonlyMap<string, Table>,
+  rewrite: (side: ForeignKeySide) => ForeignKeySide,
+): void {
+  const side = (table: string, columns: string) => {
+    const out = rewrite({ table, columns: columns.split(",") });
+    return `${out.table}.${out.columns.join(",")}`;
+  };
+  const map = (fk: string) => {
+    // Every foreign key text is <table>.<columns>-><table>.<columns>[ on delete ...].
+    const [, from, fromColumns, to, toColumns, rest] = fk.match(
+      /^([^.]*)\.(.*?)->([^.]*)\.(\S*)(.*)$/s,
+    ) as unknown as [string, string, string, string, string, string];
+    return `${side(from, fromColumns)}->${side(to, toColumns)}${rest}`;
+  };
+  for (const table of tables.values()) {
+    table.foreignKeys = table.foreignKeys.map(map);
+    for (const [name, fk] of table.constraints)
+      table.constraints.set(name, map(fk));
+  }
+}
+
+function applyAlterAction(
+  tables: ReadonlyMap<string, Table>,
+  table: Table,
+  action: string,
+): string | null {
+  const add = action.match(/^add (?:column )?(?:if not exists )?(.*)/is);
+  if (add && !COLUMN_CONSTRAINT_START.test(add[1] as string)) {
+    sqlColumn(table, add[1] as string);
     return null;
   }
   const dropColumn = action.match(
     new RegExp(
-      String.raw`^drop\s+(?:column\s+)?(?:if\s+exists\s+)?(${SQL_NAME_PART})(?:\s+(?:cascade|restrict))?$`,
+      String.raw`^drop (?:column )?(?:if exists )?(${SQL_NAME_PART})(?: (?:cascade|restrict))?$`,
       "i",
     ),
   );
-  if (dropColumn && !/^drop\s+constraint\b/i.test(action)) {
-    const column = identifierName(dropColumn[1] ?? "");
+  // "drop constraint <name>" has a name after the keyword, which the
+  // column pattern does not accept, so it never reads as a column.
+  if (dropColumn) {
+    const column = identifierName(dropColumn[1] as string);
     table.columns.delete(column);
     table.foreignKeys = table.foreignKeys.filter(
       (fk) => !fk.startsWith(`${table.name}.${column}->`),
@@ -1184,41 +1231,45 @@ function applyAlterAction(table: Table, action: string): string | null {
   }
   const renameColumn = action.match(
     new RegExp(
-      String.raw`^rename\s+(?:column\s+)?(${SQL_NAME_PART})\s+to\s+(${SQL_NAME_PART})$`,
+      String.raw`^rename (?:column )?(${SQL_NAME_PART}) to (${SQL_NAME_PART})$`,
       "i",
     ),
   );
-  if (renameColumn && !/^rename\s+constraint\b/i.test(action)) {
-    const from = identifierName(renameColumn[1] ?? "");
-    const to = identifierName(renameColumn[2] ?? "");
+  // Likewise "rename constraint <a> to <b>".
+  if (renameColumn) {
+    const from = identifierName(renameColumn[1] as string);
+    const to = identifierName(renameColumn[2] as string);
     const column = table.columns.get(from);
     if (column) {
       table.columns.delete(from);
       column.name = to;
       table.columns.set(to, column);
     }
-    const renamed = (fk: string) =>
-      fk.replace(`${table.name}.${from}->`, `${table.name}.${to}->`);
-    table.foreignKeys = table.foreignKeys.map(renamed);
-    for (const [name, fk] of table.constraints)
-      table.constraints.set(name, renamed(fk));
+    rewriteForeignKeys(tables, (side) =>
+      side.table === table.name
+        ? {
+            table: side.table,
+            columns: side.columns.map((name) => (name === from ? to : name)),
+          }
+        : side,
+    );
     return null;
   }
   const nullability = action.match(
     new RegExp(
-      String.raw`^alter\s+(?:column\s+)?(${SQL_NAME_PART})\s+(set|drop)\s+not\s+null$`,
+      String.raw`^alter (?:column )?(${SQL_NAME_PART}) (set|drop) not null$`,
       "i",
     ),
   );
   if (nullability) {
-    const column = table.columns.get(identifierName(nullability[1] ?? ""));
+    const column = table.columns.get(identifierName(nullability[1] as string));
     if (column)
-      column.nullable = (nullability[2] ?? "").toLowerCase() === "drop";
+      column.nullable = (nullability[2] as string).toLowerCase() === "drop";
     return null;
   }
   const addFk = action.match(
     new RegExp(
-      String.raw`^add\s+(?:constraint\s+(${SQL_NAME_PART})\s+)?foreign\s+key\s*\(([^)]*)\)\s*references\s+${SQL_NAME}\s*\(([^)]*)\)(.*)$`,
+      String.raw`^add (?:constraint (${SQL_NAME_PART}) )?foreign key ?\(([^)]*)\) ?references ${SQL_NAME} ?\(([^)]*)\)(.*)$`,
       "is",
     ),
   );
@@ -1226,43 +1277,43 @@ function applyAlterAction(table: Table, action: string): string | null {
     addForeignKey(
       table,
       addFk[1],
-      addFk[2] ?? "",
-      addFk[3] ?? "",
-      addFk[4] ?? "",
-      addFk[5] ?? "",
+      addFk[2] as string,
+      addFk[3] as string,
+      addFk[4] as string,
+      addFk[5] as string,
     );
     return null;
   }
   const addPrimary = action.match(
     new RegExp(
-      String.raw`^add\s+(?:constraint\s+${SQL_NAME_PART}\s+)?primary\s+key\s*\(([^)]*)\)`,
+      String.raw`^add (?:constraint ${SQL_NAME_PART} )?primary key ?\(([^)]*)\)`,
       "i",
     ),
   );
   if (addPrimary) {
-    setPrimaryKey(table, addPrimary[1] ?? "");
+    setPrimaryKey(table, addPrimary[1] as string);
     return null;
   }
   if (
     new RegExp(
-      String.raw`^add\s+(?:constraint\s+${SQL_NAME_PART}\s+)?(?:unique|check|exclude)\b`,
+      String.raw`^add (?:constraint ${SQL_NAME_PART} )?(?:unique|check|exclude)\b`,
       "i",
     ).test(action)
   )
     return null;
   const dropConstraint = action.match(
     new RegExp(
-      String.raw`^drop\s+constraint\s+(if\s+exists\s+)?(${SQL_NAME_PART})(?:\s+(?:cascade|restrict))?$`,
+      String.raw`^drop constraint (if exists )?(${SQL_NAME_PART})(?: (?:cascade|restrict))?$`,
       "i",
     ),
   );
   if (dropConstraint) {
-    const name = identifierName(dropConstraint[2] ?? "").toLowerCase();
+    const name = identifierName(dropConstraint[2] as string).toLowerCase();
     const fk = table.constraints.get(name);
     if (fk !== undefined) {
       table.constraints.delete(name);
-      const index = table.foreignKeys.indexOf(fk);
-      if (index >= 0) table.foreignKeys.splice(index, 1);
+      // A constraint is listed with its foreign key, and both change together.
+      table.foreignKeys.splice(table.foreignKeys.indexOf(fk), 1);
       return null;
     }
     // With IF EXISTS a constraint the replay never declared is not there.
@@ -1284,23 +1335,23 @@ function applySqlStatement(
   const normalized = statement.replace(/\s+/g, " ").trim();
   const create = normalized.match(
     new RegExp(
-      String.raw`^create\s+(?:(?:global|local)\s+)?(?:(?:temp(?:orary)?|unlogged)\s+)?table\s+(?:if\s+not\s+exists\s+)?${SQL_NAME}\s*\((.*)\)[^)]*$`,
+      String.raw`^create (?:(?:global|local) )?(?:(?:temp(?:orary)?|unlogged) )?table (?:if not exists )?${SQL_NAME} ?\((.*)\)[^)]*$`,
       "is",
     ),
   );
   if (create) {
-    const name = identifierName(create[1] ?? "");
+    const name = identifierName(create[1] as string);
     const table: Table = {
       name,
       columns: new Map(),
       foreignKeys: [],
       constraints: new Map(),
     };
-    for (const part of splitTopLevel(create[2] ?? "")) {
+    for (const part of splitTopLevel(create[2] as string)) {
       if (COLUMN_CONSTRAINT_START.test(part)) {
         const fk = part.match(
           new RegExp(
-            String.raw`^(?:constraint\s+(${SQL_NAME_PART})\s+)?foreign\s+key\s*\(([^)]*)\)\s*references\s+${SQL_NAME}\s*\(([^)]*)\)(.*)$`,
+            String.raw`^(?:constraint (${SQL_NAME_PART}) )?foreign key ?\(([^)]*)\) ?references ${SQL_NAME} ?\(([^)]*)\)(.*)$`,
             "is",
           ),
         );
@@ -1308,13 +1359,13 @@ function applySqlStatement(
           addForeignKey(
             table,
             fk[1],
-            fk[2] ?? "",
-            fk[3] ?? "",
-            fk[4] ?? "",
-            fk[5] ?? "",
+            fk[2] as string,
+            fk[3] as string,
+            fk[4] as string,
+            fk[5] as string,
           );
-        const primary = part.match(/primary\s+key\s*\(([^)]*)\)/i);
-        if (primary) setPrimaryKey(table, primary[1] ?? "");
+        const primary = part.match(/primary key ?\(([^)]*)\)/i);
+        if (primary) setPrimaryKey(table, primary[1] as string);
         continue;
       }
       sqlColumn(table, part);
@@ -1323,30 +1374,30 @@ function applySqlStatement(
     return null;
   }
   if (
-    /^create\s+(?:(?:global|local)\s+)?(?:(?:temp(?:orary)?|unlogged)\s+)?table\b/i.test(
+    /^create (?:(?:global|local) )?(?:(?:temp(?:orary)?|unlogged) )?table\b/i.test(
       normalized,
     )
   )
     return `${where}: Kibi cannot read this CREATE TABLE form (${normalized.slice(0, 80)})`;
   const drop = normalized.match(
-    /^drop\s+table\s+(?:if\s+exists\s+)?(.*?)(?:\s+(?:cascade|restrict))?$/i,
+    /^drop table (?:if exists )?(.*?)(?: (?:cascade|restrict))?$/i,
   );
   if (drop) {
-    for (const name of splitTopLevel(drop[1] ?? ""))
+    for (const name of splitTopLevel(drop[1] as string))
       tables.delete(identifierName(name));
     return null;
   }
   const alter = normalized.match(
     new RegExp(
-      String.raw`^alter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?${SQL_NAME}\s+(.*)$`,
+      String.raw`^alter table (?:if exists )?(?:only )?${SQL_NAME} (.*)$`,
       "i",
     ),
   );
   if (!alter) return null;
-  const tableName = identifierName(alter[1] ?? "");
-  const action = alter[2] ?? "";
+  const tableName = identifierName(alter[1] as string);
+  const action = alter[2] as string;
   const rename = action.match(
-    new RegExp(String.raw`^rename\s+to\s+${SQL_NAME}$`, "i"),
+    new RegExp(String.raw`^rename to ${SQL_NAME}$`, "i"),
   );
   const table = tables.get(tableName);
   // A statement-wide neutral form needs no table: RLS on a table another
@@ -1357,19 +1408,17 @@ function applySqlStatement(
     return `${where}: ALTER TABLE ${tableName} before Kibi read its CREATE TABLE`;
   }
   if (rename) {
+    const renamedTo = identifierName(rename[1] as string);
+    rewriteForeignKeys(tables, (side) =>
+      side.table === tableName ? { ...side, table: renamedTo } : side,
+    );
     tables.delete(tableName);
-    const renamedTo = identifierName(rename[1] ?? "");
-    const prefix = (fk: string) =>
-      fk.replace(new RegExp(`^${tableName}\\.`), `${renamedTo}.`);
     table.name = renamedTo;
-    table.foreignKeys = table.foreignKeys.map(prefix);
-    for (const [name, fk] of table.constraints)
-      table.constraints.set(name, prefix(fk));
     tables.set(table.name, table);
     return null;
   }
   for (const part of actions) {
-    const problem = applyAlterAction(table, part);
+    const problem = applyAlterAction(tables, table, part);
     if (problem !== null)
       return `${where}: ALTER TABLE ${tableName} ${problem} (${normalized.slice(0, 80)}), so the schema after it is unknown`;
   }
@@ -1384,14 +1433,16 @@ function readSqlSchema(
   if (files.length === 0)
     return `${globList(spec.files).join(", ")} matches no file`;
   const tables = new Map<string, Table>();
-  let created = 0;
+  let created = false;
   for (const file of files) {
-    const text = readText(workspaceRoot, file) ?? "";
+    // Every matched file is a regular file inside the workspace.
+    const text = readText(workspaceRoot, file) as string;
     const statements = sqlStatements(
       text.replace(/-->\s*statement-breakpoint/g, ";"),
     );
     for (const statement of statements) {
-      if (/^\s*create\s+(?:\S+\s+){0,2}table\b/i.test(statement)) created++;
+      if (/^\s*create\s+(?:\S+\s+){0,2}table\b/i.test(statement))
+        created = true;
       const problem = applySqlStatement(tables, statement, file);
       if (problem !== null) return problem;
     }
@@ -1399,7 +1450,7 @@ function readSqlSchema(
   // A replay that read no table proves nothing about the schema: a
   // mistyped pattern or a folder of TypeScript migrations would otherwise
   // pass every subset_of and excludes fact.
-  if (created === 0)
+  if (!created)
     return `${globList(spec.files).join(", ")} holds no CREATE TABLE statement Kibi can read (${files.length} file${files.length === 1 ? "" : "s"})`;
   return [...tables.values()];
 }
@@ -1429,11 +1480,19 @@ function readPrismaSchema(
   const types = new Set(
     [...source.matchAll(/\b(?:type)\s+(\w+)\s*\{/g)].map((m) => m[1] as string),
   );
+  const models = [...source.matchAll(/\bmodel\s+(\w+)\s*\{([^}]*)\}/g)];
+  // Each model's table name: its @@map, else the model name.
+  const tableNames = new Map(
+    models.map((model) => [
+      model[1] as string,
+      (model[2] as string).match(/@@map\(\s*"([^"]+)"\s*\)/)?.[1] ??
+        (model[1] as string),
+    ]),
+  );
   const tables: Table[] = [];
-  for (const model of source.matchAll(/\bmodel\s+(\w+)\s*\{([^}]*)\}/g)) {
-    const body = model[2] ?? "";
-    const mapped = body.match(/@@map\(\s*"([^"]+)"\s*\)/)?.[1];
-    const name = mapped ?? (model[1] as string);
+  for (const model of models) {
+    const body = model[2] as string;
+    const name = tableNames.get(model[1] as string) as string;
     const table: Table = {
       name,
       columns: new Map(),
@@ -1442,21 +1501,25 @@ function readPrismaSchema(
     };
     const fieldNames = new Map<string, string>();
     for (const line of body.split("\n")) {
-      const field = line.trim().match(/^(\w+)\s+(\w+)(\[\])?(\?)?(.*)$/);
+      const field = line.trim().match(/^(\w+)\s+(\w+)(\[\])?(\?)?(.*)/);
       if (!field) continue;
-      const [, fieldName = "", type = "", list, optional, attributes = ""] =
-        field;
+      const [, fieldName, type, list, optional, attributes] = field as [
+        string,
+        string,
+        string,
+        string | undefined,
+        string | undefined,
+        string,
+      ];
       const columnName =
         attributes.match(/@map\(\s*"([^"]+)"\s*\)/)?.[1] ?? fieldName;
       fieldNames.set(fieldName, columnName);
       if (
+        // A list of composite type values is not a column.
         PRISMA_SCALARS.has(type) ||
         enums.has(type) ||
-        types.has(type) ||
-        list === "[]"
+        (types.has(type) && list === undefined)
       ) {
-        if (list === "[]" && !PRISMA_SCALARS.has(type) && !enums.has(type))
-          continue;
         table.columns.set(columnName, {
           name: columnName,
           nullable: optional === "?",
@@ -1465,23 +1528,19 @@ function readPrismaSchema(
       }
     }
     for (const line of body.split("\n")) {
-      const relation = line.match(
-        /^\s*\w+\s+(\w+)\??\s+.*@relation\(([^)]*)\)/,
-      );
+      const relation = line.match(/^\s*\w+\s+(\w+)\??\s.*@relation\(([^)]*)\)/);
       if (!relation) continue;
-      const fields = relation[2]?.match(/fields:\s*\[([^\]]*)\]/)?.[1];
-      const references = relation[2]?.match(/references:\s*\[([^\]]*)\]/)?.[1];
+      const args = relation[2] as string;
+      const fields = args.match(/fields:\s*\[([^\]]*)\]/)?.[1];
+      const references = args.match(/references:\s*\[([^\]]*)\]/)?.[1];
       if (!fields || !references) continue;
       const target = relation[1] as string;
-      const targetModel = source.match(
-        new RegExp(`\\bmodel\\s+${target}\\s*\\{([^}]*)\\}`),
-      );
-      const targetName =
-        targetModel?.[1]?.match(/@@map\(\s*"([^"]+)"\s*\)/)?.[1] ?? target;
-      const onDelete = relation[2]?.match(/onDelete:\s*(\w+)/)?.[1];
+      const targetName = tableNames.get(target) ?? target;
+      const onDelete = args.match(/onDelete:\s*(\w+)/)?.[1];
       const columns = fields
         .split(",")
-        .map((f) => fieldNames.get(f.trim()) ?? f.trim())
+        .map((f) => f.trim())
+        .map((f) => fieldNames.get(f) ?? f)
         .join(",");
       const targetColumns = references
         .split(",")
@@ -1502,7 +1561,7 @@ function readPrismaSchema(
 }
 
 function globMatcher(pattern: string | undefined): (name: string) => boolean {
-  if (pattern === undefined || pattern === "*") return () => true;
+  if (pattern === undefined) return () => true;
   const regex = new RegExp(
     `^${pattern
       .replace(/[.+^${}()|[\]\\]/g, "\\$&")
@@ -1517,10 +1576,16 @@ export function selectedEntities(
   spec: SourceSpec,
   model: SourceModel,
 ): SourceEntity[] {
-  const matches = globMatcher(
-    typeof spec.table === "string" ? spec.table : undefined,
-  );
-  return (model.entities ?? []).filter((entity) => matches(entity.name));
+  return selectEntities(spec, model.entities ?? []);
+}
+
+function selectEntities(
+  spec: SourceSpec,
+  entities: readonly SourceEntity[],
+): SourceEntity[] {
+  // A valid spec's table is a string when present.
+  const matches = globMatcher(spec.table as string | undefined);
+  return entities.filter((entity) => matches(entity.name));
 }
 
 function entityMembers(spec: SourceSpec, entities: SourceEntity[]): string[] {
@@ -1553,29 +1618,36 @@ function entityMembers(spec: SourceSpec, entities: SourceEntity[]): string[] {
   return sortedUnique(members);
 }
 
+// Items in code-unit order of their names; items that share a name keep
+// their order.
+function sortedByName<T extends { name: string }>(items: T[]): T[] {
+  const groups = Map.groupBy(items, (item) => item.name);
+  return [...groups.keys()].sort().flatMap((name) => groups.get(name) as T[]);
+}
+
 function finishEntities(
   spec: SourceSpec,
   tables: Table[] | SourceEntity[],
 ): SourceRead {
-  const entities: SourceEntity[] = tables
-    .map((table) =>
+  const entities: SourceEntity[] = sortedByName(
+    tables.map((table) =>
       "columns" in table && table.columns instanceof Map
         ? {
             name: table.name,
-            columns: [...table.columns.values()]
-              .map((column) => ({ ...column }))
-              .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)),
+            columns: sortedByName(
+              [...table.columns.values()].map((column) => ({ ...column })),
+            ),
             foreign_keys: sortedUnique((table as Table).foreignKeys),
           }
         : (table as SourceEntity),
-    )
-    .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-  const model: SourceModel = { members: [], entities };
-  const selected = selectedEntities(spec, model);
+    ),
+  );
+  const selected = selectEntities(spec, entities);
   if (typeof spec.table === "string" && selected.length === 0)
     return {
       ok: false,
-      reason: `no ${spec.reader === "validator" ? "object" : "table"} matches ${spec.table} (${
+      // A validator spec takes no table filter, so this names tables.
+      reason: `no table matches ${spec.table} (${
         entities
           .map((e) => e.name)
           .slice(0, 10)
@@ -1641,8 +1713,6 @@ export async function readSource(
       }
       break;
     }
-    default:
-      break;
   }
   if (evaluate === undefined)
     return {

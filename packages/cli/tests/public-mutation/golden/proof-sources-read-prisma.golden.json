@@ -1,0 +1,513 @@
+{
+  "tables": {
+    "ok": true,
+    "model": {
+      "members": ["Post", "orgs", "users"],
+      "entities": [
+        {
+          "name": "Post",
+          "columns": [
+            {
+              "name": "authorId",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "editorId",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": [
+            "Post.authorId->users.id on delete cascade",
+            "Post.editorId->users.id"
+          ]
+        },
+        {
+          "name": "orgs",
+          "columns": [
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "kind",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": []
+        },
+        {
+          "name": "users",
+          "columns": [
+            {
+              "name": "address",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "email_address",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "kind",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "org_id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "role",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "roles",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "tags",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": ["users.org_id,kind->orgs.id,kind on delete set null"]
+        }
+      ]
+    }
+  },
+  "columns": {
+    "ok": true,
+    "model": {
+      "members": [
+        "Post.authorId",
+        "Post.editorId",
+        "Post.id",
+        "orgs.id",
+        "orgs.kind",
+        "users.address",
+        "users.email_address",
+        "users.id",
+        "users.kind",
+        "users.org_id",
+        "users.role",
+        "users.roles",
+        "users.tags"
+      ],
+      "entities": [
+        {
+          "name": "Post",
+          "columns": [
+            {
+              "name": "authorId",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "editorId",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": [
+            "Post.authorId->users.id on delete cascade",
+            "Post.editorId->users.id"
+          ]
+        },
+        {
+          "name": "orgs",
+          "columns": [
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "kind",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": []
+        },
+        {
+          "name": "users",
+          "columns": [
+            {
+              "name": "address",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "email_address",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "kind",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "org_id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "role",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "roles",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "tags",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": ["users.org_id,kind->orgs.id,kind on delete set null"]
+        }
+      ]
+    }
+  },
+  "required": {
+    "ok": true,
+    "model": {
+      "members": [
+        "Post.authorId",
+        "Post.id",
+        "orgs.id",
+        "orgs.kind",
+        "users.id",
+        "users.kind",
+        "users.org_id",
+        "users.role",
+        "users.roles",
+        "users.tags"
+      ],
+      "entities": [
+        {
+          "name": "Post",
+          "columns": [
+            {
+              "name": "authorId",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "editorId",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": [
+            "Post.authorId->users.id on delete cascade",
+            "Post.editorId->users.id"
+          ]
+        },
+        {
+          "name": "orgs",
+          "columns": [
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "kind",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": []
+        },
+        {
+          "name": "users",
+          "columns": [
+            {
+              "name": "address",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "email_address",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "kind",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "org_id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "role",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "roles",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "tags",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": ["users.org_id,kind->orgs.id,kind on delete set null"]
+        }
+      ]
+    }
+  },
+  "nullable": {
+    "ok": true,
+    "model": {
+      "members": ["Post.editorId", "users.address", "users.email_address"],
+      "entities": [
+        {
+          "name": "Post",
+          "columns": [
+            {
+              "name": "authorId",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "editorId",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": [
+            "Post.authorId->users.id on delete cascade",
+            "Post.editorId->users.id"
+          ]
+        },
+        {
+          "name": "orgs",
+          "columns": [
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "kind",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": []
+        },
+        {
+          "name": "users",
+          "columns": [
+            {
+              "name": "address",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "email_address",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "kind",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "org_id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "role",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "roles",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "tags",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": ["users.org_id,kind->orgs.id,kind on delete set null"]
+        }
+      ]
+    }
+  },
+  "foreignKeys": {
+    "ok": true,
+    "model": {
+      "members": [
+        "Post.authorId->users.id on delete cascade",
+        "Post.editorId->users.id",
+        "users.org_id,kind->orgs.id,kind on delete set null"
+      ],
+      "entities": [
+        {
+          "name": "Post",
+          "columns": [
+            {
+              "name": "authorId",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "editorId",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": [
+            "Post.authorId->users.id on delete cascade",
+            "Post.editorId->users.id"
+          ]
+        },
+        {
+          "name": "orgs",
+          "columns": [
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "kind",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": []
+        },
+        {
+          "name": "users",
+          "columns": [
+            {
+              "name": "address",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "email_address",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "kind",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "org_id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "role",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "roles",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "tags",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": ["users.org_id,kind->orgs.id,kind on delete set null"]
+        }
+      ]
+    }
+  },
+  "missing": {
+    "ok": false,
+    "reason": "nope.prisma does not exist in the workspace"
+  },
+  "empty": {
+    "ok": false,
+    "reason": "empty.prisma declares no model"
+  },
+  "drizzle": {
+    "ok": false,
+    "reason": "reader schema needs Kibi's code evaluator"
+  }
+}

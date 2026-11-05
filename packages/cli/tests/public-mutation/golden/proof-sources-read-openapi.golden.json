@@ -1,0 +1,90 @@
+{
+  "missing": {
+    "ok": false,
+    "reason": "nope.json does not exist in the workspace"
+  },
+  "list": {
+    "ok": false,
+    "reason": "list.json is not an OpenAPI or Swagger document"
+  },
+  "other": {
+    "ok": false,
+    "reason": "other.json is not an OpenAPI or Swagger document"
+  },
+  "operations": {
+    "ok": true,
+    "model": {
+      "members": [
+        "DELETE /b",
+        "GET /a",
+        "GET /b",
+        "HEAD /b",
+        "OPTIONS /b",
+        "PATCH /b",
+        "POST /b",
+        "PUT /b",
+        "TRACE /b"
+      ]
+    }
+  },
+  "responses": {
+    "ok": true,
+    "model": {
+      "members": ["GET /b 200", "GET /b 404"]
+    }
+  },
+  "unsecured": {
+    "ok": true,
+    "model": {
+      "members": ["GET /a", "POST /b", "PUT /b"]
+    }
+  },
+  "schemes": {
+    "ok": true,
+    "model": {
+      "members": ["bearer", "key"]
+    }
+  },
+  "v2Operations": {
+    "ok": true,
+    "model": {
+      "members": ["GET /x"]
+    }
+  },
+  "v2Responses": {
+    "ok": true,
+    "model": {
+      "members": ["GET /x 201"]
+    }
+  },
+  "v2Schemes": {
+    "ok": true,
+    "model": {
+      "members": ["basic"]
+    }
+  },
+  "v2Unsecured": {
+    "ok": true,
+    "model": {
+      "members": ["GET /x"]
+    }
+  },
+  "bareSchemes": {
+    "ok": true,
+    "model": {
+      "members": []
+    }
+  },
+  "bareOperations": {
+    "ok": true,
+    "model": {
+      "members": []
+    }
+  },
+  "rootUnsecured": {
+    "ok": true,
+    "model": {
+      "members": ["GET /z"]
+    }
+  }
+}
