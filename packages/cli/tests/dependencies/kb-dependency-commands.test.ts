@@ -15,12 +15,14 @@ import {
   depsLockCommand,
   depsStatusCommand,
 } from "../../src/commands/deps.js";
+import * as dependenciesEntry from "../../src/dependencies/index.js";
 import {
   KB_DEPENDENCIES_LOCK_PATH,
   KB_DEPENDENCIES_PATH,
   KB_DEPENDENCY_CACHE_ENV,
   kbDependencyCheckoutPath,
   lockKbDependencies,
+  resolveKbDependency,
 } from "../../src/dependencies/kb-dependencies.js";
 import {
   applyKbOption,
@@ -284,6 +286,11 @@ describe("kibi deps commands", () => {
 });
 
 describe("dependency scope", () => {
+  test("the kibi-cli/dependencies entry re-exports both modules", () => {
+    expect(dependenciesEntry.resolveKbDependency).toBe(resolveKbDependency);
+    expect(dependenciesEntry.kbDependencyLabel).toBe(kbDependencyLabel);
+  });
+
   test("reads, strips and labels the kb argument", () => {
     expect(kbDependencyArgument({ kb: " billing " })).toBe("billing");
     expect(kbDependencyArgument({ kb: "  " })).toBeUndefined();
