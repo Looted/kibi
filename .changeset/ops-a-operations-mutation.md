@@ -2,7 +2,7 @@
 "kibi-cli": patch
 ---
 
-Fix several `kibi migrate` and semantic advisor edge cases found while tightening the bootstrap, migration, planning and semantic-advisor operations with exhaustive unit tests:
+Fix several `kibi migrate`, `kibi check` and semantic advisor edge cases found while tightening the bootstrap, migration, planning, semantic-advisor and check code with exhaustive unit tests:
 
 - The entity type and origin backfills now type an entity by the lane that holds it. Before, a workspace inside a folder named like a lane (for example `~/tests/repo`) could get the wrong `type`.
 - Clauses that normalize to the same claim are reported once, not as repeated claim keys.
@@ -17,3 +17,5 @@ Fix several `kibi migrate` and semantic advisor edge cases found while tightenin
 - A rule suggestion built from a host interpretation now keeps its confidence within 0 to 1, as the interpretation result already did, instead of repeating an out-of-range value.
 - Marking coarse symbol links `legacy-link` now keeps the final newline of `.kb/symbols.yaml`. Before, a reason added to the last symbol was written after a blank line, at the very end of the file without a newline.
 - `kb_compile_intent` no longer writes an empty `logic_claims` list for an intent with only context claims (rationale, examples). Such a plan used to need resolution with a schema error instead of being ready.
+- The `kibi check` integrity rules now read a quoted entity id that contains a comma as one id. Before, such an id was split in two and reported as dangling.
+- `kibi sync` now keeps a backslash in a staged file name as it is when it lists new staged sources. Before, the backslash was read as a folder separator, so such a file was not recognized as newly staged.
