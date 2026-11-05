@@ -1406,6 +1406,7 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/commands-mutation/sync/sync-engine.test.ts",
     "packages/cli/tests/commands-mutation/sync/sync-staging.test.ts",
   ],
+  "packages/cli/src/engine.ts": ["packages/cli/tests/engine-mutation.test.ts"],
 };
 
 // Plugin package modules gated the same way: each with the hermetic tests of
