@@ -82,11 +82,12 @@ export function readAuthoredEntity(
 ): AuthoredEntity | null {
   const slice = sliceFrontmatter(content);
   if (slice === null) return null;
+  const { text, suffix } = slice;
   let data: unknown;
   try {
-    data = loadYaml(slice.text);
+    data = loadYaml(text);
   } catch {
-    return null;
+    // Front matter that does not parse is no record, as below.
   }
   if (data === null || typeof data !== "object" || Array.isArray(data)) {
     return null;
@@ -100,13 +101,13 @@ export function readAuthoredEntity(
     typeof record.id === "string" && record.id.trim() !== ""
       ? record.id.trim()
       : path.basename(relativePath, ".md");
-  const newline = slice.suffix.indexOf("\n");
   return {
     id,
     type,
     path: relativePath,
     data: record,
-    body: newline < 0 ? "" : slice.suffix.slice(newline + 1),
+    // Everything after the closing `---` line.
+    body: suffix.split("\n").slice(1).join("\n"),
   };
 }
 
@@ -154,8 +155,8 @@ export function isCurrentAuthoredEntity(
 ): boolean {
   const status = entity.data.status;
   return (
-    !(typeof status === "string" && RETIRED_STATUSES.has(status)) &&
-    !superseded.has(entity.id)
+    // A status that is not text is never a retired one.
+    !RETIRED_STATUSES.has(status as string) && !superseded.has(entity.id)
   );
 }
 
@@ -201,13 +202,10 @@ export function authoredSupersededIds(
     const links = entity.data.links;
     if (!Array.isArray(links)) continue;
     for (const link of links) {
-      if (
-        link !== null &&
-        typeof link === "object" &&
-        (link as { type?: unknown }).type === "supersedes" &&
-        typeof (link as { target?: unknown }).target === "string"
-      ) {
-        superseded.add((link as { target: string }).target);
+      // A link that is not an object has no type.
+      const edge = link as { type?: unknown; target?: unknown } | null;
+      if (edge?.type === "supersedes" && typeof edge.target === "string") {
+        superseded.add(edge.target);
       }
     }
   }
@@ -247,8 +245,13 @@ export function evaluateEntityContext(
       continue;
     }
     if (!rules.has(ENTITY_CONTEXT_MISSING_RULE)) continue;
-    const finding = contextFinding(entity.type, entity.id, entity.body, view);
-    if (finding === null) continue;
+    // The assessment just failed, so there is always a finding.
+    const finding = contextFinding(
+      entity.type,
+      entity.id,
+      entity.body,
+      view,
+    ) as NonNullable<ReturnType<typeof contextFinding>>;
     const selfTagged = isContextAcknowledged(view.tags);
     findings.push({
       rule: ENTITY_CONTEXT_MISSING_RULE,
@@ -299,6 +302,6 @@ export function collectEntityContextViolations(
     entities,
     authoredSupersededIds(workspaceRoot, entities),
     rules,
-    new Set(readKbManifest(workspaceRoot)?.contextAcknowledged ?? []),
+    new Set(readKbManifest(workspaceRoot)?.contextAcknowledged),
   );
 }

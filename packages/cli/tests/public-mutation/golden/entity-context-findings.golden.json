@@ -1,0 +1,27 @@
+[
+  {
+    "rule": "entity-context-missing",
+    "entityId": "C-scenario",
+    "description": "scenario C-scenario has no body context: body prose that states why this exists is shorter than 12 words; review:context-missing is not honored here because the schema 8 migration did not acknowledge this entity",
+    "suggestion": "review:context-missing is reserved for entities acknowledged by the schema 8 migration; add context instead: write who asked, the source and 'Reason not stated' in the Context section, and remove the tag.",
+    "source": ".kb/scenario/C-scenario.md",
+    "evidence": {
+      "type": "scenario",
+      "reason": "too_short",
+      "contextWords": 1
+    }
+  },
+  {
+    "rule": "entity-context-acknowledged",
+    "entityId": "workspace",
+    "description": "3 current entities are tagged review:context-missing and still lack body context (1 req, 2 test)",
+    "suggestion": "Ask the person who knows why each entity exists and record the answer in its body; never invent a reason",
+    "evidence": {
+      "total": 3,
+      "byType": {
+        "test": 2,
+        "req": 1
+      }
+    }
+  }
+]
