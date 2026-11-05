@@ -101,7 +101,8 @@ function possibleDuplicateObservation(
   source: string,
   candidates: VocabularyAlignmentOutcome["redundancyCandidates"],
 ): Record<string, unknown> {
-  const id = `FACT-OBS-POSSIBLE-DUPLICATE-${claimKey.replace(/^CLAIM-/, "")}`;
+  // A semantic claim key always starts with CLAIM-.
+  const id = `FACT-OBS-POSSIBLE-DUPLICATE-${claimKey.slice("CLAIM-".length)}`;
   return {
     type: "fact",
     id,
@@ -134,15 +135,20 @@ async function applyVocabularyAlignment(
   claimKey: string,
   requirementId: string | undefined,
 ): Promise<AlignedWriteSet> {
+  // rationale: buildStrictWriteSet reads an undefined requirementId as absent.
+  // Stryker disable next-line ConditionalExpression
+  const target = requirementId === undefined ? {} : { requirementId };
   const initial = buildStrictWriteSet({
     claim: extracted.claim,
     statement: extracted.statement,
-    ...(requirementId !== undefined ? { requirementId } : {}),
+    ...target,
   });
   const unchanged: AlignedWriteSet = {
     writeSet: initial,
     outcome: null,
     warnings: [],
+    // rationale: the review plan is only reported beside an outcome, and this has none.
+    // Stryker disable next-line ArrayDeclaration
     reviewPlan: [],
     adjustPlan: (plan) => plan,
   };
@@ -159,7 +165,8 @@ async function applyVocabularyAlignment(
   const warnings: Array<{ kind: string; message: string; nextAction: string }> =
     [];
   let writeSet: StrictWriteSet = initial;
-  let replacedSubjectId: string | null = null;
+  // The existing subject fact a reused subject links; its step is dropped.
+  let reusedFactId: string | null = null;
   const subject = outcome.subject;
   if (subject.decision === "reuse_existing" && subject.existingFactId) {
     const followsVocabulary =
@@ -169,12 +176,10 @@ async function applyVocabularyAlignment(
       const rebuilt = buildStrictWriteSet({
         claim: { ...extracted.claim, subjectKey: subject.subjectKey },
         statement: extracted.statement,
-        ...(requirementId !== undefined ? { requirementId } : {}),
+        ...target,
       });
-      ({ writeSet, replacedSubjectId } = reuseExistingSubject(
-        rebuilt,
-        subject.existingFactId,
-      ));
+      ({ writeSet } = reuseExistingSubject(rebuilt, subject.existingFactId));
+      reusedFactId = subject.existingFactId;
     } else {
       warnings.push({
         kind: "subject_reuse_review",
@@ -232,33 +237,19 @@ async function applyVocabularyAlignment(
     reviewPlan,
     adjustPlan: (plan) =>
       plan
-        .filter(
-          (step) =>
-            !(
-              replacedSubjectId !== null &&
-              writeSet.isStrict &&
-              step.id === writeSet.subjectFact.id &&
-              step.type === "fact" &&
-              (step.properties as { fact_kind?: string } | undefined)
-                ?.fact_kind === "subject"
-            ),
-        )
+        .filter((step) => step.id !== reusedFactId)
         .map((step) => {
-          if (
-            !declaredNew ||
-            step.type !== "fact" ||
-            (step.properties as { fact_kind?: string } | undefined)
-              ?.fact_kind !== "subject"
-          ) {
-            return step;
-          }
-          const properties = step.properties as Record<string, unknown>;
-          const tags = Array.isArray(properties.tags) ? properties.tags : [];
+          // Only a subject fact has fact_kind subject, and it carries tags.
+          const properties = stepProperties(step);
+          if (!declaredNew || properties.fact_kind !== "subject") return step;
           return {
             ...step,
             properties: {
               ...properties,
-              tags: [...tags, "vocabulary:new-subject"],
+              tags: [
+                ...(properties.tags as unknown[]),
+                "vocabulary:new-subject",
+              ],
             },
           };
         }),
@@ -281,10 +272,10 @@ export function annotateModelRequirementStep(
     logicClaims: string[];
   },
 ): Record<string, unknown> {
-  const properties =
-    step.properties !== null && typeof step.properties === "object"
-      ? (step.properties as Record<string, unknown>)
-      : {};
+  // Spreading null adds nothing, so only a non-object is dropped.
+  const properties = (
+    typeof step.properties === "object" ? step.properties : {}
+  ) as Record<string, unknown>;
   if (step.type === "fact") {
     return {
       ...step,
@@ -319,7 +310,7 @@ export function annotateModelRequirementStep(
             status: "modeled",
             span: {
               start: 0,
-              end: Buffer.byteLength(normalizedClaimText, "utf8"),
+              end: Buffer.byteLength(normalizedClaimText),
             },
           },
         ],
@@ -346,14 +337,16 @@ function stepProperties(
 function unresolvedObservationStep(
   step: Record<string, unknown>,
 ): Record<string, unknown> {
-  if (step.type !== "fact") return step;
+  // A below-threshold write set plans only its observation fact, which
+  // carries tags.
   const properties = stepProperties(step);
-  const tags = Array.isArray(properties.tags) ? properties.tags : [];
   return {
     ...step,
     properties: {
       ...properties,
-      tags: Array.from(new Set([...tags, "review:ontology-gap"])),
+      tags: Array.from(
+        new Set([...(properties.tags as unknown[]), "review:ontology-gap"]),
+      ),
     },
   };
 }
@@ -378,13 +371,14 @@ function withAdvisorRoles(
       properties: {
         ...properties,
         semantic_inventory: inventory.map((entry: unknown) => {
-          if (entry === null || typeof entry !== "object") return entry;
-          const row = entry as Record<string, unknown>;
-          const role =
-            typeof row.claim_key === "string"
-              ? advisorPropositionRole(semanticText, row.claim_key)
-              : null;
-          return role === null ? row : { ...row, role };
+          // A row without a claim_key names no clause, so it gets no role.
+          const role = advisorPropositionRole(
+            semanticText,
+            String((Object(entry) as Record<string, unknown>).claim_key),
+          );
+          return role === null
+            ? entry
+            : { ...(entry as Record<string, unknown>), role };
         }),
       },
     };
@@ -499,13 +493,9 @@ async function unresolvedConditionalResult(
                     modeledClaimRole(claimText),
                   status: "ontology_gap",
                   span: {
-                    start: Buffer.byteLength(
-                      semanticText.slice(0, start),
-                      "utf8",
-                    ),
+                    start: Buffer.byteLength(semanticText.slice(0, start)),
                     end: Buffer.byteLength(
                       semanticText.slice(0, start + claimText.length),
-                      "utf8",
                     ),
                   },
                   reason,
