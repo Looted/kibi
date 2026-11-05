@@ -608,3 +608,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6642b3c86a79
+  - type: assumes
+    from: SCEN-NEG-zcode-adapter-package-NO-LOCAL-SERVER
+    to: FACT-NEG-zcode-adapter-package-NO-LOCAL-SERVER
+    created_at: 2026-11-05T10:40:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7eaec634dfe1
+  - type: verified_by
+    from: SCEN-NEG-zcode-adapter-package-NO-LOCAL-SERVER
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-05T10:40:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c7ad1293e63

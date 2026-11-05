@@ -419,3 +419,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a9d8595b8f4a
+  - type: constrains
+    from: REQ-zcode-adapter-package
+    to: FACT-SUBJECT-6F1948BE213B3014
+    created_at: 2026-11-05T10:15:19.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a02efb90357b
+  - type: constrains
+    from: REQ-zcode-adapter-package
+    to: FACT-SUBJECT-ZCODE-LOCAL-OPERATIONS
+    created_at: 2026-11-05T10:15:19.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a8515993840
+  - type: requires_property
+    from: REQ-zcode-adapter-package
+    to: FACT-PROP-ZCODE-OPTIONAL
+    created_at: 2026-11-05T10:15:19.131Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66c6cb364a65
+  - type: requires_predicate
+    from: REQ-zcode-adapter-package
+    to: FACT-PRED-ZCODE-NO-CORE-RUNTIME-MODIFICATION
+    created_at: 2026-11-05T10:15:19.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2524d2d03f3c
+  - type: requires_property
+    from: REQ-zcode-adapter-package
+    to: FACT-PROP-ZCODE-LOGIC-PROVIDER
+    created_at: 2026-11-05T10:15:19.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e096461b097b
+  - type: requires_property
+    from: REQ-zcode-adapter-package
+    to: FACT-PROP-ZCODE-COMMAND-PROVIDER
+    created_at: 2026-11-05T10:15:19.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4b5d10245d1
+  - type: requires_property
+    from: REQ-zcode-adapter-package
+    to: FACT-PROP-ZCODE-MCP-PROVIDER
+    created_at: 2026-11-05T10:15:19.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d70c290a3fa2
+  - type: requires_property
+    from: REQ-zcode-adapter-package
+    to: FACT-PROP-ZCODE-MCP-RESOLVER
+    created_at: 2026-11-05T10:15:19.320Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e81c0feff9f4
+  - type: specified_by
+    from: REQ-zcode-adapter-package
+    to: SCEN-zcode-kibi-plugin-v1
+    created_at: 2026-11-05T10:15:19.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c7909f0b117
+  - type: verified_by
+    from: REQ-zcode-adapter-package
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-05T10:15:19.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b1dc26ef6ba
+  - type: supersedes
+    from: REQ-zcode-adapter-package
+    to: REQ-zcode-kibi-plugin-v1
+    created_at: 2026-11-05T10:15:19.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2f2b9ee3d7b
+  - type: specified_by
+    from: REQ-zcode-adapter-package
+    to: SCEN-NEG-zcode-adapter-package-NO-LOCAL-SERVER
+    created_at: 2026-11-05T10:40:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-621fcb3a426a
