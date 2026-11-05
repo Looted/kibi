@@ -55,6 +55,14 @@ const INTERACTIVE_QUERY_FRAME_END = "__KIBI_QUERY_FRAME_END__";
  * never read the Prolog child again.
  */
 const INTERACTIVE_QUERY_FRAME_TERMINATOR = `${INTERACTIVE_QUERY_FRAME_END}\ntrue.\n\n`;
+/**
+ * Written to stderr by the frame goal just before the stdout marker. SWI
+ * writes a query's diagnostics before the frame goal runs, so once this line
+ * has been read the query's stderr is complete. Waiting for it makes the
+ * answer independent of which pipe the event loop happens to read first.
+ */
+const INTERACTIVE_QUERY_STDERR_END = "__KIBI_QUERY_STDERR_END__";
+const INTERACTIVE_QUERY_STDERR_TERMINATOR = `${INTERACTIVE_QUERY_STDERR_END}\n`;
 
 const require = createRequire(import.meta.url);
 
@@ -473,7 +481,7 @@ export class PrologProcess {
       }
 
       (child.stdin as NodeJS.WritableStream).write(
-        `${wrappedGoal}.\nwriteln('${INTERACTIVE_QUERY_FRAME_END}').\n`,
+        `${wrappedGoal}.\nwriteln(user_error, '${INTERACTIVE_QUERY_STDERR_END}'), writeln('${INTERACTIVE_QUERY_FRAME_END}').\n`,
       );
 
       return new Promise((resolve, reject) => {
@@ -526,21 +534,26 @@ export class PrologProcess {
             });
             return;
           }
-          if (this.errorBuffer.includes("ERROR")) {
+          // The stderr frame end is transport, not a diagnostic.
+          const diagnostics = this.errorBuffer.replace(
+            INTERACTIVE_QUERY_STDERR_TERMINATOR,
+            "",
+          );
+          if (diagnostics.includes("ERROR")) {
             settle();
             if (debug) {
               console.error(
-                `[prolog debug] query error: ${goalLabel} error=${this.errorBuffer.split("\n")[0]}`,
+                `[prolog debug] query error: ${goalLabel} error=${diagnostics.split("\n")[0]}`,
               );
             }
-            const classified = this.classifyErrorOutput(this.errorBuffer);
+            const classified = this.classifyErrorOutput(diagnostics);
             resolve({
               success: false,
               bindings: {},
               error: this.addDiagnosticStage(
                 classified.message,
                 normalizedGoal,
-                this.errorBuffer,
+                diagnostics,
               ),
               ...(classified.record ? { errorRecord: classified.record } : {}),
             });
@@ -550,7 +563,10 @@ export class PrologProcess {
           const frameEnd = this.outputBuffer.indexOf(
             INTERACTIVE_QUERY_FRAME_TERMINATOR,
           );
-          if (frameEnd >= 0) {
+          if (
+            frameEnd >= 0 &&
+            this.errorBuffer.includes(INTERACTIVE_QUERY_STDERR_TERMINATOR)
+          ) {
             settle();
             const framedOutput = this.outputBuffer.slice(0, frameEnd);
             if (/(?:^|\n)(?:false|fail)\.\s*$/.test(framedOutput)) {
@@ -594,27 +610,23 @@ export class PrologProcess {
           }, 50);
         };
 
-        // Output wakes act only once the answer frame (or an overflow) has
-        // arrived. SWI writes a query's stderr report before its stdout
-        // frame, so the frame proves both buffers are complete; anything
-        // earlier is left to the poll, keeping classification unchanged
-        // while a finished query no longer waits out a 50 ms poll interval.
-        let frameScanFrom = 0;
+        // Output wakes act only once both frame ends (or an overflow) have
+        // arrived: the stderr marker proves the diagnostics are complete and
+        // the stdout terminator proves the answer is. Anything earlier is
+        // left to the poll, keeping classification unchanged while a
+        // finished query no longer waits out a 50 ms poll interval.
+        const frameSeen = this.markerScanner(
+          () => this.outputBuffer,
+          INTERACTIVE_QUERY_FRAME_TERMINATOR,
+        );
+        const stderrEndSeen = this.markerScanner(
+          () => this.errorBuffer,
+          INTERACTIVE_QUERY_STDERR_TERMINATOR,
+        );
         const wake = (): void => {
-          const found =
-            this.outputBuffer.indexOf(
-              INTERACTIVE_QUERY_FRAME_TERMINATOR,
-              frameScanFrom,
-            ) >= 0;
-          // rationale: scanning from a later offset only skips text already
-          // searched; scanning from 0 finds the same frame.
-          // Stryker disable next-line MethodExpression
-          frameScanFrom = Math.max(
-            0,
-            this.outputBuffer.length -
-              INTERACTIVE_QUERY_FRAME_TERMINATOR.length,
-          );
-          if (found || this.outputOverflowed) checkResult();
+          if ((frameSeen() && stderrEndSeen()) || this.outputOverflowed) {
+            checkResult();
+          }
         };
         this.outputWaiter = wake;
         checkResult();
@@ -968,8 +980,8 @@ export class PrologProcess {
     this.wakeOutputWaiter();
   }
 
-  // An answer frame arrives on stdout after its stderr report, so stderr
-  // only fills the buffer and never wakes the query.
+  // The stderr frame end can be read after the stdout one, so stderr wakes
+  // the query too.
   private appendErrorChunk(chunk: Buffer): void {
     if (this.errorBufferBytes + chunk.byteLength > this.maxOutputBytes) {
       this.outputOverflowed = true;
@@ -977,16 +989,40 @@ export class PrologProcess {
     }
     this.errorBuffer += this.decodeError(chunk);
     this.errorBufferBytes += chunk.byteLength;
+    this.wakeOutputWaiter();
   }
 
   /**
-   * Notify the in-flight query that output arrived. Deferred to the event
-   * loop's check phase so every pipe that became readable in this turn
-   * (stderr diagnostics precede the stdout answer frame) is drained first.
+   * Report whether `marker` has appeared in a growing buffer, searching only
+   * text that a previous call could not have seen in full. Once found, the
+   * answer stays true.
+   */
+  private markerScanner(read: () => string, marker: string): () => boolean {
+    let found = false;
+    let scanFrom = 0;
+    return () => {
+      const text = read();
+      found ||= text.indexOf(marker, scanFrom) >= 0;
+      // rationale: scanning from a later offset only skips text already
+      // searched; scanning from 0 finds the same marker.
+      // Stryker disable next-line MethodExpression
+      scanFrom = Math.max(0, text.length - marker.length);
+      return found;
+    };
+  }
+
+  /**
+   * Notify the in-flight query that output arrived. The waiter runs as a
+   * microtask of the pipe callback, never from setImmediate: when Bun drives
+   * the loop from a nested promise wait (as bun:test's expect().resolves and
+   * expect().rejects do), microtasks queued by an immediate callback are not
+   * drained until some unrelated timer fires, so the query's caller would
+   * resume up to a second late. Ordering against stderr needs no deferral,
+   * since the waiter acts only once both pipes carried their frame ends.
    * Output between queries has no waiter.
    */
   private wakeOutputWaiter(): void {
-    setImmediate(() => {
+    queueMicrotask(() => {
       this.outputWaiter?.();
     });
   }
