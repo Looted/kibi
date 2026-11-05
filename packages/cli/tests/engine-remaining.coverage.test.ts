@@ -257,7 +257,7 @@ describe("engine remaining: runtime directory and lock recovery", () => {
       data: string | NodeJS.ArrayBufferView,
       options?: fs.WriteFileOptions,
     ) => {
-      if (String(file).includes("publish.lock")) {
+      if (typeof file === "number" || String(file).includes("publish.lock")) {
         throw new Error("publication stamp failed");
       }
       return originalWrite(file, data, options);
