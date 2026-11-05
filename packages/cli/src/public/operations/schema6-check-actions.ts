@@ -656,8 +656,6 @@ export function schema6ReviewActionsFromCheck(
         consumed.add(index);
         break;
       }
-      default:
-        break;
     }
   }
   for (const group of [...predicates.values()].sort((left, right) =>

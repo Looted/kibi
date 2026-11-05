@@ -1,0 +1,226 @@
+{
+  "actions": [
+    {
+      "id": "review-supersession-cycle-REQ-a-REQ-z",
+      "code": "review_supersession_cycle",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "Supersession cycle between REQ-a and REQ-z (REQ-z supersedes REQ-a; REQ-a supersedes REQ-z): none of them is current, so kibi migrate closes none of them. Decide which requirement states current intent, delete the supersedes link that points at it (kb_delete relationships [{type: supersedes, from: <other>, to: <current>}]), then set status: closed on the requirements it replaces."
+      },
+      "affectedEntityIds": ["REQ-a", "REQ-z"],
+      "affectedFiles": [],
+      "dispositionRequired": true,
+      "allowedDispositions": ["fixed", "deferred"],
+      "evidence": {
+        "cycle": ["REQ-a", "REQ-z"],
+        "edges": [["REQ-z", "REQ-a"], ["REQ-a", "REQ-z"]]
+      }
+    },
+    {
+      "id": "review-supersession-cycle-REQ-q-x",
+      "code": "review_supersession_cycle",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "Supersession cycle between REQ-q x (): none of them is current, so kibi migrate closes none of them. Decide which requirement states current intent, delete the supersedes link that points at it (kb_delete relationships [{type: supersedes, from: <other>, to: <current>}]), then set status: closed on the requirements it replaces."
+      },
+      "affectedEntityIds": ["REQ-q x"],
+      "affectedFiles": [],
+      "dispositionRequired": true,
+      "allowedDispositions": ["fixed", "deferred"],
+      "evidence": {
+        "cycle": ["REQ-q x"],
+        "edges": []
+      }
+    },
+    {
+      "id": "review-source-path-dangling-E1",
+      "code": "review_source_path_dangling",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "E1 has source '[\"a\"]' in f1.md, which kibi migrate would repair automatically but cannot edit safely (multi-line). The compiled source is always the entity's own file; Kibi ignores the authored field when compiling and never writes it. A person edits the frontmatter by hand: replace the whole field with the single line 'source: .kb/x.md'. Then rerun kibi migrate."
+      },
+      "affectedEntityIds": ["E1"],
+      "affectedFiles": ["f1.md"],
+      "dispositionRequired": true,
+      "evidence": {
+        "entityId": "E1",
+        "source": ["a"],
+        "refused": "multi-line",
+        "rewrite": ".kb/x.md"
+      }
+    },
+    {
+      "id": "review-source-path-dangling-E2",
+      "code": "review_source_path_dangling",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "E2 has source 'v', which kibi migrate would repair automatically but cannot edit safely (the edit would not read back as exactly that change). The compiled source is always the entity's own file; Kibi ignores the authored field when compiling and never writes it. A person edits the frontmatter by hand: delete the whole field, every line of it. Then rerun kibi migrate."
+      },
+      "affectedEntityIds": ["E2"],
+      "affectedFiles": [],
+      "dispositionRequired": true,
+      "evidence": {
+        "entityId": "E2",
+        "source": "v"
+      }
+    },
+    {
+      "id": "review-text-ref-dangling-E3",
+      "code": "review_source_path_dangling",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "E3 has text_ref 't.md' in f3, a file path that does not exist (r). A person edits the frontmatter by hand: point text_ref at the evidence file's current path, or delete the field when that evidence is gone. Then rerun kibi migrate."
+      },
+      "affectedEntityIds": ["E3"],
+      "affectedFiles": ["f3"],
+      "dispositionRequired": true,
+      "evidence": {
+        "entityId": "E3",
+        "field": "text_ref",
+        "text_ref": "t.md",
+        "refused": "r"
+      }
+    },
+    {
+      "id": "review-text-ref-dangling-E4",
+      "code": "review_source_path_dangling",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "E4 has text_ref 't', a file path that does not exist (the edit would not read back as exactly that change). A person edits the frontmatter by hand: replace the whole field with the single line 'text_ref: r.md'. Then rerun kibi migrate."
+      },
+      "affectedEntityIds": ["E4"],
+      "affectedFiles": [],
+      "dispositionRequired": true,
+      "evidence": {
+        "entityId": "E4",
+        "field": "text_ref",
+        "text_ref": "t",
+        "rewrite": "r.md"
+      }
+    },
+    {
+      "id": "close-superseded-requirements",
+      "code": "close_superseded_requirements",
+      "category": "quality",
+      "safety": "automatic",
+      "autoApplicable": true,
+      "invocation": {
+        "kind": "cli",
+        "command_argv": ["kibi", "migrate", "--yes"]
+      },
+      "affectedEntityIds": ["REQ-a", "REQ-b"],
+      "affectedFiles": ["b.md"],
+      "postconditions": [
+        {
+          "rule": "superseded-requirement-open",
+          "violations": 0
+        }
+      ],
+      "evidence": {
+        "reason": "A requirement another requirement supersedes is retired and must be closed (superseded-requirement-open). Each listed requirement gets status: closed; the rest of its file is unchanged.",
+        "count": 2,
+        "requirements": [
+          {
+            "id": "REQ-a",
+            "status": "",
+            "supersededBy": []
+          },
+          {
+            "id": "REQ-b",
+            "status": "open",
+            "supersededBy": ["REQ-c"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "source-path-rewrite",
+      "code": "source_path_rewrite",
+      "category": "quality",
+      "safety": "automatic",
+      "autoApplicable": true,
+      "invocation": {
+        "kind": "cli",
+        "command_argv": ["kibi", "migrate", "--yes"]
+      },
+      "affectedEntityIds": ["E0", "E5", "E6"],
+      "affectedFiles": ["f0", "a5.md", "s5.md", "f6"],
+      "postconditions": [
+        {
+          "rule": "source-path-dangling",
+          "violations": 0
+        },
+        {
+          "selfReferencingSources": 0
+        }
+      ],
+      "evidence": {
+        "reason": "The authored source field is dead data: the compiled source is always the entity's own file, and Kibi ignores the field when compiling and never writes it. Each rewrite points a knowledge file named by its pre-canonical path (under documentation/, or relative to the knowledge root) at the same file under .kb/; a rewrite with field text_ref does the same for a text_ref evidence path. Each removal deletes a source value that names the entity's own file (reason self) or nothing Kibi can map (reason dangling). Only the rewritten or removed line changes.",
+        "count": 4,
+        "rewrites": [
+          {
+            "entityId": "E5",
+            "file": "a5.md",
+            "field": "text_ref",
+            "from": "o",
+            "to": "n"
+          },
+          {
+            "entityId": "E5",
+            "file": "s5.md",
+            "from": "old",
+            "to": "new"
+          }
+        ],
+        "removals": [
+          {
+            "entityId": "E0",
+            "file": "f0",
+            "from": "",
+            "reason": "dangling"
+          },
+          {
+            "entityId": "E6",
+            "file": "f6",
+            "from": "7",
+            "reason": "self"
+          }
+        ]
+      }
+    },
+    {
+      "id": "migration-sync",
+      "code": "migration_sync",
+      "category": "freshness",
+      "safety": "automatic",
+      "autoApplicable": true,
+      "invocation": {
+        "kind": "cli",
+        "command_argv": ["kibi", "sync"]
+      },
+      "dependsOn": ["close-superseded-requirements", "source-path-rewrite"],
+      "affectedFiles": [".kb/branches"],
+      "postconditions": [
+        {
+          "syncState": "fresh"
+        }
+      ],
+      "evidence": {
+        "reason": "Earlier migration actions rewrite authored sources; recompile them so status, check and coverage read the migrated KB."
+      }
+    }
+  ],
+  "consumed": [0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 13, 14]
+}
