@@ -1382,6 +1382,12 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/public-mutation/operations/discovery-search.mutation.test.ts",
     "packages/cli/tests/public-mutation/operations/discovery-status.mutation.test.ts",
   ],
+  "packages/cli/src/commands/doctor.ts": [
+    "packages/cli/tests/doctor-mutation.test.ts",
+  ],
+  "packages/cli/src/commands/migrate.ts": [
+    "packages/cli/tests/migrate-mutation.test.ts",
+  ],
 };
 
 // Plugin package modules gated the same way: each with the hermetic tests of
