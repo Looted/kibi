@@ -293,13 +293,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cd9de420207c
-  - type: implements
-    from: SYM-merge-driver-setup-mergeDriverSetup
-    to: REQ-cli-doctor
-    created_at: 2026-11-05T11:49:19.253Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-57907bb3fbe2
   - type: covered_by
     from: SYM-merge-driver-setup-mergeDriverSetup
     to: TEST-cli-doctor-merge-driver-remediation

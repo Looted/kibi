@@ -68816,8 +68816,6 @@ symbols:
       - type: covered_by
         target: TEST-cli-doctor-merge-driver-remediation
       - type: implements
-        target: REQ-cli-doctor
-      - type: implements
         target: REQ-cli-doctor-merge-driver-remediation
   - id: SYM-merge-driver-setup-MERGE_ATTRIBUTE_GAP
     title: MERGE_ATTRIBUTE_GAP
