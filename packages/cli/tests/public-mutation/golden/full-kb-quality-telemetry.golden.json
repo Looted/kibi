@@ -1,0 +1,65 @@
+[
+  {
+    "id": "telemetry_evidence_stale",
+    "severity": "review",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "Telemetry acceptance has no valid timestamped evidence, so current workflow quality is unresolved.",
+    "suggestion": "Run the current Kibi workflow in diagnostic mode, then rerun kibi usage-metrics --require-acceptance and an unfiltered kb_check.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 5,
+      "scope": {
+        "totalEvents": 0,
+        "evaluatedEvents": 0,
+        "truncated": false,
+        "firstTimestamp": null,
+        "lastTimestamp": null,
+        "evidenceAgeSeconds": null,
+        "fresh": false
+      },
+      "diagnostics": ["usage_log_empty", "usage_log_stale"]
+    }
+  },
+  {
+    "id": "telemetry_acceptance_incomplete",
+    "severity": "review",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "Telemetry cannot evaluate 3 required metric(s): telemetry_completeness, proof_gap_recovery, e2e_receipt_freshness.",
+    "suggestion": "Capture complete diagnostic events, including a complete requirement coverage run, then rerun the telemetry acceptance report.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 80,
+      "metrics": [
+        {
+          "id": "telemetry_completeness",
+          "status": "insufficient_evidence",
+          "numerator": 0,
+          "denominator": 0,
+          "threshold": {
+            "operator": ">=",
+            "value": 0.95
+          },
+          "message": "Only 0/20 required recent events are available."
+        },
+        {
+          "id": "proof_gap_recovery",
+          "status": "insufficient_evidence",
+          "numerator": 0,
+          "denominator": 0,
+          "message": "No complete requirement coverage event with proof-gap telemetry is available."
+        },
+        {
+          "id": "e2e_receipt_freshness",
+          "status": "insufficient_evidence",
+          "numerator": 0,
+          "denominator": 0,
+          "message": "No complete requirement coverage event with receipt-freshness telemetry is available."
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,116 @@
+[
+  {
+    "entity": {
+      "id": "E-full",
+      "type": "fact",
+      "title": "E-full title",
+      "status": "open",
+      "created_at": "2026-01-01T00:00:00.000Z",
+      "updated_at": "2026-01-02T00:00:00.000Z",
+      "source": ".kb/E-full.md",
+      "owner": "owner-v",
+      "priority": "priority-v",
+      "severity": "severity-v",
+      "text_ref": "text_ref-v",
+      "semantic_text": "semantic_text-v",
+      "semantic_source_hash": "semantic_source_hash-v",
+      "granularity_reason": "granularity_reason-v",
+      "symbol_kind": "symbol_kind-v",
+      "symbol_role": "symbol_role-v",
+      "subject_key": "subject_key-v",
+      "property_key": "property_key-v",
+      "value_string": "value_string-v",
+      "unit": "unit-v",
+      "scope": "scope-v",
+      "valid_from": "valid_from-v",
+      "valid_to": "valid_to-v",
+      "canonical_key": "canonical_key-v",
+      "claim_key": "claim_key-v",
+      "claim_text": "claim_text-v",
+      "predicate_name": "predicate_name-v",
+      "predicate_namespace": "predicate_namespace-v",
+      "rule_hash": "rule_hash-v",
+      "rule_schema_id": "rule_schema_id-v",
+      "rule_name": "rule_name-v",
+      "semantic_key": "semantic_key-v",
+      "semantic_inventory_version": "kibi.semantic-inventory.v1",
+      "semantic_source_field": "text_ref",
+      "verification_scope": "unit",
+      "verification_perspective": "internal",
+      "fact_kind": "subject",
+      "operator": "eq",
+      "value_type": "string",
+      "polarity": "require",
+      "tags": ["a", "2"],
+      "logic_claims": ["a", "2"],
+      "semantic_clauses": ["a", "2"],
+      "argument_names": ["a", "2"],
+      "argument_types": ["a", "2"],
+      "argument_descriptions": ["a", "2"],
+      "key_arguments": ["a", "2"],
+      "aliases": ["a", "2"],
+      "examples": ["a", "2"],
+      "predicate_args": ["a", "2"],
+      "value_set": ["a", "2"],
+      "semantic_inventory": [
+        {
+          "a": 1
+        }
+      ],
+      "proof_bindings": [
+        {
+          "b": 1
+        }
+      ],
+      "proof_receipts": [
+        {
+          "c": 1
+        }
+      ],
+      "proof_contract": {
+        "kind": "x"
+      },
+      "rule_ir": {
+        "op": "and"
+      },
+      "sourceLine": 0,
+      "sourceColumn": 1,
+      "sourceEndLine": 2,
+      "sourceEndColumn": 3,
+      "value_int": 4,
+      "value_number": 5,
+      "predicate_arity": 6,
+      "claim_span_start": 7,
+      "claim_span_end": 8,
+      "value_bool": false,
+      "closed_world": true
+    },
+    "relationships": [],
+    "sourceFile": "src/full.ts"
+  },
+  {
+    "entity": {
+      "id": "E-unusable",
+      "type": "fact",
+      "title": "E-unusable title",
+      "status": "open",
+      "created_at": "2026-01-01T00:00:00.000Z",
+      "updated_at": "2026-01-02T00:00:00.000Z",
+      "source": ".kb/E-unusable.md"
+    },
+    "relationships": [],
+    "sourceFile": "src/fallback.ts"
+  },
+  {
+    "entity": {
+      "id": "E-scalars",
+      "type": "fact",
+      "title": "",
+      "status": "open",
+      "created_at": "2026-01-01T00:00:00.000Z",
+      "updated_at": "2026-01-02T00:00:00.000Z",
+      "source": ".kb/E-scalars.md"
+    },
+    "relationships": []
+  }
+]
