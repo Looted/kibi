@@ -8,9 +8,11 @@ import {
   assertNoUnresolvedGitConflicts,
   assertRelationshipsCleared,
   checkpointNoopSync,
+  compiledSyncCache,
   compilerCacheFilesMatch,
   compilerCacheHasEntityDelta,
   compilerCacheIsFresh,
+  embeddedEntityTypes,
   gitText,
   maybePushDocsNotIndexedDiagnostic,
   maybePushKbMissingDiagnostic,
@@ -19,6 +21,7 @@ import {
   relationshipKey,
   rememberChangedSourceOrWarn,
   reportDanglingRelationships,
+  reportValidationErrors,
   semanticBoundaryRelationships,
   stagedNewSourceKeys,
   storeHoldsAnyEntity,
@@ -27,6 +30,8 @@ import {
 } from "../../../src/commands/sync.js";
 import {
   SYNC_CACHE_TTL_MS,
+  SYNC_CACHE_VERSION,
+  SYNC_COMPILER_FINGERPRINT,
   type SyncCache,
   hashNormalized,
 } from "../../../src/commands/sync/cache.js";
@@ -754,5 +759,83 @@ describe("tracked relationship files", () => {
     trackedRelationshipFiles(repo, dir, true, recovered);
     expect(recovered).toEqual([earlier, snapshot]);
     expect(trackedRelationshipFiles(repo, dir, true)).toHaveLength(2);
+  });
+});
+
+describe("authoring error classes", () => {
+  test.each([
+    ["scenario and test embedded", ["scenario", "test"]],
+    ["a test embedded", ["test"]],
+    ["a scenario embedded", ["scenario"]],
+    ["Embedded Entity Violation: x", ["entity"]],
+    ["bad yaml", null],
+  ])("%s", (message, types) => {
+    expect(embeddedEntityTypes(message)).toEqual(types);
+  });
+
+  test("validation errors are listed and counted", () => {
+    const errors: string[] = [];
+    const spy = spyOn(console, "error").mockImplementation((line: unknown) => {
+      errors.push(String(line));
+    });
+    spies.push(spy);
+    reportValidationErrors([
+      { file: "a.md", message: "one" },
+      { file: "b.md", message: "two" },
+    ]);
+    expect(errors).toEqual([
+      "a.md: one",
+      "b.md: two",
+      "FAILED: 2 errors found",
+    ]);
+  });
+});
+
+describe("compiled cache", () => {
+  const next = {
+    hashes: { "a.md": "ha", "b.md": "hb", "c.md": "hc", "d.md": "hd" },
+    seenAt: { "a.md": "t-a", "c.md": "t-c", "d.md": "t-d" },
+    semanticHashes: { "a.md": "sa", "b.md": "sb", "d.md": "sd" },
+    semanticContracts: { "a.md": true, "b.md": false },
+    relationshipHashes: { r: "1" },
+    entityHashes: { E: "e" },
+    sourceEntityIds: { "a.md": ["E"] },
+    shardRelationships: { r: ["k"] },
+    extractionFailures: { "x.md": { hash: "h", message: "m" } },
+    nowIso: "now",
+  };
+
+  test("skipped sources are left out and the rest carried over", () => {
+    expect(compiledSyncCache(next, (key) => key === "c.md")).toEqual({
+      version: SYNC_CACHE_VERSION,
+      hashes: { "a.md": "ha", "b.md": "hb", "d.md": "hd" },
+      relationshipHashes: { r: "1" },
+      entityHashes: { E: "e" },
+      sourceEntityIds: { "a.md": ["E"] },
+      shardRelationships: { r: ["k"] },
+      seenAt: { "a.md": "t-a", "b.md": "now", "d.md": "t-d" },
+      semanticHashes: { "a.md": "sa", "b.md": "sb", "d.md": "sd" },
+      semanticContracts: { "a.md": true, "b.md": false, "d.md": false },
+      compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
+      extractionFailures: { "x.md": { hash: "h", message: "m" } },
+    });
+  });
+
+  test("a source without a semantic hash records no semantics", () => {
+    const cache = compiledSyncCache(
+      { ...next, hashes: { "e.md": "he" } },
+      () => false,
+    );
+    expect(cache.semanticHashes).toStrictEqual({});
+    expect(cache.semanticContracts).toStrictEqual({});
+  });
+
+  test("without skips every source is kept", () => {
+    expect(Object.keys(compiledSyncCache(next, () => false).hashes)).toEqual([
+      "a.md",
+      "b.md",
+      "c.md",
+      "d.md",
+    ]);
   });
 });
