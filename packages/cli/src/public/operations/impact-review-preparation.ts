@@ -42,8 +42,10 @@ const SEMANTIC_RELATIONSHIPS = new Set([
   "verified_by",
 ]);
 
-function compareText(left: string, right: string): number {
-  return left < right ? -1 : left > right ? 1 : 0;
+/** The items in code-unit order of their keys, equal keys kept in order. */
+function sortedBy<T>(items: readonly T[], key: (item: T) => string): T[] {
+  const groups = Map.groupBy(items, key);
+  return [...groups.keys()].sort().flatMap((name) => groups.get(name) as T[]);
 }
 
 export type ImpactReviewPreparationScope =
@@ -81,7 +83,8 @@ function gitText(root: string, args: readonly string[]): string {
   return execFileSync("git", [...args], {
     cwd: root,
     encoding: "utf8",
-    maxBuffer: 64 * 1024 * 1024,
+    // rationale: the streams only keep git's own complaint off the console
+    // Stryker disable next-line ArrayDeclaration
     stdio: ["ignore", "pipe", "pipe"],
   }).trim();
 }
@@ -129,7 +132,8 @@ function snapshotIdentity(
 ): SnapshotIdentity {
   return {
     kind: scope.kind,
-    baseCommit: scope.kind === "diff" ? scope.baseCommit : snapshot.headCommit,
+    // A diff snapshot is checked to start at the selected base commit.
+    baseCommit: snapshot.headCommit,
     baseTree: snapshot.baseTree,
     headCommit: scope.kind === "diff" ? scope.headCommit : null,
     headTree: snapshot.headTree,
@@ -141,12 +145,13 @@ function plainEntity(
   entity: Readonly<Record<string, unknown>>,
 ): Record<string, unknown> {
   return Object.fromEntries(
-    Object.entries(entity)
-      .filter(
+    sortedBy(
+      Object.entries(entity).filter(
         ([key]) =>
           !["created_at", "updated_at", "proof_receipts"].includes(key),
-      )
-      .sort(([left], [right]) => compareText(left, right)),
+      ),
+      ([key]) => key,
+    ),
   );
 }
 
@@ -191,8 +196,8 @@ function requirementContext(
       relatedEntities: [],
     };
   }
-  const relationships = [...allRows.entries()]
-    .flatMap(([ownerId, candidate]) =>
+  const relationships = sortedBy(
+    [...allRows.entries()].flatMap(([ownerId, candidate]) =>
       candidate.relationships
         .filter(
           (relationship) =>
@@ -200,10 +205,9 @@ function requirementContext(
             (relationship.from === id || relationship.to === id),
         )
         .map((relationship) => ({ ownerId, ...relationship })),
-    )
-    .sort((left, right) =>
-      compareText(canonicalJson(left), canonicalJson(right)),
-    );
+    ),
+    canonicalJson,
+  );
   const relatedIds = [
     ...new Set(
       relationships
@@ -243,22 +247,21 @@ function requirementScopes(
 ): readonly Record<string, unknown>[] {
   const before = entityMap(snapshot, snapshot.baseTree);
   const after = entityMap(snapshot, snapshot.headTree);
-  return [...prepared.scopedRequirementIdsByPath.entries()]
-    .sort(([left], [right]) => compareText(left, right))
-    .map(([path, requirementIds]) => ({
-      path,
-      requirementIds: [...requirementIds].sort(),
-      before: [...requirementIds]
-        .sort()
-        .map((id) =>
-          requirementContext(id, before, prepared.baseEntities, before),
-        ),
-      after: [...requirementIds]
-        .sort()
-        .map((id) =>
-          requirementContext(id, after, prepared.headEntities, after),
-        ),
-    }));
+  return sortedBy(
+    [...prepared.scopedRequirementIdsByPath.entries()],
+    ([path]) => path,
+  ).map(([path, requirementIds]) => ({
+    path,
+    requirementIds: [...requirementIds].sort(),
+    before: [...requirementIds]
+      .sort()
+      .map((id) =>
+        requirementContext(id, before, prepared.baseEntities, before),
+      ),
+    after: [...requirementIds]
+      .sort()
+      .map((id) => requirementContext(id, after, prepared.headEntities, after)),
+  }));
 }
 
 function residualReviewObligations(
@@ -310,9 +313,7 @@ function residualReviewObligations(
       });
     }
   }
-  return obligations.sort((left, right) =>
-    compareText(`${left.path}\0${left.side}`, `${right.path}\0${right.side}`),
-  );
+  return sortedBy(obligations, (row) => `${row.path}\0${row.side}`);
 }
 
 function cloneRecordSchema(): Record<string, unknown> {
@@ -404,14 +405,11 @@ function authoringContract(
         ...recordHeaders,
         reviewer: { id: null, source: "self-claimed-local" },
         reviewedAt: null,
-        files: prepared.files
-          .slice()
-          .sort((left, right) => compareText(left.path, right.path))
-          .map((file) => ({
-            ...withoutAnalysisReviews(file),
-            analysisReviews: null,
-            decision: null,
-          })),
+        files: sortedBy(prepared.files, (file) => file.path).map((file) => ({
+          ...withoutAnalysisReviews(file),
+          analysisReviews: null,
+          decision: null,
+        })),
       },
     },
   };
@@ -427,10 +425,9 @@ function withoutAnalysisReviews<T extends { analysisReviews: unknown }>(
 function completeFileEvidence(
   prepared: PreparedImpactReview,
 ): readonly Record<string, unknown>[] {
-  return prepared.files
-    .slice()
-    .sort((left, right) => compareText(left.path, right.path))
-    .map((file) => withoutAnalysisReviews(file));
+  return sortedBy(prepared.files, (file) => file.path).map((file) =>
+    withoutAnalysisReviews(file),
+  );
 }
 
 function buildPreparation(
