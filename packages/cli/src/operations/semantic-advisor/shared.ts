@@ -107,18 +107,18 @@ export function sourceOf(payload: Payload): string {
 
 // implements REQ-mcp-semantic-advisor-preflight
 export function normalizeKey(value: string): string {
+  // Runs of anything else, spaces at either end too, collapse to one "_".
   return value
-    .trim()
     .toLowerCase()
     .replace(/['’]/g, "")
     .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+    .replace(/^_|_$/g, "");
 }
 
 // implements REQ-mcp-semantic-advisor-preflight
 export function normalizePredicateToken(value: string): string {
+  // Spaces at either end become a "_" and are stripped with it.
   return value
-    .trim()
     .replace(/\b(?:a|an|the)\b\s*/gi, "")
     .replace(/['’]/g, "")
     .replace(/\s+/g, "_")
@@ -137,7 +137,7 @@ const ES_PLURAL_SUFFIXES = ["ches", "shes", "sses", "xes"] as const;
 // implements REQ-mcp-semantic-advisor-preflight
 export function singularizeToken(
   value: string,
-  keep: readonly string[] = [],
+  keep: readonly string[],
 ): string {
   if (value.length <= 3 || keep.includes(value)) return value;
   if (value.endsWith("ies") && value.length > 4) {
@@ -152,7 +152,8 @@ export function singularizeToken(
 
 // implements REQ-mcp-semantic-advisor-preflight
 export function singularize(value: string): string {
-  return singularizeToken(value, ["status", "results"]);
+  // "status" already keeps its "us" ending.
+  return singularizeToken(value, ["results"]);
 }
 
 // implements REQ-mcp-semantic-advisor-preflight

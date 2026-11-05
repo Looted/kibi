@@ -1,0 +1,296 @@
+[
+  {
+    "name": "engine",
+    "aliases": [],
+    "description": "Manage the per-workspace Kibi engine",
+    "arguments": [],
+    "options": [],
+    "commands": [
+      {
+        "name": "status",
+        "aliases": [],
+        "description": "Show engine and journaled storage status",
+        "arguments": [],
+        "options": [],
+        "commands": []
+      },
+      {
+        "name": "stop",
+        "aliases": [],
+        "description": "Stop the current workspace engine",
+        "arguments": [],
+        "options": [],
+        "commands": []
+      },
+      {
+        "name": "janitor",
+        "aliases": [],
+        "description": "Classify and clean stale engine daemons, branch-store locks and expired lock-takeover records (crashed engines, removed worktrees)",
+        "arguments": [],
+        "options": [
+          {
+            "flags": "--all",
+            "description": "Also sweep runtime-directory daemon sockets from other workspaces",
+            "default": false,
+            "mandatory": false
+          },
+          {
+            "flags": "--apply",
+            "description": "Execute cleanups (default: report only)",
+            "default": false,
+            "mandatory": false
+          },
+          {
+            "flags": "--format <format>",
+            "description": "Output format: json|table",
+            "default": "table",
+            "mandatory": false
+          }
+        ],
+        "commands": []
+      }
+    ]
+  },
+  {
+    "name": "storage",
+    "aliases": [],
+    "description": "Inspect and maintain journaled Kibi storage",
+    "arguments": [],
+    "options": [],
+    "commands": [
+      {
+        "name": "status",
+        "aliases": [],
+        "description": "Show journaled storage status",
+        "arguments": [],
+        "options": [],
+        "commands": []
+      },
+      {
+        "name": "compact",
+        "aliases": [],
+        "description": "Compact RDF journals into binary snapshots",
+        "arguments": [],
+        "options": [],
+        "commands": []
+      },
+      {
+        "name": "export",
+        "aliases": [],
+        "description": "Export legacy RDF/XML and audit files",
+        "arguments": [],
+        "options": [
+          {
+            "flags": "--output <directory>",
+            "description": "Export destination directory",
+            "default": null,
+            "mandatory": true
+          }
+        ],
+        "commands": []
+      }
+    ]
+  },
+  {
+    "name": "gc",
+    "aliases": [],
+    "description": "Garbage collect stale branch KBs",
+    "arguments": [],
+    "options": [
+      {
+        "flags": "--dry-run",
+        "description": "Preview without deleting (default)",
+        "default": true,
+        "mandatory": false
+      },
+      {
+        "flags": "--force",
+        "description": "Quarantine stale branches (reversible)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--purge",
+        "description": "Permanently purge quarantined stores past retention",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--retention-days <n>",
+        "description": "Quarantine retention period",
+        "default": "30",
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "doctor",
+    "aliases": [],
+    "description": "Diagnose KB setup and configuration",
+    "arguments": [],
+    "options": [
+      {
+        "flags": "--format <format>",
+        "description": "Output format: json|table",
+        "default": "table",
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "usage-metrics",
+    "aliases": [],
+    "description": "Report usage and quality metrics from .kb/usage.log",
+    "arguments": [],
+    "options": [
+      {
+        "flags": "--format <format>",
+        "description": "Output format: json|table",
+        "default": "table",
+        "mandatory": false
+      },
+      {
+        "flags": "--limit <n>",
+        "description": "Limit top zero-result source files",
+        "default": "10",
+        "mandatory": false
+      },
+      {
+        "flags": "--require-acceptance",
+        "description": "Exit non-zero unless the telemetry acceptance report passes",
+        "default": null,
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "usage-remediation",
+    "aliases": [],
+    "description": "Enumerate exact diagnostic events and report-level evidence gaps requiring repair",
+    "arguments": [],
+    "options": [
+      {
+        "flags": "--format <format>",
+        "description": "Output format: json|table",
+        "default": "table",
+        "mandatory": false
+      },
+      {
+        "flags": "--limit <n>",
+        "description": "Limit rendered table rows",
+        "default": "50",
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "telemetry",
+    "aliases": [],
+    "description": "Show, enable or disable anonymous usage telemetry (status|enable|disable)",
+    "arguments": [
+      {
+        "name": "action",
+        "description": "",
+        "required": false,
+        "variadic": false,
+        "default": null
+      }
+    ],
+    "options": [
+      {
+        "flags": "--format <format>",
+        "description": "Output format: json|text",
+        "default": "text",
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "merge-driver",
+    "aliases": [],
+    "description": "Git merge driver: three-way merge .kb/symbols.yaml or a relationship shard by record id",
+    "arguments": [
+      {
+        "name": "base",
+        "description": "Common ancestor version (%O)",
+        "required": true,
+        "variadic": false,
+        "default": null
+      },
+      {
+        "name": "current",
+        "description": "Current version, overwritten with the result (%A)",
+        "required": true,
+        "variadic": false,
+        "default": null
+      },
+      {
+        "name": "other",
+        "description": "Other branch's version (%B)",
+        "required": true,
+        "variadic": false,
+        "default": null
+      }
+    ],
+    "options": [],
+    "commands": []
+  },
+  {
+    "name": "branch",
+    "aliases": [],
+    "description": "Manage branch KBs",
+    "arguments": [
+      {
+        "name": "action",
+        "description": "Action: ensure|migrate|recover|restore",
+        "required": true,
+        "variadic": false,
+        "default": null
+      }
+    ],
+    "options": [
+      {
+        "flags": "--branch <branch>",
+        "description": "Exact branch identity to restore",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--from <branch>",
+        "description": "Legacy source branch for explicit migration",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--to <branch>",
+        "description": "Exact target Git branch identity (required for migration)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--approval-hash <sha256>",
+        "description": "Hash printed by the migration preview",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--recover-journal <id>",
+        "description": "Recover an interrupted branch migration journal",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--apply",
+        "description": "Apply an explicit branch migration (preview is default)",
+        "default": null,
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  }
+]

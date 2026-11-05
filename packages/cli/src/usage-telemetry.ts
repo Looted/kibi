@@ -60,7 +60,8 @@ export function noteCliThrownError(error: unknown): void {
     error !== null && typeof error === "object"
       ? (error as { code?: unknown }).code
       : undefined;
-  if (typeof code === "string" && code !== "") noteCliErrorCategory(code);
+  // An empty code is no category: noteCliErrorCategory ignores it.
+  if (typeof code === "string") noteCliErrorCategory(code);
   notedErrorClass ??= telemetryErrorClass(error) ?? undefined;
   notedError ??= error;
 }
@@ -80,13 +81,14 @@ export function noteCliOperationCall(
 // implements REQ-kibi-anonymous-usage-telemetry
 /** The error code of a failed JSON result printed by a command, if any. */
 export function noteCliResultError(stdout: string | undefined): void {
-  if (!stdout) return;
+  // No output, `null` and a result without `error` all throw here and are
+  // ignored like any other text that is not a JSON result.
   try {
-    const parsed = JSON.parse(stdout) as {
+    const parsed = JSON.parse(stdout as string) as {
       status?: unknown;
-      error?: { code?: unknown };
+      error: { code?: unknown };
     };
-    if (parsed.status === "error" && typeof parsed.error?.code === "string") {
+    if (parsed.status === "error" && typeof parsed.error.code === "string") {
       noteCliErrorCategory(parsed.error.code);
     }
   } catch {
@@ -113,12 +115,10 @@ export function trackCommandPath(program: Command): () => string | undefined {
   let commandPath: string | undefined;
   program.hook("preAction", (_root, actionCommand) => {
     const names: string[] = [];
-    for (
-      let current: Command | null = actionCommand;
-      current?.parent;
-      current = current.parent
-    ) {
+    let current = actionCommand;
+    while (current.parent) {
       names.unshift(current.name());
+      current = current.parent;
     }
     commandPath = names.join(" ");
   });
@@ -145,7 +145,7 @@ export async function finishCliTelemetry(input: {
   notedErrorClass = undefined;
   notedError = undefined;
   notedCall = undefined;
-  if (!command || UNRECORDED_COMMANDS.has(command.split(" ")[0] ?? "")) {
+  if (!command || UNRECORDED_COMMANDS.has(command.split(" ")[0] as string)) {
     return;
   }
   const notice = takeTelemetryNotice(env);
@@ -160,6 +160,9 @@ export async function finishCliTelemetry(input: {
     {
       interface: "cli",
       operation: command,
+      // rationale: telemetryOutcome reads every status but "success" as a
+      // failure, so how the failure status is spelled is not observable.
+      // Stryker disable next-line StringLiteral
       status: input.exitCode === 0 ? "success" : "error",
       durationMs: Date.now() - input.startedAt.getTime(),
       exitCode: input.exitCode,
@@ -170,12 +173,11 @@ export async function finishCliTelemetry(input: {
             (input.error === undefined
               ? OUTCOME_CATEGORIES[command]
               : thrownErrorCategory(input.error))),
-      errorClass:
-        input.exitCode === 0
-          ? undefined
-          : (notedClass ?? telemetryErrorClass(input.error) ?? undefined),
+      // Only a failure sends its class, so a success's class is never read.
+      errorClass: notedClass ?? telemetryErrorClass(input.error) ?? undefined,
       signals: operationTelemetrySignals({
-        operation: call?.operation ?? command,
+        // A noted call names its own operation.
+        operation: command,
         ...call,
         ...(thrown !== undefined ? { error: thrown } : {}),
       }),

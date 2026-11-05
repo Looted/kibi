@@ -91,9 +91,8 @@ export async function executeMigrateLegacyReceipts(
     if (!hasProofContract) continue;
 
     const source = typeof test.source === "string" ? test.source : "";
-    const patchableSource =
-      source !== "" && /\.(md|mdx)$/i.test(source) && context.fs !== undefined;
-    if (!patchableSource) {
+    // The guard above already proved a filesystem, and "" never ends in .md.
+    if (!/\.(md|mdx)$/i.test(source)) {
       if (hasCompiledLegacy) {
         throw new Error(
           `Legacy receipt migration failed for ${testId}: test source '${source || "unknown"}' is not an authored markdown document`,

@@ -50,7 +50,7 @@ export function matchesReportView(
 
 // implements REQ-kibi-html-health-report
 export function reportFilterCounts(
-  rows: readonly RequirementView[],
+  rows: readonly Pick<RequirementView, "states">[],
 ): Readonly<Record<ReportFilter, number>> {
   return {
     all: rows.length,

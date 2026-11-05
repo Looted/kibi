@@ -1,6 +1,5 @@
 import path from "node:path";
 
-import { getKbPlPathOverride } from "../../env.js";
 import { resolveKbPlPath } from "../../prolog.js";
 import { escapeAtom } from "../../prolog/codec.js";
 import type { PrologPort } from "./runtime-types.js";
@@ -28,26 +27,23 @@ export class OperationJsonDecodeError extends Error {
     const rawText = typeof rawJson === "string" ? rawJson : "";
     const bindingType = typeof rawJson;
     const message = cause instanceof Error ? cause.message : String(cause);
+    // Spreading a string yields whole code points, so codePointAt(0) is set.
+    const prefixCodePoints = [...rawText]
+      .slice(0, 8)
+      .map((character) => character.codePointAt(0) as number);
     super(
-      `${errorLabel} returned invalid JSON binding (stage=${stage}, bindingType=${bindingType}, length=${rawText.length}, prefixCodePoints=${JSON.stringify([...rawText].slice(0, 8).map((character) => character.codePointAt(0) ?? 0))}): ${message}`,
+      `${errorLabel} returned invalid JSON binding (stage=${stage}, bindingType=${bindingType}, length=${rawText.length}, prefixCodePoints=${JSON.stringify(prefixCodePoints)}): ${message}`,
     );
     this.name = "OperationJsonDecodeError";
     this.stage = stage;
     this.rawLength = rawText.length;
-    this.prefixCodePoints = Object.freeze(
-      [...rawText]
-        .slice(0, 8)
-        .map((character) => character.codePointAt(0) ?? 0),
-    );
+    this.prefixCodePoints = Object.freeze(prefixCodePoints);
   }
 }
 
 function resolveCoreModulePath(fileName: string): string {
-  const genericOverride = getKbPlPathOverride();
-  return path.join(
-    path.dirname(genericOverride ?? resolveKbPlPath()),
-    fileName,
-  );
+  // resolveKbPlPath honours KIBI_KB_PL_PATH (an empty value means unset).
+  return path.join(path.dirname(resolveKbPlPath()), fileName);
 }
 
 export async function runOperationJsonQuery<T>(
@@ -76,6 +72,8 @@ export async function runOperationJsonQuery<T>(
     prolog.oneShotMode ??
     (!longLivedEngine &&
       process.env.NODE_ENV === "test" &&
+      // rationale: tests run only under Bun, whose global cannot be removed
+      // Stryker disable next-line ConditionalExpression,StringLiteral
       typeof (globalThis as { Bun?: unknown }).Bun !== "undefined");
   const typedStatusQuery = prolog.queryStatusJson;
   const result =
@@ -145,8 +143,6 @@ export function toPrologAtom(value?: string): string {
     : `'${escapeAtom(value)}'`;
 }
 
-export function toPrologList(values?: readonly string[]): string {
-  return values === undefined || values.length === 0
-    ? "[]"
-    : `[${values.map((value) => `'${escapeAtom(value)}'`).join(",")}]`;
+export function toPrologList(values: readonly string[] = []): string {
+  return `[${values.map((value) => `'${escapeAtom(value)}'`).join(",")}]`;
 }

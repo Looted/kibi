@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-85177bb583be
+  - type: implements
+    from: SYM-cli-update-check-run-update-refresh-entrypoint
+    to: REQ-kibi-update-notice
+    created_at: 2026-11-04T13:49:29.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f19c23749242
+  - type: covered_by
+    from: SYM-cli-update-check-run-update-refresh-entrypoint
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:49:29.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a686bffeec9

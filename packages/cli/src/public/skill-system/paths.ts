@@ -1,5 +1,5 @@
 import { existsSync, statSync } from "node:fs";
-import { isAbsolute, join, normalize, relative, resolve } from "node:path";
+import { isAbsolute, join, normalize, relative, resolve, sep } from "node:path";
 export const SKILL_FILE_NAME = "SKILL.md";
 export function normalizeResourcePath(pathLike: string): string {
   return normalize(pathLike).replaceAll("\\", "/");
@@ -15,7 +15,8 @@ export function isPathOutOfBounds(pathLike: string): boolean {
 }
 export function isWithinRoot(rootDir: string, candidatePath: string): boolean {
   const rel = relative(rootDir, candidatePath);
-  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
+  // Only a leading ".." segment escapes; a sibling named "..x" stays inside.
+  return !isAbsolute(rel) && rel !== ".." && !rel.startsWith(`..${sep}`);
 }
 export function resolveSkillFilePath(pathLike: string): string {
   const resolved = resolve(pathLike);

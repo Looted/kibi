@@ -100,8 +100,9 @@ export function readActiveCheckPolicies(
         resolved.packageRoot,
         join(resolved.packageRoot, policyPath(resolved.packageJson)),
       );
+      // String(buffer) decodes UTF-8.
       const document = validateCheckPolicyDocument(
-        JSON.parse(fs.readFileSync(documentPath, "utf8")),
+        JSON.parse(String(fs.readFileSync(documentPath))),
       );
       const version = resolved.packageJson.version;
       policies.push({

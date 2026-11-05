@@ -12,6 +12,8 @@ Any one of these turns telemetry off:
 
 Telemetry is also off in CI and under test runners, even after `kibi telemetry enable`. Kibi treats a run as CI when `CI`, `CONTINUOUS_INTEGRATION`, `GITHUB_ACTIONS`, `GITLAB_CI`, `BUILDKITE`, `CIRCLECI`, `TRAVIS`, `TF_BUILD`, `JENKINS_URL`, `TEAMCITY_VERSION`, `BITBUCKET_BUILD_NUMBER`, `CODEBUILD_BUILD_ID`, `DRONE`, `APPVEYOR`, `SEMAPHORE`, `BUILDKITE_BUILD_ID`, `CF_BUILD_ID` or `HEROKU_TEST_RUN_ID` is set, and as a test run when `NODE_ENV=test`, `JEST_WORKER_ID`, `VITEST`, `VITEST_WORKER_ID` or `NODE_TEST_CONTEXT` is set. It is off as well when the home directory (`HOME`) lies inside the system temp directory, which is how eval, packaging and end-to-end harnesses isolate each run. Only an explicit `KIBI_TELEMETRY=1` sends from those environments.
 
+The daily update check is separate from telemetry: it only reads `kibi-cli/latest` from the npm registry and sends no events. `KIBI_UPDATE_CHECK=0` or `NO_UPDATE_NOTIFIER=1` turns it off (see [Update notices](install.md#update-notices)).
+
 ## What is sent
 
 Kibi sends two kinds of event to its PostHog project in the EU region:

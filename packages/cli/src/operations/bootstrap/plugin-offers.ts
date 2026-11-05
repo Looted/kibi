@@ -48,19 +48,21 @@ const HINTS_CAPABILITY = "kibi.search-hints.v1";
 // implements REQ-kibi-plugin-search-hints
 export const SEARCH_HINTS_OFFER_REQUIREMENTS = 50;
 
-/** The project's kibi block as written, for offers that look at capabilities. */
-function kibiConfigOf(manifest: unknown): ProjectKibiConfig {
-  if (typeof manifest !== "object" || manifest === null) return {};
-  const kibi = (manifest as Record<string, unknown>).kibi;
-  if (typeof kibi !== "object" || kibi === null || Array.isArray(kibi))
-    return {};
+/**
+ * The project's kibi block as written, for offers that look at capabilities.
+ * `kibi` is the block itself, already known to be a mapping.
+ */
+function kibiConfigOf(
+  kibi: Record<string, unknown>,
+): ProjectKibiConfig &
+  Required<Pick<ProjectKibiConfig, "plugins" | "declinedPlugins">> {
   const { plugins, declinedPlugins, declinedLanguagePacks, generatedPaths } =
-    kibi as Record<string, unknown>;
+    kibi;
   return {
     plugins: Array.isArray(plugins)
       ? plugins.flatMap((entry) => {
-          if (typeof entry !== "object" || entry === null) return [];
-          const { package: name, capabilities } = entry as Record<
+          // Scalar entries have no fields, so only null needs care.
+          const { package: name, capabilities } = (entry ?? {}) as Record<
             string,
             unknown
           >;
@@ -89,70 +91,38 @@ function kibiConfigOf(manifest: unknown): ProjectKibiConfig {
   };
 }
 
+/** The workspace's package.json, or undefined when it cannot be read. */
 async function readManifest(context: OperationContext): Promise<unknown> {
   try {
-    if (!context.fs) return undefined;
+    // A context without file access throws here, as a missing file does.
     return JSON.parse(
-      await context.fs.readFile(
+      await (context.fs as NonNullable<OperationContext["fs"]>).readFile(
         path.join(context.workspaceRoot, "package.json"),
       ),
     );
   } catch {
-    return undefined;
+    // No readable package.json.
   }
-}
-
-/** Plugin names the project activated or declined, from its package.json. */
-async function configuredPlugins(
-  context: OperationContext,
-): Promise<ReadonlySet<string> | undefined> {
-  let manifest: unknown;
-  try {
-    if (!context.fs) return new Set();
-    manifest = JSON.parse(
-      await context.fs.readFile(
-        path.join(context.workspaceRoot, "package.json"),
-      ),
-    );
-  } catch {
-    // No package.json: nothing declined yet, so the offer stands.
-    return new Set();
-  }
-  if (typeof manifest !== "object" || manifest === null) return new Set();
-  const kibi = (manifest as Record<string, unknown>).kibi;
-  if (kibi === undefined) return new Set();
-  if (typeof kibi !== "object" || kibi === null || Array.isArray(kibi))
-    // A malformed kibi block is reported by every other operation; offering
-    // a plugin into it would only add noise.
-    return undefined;
-  const { plugins, declinedPlugins } = kibi as Record<string, unknown>;
-  const names = new Set<string>();
-  if (Array.isArray(plugins))
-    for (const entry of plugins) {
-      const name =
-        typeof entry === "object" && entry !== null
-          ? (entry as Record<string, unknown>).package
-          : undefined;
-      if (typeof name === "string") names.add(name);
-    }
-  if (Array.isArray(declinedPlugins))
-    for (const name of declinedPlugins)
-      if (typeof name === "string") names.add(name);
-  return names;
+  return undefined;
 }
 
 /** Requirement documents already in the KB lane. */
 async function requirementFiles(
   context: OperationContext,
 ): Promise<readonly string[]> {
-  if (!context.fs?.glob) return [];
   try {
+    // A context without file access or glob throws here and lists none.
     return [
-      ...(await context.fs.glob([`${KB_PATHS.lanes.requirements}/**/*.md`], {
+      ...(await (
+        context.fs as Required<NonNullable<OperationContext["fs"]>>
+      ).glob([`${KB_PATHS.lanes.requirements}/**/*.md`], {
         cwd: context.workspaceRoot,
       })),
     ].sort();
   } catch {
+    // rationale: a failed listing and a one-entry placeholder both stay below
+    // SEARCH_HINTS_OFFER_REQUIREMENTS, so no offer can tell them apart.
+    // Stryker disable next-line ArrayDeclaration
     return [];
   }
 }
@@ -184,23 +154,32 @@ export async function pluginOffers(
       PLUGIN_LANGUAGE_PACKS.some((language) => language.pattern.test(file)),
   );
   if (uiFiles.length === 0 && !wantsHints && !wantsReferences) return [];
-  const configured = await configuredPlugins(context);
-  if (configured === undefined) return [];
+  const manifest = await readManifest(context);
+  // Scalar manifests have no fields, so only null needs care.
+  const kibi = (manifest as { kibi?: unknown } | null | undefined)?.kibi;
+  // A malformed kibi block is reported by every other operation; offering a
+  // plugin into it would only add noise.
+  if (
+    kibi !== undefined &&
+    (typeof kibi !== "object" || kibi === null || Array.isArray(kibi))
+  )
+    return [];
+  const config = kibiConfigOf((kibi ?? {}) as Record<string, unknown>);
+  // Plugins the project activated or declined.
+  const configured = new Set([
+    ...config.plugins.map((entry) => entry.package),
+    ...config.declinedPlugins,
+  ]);
   const offers: PluginOffer[] = [];
-  const manifest = wantsReferences ? await readManifest(context) : undefined;
   const references = wantsReferences
     ? referenceLanguageSuggestion(
         files,
-        kibiConfigOf(manifest),
+        config,
         workspaceInstalledVersion(context.workspaceRoot),
         pinnedPackVersions(context.workspaceRoot),
         undefined,
         manifestDeclares(manifest, REFERENCE_PLUGIN_PACKAGE),
-        workspacePackRelevance(
-          context.workspaceRoot,
-          files,
-          kibiConfigOf(manifest),
-        ),
+        workspacePackRelevance(context.workspaceRoot, files, config),
       )
     : null;
   if (references !== null && references.capabilities.length > 0) {

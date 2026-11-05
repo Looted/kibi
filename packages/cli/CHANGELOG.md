@@ -1,5 +1,139 @@
 # kibi-cli
 
+## 2.42.0
+
+### Minor Changes
+
+- 7268060: Kibi now tells you when a newer `kibi-cli` is out. After a command run at a terminal, the CLI prints one line on stderr with both versions and the update command for your install (project package manager, npx or global), and names the KB schema move and `kibi migrate` when the new release writes a newer KB schema. `kibi doctor` reports the same answer under "Kibi updates", so agents in every host see it too.
+
+  The CLI asks the npm registry for `kibi-cli/latest` at most once a day from a detached background process and caches the answer in Kibi's per-user state directory (`update-check.json`), so no command waits on the network. The line repeats at most once a day per version and never appears when stderr is not a terminal, for JSON output (`--json`, `--format json`, `--input`), in CI and test runs, for dev builds or a source checkout. `KIBI_UPDATE_CHECK=0` or `NO_UPDATE_NOTIFIER=1` turns the check off; `KIBI_UPDATE_REGISTRY` (then `npm_config_registry`) picks the registry. `kibi-cli`'s `package.json` now declares the KB schema it writes as `kibi.kbSchema`.
+
+- 43cf20f: Every relationship write now checks the strict-lane pairing of its target fact. A `constrains` link must point at a `subject`, `observation` or `meta` fact, and a `requires_property` link at a `property_value`, `observation` or `meta` fact; a fact without a `fact_kind` is still accepted for either. Before, the KB layer had the check but never ran it, so only the CLI and MCP upsert pre-checks refused the two obvious mismatches (`constrains` to a `property_value` fact, `requires_property` to a `subject` fact), and `kibi sync` or any other direct write stored any pairing. Now `kb_assert_relationship/4`, upserts, batch upserts, upsert dry runs and `kibi sync` all refuse a mismatched link with a `validation_error` naming the target and the fact kinds it needs, which also covers targets such as `predicate`, `rule` or `predicate_schema` facts. Links already stored are left as they are and still read back; `kibi sync` reports a refused link as a failed relationship of its source file.
+- dd11641: A fresh clone of a Kibi repository now uses Kibi without anyone running `kibi init` in it. Before, a clone had the knowledge but no git hooks, an empty branch store (so queries answered nothing) and, without a per-user plugin, nothing telling an agent the knowledge base existed, so agents in new clones and cloud sessions ignored it. Now `kibi init` writes a Kibi section into `AGENTS.md` (imported from `CLAUDE.md`), adds a `package.json` `prepare` step that installs the hooks on every dependency install, and the first query, check or write in a clone compiles the branch store itself. Re-run `kibi init` in an existing repository to get the `AGENTS.md` section and the `prepare` step; `kibi doctor` reports them as missing until then.
+  - New setup choices `autoSync`, `prepareHooks`, `agentInstructions` (on by default) and `ciGate` (off), recorded on the first `kibi init` in `package.json` `kibi.setup`, or `.kb/setup.json` without a root `package.json`. `kibi init` takes `--[no-]auto-sync`, `--[no-]prepare-hooks`, `--[no-]agent-instructions` and `--[no-]ci-gate`, and the `kibi-bootstrap` skill (3.20.0) asks about them once.
+  - Auto-sync: CLI routes, `kibi check` and MCP tools that find this branch's store never compiled compile it first, with a compile that writes nothing Git tracks (no symbol-manifest layout rewrite, no adoption receipt), progress on stderr only, and a fallback to the previous `branch_store_not_compiled` answer when it fails. `kb_status` stays read-only and `kb_apply_plan` never pre-empts a plan. `KIBI_AUTO_SYNC=0` turns it off for one environment.
+  - New `kibi hooks install [--quiet]`. The `prepare` step is a Node one-liner that does nothing when `kibi-cli` is not installed (for example `npm ci --omit=dev`), in CI or outside a Git work tree, works under Windows `cmd.exe`, and is not added when a hook manager owns the hooks or there is no root `package.json`. `kibi-cli` exports `./bin/kibi` for it.
+  - `AGENTS.md` and `CLAUDE.md` get a marker-delimited section; text outside it is never changed, a link between the two files is written once, and a symlink that leaves the repository is not written through.
+  - `kibi init --ci-gate` adds `.github/workflows/kibi-check.yml`, which runs `kibi check` on pull requests (template in `docs/examples/github/kibi-check.yml`).
+  - `kibi doctor` has a "Fresh-clone setup" check against the recorded choices, and its missing-hooks remediation is now `kibi hooks install`.
+  - The Claude Code, Codex, Cursor, ZCode and OpenCode plugins tell the agent at session start when Kibi's hooks are not installed in the checkout (not where a hook manager or `core.hooksPath` owns them). The check lives in `kibi-agent-core/checkout-hooks`.
+
+- 2924762: Every Kibi release now has one release version, such as `2026.11.0`, that names its exact package set. `kibi --version` prints it next to the CLI version (`Kibi 2026.11.0 (kibi-cli 2.41.0)`), the MCP server title names it, and `kibi doctor` gains a "Kibi release" check that warns when installed Kibi packages come from different releases. The release also declares its compatibility versions (KB schema, operation result protocol, plugin API), so compatibility questions no longer depend on individual package versions.
+  - kibi-core ships `release.json`: the release version (`YYYY.M.N`, counting releases within a month), every publishable package's version, and the compatibility versions. `releases/history.json` keeps every release.
+  - `bun run version-packages` assigns the next release version, patch-bumps kibi-core when no pending changeset does (so the manifest always ships), and rewrites the manifest and history. `bun run release:check` (CI and the publish workflow) fails when a package version drifts from the manifest.
+  - The publish workflow creates a `kibi@<release>` GitHub release that lists the package set, with `release.json` attached.
+  - `kibi doctor --format json` carries the manifest under `runtime.release`. A local pack stamped `<version>-dev.<suffix>` counts as its base version.
+  - Relationship shards are now read in file-name order on every filesystem, so readers and removal plans no longer depend on directory listing order.
+
+- b08edea: The staged gate (`kibi check --staged`, run by the pre-commit hook) has a new blocking rule, `requirement-statement-drift`. When a requirement pins `semantic_text` in its front matter, Kibi models, grounds and proves that text and never reads the body. Before this rule, you could rewrite the statement in the body and every claim, fact and proof stayed bound to the old wording, with nothing reported. Now a commit that changes a current requirement's body statement while leaving its pinned `semantic_text` untouched is refused. To get past it, restate `semantic_text` to match the body and re-derive its inventory, or, if the new text is background rather than a change to the requirement, move it under a context section (`## Context`, `## Rationale`, `## Notes`, ...). Context-only and whitespace-only edits, requirements without a pinned `semantic_text`, and retired requirements are not affected.
+- 029f99b: Telemetry now shows where agents struggle, using fixed signals only. A refused payload names the rule it broke (a JSON Schema keyword or a Kibi check such as `inventory_missing`) and the Kibi schema field (an unknown field name is sent as `other`); an upsert reports whether it was a dry run, a bucketed relationship count and its attempt on the same entity; a search reports a bucketed result count, whether it abstained or showed hints, and whether it repeated a search from the last two minutes; events say whether a Kibi skill was loaded in the workspace in the last 30 minutes, which every host's hooks now detect; and a Kibi fault carries its top stack frame inside Kibi's own packages with a fingerprint, never a path, line or message. Retries, repeated searches and skill loads are matched from one-way hashes kept next to the local queue. A kb_validate_upsert or dry-run refusal also returns `rejection` with its code and issues. The Claude Code plugin's PreToolUse hook now also runs for the Skill tool.
+- 03d2308: Telemetry now tells refusals apart from faults. An operation that Kibi refused on purpose (an invalid upsert payload, check findings, a semantic contradiction, a firm decision, a missing entity) is sent with status `rejected` and its fixed error code, and `error` is kept for Kibi's own failures, which also carry the JavaScript class name of the thrown error but never its message. The CLI now keeps the code of mutation refusals instead of reporting them as `operation_failed`. Every event carries `telemetry_version: 2`.
+
+### Patch Changes
+
+- fccc13a: Simplify the argument handling of several read-only commands (`kibi query`, `kibi gaps`, `kibi graph`, `kibi coverage --cases`) without changing their output.
+
+  Drop redundant guards in the sync extraction step, the printed migration plan record and the ontology-quality threshold reader; behaviour is unchanged.
+
+  Remove an unused attach flag and an unreachable process factory from the shared discovery engine helper.
+
+  Simplify the manifest merge driver's record bookkeeping and the untracked-document lookup used by `kibi sync` warnings; behaviour is unchanged.
+
+  `kibi gc` and the engine maintenance commands drop redundant guards (unused legacy flags, default stdio options, duplicate workspace resolution); behaviour is unchanged.
+
+  The report command reads its output target and certificate option once, and its commit lookup and badge share no longer carry redundant fallbacks.
+
+  Fix the staged generated-manifest check failing with "Could not parse staged Git tree" when any staged path contains a newline.
+
+  Fix a failed `kibi sync --rebuild` publication deleting the live journal database or CURRENT pointer when the step that moves it aside is the one that fails; the rollback now undoes only the moves that happened.
+
+  Source discovery reads pending receipts through one parser and lets errors in a well-formed receipt surface instead of swallowing them; behaviour for valid and malformed receipts is unchanged.
+
+  `kibi init` drops an unused next-step identifier and a redundant containment check; its output is unchanged.
+
+  `kibi init --github` derives workflow paths from one table and simplifies README badge placement; the README output is unchanged.
+
+  The sync cache reader shares one empty-cache shape and one optional-field list, and the manifest fingerprint reads symbol sources with fewer redundant guards; fingerprints and cache files are unchanged.
+
+  Hook manager detection reads lefthook and pre-commit configuration through one parser and drops stage aliases no managed hook uses; detection and coverage results are unchanged.
+
+  Installing a Git hook whose path runs through a regular file now reports the hook as not a regular file instead of failing with an uncaught ENOTDIR error. Hook files are written in one place, and the managed markers are matched without an escaping step they never needed.
+
+  The usage-metrics tables are drawn by one helper, and the zero-result tool table reuses the shared counts table; the printed report is unchanged.
+
+  `kibi branch restore --apply` now restores stores that `kibi gc` quarantined. Quarantine entries are named by time, and restore compared that directory name with the branch store key, so every restore of a garbage-collected store was refused as an identity mismatch; it now checks the identity recorded in the store manifest.
+
+  The symbol coordinate refresh builds the artifact publication in one place, reads files without encoding arguments, and skips extraction when an incremental refresh reuses every record; manifests and coordinate artifacts are unchanged.
+
+  The legacy storage migration no longer plans a coordinates move for a configured symbols manifest whose name is not `symbols.yaml` or `symbols.yml`. Such a manifest was planned twice, once as the manifest and once as `.kb/symbol-coordinates.yaml`, and a `custom.yml` manifest picked up an unrelated `custom.yaml` as its coordinates. Listing tracked files also keeps Git's error output off the terminal outside a repository.
+
+  When a relationship fails every retry and the engine gives no detail for a later attempt, the sync warning now keeps the earlier explanation, such as the batch error, instead of falling back to "Unknown error". A missing entity id is also read from a multi-line engine error. The engine reset before a retry pass is now a plain best-effort step, and the persistence tests use the real Prolog codec instead of a module mock.
+
+  `kibi prove --requirement` now selects the tests a requirement reaches through its scenarios. The rows were read with a pattern that kept the closing quote of every quoted test id, so no test reached through a scenario was ever selected. Direct `validates` rows no longer need a `TEST-` prefix, and the requirement id is quoted as a Prolog atom in both queries.
+
+  A `junit` or `tap` integration now reads its native report relative to the workspace root, where the producer runs, instead of the current directory.
+
+  `kibi init` now writes agent instructions through an `AGENTS.md` or `CLAUDE.md` link into a directory of the worktree whose name starts with two dots (such as `..docs/`); such a link was refused as one that leaves the repository. The setup choice reader and the agent instruction helpers drop guards with no effect on their results, and `kibi init` reads the setup choice names from their one list.
+
+  The package.json prepare script sync treats a missing prepare script as an empty one and reads the script once; the scripts it writes are unchanged.
+
+- 282f7ba: Remove an unused staged-manifest helper from `kibi check` and redundant array guards from sync discovery. Behaviour is unchanged.
+- 46ecef0: A source file inside the workspace whose name starts with two dots (such as `..config.ts`) is no longer refused as a path outside the workspace when symbol coordinates are refreshed.
+- 7a4b299: Fix several small authoring and migration issues:
+  - Conditional requirements such as "orders may ship only when the order total is 10 or more" (or "4 or fewer") are now read as one comparison and become a rule, instead of being rejected as a disjunction.
+  - Typecheck claim bindings that fail now keep the colon between "the set-equality witness" (or "the required-fields witness") and the TypeScript error, so the compiler's message reads as its own sentence again.
+  - Updating an entity whose front matter has an empty key followed by a comment (`title: # todo`) no longer glues the comment onto the new value, and front matter written with explicit `? key` entries is rewritten as plain keys instead of turning into a nested key.
+  - The polarity value migration now reports a fact whose front matter is indented as a whole as one it could not verify, instead of failing with a raw YAML parser error.
+
+- 82232ab: Remove unreachable checks and an unused helper from the public check, impact and proof modules, and reuse the working-tree diff instead of running `git diff` twice per changed file; behaviour is unchanged.
+- d7698a2: An empty or `~` symbol manifest is now reported as "No symbols array found in manifest", like any other manifest without a `symbols` list, instead of a "Failed to parse manifest" error carrying a runtime-specific TypeError message.
+- 8b88fec: Markdown entities with a quoted or block-scalar title that contains a colon (`title: "Foo: Bar"`) are no longer reported as "Unquoted colon likely in title" when the YAML error is elsewhere in the front matter.
+- 38ffe61: `kibi proof inspect` now reports `npm` as a build system when `package.json` declares `dependencies`; it previously looked for a script named `dependencies` and only noticed `devDependencies`.
+- a994bd3: Tighten a few edge-case guards found while pinning the small CLI modules with mutation tests: a `.git` marker that cannot be inspected for a reason other than being absent (such as a symlink loop) now refuses repository detection instead of being treated as missing; a workspace source path that resolves to the workspace root itself is no longer accepted as a source file; relationship shard removal reads each shard once, so the removal plan and the bytes it rewrites always come from the same text; and a shard whose `relationships` key holds a mapping instead of a list is now rejected rather than left silently unchanged.
+- d96582d: Playwright case extraction now recognises tests called through a `test` alias that contains `$` (such as `import { test as $test }`), and qualifies tests inside `test.describe.only(...)` and `test.describe.skip(...)` blocks with their suite title, matching the titles the Playwright reporter records.
+- 0962e49: Simplify several internal CLI helpers without changing behaviour, and cover them with exhaustive unit tests.
+- a8508a1: Simplify internal traceability and plugin helpers (staged markdown validation, migration detection) without changing their behaviour. The pull request baseline check now fails when the Git snapshot cannot return the bytes of a protected file, instead of treating every unreadable file as unchanged. Impact review no longer stops with "Impact evidence is not JSON-safe" when a requirement has no text in its semantic source field (for example a title-only requirement).
+- 2db1175: An `env` source proof over browser code no longer fails on ordinary feature checks. Since 2.40 the `references` reader refused every `typeof window`, `'Notification' in window` and any local variable that happens to be called `window`, `self` or `global`, so a claim such as "the app reads only these variables" could not be proved on an Angular or React app at all. Handing the global object on (`send(window)`, `const w = window`, `'process' in window`) still fails the read with its place.
+
+  Technical summary: `typeof` of a global or environment object is not a hand-on. A literal key tested with `in` against `globalThis`, `global`, `window` or `self` is not a hand-on unless the key is `process` or `Bun`; a computed key, and `in` on `process.env` itself, still refuse. A variable declaration whose initializer binds no name (`const window = pick()`) now shadows the global in its scope; only declarations that bind a name (`const g = globalThis`, `const p = require("node:process")`) stay file-wide aliases.
+
+- 8c94528: `kibi sync` now retries a relationship that failed because its target could not be compiled. Before, fixing only the target (for example a fact that failed validation) left the link missing: sync reported "no changes", and `kibi check` kept reporting `source-relationship-parity` until `kibi sync --rebuild`.
+
+  `persistRelationships` returns the source files whose front-matter relationships could not be asserted, and sync leaves them out of the sync cache, so the next sync extracts them again and re-asserts their links.
+
+- Updated dependencies [ad02757]
+- Updated dependencies [9684b7c]
+- Updated dependencies [b12a8cf]
+- Updated dependencies [64a1563]
+- Updated dependencies [5d33486]
+- Updated dependencies [43cf20f]
+- Updated dependencies [dd11641]
+- Updated dependencies [8e858fb]
+- Updated dependencies [2924762]
+- Updated dependencies [ac907ed]
+- Updated dependencies [85cc4d9]
+- Updated dependencies [49c65ea]
+- Updated dependencies [015376e]
+- Updated dependencies [e3328ea]
+- Updated dependencies [0d20a9a]
+- Updated dependencies [e3328ea]
+- Updated dependencies [44f2265]
+- Updated dependencies [529a3f1]
+- Updated dependencies [50e0d5c]
+- Updated dependencies [529a3f1]
+- Updated dependencies [5de5af7]
+- Updated dependencies [653a8d7]
+- Updated dependencies [3ce342f]
+- Updated dependencies [d1207be]
+- Updated dependencies [4d7c099]
+- Updated dependencies [029f99b]
+- Updated dependencies [03d2308]
+  - kibi-agent-core@0.12.0
+  - kibi-core@0.31.0
+  - kibi-swipl@1.0.2
+  - kibi-plugin-builtin@0.5.6
+  - kibi-plugin-sdk@0.7.1
+
 ## 2.41.0
 
 ### Minor Changes

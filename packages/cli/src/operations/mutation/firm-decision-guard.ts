@@ -38,20 +38,19 @@ function readStoredDocument(
 ): DecisionDocument | undefined {
   const source = stored.source;
   if (typeof source !== "string" || !source.endsWith(".md")) return undefined;
+  let content: string;
   try {
-    const authored = readAuthoredEntity(
-      readFileSync(path.resolve(workspaceRoot, source), "utf8"),
-      source,
-    );
-    if (authored === null) return undefined;
-    return {
-      type: authored.type,
-      data: authored.data,
-      body: authored.body,
-    };
+    content = readFileSync(path.resolve(workspaceRoot, source), "utf8");
   } catch {
     return undefined;
   }
+  const authored = readAuthoredEntity(content, source);
+  if (authored === null) return undefined;
+  return {
+    type: authored.type,
+    data: authored.data,
+    body: authored.body,
+  };
 }
 
 /**
@@ -73,10 +72,16 @@ export async function assertFirmDecisionUnchanged(
   const before: DecisionDocument = authored ?? {
     type: input.type,
     data: stored,
+    // rationale: without an authored document the edit keeps this same body
+    // on both sides of the comparison, so its default value is never compared.
+    // Stryker disable next-line StringLiteral
     body: input.document?.body ?? "",
   };
   if (
     !isCurrentAuthoredEntity(
+      // rationale: with an empty superseded set only data.status decides
+      // currency, so the path placeholder is never read.
+      // Stryker disable next-line StringLiteral
       { id: input.id, path: "", ...before, data: { ...before.data } },
       new Set(),
     )

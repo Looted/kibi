@@ -78,7 +78,8 @@ async function writeAtomically(filePath: string, contents: string) {
     `.${path.basename(filePath)}.${randomUUID()}.tmp`,
   );
   try {
-    await writeFile(temporary, contents, "utf8");
+    // writeFile encodes a string as UTF-8.
+    await writeFile(temporary, contents);
     await rename(temporary, filePath);
   } catch (error) {
     await rm(temporary, { force: true });
@@ -116,9 +117,9 @@ async function loadProof(): Promise<ReadonlyMap<string, SignoffProof>> {
   const runtime = createCliRuntime();
   const spec = coverageSpec as RuntimeOperationSpec<unknown, unknown>;
   const context = await runtime.open(spec);
-  let rows: readonly Record<string, unknown>[] = [];
+  let result: Awaited<ReturnType<typeof coverageSpec.execute>>;
   try {
-    const result = await coverageSpec.execute(
+    result = await coverageSpec.execute(
       {
         by: "req",
         tags: [],
@@ -129,14 +130,14 @@ async function loadProof(): Promise<ReadonlyMap<string, SignoffProof>> {
       },
       context,
     );
-    rows = (result.structuredContent?.rows ?? []) as readonly Record<
-      string,
-      unknown
-    >[];
   } catch (error) {
     await runtime.close(context, { status: "error", error });
     throw error;
   }
+  const rows = (result.structuredContent?.rows ?? []) as readonly Record<
+    string,
+    unknown
+  >[];
   await runtime.close(context, { status: "success", result: rows.length });
   const proof = new Map<string, SignoffProof>();
   for (const row of rows) {

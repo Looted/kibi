@@ -17,13 +17,16 @@
 */
 
 import { statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
 import {
   type ProjectKibiConfig,
   REFERENCE_EXTRACTOR_CAPABILITY_ID,
   type ReferenceExtractorV1,
 } from "kibi-plugin-sdk";
-import { APPROVED_SOURCE_ANALYZERS } from "./approved-source-analyzers.js";
+import {
+  APPROVED_SOURCE_ANALYZERS,
+  type ApprovedSourceAnalyzer,
+} from "./approved-source-analyzers.js";
 import { loadPluginPackage } from "./load-plugin.js";
 import { verifyApprovedSourceAnalyzer } from "./maintenance-source-analysis.js";
 import { readProjectKibiConfig } from "./project-config.js";
@@ -47,6 +50,8 @@ export type ProofReferenceExtractors = Readonly<{
 // implements REQ-kibi-tree-sitter-references
 export async function loadProofReferenceExtractors(
   workspaceRoot: string,
+  /** The release-qualified closures; replaceable so tests can qualify a stub. */
+  approvals: readonly ApprovedSourceAnalyzer[] = APPROVED_SOURCE_ANALYZERS,
 ): Promise<ProofReferenceExtractors> {
   const problems: string[] = [];
   let entries: NonNullable<ProjectKibiConfig["plugins"]>;
@@ -63,7 +68,7 @@ export async function loadProofReferenceExtractors(
   const extractors: ReferenceExtractorV1[] = [];
   for (const entry of entries) {
     try {
-      const approval = APPROVED_SOURCE_ANALYZERS.find(
+      const approval = approvals.find(
         (item) => item.packageName === entry.package,
       );
       if (!approval)
@@ -71,10 +76,9 @@ export async function loadProofReferenceExtractors(
           `${entry.package} is not a release-qualified reference reader`,
         );
       const resolved = resolveProjectLocalPackage(workspaceRoot, entry.package);
-      const entryRelative = relative(
-        resolved.packageRoot,
-        resolved.entryPath,
-      ).replaceAll("\\", "/");
+      const entryRelative = relative(resolved.packageRoot, resolved.entryPath)
+        .split(sep)
+        .join("/");
       if (!approval.files[entryRelative])
         throw new Error(
           `${entry.package}'s entrypoint is outside its qualified closure`,
@@ -96,45 +100,66 @@ export async function loadProofReferenceExtractors(
 
 const cache = new Map<string, Promise<ProofReferenceExtractors>>();
 
-function mtimeOf(path: string): string {
+function mtimeOf(path: string): number | undefined {
+  let mtime: number | undefined;
   try {
-    return String(statSync(path).mtimeMs);
+    mtime = statSync(path).mtimeMs;
   } catch {
-    return "none";
+    // An absent or unreadable file has no mtime.
   }
+  return mtime;
+}
+
+// implements REQ-kibi-tree-sitter-references
+export type ProofReferenceExtractorLoader = {
+  /** The release-qualified closures the default load checks against. */
+  approvals: readonly ApprovedSourceAnalyzer[];
+  load: (workspaceRoot: string) => Promise<ProofReferenceExtractors>;
+};
+
+/**
+ * The real loader. The shared loader starts as one, and a test restores it
+ * from a new one, so both read the same definition.
+ */
+// implements REQ-kibi-tree-sitter-references
+export function realProofReferenceExtractorLoader(): ProofReferenceExtractorLoader {
+  return {
+    approvals: APPROVED_SOURCE_ANALYZERS,
+    load(workspaceRoot) {
+      // A changed package.json (a plugin activated) or an installed plugin
+      // whose manifest changed (installed, upgraded) loads afresh.
+      const key = JSON.stringify([
+        workspaceRoot,
+        mtimeOf(join(workspaceRoot, "package.json")),
+        mtimeOf(
+          join(
+            workspaceRoot,
+            "node_modules",
+            REFERENCE_PLUGIN_PACKAGE,
+            "package.json",
+          ),
+        ),
+      ]);
+      let loaded = cache.get(key);
+      if (loaded === undefined) {
+        loaded = loadProofReferenceExtractors(
+          workspaceRoot,
+          proofReferenceExtractorLoader.approvals,
+        );
+        cache.set(key, loaded);
+        // Only a load that found every provider is kept: a refusal is read
+        // again next time, so a fix is seen without restarting the host. While
+        // a load is pending the cache returns it, so nothing replaces it first.
+        void loaded.then((result) => {
+          if (result.problems.length > 0 || result.extractors.length === 0)
+            cache.delete(key);
+        });
+      }
+      return loaded;
+    },
+  };
 }
 
 /** Replaceable loader, so tests can supply providers without installing a package. */
-export const proofReferenceExtractorLoader: {
-  load: (workspaceRoot: string) => Promise<ProofReferenceExtractors>;
-} = {
-  load(workspaceRoot) {
-    // A changed package.json (a plugin activated) or an installed plugin
-    // whose manifest changed (installed, upgraded) loads afresh.
-    const key = [
-      workspaceRoot,
-      mtimeOf(join(workspaceRoot, "package.json")),
-      mtimeOf(
-        join(
-          workspaceRoot,
-          "node_modules",
-          REFERENCE_PLUGIN_PACKAGE,
-          "package.json",
-        ),
-      ),
-    ].join("\0");
-    let loaded = cache.get(key);
-    if (loaded === undefined) {
-      loaded = loadProofReferenceExtractors(workspaceRoot);
-      cache.set(key, loaded);
-      // Only a load that found every provider is kept: a refusal is read
-      // again next time, so a fix is seen without restarting the host.
-      const pending = loaded;
-      void pending.then((result) => {
-        if (result.problems.length > 0 || result.extractors.length === 0)
-          if (cache.get(key) === pending) cache.delete(key);
-      });
-    }
-    return loaded;
-  },
-};
+export const proofReferenceExtractorLoader: ProofReferenceExtractorLoader =
+  realProofReferenceExtractorLoader();

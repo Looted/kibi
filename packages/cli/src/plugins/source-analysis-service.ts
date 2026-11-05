@@ -176,9 +176,8 @@ export function providerBudgetMs(hostTimeoutMs: number): number {
 }
 
 function inferModuleTitle(filePath: string): string {
-  const extension = path.extname(filePath);
-  const basename = path.basename(filePath, extension);
-  return basename.length > 0 ? basename : path.basename(filePath);
+  // A dotfile has no extension, so the stem is never empty.
+  return path.basename(filePath, path.extname(filePath));
 }
 
 // implements REQ-capability-plugin-activation-disclosure-v1
@@ -276,7 +275,7 @@ export class SourceAnalysisService {
       );
     if (
       content.length > SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS ||
-      Buffer.byteLength(content, "utf8") > 8 * 1024 * 1024
+      Buffer.byteLength(content) > 8 * 1024 * 1024
     )
       return request.fallback(
         "failed",
@@ -303,15 +302,13 @@ export class SourceAnalysisService {
           ? "source_language_ambiguous"
           : classification.kind === "conflict"
             ? "source_classification_conflict"
-            : classification.kind === "file-level"
-              ? "source_file_level_only"
-              : "unsupported_language";
+            : "source_file_level_only";
       return request.fallback("unsupported", code, classification.reason);
     }
     const entries = resolution.replace
       ? [resolution.replace, resolution.builtin, ...resolution.augment]
       : [resolution.builtin, ...resolution.augment];
-    let canonical: HostSourceAnalysisResultV2 | null = null;
+    let canonical: CanonicalResultV2 | null = null;
     for (const entry of entries) {
       const result = await this.runV2Extractor(entry, request);
       if (result === null) continue;
@@ -353,7 +350,7 @@ export class SourceAnalysisService {
   /** The waiver reason for a result refused only for its missing pack. */
   // implements REQ-kibi-tree-sitter-language-packs
   private waivedLanguagePack(
-    result: HostSourceAnalysisResultV2,
+    result: CanonicalResultV2,
     filePath: string,
     content: string,
   ): string | null {
@@ -378,7 +375,7 @@ export class SourceAnalysisService {
   private async runV2Extractor(
     entry: CapabilityModeResolution<SymbolExtractorV2>["builtin"],
     request: V2Request,
-  ): Promise<HostSourceAnalysisResultV2 | null> {
+  ): Promise<CanonicalResultV2 | null> {
     const { classification, input } = request;
     try {
       const supportsInput =
@@ -403,7 +400,7 @@ export class SourceAnalysisService {
           }),
         ]);
       } finally {
-        if (timer !== undefined) clearTimeout(timer);
+        clearTimeout(timer);
       }
       const validated = validateSourceAnalysisResultV2(raw, input);
       return {
@@ -418,7 +415,6 @@ export class SourceAnalysisService {
               `${entry.pluginId}\0${entry.pluginVersion}\0${entry.stamp.capability}`,
             )
             .digest("hex"),
-        shadowComparisons: [],
       };
     } catch (error) {
       return {
@@ -443,7 +439,7 @@ export class SourceAnalysisService {
     const tryAnalyze = (
       extractor: SymbolExtractorV1,
       stamp: PluginProviderStamp,
-    ): HostSourceAnalysisResult | null => {
+    ): CanonicalResult | null => {
       const provider = toSourceAnalysisProvider(extractor);
       if (!provider.supportsFile(filePath)) return null;
       try {
@@ -455,8 +451,6 @@ export class SourceAnalysisService {
           providerId: extractor.id,
           stamp,
           fallbackUsed: false,
-          diagnostics,
-          shadowComparisons: [],
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -466,11 +460,8 @@ export class SourceAnalysisService {
     };
 
     const runShadow = (
-      canonical: HostSourceAnalysisResult,
+      canonical: CanonicalResult,
     ): HostSourceAnalysisResult => {
-      if (resolution.shadow.length === 0) {
-        return { ...canonical, diagnostics: [...diagnostics] };
-      }
       const shadowComparisons: HostSourceAnalysisShadowComparison[] = [];
       for (const entry of resolution.shadow) {
         const provider = toSourceAnalysisProvider(entry.capability);
@@ -513,7 +504,7 @@ export class SourceAnalysisService {
       };
     };
 
-    let canonical: HostSourceAnalysisResult | null = null;
+    let canonical: CanonicalResult | null = null;
 
     if (resolution.replace) {
       const replaced = tryAnalyze(
@@ -591,6 +582,13 @@ export function createSourceAnalysisService(
 ): SourceAnalysisService {
   return new SourceAnalysisService(options);
 }
+
+/** One provider's result; the service adds the shadow comparisons last. */
+type CanonicalResult = Omit<
+  HostSourceAnalysisResult,
+  "diagnostics" | "shadowComparisons"
+>;
+type CanonicalResultV2 = Omit<HostSourceAnalysisResultV2, "shadowComparisons">;
 
 /** V2 results preserve failure/completeness; provenance is always assigned by the host. */
 // implements REQ-capability-plugin-activation-disclosure-v1

@@ -26,16 +26,30 @@ type PullRequestPayload = Readonly<{
 
 const OBJECT_ID = /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/;
 
+/** Run git in a repository and return its trimmed stdout. */
+// implements REQ-impact-policy-stage-e-content-bound-review
+export type TrustedGitRunner = (
+  root: string,
+  args: readonly string[],
+) => string;
+
 function runGit(root: string, args: readonly string[]): string {
   return execFileSync("git", [...args], {
     cwd: root,
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
+    // rationale: stdin and stderr are never read, so whether they are
+    // ignored or piped cannot be observed.
+    // Stryker disable next-line ArrayDeclaration,StringLiteral
     stdio: ["ignore", "pipe", "ignore"],
   }).trim();
 }
 
-function resolveCommit(root: string, input: string): string {
+function resolveCommit(
+  runGit: TrustedGitRunner,
+  root: string,
+  input: string,
+): string {
   if (!OBJECT_ID.test(input))
     throw new Error("PR event contains an invalid Git object ID");
   const resolved = runGit(root, [
@@ -49,7 +63,11 @@ function resolveCommit(root: string, input: string): string {
   return resolved;
 }
 
-function resolveTree(root: string, commit: string): string {
+function resolveTree(
+  runGit: TrustedGitRunner,
+  root: string,
+  commit: string,
+): string {
   const tree = runGit(root, [
     "rev-parse",
     "--verify",
@@ -64,7 +82,12 @@ function resolveTree(root: string, commit: string): string {
 export function resolveTrustedPullRequestSnapshot(
   workspaceRoot: string,
   environment: NodeJS.ProcessEnv = process.env,
+  git: TrustedGitRunner = runGit,
 ): TrustedPullRequestSnapshot {
+  const resolveCommitIn = (input: string) =>
+    resolveCommit(git, workspaceRoot, input);
+  const resolveTreeOf = (commit: string) =>
+    resolveTree(git, workspaceRoot, commit);
   if (environment.GITHUB_EVENT_NAME !== "pull_request_target")
     throw new Error("Trusted impact gate requires pull_request_target context");
   const eventPath = environment.GITHUB_EVENT_PATH;
@@ -89,10 +112,10 @@ export function resolveTrustedPullRequestSnapshot(
   const targetInput = base?.sha;
   const headInput = head?.sha;
   if (
+    base?.repo?.full_name !== repository ||
     typeof baseRef !== "string" ||
     typeof targetInput !== "string" ||
-    typeof headInput !== "string" ||
-    base?.repo?.full_name !== repository
+    typeof headInput !== "string"
   )
     throw new Error(
       "PR event does not identify this repository's base and head",
@@ -103,23 +126,20 @@ export function resolveTrustedPullRequestSnapshot(
     throw new Error(
       "PR event repository identity does not match the trusted checkout",
     );
-  const targetCommit = resolveCommit(workspaceRoot, targetInput);
-  const headCommit = resolveCommit(workspaceRoot, headInput);
-  if (resolveCommit(workspaceRoot, githubSha) !== targetCommit)
+  const targetCommit = resolveCommitIn(targetInput);
+  const headCommit = resolveCommitIn(headInput);
+  if (resolveCommitIn(githubSha) !== targetCommit)
     throw new Error(
       "GitHub event target SHA does not match its trusted payload",
     );
-  const checkoutCommit = resolveCommit(
-    workspaceRoot,
-    runGit(workspaceRoot, ["rev-parse", "HEAD"]),
+  const checkoutCommit = resolveCommitIn(
+    git(workspaceRoot, ["rev-parse", "HEAD"]),
   );
   if (checkoutCommit !== targetCommit)
     throw new Error("Trusted evaluator checkout is not the PR target commit");
-  if (
-    runGit(workspaceRoot, ["rev-parse", "--is-shallow-repository"]) !== "false"
-  )
+  if (git(workspaceRoot, ["rev-parse", "--is-shallow-repository"]) !== "false")
     throw new Error("Complete Git history is required for impact evaluation");
-  const missing = runGit(workspaceRoot, [
+  const missing = git(workspaceRoot, [
     "rev-list",
     "--objects",
     "--missing=print",
@@ -128,7 +148,7 @@ export function resolveTrustedPullRequestSnapshot(
   ]);
   if (missing.split("\n").some((line) => line.startsWith("?")))
     throw new Error("PR target or head has missing reachable Git objects");
-  const mergeBases = runGit(workspaceRoot, [
+  const mergeBases = git(workspaceRoot, [
     "merge-base",
     "--all",
     targetCommit,
@@ -138,15 +158,15 @@ export function resolveTrustedPullRequestSnapshot(
     .filter(Boolean);
   if (mergeBases.length !== 1)
     throw new Error("PR target and head must have exactly one merge base");
-  const mergeBaseCommit = resolveCommit(workspaceRoot, mergeBases[0] ?? "");
+  const mergeBaseCommit = resolveCommitIn(mergeBases[0] as string);
   return {
     repository,
     targetRef: trustedTargetRef,
     targetCommit,
-    targetTree: resolveTree(workspaceRoot, targetCommit),
+    targetTree: resolveTreeOf(targetCommit),
     headCommit,
-    headTree: resolveTree(workspaceRoot, headCommit),
+    headTree: resolveTreeOf(headCommit),
     mergeBaseCommit,
-    mergeBaseTree: resolveTree(workspaceRoot, mergeBaseCommit),
+    mergeBaseTree: resolveTreeOf(mergeBaseCommit),
   };
 }

@@ -7348,6 +7348,18 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-update-notice",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/update-check.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kb-dependencies-git",
     "steps": [
       [

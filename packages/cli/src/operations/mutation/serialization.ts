@@ -80,11 +80,12 @@ export function buildRelationshipMetadata(rel: RelationshipInput): string {
 // implements REQ-kibi-operation-interface-parity
 export function parsePrologList(list: string): string[] {
   const match = list.trim().match(/^\[(.*)\]$/s);
-  if (!match?.[1]) return [];
+  if (match === null) return [];
   const items: string[] = [];
   let depth = 0;
   let current = "";
-  for (const char of match[1]) {
+  // The group always participates; an empty list yields no items below.
+  for (const char of match[1] as string) {
     if (char === "[") depth += 1;
     if (char === "]") depth -= 1;
     if (char === "," && depth === 0) {

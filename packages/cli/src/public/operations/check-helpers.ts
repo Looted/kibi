@@ -19,19 +19,20 @@ import path from "node:path";
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { getKbPlPathOverride } from "../../env.js";
 import { resolveKbPlPath } from "../../prolog.js";
 import { getStagedFiles } from "../../traceability/git-staged.js";
 import { createStagedEntityIdStyleDiagnostics } from "../../traceability/staged-entity-id-style.js";
 import { analyzePrologQueryPlanSafety } from "../../utils/prolog-query-plan-safety.js";
 import {
   RULE_NAMES,
+  type RuleDefinition,
   type Violation,
   getEffectiveRules,
   getRuleDefinition,
   getRuleEnforcementClass,
 } from "../../utils/rule-registry.js";
 import {
+  type ChangedFileImpactOptions,
   type ChangedFileImpactResult,
   type QualityDiagnostic,
   analyzeChangedFileImpact,
@@ -63,12 +64,13 @@ export function partitionCheckFindings(findings: readonly Violation[]): {
       continue;
     }
 
-    const definition = getRuleDefinition(finding.rule);
+    // Only a registered rule has a non-canonical enforcement class.
+    const definition = getRuleDefinition(finding.rule) as RuleDefinition;
     qualityDiagnostics.push({
       id: `rule.${finding.rule}`,
-      severity: definition?.diagnosticSeverity ?? "warning",
+      severity: definition.diagnosticSeverity ?? "warning",
       blocking: false,
-      category: definition?.category ?? "integrity",
+      category: definition.category,
       ...(finding.entityId !== undefined ? { entityId: finding.entityId } : {}),
       ...(finding.source !== undefined ? { source: finding.source } : {}),
       message: finding.description,
@@ -104,11 +106,13 @@ export function scopeQualityDiagnosticsToImpact(
     entityIds.add(linked.id);
     entityIds.add(linked.sourceSymbolId);
   }
+  // Linked entity and symbol ids are strings, so a missing entityId is never
+  // among them.
   const inScope = (diagnostic: QualityDiagnostic) =>
-    (diagnostic.entityId !== undefined && entityIds.has(diagnostic.entityId)) ||
+    entityIds.has(diagnostic.entityId as string) ||
     (diagnostic.source !== undefined &&
       files.has(normalizePath(diagnostic.source))) ||
-    (diagnostic.files ?? []).some((file) => files.has(normalizePath(file)));
+    diagnostic.files?.some((file) => files.has(normalizePath(file))) === true;
 
   const kept: QualityDiagnostic[] = [];
   const omittedByRule = new Map<string, number>();
@@ -146,8 +150,8 @@ export function scopeQualityDiagnosticsToImpact(
 }
 
 function resolveChecksPlPath(): string {
-  const override = getKbPlPathOverride();
-  return path.join(path.dirname(override ?? resolveKbPlPath()), "checks.pl");
+  // resolveKbPlPath honours KIBI_KB_PL_PATH and treats an empty one as unset.
+  return path.join(path.dirname(resolveKbPlPath()), "checks.pl");
 }
 
 // implements REQ-mcp-tool-check
@@ -174,12 +178,7 @@ export function collectQueryPlanSafetyViolations(): Violation[] {
 export function resolveCheckRules(
   args: Pick<CheckInput, "rules">,
 ): Set<string> {
-  if (args.rules === undefined) {
-    return getEffectiveRules();
-  }
-  if (args.rules.length === 0) {
-    return new Set<string>();
-  }
+  // No selection runs the default rules; an empty one runs none.
   return getEffectiveRules(args.rules);
 }
 
@@ -194,7 +193,7 @@ export async function readLegacyChecksHint(
 ): Promise<string | null> {
   const configPath = path.join(workspaceRoot, ".kb", "config.json");
   try {
-    await readFile(configPath, "utf8");
+    await readFile(configPath);
   } catch {
     return null;
   }
@@ -219,22 +218,15 @@ export async function analyzeKbCheckImpact(
   if (!hasImpactOptions(args)) {
     return undefined;
   }
+  // Every option the analyzer reads treats undefined as absent.
   return analyzeChangedFileImpact({
     workspaceRoot,
-    ...(args.sourceFiles !== undefined
-      ? { sourceFiles: args.sourceFiles }
-      : {}),
-    ...(args.staged !== undefined ? { staged: args.staged } : {}),
-    ...(args.includeWorkingTreeDiff !== undefined
-      ? { includeWorkingTreeDiff: args.includeWorkingTreeDiff }
-      : {}),
-    ...(args.includeImpactDiagnostics !== undefined
-      ? { includeImpactDiagnostics: args.includeImpactDiagnostics }
-      : {}),
-    ...(args.maxDiagnostics !== undefined
-      ? { maxDiagnostics: args.maxDiagnostics }
-      : {}),
-  });
+    sourceFiles: args.sourceFiles,
+    staged: args.staged,
+    includeWorkingTreeDiff: args.includeWorkingTreeDiff,
+    includeImpactDiagnostics: args.includeImpactDiagnostics,
+    maxDiagnostics: args.maxDiagnostics,
+  } as ChangedFileImpactOptions);
 }
 
 /**

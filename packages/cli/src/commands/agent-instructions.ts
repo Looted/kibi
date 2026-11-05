@@ -79,12 +79,9 @@ function managedSection(body: string): string {
   return `${KIBI_INSTRUCTIONS_BEGIN}\n${body}\n${KIBI_INSTRUCTIONS_END}`;
 }
 
-function escapeRegex(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
+// The markers hold no regular expression syntax, so they match literally.
 const MANAGED_PATTERN = new RegExp(
-  `${escapeRegex(KIBI_INSTRUCTIONS_BEGIN)}[\\s\\S]*?${escapeRegex(KIBI_INSTRUCTIONS_END)}`,
+  `${KIBI_INSTRUCTIONS_BEGIN}[\\s\\S]*?${KIBI_INSTRUCTIONS_END}`,
 );
 
 function stats(file: string): Stats | null {
@@ -130,7 +127,7 @@ export function managedSectionState(
   body: string,
 ): "current" | "outdated" | "missing" {
   if (!existsSync(file)) return "missing";
-  const text = readFileSync(file, "utf8");
+  const text = readFileSync(file).toString();
   const match = MANAGED_PATTERN.exec(text);
   if (match === null) return "missing";
   return match[0] === managedSection(body) ? "current" : "outdated";
@@ -148,9 +145,7 @@ function writeTarget(file: string, worktreeRoot: string): string | null {
   } catch {
     return null;
   }
-  const own = stats(file);
-  if (own === null) return path.join(root, path.basename(file));
-  if (!own.isSymbolicLink()) return path.join(root, path.basename(file));
+  if (stats(file) === null) return path.join(root, path.basename(file));
   let target: string;
   try {
     target = realpathSync(file);
@@ -158,17 +153,21 @@ function writeTarget(file: string, worktreeRoot: string): string | null {
     return null;
   }
   const relative = path.relative(root, target);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) return null;
+  if (
+    relative === ".." ||
+    relative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relative)
+  )
+    return null;
   return target;
 }
 
 /** A CLAUDE.md that already imports AGENTS.md needs no Kibi section of its own. */
 function importsAgents(file: string): boolean {
-  try {
-    return /^\s*@(?:\.\/)?AGENTS\.md\s*$/m.test(readFileSync(file, "utf8"));
-  } catch {
-    return false;
-  }
+  return (
+    stats(file)?.isFile() === true &&
+    /^\s*@(?:\.\/)?AGENTS\.md\s*$/m.test(readFileSync(file).toString())
+  );
 }
 
 // implements REQ-kibi-fresh-clone-setup

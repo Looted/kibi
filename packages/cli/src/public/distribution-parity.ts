@@ -196,7 +196,7 @@ export function nearestPackageInfo(entrypoint: string): {
     if (existsSync(manifestPath)) {
       try {
         const manifest = JSON.parse(
-          readFileSync(manifestPath, "utf8"),
+          String(readFileSync(manifestPath)),
         ) as PackageManifest;
         return {
           packageRoot: current,
@@ -214,7 +214,10 @@ export function nearestPackageInfo(entrypoint: string): {
 }
 
 function declaredEntrypoint(contents: string): string | undefined {
-  const shimTarget = contents.match(/^# cmd-shim-target=(.+)$/m)?.[1]?.trim();
+  // rationale: a successful match always has group 1; the second `?.` only
+  // satisfies noUncheckedIndexedAccess, so dropping it is equivalent.
+  // Stryker disable next-line OptionalChaining
+  const shimTarget = contents.match(/^# cmd-shim-target=(.+)/m)?.[1]?.trim();
   if (shimTarget) return shimTarget;
   const absoluteImport = contents.match(/\bfrom\s+["'](\/(?:[^"']+))["']/)?.[1];
   return absoluteImport;

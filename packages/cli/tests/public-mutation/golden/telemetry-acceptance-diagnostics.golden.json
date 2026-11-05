@@ -1,0 +1,196 @@
+[
+  {
+    "id": "telemetry_evidence_stale",
+    "severity": "review",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "Telemetry evidence is not current (latest 2026-01-01T00:00:00.000Z); historical metrics cannot prove current workflow quality.",
+    "suggestion": "Run the current Kibi workflow in diagnostic mode, then rerun kibi usage-metrics --require-acceptance and an unfiltered kb_check.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 5,
+      "scope": {
+        "fresh": false,
+        "lastTimestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "diagnostics": ["usage_log_stale"]
+    }
+  },
+  {
+    "id": "repeated_mutation_failures",
+    "severity": "warning",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "repeated_mutation_failures message",
+    "suggestion": "Stop retrying the failing target; query current endpoints, preflight the exact reduced payload, repair runtime health if needed, and retry once.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 10,
+      "metric": {
+        "id": "repeated_mutation_failures",
+        "status": "failed",
+        "message": "repeated_mutation_failures message"
+      },
+      "scope": {
+        "fresh": false,
+        "lastTimestamp": "2026-01-01T00:00:00.000Z"
+      }
+    }
+  },
+  {
+    "id": "mutation_validation_bypassed",
+    "severity": "warning",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "validation_before_upsert message",
+    "suggestion": "Run kb_upsert with dryRun true (CLI: validate-upsert) for the exact payload no more than one hour before each sequential kb_upsert attempt.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 20,
+      "metric": {
+        "id": "validation_before_upsert",
+        "status": "failed",
+        "message": "validation_before_upsert message"
+      },
+      "scope": {
+        "fresh": false,
+        "lastTimestamp": "2026-01-01T00:00:00.000Z"
+      }
+    }
+  },
+  {
+    "id": "semantic_advisor_bypassed",
+    "severity": "warning",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "advisor_before_requirement_write message",
+    "suggestion": "Run kb_model with mode analyze (CLI: semantic-advisor) on the complete current requirement prose before its next upsert, preserve the returned source hash, and recheck telemetry.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 30,
+      "metric": {
+        "id": "advisor_before_requirement_write",
+        "status": "failed",
+        "message": "advisor_before_requirement_write message"
+      },
+      "scope": {
+        "fresh": false,
+        "lastTimestamp": "2026-01-01T00:00:00.000Z"
+      }
+    }
+  },
+  {
+    "id": "lookup_before_first_edit_bypassed",
+    "severity": "warning",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "lookup_before_first_edit message",
+    "suggestion": "Before a session's first edit of a requirement-linked file, run kb_search for the change (or kb_query with sourceFile for the file) and read the requirements it names; host hook rows in diagnostic mode record the order.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 35,
+      "metric": {
+        "id": "lookup_before_first_edit",
+        "status": "failed",
+        "message": "lookup_before_first_edit message"
+      },
+      "scope": {
+        "fresh": false,
+        "lastTimestamp": "2026-01-01T00:00:00.000Z"
+      }
+    }
+  },
+  {
+    "id": "e2e_receipt_freshness_low",
+    "severity": "warning",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "e2e_receipt_freshness message",
+    "suggestion": "Run the configured proof integrations with kibi prove against the live snapshot; receipts append idempotently with preserved history, then rerun complete coverage.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 40,
+      "metric": {
+        "id": "e2e_receipt_freshness",
+        "status": "failed",
+        "message": "e2e_receipt_freshness message"
+      },
+      "scope": {
+        "fresh": false,
+        "lastTimestamp": "2026-01-01T00:00:00.000Z"
+      }
+    }
+  },
+  {
+    "id": "proof_gap_recovery_stalled",
+    "severity": "warning",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "proof_gap_recovery message",
+    "suggestion": "Run complete requirement coverage, apply one reviewed ready repair batch per requirement, and rerun coverage to demonstrate a smaller gap count.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 50,
+      "metric": {
+        "id": "proof_gap_recovery",
+        "status": "failed",
+        "message": "proof_gap_recovery message"
+      },
+      "scope": {
+        "fresh": false,
+        "lastTimestamp": "2026-01-01T00:00:00.000Z"
+      }
+    }
+  },
+  {
+    "id": "source_lookup_zero_result_rate_high",
+    "severity": "warning",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "source_lookup_zero_result_rate message",
+    "suggestion": "Inspect the cited source files, refresh symbol/source links when stale, and repeat focused kb_search then exact kb_query lookups.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 60,
+      "metric": {
+        "id": "source_lookup_zero_result_rate",
+        "status": "failed",
+        "message": "source_lookup_zero_result_rate message"
+      },
+      "scope": {
+        "fresh": false,
+        "lastTimestamp": "2026-01-01T00:00:00.000Z"
+      }
+    }
+  },
+  {
+    "id": "telemetry_completeness_low",
+    "severity": "warning",
+    "blocking": false,
+    "category": "telemetry",
+    "source": ".kb/usage.log",
+    "message": "telemetry_completeness message",
+    "suggestion": "Enable diagnostic mode and supply complete _diagnostic_telemetry on every MCP operation, then rerun the workflow.",
+    "evidence": {
+      "version": "kibi.telemetry-acceptance.v1",
+      "rank": 70,
+      "metric": {
+        "id": "telemetry_completeness",
+        "status": "failed",
+        "message": "telemetry_completeness message"
+      },
+      "scope": {
+        "fresh": false,
+        "lastTimestamp": "2026-01-01T00:00:00.000Z"
+      }
+    }
+  }
+]

@@ -538,3 +538,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-afd54b8c2109
+  - type: assumes
+    from: SCEN-NEG-kibi-update-notice-NOTICE-IN-AUTOMATION
+    to: FACT-NEG-kibi-update-notice-NOTICE-IN-AUTOMATION
+    created_at: 2026-11-04T13:26:25.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cdba9be274a
+  - type: verified_by
+    from: SCEN-NEG-kibi-update-notice-NOTICE-IN-AUTOMATION
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:26:25.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92b319ca4fc6

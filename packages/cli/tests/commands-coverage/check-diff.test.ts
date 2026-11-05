@@ -98,4 +98,47 @@ describe("checkDiffCommand", () => {
       "Verified PR event or Git ancestry changed during impact evaluation",
     );
   });
+
+  test("refuses an untrusted baseline before analysing anything", async () => {
+    stubPipeline([{ path: "src/a.ts" }]);
+    spyOn(prDiff, "assertTrustedPullRequestBaseline").mockImplementation(() => {
+      throw new Error("baseline not trusted");
+    });
+    await expect(checkDiffCommand("/ws")).rejects.toThrow(
+      "baseline not trusted",
+    );
+    expect(sourceChange.analyzeSourceChanges).not.toHaveBeenCalled();
+  });
+
+  test("evaluates the snapshot with the provider, evaluator and analyses", async () => {
+    stubPipeline([{ path: "src/a.ts" }]);
+    captureLog();
+    const analyses = [{ path: "src/a.ts", kind: "changed" }];
+    spyOn(sourceChange, "analyzeSourceChanges").mockResolvedValue(
+      analyses as never,
+    );
+    await checkDiffCommand("/ws");
+    expect(evaluator.evaluateImpactReview).toHaveBeenCalledWith(
+      { inventory: [{ path: "src/a.ts" }] } as never,
+      {
+        providerSetFingerprint: "providers",
+        evaluatorFingerprint: "evaluator",
+        analyses,
+      } as never,
+    );
+  });
+
+  test("joins every diagnostic on its own line", async () => {
+    stubPipeline([{ path: "src/a.ts" }], false);
+    spyOn(evaluator, "evaluateImpactReview").mockReturnValue({
+      passed: false,
+      diagnostics: [
+        { code: "IMPACT_X", message: "needs review" },
+        { code: "IMPACT_Y", message: "stale" },
+      ],
+    } as never);
+    await expect(checkDiffCommand("/ws")).rejects.toThrow(
+      "IMPACT_X: needs review\nIMPACT_Y: stale",
+    );
+  });
 });

@@ -26,6 +26,7 @@ import {
   parseListOfLists,
   parseTriples,
 } from "../../prolog/codec.js";
+import type { StagedFile } from "../../traceability/git-staged.js";
 import {
   type ExtractedSymbol,
   extractSymbolsFromStagedFileAsync,
@@ -85,35 +86,52 @@ async function loadSymbolResults(
   }
 
   const relationships = new Map<string, ExtractionResult["relationships"]>();
-  for (const [rawFrom, rawTo, type] of parseTriples(
-    rels.bindings.Rels ?? "[]",
-  )) {
+  // rationale: the codec reads any text without a list as no rows
+  // Stryker disable next-line StringLiteral
+  const relText = rels.bindings.Rels ?? "[]";
+  for (const [rawFrom, rawTo, type] of parseTriples(relText)) {
     const from = normalizeEntityId(rawFrom);
-    const current = relationships.get(from) ?? [];
-    current.push({ from, to: normalizeEntityId(rawTo), type });
-    relationships.set(from, current);
+    const relationship = { from, to: normalizeEntityId(rawTo), type };
+    const current = relationships.get(from);
+    if (current) current.push(relationship);
+    else relationships.set(from, [relationship]);
   }
 
   const results: ExtractionResult[] = [];
+  // rationale: the codec reads any text without a list as no rows
+  // Stryker disable next-line StringLiteral
   for (const row of parseListOfLists(rows.bindings.Rows ?? "[]")) {
     const entity = parseEntityFromList(row);
     const id = stringField(entity, "id");
     const sourceFile = stringField(entity, "sourceFile");
-    if (id === undefined || sourceFile === undefined) continue;
+    if (sourceFile === undefined) continue;
+    // rationale: no relationship is keyed to a missing id, so such a symbol
+    // is never judged and skipping it only saves work
+    // Stryker disable next-line ConditionalExpression
+    if (id === undefined) continue;
     const granularityReason = stringField(entity, "granularity_reason");
     results.push({
       entity: {
         id,
-        type: "symbol",
         title: stringField(entity, "title") ?? "",
-        status: stringField(entity, "status") ?? "",
+        source: stringField(entity, "source") ?? "",
+        // rationale: the granularity check reads only an entity's id, title,
+        // source and granularity_reason; these fields only fill its shape
+        // Stryker disable StringLiteral
+        type: "symbol",
+        status: "",
         created_at: "",
         updated_at: "",
-        source: stringField(entity, "source") ?? "",
+        // Stryker restore StringLiteral
+        // rationale: an absent and an undefined reason are both disallowed
+        // Stryker disable next-line ConditionalExpression
         ...(granularityReason !== undefined
           ? { granularity_reason: granularityReason }
           : {}),
       },
+      // rationale: a stray entry in a symbol without relationships has no
+      // traceability type, so the symbol stays exempt
+      // Stryker disable next-line ArrayDeclaration
       relationships: relationships.get(id) ?? [],
       sourceFile: normalizeSourceFile(workspaceRoot, sourceFile),
     });
@@ -138,15 +156,6 @@ function granularityCandidates(
   );
 }
 
-function readRegularFile(absolutePath: string): string | null {
-  try {
-    if (!statSync(absolutePath).isFile()) return null;
-    return readFileSync(absolutePath, "utf8");
-  } catch {
-    return null;
-  }
-}
-
 // implements REQ-cli-check
 async function analyzeFiles(
   files: readonly string[],
@@ -160,9 +169,11 @@ async function analyzeFiles(
   > | null = null;
   const analyses = new Map<string, readonly ExtractedSymbol[]>();
   for (const file of files) {
-    const content = readRegularFile(path.resolve(workspaceRoot, file));
-    if (content === null) continue;
     try {
+      const absolutePath = path.resolve(workspaceRoot, file);
+      // A directory, device or pipe is no source file; a missing file throws.
+      if (!statSync(absolutePath).isFile()) continue;
+      const content = readFileSync(absolutePath, "utf8");
       let analysis = cache?.get(file, content);
       if (analysis === undefined) {
         service ??= createMaintenanceSourceAnalysisService(workspaceRoot);
@@ -176,13 +187,18 @@ async function analyzeFiles(
       // from it finds none either; the check only skips that work.
       // Stryker disable next-line ConditionalExpression
       if (decided.status !== "ok") continue;
+      // rationale: every declaration meets the whole-file hunk, so neither
+      // the status nor the hunk range changes which symbols come back
+      // Stryker disable StringLiteral,ArrayDeclaration,ObjectLiteral
+      const wholeFile: StagedFile = {
+        path: file,
+        status: "M",
+        content,
+        hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
+      };
+      // Stryker restore StringLiteral,ArrayDeclaration,ObjectLiteral
       const symbols = await extractSymbolsFromStagedFileAsync(
-        {
-          path: file,
-          status: "M",
-          content,
-          hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
-        },
+        wholeFile,
         manifestLookup,
         { analyzeText: async () => decided },
       );
@@ -201,17 +217,14 @@ function granularityViolations(
   workspaceRoot: string,
 ): Violation[] {
   return createSymbolGranularityDiagnostics({
-    manifestResults: candidates.filter(
-      (result) =>
-        result.sourceFile !== undefined &&
-        sourceSymbolsByFile.has(result.sourceFile),
-    ),
+    // A candidate whose file was not analyzed has no narrower symbols.
+    manifestResults: candidates,
     symbolsByFile: new Map(),
     sourceSymbolsByFile,
     workspaceRoot,
   }).map((diagnostic) => ({
     rule: SYMBOL_GRANULARITY_RULE,
-    entityId: diagnostic.entityId ?? "",
+    entityId: diagnostic.entityId as string,
     description: diagnostic.message,
     suggestion: diagnostic.suggestion,
     ...(diagnostic.source !== undefined ? { source: diagnostic.source } : {}),
@@ -240,11 +253,12 @@ export async function collectSymbolGranularityViolations(
   if (!rules.has(SYMBOL_GRANULARITY_RULE)) return [];
   const results = await loadSymbolResults(prolog, workspaceRoot);
   const candidates = granularityCandidates(results);
+  // Every loaded symbol has a sourceFile; an empty one names the workspace
+  // root, a directory that analysis skips. Files are analyzed in the order
+  // their symbols were loaded.
   const files = [
-    ...new Set(candidates.map((result) => result.sourceFile ?? "")),
-  ]
-    .filter((file) => file.length > 0)
-    .sort();
+    ...new Set(candidates.map((result) => result.sourceFile as string)),
+  ];
   if (files.length === 0) return [];
   const cache = openSourceAnalysisCache(analysisCacheDir, workspaceRoot);
   const analyses = await analyzeFiles(files, results, workspaceRoot, cache);

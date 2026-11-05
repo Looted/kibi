@@ -47,6 +47,9 @@ function gitRunner(workspaceRoot: string) {
     execFileSync("git", [...args], {
       cwd: workspaceRoot,
       encoding: "utf8",
+      // rationale: stdio only decides whether git's own stderr reaches the
+      // terminal; the captured stdout and the thrown error are the same.
+      // Stryker disable next-line ArrayDeclaration
       stdio: ["ignore", "pipe", "pipe"],
       maxBuffer: 64 * 1024 * 1024,
     });
@@ -59,20 +62,23 @@ function tryGit(
   try {
     return git(args);
   } catch {
-    return undefined;
+    // A failed git command reads as no output.
   }
+  return undefined;
 }
 
+/** The entity a document holds; missing or unparsable content has none. */
 function parseEntity(
   content: string | undefined,
   filePath: string,
 ): ExtractedEntity | undefined {
-  if (content === undefined) return undefined;
   try {
-    return extractFromMarkdownString(content, filePath).entity;
+    // Missing content throws like unparsable content does.
+    return extractFromMarkdownString(content as string, filePath).entity;
   } catch {
-    return undefined;
+    // No entity.
   }
+  return undefined;
 }
 
 function flat(text: string): string {
@@ -81,7 +87,7 @@ function flat(text: string): string {
 
 /** The requirement's statement: its semantic text, else its title. */
 export function requirementStatement(entity: ExtractedEntity): string {
-  return flat(entity.semantic_text ?? entity.title ?? "");
+  return flat(entity.semantic_text ?? entity.title);
 }
 
 function firmnessOf(entity: ExtractedEntity): SignoffFirmness | undefined {
@@ -92,7 +98,7 @@ function statementRef(entity: ExtractedEntity): SignoffStatementRef {
   const firmness = firmnessOf(entity);
   return {
     id: entity.id,
-    title: flat(entity.title ?? entity.id),
+    title: flat(entity.title),
     statement: requirementStatement(entity),
     ...(firmness ? { firmness } : {}),
   };
@@ -144,8 +150,9 @@ function currentContent(
   try {
     return readFileSync(path.join(workspaceRoot, file), "utf8");
   } catch {
-    return undefined;
+    // A file listed but gone from the working tree has no content.
   }
+  return undefined;
 }
 
 /** Requirement entities in the working tree, read lazily by id. */
@@ -153,6 +160,9 @@ function workspaceRequirements(workspaceRoot: string) {
   const cache = new Map<string, ExtractedEntity | undefined>();
   return (id: string): ExtractedEntity | undefined => {
     if (!REQUIREMENT_ID.test(id)) return undefined;
+    // rationale: the cache only saves re-reading a document that does not
+    // change while a view is collected.
+    // Stryker disable next-line ConditionalExpression
     if (!cache.has(id)) {
       const file = path.join(workspaceRoot, REQUIREMENTS_DIR, `${id}.md`);
       cache.set(
@@ -176,6 +186,9 @@ function readRelationships(workspaceRoot: string) {
   try {
     return readAllShards(path.join(workspaceRoot, ".kb"));
   } catch {
+    // rationale: a record that is not a relationship matches no edge, so a
+    // non-empty fallback reads the same as none.
+    // Stryker disable next-line ArrayDeclaration
     return [];
   }
 }
@@ -231,9 +244,9 @@ export async function collectSignoffSummary(
     const approvedBy = origin?.approved_by;
     return {
       id: entity.id,
-      title: flat(entity.title ?? entity.id),
+      title: flat(entity.title),
       change,
-      status: entity.status ?? "",
+      status: entity.status,
       statement,
       ...(previousStatement !== undefined && previousStatement !== statement
         ? { previousStatement }
@@ -254,6 +267,9 @@ export async function collectSignoffSummary(
     };
   };
 
+  // rationale: an entry that is not a change record names no file, and every
+  // read of a missing file fails, so a non-empty fallback adds nothing.
+  // Stryker disable next-line ArrayDeclaration
   let files: ChangedFile[] = [];
   try {
     files = changedRequirementFiles(git, scope, base);
@@ -279,8 +295,8 @@ export async function collectSignoffSummary(
     );
     if (entity?.type !== "req") continue;
     const retired =
-      RETIRED_STATUS.test(entity.status ?? "") &&
-      !RETIRED_STATUS.test(before?.status ?? "");
+      RETIRED_STATUS.test(entity.status) &&
+      (before === undefined || !RETIRED_STATUS.test(before.status));
     const change: SignoffChange =
       status === "A" ? "new" : retired ? "retired" : "changed";
     drafts.set(entity.id, draftFor(entity, change, file, before));
@@ -298,7 +314,7 @@ export async function collectSignoffSummary(
         continue;
       }
       const entity = readRequirement(id);
-      if (!entity || RETIRED_STATUS.test(entity.status ?? "")) continue;
+      if (!entity || RETIRED_STATUS.test(entity.status)) continue;
       drafts.set(id, {
         ...draftFor(entity, "affected", `${REQUIREMENTS_DIR}/${id}.md`),
         symbols: [...symbols].sort(),
@@ -381,20 +397,10 @@ export async function loadAffectedForScope(
   const affected = new Map<string, readonly string[]>();
   for (const diagnostic of result.impactDiagnostics) {
     if (diagnostic.id !== "requirement_statement_unverified") continue;
-    const evidence = diagnostic.evidence as
-      | { requirement?: unknown; symbols?: unknown }
-      | undefined;
-    const id =
-      typeof evidence?.requirement === "string"
-        ? evidence.requirement
-        : diagnostic.entityId;
-    if (!id) continue;
-    const symbols = Array.isArray(evidence?.symbols)
-      ? evidence.symbols.filter(
-          (symbol): symbol is string => typeof symbol === "string",
-        )
-      : [];
-    affected.set(id, symbols);
+    // createRequirementStatementDiagnostics names the requirement as the
+    // diagnostic's entity and lists the changed symbols in its evidence.
+    const evidence = diagnostic.evidence as { symbols: string[] };
+    affected.set(diagnostic.entityId as string, evidence.symbols);
   }
   return affected;
 }
@@ -451,7 +457,8 @@ function optionalString(
   if (typeof value !== "string") {
     throw new Error(`${where}.${key} must be a string`);
   }
-  return value.trim() === "" ? undefined : value.trim();
+  // Callers read a blank value as absent.
+  return value.trim();
 }
 
 function optionalStrings(
@@ -483,11 +490,11 @@ export function parseSignoffQuestionsInput(
       `Questions input is not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
+  // Only an object carries questions; reading the field of another value
+  // yields undefined.
   const list = Array.isArray(parsed)
     ? parsed
-    : parsed !== null && typeof parsed === "object"
-      ? (parsed as { questions?: unknown }).questions
-      : undefined;
+    : (parsed as { questions?: unknown } | null)?.questions;
   if (!Array.isArray(list) || list.length === 0) {
     throw new Error(
       'Questions input must be {"questions":[...]} or an array with at least one question',
@@ -502,7 +509,7 @@ export function parseSignoffQuestionsInput(
     const statement = optionalString(record, "statement", where);
     if (!statement) throw new Error(`${where}.statement is required`);
     const firmness = optionalString(record, "firmness", where);
-    if (firmness !== undefined && !FIRMNESS_VALUES.has(firmness)) {
+    if (firmness && !FIRMNESS_VALUES.has(firmness)) {
       throw new Error(`${where}.firmness must be firm, default or exploratory`);
     }
     const id = optionalString(record, "id", where);

@@ -136,7 +136,9 @@ describe("intent-search remaining candidate, graph, and related-id branches", ()
       "/tmp",
     );
     expect(capped.analysis.candidateCount).toBe(10_000);
-  });
+    // Encoding and ranking 10,000 rows passes 5 s once Stryker instruments
+    // the search modules.
+  }, 30_000);
 
   test("graphGoal emits both depth-1 and depth-2 edge goals", () => {
     const depthOne = graphGoal(["REQ-A"], 1);

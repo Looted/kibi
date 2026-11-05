@@ -90,10 +90,10 @@ function mergeByKey<I, T>(
   strategy: Strategy<I, T>,
   input: I,
   primary: readonly T[],
-  fallback: readonly T[],
+  fallback: readonly T[] | undefined,
 ): T[] {
   const primaryByKey = new Map(primary.map((r) => [strategy.keyOf(r), r]));
-  const fallbackByKey = new Map(fallback.map((r) => [strategy.keyOf(r), r]));
+  const fallbackByKey = new Map(fallback?.map((r) => [strategy.keyOf(r), r]));
   return strategy.itemKeys(input).flatMap((key) => {
     const result = primaryByKey.get(key) ?? fallbackByKey.get(key);
     return result === undefined ? [] : [result];
@@ -125,18 +125,22 @@ async function compose<I, T>(
   let results: T[] = [];
 
   const builtin = await attempt(resolution.builtin, strategy, input);
-  const builtinResults = builtin.ok ? builtin.results : [];
 
   if (allowExternal && resolution.replace) {
     const replaced = await attempt(resolution.replace, strategy, input);
     if (replaced.ok) {
-      results = mergeByKey(strategy, input, replaced.results, builtinResults);
+      results = mergeByKey(
+        strategy,
+        input,
+        replaced.results,
+        builtin.ok ? builtin.results : undefined,
+      );
       stamps.push(resolution.replace.stamp);
     } else {
       diagnostics.push(replaced.diagnostic);
       fallbackUsed = true;
       if (builtin.ok) {
-        results = [...builtinResults];
+        results = [...builtin.results];
         stamps.push(withFallback(resolution.builtin.stamp, true));
       } else {
         diagnostics.push(builtin.diagnostic);
@@ -144,7 +148,7 @@ async function compose<I, T>(
     }
   } else {
     if (builtin.ok) {
-      results = [...builtinResults];
+      results = [...builtin.results];
       stamps.push(resolution.builtin.stamp);
     } else {
       diagnostics.push(builtin.diagnostic);
@@ -165,10 +169,8 @@ async function compose<I, T>(
           continue;
         }
         stamps.push(augment.stamp);
-        const improvements = augmented.results.filter(
-          (result) =>
-            unresolved.has(strategy.keyOf(result)) && strategy.improves(result),
-        );
+        // Validation already refused keys outside the unresolved subset.
+        const improvements = augmented.results.filter(strategy.improves);
         results = mergeByKey(strategy, input, improvements, results);
       }
     }

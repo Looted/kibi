@@ -58,14 +58,12 @@ export type PrologLoadSpec = { library: string } | { path: string };
 export function prologLoadSpecs(source: string): PrologLoadSpec[] {
   const specs: PrologLoadSpec[] = [];
   for (const match of source.matchAll(PROLOG_LOAD)) {
+    // Exactly one alternative captures, and each capture is non-empty.
     if (match[1] !== undefined) specs.push({ library: match[1] });
-    else {
-      const spec = match[2] ?? match[3] ?? match[4] ?? "";
-      if (spec !== "") specs.push({ path: spec });
-    }
+    else specs.push({ path: (match[2] ?? match[3] ?? match[4]) as string });
   }
   for (const match of source.matchAll(PROLOG_LOAD_LIST))
-    for (const item of (match[1] ?? "").split(",")) {
+    for (const item of (match[1] as string).split(",")) {
       const spec = item.trim().replace(/^['"]|['"]$/g, "");
       if (spec !== "") specs.push({ path: spec });
     }

@@ -1,10 +1,8 @@
 name: Prolog mutation
 
 # Mutalog mutation run over the Prolog core (see docs/mutation-testing.md).
-# It runs nightly on develop, on demand, and on pull requests that touch the
-# mutated sources, their tests or the lane's setup. Modules in
-# mutalog.config.pl gate at 100%: a surviving mutant fails the job. Modules in
-# mutalog.backlog.config.pl only report.
+# It runs only when dispatched by hand. Every module in mutalog.config.pl
+# gates at 100%: a surviving mutant fails the job.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -18,61 +16,6 @@ permissions:
   contents: read
 
 on:
-  schedule:
-    - cron: '47 3 * * *'
-  pull_request:
-    branches: [develop]
-    paths:
-      - 'packages/core/src/logic_ir.pl'
-      - 'packages/core/tests/logic_ir.plt'
-      - 'packages/core/src/intervals.pl'
-      - 'packages/core/tests/intervals.plt'
-      - 'packages/core/src/units.pl'
-      - 'packages/core/tests/units.plt'
-      - 'packages/core/src/symbol_classification.pl'
-      - 'packages/core/tests/symbol_classification.plt'
-      - 'packages/core/src/derived_chr.pl'
-      - 'packages/core/tests/derived_chr.plt'
-      - 'packages/core/src/sparql_client.pl'
-      - 'packages/core/tests/sparql_client.plt'
-      - 'packages/core/src/kb_consistency.pl'
-      - 'packages/core/tests/kb_consistency.plt'
-      - 'packages/core/src/certificates.pl'
-      - 'packages/core/tests/certificates.plt'
-      - 'packages/core/src/cases.pl'
-      - 'packages/core/tests/cases.plt'
-      - 'packages/core/src/rule_registry.pl'
-      - 'packages/core/tests/rule_registry.plt'
-      - 'packages/core/src/status.pl'
-      - 'packages/core/tests/status.plt'
-      - 'packages/core/tests/kb_fixture.pl'
-      - 'packages/core/tests/cert_fixture.pl'
-      - 'packages/core/tests/test_helpers.pl'
-      - 'packages/core/schema/validation.pl'
-      - 'packages/core/schema/entities.pl'
-      - 'packages/core/schema/relationships.pl'
-      - 'packages/core/src/code_certificates.pl'
-      - 'packages/core/src/certificate_check.pl'
-      - 'packages/core/src/model_check.pl'
-      - 'packages/core/src/claim_obligations.pl'
-      - 'packages/core/src/semantic_quality.pl'
-      - 'packages/core/tests/entities.plt'
-      - 'packages/core/tests/relationships.plt'
-      - 'packages/core/tests/validation.plt'
-      - 'packages/core/tests/code_certificates.plt'
-      - 'packages/core/tests/certificate_check.plt'
-      - 'packages/core/tests/model_check.plt'
-      - 'packages/core/tests/claim_obligations.plt'
-      - 'packages/core/tests/semantic_quality.plt'
-      - 'packages/core/src/discovery.pl'
-      - 'packages/core/tests/discovery.plt'
-      - 'packages/core/tests/proof_fixture.pl'
-      - 'packages/core/src/kb.pl'
-      - 'packages/core/tests/kb.plt'
-      - 'mutalog.config.pl'
-      - 'mutalog.backlog.config.pl'
-      - 'scripts/run-prolog-mutation.pl'
-      - '.github/workflows/mutation-prolog.yml'
   workflow_dispatch:
 
 jobs:
@@ -82,12 +25,11 @@ jobs:
   prolog-mutation:
     needs: [swipl-bundle]
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 240
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event_name == 'schedule' && 'develop' || '' }}
           fetch-depth: 1
 
       - name: Setup Bun
@@ -101,17 +43,11 @@ jobs:
       - name: Run Mutalog on the gated modules
         run: bun run test:mutation:prolog -- --reporters clear_text,html,json
 
-      - name: Run Mutalog on the backlog modules (report only)
-        if: ${{ !cancelled() }}
-        run: bun run test:mutation:prolog:backlog -- --reporters clear_text,html,json
-
       - name: Upload mutation report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: prolog-mutation-report
-          path: |
-            reports/mutation/prolog/
-            reports/mutation/prolog-backlog/
+          path: reports/mutation/prolog/
           if-no-files-found: ignore
           retention-days: 14

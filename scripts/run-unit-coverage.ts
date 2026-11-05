@@ -157,6 +157,7 @@ const CLI_SUPPORT_TESTS = CLI_SUPPORT_TEST_DIRECTORIES.flatMap((directory) =>
 const CLI_OPERATIONS_DIRS = [
   "./packages/cli/tests/operations",
   "./packages/cli/tests/operations-coverage",
+  "./packages/cli/tests/operations-mutation",
 ];
 const CLI_OPERATIONS_TESTS = CLI_OPERATIONS_DIRS.flatMap((directory) =>
   readdirSync(directory, { recursive: true, encoding: "utf8" })
@@ -278,6 +279,7 @@ export const COVERAGE_SHARDS: readonly {
     paths: [
       "./packages/cli/tests/public",
       "./packages/cli/tests/public-coverage",
+      "./packages/cli/tests/public-mutation",
     ],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },

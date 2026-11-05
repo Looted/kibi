@@ -1,0 +1,450 @@
+{
+  "name": "kb_ingest_proof",
+  "cliName": "ingest-proof",
+  "description": "Ingest a producer-emitted kibi.proof-run.v1 artifact and evaluate it against each selected test's kibi.proof-contract.v1 proof obligations. Revalidates the live workspace snapshot, integration command binding, run-level outcome, attempt history, success policy, and append-only proof-receipt history before deriving and appending idempotent kibi.proof-receipt.v1 receipts. Producers report what happened; Kibi evaluates proof. Prefer `kibi prove` so the configured producer runs automatically; direct ingestion is an integration path for custom producers and agents.",
+  "businessInputSchema": {
+    "type": "object",
+    "required": ["snapshot", "artifact"],
+    "properties": {
+      "snapshot": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$",
+        "description": "Workspace snapshot captured immediately before the run."
+      },
+      "artifact": {
+        "type": "object",
+        "description": "Producer-emitted kibi.proof-run.v1 proof artifact. Producers report what happened; Kibi evaluates proof obligations and policies. Produce it via `kibi prove` or direct kb_ingest_proof calls.",
+        "required": [
+          "version",
+          "producer",
+          "command_argv",
+          "code_snapshot",
+          "environment",
+          "run",
+          "proof_results"
+        ],
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "kibi.proof-run.v1"
+          },
+          "producer": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "executor": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "command_argv": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "code_snapshot": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "environment": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "run": {
+            "type": "object",
+            "required": ["outcome", "exit_code", "started_at", "finished_at"],
+            "properties": {
+              "outcome": {
+                "type": "string",
+                "enum": [
+                  "passed",
+                  "failed",
+                  "errored",
+                  "cancelled",
+                  "timed_out",
+                  "interrupted",
+                  "no_results"
+                ]
+              },
+              "exit_code": {
+                "type": "integer"
+              },
+              "started_at": {
+                "type": "string",
+                "minLength": 1
+              },
+              "finished_at": {
+                "type": "string",
+                "minLength": 1
+              },
+              "failure_phase": {
+                "type": "string",
+                "enum": [
+                  "setup",
+                  "collection",
+                  "execution",
+                  "teardown",
+                  "infrastructure"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "proof_results": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "description": "One observed proof result. binding distinguishes native-case observations from aggregate-run bindings; attempts must report facts only.",
+              "required": [
+                "symbol_id",
+                "target",
+                "outcome",
+                "binding",
+                "attempts"
+              ],
+              "properties": {
+                "symbol_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Stable proof symbol ID (SYM-*)."
+                },
+                "target": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Ecosystem-neutral execution target (browser, runtime, database, device, deployment, or default)."
+                },
+                "outcome": {
+                  "type": "string",
+                  "enum": [
+                    "passed",
+                    "failed",
+                    "timed_out",
+                    "skipped",
+                    "interrupted",
+                    "errored"
+                  ]
+                },
+                "binding": {
+                  "type": "string",
+                  "enum": ["native_case", "aggregate_run"]
+                },
+                "native_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "attempts": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": ["status", "entries"],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "complete"
+                        },
+                        "entries": {
+                          "type": "array",
+                          "minItems": 1,
+                          "maxItems": 100,
+                          "items": {
+                            "type": "object",
+                            "required": ["outcome"],
+                            "properties": {
+                              "outcome": {
+                                "type": "string",
+                                "enum": [
+                                  "passed",
+                                  "failed",
+                                  "timed_out",
+                                  "skipped",
+                                  "interrupted",
+                                  "errored"
+                                ]
+                              },
+                              "duration_ms": {
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": ["status"],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "unavailable"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "diagnostics": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "integration": {
+            "type": "string",
+            "minLength": 1
+          },
+          "diagnostics": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "certificates": {
+            "type": "array",
+            "description": "kibi.code-certificate.v1 objects the run left for certificate-kind contracts, one per test. Kibi re-checks each before a receipt counts as proved.",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "required": ["version", "kind", "test_id"]
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "testIds": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": "Existing test entities with proof_contract.v1. Omit to evaluate every test contracted to the artifact's integration."
+      }
+    }
+  },
+  "requiresProlog": true,
+  "effects": ["kb-read", "kb-write", "workspace-read"],
+  "execute": "[function executeIngestProof]",
+  "resultVersion": "kibi.kb_ingest_proof.v1",
+  "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "kibiProtocol",
+      "operation",
+      "resultVersion",
+      "status",
+      "data",
+      "effects",
+      "diagnostics",
+      "nextActions"
+    ],
+    "properties": {
+      "kibiProtocol": {
+        "const": 1
+      },
+      "operation": {
+        "const": "kb_ingest_proof"
+      },
+      "resultVersion": {
+        "const": "kibi.kb_ingest_proof.v1"
+      },
+      "status": {
+        "enum": ["success", "committed_with_repairs", "error"]
+      },
+      "data": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "artifactDigest": {
+            "type": "string"
+          },
+          "environmentHash": {
+            "type": "string"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "passed": {
+            "type": "integer"
+          },
+          "failed": {
+            "type": "integer"
+          },
+          "unchanged": {
+            "type": "integer"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "effectFailures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "nextActions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "effects": {
+        "type": "array",
+        "minItems": 3,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "status"],
+          "properties": {
+            "kind": {
+              "type": "string"
+            },
+            "status": {
+              "enum": ["completed", "failed", "not_applicable"]
+            },
+            "detail": {},
+            "errorCode": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "diagnostics": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["message"],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "severity": {
+              "enum": ["info", "warning", "error"]
+            },
+            "message": {
+              "type": "string"
+            },
+            "detail": {},
+            "category": {
+              "type": "string"
+            },
+            "suggestion": {
+              "type": "string"
+            },
+            "file": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "nextActions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation", "reason", "required"],
+          "properties": {
+            "operation": {
+              "type": "string"
+            },
+            "input": {},
+            "reason": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message", "retryable"],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "details": {}
+        }
+      }
+    }
+  },
+  "declaredEffects": [
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ]
+}

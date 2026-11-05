@@ -3,6 +3,7 @@
     fixture_kb_open/1,
     fixture_kb_open/2,
     detach_leftover_kb/0,
+    fixture_setups_fail_tests/0,
     fixture_kb_close/1,
     fixture_entity/3,
     fixture_rel/3
@@ -12,6 +13,8 @@
 % its own temporary directory, removed afterwards with the store detached.
 
 :- use_module(library(filesex)).
+:- use_module(library(semweb/rdf_db), [rdf_reset_db/0, rdf_graph/1, rdf_unload_graph/1]).
+:- use_module(library(semweb/rdf_persistency), [rdf_detach_db/0]).
 :- use_module('../src/kb.pl').
 
 %% with_fixture_kb(:Goal)
@@ -30,6 +33,7 @@ fixture_kb_open(Dir) :-
 % .pl file the store loads when it attaches.
 fixture_kb_open(LegacyEntities, Dir) :-
     detach_leftover_kb,
+    forget_proof_memo,
     tmp_file(kibi_fixture_kb, Dir),
     make_directory_path(Dir),
     (   LegacyEntities == []
@@ -39,16 +43,145 @@ fixture_kb_open(LegacyEntities, Dir) :-
                            forall(member(Entity, LegacyEntities), portray_clause(Out, Entity)),
                            close(Out))
     ),
-    kb_attach(Dir).
+    (   kb_attach(Dir)
+    ->  true
+    ;   throw(error(fixture_attach_failed(Dir), _))
+    ).
 
-%% detach_leftover_kb
-% Detach a KB that a test cut short (a time limit, say) left attached, so
-% the next setup can attach its own.
-detach_leftover_kb :-
-    (   kb:kb_attached(_)
-    ->  kb_detach
+%% forget_proof_memo
+% Empty requirement_proof's pure-function memo, when that module is loaded.
+% The memo is keyed by its inputs, and fixtures in different files build the
+% same receipts, so a cached answer from an earlier test (or an earlier
+% load of the module under mutation testing) would otherwise stand in for a
+% fresh computation.
+forget_proof_memo :-
+    (   current_predicate(requirement_proof:pure_memo/3)
+    ->  retractall(requirement_proof:pure_memo(_, _, _)),
+        retractall(requirement_proof:pure_memo_size(_))
     ;   true
     ).
+
+%% detach_leftover_kb
+% Put the KB back to its unattached state, whatever a test that was cut
+% short (a time limit, say) left behind, so the next setup can attach its own
+% store and see only its own facts. kb_detach/0 alone does not cover a store
+% caught halfway through kb_attach/1: the RDF journal or the audit database
+% can be attached before the facts that tell kb_detach/0 to release them are
+% recorded, and a graph can be loaded before it is recorded as the KB's. So
+% this also releases both databases unconditionally, drops every RDF graph,
+% and clears every fact of the kb module (attachment state, read indexes and
+% memos). A release step that fails or raises (kb_detach/0 fails on a
+% journaled store whose RDF journal was never attached) does not stop the
+% steps after it.
+detach_leftover_kb :-
+    release(kb_detach),
+    release(rdf_detach_db),
+    (   kb:db_attached(_)
+    ->  release(kb:db_detach)
+    ;   true
+    ),
+    % rdf_reset_db/0 refuses while the RDF store is busy (an open snapshot,
+    % say); unloading the graphs one by one still drops their triples.
+    catch(rdf_reset_db, _, forall(rdf_graph(Graph), rdf_unload_graph(Graph))),
+    forall(kb_state(Head), retractall(Head)),
+    forall(text_memo(Head), retractall(Head)).
+
+% Memos of other modules that are keyed by input text alone. They assume
+% the code that filled them never changes, which a reloaded module (a
+% mutation run, say) breaks, so they are dropped with the KB state.
+text_memo(Module:Head) :-
+    member(Module:Head, [ logic_ir:logic_rule_memo(_, _),
+                          logic_ir:logic_rule_memo_size(_),
+                          requirement_proof:pure_memo(_, _, _),
+                          requirement_proof:pure_memo_size(_),
+                          checks:json_text_memo(_, _),
+                          checks:json_text_memo_size(_),
+                          discovery:coverage_memo(_, _, _, _),
+                          status:workspace_root_memo(_, _) ]),
+    current_predicate(_, Module:Head),
+    predicate_property(Module:Head, dynamic).
+
+release(Goal) :-
+    ignore(catch(Goal, _, true)).
+
+kb_state(kb:Head) :-
+    predicate_property(kb:Head, dynamic),
+    \+ predicate_property(kb:Head, imported_from(_)).
+
+%% fixture_setups_fail_tests
+% Directive for a plunit file whose setups attach a KB. PLUnit 9 reports a
+% setup option that fails or throws but does not count its test as failed
+% (PLUnit 10 does), so a store that cannot be attached would let the test pass
+% without running it. In a file that runs this directive, the setup option of
+% each test, and of its unit, runs instead as the first goal of the test
+% body, where a failure throws and fails the test on both. A unit's setup and
+% cleanup then run around each of its tests rather than once for the unit,
+% and each test starts without the text memos of other modules.
+:- dynamic setups_in_body/1, unit_fixture/3.
+
+fixture_setups_fail_tests :-
+    prolog_load_context(source, File),
+    retractall(setups_in_body(File)),
+    assertz(setups_in_body(File)).
+
+setups_in_body_source(File) :-
+    prolog_load_context(source, File),
+    setups_in_body(File).
+
+:- multifile user:term_expansion/2.
+user:term_expansion((:- begin_tests(Unit, Options0)), (:- begin_tests(Unit, Options))) :-
+    setups_in_body_source(File),
+    take_option(setup, Options0, Options1, Setup),
+    take_option(cleanup, Options1, Options, Cleanup),
+    retractall(unit_fixture(File, _, _)),
+    assertz(unit_fixture(File, Setup, Cleanup)).
+user:term_expansion((:- end_tests(_)), _) :-
+    setups_in_body_source(File),
+    retractall(unit_fixture(File, _, _)),
+    fail.
+user:term_expansion((test(Name) :- Body), Clause) :-
+    setups_in_body_source(File),
+    setup_in_body(File, Name, [], Body, Clause).
+user:term_expansion((test(Name, Options) :- Body), Clause) :-
+    setups_in_body_source(File),
+    (   is_list(Options)
+    ->  setup_in_body(File, Name, Options, Body, Clause)
+    ;   setup_in_body(File, Name, [Options], Body, Clause)
+    ).
+
+setup_in_body(File, Name, Options0, Body0, (test(Name, Options) :- Body)) :-
+    (   unit_fixture(File, UnitSetup, UnitCleanup)
+    ->  true
+    ;   UnitSetup = true,
+        UnitCleanup = true
+    ),
+    take_option(setup, Options0, Options1, Setup),
+    take_option(cleanup, Options1, Options2, Cleanup),
+    % The goals run in the unit's module, where plunit would run them.
+    prolog_load_context(module, Unit),
+    Body = (kb_fixture:fixture_setup(Unit:(UnitSetup, Setup)), Body0),
+    Options = [cleanup(kb_fixture:fixture_cleanup(Unit:Cleanup, Unit:UnitCleanup))|Options2].
+
+take_option(Name, Options0, Options, Goal) :-
+    Option =.. [Name, Goal],
+    (   selectchk(Option, Options0, Options)
+    ->  true
+    ;   Options = Options0,
+        Goal = true
+    ).
+
+:- meta_predicate fixture_setup(0), fixture_cleanup(0, 0).
+fixture_setup(Setup) :-
+    forall(text_memo(Head), retractall(Head)),
+    (   call(Setup)
+    ->  true
+    ;   throw(error(goal_failed(setup(Setup)), _))
+    ).
+
+% The test's own cleanup, then its unit's, which runs even when the first
+% fails or throws.
+fixture_cleanup(Cleanup, UnitCleanup) :-
+    setup_call_cleanup(true, ignore(Cleanup), UnitCleanup).
 
 %% fixture_kb_close(+Dir)
 fixture_kb_close(Dir) :-

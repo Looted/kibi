@@ -1,0 +1,1710 @@
+{
+  "cases": [
+    {
+      "input": {
+        "id": "X",
+        "properties": {}
+      },
+      "expected": "{\"code\":\"VALIDATION_FAILED\",\"message\":\"'type' and 'id' are required for upsert\",\"issues\":[{\"rule\":\"required\",\"field\":\"type\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "properties": {}
+      },
+      "expected": "{\"code\":\"VALIDATION_FAILED\",\"message\":\"'type' and 'id' are required for upsert\",\"issues\":[{\"rule\":\"required\",\"field\":\"id\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "REQ-1",
+        "properties": {
+          "title": "R",
+          "status": "open"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"REQ-1\",\"type\":\"req\",\"title\":\"R\",\"status\":\"open\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "REQ-2",
+        "properties": {
+          "title": "R",
+          "status": "bogus"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /status: must be equal to one of the allowed values. Allowed values for req entities: open, in_progress, closed, deprecated\",\"issues\":[{\"rule\":\"enum\",\"field\":\"status\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "REQ-R-logic_claims",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "logic_claims": []
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /logic_claims: must NOT have fewer than 1 items\",\"issues\":[{\"rule\":\"minItems\",\"field\":\"logic_claims\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "REQ-R-fact_kind",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "fact_kind": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: fact_kind is only valid on fact entities; remove it from this req\",\"issues\":[{\"rule\":\"not\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "REQ-R-firmness",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "firmness": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /firmness: must be equal to one of the allowed values. Allowed values: firm, default, exploratory\",\"issues\":[{\"rule\":\"enum\",\"field\":\"firmness\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "REQ-R-expects",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "expects": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: expects is only valid on scenario entities; remove it from this req\",\"issues\":[{\"rule\":\"not\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "REQ-R2",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "subject_key": "a",
+          "property_key": "b"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: subject_key, property_key are only valid on fact entities; remove them from this req\",\"issues\":[{\"rule\":\"not\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "REQ-U1",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "value": 3
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'value'. Use value_type: \\\"int\\\" plus value_int: 3. Do not use generic value in kb_upsert.properties.; Use value_type: \\\"int\\\" plus value_int: 3.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"value\"}]}"
+    },
+    {
+      "input": {
+        "type": "scenario",
+        "id": "SCENARIO-2",
+        "properties": {
+          "title": "S",
+          "status": "bogus"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /status: must be equal to one of the allowed values. Allowed values for scenario entities: draft, active, deprecated\",\"issues\":[{\"rule\":\"enum\",\"field\":\"status\"}]}"
+    },
+    {
+      "input": {
+        "type": "scenario",
+        "id": "SCENARIO-R-firmness",
+        "properties": {
+          "title": "S",
+          "status": "draft",
+          "firmness": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: firmness is only valid on req and adr entities; remove it from this scenario\",\"issues\":[{\"rule\":\"not\"}]}"
+    },
+    {
+      "input": {
+        "type": "test",
+        "id": "TEST-2",
+        "properties": {
+          "title": "T",
+          "status": "bogus"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /status: must be equal to one of the allowed values. Allowed values for test entities: passing, failing, skipped, pending\",\"issues\":[{\"rule\":\"enum\",\"field\":\"status\"}]}"
+    },
+    {
+      "input": {
+        "type": "adr",
+        "id": "ADR-2",
+        "properties": {
+          "title": "A",
+          "status": "bogus"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /status: must be equal to one of the allowed values. Allowed values for adr entities: proposed, accepted, deprecated, superseded\",\"issues\":[{\"rule\":\"enum\",\"field\":\"status\"}]}"
+    },
+    {
+      "input": {
+        "type": "flag",
+        "id": "FLAG-2",
+        "properties": {
+          "title": "F",
+          "status": "bogus"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /status: must be equal to one of the allowed values. Allowed values for flag entities: active, inactive, deprecated\",\"issues\":[{\"rule\":\"enum\",\"field\":\"status\"}]}"
+    },
+    {
+      "input": {
+        "type": "event",
+        "id": "EVENT-2",
+        "properties": {
+          "title": "E",
+          "status": "bogus"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /status: must be equal to one of the allowed values. Allowed values for event entities: active, deprecated\",\"issues\":[{\"rule\":\"enum\",\"field\":\"status\"}]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYMBOL-1",
+        "properties": {
+          "title": "Y",
+          "status": "active"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYMBOL-1\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYMBOL-2",
+        "properties": {
+          "title": "Y",
+          "status": "bogus"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /status: must be equal to one of the allowed values. Allowed values for symbol entities: active, deprecated, removed\",\"issues\":[{\"rule\":\"enum\",\"field\":\"status\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "FACT-2",
+        "properties": {
+          "title": "X",
+          "status": "bogus",
+          "fact_kind": "observation",
+          "value_string": "v"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /status: must be equal to one of the allowed values. Allowed values for fact entities: active, deprecated\",\"issues\":[{\"rule\":\"enum\",\"field\":\"status\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "value": true
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'value'. Use value_type: \\\"bool\\\" plus value_bool: true. Do not use generic value in kb_upsert.properties.; Use value_type: \\\"bool\\\" plus value_bool: true.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"value\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "value": true
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'value'. Use value_type: \\\"bool\\\" plus value_bool: true. Do not use generic value in kb_upsert.properties.; Use value_type: \\\"bool\\\" plus value_bool: true.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"value\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "value": 2.5
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'value'. Use value_type: \\\"number\\\" plus value_number: 2.5. Do not use generic value in kb_upsert.properties.; Use value_type: \\\"number\\\" plus value_number: 2.5.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"value\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "value": 2.5
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'value'. Use value_type: \\\"number\\\" plus value_number: 2.5. Do not use generic value in kb_upsert.properties.; Use value_type: \\\"number\\\" plus value_number: 2.5.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"value\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "value": "s"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'value'. Use value_type: \\\"string\\\" plus value_string: \\\"s\\\". Do not use generic value in kb_upsert.properties.; Use value_type: \\\"string\\\" plus value_string: \\\"s\\\".; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"value\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "value": "s"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'value'. Use value_type: \\\"string\\\" plus value_string: \\\"s\\\". Do not use generic value in kb_upsert.properties.; Use value_type: \\\"string\\\" plus value_string: \\\"s\\\".; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"value\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "value": ["a"]
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'value'. Use value_type: \\\"set\\\" plus value_set: [\\\"a\\\"]. Do not use generic value in kb_upsert.properties.; Use value_type: \\\"set\\\" plus value_set: [\\\"a\\\"].; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"value\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "value": ["a"]
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'value'. Use value_type: \\\"set\\\" plus value_set: [\\\"a\\\"]. Do not use generic value in kb_upsert.properties.; Use value_type: \\\"set\\\" plus value_set: [\\\"a\\\"].; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"value\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "value": null
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'value'. Use value_type plus exactly one of value_string, value_int, value_number, value_bool, or value_set. Do not use generic value in kb_upsert.properties.; Use value_type plus exactly one of value_string, value_int, value_number, value_bool, or value_set.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"value\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "value": null
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'value'. Use value_type plus exactly one of value_string, value_int, value_number, value_bool, or value_set. Do not use generic value in kb_upsert.properties.; Use value_type plus exactly one of value_string, value_int, value_number, value_bool, or value_set.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"value\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "subjectKey": "a"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'subjectKey'. Did you mean 'subject_key'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'subjectKey'. Use 'subject_key' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "subjectKey": "a"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'subjectKey'. Did you mean 'subject_key'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'subjectKey'. Use 'subject_key' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "propertyKey": "a"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'propertyKey'. Did you mean 'property_key'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'propertyKey'. Use 'property_key' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "propertyKey": "a"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'propertyKey'. Did you mean 'property_key'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'propertyKey'. Use 'property_key' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "predicateName": "a"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'predicateName'. Did you mean 'predicate_name'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'predicateName'. Use 'predicate_name' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "predicateName": "a"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'predicateName'. Did you mean 'predicate_name'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'predicateName'. Use 'predicate_name' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "predicateArgs": []
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'predicateArgs'. Did you mean 'predicate_args'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'predicateArgs'. Use 'predicate_args' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "predicateArgs": []
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'predicateArgs'. Did you mean 'predicate_args'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'predicateArgs'. Use 'predicate_args' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "canonicalKey": "a"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'canonicalKey'. Did you mean 'canonical_key'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'canonicalKey'. Use 'canonical_key' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "canonicalKey": "a"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'canonicalKey'. Did you mean 'canonical_key'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'canonicalKey'. Use 'canonical_key' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "closedWorld": true
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'closedWorld'. Did you mean 'closed_world'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'closedWorld'. Use 'closed_world' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"closedWorld\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "closedWorld": true
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'closedWorld'. Did you mean 'closed_world'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'closedWorld'. Use 'closed_world' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"closedWorld\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "body": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'body' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"body\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "body": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'body' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"body\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "text": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'text' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "text": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'text' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "description": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'description' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "description": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'description' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "content": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'content' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "content": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'content' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "markdown": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'markdown' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "markdown": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'markdown' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "prose": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'prose' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "prose": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'prose' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "summary": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'summary' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "summary": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'summary' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "details": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'details' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "details": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'details' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "body": "x",
+          "foo": 1
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'body' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties. Other unknown properties: 'foo'.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"body\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "body": "x",
+          "foo": 1
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'body' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties. Other unknown properties: 'foo'.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"body\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "body": "x",
+          "foo": 1,
+          "bar": 2
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'body' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties. Other unknown properties: 'foo', 'bar'.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"body\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "body": "x",
+          "foo": 1,
+          "bar": 2
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'body' (must NOT have additional properties). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties. Other unknown properties: 'foo', 'bar'.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"body\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "foo": 1
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'foo' (must NOT have additional properties). Remove it from kb_upsert.properties or use fields the fact schema defines.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "foo": 1
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'foo' (must NOT have additional properties). Remove it from kb_upsert.properties or use fields the req schema defines.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "foo": 1,
+          "bar": 2
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown properties 'foo', 'bar' (must NOT have additional properties). Remove them from kb_upsert.properties or use fields the fact schema defines.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "foo": 1,
+          "bar": 2
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown properties 'foo', 'bar' (must NOT have additional properties). Remove them from kb_upsert.properties or use fields the req schema defines.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "foo": 1,
+          "summary": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown properties 'foo', 'summary' (must NOT have additional properties). Remove them from kb_upsert.properties or use fields the fact schema defines. Entity prose belongs in kb_upsert.document.body.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "foo": 1,
+          "summary": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown properties 'foo', 'summary' (must NOT have additional properties). Remove them from kb_upsert.properties or use fields the req schema defines. Entity prose belongs in kb_upsert.document.body.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "subjectKey": "a",
+          "foo": 1
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'subjectKey'. Did you mean 'subject_key'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'subjectKey'. Use 'subject_key' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "subjectKey": "a",
+          "foo": 1
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'subjectKey'. Did you mean 'subject_key'? kb_upsert.properties uses snake_case typed fact fields.; Unknown property 'subjectKey'. Use 'subject_key' in kb_upsert.properties.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "granularity_reason": "nope"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /granularity_reason: must be equal to one of the allowed values. Allowed values: config-artifact, module-level-behavior, extractor-miss, legacy-link, test-suite\",\"issues\":[{\"rule\":\"enum\",\"field\":\"granularity_reason\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "granularity_reason": "nope"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /granularity_reason: must be equal to one of the allowed values. Allowed values: config-artifact, module-level-behavior, extractor-miss, legacy-link, test-suite\",\"issues\":[{\"rule\":\"enum\",\"field\":\"granularity_reason\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "symbol_role": "nope"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /symbol_role: must be equal to one of the allowed values. Allowed values: behavioral, structural, type-shape, config, module, unknown\",\"issues\":[{\"rule\":\"enum\",\"field\":\"symbol_role\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "symbol_role": "nope"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /symbol_role: must be equal to one of the allowed values. Allowed values: behavioral, structural, type-shape, config, module, unknown\",\"issues\":[{\"rule\":\"enum\",\"field\":\"symbol_role\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "tags": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /tags: must be array\",\"issues\":[{\"rule\":\"type\",\"field\":\"tags\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "tags": "x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /tags: must be array\",\"issues\":[{\"rule\":\"type\",\"field\":\"tags\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "links": [
+            {
+              "bogus": 1
+            }
+          ]
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /links/0: must be string\",\"issues\":[{\"rule\":\"type\",\"field\":\"links.*\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "links": [
+            {
+              "bogus": 1
+            }
+          ]
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /links/0: must be string\",\"issues\":[{\"rule\":\"type\",\"field\":\"links.*\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-E",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "proof_contract": {
+            "nope": 1
+          }
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: proof_contract is only valid on test entities; remove it from this fact\",\"issues\":[{\"rule\":\"not\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-E",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "proof_contract": {
+            "nope": 1
+          }
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: proof_contract is only valid on test entities; remove it from this req\",\"issues\":[{\"rule\":\"not\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-PV",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "property_value",
+          "subject_key": "s",
+          "value": 1
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: root: unknown property 'value'. Use value_type: \\\"int\\\" plus value_int: 1. Do not use generic value in kb_upsert.properties.; fact_kind 'property_value' requires property_key, operator, value_type.; fact_kind 'property_value' requires exactly one typed value field: value_string, value_int, value_number, value_bool, or value_set.; Next action: use kb_model_requirement for prose claims, or provide subject_key, property_key, operator, value_type, and one value_* field in kb_upsert.properties.; Use value_type: \\\"int\\\" plus value_int: 1.; Next action: if starting from prose, call kb_model_requirement and apply its sequential applyPlan instead of guessing field names.\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"value\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-PV2",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "property_value",
+          "polarity": "assert"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /polarity: must be equal to one of the allowed values. Allowed values: require, forbid; fact_kind 'property_value' requires subject_key, property_key, operator, value_type.; fact_kind 'property_value' requires exactly one typed value field: value_string, value_int, value_number, value_bool, or value_set.; Next action: use kb_model_requirement for prose claims, or provide subject_key, property_key, operator, value_type, and one value_* field in kb_upsert.properties.\",\"issues\":[{\"rule\":\"enum\",\"field\":\"polarity\"}]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-1",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "sourceFile": ".kb"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: symbol sourceFile must point at a real code file in the workspace, not into the knowledge base ('.kb'). Coordinates for .kb/ paths are never merged into the engine, so coverage would report missing_symbol_coordinates permanently. Point the symbol at the implementing or verifying code file instead.\",\"issues\":[{\"rule\":\"symbol_source_in_kb\",\"field\":\"sourceFile\"}]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-1",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "sourceFile": ".kb/x.md"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: symbol sourceFile must point at a real code file in the workspace, not into the knowledge base ('.kb/x.md'). Coordinates for .kb/ paths are never merged into the engine, so coverage would report missing_symbol_coordinates permanently. Point the symbol at the implementing or verifying code file instead.\",\"issues\":[{\"rule\":\"symbol_source_in_kb\",\"field\":\"sourceFile\"}]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-1",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "sourceFile": " .kb/x "
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: symbol sourceFile must point at a real code file in the workspace, not into the knowledge base (' .kb/x '). Coordinates for .kb/ paths are never merged into the engine, so coverage would report missing_symbol_coordinates permanently. Point the symbol at the implementing or verifying code file instead.\",\"issues\":[{\"rule\":\"symbol_source_in_kb\",\"field\":\"sourceFile\"}]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-1",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "sourceFile": ".kb\\x"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: symbol sourceFile must point at a real code file in the workspace, not into the knowledge base ('.kb\\\\x'). Coordinates for .kb/ paths are never merged into the engine, so coverage would report missing_symbol_coordinates permanently. Point the symbol at the implementing or verifying code file instead.\",\"issues\":[{\"rule\":\"symbol_source_in_kb\",\"field\":\"sourceFile\"}]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-1",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "sourceFile": "C:/x.ts"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: symbol sourceFile must be a workspace-relative path ('C:/x.ts'). Absolute paths and '..' escapes are rejected so coordinate refresh cannot read files outside the repository.\",\"issues\":[{\"rule\":\"symbol_source_outside_workspace\",\"field\":\"sourceFile\"}]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-1",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "sourceFile": "/abs.ts"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: symbol sourceFile must be a workspace-relative path ('/abs.ts'). Absolute paths and '..' escapes are rejected so coordinate refresh cannot read files outside the repository.\",\"issues\":[{\"rule\":\"symbol_source_outside_workspace\",\"field\":\"sourceFile\"}]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-1",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "sourceFile": "a/../b.ts"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: symbol sourceFile must be a workspace-relative path ('a/../b.ts'). Absolute paths and '..' escapes are rejected so coordinate refresh cannot read files outside the repository.\",\"issues\":[{\"rule\":\"symbol_source_outside_workspace\",\"field\":\"sourceFile\"}]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-1",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "sourceFile": ""
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-1\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"sourceFile\":\"\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-SF",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "sourceFile": ".kb/x"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"R-SF\",\"type\":\"req\",\"title\":\"R\",\"status\":\"open\",\"sourceFile\":\".kb/x\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-PE",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "proof_exempt": true
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: proof_exempt requires a non-empty proof_exempt_reason explaining why the requirement is outside E2E-proof scope\",\"issues\":[{\"rule\":\"required\",\"field\":\"proof_exempt_reason\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-PE",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "proof_exempt": true,
+          "proof_exempt_reason": "  "
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: proof_exempt requires a non-empty proof_exempt_reason explaining why the requirement is outside E2E-proof scope\",\"issues\":[{\"rule\":\"required\",\"field\":\"proof_exempt_reason\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-PE",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "proof_exempt": true,
+          "proof_exempt_reason": "because"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"R-PE\",\"type\":\"req\",\"title\":\"R\",\"status\":\"open\",\"proof_exempt\":true,\"proof_exempt_reason\":\"because\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "test",
+        "id": "T-R",
+        "properties": {
+          "title": "T",
+          "status": "passing",
+          "verification_scope": "end_to_end",
+          "proof_receipts": [
+            {
+              "version": "kibi.proof-receipt.v1",
+              "receipt_id": "PR-00000001",
+              "test_id": "T-R",
+              "scope": "end_to_end",
+              "outcome": "passed",
+              "code_snapshot": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "environment_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "started_at": "2026-01-01T00:00:00.000Z",
+              "finished_at": "2026-01-02T00:00:00.000Z",
+              "artifact_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "contract_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "fingerprint": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "fingerprint_components": {
+                "contract": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+                "integration": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
+                "command": "3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a",
+                "bindings": "4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a",
+                "producer": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+              },
+              "integration_id": "command",
+              "producer": {
+                "name": "p"
+              },
+              "command_argv": ["node"],
+              "run_outcome": "passed",
+              "proof_results": [
+                {
+                  "symbol_id": "S",
+                  "target": "default",
+                  "outcome": "passed",
+                  "binding": "aggregate_run",
+                  "attempts": {
+                    "status": "unavailable"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"T-R\",\"type\":\"test\",\"title\":\"T\",\"status\":\"passing\",\"verification_scope\":\"end_to_end\",\"proof_receipts\":[{\"version\":\"kibi.proof-receipt.v1\",\"receipt_id\":\"PR-00000001\",\"test_id\":\"T-R\",\"scope\":\"end_to_end\",\"outcome\":\"passed\",\"code_snapshot\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"environment_hash\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"started_at\":\"2026-01-01T00:00:00.000Z\",\"finished_at\":\"2026-01-02T00:00:00.000Z\",\"artifact_digest\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"contract_hash\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"fingerprint\":\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"fingerprint_components\":{\"contract\":\"1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a\",\"integration\":\"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a\",\"command\":\"3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a\",\"bindings\":\"4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a\",\"producer\":\"5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a\"},\"integration_id\":\"command\",\"producer\":{\"name\":\"p\"},\"command_argv\":[\"node\"],\"run_outcome\":\"passed\",\"proof_results\":[{\"symbol_id\":\"S\",\"target\":\"default\",\"outcome\":\"passed\",\"binding\":\"aggregate_run\",\"attempts\":{\"status\":\"unavailable\"}}]}],\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "test",
+        "id": "T-R",
+        "properties": {
+          "title": "T",
+          "status": "passing",
+          "verification_scope": "end_to_end",
+          "proof_receipts": [
+            {
+              "version": "kibi.proof-receipt.v1",
+              "receipt_id": "PR-00000001",
+              "test_id": "OTHER",
+              "scope": "end_to_end",
+              "outcome": "passed",
+              "code_snapshot": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "environment_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "started_at": "2026-01-01T00:00:00.000Z",
+              "finished_at": "2026-01-02T00:00:00.000Z",
+              "artifact_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "contract_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "fingerprint": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "fingerprint_components": {
+                "contract": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+                "integration": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
+                "command": "3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a",
+                "bindings": "4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a",
+                "producer": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+              },
+              "integration_id": "command",
+              "producer": {
+                "name": "p"
+              },
+              "command_argv": ["node"],
+              "run_outcome": "passed",
+              "proof_results": [
+                {
+                  "symbol_id": "S",
+                  "target": "default",
+                  "outcome": "passed",
+                  "binding": "aggregate_run",
+                  "attempts": {
+                    "status": "unavailable"
+                  }
+                }
+              ]
+            },
+            {
+              "version": "kibi.proof-receipt.v1",
+              "receipt_id": "PR-00000002",
+              "test_id": "OTHER",
+              "scope": "end_to_end",
+              "outcome": "passed",
+              "code_snapshot": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "environment_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "started_at": "2026-01-01T00:00:00.000Z",
+              "finished_at": "2026-01-02T00:00:00.000Z",
+              "artifact_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "contract_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "fingerprint": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "fingerprint_components": {
+                "contract": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+                "integration": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
+                "command": "3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a",
+                "bindings": "4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a4a",
+                "producer": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+              },
+              "integration_id": "command",
+              "producer": {
+                "name": "p"
+              },
+              "command_argv": ["node"],
+              "run_outcome": "passed",
+              "proof_results": [
+                {
+                  "symbol_id": "S",
+                  "target": "default",
+                  "outcome": "passed",
+                  "binding": "aggregate_run",
+                  "attempts": {
+                    "status": "unavailable"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: proof_receipts[0].test_id must equal 'T-R'; proof_receipts[0] must be a structurally valid kibi.proof-receipt.v2 (or v1) bound to 'T-R'; proof_receipts[1].test_id must equal 'T-R'; proof_receipts[1] must be a structurally valid kibi.proof-receipt.v2 (or v1) bound to 'T-R'\",\"issues\":[{\"rule\":\"proof_receipt_history\",\"field\":\"proof_receipts\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-CK",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "claim_text": "Logs are kept.",
+          "claim_key": "CLAIM-9875A22EE4A38F44"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"F-CK\",\"type\":\"fact\",\"title\":\"X\",\"status\":\"active\",\"fact_kind\":\"observation\",\"value_string\":\"v\",\"claim_text\":\"Logs are kept.\",\"claim_key\":\"CLAIM-9875A22EE4A38F44\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-CK",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "claim_text": "Logs are kept.",
+          "claim_key": "CLAIM-WRONG"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /claim_key: must match pattern \\\"^CLAIM-[A-F0-9]{16}$\\\"\",\"issues\":[{\"rule\":\"pattern\",\"field\":\"claim_key\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-CK",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "claim_text": "Logs are kept."
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"F-CK\",\"type\":\"fact\",\"title\":\"X\",\"status\":\"active\",\"fact_kind\":\"observation\",\"value_string\":\"v\",\"claim_text\":\"Logs are kept.\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-REL",
+        "properties": {
+          "title": "R",
+          "status": "open"
+        },
+        "relationships": [
+          {
+            "type": "depends_on",
+            "from": "A",
+            "to": "B"
+          },
+          {
+            "type": "bogus",
+            "from": "A",
+            "to": "B"
+          }
+        ]
+      },
+      "expected": "{\"code\":\"RELATIONSHIP_VALIDATION_FAILED\",\"message\":\"Relationship validation failed at index 1: /type: must be equal to one of the allowed values\",\"issues\":[{\"rule\":\"enum\",\"field\":\"relationships.*.type\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-REL",
+        "properties": {
+          "title": "R",
+          "status": "open"
+        },
+        "relationships": [
+          {
+            "from": "A"
+          }
+        ]
+      },
+      "expected": "{\"code\":\"RELATIONSHIP_VALIDATION_FAILED\",\"message\":\"Relationship validation failed at index 0: root: must have required property 'type'\",\"issues\":[{\"rule\":\"required\",\"field\":\"relationships.*.type\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-CK0",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "observation",
+          "value_string": "v",
+          "claim_text": "Logs are kept.",
+          "claim_key": "CLAIM-0000000000000000"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: claim_key must equal the stable key derived from claim_text (expected 'CLAIM-9875A22EE4A38F44')\",\"issues\":[{\"rule\":\"claim_key_mismatch\",\"field\":\"claim_key\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-CKG",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "property_value",
+          "subject_key": "s",
+          "property_key": "p",
+          "operator": "eq",
+          "value_type": "string",
+          "value_string": "v",
+          "claim_text": "Logs are kept."
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"F-CKG\",\"type\":\"fact\",\"title\":\"X\",\"status\":\"active\",\"fact_kind\":\"property_value\",\"subject_key\":\"s\",\"property_key\":\"p\",\"operator\":\"eq\",\"value_type\":\"string\",\"value_string\":\"v\",\"claim_text\":\"Logs are kept.\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\",\"claim_key\":\"CLAIM-9875A22EE4A38F44\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-CKG2",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "property_value",
+          "subject_key": "s",
+          "property_key": "p",
+          "value_string": "v"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: fact_kind 'property_value' requires operator, value_type.; Next action: use kb_model_requirement for prose claims, or provide subject_key, property_key, operator, value_type, and one value_* field in kb_upsert.properties.\",\"issues\":[{\"rule\":\"fact_kind_shape\",\"field\":\"fact_kind\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-PV3",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "property_value",
+          "subject_key": "s",
+          "property_key": "p"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: fact_kind 'property_value' requires operator, value_type.; fact_kind 'property_value' requires exactly one typed value field: value_string, value_int, value_number, value_bool, or value_set.; Next action: use kb_model_requirement for prose claims, or provide subject_key, property_key, operator, value_type, and one value_* field in kb_upsert.properties.\",\"issues\":[{\"rule\":\"fact_kind_shape\",\"field\":\"fact_kind\"}]}"
+    },
+    {
+      "input": {
+        "type": "fact",
+        "id": "F-PV4",
+        "properties": {
+          "title": "X",
+          "status": "active",
+          "fact_kind": "property_value",
+          "property_key": "p",
+          "value_string": "v"
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: fact_kind 'property_value' requires subject_key, operator, value_type.; Next action: use kb_model_requirement for prose claims, or provide subject_key, property_key, operator, value_type, and one value_* field in kb_upsert.properties.\",\"issues\":[{\"rule\":\"fact_kind_shape\",\"field\":\"fact_kind\"}]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-A",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "sourceFile": "src/a:/b.ts"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-A\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"sourceFile\":\"src/a:/b.ts\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-B",
+        "properties": {
+          "title": "Y",
+          "status": "active"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-B\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "test",
+        "id": "T-PC",
+        "properties": {
+          "title": "T",
+          "status": "passing",
+          "proof_contract": {
+            "nope": 1
+          }
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /proof_contract: must have required property 'version'\",\"issues\":[{\"rule\":\"required\",\"field\":\"proof_contract.version\"}]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-G",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "granularity_reason": "config-artifact"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-G\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"granularity_reason\":\"config-artifact\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-G",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "granularity_reason": "module-level-behavior"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-G\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"granularity_reason\":\"module-level-behavior\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-G",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "granularity_reason": "extractor-miss"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-G\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"granularity_reason\":\"extractor-miss\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-G",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "granularity_reason": "legacy-link"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-G\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"granularity_reason\":\"legacy-link\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-G",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "granularity_reason": "test-suite"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-G\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"granularity_reason\":\"test-suite\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-ROLE",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "symbol_role": "behavioral"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-ROLE\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"symbol_role\":\"behavioral\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-ROLE",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "symbol_role": "structural"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-ROLE\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"symbol_role\":\"structural\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-ROLE",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "symbol_role": "type-shape"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-ROLE\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"symbol_role\":\"type-shape\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-ROLE",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "symbol_role": "config"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-ROLE\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"symbol_role\":\"config\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-ROLE",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "symbol_role": "module"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-ROLE\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"symbol_role\":\"module\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "symbol",
+        "id": "SYM-ROLE",
+        "properties": {
+          "title": "Y",
+          "status": "active",
+          "symbol_role": "unknown"
+        }
+      },
+      "expected": "{\"entity\":{\"id\":\"SYM-ROLE\",\"type\":\"symbol\",\"title\":\"Y\",\"status\":\"active\",\"symbol_role\":\"unknown\",\"created_at\":\"2026-03-04T05:06:07.000Z\",\"updated_at\":\"2026-03-04T05:06:07.000Z\",\"source\":\"mcp://kibi/upsert\"},\"relationships\":[]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-INV",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-0123456789ABCDEF",
+              "claim_text": "x",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 0,
+                "end": 1
+              },
+              "bogus": 1
+            }
+          ]
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /semantic_inventory/0: unknown property 'bogus' (must NOT have additional properties).\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"other\"}]}"
+    },
+    {
+      "input": {
+        "type": "req",
+        "id": "R-INV",
+        "properties": {
+          "title": "R",
+          "status": "open",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-0123456789ABCDEF",
+              "claim_text": "x",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 0,
+                "end": 1
+              },
+              "body": "x"
+            }
+          ]
+        }
+      },
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /semantic_inventory/0: unknown property 'body' (must NOT have additional properties).\",\"issues\":[{\"rule\":\"additionalProperties\",\"field\":\"semantic_inventory.*.body\"}]}"
+    }
+  ]
+}

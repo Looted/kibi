@@ -228,8 +228,11 @@ function headerMacros(
   if (C_HEADER_OPAQUE.test(text)) return null;
   // A union aliases its members: a `property` read is refused.
   if (unions && /\bunion\b/.test(text)) return null;
+  // rationale: a placeholder entry would only count where the file spells it.
   // Stryker disable next-line ArrayDeclaration: a placeholder entry would only count where the file spells it
   const names: string[] = [];
+  // rationale: a placeholder entry would only count where the header spells
+  // it as a macro call.
   // Stryker disable next-line ArrayDeclaration: a placeholder entry would only count where the header spells it as a macro call
   const pointerMacros: string[] = [];
   for (const macro of cDefines(text)) {
@@ -314,9 +317,10 @@ export function javaCode(text: string): string {
       out += '""';
     } else if (rest[0] === '"' || rest[0] === "'") {
       const quote = rest[0];
+      // The literal ends at its quote, a newline or the end of the text.
+      const stops = new Set([quote, "\n", undefined]);
       index += 1;
-      while (index < text.length && text[index] !== quote && text[index] !== "\n")
-        index += text[index] === "\\" ? 2 : 1;
+      while (!stops.has(text[index])) index += text[index] === "\\" ? 2 : 1;
       index += 1;
       out += `${quote}${quote}`;
     } else {
@@ -340,8 +344,8 @@ function javaUnicode(text: string): string {
 
 /** The package a Java file declares, "" for the default package. */
 function javaPackage(text: string): string {
-  const declared = /\bpackage\s+([\w$.\s]+?)\s*;/.exec(javaCode(javaUnicode(text)));
-  return declared === null ? "" : (declared[1] as string).replace(/\s+/g, "");
+  const declared = /\bpackage\s([\w$.\s]+?);/.exec(javaCode(javaUnicode(text)));
+  return declared === null ? "" : (declared[1] as string).replace(/\s/g, "");
 }
 
 /** Whether Java source declares a type of that name (any nesting). */
@@ -393,7 +397,8 @@ function csharpDeclares(text: string, name: string): boolean {
 
 /** Go string literals, interpreted and raw: every import path a file may spell. */
 function goStrings(text: string): string[] {
-  return [...text.matchAll(/"((?:[^"\\\n]|\\.)*)"|`([^`]*)`/g)].map((match) => match[1] ?? match[2] ?? "");
+  // One of the two groups matched.
+  return [...text.matchAll(/"((?:[^"\\\n]|\\.)*)"|`([^`]*)`/g)].map((match) => match[1] ?? (match[2] as string));
 }
 
 interface GoModule {
@@ -582,6 +587,9 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
     ),
   );
   const phpSources = once(() => sourceFiles(workspaceRoot, PHP_EXTENSIONS));
+  const javaSources = once(() => sourceFiles(workspaceRoot, ".java"));
+  // Generated sources under obj/ are compiled too, so they are read.
+  const csharpSources = once(() => sourceFiles(workspaceRoot, ".cs"));
   // The project's files, for `#include <...>` of one of them; null when the
   // project cannot be listed.
   let headerPaths: string[] | null | undefined;
@@ -630,7 +638,7 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
         // test sources), and a file's package is what it declares, not its
         // folder: every .java file of the project declaring the package is
         // read too.
-        const all = read("java:*", () => sourceFiles(workspaceRoot, ".java"));
+        const all = javaSources();
         const pkg = java[2] ?? "";
         return all === null || all.some((text) => javaPackage(text) === pkg && javaDeclares(text, type));
       }
@@ -643,8 +651,8 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
       if (GO_IMPORT_ROW.test(row.text)) {
         // The row's text may be cut short, so the import is read from the
         // file's line; every path spelled there is checked.
-        const texts = read(`file:${file}`, () => [path.join(workspaceRoot, file)]);
-        const line = texts?.[0]?.split("\n")[row.line - 1];
+        const text = read(`file:${file}`, () => [path.join(workspaceRoot, file)])?.[0];
+        const line = text?.split("\n")[row.line - 1];
         return line === undefined || goStrings(line).length === 0 || go.importsReach(line, directory);
       }
       const goCall = GO_CALL_ROW.exec(row.text);
@@ -759,8 +767,7 @@ export function createShadowRowFilter(workspaceRoot: string): (file: string, row
       }
       const csharp = CSHARP_ROW.exec(row.text);
       if (csharp !== null) {
-        // Generated sources under obj/ are compiled too, so they are read.
-        const texts = read("csharp", () => sourceFiles(workspaceRoot, ".cs"));
+        const texts = csharpSources();
         return texts === null || texts.some((text) => csharpDeclares(text, csharp[1] as string));
       }
       return true;

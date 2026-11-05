@@ -81,7 +81,9 @@ export function validateProofSteps(value: unknown): ProofStepEntry[] {
         argv.some((part) => typeof part !== "string") ||
         (argv[0] as string).trim() === ""
       )
-        fail(`${testId} step ${stepIndex + 1} must be a non-empty string argv array`);
+        fail(
+          `${testId} step ${stepIndex + 1} must be a non-empty string argv array`,
+        );
       return [...(argv as string[])];
     });
     return { test_id: testId, steps };
@@ -96,8 +98,7 @@ export function selectProofSteps(
 ): ProofStepEntry[] {
   const byId = new Map(entries.map((entry) => [entry.test_id, entry]));
   const missing = testIds.filter((id) => !byId.has(id));
-  if (missing.length > 0)
-    fail(`no steps declared for ${missing.join(", ")}`);
+  if (missing.length > 0) fail(`no steps declared for ${missing.join(", ")}`);
   return testIds.map((id) => byId.get(id) as ProofStepEntry);
 }
 
@@ -142,6 +143,10 @@ function signalGroup(
   signal: NodeJS.Signals,
 ): void {
   const pid = child.pid;
+  // rationale: on POSIX a child always has a pid here and leads its own group;
+  // these guards only matter on Windows, which a POSIX test host cannot emulate
+  // (a group signal to a non-leader fails and falls back to child.kill).
+  // Stryker disable next-line ConditionalExpression,LogicalOperator,StringLiteral
   if (process.platform !== "win32" && pid !== undefined) {
     try {
       process.kill(-pid, signal);
@@ -150,11 +155,8 @@ function signalGroup(
       // The group may already be gone.
     }
   }
-  try {
-    child.kill(signal);
-  } catch {
-    // Already exited.
-  }
+  // An exited child returns false here rather than throwing.
+  child.kill(signal);
 }
 
 /** Run one step once, in its own process group, with a timeout. */
@@ -174,6 +176,9 @@ function runStep(
         env,
         shell: false,
         stdio: "inherit",
+        // rationale: detaching only changes behaviour together with the
+        // Windows branch of signalGroup, which a POSIX host cannot emulate.
+        // Stryker disable next-line ConditionalExpression,StringLiteral
         detached: process.platform !== "win32",
       });
     } catch {
@@ -223,11 +228,10 @@ export async function runProofSteps(options: {
   );
   let parsed: unknown;
   try {
-    parsed = JSON.parse(readFileSync(stepsPath, "utf8"));
+    parsed = JSON.parse(readFileSync(stepsPath).toString());
   } catch (error) {
-    fail(
-      `cannot read ${stepsPath}: ${error instanceof Error ? error.message : String(error)}`,
-    );
+    // readFileSync and JSON.parse only throw Error instances.
+    fail(`cannot read ${stepsPath}: ${(error as Error).message}`);
   }
   const entries = validateProofSteps(parsed);
   let testIds = options.testIds;
@@ -241,7 +245,9 @@ export async function runProofSteps(options: {
   const selected = selectProofSteps(entries, testIds);
   const timeoutMs = (() => {
     const value = Number(env.KIBI_PROOF_STEP_TIMEOUT_MS);
-    return Number.isFinite(value) && value > 0 ? value : DEFAULT_STEP_TIMEOUT_MS;
+    return Number.isFinite(value) && value > 0
+      ? value
+      : DEFAULT_STEP_TIMEOUT_MS;
   })();
   const stepEnv: NodeJS.ProcessEnv = { ...env };
   delete stepEnv[PROOF_TEST_REPORT_ENV];
@@ -275,7 +281,7 @@ export async function runProofSteps(options: {
   if (typeof reportPath === "string" && reportPath.trim() !== "") {
     mkdirSync(path.dirname(reportPath), { recursive: true });
     const temporary = `${reportPath}.${process.pid}.tmp`;
-    writeFileSync(temporary, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+    writeFileSync(temporary, `${JSON.stringify(report, null, 2)}\n`);
     renameSync(temporary, reportPath);
   }
   const failing = report.tests.filter((test) => test.outcome !== "passed");

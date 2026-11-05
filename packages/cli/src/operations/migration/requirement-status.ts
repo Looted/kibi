@@ -24,7 +24,8 @@ import {
   planInventoryRederivation,
 } from "./inventory-rederive.js";
 import {
-  listLaneMarkdownFiles,
+  type FrontmatterSlice,
+  listLaneMarkdownSources,
   readText,
   readTopLevelField,
   sliceFrontmatter,
@@ -116,7 +117,8 @@ function extractionErrorOf(absolutePath: string): string | null {
     extractFromMarkdown(absolutePath);
     return null;
   } catch (error) {
-    return error instanceof Error ? error.message : String(error);
+    // The extractor throws only FrontmatterError.
+    return (error as Error).message;
   }
 }
 
@@ -125,24 +127,19 @@ function statusOf(content: string): unknown {
   return slice === null ? undefined : readTopLevelField(slice.text, "status");
 }
 
-function idOf(content: string): unknown {
-  const slice = sliceFrontmatter(content);
-  return slice === null ? undefined : readTopLevelField(slice.text, "id");
-}
-
 /** Every requirement whose authored status is outside the vocabulary. */
 // implements REQ-cli-schema-migration
 export function planRequirementStatusMappings(
   workspaceRoot: string,
 ): RequirementStatusFinding[] {
   const findings: RequirementStatusFinding[] = [];
-  for (const file of listLaneMarkdownFiles(workspaceRoot, ["requirements"])) {
-    const content = readText(file.absolutePath);
-    if (content === null) continue;
-    const status = statusOf(content);
+  for (const file of listLaneMarkdownSources(workspaceRoot, ["requirements"])) {
+    const status = statusOf(file.content);
     if (typeof status !== "string" || REQUIREMENT_STATUSES.has(status))
       continue;
-    const id = idOf(content);
+    // A status was read, so the file has front matter.
+    const { text } = sliceFrontmatter(file.content) as FrontmatterSlice;
+    const id = readTopLevelField(text, "id");
     const requirementId =
       typeof id === "string" && id.length > 0
         ? id
@@ -170,10 +167,10 @@ export function planRequirementStatusMappings(
   );
 }
 
+/** `content` is a mapped document, so it always has front matter. */
 function hasTag(content: string, tag: string): boolean {
-  const slice = sliceFrontmatter(content);
-  const tags =
-    slice === null ? undefined : readTopLevelField(slice.text, "tags");
+  const { text } = sliceFrontmatter(content) as FrontmatterSlice;
+  const tags = readTopLevelField(text, "tags");
   return Array.isArray(tags) && tags.includes(tag);
 }
 
@@ -240,10 +237,8 @@ export function applyDeliveredStatusMappings(
       );
       mapped.push(finding);
     } catch (error) {
-      skipped.push({
-        path: finding.path,
-        reason: error instanceof Error ? error.message : String(error),
-      });
+      // applyRequirementStatusMapping throws only Error.
+      skipped.push({ path: finding.path, reason: (error as Error).message });
     }
   }
   return { mapped, skipped };

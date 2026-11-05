@@ -68413,3 +68413,353 @@ symbols:
         target: TEST-kibi-release-version
       - type: implements
         target: REQ-kibi-release-version
+  - id: SYM-cli-update-check-update-cache-file
+    title: UPDATE_CACHE_FILE
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:12.907Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-check-interval-ms
+    title: UPDATE_CHECK_INTERVAL_MS
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:19.326Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-notice-interval-ms
+    title: UPDATE_NOTICE_INTERVAL_MS
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:25.382Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-fetch-timeout-ms
+    title: UPDATE_FETCH_TIMEOUT_MS
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:31.764Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-default-npm-registry
+    title: DEFAULT_NPM_REGISTRY
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:38.578Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-cache
+    title: UpdateCache
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:45.323Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-check-off-reason
+    title: updateCheckOffReason
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:52.620Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-cache-path
+    title: updateCachePath
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:59.660Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-read-update-cache
+    title: readUpdateCache
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:06.519Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-write-update-cache
+    title: writeUpdateCache
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:13.397Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-is-newer-release
+    title: isNewerRelease
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:20.213Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-check-due
+    title: updateCheckDue
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:27.168Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-install-command
+    title: updateInstallCommand
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:33.679Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-format-update-notice
+    title: formatUpdateNotice
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:40.329Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-registry-url
+    title: registryUrl
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:47.102Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-parse-latest-manifest
+    title: parseLatestManifest
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:53.067Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-refresh-update-cache
+    title: refreshUpdateCache
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:59.730Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-spawn-update-refresh
+    title: spawnUpdateRefresh
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:06.690Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-command-context
+    title: UpdateCommandContext
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:13.903Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-has-machine-output
+    title: hasMachineOutput
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:21.040Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-track-update-command
+    title: trackUpdateCommand
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:28.063Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-finish-update-check
+    title: finishUpdateCheck
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:34.676Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-doctor-result
+    title: UpdateDoctorResult
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:40.834Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-check-kibi-updates
+    title: checkKibiUpdates
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:47.688Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-test-kibi-update-notice-cli
+    title: Kibi update notice suite
+    status: active
+    sourceFile: packages/cli/tests/update-check.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:57.258Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-update-notice
+  - id: SYM-cli-update-check-run-update-refresh-entrypoint
+    title: runUpdateRefreshEntrypoint
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:49:27.421Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-refresh-argument
+    title: UPDATE_REFRESH_ARGUMENT
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:49:34.047Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice

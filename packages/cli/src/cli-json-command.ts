@@ -74,9 +74,10 @@ function findInputConflicts(invocation: JsonInvocation): string[] {
     }
     return option.long === undefined ? [] : [option.long];
   });
-  const positionalConflicts = (invocation.positionals ?? [])
-    .filter(({ value }) => value !== undefined)
-    .map(({ name }) => name);
+  const positionalConflicts =
+    invocation.positionals
+      ?.filter(({ value }) => value !== undefined)
+      .map(({ name }) => name) ?? [];
   return [...positionalConflicts, ...optionConflicts];
 }
 
@@ -89,12 +90,12 @@ function diagnosticModeEnabled(command: Command): boolean {
 }
 
 function structuredResult(stdout: string | undefined): unknown {
-  if (stdout === undefined) return undefined;
   try {
-    return JSON.parse(stdout);
+    return JSON.parse(stdout as string);
   } catch {
-    return undefined;
+    // No output, or output that is not one JSON document.
   }
+  return undefined;
 }
 
 async function writeAndWaitForDrain(

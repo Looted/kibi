@@ -53,16 +53,21 @@ export async function collectSymbolCoordinatesMissingViolations(
     throw new Error(
       `symbol-coordinates-missing symbol projection failed: ${rows.error ?? "unknown error"}`,
     );
+  const listed = rows.bindings.Rows;
+  if (listed === undefined) return [];
   const violations: Violation[] = [];
-  for (const row of parseListOfLists(rows.bindings.Rows ?? "[]")) {
+  for (const row of parseListOfLists(listed)) {
     const entity = parseEntityFromList(row);
-    const id = typeof entity.id === "string" ? entity.id : "";
-    const sourceFile =
-      typeof entity.sourceFile === "string" ? entity.sourceFile : "";
-    const status = typeof entity.status === "string" ? entity.status : "";
-    if (id === "" || sourceFile === "" || INACTIVE_STATUSES.has(status))
-      continue;
-    if (entity.sourceLine !== undefined && entity.sourceLine !== null) continue;
+    const sourceFile = entity.sourceFile;
+    // An empty sourceFile resolves to the workspace directory, which the
+    // isFile() test below skips.
+    if (typeof sourceFile !== "string") continue;
+    // A row with a sourceFile is complete, so parseEntityFromList gave it a
+    // string id; codec values are strings or lists, never null, and a list
+    // status is simply not an inactive one.
+    const id = entity.id as string;
+    if (id === "" || INACTIVE_STATUSES.has(entity.status as string)) continue;
+    if (entity.sourceLine !== undefined) continue;
     const absolute = path.resolve(workspaceRoot, sourceFile);
     if (!existsSync(absolute) || !statSync(absolute).isFile()) continue;
     const title = typeof entity.title === "string" ? entity.title : id;

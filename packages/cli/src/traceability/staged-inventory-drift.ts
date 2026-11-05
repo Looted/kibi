@@ -72,10 +72,9 @@ function baseResult(
   path: string,
   readBase: (path: string) => string | null,
 ): ExtractionResult | null {
-  const content = readBase(path);
-  if (content === null) return null;
   try {
-    return extractFromMarkdownString(content, path);
+    // A missing base file (null) fails extraction like an unreadable one.
+    return extractFromMarkdownString(readBase(path) as string, path);
   } catch {
     return null;
   }
@@ -107,9 +106,10 @@ export function stagedInventoryDriftViolations(input: {
 }): StagedInventoryDriftViolation[] {
   const violations: StagedInventoryDriftViolation[] = [];
   for (const result of input.snapshotEntities) {
-    if (result.entity.type !== "req") continue;
     const source = result.entity.source;
     if (!input.stagedPaths.has(source)) continue;
+    // The boundary applies to current requirements only and reports no
+    // errors for any other entity.
     const payload = payloadOf(result);
     const semantic = analyzeSemanticAdvisorInput({ payload });
     const boundary = validateSemanticInventoryBoundary(

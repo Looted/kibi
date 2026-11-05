@@ -19,7 +19,8 @@ export function assertMaxBytes(pathLike: string, maxBytes: number): void {
 export function parseSkillBundle(rootDir: string): SkillBundle {
   const path = resolve(rootDir, SKILL_FILE_NAME);
   assertMaxBytes(path, SKILL_MARKDOWN_MAX_BYTES);
-  const parsed = matter(readFileSync(path, "utf8"));
+  // gray-matter decodes a Buffer as UTF-8 itself.
+  const parsed = matter(readFileSync(path));
   const [error] = validateManifestData(parsed.data);
   if (error) throw error;
   return {
@@ -41,11 +42,15 @@ export function validateSkillBundle(pathLike: string): {
         new SkillValidationError("SKILL.md", `Missing ${SKILL_FILE_NAME}`),
       ],
     };
-  const parsed = matter(readFileSync(path, "utf8"));
+  const parsed = matter(readFileSync(path));
   errors.push(...validateManifestData(parsed.data));
   if (errors.length === 0)
     validateBundleContents(path, coerceManifest(parsed.data), errors);
   return { valid: errors.length === 0, errors };
+}
+// fs calls and assertMaxBytes only ever throw Error instances.
+function messageOf(error: unknown): string {
+  return (error as Error).message;
 }
 function validateBundleContents(
   path: string,
@@ -55,23 +60,13 @@ function validateBundleContents(
   try {
     assertMaxBytes(path, SKILL_MARKDOWN_MAX_BYTES);
   } catch (error) {
-    errors.push(
-      new SkillValidationError(
-        "SKILL.md",
-        error instanceof Error ? error.message : String(error),
-      ),
-    );
+    errors.push(new SkillValidationError("SKILL.md", messageOf(error)));
   }
   let root: string;
   try {
     root = realpathSync(dirname(path));
   } catch (error) {
-    errors.push(
-      new SkillValidationError(
-        "SKILL.md",
-        error instanceof Error ? error.message : String(error),
-      ),
-    );
+    errors.push(new SkillValidationError("SKILL.md", messageOf(error)));
     return;
   }
   for (const resource of manifest.resources ?? []) {
@@ -98,12 +93,7 @@ function validateBundleContents(
       }
       assertMaxBytes(resourcePath, RESOURCE_MAX_BYTES);
     } catch (error) {
-      errors.push(
-        new SkillValidationError(
-          "resources",
-          error instanceof Error ? error.message : String(error),
-        ),
-      );
+      errors.push(new SkillValidationError("resources", messageOf(error)));
     }
   }
 }
@@ -145,8 +135,10 @@ function validateManifestData(
       );
   }
   if (isStringArray(data.resources))
+    // normalize() never returns "" (an empty path becomes "."), so only
+    // the bounds test can reject a resource here.
     for (const resource of data.resources)
-      if (!normalizeResourcePath(resource) || isPathOutOfBounds(resource))
+      if (isPathOutOfBounds(resource))
         errors.push(
           new SkillValidationError(
             "resources",

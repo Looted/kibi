@@ -1,0 +1,1054 @@
+{
+  "version": "kibi.repair-plan.v1",
+  "planId": "repair-plan-c360b04170c8e5c7ba3e301b",
+  "readOnly": true,
+  "status": "ready",
+  "codeSnapshot": "snap",
+  "scope": {
+    "by": "req",
+    "tags": [],
+    "offset": 0,
+    "limit": 100,
+    "complete": true,
+    "actionableRequirements": 1,
+    "returnedActionableRequirements": 1,
+    "excludedByPagination": 0
+  },
+  "applicationPolicy": {
+    "queryBeforeMutation": true,
+    "createEndpointsBeforeRelationships": true,
+    "validateBeforeEachWrite": true,
+    "sequentialUpsertsOnly": true,
+    "recheckCoverageAfterEachBatch": true
+  },
+  "summary": {
+    "requirementCount": 1,
+    "repairCount": 30,
+    "batchCount": 18,
+    "readyBatchCount": 1,
+    "blockedBatchCount": 17
+  },
+  "batches": [
+    {
+      "id": "repair-005-REQ-1-x-requirement_source",
+      "order": 5,
+      "phase": "requirement_source",
+      "requirementId": "REQ 1/x",
+      "state": "ready",
+      "dependsOn": [],
+      "objective": "Bind the requirement to its current authored source before semantic analysis.",
+      "workflowSteps": [
+        "kb_query",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": ["required-fields", "no-dangling-refs"],
+      "writePolicy": "sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "missing_requirement_source",
+          "proofPriority": 5,
+          "proofStage": "source_coordinates",
+          "action": "Bind the requirement to its current authored source before semantic analysis.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "sourceCoordinates",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-010-REQ-1-x-semantic_inventory",
+      "order": 10,
+      "phase": "semantic_inventory",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": ["repair-005-REQ-1-x-requirement_source"],
+      "objective": "Produce and persist a complete source-bound proposition inventory.",
+      "workflowSteps": [
+        "kb_semantic_advisor",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": ["semantic-completeness", "logic-coverage"],
+      "writePolicy": "analysis_then_sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "incomplete_semantic_inventory",
+          "proofPriority": 10,
+          "proofStage": "semantic_inventory",
+          "action": "Produce and persist a complete source-bound proposition inventory.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "semanticInventory",
+            "z": 1
+          }
+        },
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "malformed_semantic_inventory",
+          "proofPriority": 10,
+          "proofStage": "semantic_inventory",
+          "action": "Produce and persist a complete source-bound proposition inventory.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "semanticInventory",
+            "z": 1
+          }
+        },
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "missing_semantic_inventory",
+          "proofPriority": 10,
+          "proofStage": "semantic_inventory",
+          "action": "Produce and persist a complete source-bound proposition inventory.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "semanticInventory",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-020-REQ-1-x-semantic_resolution",
+      "order": 20,
+      "phase": "semantic_resolution",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory"
+      ],
+      "objective": "Resolve ambiguity or ontology gaps without treating unresolved prose as modeled.",
+      "workflowSteps": [
+        "kb_semantic_advisor",
+        "kb_suggest_predicates",
+        "kb_model_requirement",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": [
+        "semantic-completeness",
+        "logic-coverage",
+        "predicate-verifiability",
+        "rule-safety",
+        "rule-verifiability"
+      ],
+      "writePolicy": "review_then_sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "unresolved_semantic_proposition",
+          "proofPriority": 20,
+          "proofStage": "semantic_inventory",
+          "action": "Resolve ambiguity or ontology gaps without treating unresolved prose as modeled.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "semanticInventory",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-030-REQ-1-x-ground_endpoints",
+      "order": 30,
+      "phase": "ground_endpoints",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution"
+      ],
+      "objective": "Create or repair exactly one validated logical endpoint for each modeled proposition.",
+      "workflowSteps": [
+        "kb_suggest_predicates",
+        "kb_model_requirement",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": [
+        "strict-fact-shape",
+        "predicate-verifiability",
+        "rule-safety",
+        "rule-verifiability",
+        "logic-coverage"
+      ],
+      "writePolicy": "review_then_sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "ambiguous_logic_grounding",
+          "proofPriority": 30,
+          "proofStage": "logic_grounding",
+          "action": "Create or repair exactly one validated logical endpoint for each modeled proposition.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "logicGrounding",
+            "z": 1
+          }
+        },
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "contradiction_check_incomplete",
+          "proofPriority": 30,
+          "proofStage": "contradictions",
+          "action": "Create or repair exactly one validated logical endpoint for each modeled proposition.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "contradictions",
+            "z": 1
+          }
+        },
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "missing_logic_grounding",
+          "proofPriority": 30,
+          "proofStage": "logic_grounding",
+          "action": "Create or repair exactly one validated logical endpoint for each modeled proposition.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "logicGrounding",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-040-REQ-1-x-manifest_links",
+      "order": 40,
+      "phase": "manifest_links",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints"
+      ],
+      "objective": "Persist the exact claim manifest and link it one-to-one to existing logical endpoints.",
+      "workflowSteps": [
+        "kb_query",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": [
+        "semantic-completeness",
+        "logic-coverage",
+        "predicate-verifiability",
+        "rule-safety",
+        "rule-verifiability",
+        "no-dangling-refs"
+      ],
+      "writePolicy": "sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "logic_manifest_mismatch",
+          "proofPriority": 40,
+          "proofStage": "logic_grounding",
+          "action": "Persist the exact claim manifest and link it one-to-one to existing logical endpoints.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "logicGrounding",
+            "z": 1
+          }
+        },
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "missing_logic_claims",
+          "proofPriority": 40,
+          "proofStage": "logic_grounding",
+          "action": "Persist the exact claim manifest and link it one-to-one to existing logical endpoints.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "logicGrounding",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-050-REQ-1-x-contradiction_resolution",
+      "order": 50,
+      "phase": "contradiction_resolution",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links"
+      ],
+      "objective": "Inspect exact contradiction witnesses and supersede or reconcile conflicting requirements.",
+      "workflowSteps": [
+        "kb_query",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": ["domain-contradictions", "logic-coverage"],
+      "writePolicy": "review_then_sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "blocking_contradiction",
+          "proofPriority": 50,
+          "proofStage": "contradictions",
+          "action": "Inspect exact contradiction witnesses and supersede or reconcile conflicting requirements.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "contradictions",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-060-REQ-1-x-scenario_endpoints",
+      "order": 60,
+      "phase": "scenario_endpoints",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links",
+        "repair-050-REQ-1-x-contradiction_resolution"
+      ],
+      "objective": "Create a scenario endpoint and link the requirement through specified_by.",
+      "workflowSteps": [
+        "kb_query",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": ["must-priority-coverage", "no-dangling-refs"],
+      "writePolicy": "sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "infeasible_scenario",
+          "proofPriority": 60,
+          "proofStage": "scenarios",
+          "action": "Create a scenario endpoint and link the requirement through specified_by.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "scenarios",
+            "z": 1
+          }
+        },
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "missing_scenario",
+          "proofPriority": 60,
+          "proofStage": "scenarios",
+          "action": "Create a scenario endpoint and link the requirement through specified_by.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "scenarios",
+            "z": 1
+          }
+        },
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "unknown_scenario_feasibility",
+          "proofPriority": 60,
+          "proofStage": "scenarios",
+          "action": "Create a scenario endpoint and link the requirement through specified_by.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "scenarios",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-064-REQ-1-x-dimension_grounding",
+      "order": 64,
+      "phase": "dimension_grounding",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links",
+        "repair-050-REQ-1-x-contradiction_resolution",
+        "repair-060-REQ-1-x-scenario_endpoints"
+      ],
+      "objective": "Ground each quantified claim (each, every, all, or a cardinality bound) on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. If the quantifier ranges over nothing, record a dimension_waiver on the grounding fact for a person to approve, and record their approval in the same pull request.",
+      "workflowSteps": [
+        "kb_model_requirement",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": ["no-dangling-refs"],
+      "writePolicy": "sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "dimension_unrepresented",
+          "proofPriority": 64,
+          "proofStage": "dimension",
+          "action": "Ground each quantified claim (each, every, all, or a cardinality bound) on what varies: an integer count or bound, a set of members, a rule over a variable, or a state machine. If the quantifier ranges over nothing, record a dimension_waiver on the grounding fact for a person to approve, and record their approval in the same pull request.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "dimension",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-065-REQ-1-x-negative_scenarios",
+      "order": 65,
+      "phase": "negative_scenarios",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links",
+        "repair-050-REQ-1-x-contradiction_resolution",
+        "repair-060-REQ-1-x-scenario_endpoints",
+        "repair-064-REQ-1-x-dimension_grounding"
+      ],
+      "objective": "Add a scenario that expects rejection or error and assumes a value the requirement forbids (see suggestedNegatives), link it with specified_by and verify it with a passing end-to-end test.",
+      "workflowSteps": [
+        "kb_query",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": ["scenario-outcome-mismatch", "no-dangling-refs"],
+      "writePolicy": "sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "happy_path_only",
+          "proofPriority": 65,
+          "proofStage": "negative_path",
+          "action": "Add a scenario that expects rejection or error and assumes a value the requirement forbids (see suggestedNegatives), link it with specified_by and verify it with a passing end-to-end test.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "negativePath",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-066-REQ-1-x-case_scenarios",
+      "order": 66,
+      "phase": "case_scenarios",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links",
+        "repair-050-REQ-1-x-contradiction_resolution",
+        "repair-060-REQ-1-x-scenario_endpoints",
+        "repair-064-REQ-1-x-dimension_grounding",
+        "repair-065-REQ-1-x-negative_scenarios"
+      ],
+      "objective": "Cover each uncovered rejection case: add a scenario whose assumes fact states the case's assumption (a value past the bound, a value outside the set), expects rejection or error, is linked with specified_by and is verified by a passing end-to-end test. Each repair lists caseSkeletons, upsert-ready draft scenarios and their assumed facts: fill in the placeholders, verify the scenario by a test, then set its status to active (a draft never covers a case). If a person accepts the cases as covered another way, record a case_waiver on the grounding fact for them to approve, and record their approval in the same pull request.",
+      "workflowSteps": [
+        "kb_coverage",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": ["scenario-outcome-mismatch", "no-dangling-refs"],
+      "writePolicy": "sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "uncovered_case",
+          "proofPriority": 66,
+          "proofStage": "cases",
+          "action": "Cover each uncovered rejection case: add a scenario whose assumes fact states the case's assumption (a value past the bound, a value outside the set), expects rejection or error, is linked with specified_by and is verified by a passing end-to-end test. Each repair lists caseSkeletons, upsert-ready draft scenarios and their assumed facts: fill in the placeholders, verify the scenario by a test, then set its status to active (a draft never covers a case). If a person accepts the cases as covered another way, record a case_waiver on the grounding fact for them to approve, and record their approval in the same pull request.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "cases",
+            "z": 1
+          },
+          "caseSkeletons": []
+        }
+      ]
+    },
+    {
+      "id": "repair-070-REQ-1-x-scenario_tests",
+      "order": 70,
+      "phase": "scenario_tests",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links",
+        "repair-050-REQ-1-x-contradiction_resolution",
+        "repair-060-REQ-1-x-scenario_endpoints",
+        "repair-064-REQ-1-x-dimension_grounding",
+        "repair-065-REQ-1-x-negative_scenarios",
+        "repair-066-REQ-1-x-case_scenarios"
+      ],
+      "objective": "Create or select a test endpoint and link it through the requirement scenario.",
+      "workflowSteps": [
+        "kb_query",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": ["must-priority-coverage", "no-dangling-refs"],
+      "writePolicy": "sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "missing_scenario_test",
+          "proofPriority": 70,
+          "proofStage": "scenario_tests",
+          "action": "Create or select a test endpoint and link it through the requirement scenario.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "scenarioTests",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-075-REQ-1-x-snapshot_runtime",
+      "order": 75,
+      "phase": "snapshot_runtime",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links",
+        "repair-050-REQ-1-x-contradiction_resolution",
+        "repair-060-REQ-1-x-scenario_endpoints",
+        "repair-064-REQ-1-x-dimension_grounding",
+        "repair-065-REQ-1-x-negative_scenarios",
+        "repair-066-REQ-1-x-case_scenarios",
+        "repair-070-REQ-1-x-scenario_tests"
+      ],
+      "objective": "Use a runtime that exposes a deterministic workspace verification snapshot.",
+      "workflowSteps": ["kb_status", "kb_coverage"],
+      "validationRules": [],
+      "writePolicy": "runtime_recovery",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "proof_snapshot_unavailable",
+          "proofPriority": 75,
+          "proofStage": "passing_e2e",
+          "action": "Use a runtime that exposes a deterministic workspace verification snapshot.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "passingE2e",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-080-REQ-1-x-proof_evidence",
+      "order": 80,
+      "phase": "proof_evidence",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links",
+        "repair-050-REQ-1-x-contradiction_resolution",
+        "repair-060-REQ-1-x-scenario_endpoints",
+        "repair-064-REQ-1-x-dimension_grounding",
+        "repair-065-REQ-1-x-negative_scenarios",
+        "repair-066-REQ-1-x-case_scenarios",
+        "repair-070-REQ-1-x-scenario_tests",
+        "repair-075-REQ-1-x-snapshot_runtime"
+      ],
+      "objective": "Run the configured proof integration with kibi prove and append fresh snapshot-bound passing receipts.",
+      "workflowSteps": [
+        "kb_status",
+        "execute_proof_run",
+        "kb_ingest_proof",
+        "kb_coverage"
+      ],
+      "validationRules": ["required-fields", "no-dangling-refs"],
+      "writePolicy": "execute_then_append_receipt",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "failed_proof_receipt",
+          "proofPriority": 80,
+          "proofStage": "passing_e2e",
+          "action": "Run the configured proof integration with kibi prove and append fresh snapshot-bound passing receipts.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "passingE2e",
+            "z": 1
+          }
+        },
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "invalid_proof_receipt",
+          "proofPriority": 80,
+          "proofStage": "passing_e2e",
+          "action": "Run the configured proof integration with kibi prove and append fresh snapshot-bound passing receipts.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "passingE2e",
+            "z": 1
+          }
+        },
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "missing_passing_e2e",
+          "proofPriority": 80,
+          "proofStage": "passing_e2e",
+          "action": "Run the configured proof integration with kibi prove and append fresh snapshot-bound passing receipts.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "passingE2e",
+            "z": 1
+          }
+        },
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "missing_proof_receipt",
+          "proofPriority": 80,
+          "proofStage": "passing_e2e",
+          "action": "Run the configured proof integration with kibi prove and append fresh snapshot-bound passing receipts.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "passingE2e",
+            "z": 1
+          }
+        },
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "proof_contract_mismatch",
+          "proofPriority": 80,
+          "proofStage": "passing_e2e",
+          "action": "Run the configured proof integration with kibi prove and append fresh snapshot-bound passing receipts.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "passingE2e",
+            "z": 1
+          }
+        },
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "stale_proof_receipt",
+          "proofPriority": 80,
+          "proofStage": "passing_e2e",
+          "action": "Run the configured proof integration with kibi prove and append fresh snapshot-bound passing receipts.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "passingE2e",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-090-REQ-1-x-executable_symbols",
+      "order": 90,
+      "phase": "executable_symbols",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links",
+        "repair-050-REQ-1-x-contradiction_resolution",
+        "repair-060-REQ-1-x-scenario_endpoints",
+        "repair-064-REQ-1-x-dimension_grounding",
+        "repair-065-REQ-1-x-negative_scenarios",
+        "repair-066-REQ-1-x-case_scenarios",
+        "repair-070-REQ-1-x-scenario_tests",
+        "repair-075-REQ-1-x-snapshot_runtime",
+        "repair-080-REQ-1-x-proof_evidence"
+      ],
+      "objective": "Link executable test symbols to every qualifying E2E test through executable_for.",
+      "workflowSteps": [
+        "kb_query",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": ["symbol-traceability", "no-dangling-refs"],
+      "writePolicy": "sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "missing_executable_test_symbol",
+          "proofPriority": 90,
+          "proofStage": "executable_symbols",
+          "action": "Link executable test symbols to every qualifying E2E test through executable_for.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "executableSymbols",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-100-REQ-1-x-production_ownership",
+      "order": 100,
+      "phase": "production_ownership",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links",
+        "repair-050-REQ-1-x-contradiction_resolution",
+        "repair-060-REQ-1-x-scenario_endpoints",
+        "repair-064-REQ-1-x-dimension_grounding",
+        "repair-065-REQ-1-x-negative_scenarios",
+        "repair-066-REQ-1-x-case_scenarios",
+        "repair-070-REQ-1-x-scenario_tests",
+        "repair-075-REQ-1-x-snapshot_runtime",
+        "repair-080-REQ-1-x-proof_evidence",
+        "repair-090-REQ-1-x-executable_symbols"
+      ],
+      "objective": "Link production symbols to the requirement through implements.",
+      "workflowSteps": [
+        "kb_query",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": ["symbol-traceability", "no-dangling-refs"],
+      "writePolicy": "sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "missing_production_symbol",
+          "proofPriority": 100,
+          "proofStage": "production_symbols",
+          "action": "Link production symbols to the requirement through implements.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "productionSymbols",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-110-REQ-1-x-production_coverage",
+      "order": 110,
+      "phase": "production_coverage",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links",
+        "repair-050-REQ-1-x-contradiction_resolution",
+        "repair-060-REQ-1-x-scenario_endpoints",
+        "repair-064-REQ-1-x-dimension_grounding",
+        "repair-065-REQ-1-x-negative_scenarios",
+        "repair-066-REQ-1-x-case_scenarios",
+        "repair-070-REQ-1-x-scenario_tests",
+        "repair-075-REQ-1-x-snapshot_runtime",
+        "repair-080-REQ-1-x-proof_evidence",
+        "repair-090-REQ-1-x-executable_symbols",
+        "repair-100-REQ-1-x-production_ownership"
+      ],
+      "objective": "Link every implementing production symbol to a qualifying E2E test through covered_by.",
+      "workflowSteps": [
+        "kb_query",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kb_check"
+      ],
+      "validationRules": [
+        "symbol-coverage",
+        "symbol-traceability",
+        "no-dangling-refs"
+      ],
+      "writePolicy": "sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "missing_production_symbol_coverage",
+          "proofPriority": 110,
+          "proofStage": "production_symbols",
+          "action": "Link every implementing production symbol to a qualifying E2E test through covered_by.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "productionSymbols",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-120-REQ-1-x-source_coordinates",
+      "order": 120,
+      "phase": "source_coordinates",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links",
+        "repair-050-REQ-1-x-contradiction_resolution",
+        "repair-060-REQ-1-x-scenario_endpoints",
+        "repair-064-REQ-1-x-dimension_grounding",
+        "repair-065-REQ-1-x-negative_scenarios",
+        "repair-066-REQ-1-x-case_scenarios",
+        "repair-070-REQ-1-x-scenario_tests",
+        "repair-075-REQ-1-x-snapshot_runtime",
+        "repair-080-REQ-1-x-proof_evidence",
+        "repair-090-REQ-1-x-executable_symbols",
+        "repair-100-REQ-1-x-production_ownership",
+        "repair-110-REQ-1-x-production_coverage"
+      ],
+      "objective": "Query the affected symbols and repair their sourceFile/title or explicitly author granularity_reason: extractor-miss (or another intentional coarse anchor) through validated upsert before refreshing.",
+      "workflowSteps": [
+        "kb_query",
+        "kb_validate_upsert",
+        "kb_upsert",
+        "kibi sync --refresh-symbol-coordinates",
+        "kibi sync",
+        "kb_check",
+        "kb_coverage"
+      ],
+      "validationRules": ["symbol-coverage", "symbol-traceability"],
+      "writePolicy": "review_then_sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "missing_symbol_coordinates",
+          "proofPriority": 120,
+          "proofStage": "source_coordinates",
+          "action": "Query the affected symbols and repair their sourceFile/title or explicitly author granularity_reason: extractor-miss (or another intentional coarse anchor) through validated upsert before refreshing.",
+          "evidence": {
+            "a": [
+              {
+                "b": 2
+              }
+            ],
+            "stage": "sourceCoordinates",
+            "z": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "repair-900-REQ-1-x-manual_review",
+      "order": 900,
+      "phase": "manual_review",
+      "requirementId": "REQ 1/x",
+      "state": "blocked",
+      "dependsOn": [
+        "repair-005-REQ-1-x-requirement_source",
+        "repair-010-REQ-1-x-semantic_inventory",
+        "repair-020-REQ-1-x-semantic_resolution",
+        "repair-030-REQ-1-x-ground_endpoints",
+        "repair-040-REQ-1-x-manifest_links",
+        "repair-050-REQ-1-x-contradiction_resolution",
+        "repair-060-REQ-1-x-scenario_endpoints",
+        "repair-064-REQ-1-x-dimension_grounding",
+        "repair-065-REQ-1-x-negative_scenarios",
+        "repair-066-REQ-1-x-case_scenarios",
+        "repair-070-REQ-1-x-scenario_tests",
+        "repair-075-REQ-1-x-snapshot_runtime",
+        "repair-080-REQ-1-x-proof_evidence",
+        "repair-090-REQ-1-x-executable_symbols",
+        "repair-100-REQ-1-x-production_ownership",
+        "repair-110-REQ-1-x-production_coverage",
+        "repair-120-REQ-1-x-source_coordinates"
+      ],
+      "objective": "Review the unclassified proof gap and choose a conservative repair workflow.",
+      "workflowSteps": ["kb_query", "kb_check", "kb_coverage"],
+      "validationRules": [],
+      "writePolicy": "review_then_sequential_upsert",
+      "autoApplicable": false,
+      "repairs": [
+        {
+          "requirementId": "REQ 1/x",
+          "gap": "mystery_gap",
+          "proofPriority": 900,
+          "proofStage": "manual_review",
+          "action": "Review the unclassified proof gap and choose a conservative repair workflow.",
+          "evidence": {}
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

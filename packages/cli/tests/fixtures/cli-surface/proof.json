@@ -1,0 +1,210 @@
+[
+  {
+    "name": "prove",
+    "aliases": [],
+    "description": "Run the configured proof producers and ingest valid kibi.proof-run.v1 evidence",
+    "arguments": [],
+    "options": [
+      {
+        "flags": "--test <id>",
+        "description": "Prove a single test entity",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--requirement <id>",
+        "description": "Prove every proof-bearing test behind a requirement",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--integration <ids>",
+        "description": "Prove only tests bound to these integrations (comma-separated)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--integration-except <ids>",
+        "description": "With --all (or another selector), skip tests bound to these integrations (comma-separated)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--all",
+        "description": "Prove every proof-bearing test in the knowledge base",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--stale",
+        "description": "Prove only the selected tests (all by default) without a current passing receipt",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--resume",
+        "description": "Skip integrations an interrupted run with the same selector already ingested at this snapshot",
+        "default": null,
+        "mandatory": false
+      }
+    ],
+    "commands": []
+  },
+  {
+    "name": "proof",
+    "aliases": [],
+    "description": "Inspect proof integration and maintain proof evidence",
+    "arguments": [],
+    "options": [],
+    "commands": [
+      {
+        "name": "inspect",
+        "aliases": [],
+        "description": "Detect test infrastructure, propose a proof integration and return the reviewed plan that writes .kb/proof/integrations.json",
+        "arguments": [],
+        "options": [
+          {
+            "flags": "--update <id>",
+            "description": "Plan adding or replacing this integration in an existing .kb/proof/integrations.json",
+            "default": null,
+            "mandatory": false
+          },
+          {
+            "flags": "--command <command>",
+            "description": "Command the proposed integration runs instead of the detected one: space-separated words, or a JSON array of argv strings (e.g. '[\"npx\",\"vitest\",\"run\",\"tests/e2e\"]')",
+            "default": null,
+            "mandatory": false
+          },
+          {
+            "flags": "--json",
+            "description": "Emit structured JSON",
+            "default": false,
+            "mandatory": false
+          }
+        ],
+        "commands": []
+      },
+      {
+        "name": "run-steps",
+        "aliases": [],
+        "description": "Run the declared steps of the proof-bearing tests kibi prove selected and write a per-test report, so a command integration fails only the tests whose own steps failed (use as the integration's command)",
+        "arguments": [
+          {
+            "name": "steps-file",
+            "description": "JSON array of {test_id, steps: [[argv...]]}",
+            "required": false,
+            "variadic": false,
+            "default": "proof/steps.json"
+          }
+        ],
+        "options": [
+          {
+            "flags": "--test <id...>",
+            "description": "Run these tests' steps (default: KIBI_PROOF_TEST_IDS, else every test in the file)",
+            "default": null,
+            "mandatory": false
+          }
+        ],
+        "commands": []
+      },
+      {
+        "name": "explain",
+        "aliases": [],
+        "description": "Project one requirement or symbol proof, labeling required_proofs, executable_for, and covered_by separately",
+        "arguments": [
+          {
+            "name": "id",
+            "description": "Requirement (REQ-*) or symbol (SYM-*) ID",
+            "required": false,
+            "variadic": false,
+            "default": null
+          }
+        ],
+        "options": [
+          {
+            "flags": "--requirement <id>",
+            "description": "Explain a requirement ID",
+            "default": null,
+            "mandatory": false
+          },
+          {
+            "flags": "--symbol <id>",
+            "description": "Explain a symbol ID",
+            "default": null,
+            "mandatory": false
+          },
+          {
+            "flags": "--json",
+            "description": "Emit structured JSON",
+            "default": false,
+            "mandatory": false
+          }
+        ],
+        "commands": []
+      },
+      {
+        "name": "prune",
+        "aliases": [],
+        "description": "Shrink each test's proof_receipts history to its newest entries (re-proving the same snapshot appends duplicates; prune removes the superseded ones)",
+        "arguments": [],
+        "options": [
+          {
+            "flags": "--test <id>",
+            "description": "Prune a single test entity",
+            "default": null,
+            "mandatory": false
+          },
+          {
+            "flags": "--keep <n>",
+            "description": "Number of newest receipts to keep per test (default 1)",
+            "default": "1",
+            "mandatory": false
+          }
+        ],
+        "commands": []
+      },
+      {
+        "name": "compact",
+        "aliases": [],
+        "description": "Drop superseded proof receipts while keeping every receipt that decides current proof (newest per scope and contract for the live snapshot and current binding, plus the newest and newest passing receipt); coverage results are unchanged",
+        "arguments": [],
+        "options": [
+          {
+            "flags": "--test <id>",
+            "description": "Compact a single test entity",
+            "default": null,
+            "mandatory": false
+          },
+          {
+            "flags": "--dry-run",
+            "description": "Report what would be removed without writing",
+            "default": false,
+            "mandatory": false
+          },
+          {
+            "flags": "--json",
+            "description": "Emit structured JSON",
+            "default": false,
+            "mandatory": false
+          }
+        ],
+        "commands": []
+      },
+      {
+        "name": "migrate-legacy",
+        "aliases": [],
+        "description": "Remove legacy verification_receipts blocks from test documents that already carry a proof_contract",
+        "arguments": [],
+        "options": [
+          {
+            "flags": "--test <id>",
+            "description": "Migrate a single test entity",
+            "default": null,
+            "mandatory": false
+          }
+        ],
+        "commands": []
+      }
+    ]
+  }
+]

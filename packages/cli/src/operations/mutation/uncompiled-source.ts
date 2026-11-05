@@ -25,7 +25,10 @@ import {
   sourceExtractionRemediation,
 } from "../../commands/sync/cache.js";
 import { extractFromMarkdownString } from "../../extractors/markdown.js";
-import type { OperationContext } from "../../public/operations/runtime-types.js";
+import type {
+  FilesystemPort,
+  OperationContext,
+} from "../../public/operations/runtime-types.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import { branchStorePath } from "../../utils/branch-store-locator.js";
 import {
@@ -92,13 +95,15 @@ export async function readUncompiledAuthoredSource(
   context: OperationContext,
   input: UpsertInput,
 ): Promise<UncompiledAuthoredSource | null> {
-  if (context.fs === undefined || context.sourceFirst === false) return null;
+  if (context.sourceFirst === false) return null;
   if (input.type === "symbol") return null;
-  const absolute = newEntitySourceTarget(context, input);
-  if (absolute === undefined || !/\.mdx?$/i.test(absolute)) return null;
+  const absolute = newEntitySourceTarget(context, input) as string;
+  // No target (undefined) reads as the text "undefined", which is no markdown.
+  if (!/\.mdx?$/i.test(absolute)) return null;
   let content: string;
   try {
-    content = await context.fs.readFile(absolute);
+    // A runtime without a filesystem fails here like an unreadable file.
+    content = await (context.fs as FilesystemPort).readFile(absolute);
   } catch {
     return null;
   }

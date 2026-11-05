@@ -16,8 +16,10 @@ export type SemanticClause = Readonly<{
 // derived from this pattern, and "it can be restricted to …" style capability
 // prose would turn existing descriptive inventories into unmodeled normative
 // clauses ("must be able to" is already normative through "must").
+// "must not", "shall not" and "required outcome" need no alternatives of
+// their own: "must", "shall" and "required" already match them.
 const NORMATIVE_ASSERTION_PATTERN =
-  /\b(?:must|shall|should|required|requires?|may\s+only|(?:is|are)\s+(?:not\s+)?(?:allowed|permitted|entitled)\s+to|ha(?:s|ve)\s+(?:no\s+)?permission\s+to|permitted|may\s+(?:not\s+)?(?:be\s+)?\w+\s+only\b|may\s+(?:have\s+)?(?:at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to)|only\s+.+?\s+(?:may|can)|must\s+not|shall\s+not|cannot|can't|denied|forbidden|prohibited|(?:is|are|be|become|becomes|remain|remains)\s+(?:invalid|rejected|prohibited|forbidden)|(?:reject|rejects|rejected|rejection)\s+(?:invalid|unresolved|ambiguous)|fail(?:s|ed)?\s+(?:clearly|explicitly|with)|expires?\s+(?:after|within|in)|failure\s+(?:behavior|policy|outcome)|error\s+(?:handling|behavior|policy|outcome)|required\s+outcome|defaults?\s+to)\b/i;
+  /\b(?:must|shall|should|required|requires?|may\s+only|(?:is|are)\s+(?:not\s+)?(?:allowed|permitted|entitled)\s+to|ha(?:s|ve)\s+(?:no\s+)?permission\s+to|permitted|may\s+(?:not\s+)?(?:be\s+)?\w+\s+only\b|may\s+(?:have\s+)?(?:at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to)|only\s.+?\s(?:may|can)|cannot|can't|denied|forbidden|prohibited|(?:is|are|be|become|becomes|remain|remains)\s+(?:invalid|rejected|prohibited|forbidden)|(?:reject|rejects|rejected|rejection)\s+(?:invalid|unresolved|ambiguous)|fail(?:s|ed)?\s+(?:clearly|explicitly|with)|expires?\s+(?:after|within|in)|failure\s+(?:behavior|policy|outcome)|error\s+(?:handling|behavior|policy|outcome)|defaults?\s+to)\b/i;
 
 // Conditional/temporal cues help discover clauses but do not by themselves
 // turn explanatory or subjective context into an asserted obligation.
@@ -47,7 +49,8 @@ export function modeledClaimRole(
 export function normalizeSemanticClause(value: string): string {
   return (
     value
-      .replace(/^\s*(?:[-*+]\s+|\d+[.)]\s+)/, "")
+      // Whitespace after the marker collapses and is trimmed below.
+      .replace(/^\s*(?:[-*+]\s|\d+[.)]\s)/, "")
       .replace(/\s+/g, " ")
       // Clause splitters and copied list items commonly leave a conjunction
       // comma or sentence punctuation on an otherwise identical atomic claim.
@@ -79,39 +82,38 @@ export function deriveFactClaimKey(entity: Record<string, unknown>): void {
   if (entity.type !== "fact") return;
   if (entity.claim_key !== undefined) return;
   if (typeof entity.claim_text !== "string") return;
-  if (
-    typeof entity.fact_kind === "string" &&
-    NON_GROUNDING_FACT_KINDS.has(entity.fact_kind)
-  ) {
-    return;
-  }
+  if (NON_GROUNDING_FACT_KINDS.has(entity.fact_kind as string)) return;
   entity.claim_key = semanticClaimKey(entity.claim_text);
 }
 
 function detectedClauses(text: string): string[] {
-  return text
-    .split(/(?:\r?\n)+|;|(?<=[.!?])\s+(?=[A-Z0-9])/)
-    .flatMap((sentence) => {
-      if (/\bmutually\s+exclusive\b/i.test(sentence)) return [sentence];
-      // Package-resolution lists often join two noun phrases with "and"
-      // before the actual exception clause. Keep this launcher contract
-      // atomic so "exports-restricted and pnpm-style layouts" is not
-      // mistaken for a second proposition.
-      if (/\bconsumer-scoped\s+Node\s+package\s+semantics\b/i.test(sentence))
-        return [sentence];
-      const conjunctionParts = sentence.split(
-        /\s+(?:,\s*)?and\s+(?=(?:the\s+)?[a-z][^.!?]{0,140}\b(?:must|shall|should|requires?|cannot|can't|expire|default|transition|states?\s+are|invalid|unresolved|reject(?:ed|ion)?\s+(?:invalid|unresolved|ambiguous)|fail(?:s|ed)?\s+(?:clearly|explicitly|with)|failure\s+(?:behavior|policy|outcome)|error\s+(?:handling|behavior|policy|outcome)|prohibited|forbidden|required\s+outcome)\b)/i,
-      );
-      // A coordinated subject such as "Analytics and Sentry must..." is one
-      // proposition. Split only when every resulting fragment independently
-      // carries normative or validity intent.
-      return conjunctionParts.length > 1 &&
-        conjunctionParts.every((part) => NORMATIVE_PATTERN.test(part))
-        ? conjunctionParts
-        : [sentence];
-    })
-    .map(normalizeSemanticClause)
-    .filter(Boolean);
+  return (
+    text
+      // Empty and blank pieces are dropped by the caller, and a trailing \r is
+      // whitespace the normalizer trims.
+      .split(/\n|;|(?<=[.!?])\s+(?=[A-Z0-9])/)
+      .flatMap((sentence) => {
+        if (/\bmutually\s+exclusive\b/i.test(sentence)) return [sentence];
+        // Package-resolution lists often join two noun phrases with "and"
+        // before the actual exception clause. Keep this launcher contract
+        // atomic so "exports-restricted and pnpm-style layouts" is not
+        // mistaken for a second proposition.
+        if (/\bconsumer-scoped\s+Node\s+package\s+semantics\b/i.test(sentence))
+          return [sentence];
+        // A comma or extra whitespace left before "and" is trimmed by the
+        // normalizer, so one whitespace character marks the split.
+        const conjunctionParts = sentence.split(
+          /\sand\s+(?=(?:the\s+)?[a-z][^.!?]{0,140}\b(?:must|shall|should|requires?|cannot|can't|expire|default|transition|states?\s+are|invalid|unresolved|reject(?:ed|ion)?\s+(?:invalid|unresolved|ambiguous)|fail(?:s|ed)?\s+(?:clearly|explicitly|with)|failure\s+(?:behavior|policy|outcome)|error\s+(?:handling|behavior|policy|outcome)|prohibited|forbidden|required\s+outcome)\b)/i,
+        );
+        // A coordinated subject such as "Analytics and Sentry must..." is one
+        // proposition. Split only when every resulting fragment independently
+        // carries normative or validity intent.
+        return conjunctionParts.every((part) => NORMATIVE_PATTERN.test(part))
+          ? conjunctionParts
+          : [sentence];
+      })
+      .map(normalizeSemanticClause)
+  );
 }
 
 export function extractSemanticClauses(
@@ -134,12 +136,12 @@ export function extractSemanticClauses(
   // is a set-like manifest and grounding is one-to-one.
   const seen = new Set<string>();
   return normalized.flatMap((clause, index) => {
-    const identity = clause.toLowerCase();
-    if (seen.has(identity)) return [];
-    seen.add(identity);
+    const claimKey = semanticClaimKey(clause);
+    if (seen.has(claimKey)) return [];
+    seen.add(claimKey);
     return [
       {
-        claim_key: semanticClaimKey(clause),
+        claim_key: claimKey,
         text: clause,
         index,
         normative: NORMATIVE_PATTERN.test(clause),
