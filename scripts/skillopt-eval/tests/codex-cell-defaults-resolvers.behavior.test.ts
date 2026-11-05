@@ -236,6 +236,14 @@ describe("workflow signal resolvers over evidence text", () => {
     );
   });
 
+  test("onboarding reconciliation needs a matching review record", async () => {
+    await expectSignal(
+      "onboarding evidence reconciled",
+      { markers: [] },
+      false,
+    );
+  });
+
   test("missing branch-store status accepts either missing-store token", async () => {
     await expectSignal(
       "missing branch-store status",

@@ -268,6 +268,15 @@ describe("mergeLcovContents", () => {
     expect(merged.lcov).toContain("DA:2,0");
     expect(merged.diagnostics.join("\n")).toContain("metadata conflict");
   });
+  test("reports a function that two reports place on different lines", () => {
+    const merged = mergeLcovContentsWithDiagnostics([
+      "TN:\nSF:src/moved.ts\nFN:3,render\nFNDA:1,render\nDA:3,1\nend_of_record",
+      "TN:\nSF:src/moved.ts\nFN:5,render\nFNDA:0,render\nDA:5,0\nend_of_record",
+    ]);
+    expect(merged.diagnostics).toContain(
+      "LCOV function coordinate conflict for src/moved.ts:render (3 vs 5)",
+    );
+  });
 });
 
 describe("finalizeLcovIfMain leftover entry guard", () => {

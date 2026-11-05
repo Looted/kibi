@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { loadBundledSkillFrom } from "../../../packages/cli/src/public/skills";
 import {
@@ -11,6 +11,8 @@ import {
 } from "../campaign-artifacts";
 import {
   type CampaignDependencies,
+  defaultCampaignDependencies,
+  readCompleteCampaignEvaluation,
   runConfirmCampaign,
   runEvaluateCampaign,
   runPackageCampaign,
@@ -1312,6 +1314,72 @@ describe("campaign protocol failures", () => {
     } finally {
       await rm(first.parent, { recursive: true, force: true });
       await rm(second.parent, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("campaign evaluation files and default dependencies", () => {
+  test("reads back a complete evaluation and refuses an invalid one", async () => {
+    const output = await tempArtifact("read-evaluation");
+    try {
+      const evaluation = await runEvaluateCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: output.root,
+        skill: "kibi-usage",
+        manifests: [candidateManifest()],
+        repeats: 1,
+        maxTargetEpisodes: 16,
+        allowPaid: true,
+        runId: "read-evaluation-run",
+        dependencies: dependencies().deps,
+      });
+      const path = join(output.root, "evaluation.json");
+      expect(await readCompleteCampaignEvaluation(path)).toStrictEqual(
+        evaluation,
+      );
+      await writeFile(path, "not json");
+      await expect(readCompleteCampaignEvaluation(path)).rejects.toThrow(
+        "evaluation_invalid",
+      );
+      await writeFile(
+        path,
+        JSON.stringify({ ...evaluation, contentHash: "0".repeat(64) }),
+      );
+      await expect(readCompleteCampaignEvaluation(path)).rejects.toThrow(
+        "evaluation_content_hash_mismatch",
+      );
+    } finally {
+      await rm(output.parent, { recursive: true, force: true });
+    }
+  });
+
+  test("the default fixture and optimizer readers use the real layout", async () => {
+    const output = await tempArtifact("default-deps");
+    try {
+      const runRoot = await defaultCampaignDependencies.materializeFixtures({
+        runRoot: join(output.parent, "fixture-run"),
+        sourceRoot: process.cwd(),
+        skill: "kibi-usage",
+      } as never);
+      const tasks = await defaultCampaignDependencies.developmentTasks(
+        runRoot,
+        "kibi-usage",
+      );
+      expect(tasks.length).toBeGreaterThanOrEqual(4);
+      expect(tasks.every((task) => task.split === "development")).toBe(true);
+
+      const accepted = join(output.root, "accepted-output");
+      await mkdir(accepted, { recursive: true });
+      await writeFile(join(accepted, "model-paragraph.md"), "Paragraph.\n");
+      await writeFile(join(accepted, "receipt.json"), '{"model":"m"}');
+      expect(
+        await defaultCampaignDependencies.readOptimizerParagraph(output.root),
+      ).toBe("Paragraph.\n");
+      expect(
+        await defaultCampaignDependencies.readModelReceipt(output.root),
+      ).toStrictEqual({ model: "m" });
+    } finally {
+      await rm(output.parent, { recursive: true, force: true });
     }
   });
 });

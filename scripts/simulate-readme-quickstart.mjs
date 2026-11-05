@@ -126,9 +126,8 @@ function swiplOnPath(env) {
 }
 
 function hostPlatformPackage() {
-  return process.platform === "linux"
-    ? `kibi-swipl-linux-${process.arch}-gnu`
-    : `kibi-swipl-${process.platform}-${process.arch}`;
+  const libc = process.platform === "linux" ? "-gnu" : "";
+  return `kibi-swipl-${process.platform}-${process.arch}${libc}`;
 }
 
 function parseJson(text, label) {
@@ -307,9 +306,11 @@ export function parseArgs(argv) {
   return options;
 }
 
-if (import.meta.main) {
+/** Command-line entry: returns the process exit code. */
+// implements REQ-prolog-bundled-quickstart
+export function main(argv) {
   try {
-    const options = parseArgs(process.argv.slice(2));
+    const options = parseArgs(argv);
     const readme = readFileSync(
       path.resolve(options.readme ?? path.join(REPO_ROOT, "README.md")),
       "utf8",
@@ -330,10 +331,13 @@ if (import.meta.main) {
         flag: "a",
       });
     }
+    return 0;
   } catch (error) {
     console.error(
       `simulate-readme-quickstart: ${error instanceof Error ? error.message : String(error)}`,
     );
-    process.exit(1);
+    return 1;
   }
 }
+
+if (import.meta.main) process.exitCode = main(process.argv.slice(2));

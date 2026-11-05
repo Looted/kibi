@@ -15,6 +15,7 @@ import {
   MAX_TARGET_EPISODES_ENV,
   TARGET_EPISODE_BUDGET_ROOT_ENV,
   TargetEpisodeBudgetError,
+  initializeTargetEpisodeBudget,
 } from "../target-episode-budget";
 
 let preflightCalls = 0;
@@ -431,6 +432,51 @@ describe("SkillOpt workflow CLI", () => {
         "64",
       );
     } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("reports a budget file that disagrees with the development cap", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-cli-budget-mismatch-"));
+    const output: string[] = [];
+    const originalWrite = process.stdout.write;
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+      output.push(String(chunk));
+      return true;
+    }) as typeof process.stdout.write;
+    try {
+      await initializeTargetEpisodeBudget(root, 8);
+      let optimized = false;
+      const exitCode = await main(
+        [
+          "optimize",
+          "--allow-paid",
+          "--development-only",
+          "--skill",
+          "kibi-usage",
+          "--run-id",
+          "00000000-0000-4000-8000-000000000097",
+          "--artifact-root",
+          root,
+          "--fixture-run-root",
+          "/tmp/fixture-run",
+        ],
+        {
+          ...fakeDependencies(),
+          runRealOptimization: async () => {
+            optimized = true;
+            throw new Error("must not optimize");
+          },
+        },
+      );
+      expect(exitCode).toBe(1);
+      expect(optimized).toBe(false);
+      expect(JSON.parse(output.at(-1) ?? "{}")).toMatchObject({
+        status: "blocked",
+        reason: "target_episode_budget_file_mismatch",
+      });
+    } finally {
+      process.stdout.write = originalWrite;
       await rm(root, { recursive: true, force: true });
     }
   });
