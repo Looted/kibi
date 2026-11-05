@@ -1,0 +1,24 @@
+[
+  {
+    "rule": "agent-requirement-unapproved",
+    "entityId": "workspace",
+    "description": "2 more agent-authored requirement(s) have no human approval; the list above stops at 25",
+    "suggestion": "Approve the listed requirements first; the next kb_check lists the following ones",
+    "evidence": {
+      "total": 27,
+      "listed": 25,
+      "remainingIds": ["REQ-25", "REQ-26"]
+    }
+  },
+  {
+    "rule": "requirement-rationale-missing",
+    "entityId": "workspace",
+    "description": "2 more requirement(s) do not say why they exist; the list above stops at 25",
+    "suggestion": "Record the rationale of the listed requirements first; the next kb_check lists the following ones",
+    "evidence": {
+      "total": 27,
+      "listed": 25,
+      "remainingIds": ["REQ-25", "REQ-26"]
+    }
+  }
+]

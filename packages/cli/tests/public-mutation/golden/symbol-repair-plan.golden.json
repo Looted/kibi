@@ -1,0 +1,533 @@
+{
+  "version": "kibi.symbol-repair-plan.v1",
+  "readOnly": true,
+  "autoApplicable": false,
+  "repairs": [
+    {
+      "symbolId": "SYM-alpha",
+      "action": "remap",
+      "candidates": [
+        {
+          "symbolId": "SYM-alpha-copy",
+          "title": "alpha",
+          "sourceFile": null,
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-refresh",
+          "title": "alpha",
+          "symbolKind": "function",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-negative",
+          "title": "alpha",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        }
+      ],
+      "evidence": {
+        "sourceFile": "src/a.ts",
+        "sourceExists": true,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": true,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-alpha-copy",
+      "action": "review",
+      "candidates": [
+        {
+          "symbolId": "SYM-alpha",
+          "title": "alpha",
+          "symbolKind": "function",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-refresh",
+          "title": "alpha",
+          "symbolKind": "function",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-negative",
+          "title": "alpha",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        }
+      ],
+      "evidence": {
+        "sourceFile": null,
+        "sourceExists": false,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": false,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-gone",
+      "action": "delete_obsolete_symbol",
+      "candidates": [],
+      "evidence": {
+        "sourceFile": "src/gone.ts",
+        "sourceExists": false,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": false,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-stale",
+      "action": "delete_obsolete_symbol",
+      "candidates": [
+        {
+          "symbolId": "SYM-alpha",
+          "title": "alpha",
+          "symbolKind": "function",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-refresh",
+          "title": "alpha",
+          "symbolKind": "function",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        }
+      ],
+      "evidence": {
+        "sourceFile": "src/a.ts",
+        "sourceExists": true,
+        "extractionProvesAbsent": true,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": true,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-kindless",
+      "action": "remap",
+      "candidates": [
+        {
+          "symbolId": "SYM-wrong-kind",
+          "title": "Beta",
+          "symbolKind": "function",
+          "sourceFile": "<root>/src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-beta-class",
+          "title": "Beta",
+          "symbolKind": "class",
+          "sourceFile": "src/b.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-beta-type",
+          "title": "Beta",
+          "symbolKind": "type",
+          "sourceFile": "src/b.ts",
+          "evidence": "current extraction/title/kind match"
+        }
+      ],
+      "evidence": {
+        "sourceFile": "src/a.ts",
+        "sourceExists": true,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": true,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-wrong-kind",
+      "action": "delete_obsolete_symbol",
+      "candidates": [
+        {
+          "symbolId": "SYM-alpha",
+          "title": "alpha",
+          "symbolKind": "function",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-kindless",
+          "title": "Beta",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-beta-class",
+          "title": "Beta",
+          "symbolKind": "class",
+          "sourceFile": "src/b.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-beta-type",
+          "title": "Beta",
+          "symbolKind": "type",
+          "sourceFile": "src/b.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-refresh",
+          "title": "alpha",
+          "symbolKind": "function",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        }
+      ],
+      "evidence": {
+        "sourceFile": "<root>/src/a.ts",
+        "sourceExists": true,
+        "extractionProvesAbsent": true,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": true,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-renamed",
+      "action": "remap",
+      "candidates": [
+        {
+          "symbolId": "SYM-beta-class",
+          "title": "Beta",
+          "symbolKind": "class",
+          "sourceFile": "src/b.ts",
+          "evidence": "current extraction/title/kind match"
+        }
+      ],
+      "evidence": {
+        "sourceFile": "src/a.ts",
+        "sourceExists": true,
+        "extractionProvesAbsent": true,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": true,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-beta-class",
+      "action": "review",
+      "candidates": [
+        {
+          "symbolId": "SYM-kindless",
+          "title": "Beta",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-wrong-kind",
+          "title": "Beta",
+          "symbolKind": "function",
+          "sourceFile": "<root>/src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-beta-type",
+          "title": "Beta",
+          "symbolKind": "type",
+          "sourceFile": "src/b.ts",
+          "evidence": "current extraction/title/kind match"
+        }
+      ],
+      "evidence": {
+        "sourceFile": "src/b.ts",
+        "sourceExists": false,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": false,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-beta-type",
+      "action": "review",
+      "candidates": [
+        {
+          "symbolId": "SYM-kindless",
+          "title": "Beta",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-wrong-kind",
+          "title": "Beta",
+          "symbolKind": "function",
+          "sourceFile": "<root>/src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-beta-class",
+          "title": "Beta",
+          "symbolKind": "class",
+          "sourceFile": "src/b.ts",
+          "evidence": "current extraction/title/kind match"
+        }
+      ],
+      "evidence": {
+        "sourceFile": "src/b.ts",
+        "sourceExists": false,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": false,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-text",
+      "action": "review",
+      "candidates": [],
+      "evidence": {
+        "sourceFile": "src/notes.txt",
+        "sourceExists": true,
+        "extractionProvesAbsent": false,
+        "gaps": [],
+        "currentExtractionAvailable": false,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-refresh",
+      "action": "refresh_coordinates",
+      "candidates": [
+        {
+          "symbolId": "SYM-alpha",
+          "title": "alpha",
+          "symbolKind": "function",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-alpha-copy",
+          "title": "alpha",
+          "sourceFile": null,
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-negative",
+          "title": "alpha",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        }
+      ],
+      "evidence": {
+        "sourceFile": "src/a.ts",
+        "sourceExists": true,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": true,
+        "autoApply": false,
+        "coordinateRepair": {
+          "symbolId": "SYM-refresh",
+          "sourceFile": "src/a.ts",
+          "refreshable": true,
+          "reason": "extractable",
+          "suggestion": "Refresh and persist current symbol coordinates."
+        }
+      }
+    },
+    {
+      "symbolId": "SYM-unrefreshable",
+      "action": "review",
+      "candidates": [],
+      "evidence": {
+        "sourceFile": "src/a.ts",
+        "sourceExists": true,
+        "extractionProvesAbsent": true,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": true,
+        "autoApply": false,
+        "coordinateRepair": {
+          "symbolId": "SYM-unrefreshable",
+          "sourceFile": "src/a.ts",
+          "refreshable": false,
+          "reason": "extractor_miss",
+          "suggestion": "Query and validate the symbol, then author a resolvable title/sourceFile or an explicit granularity_reason: extractor-miss (or another intentional coarse anchor) through kb_upsert before refreshing."
+        }
+      }
+    },
+    {
+      "symbolId": "SYM-negative",
+      "action": "refresh_coordinates",
+      "candidates": [
+        {
+          "symbolId": "SYM-alpha",
+          "title": "alpha",
+          "symbolKind": "function",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-alpha-copy",
+          "title": "alpha",
+          "sourceFile": null,
+          "evidence": "current extraction/title/kind match"
+        },
+        {
+          "symbolId": "SYM-refresh",
+          "title": "alpha",
+          "symbolKind": "function",
+          "sourceFile": "src/a.ts",
+          "evidence": "current extraction/title/kind match"
+        }
+      ],
+      "evidence": {
+        "sourceFile": "src/a.ts",
+        "sourceExists": true,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": true,
+        "autoApply": false,
+        "coordinateRepair": {
+          "symbolId": "SYM-negative",
+          "sourceFile": "src/a.ts",
+          "refreshable": true,
+          "reason": "extractable",
+          "suggestion": "Refresh and persist current symbol coordinates."
+        }
+      }
+    },
+    {
+      "symbolId": "SYM-number",
+      "action": "review",
+      "candidates": [],
+      "evidence": {
+        "sourceFile": "src/a.ts",
+        "sourceExists": true,
+        "extractionProvesAbsent": true,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": true,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-number-2",
+      "action": "review",
+      "candidates": [],
+      "evidence": {
+        "sourceFile": null,
+        "sourceExists": false,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": false,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-empty",
+      "action": "review",
+      "candidates": [],
+      "evidence": {
+        "sourceFile": null,
+        "sourceExists": false,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": false,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-empty-2",
+      "action": "review",
+      "candidates": [],
+      "evidence": {
+        "sourceFile": null,
+        "sourceExists": false,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": false,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-untitled",
+      "action": "review",
+      "candidates": [],
+      "evidence": {
+        "sourceFile": null,
+        "sourceExists": false,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": false,
+        "autoApply": false
+      }
+    },
+    {
+      "symbolId": "SYM-untitled-2",
+      "action": "review",
+      "candidates": [],
+      "evidence": {
+        "sourceFile": null,
+        "sourceExists": false,
+        "extractionProvesAbsent": false,
+        "gaps": [
+          "coordinates",
+          "2"
+        ],
+        "currentExtractionAvailable": false,
+        "autoApply": false
+      }
+    }
+  ]
+}

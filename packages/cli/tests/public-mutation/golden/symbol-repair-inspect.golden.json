@@ -1,0 +1,58 @@
+[
+  {
+    "symbolId": "S-ext",
+    "sourceFile": "src/a.ts",
+    "refreshable": true,
+    "reason": "extractable",
+    "suggestion": "Refresh and persist current symbol coordinates."
+  },
+  {
+    "symbolId": "S-blank",
+    "sourceFile": null,
+    "refreshable": false,
+    "reason": "source_unavailable",
+    "suggestion": "Repair sourceFile to point to readable implementation code before refreshing."
+  },
+  {
+    "symbolId": "S-src",
+    "sourceFile": "src/a.ts",
+    "refreshable": true,
+    "reason": "extractable",
+    "suggestion": "Refresh and persist current symbol coordinates."
+  },
+  {
+    "symbolId": "S-gone-coarse",
+    "sourceFile": "src/gone.ts",
+    "refreshable": false,
+    "reason": "source_unavailable",
+    "suggestion": "Repair sourceFile to point to readable implementation code before refreshing."
+  },
+  {
+    "symbolId": "S-coarse",
+    "sourceFile": "src/notes.txt",
+    "refreshable": true,
+    "reason": "coarse_anchor",
+    "suggestion": "Refresh and persist current symbol coordinates."
+  },
+  {
+    "symbolId": "S-untitled",
+    "sourceFile": "src/notes.txt",
+    "refreshable": false,
+    "reason": "extractor_miss",
+    "suggestion": "Query and validate the symbol, then author a resolvable title/sourceFile or an explicit granularity_reason: extractor-miss (or another intentional coarse anchor) through kb_upsert before refreshing."
+  },
+  {
+    "symbolId": "S-none",
+    "sourceFile": "src/a.ts",
+    "refreshable": false,
+    "reason": "extractor_miss",
+    "suggestion": "Query and validate the symbol, then author a resolvable title/sourceFile or an explicit granularity_reason: extractor-miss (or another intentional coarse anchor) through kb_upsert before refreshing."
+  },
+  {
+    "symbolId": "S-nofile",
+    "sourceFile": null,
+    "refreshable": false,
+    "reason": "source_unavailable",
+    "suggestion": "Repair sourceFile to point to readable implementation code before refreshing."
+  }
+]

@@ -11,6 +11,13 @@ import { firstSentence } from "../../../utils/first-sentence.js";
 import type { OperationContext, PrologPort } from "../runtime-types.js";
 import type { OperationSpec } from "../types.js";
 
+type AnalysisInput = Parameters<
+  typeof analyzeSemanticAdvisorInputWithPlugins
+>[0];
+type AnalysisOptions = Parameters<
+  typeof analyzeSemanticAdvisorInputWithPlugins
+>[1];
+
 function requiredText(value: unknown): string {
   const text = typeof value === "string" ? value.trim() : "";
   if (!text) {
@@ -35,22 +42,27 @@ function optionalString(value: unknown): string | undefined {
  * simply absent then.
  */
 // implements REQ-kibi-proposition-complete-ingestion
-async function storedLedgerWarnings(
+async function storedLedgerWarning(
   args: SemanticAdvisorArgs,
   text: string,
   receipt: SemanticAdvisorReceipt,
   context?: OperationContext,
-): Promise<readonly string[]> {
+): Promise<string | null> {
   const id = optionalString(args.id);
-  if (!id || (optionalString(args.type) ?? "req") !== "req") return [];
+  if (!id || (optionalString(args.type) ?? "req") !== "req") return null;
+  const prolog = context?.prolog;
   try {
-    const prolog: PrologPort | undefined =
-      context?.prolog ?? (await context?.ensureProlog?.());
-    if (!prolog) return [];
-    const warning = await storedLedgerDriftWarning(prolog, id, text, receipt);
-    return warning ? [warning] : [];
+    // Without an engine (no context, or neither prolog nor ensureProlog) the
+    // lookup throws, which reads as no warning like a store that cannot be
+    // read.
+    const port =
+      prolog ??
+      (await (
+        (context as OperationContext).ensureProlog as () => Promise<PrologPort>
+      )());
+    return await storedLedgerDriftWarning(port, id, text, receipt);
   } catch {
-    return [];
+    return null;
   }
 }
 
@@ -63,6 +75,7 @@ export async function executeSemanticAdvisor(
   const title = optionalString(args.title) ?? (firstSentence(text) || text);
   const source = optionalString(args.source) ?? "mcp://kibi/semantic-advisor";
   const orchestrated = await analyzeSemanticAdvisorInputWithPlugins(
+    // The analysis reads an undefined clauses or interpretations as absent.
     {
       payload: {
         type: optionalString(args.type) ?? "req",
@@ -74,20 +87,17 @@ export async function executeSemanticAdvisor(
           semantic_text: text,
         },
       },
-      ...(args.clauses !== undefined ? { clauses: args.clauses } : {}),
-      ...(args.interpretations !== undefined
-        ? { interpretations: args.interpretations }
-        : {}),
-    },
+      clauses: args.clauses,
+      interpretations: args.interpretations,
+    } as AnalysisInput,
+    // Without ensurePlugins the analysis consults no plugin.
     {
       operationName: "kb_semantic_advisor",
-      ...(context?.ensurePlugins
-        ? { ensurePlugins: context.ensurePlugins }
-        : {}),
-    },
+      ensurePlugins: context?.ensurePlugins,
+    } as AnalysisOptions,
   );
   const result = orchestrated.analysis;
-  const ledgerWarnings = await storedLedgerWarnings(
+  const ledgerWarning = await storedLedgerWarning(
     args,
     text,
     result.receipt,
@@ -147,12 +157,16 @@ export async function executeSemanticAdvisor(
         type: "text",
         // A drift warning decides whether the analyzed ledger can be
         // written at all, so the text says it too, not only the warnings.
-        text: `kb_semantic_advisor: ${result.receipt.summary} Suggestions: ${result.receipt.suggestions.map(({ kind }) => kind).join(", ") || "none"}.${ledgerWarnings.map((warning) => ` ${warning}`).join("")}`,
+        text: `kb_semantic_advisor: ${result.receipt.summary} Suggestions: ${result.receipt.suggestions.map(({ kind }) => kind).join(", ") || "none"}.${ledgerWarning === null ? "" : ` ${ledgerWarning}`}`,
       },
     ],
     structuredContent: {
       receipt: result.receipt,
-      warnings: [...result.warnings, ...ledgerWarnings, ...pluginWarnings],
+      warnings: [
+        ...result.warnings,
+        ...(ledgerWarning === null ? [] : [ledgerWarning]),
+        ...pluginWarnings,
+      ],
       ...(capabilityPlugins ? { capabilityPlugins } : {}),
     },
   };
@@ -162,36 +176,22 @@ async function executeSemanticAdvisorInput(
   input: Readonly<Record<string, unknown>>,
   context: OperationContext,
 ): Promise<SemanticAdvisorOperationResult> {
-  const type = optionalString(input.type);
-  const id = optionalString(input.id);
-  const title = optionalString(input.title);
-  const source = optionalString(input.source);
-  const status = optionalString(input.status);
-  const clauses = Array.isArray(input.clauses)
-    ? input.clauses.filter(
-        (value): value is string => typeof value === "string",
-      )
-    : undefined;
-  const interpretations = Array.isArray(input.interpretations)
-    ? input.interpretations.filter(
-        (
-          value,
-        ): value is NonNullable<
-          SemanticAdvisorArgs["interpretations"]
-        >[number] => typeof value === "object" && value !== null,
-      )
-    : undefined;
+  // executeSemanticAdvisor checks the text and trims each optional string,
+  // dropping a blank or non-string one; only the lists are filtered here.
   return executeSemanticAdvisor(
     {
-      text: requiredText(input.text),
-      ...(type ? { type } : {}),
-      ...(id ? { id } : {}),
-      ...(title ? { title } : {}),
-      ...(source ? { source } : {}),
-      ...(status ? { status } : {}),
-      ...(clauses !== undefined ? { clauses } : {}),
-      ...(interpretations !== undefined ? { interpretations } : {}),
-    },
+      ...input,
+      clauses: Array.isArray(input.clauses)
+        ? input.clauses.filter(
+            (value): value is string => typeof value === "string",
+          )
+        : undefined,
+      interpretations: Array.isArray(input.interpretations)
+        ? input.interpretations.filter(
+            (value) => typeof value === "object" && value !== null,
+          )
+        : undefined,
+    } as unknown as SemanticAdvisorArgs,
     context,
   );
 }

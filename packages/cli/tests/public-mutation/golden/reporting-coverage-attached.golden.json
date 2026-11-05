@@ -1,0 +1,55 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Coverage summary: 0 structurally covered and 0 tested end to end out of 0."
+    }
+  ],
+  "structuredContent": {
+    "summary": {},
+    "rows": [],
+    "meta": {
+      "snapshotId": 4,
+      "branch": "main",
+      "proofReceiptMaxAgeSeconds": 604800,
+      "proofSnapshot": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "proofSnapshotAvailable": true,
+      "proofSnapshotDirty": true,
+      "proofSnapshotFileCount": 3,
+      "proofSnapshotVersion": "kibi.workspace-snapshot.v2"
+    },
+    "migrationPlan": {
+      "version": "kibi.migration-plan.v2",
+      "expected": {
+        "branch": "main",
+        "kbBranch": null,
+        "kbSnapshotId": null,
+        "workspaceSnapshot": null,
+        "configHash": null
+      },
+      "scope": {
+        "evaluatedDomains": [
+          "branch",
+          "proof",
+          "semantic",
+          "symbol"
+        ],
+        "incompleteDomains": [],
+        "complete": true
+      },
+      "actions": [],
+      "diagnostics": [],
+      "planHash": "8dc80bbb102e3c7382302f061ce0b55532872e40d754850b94341fae28f213b4",
+      "status": "no_actions",
+      "summary": {
+        "actionCount": 0,
+        "readyActionCount": 0,
+        "blockedActionCount": 0,
+        "automaticActionCount": 0,
+        "reviewActionCount": 0,
+        "operatorActionCount": 0,
+        "executionActionCount": 0
+      }
+    }
+  }
+}

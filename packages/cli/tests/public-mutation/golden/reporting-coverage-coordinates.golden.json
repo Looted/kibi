@@ -1,0 +1,56 @@
+{
+  "req": [
+    {
+      "id": "REQ-m",
+      "proofStatus": "unresolved",
+      "proofGaps": [],
+      "proofRepairs": [],
+      "proofStages": {
+        "sourceCoordinates": {
+          "missingSymbols": [
+            "SYM-gone"
+          ],
+          "coordinateRepairs": [
+            {
+              "symbolId": "SYM-gone",
+              "sourceFile": null,
+              "refreshable": false,
+              "reason": "source_unavailable",
+              "suggestion": "Query and repair the missing symbol before refreshing."
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "symbol": [
+    {
+      "id": "REQ-m",
+      "proofStatus": "unresolved",
+      "proofGaps": [],
+      "proofRepairs": [],
+      "proofStages": {
+        "sourceCoordinates": {
+          "missingSymbols": [
+            "SYM-gone"
+          ]
+        }
+      }
+    }
+  ],
+  "type": [
+    {
+      "id": "REQ-m",
+      "proofStatus": "unresolved",
+      "proofGaps": [],
+      "proofRepairs": [],
+      "proofStages": {
+        "sourceCoordinates": {
+          "missingSymbols": [
+            "SYM-gone"
+          ]
+        }
+      }
+    }
+  ]
+}

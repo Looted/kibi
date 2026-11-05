@@ -1,0 +1,173 @@
+{
+  "kindBad": [
+    "proof_contract.kind must be one of: e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source; received \"magic\""
+  ],
+  "kindNull": [
+    "proof_contract.kind must be one of: e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source; received null"
+  ],
+  "e2e": [],
+  "exhaustiveMissing": [
+    "proof_contract.domain_source is required for kind exhaustive: name the symbol the proof reads its domain from"
+  ],
+  "exhaustive": [],
+  "exhaustiveArg": [],
+  "domainNull": [
+    "proof_contract.domain_source must be {symbol_id, export?, field?, arg?} naming the symbol that defines the domain, the export to read when its title is not the export name, the record field that names each member, and for a SWI-Prolog predicate the argument (1-based) that names it"
+  ],
+  "domainBlankId": [
+    "proof_contract.domain_source must be {symbol_id, export?, field?, arg?} naming the symbol that defines the domain, the export to read when its title is not the export name, the record field that names each member, and for a SWI-Prolog predicate the argument (1-based) that names it"
+  ],
+  "domainBlankExport": [
+    "proof_contract.domain_source must be {symbol_id, export?, field?, arg?} naming the symbol that defines the domain, the export to read when its title is not the export name, the record field that names each member, and for a SWI-Prolog predicate the argument (1-based) that names it"
+  ],
+  "domainBlankField": [
+    "proof_contract.domain_source must be {symbol_id, export?, field?, arg?} naming the symbol that defines the domain, the export to read when its title is not the export name, the record field that names each member, and for a SWI-Prolog predicate the argument (1-based) that names it"
+  ],
+  "domainArgZero": [
+    "proof_contract.domain_source must be {symbol_id, export?, field?, arg?} naming the symbol that defines the domain, the export to read when its title is not the export name, the record field that names each member, and for a SWI-Prolog predicate the argument (1-based) that names it"
+  ],
+  "domainArgFraction": [
+    "proof_contract.domain_source must be {symbol_id, export?, field?, arg?} naming the symbol that defines the domain, the export to read when its title is not the export name, the record field that names each member, and for a SWI-Prolog predicate the argument (1-based) that names it"
+  ],
+  "domainArgString": [
+    "proof_contract.domain_source must be {symbol_id, export?, field?, arg?} naming the symbol that defines the domain, the export to read when its title is not the export name, the record field that names each member, and for a SWI-Prolog predicate the argument (1-based) that names it"
+  ],
+  "domainExtraKey": [
+    "proof_contract.domain_source must be {symbol_id, export?, field?, arg?} naming the symbol that defines the domain, the export to read when its title is not the export name, the record field that names each member, and for a SWI-Prolog predicate the argument (1-based) that names it"
+  ],
+  "domainFieldAndArg": [
+    "proof_contract.domain_source takes field (a record field) or arg (a Prolog argument), not both"
+  ],
+  "domainFieldOnE2e": [
+    "proof_contract.domain_source.field applies only to kind exhaustive, not e2e"
+  ],
+  "domainFieldOnRegex": [
+    "proof_contract.domain_source.field applies only to kind exhaustive, not regex"
+  ],
+  "domainArgOnE2e": [
+    "proof_contract.domain_source.arg applies only to kind exhaustive, not e2e"
+  ],
+  "domainArgOnSmt": [
+    "proof_contract.domain_source.arg applies only to kind exhaustive, not smt"
+  ],
+  "domainPlainOnE2e": [],
+  "typecheckMissing": [
+    "proof_contract.domain_source is required for kind typecheck: name the symbol the proof reads its domain from",
+    "proof_contract.witness is required for kind typecheck: name the file the type checker compiles"
+  ],
+  "typecheck": [],
+  "witnessBlank": [
+    "proof_contract.witness must be {path} naming the repository-relative witness file"
+  ],
+  "witnessExtra": [
+    "proof_contract.witness must be {path} naming the repository-relative witness file"
+  ],
+  "witnessString": [
+    "proof_contract.witness must be {path} naming the repository-relative witness file"
+  ],
+  "witnessOnE2e": [],
+  "arithmeticMissing": [
+    "proof_contract.constraint_source or value_source is required for kind arithmetic: name the typed facts or code constants its assumptions come from"
+  ],
+  "smtMissing": [
+    "proof_contract.constraint_source or value_source is required for kind smt: name the typed facts or code constants its assumptions come from"
+  ],
+  "arithmeticConstraints": [],
+  "constraintString": [
+    "proof_contract.constraint_source must be {fact_ids: [FACT-...]} naming the facts the assumptions come from"
+  ],
+  "constraintExtra": [
+    "proof_contract.constraint_source must be {fact_ids: [FACT-...]} naming the facts the assumptions come from"
+  ],
+  "constraintIdsString": [
+    "proof_contract.constraint_source must be {fact_ids: [FACT-...]} naming the facts the assumptions come from"
+  ],
+  "constraintIdsEmpty": [
+    "proof_contract.constraint_source must be {fact_ids: [FACT-...]} naming the facts the assumptions come from"
+  ],
+  "constraintIdsBlank": [
+    "proof_contract.constraint_source must be {fact_ids: [FACT-...]} naming the facts the assumptions come from"
+  ],
+  "constraintNoIds": [
+    "proof_contract.constraint_source must be {fact_ids: [FACT-...]} naming the facts the assumptions come from"
+  ],
+  "arithmeticValues": [],
+  "smtValues": [],
+  "valuesOnE2e": [
+    "proof_contract.value_source applies only to kind arithmetic or smt, not e2e"
+  ],
+  "valuesOnRule": [
+    "proof_contract.value_source applies only to kind arithmetic or smt, not rule"
+  ],
+  "valuesString": [
+    "proof_contract.value_source must be [{symbol_id, export?, arg?, measure?: value|count} or {source, measure?: count}] naming the code constants or project sources the assumptions read"
+  ],
+  "valuesEmpty": [
+    "proof_contract.value_source must be [{symbol_id, export?, arg?, measure?: value|count} or {source, measure?: count}] naming the code constants or project sources the assumptions read"
+  ],
+  "valuesNull": [
+    "proof_contract.value_source must be [{symbol_id, export?, arg?, measure?: value|count} or {source, measure?: count}] naming the code constants or project sources the assumptions read"
+  ],
+  "valuesBlankId": [
+    "proof_contract.value_source must be [{symbol_id, export?, arg?, measure?: value|count} or {source, measure?: count}] naming the code constants or project sources the assumptions read"
+  ],
+  "valuesMixed": [
+    "proof_contract.value_source must be [{symbol_id, export?, arg?, measure?: value|count} or {source, measure?: count}] naming the code constants or project sources the assumptions read"
+  ],
+  "valuesBlankExport": [
+    "proof_contract.value_source must be [{symbol_id, export?, arg?, measure?: value|count} or {source, measure?: count}] naming the code constants or project sources the assumptions read"
+  ],
+  "valuesBadArg": [
+    "proof_contract.value_source must be [{symbol_id, export?, arg?, measure?: value|count} or {source, measure?: count}] naming the code constants or project sources the assumptions read"
+  ],
+  "valuesBadMeasure": [
+    "proof_contract.value_source must be [{symbol_id, export?, arg?, measure?: value|count} or {source, measure?: count}] naming the code constants or project sources the assumptions read"
+  ],
+  "valuesExtraKey": [
+    "proof_contract.value_source must be [{symbol_id, export?, arg?, measure?: value|count} or {source, measure?: count}] naming the code constants or project sources the assumptions read"
+  ],
+  "valuesSourceBad": [
+    "proof_contract.value_source[1].source must be an object whose reader is one of: json, yaml, glob, openapi, references, schema, routes, validator, prolog",
+    "proof_contract.value_source[2] names a source, so it takes no symbol_id, export or arg",
+    "proof_contract.value_source[3] names a source, so it takes no symbol_id, export or arg",
+    "proof_contract.value_source[4] names a source, so it takes no symbol_id, export or arg",
+    "proof_contract.value_source[5].measure must be count for a source: Kibi counts the members it reads"
+  ],
+  "provesOnRegex": [],
+  "provesOnE2e": [
+    "proof_contract.proves applies only to certificate kinds (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source), not e2e"
+  ],
+  "provesOnExample": [
+    "proof_contract.proves applies only to certificate kinds (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source), not example"
+  ],
+  "provesString": [
+    "proof_contract.proves must be a non-empty list of distinct claim keys (CLAIM-...) the certificate proves"
+  ],
+  "provesEmpty": [
+    "proof_contract.proves must be a non-empty list of distinct claim keys (CLAIM-...) the certificate proves"
+  ],
+  "provesBadKey": [
+    "proof_contract.proves must be a non-empty list of distinct claim keys (CLAIM-...) the certificate proves"
+  ],
+  "provesLowerPrefix": [
+    "proof_contract.proves must be a non-empty list of distinct claim keys (CLAIM-...) the certificate proves"
+  ],
+  "provesSuffix": [
+    "proof_contract.proves must be a non-empty list of distinct claim keys (CLAIM-...) the certificate proves"
+  ],
+  "provesPrefix": [
+    "proof_contract.proves must be a non-empty list of distinct claim keys (CLAIM-...) the certificate proves"
+  ],
+  "provesNumber": [
+    "proof_contract.proves must be a non-empty list of distinct claim keys (CLAIM-...) the certificate proves"
+  ],
+  "provesMixed": [
+    "proof_contract.proves must be a non-empty list of distinct claim keys (CLAIM-...) the certificate proves"
+  ],
+  "provesObject": [
+    "proof_contract.proves must be a non-empty list of distinct claim keys (CLAIM-...) the certificate proves"
+  ],
+  "provesDuplicate": [
+    "proof_contract.proves must be a non-empty list of distinct claim keys (CLAIM-...) the certificate proves"
+  ]
+}

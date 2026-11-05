@@ -1,0 +1,626 @@
+{
+  "selects": {
+    "tables": {
+      "ok": true,
+      "model": {
+        "members": ["organisations", "teams", "users"],
+        "entities": [
+          {
+            "name": "organisations",
+            "columns": [
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "name",
+                "nullable": false,
+                "optional": false
+              }
+            ],
+            "foreign_keys": []
+          },
+          {
+            "name": "teams",
+            "columns": [
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "org",
+                "nullable": true,
+                "optional": false
+              }
+            ],
+            "foreign_keys": ["teams.id,org->users.id,organisation_id"]
+          },
+          {
+            "name": "users",
+            "columns": [
+              {
+                "name": "age",
+                "nullable": true,
+                "optional": false
+              },
+              {
+                "name": "email",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "memo",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "nick",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "organisation_id",
+                "nullable": true,
+                "optional": false
+              }
+            ],
+            "foreign_keys": [
+              "users.organisation_id->organisations.id on delete set null"
+            ]
+          }
+        ]
+      }
+    },
+    "columns": {
+      "ok": true,
+      "model": {
+        "members": [
+          "organisations.id",
+          "organisations.name",
+          "teams.id",
+          "teams.org",
+          "users.age",
+          "users.email",
+          "users.id",
+          "users.memo",
+          "users.nick",
+          "users.organisation_id"
+        ],
+        "entities": [
+          {
+            "name": "organisations",
+            "columns": [
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "name",
+                "nullable": false,
+                "optional": false
+              }
+            ],
+            "foreign_keys": []
+          },
+          {
+            "name": "teams",
+            "columns": [
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "org",
+                "nullable": true,
+                "optional": false
+              }
+            ],
+            "foreign_keys": ["teams.id,org->users.id,organisation_id"]
+          },
+          {
+            "name": "users",
+            "columns": [
+              {
+                "name": "age",
+                "nullable": true,
+                "optional": false
+              },
+              {
+                "name": "email",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "memo",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "nick",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "organisation_id",
+                "nullable": true,
+                "optional": false
+              }
+            ],
+            "foreign_keys": [
+              "users.organisation_id->organisations.id on delete set null"
+            ]
+          }
+        ]
+      }
+    },
+    "required_columns": {
+      "ok": true,
+      "model": {
+        "members": [
+          "organisations.id",
+          "organisations.name",
+          "teams.id",
+          "users.email",
+          "users.id",
+          "users.memo",
+          "users.nick"
+        ],
+        "entities": [
+          {
+            "name": "organisations",
+            "columns": [
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "name",
+                "nullable": false,
+                "optional": false
+              }
+            ],
+            "foreign_keys": []
+          },
+          {
+            "name": "teams",
+            "columns": [
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "org",
+                "nullable": true,
+                "optional": false
+              }
+            ],
+            "foreign_keys": ["teams.id,org->users.id,organisation_id"]
+          },
+          {
+            "name": "users",
+            "columns": [
+              {
+                "name": "age",
+                "nullable": true,
+                "optional": false
+              },
+              {
+                "name": "email",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "memo",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "nick",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "organisation_id",
+                "nullable": true,
+                "optional": false
+              }
+            ],
+            "foreign_keys": [
+              "users.organisation_id->organisations.id on delete set null"
+            ]
+          }
+        ]
+      }
+    },
+    "nullable_columns": {
+      "ok": true,
+      "model": {
+        "members": ["teams.org", "users.age", "users.organisation_id"],
+        "entities": [
+          {
+            "name": "organisations",
+            "columns": [
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "name",
+                "nullable": false,
+                "optional": false
+              }
+            ],
+            "foreign_keys": []
+          },
+          {
+            "name": "teams",
+            "columns": [
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "org",
+                "nullable": true,
+                "optional": false
+              }
+            ],
+            "foreign_keys": ["teams.id,org->users.id,organisation_id"]
+          },
+          {
+            "name": "users",
+            "columns": [
+              {
+                "name": "age",
+                "nullable": true,
+                "optional": false
+              },
+              {
+                "name": "email",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "memo",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "nick",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "organisation_id",
+                "nullable": true,
+                "optional": false
+              }
+            ],
+            "foreign_keys": [
+              "users.organisation_id->organisations.id on delete set null"
+            ]
+          }
+        ]
+      }
+    },
+    "foreign_keys": {
+      "ok": true,
+      "model": {
+        "members": [
+          "teams.id,org->users.id,organisation_id",
+          "users.organisation_id->organisations.id on delete set null"
+        ],
+        "entities": [
+          {
+            "name": "organisations",
+            "columns": [
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "name",
+                "nullable": false,
+                "optional": false
+              }
+            ],
+            "foreign_keys": []
+          },
+          {
+            "name": "teams",
+            "columns": [
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "org",
+                "nullable": true,
+                "optional": false
+              }
+            ],
+            "foreign_keys": ["teams.id,org->users.id,organisation_id"]
+          },
+          {
+            "name": "users",
+            "columns": [
+              {
+                "name": "age",
+                "nullable": true,
+                "optional": false
+              },
+              {
+                "name": "email",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "id",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "memo",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "nick",
+                "nullable": false,
+                "optional": false
+              },
+              {
+                "name": "organisation_id",
+                "nullable": true,
+                "optional": false
+              }
+            ],
+            "foreign_keys": [
+              "users.organisation_id->organisations.id on delete set null"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "default": {
+    "ok": true,
+    "model": {
+      "members": ["organisations", "teams", "users"],
+      "entities": [
+        {
+          "name": "organisations",
+          "columns": [
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "name",
+              "nullable": false,
+              "optional": false
+            }
+          ],
+          "foreign_keys": []
+        },
+        {
+          "name": "teams",
+          "columns": [
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "org",
+              "nullable": true,
+              "optional": false
+            }
+          ],
+          "foreign_keys": ["teams.id,org->users.id,organisation_id"]
+        },
+        {
+          "name": "users",
+          "columns": [
+            {
+              "name": "age",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "email",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "memo",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "nick",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "organisation_id",
+              "nullable": true,
+              "optional": false
+            }
+          ],
+          "foreign_keys": [
+            "users.organisation_id->organisations.id on delete set null"
+          ]
+        }
+      ]
+    }
+  },
+  "table": {
+    "ok": true,
+    "model": {
+      "members": [
+        "users.age",
+        "users.email",
+        "users.id",
+        "users.memo",
+        "users.nick",
+        "users.organisation_id"
+      ],
+      "entities": [
+        {
+          "name": "users",
+          "columns": [
+            {
+              "name": "age",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "email",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "memo",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "nick",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "organisation_id",
+              "nullable": true,
+              "optional": false
+            }
+          ],
+          "foreign_keys": [
+            "users.organisation_id->organisations.id on delete set null"
+          ]
+        }
+      ]
+    }
+  },
+  "noTable": {
+    "ok": false,
+    "reason": "no table matches zzz (organisations, teams, users)"
+  },
+  "none": {
+    "ok": false,
+    "reason": "none/*.sql, nix/*.sql matches no file"
+  },
+  "badCreate": {
+    "ok": false,
+    "reason": "bad/create.sql: Kibi cannot read this CREATE TABLE form (CREATE TABLE weird AS SELECT 1)"
+  },
+  "badAlter": {
+    "ok": false,
+    "reason": "bad/alter.sql: ALTER TABLE t cannot read this ALTER TABLE form (ALTER TABLE t ATTACH PARTITION p FOR VALUES IN (1)), so the schema after it is unknown"
+  },
+  "before": {
+    "ok": false,
+    "reason": "bad/before.sql: ALTER TABLE t before Kibi read its CREATE TABLE"
+  },
+  "dropFk": {
+    "ok": false,
+    "reason": "bad/dropfk.sql: ALTER TABLE t drops constraint t_a_fk, a foreign key Kibi did not read (ALTER TABLE t DROP CONSTRAINT t_a_fk), so the schema after it is unknown"
+  },
+  "dropFkey": {
+    "ok": false,
+    "reason": "bad/dropfkey.sql: ALTER TABLE t drops constraint t_a_fkey, a foreign key Kibi did not read (ALTER TABLE t DROP CONSTRAINT t_a_FKEY CASCADE), so the schema after it is unknown"
+  },
+  "dropOther": {
+    "ok": true,
+    "model": {
+      "members": ["t.a"],
+      "entities": [
+        {
+          "name": "t",
+          "columns": [
+            {
+              "name": "a",
+              "nullable": true,
+              "optional": false
+            }
+          ],
+          "foreign_keys": []
+        }
+      ]
+    }
+  },
+  "empty": {
+    "ok": false,
+    "reason": "empty/*.sql holds no CREATE TABLE statement Kibi can read (2 files)"
+  },
+  "one": {
+    "ok": false,
+    "reason": "one/*.sql holds no CREATE TABLE statement Kibi can read (1 file)"
+  },
+  "neutral": {
+    "ok": true,
+    "model": {
+      "members": [],
+      "entities": [
+        {
+          "name": "n",
+          "columns": [
+            {
+              "name": "a",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "b",
+              "nullable": true,
+              "optional": false
+            }
+          ],
+          "foreign_keys": []
+        }
+      ]
+    }
+  }
+}

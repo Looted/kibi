@@ -92,20 +92,22 @@ export function compareRelationshipParity(
 }
 
 function isGitWorkspace(workspaceRoot: string): boolean {
+  let answer: string | undefined;
   try {
-    return (
-      execFileSync(
-        "git",
-        ["-C", workspaceRoot, "rev-parse", "--is-inside-work-tree"],
-        {
-          encoding: "utf8",
-          stdio: ["ignore", "pipe", "ignore"],
-        },
-      ).trim() === "true"
+    answer = execFileSync(
+      "git",
+      ["-C", workspaceRoot, "rev-parse", "--is-inside-work-tree"],
+      {
+        encoding: "utf8",
+        // rationale: the streams only keep git's own complaint off the console
+        // Stryker disable next-line ArrayDeclaration
+        stdio: ["ignore", "pipe", "ignore"],
+      },
     );
   } catch {
-    return false;
+    // Outside a work tree git fails, which reads as no work tree.
   }
+  return answer?.trim() === "true";
 }
 
 async function compiledRelationships(
@@ -122,7 +124,8 @@ async function compiledRelationships(
       );
     }
     relationships.push(
-      ...parseCompiledRelationshipRows(type, result.bindings.Rows ?? "[]"),
+      // A missing binding reads as no rows.
+      ...parseCompiledRelationshipRows(type, String(result.bindings.Rows)),
     );
   }
   return relationships;
@@ -133,7 +136,8 @@ export function parseCompiledRelationshipRows(
   rows: string,
 ): RelationshipParityRecord[] {
   return parseListOfLists(rows).flatMap(([rawFrom, rawTo, rawSource]) => {
-    const from = String(parsePrologValue(rawFrom ?? ""));
+    // A parsed row always has a first column.
+    const from = String(parsePrologValue(rawFrom as string));
     const to = String(parsePrologValue(rawTo ?? ""));
     const source = String(parsePrologValue(rawSource ?? ""));
     if (!from || !to) return [];
@@ -275,9 +279,8 @@ function explainUntrackedEndpoints(
     endpoints.add(relationship.from);
     endpoints.add(relationship.to);
   }
-  if (endpoints.size === 0) return violations;
+  // No endpoint, or no untracked file, leaves every violation as it is.
   const untracked = findUntrackedDocumentMatches(workspaceRoot, [...endpoints]);
-  if (untracked.size === 0) return violations;
   return violations.map((violation) => {
     const relationship = authoredToCompiledRelationship(violation);
     if (relationship === null) return violation;
@@ -301,13 +304,13 @@ function explainUntrackedEndpoints(
 function authoredToCompiledRelationship(
   violation: Violation,
 ): { from: string; to: string } | null {
-  const evidence = violation.evidence as
-    | { direction?: unknown; relationship?: { from?: unknown; to?: unknown } }
-    | undefined;
-  if (evidence?.direction !== "authored_to_compiled") return null;
-  const from = evidence.relationship?.from;
-  const to = evidence.relationship?.to;
-  return typeof from === "string" && typeof to === "string"
-    ? { from, to }
+  // Every parity violation carries its direction and, between entities, the
+  // relationship.
+  const evidence = violation.evidence as {
+    direction: unknown;
+    relationship: { from: string; to: string };
+  };
+  return evidence.direction === "authored_to_compiled"
+    ? evidence.relationship
     : null;
 }

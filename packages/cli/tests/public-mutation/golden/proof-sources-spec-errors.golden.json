@@ -1,0 +1,183 @@
+{
+  "null": [
+    "s must be an object whose reader is one of: json, yaml, glob, openapi, references, schema, routes, validator, prolog"
+  ],
+  "array": [
+    "s must be an object whose reader is one of: json, yaml, glob, openapi, references, schema, routes, validator, prolog"
+  ],
+  "noReader": [
+    "s must be an object whose reader is one of: json, yaml, glob, openapi, references, schema, routes, validator, prolog"
+  ],
+  "badReader": [
+    "s must be an object whose reader is one of: json, yaml, glob, openapi, references, schema, routes, validator, prolog"
+  ],
+  "jsonValid": [],
+  "jsonMissingFile": ["s.file is required for reader json"],
+  "jsonUnknownKeys": [
+    "s (reader json) does not take pattern, ignore; it takes reader, file, path, select, field"
+  ],
+  "jsonAbsolute": [
+    "s.file must be a repository-relative path inside the workspace"
+  ],
+  "jsonParent": [
+    "s.file must be a repository-relative path inside the workspace"
+  ],
+  "jsonBackslashParent": [
+    "s.file must be a repository-relative path inside the workspace"
+  ],
+  "jsonDotted": [],
+  "jsonBlankFile": [
+    "s.file must be a repository-relative path inside the workspace"
+  ],
+  "jsonNumberFile": [
+    "s.file must be a repository-relative path inside the workspace"
+  ],
+  "jsonBadPath": ["s.path must be a dotted path or a JSON pointer"],
+  "jsonEmptyPath": [],
+  "jsonBlankField": [
+    "s.field must name the key read from each item of the list"
+  ],
+  "jsonFieldOnKeys": ["s.field applies only to select items"],
+  "jsonFieldNoSelect": [],
+  "jsonBadSelect": ["s.select must be one of: keys, values, items"],
+  "jsonSelectValues": [],
+  "yamlItemsField": [],
+  "routesSelectRoutes": [],
+  "prologObjectFunctor": [
+    "s.functor is required for reader prolog: name the facts read as Name/Arity (requires/1)"
+  ],
+  "jsonFieldOnValues": ["s.field applies only to select items"],
+  "globValid": [],
+  "globMissing": ["s.pattern is required for reader glob"],
+  "globEmptyList": [
+    "s.pattern must be a repository-relative glob or a list of them"
+  ],
+  "globBlank": [
+    "s.pattern must be a repository-relative glob or a list of them"
+  ],
+  "globAbsolute": [
+    "s.pattern must be a repository-relative glob or a list of them"
+  ],
+  "globParentInList": [
+    "s.pattern must be a repository-relative glob or a list of them"
+  ],
+  "globNumber": [
+    "s.pattern must be a repository-relative glob or a list of them"
+  ],
+  "globBadIgnore": [
+    "s.ignore must be a repository-relative glob or a list of them"
+  ],
+  "globBadCapture": ["s.capture must be true or false"],
+  "globCaptureFalse": [],
+  "globSelect": [
+    "s (reader glob) does not take select; it takes reader, pattern, capture, ignore",
+    "s.select does not apply to reader glob"
+  ],
+  "openapiValid": [],
+  "openapiMissing": ["s.file is required for reader openapi"],
+  "openapiBadSelect": [
+    "s.select must be one of: operations, unsecured_operations, security_schemes, responses"
+  ],
+  "referencesValid": [],
+  "referencesMissing": [
+    "s.files is required for reader references",
+    "s.extract must be one of: env, imports, calls, string_args, thrown, property"
+  ],
+  "referencesBadExtract": [
+    "s.extract must be one of: env, imports, calls, string_args, thrown, property"
+  ],
+  "referencesStringArgs": [
+    "s.callee is required for extract string_args: name the function whose first argument is read"
+  ],
+  "referencesStringArgsCallee": [],
+  "referencesBlankCallee": ["s.callee must be a function name"],
+  "referencesCallee": [],
+  "referencesProperty": [
+    "s.key is required for extract property: name the property whose string values are read"
+  ],
+  "referencesPropertyKey": [],
+  "referencesKeyElsewhere": ["s.key applies only to extract property"],
+  "referencesBadIgnore": [
+    "s.ignore must be a repository-relative glob or a list of them"
+  ],
+  "referencesSelect": [
+    "s (reader references) does not take select; it takes reader, files, extract, callee, key, ignore",
+    "s.select does not apply to reader references"
+  ],
+  "schemaBadFormat": ["s.format must be drizzle, prisma or sql"],
+  "schemaDrizzle": [],
+  "schemaDrizzleFiles": ["s.files applies only to format sql"],
+  "schemaDrizzleNoFile": ["s.file is required for reader schema"],
+  "schemaPrisma": [],
+  "schemaPrismaExports": [
+    "s.exports must be a list of export names, for format drizzle only"
+  ],
+  "schemaBadExports": [
+    "s.exports must be a list of export names, for format drizzle only"
+  ],
+  "schemaSql": [],
+  "schemaSqlNoFiles": ["s.files is required for reader schema"],
+  "schemaSqlFile": ["s.file does not apply to format sql; use files"],
+  "schemaBlankTable": ["s.table must be a table name or a glob of table names"],
+  "schemaBadSelect": [
+    "s.select must be one of: tables, columns, required_columns, nullable_columns, foreign_keys"
+  ],
+  "routesValid": [],
+  "routesExpress": [],
+  "routesMissing": [
+    "s.file is required for reader routes",
+    "s.export is required for reader routes: name the app (or a function returning it)"
+  ],
+  "routesBadFramework": ["s.framework must be hono or express"],
+  "routesBadPrefix": ["s.path_prefix must be a path starting with /"],
+  "routesBlankPrefix": ["s.path_prefix must be a path starting with /"],
+  "routesBadNames": [
+    "s.names_from must list repository-relative module files whose exports name middleware"
+  ],
+  "routesParentNames": [
+    "s.names_from must list repository-relative module files whose exports name middleware"
+  ],
+  "validatorValid": [],
+  "validatorMissing": [
+    "s.file is required for reader validator",
+    "s.export is required for reader validator: name the object schema"
+  ],
+  "validatorBadSelect": [
+    "s.select must be one of: fields, required_fields, optional_fields"
+  ],
+  "prologValid": [],
+  "prologArity": [],
+  "prologZero": [],
+  "prologMissing": [
+    "s.file is required for reader prolog",
+    "s.functor is required for reader prolog: name the facts read as Name/Arity (requires/1)"
+  ],
+  "prologUpper": [
+    "s.functor is required for reader prolog: name the facts read as Name/Arity (requires/1)"
+  ],
+  "prologLeadingZero": [
+    "s.functor is required for reader prolog: name the facts read as Name/Arity (requires/1)"
+  ],
+  "prologNoArity": [
+    "s.functor is required for reader prolog: name the facts read as Name/Arity (requires/1)"
+  ],
+  "prologPrefix": [
+    "s.functor is required for reader prolog: name the facts read as Name/Arity (requires/1)"
+  ],
+  "prologSuffix": [
+    "s.functor is required for reader prolog: name the facts read as Name/Arity (requires/1)"
+  ],
+  "prologNumber": [
+    "s.functor is required for reader prolog: name the facts read as Name/Arity (requires/1)"
+  ],
+  "prologBadArg": [
+    "s.arg must be the 1-based argument of each fact that holds the member"
+  ],
+  "prologFractionArg": [
+    "s.arg must be the 1-based argument of each fact that holds the member"
+  ],
+  "prologSelect": [
+    "s (reader prolog) does not take select; it takes reader, file, functor, arg",
+    "s.select does not apply to reader prolog"
+  ]
+}

@@ -1,0 +1,191 @@
+{
+  "invalid": {
+    "ok": false,
+    "reason": "source.file is required for reader json"
+  },
+  "missing": {
+    "ok": false,
+    "reason": "nope.json does not exist in the workspace"
+  },
+  "directory": {
+    "ok": false,
+    "reason": "dir does not exist in the workspace"
+  },
+  "parseJson": {
+    "ok": false,
+    "reason": "Kibi could not parse d.json: JSON Parse error: Expected '}'"
+  },
+  "parseYaml": {
+    "ok": false,
+    "reason": "Kibi could not parse c.yaml: Flow sequence in block collection must be sufficiently indented and end with a ] at line 2, column 1:"
+  },
+  "ymlAsJson": {
+    "ok": true,
+    "model": {
+      "members": ["1", "2"],
+      "sequence": ["1", "2"]
+    }
+  },
+  "rootKeys": {
+    "ok": true,
+    "model": {
+      "members": [
+        "a/b",
+        "big",
+        "list",
+        "nested",
+        "nothing",
+        "obj",
+        "scalar",
+        "steps"
+      ]
+    }
+  },
+  "rootSlash": {
+    "ok": true,
+    "model": {
+      "members": [
+        "a/b",
+        "big",
+        "list",
+        "nested",
+        "nothing",
+        "obj",
+        "scalar",
+        "steps"
+      ]
+    }
+  },
+  "rootBlank": {
+    "ok": true,
+    "model": {
+      "members": [
+        "a/b",
+        "big",
+        "list",
+        "nested",
+        "nothing",
+        "obj",
+        "scalar",
+        "steps"
+      ]
+    }
+  },
+  "objKeys": {
+    "ok": true,
+    "model": {
+      "members": ["a", "b", "c"]
+    }
+  },
+  "objValues": {
+    "ok": true,
+    "model": {
+      "members": ["1", "true", "x"]
+    }
+  },
+  "objItems": {
+    "ok": false,
+    "reason": "obj is an object, not a list (use select keys or values)"
+  },
+  "list": {
+    "ok": true,
+    "model": {
+      "members": ["2", "a", "b"],
+      "sequence": ["b", "a", "b", "2"]
+    }
+  },
+  "listIndex": {
+    "ok": true,
+    "model": {
+      "members": ["a"]
+    }
+  },
+  "listPointer": {
+    "ok": true,
+    "model": {
+      "members": ["b"]
+    }
+  },
+  "listKeys": {
+    "ok": false,
+    "reason": "list is a list, which has no keys (use select items)"
+  },
+  "listBadIndex": {
+    "ok": false,
+    "reason": "the document has nothing at list.x (no x)"
+  },
+  "listOutOfRange": {
+    "ok": false,
+    "reason": "the document has nothing at list.9 (no 9)"
+  },
+  "pointerEscapes": {
+    "ok": true,
+    "model": {
+      "members": ["deep"],
+      "sequence": ["deep"]
+    }
+  },
+  "dottedMissing": {
+    "ok": false,
+    "reason": "the document has nothing at obj.zz (no zz)"
+  },
+  "scalarPath": {
+    "ok": false,
+    "reason": "the document has nothing at scalar.x (no x)"
+  },
+  "steps": {
+    "ok": true,
+    "model": {
+      "members": ["s0", "s1"],
+      "sequence": ["s1", "s0"]
+    }
+  },
+  "fieldOnObject": {
+    "ok": false,
+    "reason": "obj is not a list, so it has no items to read name from"
+  },
+  "fieldOnRootObject": {
+    "ok": false,
+    "reason": "the document is not a list, so it has no items to read name from"
+  },
+  "nested": {
+    "ok": false,
+    "reason": "nested holds a value that is not a string, number or boolean, so it cannot be a member (select keys, point path at the list, or name the item field to read)"
+  },
+  "nothing": {
+    "ok": false,
+    "reason": "nothing is empty"
+  },
+  "nothingRoot": {
+    "ok": false,
+    "reason": "nothing is empty"
+  },
+  "scalar": {
+    "ok": true,
+    "model": {
+      "members": ["42"]
+    }
+  },
+  "text": {
+    "ok": true,
+    "model": {
+      "members": ["text"]
+    }
+  },
+  "listKeysRoot": {
+    "ok": false,
+    "reason": "/list is a list, which has no keys (use select items)"
+  },
+  "listNoPath": {
+    "ok": false,
+    "reason": "k is a list, which has no keys (use select items)"
+  },
+  "objItemsNoPath": {
+    "ok": false,
+    "reason": "the document is an object, not a list (use select keys or values)"
+  },
+  "objNestedValues": {
+    "ok": false,
+    "reason": "the document holds a value that is not a string, number or boolean, so it cannot be a member (select keys, point path at the list, or name the item field to read)"
+  }
+}

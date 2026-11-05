@@ -4,6 +4,7 @@ import {
   readSnapshotSourceConfig,
 } from "../../plugins/maintenance-source-analysis.js";
 import {
+  type SourceChangeAnalysis,
   analyzeSourceChanges,
   assertSourceAnalysisGate,
 } from "../../plugins/source-change-analysis.js";
@@ -39,14 +40,6 @@ import type {
 } from "./types.js";
 import { createUnownedFileDiagnostics } from "./unowned-files.js";
 
-/** The workspace-relative document a requirement was read from. */
-function requirementSourcePath(requirement: { id: string; source: string }) {
-  const source = requirement.source;
-  return source && !source.includes("://")
-    ? source.replace(/^\.\//, "")
-    : `.kb/requirements/${requirement.id}.md`;
-}
-
 export async function analyzeChangedFileImpact(
   options: ChangedFileImpactOptions,
 ): Promise<ChangedFileImpactResult> {
@@ -59,47 +52,44 @@ export async function analyzeChangedFileImpact(
       normalizeSourceFile(workspaceRoot, file),
     ),
   );
-  const snapshotAnalysisInventory = snapshot
-    ? snapshot.inventory.filter(
-        (file) => filter.size === 0 || filter.has(file.path),
-      )
-    : undefined;
-  const snapshotSourceInventory = snapshot
-    ? snapshot.inventory.filter(
-        (file) =>
-          file.analysisDepth !== "metadata" &&
-          !file.skipReason &&
-          file.content !== undefined &&
-          (filter.size === 0 || filter.has(file.path)),
-      )
-    : undefined;
-  const sourceChanges = snapshot
-    ? (snapshotSourceInventory ?? []).map((file) => ({
-        file: file.path,
-        status: file.status,
-        hunkRanges: file.hunkRanges,
-        content: file.content ?? "",
-      }))
-    : collectSourceChanges({ ...options, workspaceRoot });
   const service = createMaintenanceSourceAnalysisService(
     workspaceRoot,
     snapshot ? readSnapshotSourceConfig(snapshot) : undefined,
   );
-  const analyses = snapshot
-    ? await analyzeSourceChanges(snapshotAnalysisInventory ?? [], service)
+  const snapshotInventory = snapshot?.inventory.filter(
+    (file) => filter.size === 0 || filter.has(file.path),
+  );
+  const analyses = snapshotInventory
+    ? await analyzeSourceChanges(snapshotInventory, service)
     : undefined;
-  if (analyses)
-    assertSourceAnalysisGate(snapshotAnalysisInventory ?? [], analyses);
+  if (snapshotInventory)
+    assertSourceAnalysisGate(
+      snapshotInventory,
+      analyses as Map<string, SourceChangeAnalysis>,
+    );
+  // Metadata (knowledge documents, manifests) is not source.
+  const snapshotSources = snapshotInventory?.filter(
+    (file) => file.analysisDepth !== "metadata",
+  );
+  const sourceChanges = snapshotSources
+    ? snapshotSources.flatMap((file) =>
+        // A skipped or deleted file has no text to read symbols from.
+        file.content === undefined
+          ? []
+          : [
+              {
+                file: file.path,
+                status: file.status,
+                hunkRanges: file.hunkRanges,
+                content: file.content,
+              },
+            ],
+      )
+    : collectSourceChanges({ ...options, workspaceRoot });
   const sourceFiles = uniqueSorted(
-    snapshot
-      ? snapshot.inventory
-          .filter(
-            (file) =>
-              file.analysisDepth !== "metadata" &&
-              (filter.size === 0 || filter.has(file.path)),
-          )
-          .map((file) => file.path)
-      : sourceChanges.map((change) => change.file),
+    (
+      snapshotSources ?? sourceChanges.map((change) => ({ path: change.file }))
+    ).map((file) => file.path),
   );
   const snapshotKnowledge = snapshot
     ? readSnapshotKnowledge(
@@ -108,19 +98,25 @@ export async function analyzeChangedFileImpact(
         snapshot.readBlobs,
       )
     : undefined;
-  const manifestResults = snapshotKnowledge
-    ? snapshotKnowledge.filter((result) => result.entity.type === "symbol")
-    : readImpactManifestResults(workspaceRoot);
+  // The snapshot's requirements and other documents come along: none has a
+  // source file, so none is ever active, linked or matched to a symbol.
+  const manifestResults =
+    snapshotKnowledge ?? readImpactManifestResults(workspaceRoot);
   const manifestLookup = createImpactManifestLookup(manifestResults);
   const symbolsByFile = new Map<string, ExtractedSymbol[]>();
-  const sourceContentByFile = new Map<string, string>();
   const sourceSymbolsByFile = new Map<string, ExtractedSymbol[]>();
 
   for (const change of sourceChanges) {
-    sourceContentByFile.set(change.file, change.content);
-    const analysis =
-      analyses?.get(change.file)?.after ??
-      (await service.analyzeTextV2(change.file, change.content));
+    // Every staged source change was analyzed for the gate.
+    // rationale: analyzing the same captured text again gives the same result
+    // Stryker disable next-line ConditionalExpression
+    const analysis = analyses
+      ? (analyses.get(change.file) as SourceChangeAnalysis).after
+      : await service.analyzeTextV2(change.file, change.content);
+    // rationale: without analyzeText the built-in TypeScript reader is used,
+    // which reads every language this service reads without a plugin alike
+    // Stryker disable next-line ObjectLiteral
+    const analyzer = { analyzeText: async () => analysis };
     const extracted = await extractSymbolsFromStagedFileAsync(
       {
         path: change.file,
@@ -129,19 +125,18 @@ export async function analyzeChangedFileImpact(
         content: change.content,
       },
       manifestLookup,
-      { analyzeText: async () => analysis },
+      analyzer,
     );
+    // With no hunks every declaration of the file is kept.
     const allSymbols = await extractSymbolsFromStagedFileAsync(
       {
         path: change.file,
         status: change.status,
         content: change.content,
-        hunkRanges: [
-          { start: 1, end: Math.max(1, change.content.split("\n").length) },
-        ],
+        hunkRanges: [],
       },
       manifestLookup,
-      { analyzeText: async () => analysis },
+      analyzer,
     );
     sourceSymbolsByFile.set(change.file, allSymbols);
     symbolsByFile.set(
@@ -151,10 +146,9 @@ export async function analyzeChangedFileImpact(
   }
 
   const activeSourceFiles = new Set(sourceFiles);
-  const activeManifestResults = manifestResults.filter(
-    (result) =>
-      result.sourceFile !== undefined &&
-      activeSourceFiles.has(result.sourceFile),
+  // has(undefined) is false, so a result without a source file is inactive.
+  const activeManifestResults = manifestResults.filter((result) =>
+    activeSourceFiles.has(result.sourceFile as string),
   );
   const linkedSourceFiles = new Set(
     manifestResults
@@ -163,8 +157,8 @@ export async function analyzeChangedFileImpact(
           isTraceabilityRelationshipType(relationship.type),
         ),
       )
-      .map((result) => result.sourceFile)
-      .filter((file): file is string => file !== undefined),
+      // A missing source file adds undefined, which names no file.
+      .map((result) => result.sourceFile as string),
   );
   const impactDiagnostics =
     options.includeImpactDiagnostics === false
@@ -190,19 +184,14 @@ export async function analyzeChangedFileImpact(
             requirementChanged: (requirement) =>
               snapshot
                 ? snapshot.inventory.some(
-                    (file) => file.path === requirementSourcePath(requirement),
+                    (file) => file.path === requirement.source,
                   )
-                : workspaceFileChanged(
-                    workspaceRoot,
-                    requirementSourcePath(requirement),
-                  ),
+                : workspaceFileChanged(workspaceRoot, requirement.source),
           }),
           ...createSymbolGranularityDiagnostics({
             manifestResults: activeManifestResults,
             symbolsByFile,
-            sourceContentByFile,
             sourceSymbolsByFile,
-            workspaceRoot,
           }),
           ...createSymbolQualityDiagnostics({
             manifestResults: activeManifestResults,
@@ -210,16 +199,14 @@ export async function analyzeChangedFileImpact(
           }),
           ...createSemanticReviewDiagnostics({
             symbolsByFile,
-            linkedSourceFiles: new Set(
-              [...linkedSourceFiles].filter((file) =>
-                activeSourceFiles.has(file),
-              ),
-            ),
+            // Every symbol here is in an active file.
+            linkedSourceFiles,
           }),
         ];
-  const maxDiagnostics = options.maxDiagnostics;
+  const maxDiagnostics = options.maxDiagnostics as number;
+  // undefined >= 0 is false, so no cap leaves every diagnostic.
   const cappedDiagnostics =
-    maxDiagnostics !== undefined && maxDiagnostics >= 0
+    maxDiagnostics >= 0
       ? impactDiagnostics.slice(0, maxDiagnostics)
       : impactDiagnostics;
 
