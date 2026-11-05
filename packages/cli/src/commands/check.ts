@@ -147,11 +147,10 @@ function getMatchGroup(
   match: RegExpMatchArray | null,
   index = 1,
 ): string | null {
-  const value = match?.[index];
-  return typeof value === "string" ? value : null;
+  return match?.[index] ?? null;
 }
 
-function buildManifestLookup(
+export function buildManifestLookup(
   stagedFiles: StagedFile[],
   snapshotEntities: readonly ExtractionResult[],
 ): {
@@ -166,10 +165,8 @@ function buildManifestLookup(
   const stagedAuthoredSymbolResults: ExtractionResult[] = [];
 
   const makeLookupKey = (entry: ExtractionResult): string => {
-    if (typeof entry.entity.id === "string" && entry.entity.id.length > 0) {
-      return `id:${entry.entity.id}`;
-    }
-    return `fallback:${entry.sourceFile ?? entry.entity.source ?? ""}\u0000${entry.entity.title}`;
+    if (entry.entity.id) return `id:${entry.entity.id}`;
+    return `fallback:${entry.sourceFile ?? entry.entity.source}\u0000${entry.entity.title}`;
   };
 
   const authoredSymbolIndexByKey = new Map<string, number>();
@@ -225,7 +222,7 @@ function buildManifestLookup(
   }
 
   const stagedManifestFiles = stagedFiles.filter(
-    (file) =>
+    (file): file is StagedFile & { content: string } =>
       file.content !== undefined &&
       (file.path === CANONICAL_ENTITY_PATHS.symbols ||
         file.path === ".kb/symbols.yml"),
@@ -239,41 +236,21 @@ function buildManifestLookup(
 
     try {
       const entries = extractFromManifestString(
-        manifestFile.content ?? "",
+        manifestFile.content,
         manifestFile.path,
       );
       for (const entry of entries) {
-        const authoredSymbolResult = {
-          entity: entry.entity,
-          relationships: entry.relationships,
-          ...(entry.sourceFile !== undefined
-            ? { sourceFile: entry.sourceFile }
-            : {}),
-        };
-        const manifestResult = {
-          entity: entry.entity,
-          relationships: entry.relationships,
-          ...(entry.sourceFile !== undefined
-            ? { sourceFile: entry.sourceFile }
-            : {}),
-        };
-
-        upsertResult(
-          manifestResults,
-          manifestResultIndexByKey,
-          manifestResult,
-          true,
-        );
+        upsertResult(manifestResults, manifestResultIndexByKey, entry, true);
         upsertResult(
           authoredSymbolResults,
           authoredSymbolIndexByKey,
-          authoredSymbolResult,
+          entry,
           true,
         );
         upsertResult(
           stagedAuthoredSymbolResults,
           stagedAuthoredSymbolIndexByKey,
-          authoredSymbolResult,
+          entry,
         );
       }
     } catch {
@@ -300,30 +277,16 @@ const KIBI_ENTITY_TYPES = new Set<KibiEntityType>([
   "fact",
 ]);
 
-function isKibiEntityType(value: string): value is KibiEntityType {
+export function isKibiEntityType(value: string): value is KibiEntityType {
   return KIBI_ENTITY_TYPES.has(value as KibiEntityType);
 }
 
-function isTestOnlySourcePath(filePath: string): boolean {
-  return (
-    filePath.startsWith("tests/") ||
-    filePath.includes("/tests/") ||
-    filePath.endsWith(".test.ts") ||
-    filePath.endsWith(".test.tsx") ||
-    filePath.endsWith(".test.js") ||
-    filePath.endsWith(".test.jsx") ||
-    filePath.endsWith(".spec.ts") ||
-    filePath.endsWith(".spec.tsx") ||
-    filePath.endsWith(".spec.js") ||
-    filePath.endsWith(".spec.jsx")
-  );
+/** Whether a path is a test file or lies under a `tests/` folder. */
+export function isTestOnlySourcePath(filePath: string): boolean {
+  return /(^|\/)tests\/|\.(test|spec)\.[jt]sx?$/.test(filePath);
 }
 
-function getStagedDiffText(stagedFile: StagedFile): string {
-  return stagedFile.diffText ?? "";
-}
-
-function formatStagedKibiDiagnostics(
+export function formatStagedKibiDiagnostics(
   diagnostics: KibiImpactDiagnostic[],
 ): string {
   return diagnostics
@@ -346,7 +309,7 @@ function formatStagedKibiDiagnostics(
     .join("\n\n");
 }
 
-function formatQualityDiagnostics(
+export function formatQualityDiagnostics(
   diagnostics: readonly QualityDiagnostic[],
 ): string {
   if (diagnostics.length === 0) {
@@ -374,7 +337,7 @@ function formatQualityDiagnostics(
   return `Quality diagnostics (${diagnostics.length}):\n${details.join("\n\n")}`;
 }
 
-function printStructuredCheckResult(input: {
+export function printStructuredCheckResult(input: {
   violations: readonly Violation[];
   qualityDiagnostics: readonly QualityDiagnostic[];
 }): void {
@@ -390,7 +353,7 @@ function printStructuredCheckResult(input: {
   );
 }
 
-function formatStagedCoverage(result: StagedFileCoverageResult): string {
+export function formatStagedCoverage(result: StagedFileCoverageResult): string {
   const counts = {
     symbol: result.files.filter((file) => file.analysisDepth === "symbol")
       .length,
@@ -427,7 +390,7 @@ function formatStagedCoverage(result: StagedFileCoverageResult): string {
   return lines.join("\n");
 }
 
-function printStagedResult(input: {
+export function printStagedResult(input: {
   format: "text" | "json" | undefined;
   coverage: StagedFileCoverageResult | null;
   violations?: readonly unknown[];
@@ -460,7 +423,7 @@ function printStagedResult(input: {
   if (input.operationalError) console.error(input.operationalError);
 }
 
-function clearResolvedImpactReviewAdvisories(
+export function clearResolvedImpactReviewAdvisories(
   coverage: StagedFileCoverageResult,
 ): void {
   const transport = coverage.files.find(
@@ -491,7 +454,7 @@ function clearResolvedImpactReviewAdvisories(
   });
 }
 
-function noValidatedSymbolsMessage(
+export function noValidatedSymbolsMessage(
   sourceAnalysis: ReadonlyMap<string, SourceChangeAnalysis>,
 ): string {
   const partialFiles = [...sourceAnalysis.values()].flatMap((analysis) => {
@@ -510,24 +473,20 @@ function noValidatedSymbolsMessage(
   return "No exported symbols or staged entities found in staged files.";
 }
 
-function uniqueSorted(values: Iterable<string>): string[] {
-  return Array.from(new Set(values)).sort();
-}
-
 /** The Baseline-style line naming records changed only by a migration. */
 // implements REQ-cli-migration-first-commit
-function migrationOnlyNote(entityIds: readonly string[]): string {
+export function migrationOnlyNote(entityIds: readonly string[]): string {
   const shown = entityIds.slice(0, 5).join(", ");
   const more = entityIds.length > 5 ? ` and ${entityIds.length - 5} more` : "";
   return `Migration commit: ${entityIds.length} symbol record(s) changed only by kibi migrate (legacy-link marks, review:context-missing tags) are not judged as changed by this commit: ${shown}${more}. Run kibi check for the full report.`;
 }
 
-function hasYamlFrontmatter(content: string): boolean {
+export function hasYamlFrontmatter(content: string): boolean {
   const trimmed = content.trimStart();
-  return trimmed.startsWith("---") && trimmed.slice(3).includes("\n---");
+  return trimmed.startsWith("---") && trimmed.includes("\n---");
 }
 
-function buildStagedKibiImpactEvidence(options: {
+export function buildStagedKibiImpactEvidence(options: {
   stagedFiles: StagedFile[];
   sourceFiles: StagedFile[];
   markdownFiles: StagedFile[];
@@ -556,7 +515,7 @@ function buildStagedKibiImpactEvidence(options: {
       !isTestOnlySourcePath(file.path) &&
       isBehaviorSourceEdit({
         path: file.path,
-        diffText: getStagedDiffText(file),
+        diffText: file.diffText ?? "",
         intersectsBehaviorBearingSymbol: symbolsForFile.length > 0,
         knownUserFacingSurface: false,
       });
@@ -611,7 +570,6 @@ function buildStagedKibiImpactEvidence(options: {
     const parsedOverride = parseKibiImpactOverride(file.content ?? "");
     const evidenceKind = classifyKibiImpactEvidence({
       filePath: file.path,
-      extractionOutputChanged: false,
       overrideDeclared: parsedOverride.declared,
       overrideRationale: parsedOverride.rationale,
     });
@@ -649,9 +607,13 @@ function buildStagedKibiImpactEvidence(options: {
       path: stagedAuthoredSymbolsEvidence.path,
       entityTypes: ["symbol"],
       entityIds: stagedAuthoredSymbolsEvidence.changedEntityIds,
-      sourcePaths: uniqueSorted(
-        stagedAuthoredSymbolsEvidence.entries.map((entry) => entry.sourcePath),
-      ),
+      sourcePaths: [
+        ...new Set(
+          stagedAuthoredSymbolsEvidence.entries.map(
+            (entry) => entry.sourcePath,
+          ),
+        ),
+      ].sort(),
     });
   }
 
@@ -685,39 +647,42 @@ export function requireActiveProlog<E, P>(
   return activeProlog as NonNullable<E | P>;
 }
 
+/**
+ * Resolve the branch a check reads, refreshing a detached snapshot and
+ * compiling a store nothing compiled yet, and return its KB branch.
+ */
+async function attachReadBranch(workspaceRoot: string): Promise<string> {
+  const attachment = resolveReadBranchAttachment(workspaceRoot);
+  if ("error" in attachment) throw new Error(attachment.error);
+  if (attachment.readOnly !== undefined) {
+    // Check reads only: a detached HEAD checks its read-only snapshot.
+    console.warn(`[KIBI] ${attachment.readOnly.notice}`);
+    await refreshDetachedSnapshot(workspaceRoot, attachment);
+  }
+  if (attachment.migrationRequired) {
+    console.warn(
+      `Warning: reading legacy KB attachment ${attachment.gitBranch} -> ${attachment.kbBranch}; migrate before writes or sync.`,
+    );
+  }
+  // A fresh clone's first commit must not fail on a store nothing compiled.
+  // implements REQ-kibi-fresh-clone-setup
+  await ensureBranchStoreCompiled(workspaceRoot, attachment, {
+    name: "kb_check",
+  });
+  return attachment.kbBranch;
+}
+
 // implements REQ-006
 export async function checkCommand(
   options: CheckOptions,
 ): Promise<{ exitCode: number }> {
   let prolog: PrologProcess | null = null;
   let engine: EngineClient | null = null;
-  let attached = false;
-  let resolvedBranch = "";
   try {
-    let resolvedKbPath = "";
-    if (options.kbPath) {
-      resolvedKbPath = options.kbPath;
-    } else {
-      const attachment = resolveReadBranchAttachment(process.cwd());
-      if ("error" in attachment) throw new Error(attachment.error);
-      resolvedBranch = attachment.kbBranch;
-      if (attachment.readOnly !== undefined) {
-        // Check reads only: a detached HEAD checks its read-only snapshot.
-        console.warn(`[KIBI] ${attachment.readOnly.notice}`);
-        await refreshDetachedSnapshot(process.cwd(), attachment);
-      }
-      if (attachment.migrationRequired) {
-        console.warn(
-          `Warning: reading legacy KB attachment ${attachment.gitBranch} -> ${attachment.kbBranch}; migrate before writes or sync.`,
-        );
-      }
-      // A fresh clone's first commit must not fail on a store nothing compiled.
-      // implements REQ-kibi-fresh-clone-setup
-      await ensureBranchStoreCompiled(process.cwd(), attachment, {
-        name: "kb_check",
-      });
-      resolvedKbPath = attachment.storePath;
-    }
+    // An explicit store is read as given; otherwise the attached branch.
+    const store: { kbPath: string } | { branch: string } = options.kbPath
+      ? { kbPath: options.kbPath }
+      : { branch: await attachReadBranch(process.cwd()) };
 
     if (options.staged) {
       const minLinks = options.minLinks ? Number(options.minLinks) : 1;
@@ -1372,10 +1337,10 @@ export async function checkCommand(
     // The active branch is hosted by the journaled engine. Keep the explicit
     // --kb-path escape hatch on the one-shot path for alternate/staged stores,
     // but never compete with the branch daemon for its RDF lock.
-    if (options.kbPath === undefined) {
+    if ("branch" in store) {
       engine = new EngineClient({
         workspaceRoot: process.cwd(),
-        branch: resolvedBranch,
+        branch: store.branch,
         timeout: 120_000,
       });
       await engine.start();
@@ -1383,7 +1348,7 @@ export async function checkCommand(
       prolog = new PrologProcess({ timeout: 120000 });
       await prolog.start();
 
-      const kbPathEscaped = escapeAtom(resolvedKbPath);
+      const kbPathEscaped = escapeAtom(store.kbPath);
       const attachResult = await prolog.query(`kb_attach('${kbPathEscaped}')`);
 
       if (!attachResult.success) {
@@ -1391,7 +1356,6 @@ export async function checkCommand(
         console.error(`Error: Failed to attach KB: ${attachResult.error}`);
         return { exitCode: 1 };
       }
-      attached = true;
     }
 
     const activeProlog = requireActiveProlog<EngineClient, PrologProcess>(
@@ -1429,7 +1393,7 @@ export async function checkCommand(
       {
         collectFullQualityDiagnosticsForExplicitRules: true,
         // The engine reads the branch store; an explicit --kb-path does not.
-        branchStoreAttached: options.kbPath === undefined,
+        branchStoreAttached: "branch" in store,
       },
     );
     const violations = result.structuredContent?.violations ?? [];
