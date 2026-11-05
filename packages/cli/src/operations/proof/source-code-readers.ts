@@ -347,7 +347,8 @@ export function extractScriptReferences(
       // A `typeof x` query is a type node too.
       if (ts.isTypeNode(current) || ts.isHeritageClause(current)) return true;
       // The source file bounds the walk.
-      // Stryker disable next-line ConditionalExpression: every node read sits in a statement, which ends the walk first
+      // rationale: every node read sits in a statement, which ends the walk first.
+      // Stryker disable next-line ConditionalExpression
       if (ts.isSourceFile(current)) break;
       current = current.parent;
     }

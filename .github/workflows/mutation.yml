@@ -52,6 +52,11 @@ jobs:
           bun install --frozen-lockfile
           cd .opencode && bun install --frozen-lockfile
 
+      # A few mapped tests run real SWI-Prolog (Prolog source reading and
+      # code proofs).
+      - name: Use the pipeline-built SWI-Prolog
+        uses: ./.github/actions/use-bundled-swipl
+
       # The codex and cursor tests rebuild their package, which needs the
       # workspace dist outputs (kibi-agent-core, kibi-plugin-sdk, ...).
       - name: Build packages

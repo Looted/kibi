@@ -1157,6 +1157,211 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/public/operations/contracts.ts": [
     "packages/cli/tests/public-mutation/operations/contracts.mutation.test.ts",
   ],
+  "packages/cli/src/operations/bootstrap/generate.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/generate.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/intent-claims.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/intent-claims.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/presentation.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/presentation.test.ts",
+  ],
+  "packages/cli/src/operations/bootstrap/requirement-claims.ts": [
+    "packages/cli/tests/operations-mutation/bootstrap/requirement-claims.test.ts",
+  ],
+  "packages/cli/src/operations/migration/inventory-rederive.ts": [
+    "packages/cli/tests/operations-mutation/migration/inventory-rederive.test.ts",
+  ],
+  "packages/cli/src/operations/migration/schema6.ts": [
+    "packages/cli/tests/operations-mutation/migration/schema6.test.ts",
+  ],
+  "packages/cli/src/operations/migration/source-paths.ts": [
+    "packages/cli/tests/operations-mutation/migration/source-paths.test.ts",
+  ],
+  "packages/cli/src/operations/migration/symbol-legacy-links.ts": [
+    "packages/cli/tests/operations-mutation/migration/symbol-legacy-links.test.ts",
+  ],
+  "packages/cli/src/operations/planning/compile-intent.ts": [
+    "packages/cli/tests/operations-mutation/planning/compile-intent.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/analyze-prose.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/analyze-prose.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/plugin-orchestration.test.ts",
+  ],
+  "packages/cli/src/operations/semantic-advisor/strict-rules.ts": [
+    "packages/cli/tests/operations-mutation/semantic-advisor/strict-rules.test.ts",
+  ],
+  "packages/cli/src/operations/planning/apply-plan.ts": [
+    "packages/cli/tests/operations-mutation/planning/apply-plan/validation.test.ts",
+    "packages/cli/tests/operations-mutation/planning/apply-plan/source-writes.test.ts",
+    "packages/cli/tests/operations-mutation/planning/apply-plan/bootstrap.test.ts",
+    "packages/cli/tests/operations-mutation/planning/apply-plan/compile.test.ts",
+    "packages/cli/tests/operations-mutation/planning/apply-plan/recovery.test.ts",
+    "packages/cli/tests/operations-mutation/planning/apply-plan/migration.test.ts",
+  ],
+  "packages/cli/src/operations/proof/explain.ts": [
+    "packages/cli/tests/operations-mutation/proof/explain.test.ts",
+    "packages/cli/tests/operations-coverage/proof/explain.test.ts",
+  ],
+  "packages/cli/src/operations/proof/claim-bindings.ts": [
+    "packages/cli/tests/operations-coverage/proof/claim-bindings.test.ts",
+    "packages/cli/tests/proofs/claim-binding-verdicts.proof.test.ts",
+    "packages/cli/tests/proofs/non-numeric-proof-kinds.test.ts",
+    "packages/cli/tests/proofs/claim-binding-source-scope.test.ts",
+    "packages/cli/tests/operations-mutation/proof/claim-bindings.test.ts",
+  ],
+  "packages/cli/src/operations/proof/code-models.ts": [
+    "packages/cli/tests/operations-coverage/proof/code-models.test.ts",
+    "packages/cli/tests/proofs/code-certificate-symbols.test.ts",
+    "packages/cli/tests/proofs/claims/code-certificate-settings.proof.test.ts",
+    "packages/cli/tests/proofs/non-numeric-proof-kinds.test.ts",
+    "packages/cli/tests/proofs/domain-loading.test.ts",
+    "packages/cli/tests/proofs/prolog-code-proofs.test.ts",
+    "packages/cli/tests/operations-mutation/proof/code-models.test.ts",
+  ],
+  "packages/cli/src/operations/proof/ingest-proof.ts": [
+    "packages/cli/tests/operations-coverage/proof/ingest-proof.test.ts",
+    "packages/cli/tests/operations/ingest-proof-remaining.coverage.test.ts",
+    "packages/cli/tests/operations/ingest-proof-coverage.test.ts",
+    "packages/cli/tests/operations/ingest-proof.test.ts",
+    "packages/cli/tests/operations-mutation/proof/ingest-proof.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/validate-upsert.ts": [
+    "packages/cli/tests/operations-mutation/mutation/validate-upsert.test.ts",
+    "packages/cli/tests/operations-coverage/mutation/validate-upsert.test.ts",
+    "packages/cli/tests/operations/mutation.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/plan-apply-journal.ts": [
+    "packages/cli/tests/operations-mutation/mutation/plan-apply-journal.test.ts",
+    "packages/cli/tests/operations-coverage/mutation/plan-apply-journal.test.ts",
+    "packages/cli/tests/proofs/claims/plan-apply-journal-version.proof.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/delete.ts": [
+    "packages/cli/tests/operations-mutation/mutation/delete.test.ts",
+    "packages/cli/tests/operations-coverage/mutation/delete.test.ts",
+    "packages/cli/tests/operations/delete-remaining.coverage.test.ts",
+    "packages/cli/tests/operations/delete-coverage.test.ts",
+    "packages/cli/tests/operations/apply-plan.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/upsert.ts": [
+    "packages/cli/tests/operations-mutation/mutation/upsert.test.ts",
+    "packages/cli/tests/operations-mutation/mutation/upsert-validation.test.ts",
+    "packages/cli/tests/operations-coverage/mutation/upsert.test.ts",
+    "packages/cli/tests/operations/upsert-coverage.test.ts",
+    "packages/cli/tests/operations/upsert-remaining.coverage.test.ts",
+    "packages/cli/tests/operations/mutation.test.ts",
+    "packages/cli/tests/operations/dry-run-commit-parity.test.ts",
+    "packages/cli/tests/operations/validate-upsert-contradiction-preview.test.ts",
+    "packages/cli/tests/operations/workspace-path-alias.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/source-authoring.ts": [
+    "packages/cli/tests/operations-mutation/mutation/source-authoring.test.ts",
+    "packages/cli/tests/operations-coverage/mutation/source-authoring.test.ts",
+    "packages/cli/tests/operations/source-authoring-remaining.coverage.test.ts",
+    "packages/cli/tests/operations/source-authoring-coverage.test.ts",
+    "packages/cli/tests/operations/source-authoring.test.ts",
+    "packages/cli/tests/operations/workspace-path-alias.test.ts",
+    "packages/cli/tests/proofs/claims/generated-coordinate-settings.proof.test.ts",
+  ],
+  "packages/cli/src/operations/proof/code-certificates.ts": [
+    "packages/cli/tests/operations-mutation/proof/code-certificates.test.ts",
+    "packages/cli/tests/operations-coverage/proof/code-certificates.test.ts",
+    "packages/cli/tests/proofs/domain-loading.test.ts",
+    "packages/cli/tests/proofs/code-certificate-symbols.test.ts",
+  ],
+  "packages/cli/src/operations/proof/source-code-readers.ts": [
+    "packages/cli/tests/operations-mutation/proof/source-code-readers.test.ts",
+    "packages/cli/tests/operations-coverage/proof/readers-and-documents.test.ts",
+    "packages/cli/tests/proofs/source-code-readers-mutation.test.ts",
+    "packages/cli/tests/proofs/script-references-remaining.coverage.test.ts",
+    "packages/cli/tests/proofs/csharp-project-usings.test.ts",
+    "packages/cli/tests/proofs/plugin-references.test.ts",
+  ],
+  "packages/cli/src/operations/proof/prolog-source-reader.ts": [
+    "packages/cli/tests/operations-mutation/proof/prolog-source-reader.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/contradictions.ts": [
+    "packages/cli/tests/operations-mutation/mutation/contradictions.test.ts",
+    "packages/cli/tests/operations/contradictions-remaining.coverage.test.ts",
+  ],
+  "packages/cli/src/operations/proof/code-scope.ts": [
+    "packages/cli/tests/operations-mutation/proof/code-scope.test.ts",
+    "packages/cli/tests/proof/code-scope.test.ts",
+    "packages/cli/tests/proof/receipt-binding.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/model-requirement.ts": [
+    "packages/cli/tests/operations-mutation/modeling/model-requirement.test.ts",
+    "packages/cli/tests/operations-coverage/modeling/model-requirement.test.ts",
+    "packages/cli/tests/operations/model-requirement.coverage.test.ts",
+  ],
+  "packages/cli/src/operations/modeling/suggest-predicates.ts": [
+    "packages/cli/tests/operations-mutation/modeling/suggest-predicates.test.ts",
+    "packages/cli/tests/operations-coverage/modeling/suggest-predicates.test.ts",
+    "packages/cli/tests/operations/suggest-predicates-remaining.coverage.test.ts",
+  ],
+  "packages/cli/src/operations/proof/regular-language.ts": [
+    "packages/cli/tests/operations-mutation/proof/regular-language.test.ts",
+  ],
+  "packages/cli/src/public/operations/migration-plan.ts": [
+    "packages/cli/tests/public-mutation/operations/migration-plan.mutation.test.ts",
+  ],
+  "packages/cli/src/public/proof-protocol.ts": [
+    "packages/cli/tests/public-mutation/proof-protocol.mutation.test.ts",
+  ],
+  "packages/cli/src/public/proof-sources.ts": [
+    "packages/cli/tests/public-mutation/proof-sources.mutation.test.ts",
+    "packages/cli/tests/public-mutation/proof-sources-edges.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/analyzer.ts": [
+    "packages/cli/tests/public-mutation/impact/analyzer.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/requirement-quality.ts": [
+    "packages/cli/tests/public-mutation/impact/requirement-quality.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/coverage-depth-quality.ts": [
+    "packages/cli/tests/public-mutation/impact/coverage-depth-quality.mutation.test.ts",
+  ],
+  "packages/cli/src/public/impact/full-kb-quality.ts": [
+    "packages/cli/tests/public-mutation/impact/full-kb-quality.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/specs/semantic.ts": [
+    "packages/cli/tests/public-mutation/operations/specs/semantic.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/specs/reporting.ts": [
+    "packages/cli/tests/public-mutation/operations/specs/reporting.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/entity-context.ts": [
+    "packages/cli/tests/public-mutation/operations/entity-context.mutation.test.ts",
+    "packages/cli/tests/public/entity-context.test.ts",
+  ],
+  "packages/cli/src/public/operations/source-relationship-parity.ts": [
+    "packages/cli/tests/public-mutation/operations/source-relationship-parity.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/symbol-repair-plan.ts": [
+    "packages/cli/tests/public-mutation/operations/symbol-repair-plan.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/predicate-schema-conformance.ts": [
+    "packages/cli/tests/public-mutation/operations/predicate-schema-conformance.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/origin-review.ts": [
+    "packages/cli/tests/public-mutation/operations/origin-review.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/source-analysis-cache.ts": [
+    "packages/cli/tests/public-mutation/operations/source-analysis-cache.mutation.test.ts",
+    "packages/cli/tests/public/operations/source-analysis-cache.test.ts",
+  ],
+  "packages/cli/src/public/operations/check-policy-rules.ts": [
+    "packages/cli/tests/public-mutation/operations/check-policy-rules.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/decision-firmness.ts": [
+    "packages/cli/tests/public-mutation/operations/decision-firmness.mutation.test.ts",
+  ],
+  "packages/cli/src/engine-daemon.ts": [
+    "packages/cli/tests/engine-daemon-mutation.test.ts",
+  ],
+  "packages/cli/src/prolog.ts": ["packages/cli/tests/prolog-mutation.test.ts"],
 };
 
 // Plugin package modules gated the same way: each with the hermetic tests of
