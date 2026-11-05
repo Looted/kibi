@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2adf7d8726dc
+  - type: assumes
+    from: SCEN-NEG-claude-code-kibi-plugin-v1-DENYING-HOOK
+    to: FACT-NEG-claude-code-kibi-plugin-v1-DENYING-HOOK
+    created_at: 2026-11-05T10:55:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24022fded53e
+  - type: verified_by
+    from: SCEN-NEG-claude-code-kibi-plugin-v1-DENYING-HOOK
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:55:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d5b2912dad7

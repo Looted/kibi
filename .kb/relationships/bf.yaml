@@ -94,13 +94,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aa89e57e1cfc
-  - type: implements
-    from: SYM-agent-core-scanSymbolsManifest
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:48:25.438Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-55d0ecd2457a
   - type: covered_by
     from: SYM-agent-core-scanSymbolsManifest
     to: TEST-claude-code-kibi-plugin-v1
@@ -339,3 +332,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a952a251f588
+  - type: constrains
+    from: REQ-claude-adapter-isolation
+    to: FACT-SUBJECT-7D8A11CB905D46FD
+    created_at: 2026-11-05T10:31:15.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c6fe73f931f
+  - type: requires_property
+    from: REQ-claude-adapter-isolation
+    to: FACT-PROP-1F67EBC2F714237E
+    created_at: 2026-11-05T10:31:16.002Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e91178eefb00
+  - type: requires_predicate
+    from: REQ-claude-adapter-isolation
+    to: FACT-PRED-84D9BC5F78D9
+    created_at: 2026-11-05T10:31:16.046Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5436a7e7b601
+  - type: requires_predicate
+    from: REQ-claude-adapter-isolation
+    to: FACT-PRED-F1E8F379B305
+    created_at: 2026-11-05T10:31:16.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d16ddc0ab8b7
+  - type: requires_predicate
+    from: REQ-claude-adapter-isolation
+    to: FACT-PRED-615636D1873A
+    created_at: 2026-11-05T10:31:16.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a392e5881d6e
+  - type: specified_by
+    from: REQ-claude-adapter-isolation
+    to: SCEN-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:31:16.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a40a62e208b4
+  - type: specified_by
+    from: REQ-claude-adapter-isolation
+    to: SCEN-NEG-claude-code-kibi-plugin-v1-DENYING-HOOK
+    created_at: 2026-11-05T10:31:16.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fef12631434
+  - type: verified_by
+    from: REQ-claude-adapter-isolation
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:31:16.181Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-210a54c70233
+  - type: supersedes
+    from: REQ-claude-adapter-isolation
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:31:16.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43a33342bfdc

@@ -286,3 +286,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-676ba1bedb75
+  - type: constrains
+    from: REQ-claude-linked-requirement-context
+    to: FACT-SUBJECT-7D8A11CB905D46FD
+    created_at: 2026-11-05T10:33:46.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-377a6fa170e3
+  - type: requires_predicate
+    from: REQ-claude-linked-requirement-context
+    to: FACT-PRED-8FEC71EF2D20
+    created_at: 2026-11-05T10:33:47.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72f78cb33b6f
+  - type: requires_property
+    from: REQ-claude-linked-requirement-context
+    to: FACT-PROP-DB72C1F7BFAC4B5F
+    created_at: 2026-11-05T10:33:47.102Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c11a465d8420
+  - type: specified_by
+    from: REQ-claude-linked-requirement-context
+    to: SCEN-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:33:47.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d9f2ce72e1e
+  - type: specified_by
+    from: REQ-claude-linked-requirement-context
+    to: SCEN-CASE-claude-code-kibi-plugin-v1-SECOND-SNIPPET
+    created_at: 2026-11-05T10:33:47.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c64c992e69ab
+  - type: verified_by
+    from: REQ-claude-linked-requirement-context
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:33:47.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b81fed24555
+  - type: supersedes
+    from: REQ-claude-linked-requirement-context
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:33:47.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-291ba13ec4d7

@@ -23565,68 +23565,28 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-git-hook-effective-install
-  - id: SYM-claude-parseHookInput
-    title: parseHookInput
-    status: active
-    sourceFile: packages/claude/src/hook-input.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-  - id: SYM-claude-readStdin
-    title: readStdin
-    status: active
-    sourceFile: packages/claude/src/hook-input.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-  - id: SYM-claude-parseStdinJson
-    title: parseStdinJson
-    status: active
-    sourceFile: packages/claude/src/hook-input.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-readFocus
     title: readFocus
     status: active
     sourceFile: packages/claude/src/hook-runner.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-linked-requirement-context
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-  - id: SYM-claude-editFocus
-    title: editFocus
-    status: active
-    sourceFile: packages/claude/src/hook-runner.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-runHook
     title: runHook
     status: active
     sourceFile: packages/claude/src/hook-runner.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-adapter-isolation
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
       - type: implements
         target: REQ-claude-hook-usage-telemetry-v2
   - id: SYM-claude-adapterKind
@@ -23635,120 +23595,50 @@ symbols:
     sourceFile: packages/claude/src/index.ts
     symbol_role: config
     relationships:
+      - type: implements
+        target: REQ-claude-adapter-isolation
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-extractMcpKbUsage
     title: extractMcpKbUsage
     status: active
     sourceFile: packages/claude/src/kb-tools.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-stop-reminder-and-firm-ask
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-extractCliKbUsage
     title: extractCliKbUsage
     status: active
     sourceFile: packages/claude/src/kb-tools.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-stop-reminder-and-firm-ask
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-  - id: SYM-claude-scanSymbolsManifest
-    title: scanSymbolsManifest
-    status: active
-    sourceFile: packages/claude/src/knowledge-index.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-  - id: SYM-claude-scanSymbolCoordinates
-    title: scanSymbolCoordinates
-    status: active
-    sourceFile: packages/claude/src/knowledge-index.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-  - id: SYM-claude-buildKnowledgeIndex
-    title: buildKnowledgeIndex
-    status: active
-    sourceFile: packages/claude/src/knowledge-index.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-  - id: SYM-claude-loadKnowledgeIndex
-    title: loadKnowledgeIndex
-    status: active
-    sourceFile: packages/claude/src/knowledge-index.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-  - id: SYM-claude-readEntitySummary
-    title: readEntitySummary
-    status: active
-    sourceFile: packages/claude/src/knowledge-index.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-  - id: SYM-claude-toWorkspacePath
-    title: toWorkspacePath
-    status: active
-    sourceFile: packages/claude/src/path-policy.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-  - id: SYM-claude-classifyPath
-    title: classifyPath
-    status: active
-    sourceFile: packages/claude/src/path-policy.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-workspaceDataDir
     title: workspaceDataDir
     status: active
     sourceFile: packages/claude/src/session-state.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-linked-requirement-context
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-sessionDir
     title: sessionDir
     status: active
     sourceFile: packages/claude/src/session-state.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-linked-requirement-context
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-applyEvent
     title: applyEvent
     status: active
@@ -23769,20 +23659,20 @@ symbols:
     sourceFile: packages/claude/src/session-state.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-linked-requirement-context
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-appendSessionEvents
     title: appendSessionEvents
     status: active
     sourceFile: packages/claude/src/session-state.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-linked-requirement-context
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-fileKnowledgeSnippet
     title: fileKnowledgeSnippet
     status: active
@@ -23797,8 +23687,6 @@ symbols:
         target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-agent-core-edit-snippets
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-unownedSourceNote
     title: unownedSourceNote
     status: active
@@ -23813,36 +23701,16 @@ symbols:
         target: REQ-claude-request-topic-candidates
       - type: implements
         target: REQ-kb-unowned-file-candidates
-  - id: SYM-claude-searchTip
-    title: searchTip
-    status: active
-    sourceFile: packages/claude/src/snippets.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
-  - id: SYM-claude-sessionStartContext
-    title: sessionStartContext
-    status: active
-    sourceFile: packages/claude/src/snippets.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-stopReminder
     title: stopReminder
     status: active
     sourceFile: packages/claude/src/snippets.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-stop-reminder-and-firm-ask
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-MAX_SNIPPET_CHARS
     title: MAX_SNIPPET_CHARS
     status: active
@@ -23857,26 +23725,16 @@ symbols:
         target: TEST-proof-snippet-max-chars
       - type: implements
         target: REQ-agent-core-hook-limits
-  - id: SYM-claude-DIRECT_KB_ACCESS_NOTE
-    title: DIRECT_KB_ACCESS_NOTE
-    status: active
-    sourceFile: packages/claude/src/snippets.ts
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-resolveKibiWorkspace
     title: resolveKibiWorkspace
     status: active
     sourceFile: packages/claude/src/workspace-optin.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-unowned-project-silence
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
     title: KIBI_WORKSPACE_ENV_KEYS
     status: active
@@ -23970,20 +23828,20 @@ symbols:
     sourceFile: scripts/sync-agent-skills.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-plugin-package
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-packageName
     title: packageName
     status: active
     sourceFile: packages/claude/src/index.ts
     symbol_role: config
     relationships:
+      - type: implements
+        target: REQ-claude-adapter-isolation
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-claude-case-unconfigured-workspace-silent
     title: Every event is silent and stateless outside a Kibi workspace
     status: active
@@ -24090,10 +23948,10 @@ symbols:
     sourceFile: packages/claude/src/kb-tools.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-stop-reminder-and-firm-ask
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-agent-core-loadKnowledgeIndex
     title: loadKnowledgeIndex
     status: active
@@ -24195,12 +24053,12 @@ symbols:
     sourceFile: packages/agent-core/src/knowledge-index.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-adapter-isolation
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
       - type: covered_by
         target: TEST-kibi-hooks-flow-manifest
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
       - type: implements
         target: REQ-kibi-hooks-flow-manifest
   - id: SYM-agent-core-scanSymbolCoordinates
@@ -24209,50 +24067,50 @@ symbols:
     sourceFile: packages/agent-core/src/knowledge-index.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-adapter-isolation
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-agent-core-buildKnowledgeIndex
     title: buildKnowledgeIndex
     status: active
     sourceFile: packages/agent-core/src/knowledge-index.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-adapter-isolation
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-agent-core-readEntitySummary
     title: readEntitySummary
     status: active
     sourceFile: packages/agent-core/src/knowledge-index.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-adapter-isolation
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-agent-core-normalizeWorkspacePath
     title: normalizeWorkspacePath
     status: active
     sourceFile: packages/agent-core/src/path-policy.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-unowned-project-silence
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-agent-core-toWorkspacePath
     title: toWorkspacePath
     status: active
     sourceFile: packages/agent-core/src/path-policy.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-claude-unowned-project-silence
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-agent-core-extractExplicitPathFields
     title: extractExplicitPathFields
     status: active
@@ -26911,10 +26769,10 @@ symbols:
     symbol_role: module
     granularity_reason: extractor-miss
     relationships:
+      - type: implements
+        target: REQ-claude-unowned-project-silence
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
       - type: implements
         target: REQ-claude-plugin-package
   - id: SYM-codex-mcp-launcher
@@ -30449,10 +30307,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-12T18:43:42.702Z
     relationships:
+      - type: implements
+        target: REQ-claude-linked-requirement-context
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-test-kb-decision-firmness
     title: Decision firmness suite
     status: active
@@ -32303,10 +32161,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T10:07:55.280Z
     relationships:
+      - type: implements
+        target: REQ-claude-linked-requirement-context
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-agent-core-snippets-grounding-link-types
     title: GROUNDING_LINK_TYPES
     status: active
@@ -32333,10 +32191,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T10:08:09.166Z
     relationships:
+      - type: implements
+        target: REQ-claude-linked-requirement-context
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-code-kibi-plugin-v1
   - id: SYM-agent-core-snippets-isretiredstatus
     title: isRetiredStatus
     status: active

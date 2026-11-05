@@ -153,13 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-776640ecfd10
-  - type: implements
-    from: SYM-agent-core-readEntitySummary
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:49:41.435Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b0c3816d77ef
   - type: covered_by
     from: SYM-agent-core-readEntitySummary
     to: TEST-claude-code-kibi-plugin-v1
@@ -279,3 +272,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7a8f85751d4
+  - type: constrains
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: FACT-SUBJECT-7D8A11CB905D46FD
+    created_at: 2026-11-05T10:35:40.334Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e1cd2311d33
+  - type: constrains
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: FACT-SUBJECT-KIBI-CLAUDE-FIRM-EDIT-CONFIRMATION
+    created_at: 2026-11-05T10:35:40.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0b2958aab72
+  - type: requires_property
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: FACT-PROP-E5A7DECFE2B39039
+    created_at: 2026-11-05T10:35:40.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bb171bd0cb7
+  - type: requires_property
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: FACT-claude-plugin-may-ask-firm-edit
+    created_at: 2026-11-05T10:35:40.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23ebd98e0f08
+  - type: specified_by
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: SCEN-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:35:40.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-177822e8db71
+  - type: specified_by
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: SCEN-CASE-claude-code-kibi-plugin-v1-SECOND-STOP-REMINDER
+    created_at: 2026-11-05T10:35:40.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5db411076ce
+  - type: verified_by
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:35:40.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64dfc224e9ea
+  - type: relates_to
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: REQ-claude-firm-edit-confirmation
+    created_at: 2026-11-05T10:35:40.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6e9c8284f8a
+  - type: supersedes
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:35:40.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5229c539b250
