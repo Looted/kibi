@@ -1388,6 +1388,24 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/commands/migrate.ts": [
     "packages/cli/tests/migrate-mutation.test.ts",
   ],
+  "packages/cli/src/commands/check.ts": [
+    "packages/cli/tests/commands-mutation/check/helpers.test.ts",
+    "packages/cli/tests/commands-mutation/check/staged-helpers.test.ts",
+    "packages/cli/tests/commands-mutation/check/evidence.test.ts",
+    "packages/cli/tests/commands-mutation/check/full-check.test.ts",
+    "packages/cli/tests/commands-mutation/check/staged-setup.test.ts",
+    "packages/cli/tests/commands-mutation/check/staged-rules.test.ts",
+    "packages/cli/tests/commands-mutation/check/staged-results.test.ts",
+  ],
+  "packages/cli/src/commands/sync.ts": [
+    "packages/cli/tests/commands-mutation/sync/helpers.test.ts",
+    "packages/cli/tests/commands-mutation/sync/sync-setup.test.ts",
+    "packages/cli/tests/commands-mutation/sync/sync-plan.test.ts",
+    "packages/cli/tests/commands-mutation/sync/sync-shards.test.ts",
+    "packages/cli/tests/commands-mutation/sync/sync-semantic.test.ts",
+    "packages/cli/tests/commands-mutation/sync/sync-engine.test.ts",
+    "packages/cli/tests/commands-mutation/sync/sync-staging.test.ts",
+  ],
 };
 
 // Plugin package modules gated the same way: each with the hermetic tests of
