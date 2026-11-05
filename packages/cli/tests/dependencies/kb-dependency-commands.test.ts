@@ -290,7 +290,12 @@ describe("dependency scope", () => {
     expect(kbDependencyArgument({ kb: 1 })).toBeUndefined();
     expect(kbDependencyArgument(null)).toBeUndefined();
     expect(kbDependencyArgument("kb")).toBeUndefined();
-    expect(withoutKbDependencyArgument({ kb: "x", query: "q" })).toEqual({
+    expect(
+      withoutKbDependencyArgument<Record<string, unknown>>({
+        kb: "x",
+        query: "q",
+      }),
+    ).toEqual({
       query: "q",
     });
     expect(withoutKbDependencyArgument(null)).toBeNull();
