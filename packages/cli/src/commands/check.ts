@@ -41,6 +41,7 @@ import { PrologProcess } from "../prolog.js";
 import {
   escapeAtom,
   normalizeEntityId,
+  parseAtomList,
   parseTriples,
   parseViolationRows,
 } from "../prolog/codec.js";
@@ -1494,19 +1495,9 @@ export async function checkMustPriorityCoverage(
   const mustReqs = await findMustPriorityReqs(prolog);
 
   for (const reqId of mustReqs) {
-    const entityResult = await prolog.query(
-      `kb_entity('${reqId}', req, Props)`,
+    const source = entitySource(
+      await prolog.query(`kb_entity('${reqId}', req, Props)`),
     );
-
-    let source = "";
-    if (entityResult.success && entityResult.bindings.Props) {
-      const propsStr = entityResult.bindings.Props;
-      const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-      const sourceValue = getMatchGroup(sourceMatch);
-      if (sourceValue) {
-        source = sourceValue;
-      }
-    }
 
     const scenarioResult = await prolog.query(
       `kb_relationship(specified_by, '${reqId}', ScenarioId)`,
@@ -1542,26 +1533,52 @@ export async function checkMustPriorityCoverage(
   return violations;
 }
 
+type PrologAnswer = Awaited<ReturnType<PrologProcess["query"]>>;
+
+const SOURCE_PROPERTY = /source\s*=\s*\^\^?\("([^"]+)"/;
+
+/** The source path in an answer's Props binding, or "" when it has none. */
+function entitySource(answer: PrologAnswer): string {
+  if (!answer.success) return "";
+  return (
+    getMatchGroup(answer.bindings.Props?.match(SOURCE_PROPERTY) ?? null) ?? ""
+  );
+}
+
+/** The Prolog list an answer bound to `name`, if it bound one. */
+function boundList(answer: PrologAnswer, name: string): string | undefined {
+  const value = answer.success ? answer.bindings[name] : undefined;
+  return value?.startsWith("[") ? value : undefined;
+}
+
+/** The atoms an answer bound to `name`. */
+function boundAtoms(answer: PrologAnswer, name: string): string[] {
+  const list = boundList(answer, name);
+  return list ? parseAtomList(list) : [];
+}
+
+const PAIR_ROW = /\[[^,[\]]+,[^\]]+\]/g;
+
+/** The two-atom rows an answer bound to `name`, skipping other rows. */
+function boundPairs(
+  answer: PrologAnswer,
+  name: string,
+): Array<[string, string]> {
+  const list = boundList(answer, name);
+  if (!list) return [];
+  return Array.from(
+    list.matchAll(PAIR_ROW),
+    ([row]) => parseAtomList(row) as [string, string],
+  );
+}
+
 // implements REQ-cli-check
 // covered_by TEST-004
 export async function findMustPriorityReqs(
   prolog: PrologProcess,
 ): Promise<string[]> {
   const query = `findall(Id, (kb_entity(Id, req, Props), memberchk(priority=P, Props), (P = ^^("must", _) ; P = "must" ; P = 'must' ; (atom(P), atom_string(P, PS), sub_string(PS, _, 4, 0, "must")))), Ids)`;
-  const result = await prolog.query(query);
-
-  if (!result.success || !result.bindings.Ids) {
-    return [];
-  }
-
-  const idsStr = result.bindings.Ids;
-  const match = idsStr.match(/\[(.*)\]/);
-  const content = getMatchGroup(match)?.trim();
-  if (!content) {
-    return [];
-  }
-
-  return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
+  return boundAtoms(await prolog.query(query), "Ids");
 }
 
 export async function getAllEntityIds(
@@ -1570,20 +1587,7 @@ export async function getAllEntityIds(
 ): Promise<string[]> {
   const typeFilter = type ? `, Type = ${type}` : "";
   const query = `findall(Id, (kb_entity(Id, Type, _)${typeFilter}), Ids)`;
-  const result = await prolog.query(query);
-
-  if (!result.success || !result.bindings.Ids) {
-    return [];
-  }
-
-  const idsStr = result.bindings.Ids;
-  const match = idsStr.match(/\[(.*)\]/);
-  const content = getMatchGroup(match)?.trim();
-  if (!content) {
-    return [];
-  }
-
-  return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
+  return boundAtoms(await prolog.query(query), "Ids");
 }
 // implements REQ-cli-check
 export async function checkNoDanglingRefs(
@@ -1607,49 +1611,26 @@ export async function checkNoDanglingRefs(
     "relates_to",
   ];
 
-  const allRels: Array<{ from: string; to: string }> = [];
+  const allRels: Array<[string, string]> = [];
 
   for (const relType of relTypes) {
     const relsResult = await prolog.query(
       `findall([From,To], kb_relationship(${relType}, From, To), Rels)`,
     );
-
-    if (relsResult.success && relsResult.bindings.Rels) {
-      const relsStr = relsResult.bindings.Rels;
-      const match = relsStr.match(/\[(.*)\]/);
-      const content = getMatchGroup(match)?.trim();
-      if (content) {
-        const relMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
-        for (const relMatch of relMatches) {
-          const fromValue = getMatchGroup(relMatch);
-          const toValue = getMatchGroup(relMatch, 2);
-          if (!fromValue || !toValue) continue;
-
-          const fromId = fromValue.trim().replace(/^'|'$/g, "");
-          const toId = toValue.trim().replace(/^'|'$/g, "");
-          allRels.push({ from: fromId, to: toId });
-        }
-      }
-    }
+    allRels.push(...boundPairs(relsResult, "Rels"));
   }
 
   // Check all collected relationships for dangling refs
   for (const rel of allRels) {
-    if (!allEntityIds.has(rel.from)) {
-      violations.push({
-        rule: "no-dangling-refs",
-        entityId: rel.from,
-        description: `Relationship references non-existent entity: ${rel.from}`,
-        suggestion: "Remove relationship or create missing entity",
-      });
-    }
-    if (!allEntityIds.has(rel.to)) {
-      violations.push({
-        rule: "no-dangling-refs",
-        entityId: rel.to,
-        description: `Relationship references non-existent entity: ${rel.to}`,
-        suggestion: "Remove relationship or create missing entity",
-      });
+    for (const entityId of rel) {
+      if (!allEntityIds.has(entityId)) {
+        violations.push({
+          rule: "no-dangling-refs",
+          entityId,
+          description: `Relationship references non-existent entity: ${entityId}`,
+          suggestion: "Remove relationship or create missing entity",
+        });
+      }
     }
   }
 
@@ -1667,34 +1648,11 @@ export async function checkNoCycles(
     "findall([From,To], kb_relationship(depends_on, From, To), Deps)",
   );
 
-  if (!depsResult.success || !depsResult.bindings.Deps) {
-    return violations;
-  }
-
-  const depsStr = depsResult.bindings.Deps;
-  const match = depsStr.match(/\[(.*)\]/);
-  const content = getMatchGroup(match)?.trim();
-  if (!content) {
-    return violations;
-  }
-
   const graph = new Map<string, string[]>();
-  const depMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
-
-  for (const depMatch of depMatches) {
-    const fromValue = getMatchGroup(depMatch);
-    const toValue = getMatchGroup(depMatch, 2);
-    if (!fromValue || !toValue) continue;
-
-    const from = fromValue.trim().replace(/^'|'$/g, "");
-    const to = toValue.trim().replace(/^'|'$/g, "");
-    if (!graph.has(from)) {
-      graph.set(from, []);
-    }
-    const fromList = graph.get(from);
-    if (fromList) {
-      fromList.push(to);
-    }
+  for (const [from, to] of boundPairs(depsResult, "Deps")) {
+    const neighbors = graph.get(from);
+    if (neighbors) neighbors.push(to);
+    else graph.set(from, [to]);
   }
 
   const visited = new Set<string>();
@@ -1720,41 +1678,28 @@ export async function checkNoCycles(
     return null;
   }
 
+  // A search from a node an earlier search finished finds no new cycle.
   for (const node of graph.keys()) {
-    if (!visited.has(node)) {
-      const cyclePath = hasCycleDFS(node, []);
-      if (cyclePath) {
-        const cycleEntityId = cyclePath[0];
-        if (!cycleEntityId) {
-          continue;
-        }
-
-        const cycleWithSources: string[] = [];
-        for (const entityId of cyclePath) {
-          const entityResult = await prolog.query(
-            `kb_entity('${entityId}', _, Props)`,
-          );
-          let sourceName = entityId;
-          if (entityResult.success && entityResult.bindings.Props) {
-            const propsStr = entityResult.bindings.Props;
-            const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-            const sourceValue = getMatchGroup(sourceMatch);
-            if (sourceValue) {
-              sourceName = path.basename(sourceValue, ".md");
-            }
-          }
-          cycleWithSources.push(sourceName);
-        }
-
-        violations.push({
-          rule: "no-cycles",
-          entityId: cycleEntityId,
-          description: `Circular dependency detected: ${cycleWithSources.join(" → ")}`,
-          suggestion:
-            "Break cycle by removing one of the depends_on relationships",
-        });
-        break; // Report only first cycle found
+    const cyclePath = hasCycleDFS(node, []);
+    if (cyclePath) {
+      const cycleWithSources: string[] = [];
+      for (const entityId of cyclePath) {
+        const sourceValue = entitySource(
+          await prolog.query(`kb_entity('${entityId}', _, Props)`),
+        );
+        cycleWithSources.push(
+          sourceValue ? path.basename(sourceValue, ".md") : entityId,
+        );
       }
+
+      violations.push({
+        rule: "no-cycles",
+        entityId: node,
+        description: `Circular dependency detected: ${cycleWithSources.join(" → ")}`,
+        suggestion:
+          "Break cycle by removing one of the depends_on relationships",
+      });
+      break; // Report only first cycle found
     }
   }
 
@@ -1780,16 +1725,9 @@ export async function checkRequiredFields(
     const result = await prolog.query(`kb_entity('${entityId}', Type, Props)`);
 
     if (result.success && result.bindings.Props) {
-      const propsStr = result.bindings.Props;
-      const propKeys = new Set<string>();
-
-      const keyMatches = propsStr.matchAll(/(\w+)\s*=/g);
-      for (const match of keyMatches) {
-        const key = getMatchGroup(match);
-        if (key) {
-          propKeys.add(key);
-        }
-      }
+      const propKeys = new Set(
+        Array.from(result.bindings.Props.matchAll(/(\w+)\s*=/g), (m) => m[1]),
+      );
 
       for (const field of required) {
         if (!propKeys.has(field)) {
@@ -1813,38 +1751,15 @@ export async function checkDeprecatedAdrs(
   const violations: Violation[] = [];
 
   // Use Prolog predicate to find deprecated ADRs without successors
-  const result = await prolog.query(
-    "setof(Id, deprecated_no_successor(Id), Ids)",
+  const adrIds = boundAtoms(
+    await prolog.query("setof(Id, deprecated_no_successor(Id), Ids)"),
+    "Ids",
   );
 
-  if (!result.success || !result.bindings.Ids) {
-    return violations;
-  }
-
-  const idsStr = result.bindings.Ids;
-  const match = idsStr.match(/\[(.*)\]/);
-  const content = getMatchGroup(match)?.trim();
-  if (!content) {
-    return violations;
-  }
-
-  const adrIds = content
-    .split(",")
-    .map((id) => id.trim().replace(/^'|'$/g, ""));
-
   for (const adrId of adrIds) {
-    const entityResult = await prolog.query(
-      `kb_entity('${adrId}', adr, Props)`,
+    const source = entitySource(
+      await prolog.query(`kb_entity('${adrId}', adr, Props)`),
     );
-    let source = "";
-    if (entityResult.success && entityResult.bindings.Props) {
-      const propsStr = entityResult.bindings.Props;
-      const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-      const sourceValue = getMatchGroup(sourceMatch);
-      if (sourceValue) {
-        source = sourceValue;
-      }
-    }
 
     violations.push({
       rule: "deprecated-adr-no-successor",
@@ -1889,77 +1804,35 @@ export async function checkDomainContradictions(
   return violations;
 }
 
+/** The violation/5 rows a `checks:` predicate yields. */
+async function strictViolations(
+  prolog: PrologProcess,
+  predicate: string,
+): Promise<Violation[]> {
+  const result = await prolog.query(
+    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
+      checks:${predicate}(violation(Rule, EntityId, Desc, Sugg, Src)),
+      Violations)`,
+  );
+  return result.success
+    ? parseViolationRows(`${result.bindings.Violations}`)
+    : [];
+}
+
 export async function checkStrictFactShape(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  const result = await prolog.query(
-    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
-      checks:strict_fact_shape_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
-      Violations)`,
-  );
-
-  if (!result.success || !result.bindings.Violations) {
-    return violations;
-  }
-
-  const violationsStr = result.bindings.Violations as string;
-  if (violationsStr && violationsStr !== "[]") {
-    for (const v of parseViolationRows(violationsStr)) {
-      violations.push(v);
-    }
-  }
-
-  return violations;
+  return strictViolations(prolog, "strict_fact_shape_violation");
 }
 
 export async function checkStrictReqFactPairing(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  const result = await prolog.query(
-    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
-      checks:strict_req_fact_pairing_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
-      Violations)`,
-  );
-
-  if (!result.success || !result.bindings.Violations) {
-    return violations;
-  }
-
-  const violationsStr = result.bindings.Violations as string;
-  if (violationsStr && violationsStr !== "[]") {
-    for (const v of parseViolationRows(violationsStr)) {
-      violations.push(v);
-    }
-  }
-
-  return violations;
+  return strictViolations(prolog, "strict_req_fact_pairing_violation");
 }
 
 export async function checkStrictReadiness(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  const result = await prolog.query(
-    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
-      checks:strict_readiness_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
-      Violations)`,
-  );
-
-  if (!result.success || !result.bindings.Violations) {
-    return violations;
-  }
-
-  const violationsStr = result.bindings.Violations as string;
-  if (violationsStr && violationsStr !== "[]") {
-    for (const v of parseViolationRows(violationsStr)) {
-      violations.push(v);
-    }
-  }
-
-  return violations;
+  return strictViolations(prolog, "strict_readiness_violation");
 }
