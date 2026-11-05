@@ -1621,7 +1621,10 @@ function entityMembers(spec: SourceSpec, entities: SourceEntity[]): string[] {
 // Items in code-unit order of their names; items that share a name keep
 // their order.
 function sortedByName<T extends { name: string }>(items: T[]): T[] {
-  const groups = Map.groupBy(items, (item) => item.name);
+  const groups = new Map<string, T[]>();
+  for (const item of items) {
+    groups.set(item.name, [...(groups.get(item.name) ?? []), item]);
+  }
   return [...groups.keys()].sort().flatMap((name) => groups.get(name) as T[]);
 }
 

@@ -44,7 +44,11 @@ const SEMANTIC_RELATIONSHIPS = new Set([
 
 /** The items in code-unit order of their keys, equal keys kept in order. */
 function sortedBy<T>(items: readonly T[], key: (item: T) => string): T[] {
-  const groups = Map.groupBy(items, key);
+  const groups = new Map<string, T[]>();
+  for (const item of items) {
+    const name = key(item);
+    groups.set(name, [...(groups.get(name) ?? []), item]);
+  }
   return [...groups.keys()].sort().flatMap((name) => groups.get(name) as T[]);
 }
 
