@@ -443,11 +443,11 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 
 /* Hero: the first screen is the gate itself. */
 .hero {
-  position: relative; min-height: calc(100vh - var(--topbar-h) - 88px); min-height: calc(100svh - var(--topbar-h) - 88px);
-  display: flex; flex-direction: column; justify-content: center; padding: 8px 0 0;
+  position: relative; min-height: calc(100vh - var(--topbar-h) - 64px); min-height: calc(100svh - var(--topbar-h) - 64px);
+  display: flex; flex-direction: column; justify-content: center; padding: 0;
 }
 .hero-stage {
-  position: absolute; z-index: 0; top: -88px; bottom: 0; left: calc(50% - 50vw); width: 100vw;
+  position: absolute; z-index: 0; top: -64px; bottom: 0; left: calc(50% - 50vw); width: 100vw;
   -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 82%, transparent 100%);
   mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 82%, transparent 100%);
 }
@@ -456,15 +456,19 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
   content: ""; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(90deg, rgba(17, 19, 24, 0.96) 0%, rgba(17, 19, 24, 0.9) calc(50% - 120px), rgba(17, 19, 24, 0.4) calc(50% + 200px), rgba(17, 19, 24, 0) calc(50% + 320px));
 }
-.hero-text { position: relative; z-index: 1; max-width: 760px; padding: 32px 0; }
+.hero-text { position: relative; z-index: 1; max-width: 760px; padding: 0 0 40px; }
 .hero-title {
-  font-size: clamp(40px, 5.4vw, 76px); line-height: 1; letter-spacing: -0.045em;
+  font-size: clamp(38px, 5vw, 70px); line-height: 1; letter-spacing: -0.045em;
   margin: 0; font-weight: 700; color: var(--snow); text-wrap: balance;
 }
 .hero-title .hero-title-2 { display: block; color: var(--ice); }
-.landing .hero-sub { color: var(--mist); font-size: 19px; font-weight: 400; line-height: 1.55; max-width: 32em; margin: 28px 0 28px; }
+.landing .hero-sub { color: var(--mist); font-size: 19px; font-weight: 400; line-height: 1.55; max-width: 32em; margin: 28px 0 18px; }
+.landing .hero-sub strong { color: var(--snow); font-weight: 600; }
+.prose .hero-points { list-style: none; margin: 0 0 28px; padding: 0; display: grid; gap: 6px; }
+.prose .hero-points li { margin: 0; display: flex; align-items: flex-start; gap: 10px; color: var(--snow); font-size: 15px; }
+.hero-points li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ice); flex-shrink: 0; margin-top: 0.6em; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; }
-.landing .hero-canon { color: var(--mist); font-size: 13.5px; max-width: 36em; margin: 18px 0 0; }
+.landing .hero-canon { color: var(--mist); font-size: 13.5px; max-width: 36em; margin: 0 auto 28px; }
 .hero-foot {
   position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 28px;
   padding: 18px 0 22px; border-top: 1px solid rgba(52, 67, 79, 0.6); color: var(--mist); font-size: 13px;
@@ -811,7 +815,7 @@ figure.code.hero-copy {
 .page-home .shell { display: block; position: relative; z-index: 1; max-width: 1160px; }
 .page-home .footer { position: relative; z-index: 1; }
 .page-home .nav-toggle { display: none; }
-.page-home .content { padding-top: 88px; }
+.page-home .content { padding-top: 64px; }
 @media (max-width: 979px) { .page-home .content { padding-top: 48px; } }
 
 /* ---------- Preferences ---------- */
@@ -995,7 +999,7 @@ export const clientScript = String.raw`
       if (tk.fate === "wait") return { text: id + "  waiting on evidence", color: C.warning, side: -1 };
       var other = pickOne(NAMES);
       if (other === tk.name) other = NAMES[(NAMES.indexOf(other) + 1) % NAMES.length];
-      return { text: id + "  contradicts REQ-" + other, color: C.contra, side: -1 };
+      return { text: id + "  contradicts " + other, color: C.contra, side: -1 };
     };
     var spawn = function (x) {
       var free = rails.filter(function (r) { return r.busy < 2; });
@@ -1014,7 +1018,11 @@ export const clientScript = String.raw`
       return tokens.filter(function (t) { return t.label; }).length < 6;
     };
     var arrive = function (tk) {
-      if (labels && Math.random() < 0.85 && canLabel(tk.rail)) { tk.label = labelFor(tk); tk.lt = 0; tk.rail.label++; }
+      if (labels && Math.random() < 0.85 && canLabel(tk.rail)) {
+        var made = labelFor(tk);
+        ctx.font = "12px " + MONO;
+        if (ctx.measureText(made.text).width > W - gateX - 48) return;
+        tk.label = made; tk.lt = 0; tk.rail.label++; }
     };
     var drawToken = function (tk) {
       var y = tk.rail.y;
@@ -1441,9 +1449,14 @@ export function landingContent(args: {
 <section class="hero">
   <div class="hero-stage" data-railfield aria-hidden="true"><canvas></canvas></div>
   <div class="hero-text">
-    <p class="eyebrow">Open source &middot; requirements compiler for coding agents</p>
-    <h1 class="hero-title">Say what the software should do. <span class="hero-title-2">Kibi holds the agent to it.</span></h1>
-    <p class="hero-sub">You keep prompting your coding agent. Kibi writes that intent down beside the code, carries it onto every branch, and treats &ldquo;done&rdquo; as a claim that needs fresh evidence.</p>
+    <p class="eyebrow">Open source &middot; for Claude Code, Codex, Cursor, OpenCode and any MCP agent</p>
+    <h1 class="hero-title">Say what the software should do. <span class="hero-title-2">Your agent won&rsquo;t forget it.</span></h1>
+    <p class="hero-sub"><strong>Kibi is a requirements knowledge base for AI coding agents.</strong> It turns what you prompt into requirements stored in your repository, links each one to the code and tests behind it, and shows the agent the rule before it edits that code.</p>
+    <ul class="hero-points">
+      <li>Remembers why code exists, across sessions and branches</li>
+      <li>Refuses rules that contradict each other</li>
+      <li>Reports which requirements are actually tested</li>
+    </ul>
     <div class="hero-actions">
       <a class="btn btn-primary" href="${root}guide/quick-start.html" data-umami-event="cta-click" data-umami-event-target="install">Install Kibi <span class="btn-arrow" aria-hidden="true">&rarr;</span></a>
       ${reportCta}
@@ -1453,7 +1466,6 @@ export function landingContent(args: {
       <button type="button" class="code-copy" aria-label="Copy the agent setup prompt">Copy</button>
       <pre><code>${escapeHtml(AGENT_SETUP_PROMPT)}</code></pre>
     </figure>
-    <p class="hero-canon">${escapeHtml(SITE_TAGLINE)}</p>
   </div>
   <div class="hero-foot">
     <p>Each line is a requirement riding to the gate. Only fresh end-to-end evidence clears it.</p>
@@ -1661,6 +1673,7 @@ ${reportStrip}
   ${CLOSING_RAIL_SVG}
   <h2>Start with one prompt.</h2>
   <p>Paste the setup prompt into your agent, approve the plan it shows you, and read your first health report.</p>
+  <p class="hero-canon">${escapeHtml(SITE_TAGLINE)}</p>
   <div class="hero-actions">
     <a class="btn btn-primary" href="#install" data-umami-event="cta-click" data-umami-event-target="closing-install">Get the setup prompt <span class="btn-arrow" aria-hidden="true">&rarr;</span></a>
     <a class="btn btn-ghost" href="${root}guide/welcome.html" data-umami-event="cta-click" data-umami-event-target="closing-guide">Read the guide</a>
