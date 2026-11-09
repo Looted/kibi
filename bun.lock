@@ -157,7 +157,7 @@
     },
     "packages/lang-prolog": {
       "name": "kibi-lang-prolog",
-      "version": "1.0.0",
+      "version": "1.1.0",
     },
     "packages/lang-python": {
       "name": "kibi-lang-python",
@@ -273,7 +273,7 @@
         "kibi-lang-hcl": "1.0.0",
         "kibi-lang-java": "1.0.0",
         "kibi-lang-php": "1.0.0",
-        "kibi-lang-prolog": "1.0.0",
+        "kibi-lang-prolog": "1.1.0",
         "kibi-lang-python": "1.0.0",
         "kibi-lang-ruby": "1.0.0",
         "kibi-lang-rust": "1.0.0",

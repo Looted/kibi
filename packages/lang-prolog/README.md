@@ -10,6 +10,6 @@ npm install --save-dev kibi-plugin-treesitter kibi-lang-prolog
 
 | File | Extensions | Bytes | SHA-256 |
 | --- | --- | --- | --- |
-| `tree-sitter-swi_prolog.wasm` | `.plt` | 210131 | `a9872f0369b51c1eed2ef04267382c34aeaeba7c97b6f55b829fbf625bdb22dd` |
+| `tree-sitter-swi_prolog.wasm` | `.plt` | 224810 | `9b063a2187a58920bab166b379bde18cf20533d8f376f9d2602c9de58e00761a` |
 
-The grammar is [`tree-sitter-swi-prolog`](https://registry.npmjs.org/tree-sitter-swi-prolog/-/tree-sitter-swi-prolog-0.1.0.tgz) 0.1.0, built from [f6633ce273a2](https://github.com/Looted/tree-sitter-swi-prolog/tree/f6633ce273a2153636f1f463d41fb43acff7b741), under the MIT license in `LICENSE`. Its tags queries stay in `kibi-plugin-treesitter`, which records their provenance in `catalog.json`.
+The grammar is [`tree-sitter-swi-prolog`](https://registry.npmjs.org/tree-sitter-swi-prolog/-/tree-sitter-swi-prolog-0.1.3.tgz) 0.1.3, built from [1731abe28070](https://github.com/Looted/tree-sitter-swi-prolog/tree/1731abe280700caa64de897e790bdc15c0a00e40), under the MIT license in `LICENSE`. Its tags queries stay in `kibi-plugin-treesitter`, which records their provenance in `catalog.json`.

@@ -114,7 +114,7 @@
     {
       "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
       "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-treesitterswiprolog-010"
+      "relatedSpdxElement": "SPDXRef-treesitterswiprolog-013"
     }
   ]
 }
