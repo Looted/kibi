@@ -16,6 +16,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   runSyncPluginManifestVersionsCli,
+  syncCatalogPackVersions,
   syncPluginManifestVersions,
 } from "../sync-plugin-manifest-versions.ts";
 
@@ -637,6 +638,36 @@ describe("syncPluginManifestVersions", () => {
         }
         expect(console.log).toBe(log);
       },
+    );
+  });
+});
+
+describe("catalog language pack pins", () => {
+  test("move each packVersion to its workspace pack's version and keep the rest", () => {
+    const raw = `{
+  "languages": [
+    { "id": "a", "pack": "kibi-lang-a",
+      "packVersion": "1.0.0" },
+    { "id": "b", "pack": "kibi-lang-b", "packVersion": "1.0.0" },
+    { "id": "c", "pack": "kibi-lang-unknown", "packVersion": "2.0.0" },
+    { "id": "d", "version": "1.0.0" }
+  ]
+}
+`;
+    const versions = new Map([
+      ["kibi-lang-a", "1.1.0"],
+      ["kibi-lang-b", "1.0.1"],
+    ]);
+    expect(syncCatalogPackVersions(raw, versions)).toBe(
+      raw
+        .replace(
+          '"kibi-lang-a",\n      "packVersion": "1.0.0"',
+          '"kibi-lang-a",\n      "packVersion": "1.1.0"',
+        )
+        .replace(
+          '"kibi-lang-b", "packVersion": "1.0.0"',
+          '"kibi-lang-b", "packVersion": "1.0.1"',
+        ),
     );
   });
 });

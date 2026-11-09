@@ -28,6 +28,12 @@ const webTreeSitter = join(pluginRoot, "node_modules", "web-tree-sitter");
 const scratch = mkdtempSync(join(tmpdir(), "kibi-lang-packs-"));
 after(() => rmSync(scratch, { recursive: true, force: true }));
 
+const catalog = JSON.parse(
+  readFileSync(join(pluginRoot, "catalog.json"), "utf8"),
+);
+const pinnedPackVersion = (pack) =>
+  catalog.languages.find((language) => language.pack === pack).packVersion;
+
 let copies = 0;
 async function pluginWith(goPack) {
   const root = join(scratch, `plugin-${copies++}`);
@@ -114,12 +120,15 @@ describe("Tree-sitter language packs", () => {
   it("treats Python and SWI-Prolog like every other language", async () => {
     const { symbols } = await pluginWith(undefined);
     for (const [path, content, pack] of [
-      ["a.py", "def f():\n    return 1\n", "kibi-lang-python@1\\.0\\.0"],
-      ["a.plt", "f(1).\n", "kibi-lang-prolog@1\\.1\\.0"],
+      ["a.py", "def f():\n    return 1\n", "kibi-lang-python"],
+      ["a.plt", "f(1).\n", "kibi-lang-prolog"],
     ]) {
       const result = await symbols.analyze({ path, content });
       assert.equal(result.status, "unsupported", path);
-      assert.match(JSON.stringify(result), new RegExp(pack), path);
+      assert.ok(
+        JSON.stringify(result).includes(`${pack}@${pinnedPackVersion(pack)}`),
+        path,
+      );
     }
   });
 });

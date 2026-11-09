@@ -405,7 +405,7 @@
       "querySha256": "df6af374b121bc85ff5b471763b542894ba9602b37f3ec7c17ab70944a7486b1",
       "assetSource": "tree-sitter-swi_prolog.wasm inside the pinned npm tarball",
       "pack": "kibi-lang-prolog",
-      "packVersion": "1.1.0"
+      "packVersion": "1.0.0"
     }
   ],
   "runtimeNetworkRequired": false,
