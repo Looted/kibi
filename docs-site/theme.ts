@@ -74,22 +74,39 @@ function svgFavicon(svg: string): string {
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
-const RAIL_SVG = `<svg class="rail-svg" viewBox="0 0 760 96" role="img" aria-label="Intent travels a rail through requirements, enforcement, and evidence, then passes a gate to become proof" fill="none">
-  <line x1="53" y1="40" x2="720" y2="40" stroke="#3e8ed6" stroke-width="2"/>
-  <circle cx="40" cy="40" r="13" fill="#a2d3f4"/>
-  <circle cx="212" cy="40" r="5" fill="#111318" stroke="#3e8ed6" stroke-width="2"/>
-  <circle cx="384" cy="40" r="5" fill="#111318" stroke="#3e8ed6" stroke-width="2"/>
-  <circle cx="556" cy="40" r="5" fill="#111318" stroke="#3e8ed6" stroke-width="2"/>
-  <path d="M634 27v26M650 27v26" stroke="#3e8ed6" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="728" cy="40" r="8" fill="#63c99a"/>
-  <g fill="#aab8c2" font-family="-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13">
-    <text x="40" y="80" text-anchor="middle">Intent</text>
-    <text x="212" y="80" text-anchor="middle">Requirements</text>
-    <text x="384" y="80" text-anchor="middle">Enforcement</text>
-    <text x="556" y="80" text-anchor="middle">Evidence</text>
-    <text x="728" y="80" text-anchor="middle">Proof</text>
-  </g>
+/** The logo's node -> rail -> gate, drawn wide to close the landing page. */
+const CLOSING_RAIL_SVG = `<svg class="closing-rail" viewBox="0 0 520 40" aria-hidden="true" fill="none">
+  <line x1="24" y1="20" x2="490" y2="20" stroke="#3e8ed6" stroke-width="2"/>
+  <circle cx="16" cy="20" r="11" fill="#a2d3f4"/>
+  <circle cx="140" cy="20" r="4" fill="#111318" stroke="#3e8ed6" stroke-width="2"/>
+  <circle cx="264" cy="20" r="4" fill="#111318" stroke="#3e8ed6" stroke-width="2"/>
+  <circle cx="388" cy="20" r="4" fill="#111318" stroke="#3e8ed6" stroke-width="2"/>
+  <path d="M444 9v22M458 9v22" stroke="#3e8ed6" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="500" cy="20" r="7" fill="#63c99a"/>
 </svg>`;
+
+/** Small rail sketches for the three places intent gets lost. */
+const GAP_ART = {
+  prompt: `<svg class="gap-art" viewBox="0 0 220 40" aria-hidden="true" fill="none">
+  <circle cx="14" cy="20" r="9" fill="#a2d3f4"/>
+  <line x1="23" y1="20" x2="110" y2="20" stroke="#3e8ed6" stroke-width="2"/>
+  <line x1="116" y1="20" x2="206" y2="20" stroke="#34434f" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round"/>
+</svg>`,
+  link: `<svg class="gap-art" viewBox="0 0 220 40" aria-hidden="true" fill="none">
+  <circle cx="14" cy="20" r="9" fill="#a2d3f4"/>
+  <line x1="23" y1="20" x2="92" y2="20" stroke="#3e8ed6" stroke-width="2"/>
+  <path d="M92 12v16M128 12v16" stroke="#f2b84b" stroke-width="2" stroke-linecap="round"/>
+  <line x1="128" y1="20" x2="196" y2="20" stroke="#34434f" stroke-width="2"/>
+  <circle cx="202" cy="20" r="5" fill="#111318" stroke="#34434f" stroke-width="2"/>
+</svg>`,
+  green: `<svg class="gap-art" viewBox="0 0 220 40" aria-hidden="true" fill="none">
+  <circle cx="14" cy="20" r="9" fill="#a2d3f4"/>
+  <line x1="23" y1="20" x2="196" y2="20" stroke="#34434f" stroke-width="2"/>
+  <path d="M150 9v22M164 9v22" stroke="#3e8ed6" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="204" cy="20" r="7" fill="#111318" stroke="#aab8c2" stroke-width="2"/>
+  <text x="204" y="24" text-anchor="middle" fill="#aab8c2" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10">?</text>
+</svg>`,
+};
 
 // implements REQ-docs-site-root-pages
 export const styles = String.raw`
@@ -405,41 +422,111 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 .footer .commit { font-family: var(--mono); font-size: 1em; }
 
 /* ---------- Landing ---------- */
-.hero { padding: 0 0 8px; }
-.hero-grid { display: block; }
-.hero-lower { margin-top: 28px; }
-.hero-mark svg.mark { width: min(280px, 72vw); height: auto; display: block; }
+/* The landing page speaks the logo's grammar: node -> rail -> gate. */
+.landing { --land-w: 1160px; }
+.landing > section { margin-top: 120px; }
+.landing > section.hero { margin-top: 0; }
+.landing h2 { font-size: clamp(28px, 3.4vw, 40px); line-height: 1.12; margin: 0 0 18px; padding-left: 0; letter-spacing: -0.025em; font-weight: 700; max-width: 18em; }
+.landing h2::before { display: none; }
+.landing .lede { color: var(--mist); font-size: 17px; line-height: 1.6; max-width: 40em; margin: 0 0 36px; }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 10px; margin: 0 0 18px;
+  font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ice);
+}
+.eyebrow::before {
+  content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ice); flex-shrink: 0;
+}
+.eyebrow::after { content: ""; width: 44px; height: 2px; background: var(--signal); border-radius: 2px; }
+.eyebrow .eb-num { color: var(--mist); }
+.landing .eyebrow { margin: 0 0 18px; }
+
+/* Hero */
+.hero { position: relative; padding: 0; }
 .hero-title {
-  font-size: clamp(32px, 4vw, 48px); line-height: 1.12; letter-spacing: -0.02em;
-  max-width: 18em; margin: 28px 0 0; font-weight: 700;
+  font-size: clamp(40px, 6.6vw, 86px); line-height: 0.98; letter-spacing: -0.045em;
+  max-width: 11.5em; margin: 0; font-weight: 700; color: var(--snow);
 }
-.landing .hero-sub { color: var(--mist); font-size: 19px; font-weight: 400; line-height: 1.5; max-width: 36em; margin: 0 0 20px; }
+.hero-title .hero-title-2 { display: block; color: var(--ice); }
+.hero-lower {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 400px); gap: 28px 56px;
+  align-items: end; margin-top: 34px;
+}
+.landing .hero-sub { color: var(--mist); font-size: 19px; font-weight: 400; line-height: 1.55; max-width: 34em; margin: 0 0 24px; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; }
-.landing .hero-canon { color: var(--mist); font-size: 13.5px; max-width: 36em; margin: 20px 0 0; }
+.landing .hero-canon { color: var(--mist); font-size: 13.5px; max-width: 36em; margin: 18px 0 0; }
 .btn {
-  display: inline-block; text-decoration: none; font-weight: 600; font-size: 14.5px;
-  padding: 10px 20px; border-radius: 10px; border: 1px solid transparent;
+  display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; font-size: 14.5px;
+  padding: 11px 20px; border-radius: 10px; border: 1px solid transparent;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
 }
+.btn:hover { transform: translateY(-1px); }
 .btn-primary { background: var(--ice); color: var(--deep); }
 .btn-primary:hover { background: var(--snow); }
-.btn-ghost { border-color: var(--rail); color: var(--snow); }
+.btn-primary .btn-arrow { transition: transform 140ms ease; }
+.btn-primary:hover .btn-arrow { transform: translateX(3px); }
+.btn-ghost { border-color: var(--rail); color: var(--snow); background: rgba(17, 19, 24, 0.6); }
 .btn-ghost:hover { border-color: var(--signal); color: var(--ice); }
-.hero-rail { margin: 40px 0 0; overflow-x: auto; }
-.rail-svg { width: 100%; min-width: 0; height: auto; display: block; }
+
+/* One-prompt setup chip: copies the same prompt as the install section. */
+figure.code.hero-copy {
+  margin: 0; padding: 0; display: block;
+  background: var(--panel); border: 1px solid var(--rail); border-radius: 12px;
+}
+.hero-copy .hc-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 14px; border-bottom: 1px solid var(--rail);
+  font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mist);
+}
+.hero-copy .hc-body { padding: 14px; font-family: var(--mono); font-size: 13px; line-height: 1.55; color: var(--snow); }
+.hero-copy .hc-body .hc-prompt { color: var(--ice); }
+.hero-copy .hc-body .hc-dim { color: var(--mist); }
+.hero-copy .code-copy { position: static; opacity: 1; }
+.hero-copy pre { display: none; }
+
+/* Rail field: requirements riding rails to one gate (decorative, see legend). */
+.railfield-wrap { position: relative; margin: 64px 0 0; width: 100vw; margin-left: calc(50% - 50vw); }
+.railfield {
+  position: relative; height: 280px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+}
+.railfield canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.rf-caption {
+  max-width: var(--land-w); margin: 14px auto 0; padding: 0 48px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 28px;
+  color: var(--mist); font-size: 13px;
+}
+.rf-caption p { margin: 0; }
+.rf-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; list-style: none; margin: 0; padding: 0; }
+.prose .rf-legend li { margin: 0; display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; }
+.rf-legend .dot { width: 8px; height: 8px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot.intent { background: var(--ice); }
+.dot.proven { background: var(--proven); }
+.dot.waiting { background: transparent; box-shadow: inset 0 0 0 2px var(--warning); }
+.dot.contra { background: var(--contradiction); }
 
 /* Animated terminal: one scene per Kibi use case, replayed by the client script. */
-.kd-section { margin-top: 44px; }
-.landing h2.kd-title { font-size: 15px; color: var(--mist); font-weight: 600; margin: 0 0 12px; }
-.kd { background: var(--panel); border: 1px solid var(--rail); border-radius: 10px; overflow: hidden; min-width: 0; }
-.kd-bar { display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-bottom: 1px solid var(--rail); background: var(--carbon); flex-wrap: wrap; }
-.kd-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--rail); }
+.kd-section { margin-top: 72px; }
+.landing h2.kd-title {
+  max-width: none; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--mist); font-weight: 500; margin: 0 0 14px;
+}
+.kd {
+  background: var(--panel); border: 1px solid var(--rail); border-radius: 14px; overflow: hidden; min-width: 0;
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.8);
+}
+.kd-bar { display: flex; align-items: center; gap: 6px; padding: 9px 12px; border-bottom: 1px solid var(--rail); background: var(--carbon); flex-wrap: wrap; }
+.kd-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--rail); }
 .kd-tabs { margin-left: auto; display: flex; gap: 2px; flex-wrap: wrap; }
-.kd-tab { font: 600 12px var(--sans); color: var(--mist); background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 2px 8px; cursor: pointer; }
-.kd-tab[aria-pressed="true"] { color: var(--ice); border-color: var(--rail); }
+.kd-tab { font: 600 12px var(--sans); color: var(--mist); background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 3px 9px; cursor: pointer; transition: color 120ms ease, border-color 120ms ease; }
+.kd-tab:hover { color: var(--snow); }
+.kd-tab[aria-pressed="true"] { color: var(--ice); border-color: var(--rail); background: var(--panel); }
 .kd-tab:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
-.kd-screen { font-family: var(--mono); font-size: 14px; line-height: 1.6; padding: 12px 16px; height: calc((var(--kd-rows) + 1) * 1.6em + 24px); overflow: hidden; white-space: pre-wrap; word-break: break-word; }
+.kd-screen { font-family: var(--mono); font-size: 14.5px; line-height: 1.6; padding: 18px 22px; height: calc((var(--kd-rows) + 1) * 1.6em + 36px); overflow: hidden; white-space: pre-wrap; word-break: break-word; }
 .kd-ln { display: block; min-height: 1.6em; }
-.landing .kd-note { color: var(--mist); font-size: 12.5px; margin: 8px 0 0; }
+.landing .kd-note { color: var(--mist); font-size: 12.5px; margin: 10px 0 0; }
 .kd-you, .kd-info { color: var(--ice); }
 .kd-tool, .kd-dim { color: var(--mist); }
 .kd-name { color: var(--signal); font-weight: 600; }
@@ -448,45 +535,136 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 .kd-warn { color: var(--warning); }
 .kd-caret { display: inline-block; width: 0.55em; height: 1.05em; vertical-align: -0.16em; background: var(--ice); animation: kd-blink 1s steps(1) infinite; }
 @keyframes kd-blink { 50% { opacity: 0; } }
-@media (max-width: 560px) { .kd-screen { font-size: 11.5px; height: calc((var(--kd-rows) * 2 - 2) * 1.6em + 24px); } }
+@media (max-width: 560px) { .kd-screen { font-size: 11.5px; padding: 12px 14px; height: calc((var(--kd-rows) * 2 - 2) * 1.6em + 24px); } }
 @media (prefers-reduced-motion: reduce) { .kd-caret { animation: none; } }
 
-
-.landing > section { margin-top: 72px; }
-.landing > section.hero { margin-top: 0; }
-.landing h2 { font-size: 22px; margin: 0 0 18px; padding-left: 0; letter-spacing: -0.005em; }
-.landing h2::before { display: none; }
-.prose .loss { list-style: none; margin: 0; padding: 0; max-width: 720px; }
-.prose .loss li {
-  position: relative; margin: 0; padding: 8px 0 8px 22px;
+/* Agent strip */
+.landing > section.agents { margin-top: 64px; }
+.agents {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px 36px; align-items: center;
+  border-top: 1px solid var(--rail); border-bottom: 1px solid var(--rail); padding: 22px 0;
 }
-.loss li::before {
-  content: ""; position: absolute; left: 0; top: 16px;
-  width: 8px; height: 8px; border-radius: 50%; background: var(--ice);
+.landing .agents p { margin: 0; color: var(--mist); font-size: 13.5px; max-width: 16em; }
+.prose .agent-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 30px; }
+.prose .agent-list li {
+  margin: 0; display: inline-flex; align-items: center;
+  font-family: var(--mono); font-size: 14.5px; color: var(--snow); font-weight: 500;
 }
-.loss li strong { color: var(--snow); }
+.agent-list li::before {
+  content: ""; width: 6px; height: 6px; margin-right: 10px; border-radius: 50%; border: 2px solid var(--signal); flex-shrink: 0;
+}
+.agent-list li.agent-more::before { border-color: var(--rail); }
+.agent-list li.agent-more { color: var(--mist); }
 
+/* Problem cards: three places intent falls off the rail */
+.prose .gaps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--rail); }
+.prose .gaps li { margin: 0; padding: 28px 28px 8px 0; position: relative; }
+.prose .gaps li + li { padding-left: 28px; border-left: 1px solid var(--rail); }
+.gap-art { display: block; width: 100%; max-width: 220px; height: auto; margin: 0 0 22px; }
+.gap-num { display: block; font-family: var(--mono); font-size: 12.5px; color: var(--mist); margin-bottom: 8px; }
+.gaps h3 { margin: 0 0 8px; font-size: 19px; color: var(--snow); letter-spacing: -0.01em; }
+.gaps p { margin: 0; color: var(--mist); font-size: 15px; }
+
+/* Flow: the proof rail as a five-stage diagram that draws itself */
+.prose .flow {
+  list-style: none; margin: 8px 0 0; padding: 0; position: relative;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0 24px;
+  --node: 22px;
+}
+.flow::before, .flow::after {
+  content: ""; position: absolute; left: calc(var(--node) / 2); right: calc(10% - var(--node) / 2); top: calc(var(--node) / 2 - 1px);
+  height: 2px; border-radius: 2px;
+}
+.flow::before { background: var(--rail); }
+.flow::after { background: var(--signal); transform-origin: left; transform: scaleX(1); transition: transform 1600ms cubic-bezier(0.6, 0, 0.2, 1); }
+.reveal-ready .flow:not(.in)::after { transform: scaleX(0); }
+.prose .flow li { margin: 0; position: relative; padding-top: calc(var(--node) + 26px); }
+.flow .fnode {
+  position: absolute; top: 0; left: 0; width: var(--node); height: var(--node); border-radius: 50%;
+  background: var(--deep); border: 2px solid var(--signal);
+  transition: background-color 300ms ease, border-color 300ms ease, transform 300ms ease;
+}
+.flow li:first-child .fnode { background: var(--ice); border-color: var(--ice); }
+.flow li:last-child .fnode { background: var(--proven); border-color: var(--proven); }
+.flow li:nth-child(1) .fnode { transition-delay: 0ms; }
+.flow li:nth-child(2) .fnode { transition-delay: 350ms; }
+.flow li:nth-child(3) .fnode { transition-delay: 700ms; }
+.flow li:nth-child(4) .fnode { transition-delay: 1050ms; }
+.flow li:nth-child(5) .fnode { transition-delay: 1500ms; }
+.reveal-ready .flow:not(.in) .fnode { background: var(--deep); border-color: var(--rail); transform: scale(0.7); }
+.flow .fgate {
+  position: absolute; top: -6px; left: -22px; width: 10px; height: calc(var(--node) + 12px);
+  border-left: 2px solid var(--signal); border-right: 2px solid var(--signal);
+}
+.flow .fstage { display: block; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mist); margin-bottom: 6px; }
+.flow h3 { margin: 0 0 8px; font-size: 17px; color: var(--snow); }
+.flow p { margin: 0; color: var(--mist); font-size: 14.5px; }
+.flow li:last-child h3 { color: var(--proven); }
+
+/* Steps with small product sketches */
 .prose .steps {
-  position: relative; list-style: none; margin: 8px 0 0; padding: 0;
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px;
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
 }
-.prose .steps li { position: relative; margin: 0; padding-left: 22px; }
-.steps li::before {
-  content: ""; position: absolute; left: 0; top: 6px;
-  width: 8px; height: 8px; border-radius: 50%; background: var(--ice);
+.prose .steps li {
+  margin: 0; display: flex; flex-direction: column;
+  background: var(--panel); border: 1px solid var(--rail); border-radius: 14px; overflow: hidden;
+  transition: border-color 160ms ease, transform 160ms ease;
 }
-.steps h3 { margin: 0 0 6px; font-size: 16px; color: var(--snow); }
+.prose .steps li:hover { border-color: var(--signal); transform: translateY(-2px); }
+.step-art {
+  height: 190px; padding: 20px; border-bottom: 1px solid var(--rail);
+  background-color: var(--carbon);
+  background-image: linear-gradient(rgba(52, 67, 79, 0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(52, 67, 79, 0.35) 1px, transparent 1px);
+  background-size: 22px 22px; background-position: -1px -1px;
+  display: flex; flex-direction: column; justify-content: center; gap: 10px;
+  font-family: var(--mono); font-size: 12.5px; line-height: 1.5;
+}
+.step-body { padding: 22px 22px 24px; }
+.step-num { display: block; font-family: var(--mono); font-size: 12px; color: var(--mist); margin-bottom: 8px; }
+.steps h3 { margin: 0 0 8px; font-size: 18px; color: var(--snow); }
 .steps p { margin: 0; color: var(--mist); font-size: 14.5px; }
+.sk-bubble { align-self: flex-start; max-width: 92%; background: var(--deep); border: 1px solid var(--rail); border-radius: 10px 10px 10px 3px; padding: 10px 12px; color: var(--ice); }
+.sk-bubble.sk-agent { align-self: flex-end; color: var(--mist); border-radius: 10px 10px 3px 10px; }
+.sk-card { background: var(--deep); border: 1px solid var(--rail); border-radius: 10px; padding: 12px; }
+.sk-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--mist); }
+.sk-row + .sk-row { margin-top: 6px; }
+.sk-id { color: var(--ice); }
+.sk-btns { display: flex; gap: 8px; margin-top: 12px; }
+.sk-btn { font-family: var(--sans); font-size: 12px; font-weight: 600; border-radius: 7px; padding: 4px 10px; border: 1px solid var(--rail); color: var(--snow); }
+.sk-btn.sk-yes { background: var(--ice); border-color: var(--ice); color: var(--deep); }
+.sk-label { display: inline-flex; align-items: center; gap: 8px; color: var(--snow); }
+.sk-label .dot { width: 8px; height: 8px; }
+.dot.tested { background: var(--proven); opacity: 0.7; }
+.dot.asserted { background: transparent; box-shadow: inset 0 0 0 2px var(--ice); }
+.dot.unverified { background: transparent; box-shadow: inset 0 0 0 2px var(--mist); opacity: 0.8; }
+.sk-meter { display: flex; gap: 3px; }
+.sk-meter i { width: 14px; height: 6px; border-radius: 2px; background: var(--rail); }
 
 .prose > details { margin: 16px 0 22px; padding: 10px 16px; border: 1px solid var(--rail); border-radius: 10px; }
 .prose > details > summary { cursor: pointer; font-weight: 600; color: var(--snow); }
 .prose > details[open] > summary { margin-bottom: 8px; }
 
-.faq { max-width: 760px; }
-.faq details { padding: 8px 0 14px; }
-.faq summary { cursor: pointer; font-weight: 600; color: var(--snow); list-style: none; }
+/* FAQ */
+.faq-wrap { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 32px 64px; align-items: start; }
+.faq-side { position: sticky; top: calc(var(--topbar-h) + 32px); }
+.landing .faq-side p:not(.eyebrow) { color: var(--mist); font-size: 14.5px; margin: 0; }
+.faq { max-width: none; border-top: 1px solid var(--rail); counter-reset: faq; }
+.faq details { border-bottom: 1px solid var(--rail); padding: 0; counter-increment: faq; }
+.faq summary {
+  cursor: pointer; font-weight: 600; color: var(--snow); list-style: none; font-size: 16px;
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) 20px; align-items: center; gap: 8px;
+  padding: 18px 0;
+}
+.faq summary::before { content: counter(faq, decimal-leading-zero); font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--mist); }
+.faq summary::after {
+  content: "+"; justify-self: end; font-family: var(--mono); font-weight: 400; font-size: 18px; color: var(--signal);
+  transition: transform 160ms ease;
+}
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq summary:hover { color: var(--ice); }
 .faq summary::-webkit-details-marker { display: none; }
-.faq details p { margin: 8px 0 0; color: var(--mist); }
+.faq details p { margin: 0 0 16px 52px; color: var(--mist); }
 
 .pm-tablist { display: flex; flex-wrap: wrap; gap: 4px; }
 .pm-tab {
@@ -497,40 +675,87 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 .pm-tab[aria-selected="true"] { color: var(--snow); background: var(--carbon); border-color: var(--rail); }
 .pm-tabs figure.code { margin-top: 0; border-radius: 0 12px 12px 12px; }
 
-.path-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+/* Paths */
+.path-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .path-card {
-  display: block; text-decoration: none;
-  background: var(--panel); border: 1px solid var(--rail); border-radius: 12px;
-  padding: 22px 24px; transition: border-color 120ms ease;
+  position: relative; display: block; text-decoration: none; overflow: hidden;
+  background: var(--panel); border: 1px solid var(--rail); border-radius: 14px;
+  padding: 28px 28px 26px; transition: border-color 160ms ease, transform 160ms ease;
 }
-.path-card:hover { border-color: var(--signal); }
-.path-card h3 { margin: 12px 0 6px; font-size: 17.5px; color: var(--snow); }
-.path-card p { color: var(--mist); margin: 0 0 14px; font-size: 14.5px; }
+.path-card::after {
+  content: ""; position: absolute; left: 28px; right: 28px; bottom: 0; height: 2px;
+  background: var(--signal); transform: scaleX(0); transform-origin: left; transition: transform 320ms ease;
+}
+.path-card:hover { border-color: var(--signal); transform: translateY(-2px); }
+.path-card:hover::after { transform: scaleX(1); }
+.path-card h3 { margin: 14px 0 8px; font-size: 21px; color: var(--snow); letter-spacing: -0.01em; }
+.path-card p { color: var(--mist); margin: 0 0 16px; font-size: 14.5px; }
 .path-card ul { margin: 0; padding: 0; list-style: none; }
 .path-card li { padding: 4px 0 4px 18px; position: relative; color: var(--ice); font-size: 13.8px; }
 .path-card li::before {
   content: ""; position: absolute; left: 0; top: 12px; width: 10px; height: 2px;
   background: var(--signal); border-radius: 2px;
 }
-.path-card .path-more { display: inline-block; margin-top: 14px; font-size: 13.5px; font-weight: 600; }
+.path-card .path-more { display: inline-block; margin-top: 16px; font-size: 13.5px; font-weight: 600; }
 
+/* Install */
 .install-cmd { margin: 16px 0 10px; }
 .pm-tabs .install-cmd { margin: 0 0 16px; }
-.landing .install > p { margin: 0 0 20px; }
-.landing .install > .fineprint { margin: 16px 0 0; }
+.landing .install-grid { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 32px 56px; align-items: start; }
+.landing .install-copy p { margin: 0 0 16px; color: var(--mist); }
+.landing .install .fineprint { margin: 16px 0 0; }
 .fineprint { color: var(--mist); font-size: 13.5px; }
 .fineprint code { font-family: var(--mono); color: var(--ice); font-size: 12.5px; }
 
+/* Self-report band and closing call to action */
 .report-strip {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px;
-  background: var(--panel); border: 1px solid var(--rail); border-radius: 14px;
-  padding: 22px 26px; margin-top: 44px;
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px 40px;
+  background: var(--panel); border: 1px solid var(--rail); border-radius: 16px;
+  padding: 34px 36px; overflow: hidden;
 }
-.report-strip h2 { margin: 0 0 6px; font-size: 18px; }
-.report-strip p { margin: 0; color: var(--mist); font-size: 14px; max-width: 560px; }
-.report-strip .report-note { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; }
-.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.dot.proven { background: var(--proven); }
+.report-strip::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--proven);
+}
+.landing .report-strip h2 { margin: 0 0 8px; font-size: 24px; max-width: none; }
+.landing .report-strip p { margin: 0; color: var(--mist); font-size: 14.5px; max-width: 620px; }
+.report-strip .report-note { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; }
+
+.landing > section.closing { margin-top: 140px; text-align: center; padding: 0 0 40px; }
+.closing .closing-rail { display: block; width: min(520px, 100%); height: auto; margin: 0 auto 36px; }
+.landing .closing h2 { margin: 0 auto 14px; font-size: clamp(34px, 5vw, 60px); letter-spacing: -0.035em; max-width: 14em; }
+.landing .closing p { color: var(--mist); font-size: 17px; margin: 0 auto 28px; max-width: 34em; }
+.closing .hero-actions { justify-content: center; }
+
+/* Scroll reveal (enabled by the client script; content is visible without it) */
+.reveal-ready .reveal { opacity: 0; transform: translateY(18px); transition: opacity 700ms ease, transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.reveal-ready .reveal.in { opacity: 1; transform: none; }
+.reveal-ready .reveal-d1 { transition-delay: 90ms; }
+.reveal-ready .reveal-d2 { transition-delay: 180ms; }
+
+@media (max-width: 979px) {
+  .landing > section { margin-top: 88px; }
+  .hero-lower, .landing .install-grid, .faq-wrap, .report-strip, .agents { grid-template-columns: minmax(0, 1fr); }
+  .faq-side { position: static; }
+  .prose .gaps { grid-template-columns: minmax(0, 1fr); }
+  .prose .gaps li, .prose .gaps li + li { padding: 26px 0 22px; border-left: none; }
+  .prose .gaps li + li { border-top: 1px solid var(--rail); }
+  .prose .flow { grid-template-columns: minmax(0, 1fr); gap: 30px; padding-left: 0; }
+  .flow::before, .flow::after { left: calc(var(--node) / 2 - 1px); right: auto; top: 6px; bottom: 30px; width: 2px; height: auto; }
+  .flow::after { transform-origin: top; }
+  .reveal-ready .flow:not(.in)::after { transform: scaleY(0); }
+  .prose .flow li { padding: 0 0 0 calc(var(--node) + 22px); }
+  .flow .fgate { top: -18px; left: -4px; width: calc(var(--node) + 8px); height: 10px; border: none; border-top: 2px solid var(--signal); border-bottom: 2px solid var(--signal); }
+  .railfield { height: 220px; }
+  .rf-caption { padding: 0 20px; }
+}
+@media (max-width: 560px) {
+  .hero-title { letter-spacing: -0.035em; }
+  .landing .hero-sub { font-size: 17px; }
+  .railfield { height: 180px; }
+  .faq summary { grid-template-columns: 34px minmax(0, 1fr) 18px; font-size: 15px; }
+  .faq details p { margin-left: 0; }
+  .report-strip { padding: 26px 24px; }
+}
 
 /* ---------- Responsive ---------- */
 .backdrop {
@@ -556,36 +781,42 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
   .content { padding: 28px 20px 56px; }
   .pager { grid-template-columns: 1fr; }
   .path-grid, .prose .steps { grid-template-columns: 1fr; }
-  .prose .steps li { padding: 0 0 20px 22px; }
-  .rail-svg { min-width: 640px; }
   .footer { padding: 18px 20px; }
 }
 @media (max-width: 560px) {
   .brand svg.mark.logo { height: 22px; }
   .brand-docs { display: none; }
 }
-.page-home { position: relative; }
+.page-home { position: relative; overflow-x: clip; }
 .page-home::before {
   content: "";
   position: absolute; z-index: 0; pointer-events: none;
-  top: 0; left: 0; right: 0; height: 860px;
-  background:
-    radial-gradient(920px 680px at -8% -14%, rgba(162, 211, 244, 0.34), transparent 60%),
-    radial-gradient(860px 640px at 108% -10%, rgba(62, 142, 214, 0.62), transparent 56%),
-    radial-gradient(640px 360px at 68% 28%, rgba(162, 211, 244, 0.12), transparent 68%);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 100%);
+  top: 0; left: 0; right: 0; height: 1100px;
+  background-image:
+    linear-gradient(rgba(52, 67, 79, 0.32) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 67, 79, 0.32) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center -1px;
+  -webkit-mask-image: radial-gradient(1100px 760px at 50% 0%, #000 0%, rgba(0, 0, 0, 0.5) 45%, transparent 80%);
+  mask-image: radial-gradient(1100px 760px at 50% 0%, #000 0%, rgba(0, 0, 0, 0.5) 45%, transparent 80%);
+}
+.page-home::after {
+  content: "";
+  position: absolute; z-index: 0; pointer-events: none;
+  top: 0; left: 0; right: 0; height: 700px;
+  background: radial-gradient(900px 520px at 78% -12%, rgba(62, 142, 214, 0.18), transparent 70%);
 }
 .page-home .topbar {
-  background:
-    linear-gradient(90deg, rgba(162, 211, 244, 0.1), rgba(62, 142, 214, 0.14) 62%, rgba(17, 19, 24, 0)),
-    var(--deep);
-  border-bottom-color: rgba(52, 67, 79, 0.45);
+  background: rgba(17, 19, 24, 0.82);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom-color: rgba(52, 67, 79, 0.55);
 }
-.page-home .shell { display: block; position: relative; z-index: 1; max-width: 1080px; }
+.page-home .shell { display: block; position: relative; z-index: 1; max-width: 1160px; }
 .page-home .footer { position: relative; z-index: 1; }
 .page-home .nav-toggle { display: none; }
-.page-home .content { padding-top: 72px; }
+.page-home .content { padding-top: 88px; }
+@media (max-width: 979px) { .page-home .content { padding-top: 48px; } }
 
 /* ---------- Preferences ---------- */
 @media (prefers-reduced-motion: reduce) {
@@ -596,7 +827,8 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 @media print {
   :root { --deep: #ffffff; --carbon: #f5f6f8; --panel: #eef1f4; --snow: #12161c; --mist: #4a5560; --rail: #c3ccd4; --ice: #1d5f9e; --signal: #2568a8; }
   body { background: #fff; color: #12161c; }
-  .page-home::before { display: none; }
+  .page-home::before, .page-home::after, .railfield-wrap { display: none; }
+  .reveal { opacity: 1 !important; transform: none !important; }
   .topbar, .sidebar, .toc, .search, .nav-toggle, .code-copy, .backdrop, .pager, .hlink { display: none !important; }
   .shell { display: block; max-width: none; }
   .content { padding: 0; }
@@ -701,6 +933,153 @@ export const clientScript = String.raw`
       });
     });
     play(0);
+  }
+
+  /* ----- Scroll reveal (landing page) ----- */
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var reveals = document.querySelectorAll(".reveal, .flow");
+  if (reveals.length && "IntersectionObserver" in window && !reduceMotion) {
+    document.body.classList.add("reveal-ready");
+    var revealer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("in");
+        revealer.unobserve(entry.target);
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
+    for (var r = 0; r < reveals.length; r++) revealer.observe(reveals[r]);
+  }
+
+  /* ----- Rail field (landing page) -----
+     Requirements ride rails to one gate. Most clear it on fresh evidence and
+     turn proven green; some wait on evidence; a few stop on a contradiction. */
+  var field = document.querySelector("[data-railfield]");
+  var fieldCanvas = field ? field.querySelector("canvas") : null;
+  if (field && fieldCanvas && fieldCanvas.getContext) {
+    var css = getComputedStyle(document.documentElement);
+    var color = function (name, fallback) { return (css.getPropertyValue(name) || fallback).trim(); };
+    var C = {
+      rail: color("--rail", "#34434f"), signal: color("--signal", "#3e8ed6"), ice: color("--ice", "#a2d3f4"),
+      proven: color("--proven", "#63c99a"), warning: color("--warning", "#f2b84b"),
+      contra: color("--contradiction", "#f07178"), deep: color("--deep", "#111318"),
+    };
+    var ctx = fieldCanvas.getContext("2d");
+    var W = 0, H = 0, rails = [], gateX = 0, tokens = [], last = 0, spawnIn = 0, visible = true, frame = 0;
+    var rand = function (a, b) { return a + Math.random() * (b - a); };
+    var size = function () {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = field.clientWidth; H = field.clientHeight;
+      fieldCanvas.width = Math.round(W * dpr); fieldCanvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var gap = W < 640 ? 26 : 24;
+      var n = Math.max(5, Math.floor((H - 24) / gap));
+      var top = (H - (n - 1) * gap) / 2;
+      rails = [];
+      for (var i = 0; i < n; i++) rails.push({ y: Math.round(top + i * gap) + 0.5, busy: 0 });
+      gateX = Math.round(W * (W < 640 ? 0.7 : 0.74));
+    };
+    var outcome = function () {
+      var x = Math.random();
+      return x < 0.64 ? "pass" : x < 0.88 ? "wait" : "contra";
+    };
+    var spawn = function (x) {
+      var free = rails.filter(function (r) { return r.busy < 2; });
+      if (!free.length) return;
+      var rail = free[Math.floor(Math.random() * free.length)];
+      rail.busy++;
+      tokens.push({ rail: rail, x: x, v: rand(70, 150), state: "run", fate: outcome(), t: 0, alpha: 1 });
+    };
+    var drawToken = function (tk) {
+      var y = tk.rail.y;
+      var colorNow = tk.state === "pass" ? C.proven : tk.state === "wait" ? C.warning : tk.state === "contra" ? C.contra : C.ice;
+      var trail = Math.min(140, Math.max(0, tk.x));
+      var g = ctx.createLinearGradient(tk.x - trail, 0, tk.x, 0);
+      g.addColorStop(0, "rgba(62,142,214,0)");
+      g.addColorStop(1, tk.state === "pass" ? C.proven : C.signal);
+      ctx.globalAlpha = tk.alpha;
+      ctx.strokeStyle = g; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(tk.x - trail, y); ctx.lineTo(tk.x, y); ctx.stroke();
+      ctx.beginPath(); ctx.arc(tk.x, y, tk.state === "run" ? 4 : 4.5, 0, Math.PI * 2);
+      if (tk.state === "wait") {
+        ctx.fillStyle = C.deep; ctx.fill(); ctx.strokeStyle = colorNow; ctx.lineWidth = 2; ctx.stroke();
+      } else {
+        ctx.fillStyle = colorNow; ctx.fill();
+      }
+      if (tk.state === "contra") {
+        ctx.strokeStyle = C.contra; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(tk.x + 9, y - 5); ctx.lineTo(tk.x + 15, y + 5);
+        ctx.moveTo(tk.x + 15, y - 5); ctx.lineTo(tk.x + 9, y + 5); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    };
+    var draw = function () {
+      ctx.clearRect(0, 0, W, H);
+      ctx.lineWidth = 1;
+      for (var i = 0; i < rails.length; i++) {
+        var y = rails[i].y;
+        ctx.strokeStyle = C.rail; ctx.globalAlpha = 0.75;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = C.signal; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(gateX, y - 7); ctx.lineTo(gateX, y + 7);
+        ctx.moveTo(gateX + 8, y - 7); ctx.lineTo(gateX + 8, y + 7); ctx.stroke();
+        ctx.lineWidth = 1;
+      }
+      for (var k = 0; k < tokens.length; k++) drawToken(tokens[k]);
+    };
+    var step = function (dt) {
+      spawnIn -= dt;
+      if (spawnIn <= 0) { spawn(-10); spawnIn = rand(0.22, 0.6); }
+      for (var i = tokens.length - 1; i >= 0; i--) {
+        var tk = tokens[i];
+        if (tk.state === "run") {
+          tk.x += tk.v * dt;
+          if (tk.x >= gateX - 10) {
+            if (tk.fate === "pass") { tk.state = "pass"; tk.x = Math.max(tk.x, gateX + 18); tk.v *= 1.15; }
+            else { tk.state = tk.fate; tk.x = gateX - 10; }
+          }
+        } else if (tk.state === "pass") {
+          tk.x += tk.v * dt;
+          if (tk.x > W + 150) tk.alpha = 0;
+        } else {
+          tk.t += dt;
+          if (tk.t > 1.4) tk.alpha = Math.max(0, tk.alpha - dt * 1.6);
+        }
+        if (tk.alpha <= 0) { tk.rail.busy--; tokens.splice(i, 1); }
+      }
+    };
+    var loop = function (now) {
+      frame = 0;
+      if (!visible || document.hidden) return;
+      var dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+      last = now;
+      step(dt); draw();
+      frame = requestAnimationFrame(loop);
+    };
+    var start = function () { if (!frame && !reduceMotion) { last = 0; frame = requestAnimationFrame(loop); } };
+    var seed = function () {
+      tokens = []; rails.forEach(function (r) { r.busy = 0; });
+      for (var s = 0; s < rails.length; s++) {
+        var x = rand(0.05, 0.95) * W;
+        spawn(x);
+        var tk = tokens[tokens.length - 1];
+        if (!tk) continue;
+        if (x > gateX - 10) {
+          if (tk.fate === "pass") tk.state = "pass";
+          else { tk.state = tk.fate; tk.x = gateX - 10; tk.t = rand(0, 1.2); }
+        }
+      }
+    };
+    size(); seed(); draw();
+    window.addEventListener("resize", function () { size(); seed(); draw(); });
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        visible = entries[0].isIntersecting;
+        if (visible) start();
+      }).observe(field);
+    }
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) start(); });
+    start();
   }
 
   /* ----- Copy buttons ----- */
@@ -949,7 +1328,7 @@ export function landingContent(args: {
   reportUrl: string | null;
   wordmarkSvg: string;
 }): string {
-  const { root, reportUrl, wordmarkSvg } = args;
+  const { root, reportUrl } = args;
   const methods: Array<{
     id: string;
     label: string;
@@ -1011,7 +1390,7 @@ export function landingContent(args: {
     ? `<a class="btn btn-ghost" href="${reportUrl}" data-umami-event="cta-click" data-umami-event-target="hero-live-report">See Kibi&rsquo;s live report</a>`
     : `<a class="btn btn-ghost" href="${root}guide/reading-the-report.html" data-umami-event="cta-click" data-umami-event-target="read-report">Read a health report</a>`;
   const reportStrip = reportUrl
-    ? `<section class="report-strip">
+    ? `<section class="report-strip reveal">
   <div>
     <h2>This repository publishes its own report</h2>
     <p>Every push to the default branch republishes requirement health for Kibi itself: how many current requirements are fully tested end to end, which ones rest only on someone's word, which ones contradict each other, and which evidence has gone stale.</p>
@@ -1022,54 +1401,139 @@ export function landingContent(args: {
     : "";
   return `<div class="prose landing">
 <section class="hero">
-  <div class="hero-grid">
+  <p class="eyebrow">Open source &middot; requirements compiler for coding agents</p>
+  <h1 class="hero-title">Say what the software should do. <span class="hero-title-2">Kibi holds the agent to it.</span></h1>
+  <div class="hero-lower">
     <div>
-      <div class="hero-mark">${wordmarkSvg}</div>
-      <h1 class="hero-title">Say what the software should do.</h1>
-    </div>
-    <div class="hero-lower">
-      <div>
       <p class="hero-sub">You keep prompting your coding agent. Kibi writes that intent down beside the code, carries it onto every branch, and treats &ldquo;done&rdquo; as a claim that needs fresh evidence.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="${root}guide/quick-start.html" data-umami-event="cta-click" data-umami-event-target="install">Install Kibi</a>
+        <a class="btn btn-primary" href="${root}guide/quick-start.html" data-umami-event="cta-click" data-umami-event-target="install">Install Kibi <span class="btn-arrow" aria-hidden="true">&rarr;</span></a>
         ${reportCta}
       </div>
       <p class="hero-canon">${escapeHtml(SITE_TAGLINE)}</p>
     </div>
+    <figure class="code hero-copy" data-pm-panel="hero">
+      <div class="hc-head"><span>Setup is one prompt</span><button type="button" class="code-copy" aria-label="Copy the agent setup prompt">Copy</button></div>
+      <div class="hc-body"><span class="hc-prompt">&rsaquo; Set up Kibi in this repository, then bootstrap its knowledge base.</span><br><span class="hc-dim">Install &middot; initialize &middot; connect &middot; bootstrap &middot; verify. Nothing is written until you approve the plan.</span></div>
+      <pre><code>${escapeHtml(AGENT_SETUP_PROMPT)}</code></pre>
+    </figure>
+  </div>
+  <div class="railfield-wrap">
+    <div class="railfield" data-railfield aria-hidden="true"><canvas></canvas></div>
+    <div class="rf-caption">
+      <p>Each line is a requirement on its way to the gate. Only fresh end-to-end evidence clears it.</p>
+      <ul class="rf-legend" aria-label="Legend">
+        <li><span class="dot intent"></span>intent</li>
+        <li><span class="dot proven"></span>cleared the gate</li>
+        <li><span class="dot waiting"></span>waiting on evidence</li>
+        <li><span class="dot contra"></span>contradiction</li>
+      </ul>
     </div>
   </div>
   ${terminalDemoHtml()}
-  <div class="hero-rail">${RAIL_SVG}</div>
 </section>
-<section>
-  <h2>What usually gets lost</h2>
-  <ul class="loss">
-    <li><strong>The prompt.</strong> The session ends, and the reason for yesterday&rsquo;s change is gone.</li>
-    <li><strong>The link to the code.</strong> A ticket can say what you wanted. It rarely names the function that was supposed to do it.</li>
-    <li><strong>The meaning of green.</strong> A passing suite does not say which product behavior is still true on this commit.</li>
+<section class="agents reveal" aria-label="Supported agents">
+  <p>Works inside the coding agent you already use.</p>
+  <ul class="agent-list">
+    <li>Claude Code</li>
+    <li>Codex</li>
+    <li>Cursor</li>
+    <li>OpenCode</li>
+    <li>ZCode</li>
+    <li class="agent-more">any MCP client or the CLI</li>
   </ul>
 </section>
 <section>
-  <h2>What you actually do</h2>
+  <p class="eyebrow reveal"><span class="eb-num">01</span>The gap</p>
+  <h2 class="reveal">What usually gets lost</h2>
+  <p class="lede reveal">Agents write code faster than anyone can remember why it exists. Three things fall off the rail first.</p>
+  <ul class="gaps">
+    <li class="reveal">${GAP_ART.prompt}<span class="gap-num">01</span><h3>The prompt</h3><p>The session ends, and the reason for yesterday&rsquo;s change is gone.</p></li>
+    <li class="reveal reveal-d1">${GAP_ART.link}<span class="gap-num">02</span><h3>The link to the code</h3><p>A ticket can say what you wanted. It rarely names the function that was supposed to do it.</p></li>
+    <li class="reveal reveal-d2">${GAP_ART.green}<span class="gap-num">03</span><h3>The meaning of green</h3><p>A passing suite does not say which product behavior is still true on this commit.</p></li>
+  </ul>
+</section>
+<section>
+  <p class="eyebrow reveal"><span class="eb-num">02</span>The rail</p>
+  <h2 class="reveal">From prompt to proof, on one rail</h2>
+  <p class="lede reveal">Kibi keeps intent attached to the work at every stage, and it is conservative about the last one.</p>
+  <ol class="flow reveal">
+    <li><span class="fnode"></span><span class="fstage">Intent</span><h3>You say it once</h3><p>Prompt the behavior in plain words, the way you already do. That sentence stays the source.</p></li>
+    <li><span class="fnode"></span><span class="fstage">Requirements</span><h3>The agent writes it down</h3><p>Requirements, scenarios and typed facts land in <code>.kb/</code> beside the code, citing the ticket or page they came from.</p></li>
+    <li><span class="fnode"></span><span class="fstage">Enforcement</span><h3>Every edit hears it</h3><p>Hooks name the requirement before an agent edits the code that implements it. Checks flag contradictions and untraced code.</p></li>
+    <li><span class="fnode"></span><span class="fstage">Evidence</span><h3>Tests leave receipts</h3><p>A test that claims a requirement records evidence tied to the exact code snapshot it ran on.</p></li>
+    <li><span class="fgate" aria-hidden="true"></span><span class="fnode"></span><span class="fstage">Proof</span><h3>Only fresh evidence passes</h3><p>Stale receipts and passing unit tests do not clear the gate. Proved is reserved for claims a checker established for every case.</p></li>
+  </ol>
+</section>
+<section>
+  <p class="eyebrow reveal"><span class="eb-num">03</span>Your part</p>
+  <h2 class="reveal">What you actually do</h2>
+  <p class="lede reveal">Three things, and none of them is filling in a requirements form.</p>
   <ol class="steps">
-    <li>
-      <h3>State the behavior</h3>
-      <p>Prompt the way you already do. &ldquo;Draft edits must save when someone navigates away.&rdquo; You do not fill in a requirements form.</p>
+    <li class="reveal">
+      <div class="step-art" aria-hidden="true">
+        <div class="sk-bubble">&rsaquo; Draft edits must save when someone navigates away.</div>
+        <div class="sk-bubble sk-agent">Proposing a plan for REQ-draft-autosave&hellip;</div>
+      </div>
+      <div class="step-body">
+        <span class="step-num">01</span>
+        <h3>State the behavior</h3>
+        <p>Prompt the way you already do. &ldquo;Draft edits must save when someone navigates away.&rdquo; You do not fill in a requirements form.</p>
+      </div>
     </li>
-    <li>
-      <h3>Approve real decisions</h3>
-      <p>The agent proposes a plan before it writes project knowledge. You approve it, or you correct the product call. A plan compiled from your prompt lands in full or not at all, and the bookkeeping stays with the agent.</p>
+    <li class="reveal reveal-d1">
+      <div class="step-art" aria-hidden="true">
+        <div class="sk-card">
+          <div class="sk-row"><span>plan</span><span class="sk-id">REQ-draft-autosave</span></div>
+          <div class="sk-row"><span>+ requirement &middot; scenario &middot; fact</span><span>firm</span></div>
+          <div class="sk-btns"><span class="sk-btn sk-yes">Approve</span><span class="sk-btn">Correct</span></div>
+        </div>
+      </div>
+      <div class="step-body">
+        <span class="step-num">02</span>
+        <h3>Approve real decisions</h3>
+        <p>The agent proposes a plan before it writes project knowledge. You approve it, or you correct the product call. A plan compiled from your prompt lands in full or not at all, and the bookkeeping stays with the agent.</p>
+      </div>
     </li>
-    <li>
-      <h3>Read the result</h3>
-      <p>The health report names what is tested, what still has a gap, and what contradicts itself, and labels each requirement proved, tested, asserted or unverified. A green test run is a different fact.</p>
+    <li class="reveal reveal-d2">
+      <div class="step-art" aria-hidden="true">
+        <div class="sk-card">
+          <div class="sk-row"><span class="sk-label"><span class="dot proven"></span>proved</span><span>checker, every case</span></div>
+          <div class="sk-row"><span class="sk-label"><span class="dot tested"></span>tested</span><span>fresh end-to-end</span></div>
+          <div class="sk-row"><span class="sk-label"><span class="dot asserted"></span>asserted</span><span>a person stands behind it</span></div>
+          <div class="sk-row"><span class="sk-label"><span class="dot unverified"></span>unverified</span><span>only an agent does</span></div>
+        </div>
+      </div>
+      <div class="step-body">
+        <span class="step-num">03</span>
+        <h3>Read the result</h3>
+        <p>The health report names what is tested, what still has a gap, and what contradicts itself, and labels each requirement proved, tested, asserted or unverified. A green test run is a different fact.</p>
+      </div>
     </li>
   </ol>
 </section>
+<section class="install" id="install">
+  <p class="eyebrow reveal"><span class="eb-num">04</span>Setup</p>
+  <h2 class="reveal">Add Kibi to the repository</h2>
+  <div class="install-grid">
+    <div class="install-copy reveal">
+      <p>Kibi is driven by your coding agent, so the recommended setup is a prompt. Your agent installs the packages, runs <code>kibi init</code>, connects itself to Kibi, and bootstraps the knowledge base behind a plan you approve, then adds scenarios, predicates and the claims the plan could not write in the normal workflow, and proposes how proof runs for your test runner in a second plan you approve. The package-manager tabs are the manual route; re-running <code>kibi init</code> completes missing directories and schema files while preserving existing knowledge and schema files. It does not invent what the product does.</p>
+      <p>The agent first asks where your product intent lives, such as issue trackers, wikis and specs, and which sources to trust. Every requirement in the bootstrap plan cites the ticket or page it came from, and nothing is written until you approve the plan. When a claim sits next to an existing requirement on the same topic that Kibi cannot check logically, the plan names that requirement so the agent compares the two, including for claims the plan leaves for the agent to write. How plans are built, applied and resumed after an interruption is in the <a href="${root}reference/mcp.html#kb_plan_bootstrap">MCP reference</a>.</p>
+    </div>
+    <div class="reveal reveal-d1">
+  <div class="pm-tabs" data-pm-tabs>
+    <div class="pm-tablist" role="tablist" aria-label="Setup method">${installTabs}</div>
+    ${installPanels}
+  </div>
+  <p class="fineprint">Requires Node.js 22+. SWI-Prolog is bundled on Linux (x64, arm64) and macOS; other platforms need <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. A system <code>swipl</code> is only a fallback; set <code>KIBI_SWIPL=system</code> to prefer it. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>. Each release has one version, such as Kibi 2026.11.0, that names its exact package set; <code>kibi --version</code> and <code>kibi doctor</code> show it (<a href="${root}guide/install.html#kibi-release-versions">release versions</a>), and the CLI tells you once a day when a newer one is out (<a href="${root}guide/install.html#update-notices">update notices</a>). Kibi sends anonymous usage statistics; <a href="${root}guide/telemetry.html">see what is sent and how to turn it off</a>.</p>
+    </div>
+  </div>
+</section>
 <section class="paths">
-  <h2>Where to go next</h2>
+  <p class="eyebrow reveal"><span class="eb-num">05</span>Docs</p>
+  <h2 class="reveal">Where to go next</h2>
   <div class="path-grid">
-    <a class="path-card" href="${root}guide/welcome.html">
+    <a class="path-card reveal" href="${root}guide/welcome.html">
       <span class="chip">Guide</span>
       <h3>Use Kibi on a repository</h3>
       <p>Install it, connect the agent you already use, and learn how to read the first health report. Written for the person prompting, not for the agent.</p>
@@ -1082,7 +1546,7 @@ export function landingContent(args: {
       </ul>
       <span class="path-more">Start the guide &rarr;</span>
     </a>
-    <a class="path-card" href="${root}reference/cli.html">
+    <a class="path-card reveal reveal-d1" href="${root}reference/cli.html">
       <span class="chip chip-reference">Reference</span>
       <h3>Look up the exact contract</h3>
       <p>Commands, tool schemas, entity fields, and the checks Kibi actually runs. Dry on purpose, and rendered from the same files as the repository.</p>
@@ -1096,19 +1560,14 @@ export function landingContent(args: {
     </a>
   </div>
 </section>
-<section class="install" id="install">
-  <h2>Add Kibi to the repository</h2>
-  <p>Kibi is driven by your coding agent, so the recommended setup is a prompt. Your agent installs the packages, runs <code>kibi init</code>, connects itself to Kibi, and bootstraps the knowledge base behind a plan you approve, then adds scenarios, predicates and the claims the plan could not write in the normal workflow, and proposes how proof runs for your test runner in a second plan you approve. The package-manager tabs are the manual route; re-running <code>kibi init</code> completes missing directories and schema files while preserving existing knowledge and schema files. It does not invent what the product does.</p>
-  <p>The agent first asks where your product intent lives, such as issue trackers, wikis and specs, and which sources to trust. Every requirement in the bootstrap plan cites the ticket or page it came from, and nothing is written until you approve the plan. When a claim sits next to an existing requirement on the same topic that Kibi cannot check logically, the plan names that requirement so the agent compares the two, including for claims the plan leaves for the agent to write. How plans are built, applied and resumed after an interruption is in the <a href="${root}reference/mcp.html#kb_plan_bootstrap">MCP reference</a>.</p>
-  <div class="pm-tabs" data-pm-tabs>
-    <div class="pm-tablist" role="tablist" aria-label="Setup method">${installTabs}</div>
-    ${installPanels}
-  </div>
-  <p class="fineprint">Requires Node.js 22+. SWI-Prolog is bundled on Linux (x64, arm64) and macOS; other platforms need <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. A system <code>swipl</code> is only a fallback; set <code>KIBI_SWIPL=system</code> to prefer it. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>. Each release has one version, such as Kibi 2026.11.0, that names its exact package set; <code>kibi --version</code> and <code>kibi doctor</code> show it (<a href="${root}guide/install.html#kibi-release-versions">release versions</a>), and the CLI tells you once a day when a newer one is out (<a href="${root}guide/install.html#update-notices">update notices</a>). Kibi sends anonymous usage statistics; <a href="${root}guide/telemetry.html">see what is sent and how to turn it off</a>.</p>
-</section>
 <section>
-  <h2>Questions people ask first</h2>
-  <div class="faq">
+  <div class="faq-wrap">
+    <div class="faq-side">
+      <p class="eyebrow"><span class="eb-num">06</span>FAQ</p>
+      <h2>Questions people ask first</h2>
+      <p>The short answers. The <a href="${root}guide/welcome.html">guide</a> has the long ones.</p>
+    </div>
+    <div class="faq">
     <details>
       <summary>Do I write the requirements myself?</summary>
       <p>No. You describe the behavior. Your agent turns that into requirements, scenarios, tests, and links to the code. You step in when the product decision is actually ambiguous.</p>
@@ -1158,9 +1617,19 @@ export function landingContent(args: {
       <summary>Will Kibi decide the product for me?</summary>
       <p>No. <code>kibi init</code> creates the directory and the Git hooks; it leaves hooks it did not write alone, and with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add (<code>kibi init --print-hook all --format lefthook</code>). It also tells agents in a fresh clone about Kibi through <code>AGENTS.md</code>, installs the hooks again from the <code>package.json</code> <code>prepare</code> script, and compiles a clone's store on its first query. What it commits is what you and the agent authored: symbol line positions are derived by every sync into a gitignored cache, so parallel branches do not conflict over them. It does not infer behavior. Checks prove what was encoded. Missing knowledge stays visible.</p>
     </details>
+    </div>
   </div>
 </section>
 ${reportStrip}
+<section class="closing reveal">
+  ${CLOSING_RAIL_SVG}
+  <h2>Start with one prompt.</h2>
+  <p>Paste the setup prompt into your agent, approve the plan it shows you, and read your first health report.</p>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="#install" data-umami-event="cta-click" data-umami-event-target="closing-install">Get the setup prompt <span class="btn-arrow" aria-hidden="true">&rarr;</span></a>
+    <a class="btn btn-ghost" href="${root}guide/welcome.html" data-umami-event="cta-click" data-umami-event-target="closing-guide">Read the guide</a>
+  </div>
+</section>
 </div>`;
 }
 
