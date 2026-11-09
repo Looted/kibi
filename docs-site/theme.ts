@@ -553,6 +553,21 @@ figure.code.hero-copy {
 .po-with span { color: var(--ice); }
 .landing .po-with p { color: var(--snow); }
 
+/* Memory vs Kibi comparison */
+.vs-table { border: 1px solid var(--rail); border-radius: 14px; overflow: hidden; background: var(--panel); }
+.vs-row { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1.35fr); }
+.vs-row + .vs-row { border-top: 1px solid var(--rail); }
+.vs-row > div { padding: 16px 22px; font-size: 14.5px; line-height: 1.55; }
+.vs-k { color: var(--snow); font-weight: 600; }
+.vs-mem { color: var(--mist); }
+.vs-kibi { color: var(--snow); background: rgba(62, 142, 214, 0.07); border-left: 1px solid var(--rail); }
+.vs-head > div { padding-top: 14px; padding-bottom: 14px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+.vs-head .vs-mem { color: var(--mist); }
+.vs-head .vs-kibi { color: var(--ice); }
+.vs-kibi { position: relative; }
+.vs-row:not(.vs-head) .vs-kibi { padding-left: 40px; }
+.vs-row:not(.vs-head) .vs-kibi::before { content: ""; position: absolute; left: 20px; top: 24px; width: 8px; height: 8px; border-radius: 50%; background: var(--ice); }
+
 /* Flow: the proof rail as a five-stage diagram that draws itself */
 .prose .flow {
   list-style: none; margin: 8px 0 0; padding: 0; position: relative;
@@ -725,6 +740,9 @@ figure.code.hero-copy {
   .landing .install-grid, .faq-wrap, .report-strip, .agents { grid-template-columns: minmax(0, 1fr); }
   .faq-side { position: static; }
   .prose .payoffs { grid-template-columns: minmax(0, 1fr); }
+  .vs-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .vs-row .vs-k { grid-column: 1 / -1; padding-bottom: 0; }
+  .vs-head > div:first-child { display: none; }
   .prose .flow { grid-template-columns: minmax(0, 1fr); gap: 30px; padding-left: 0; }
   .flow::before, .flow::after { left: calc(var(--node) / 2 - 1px); right: auto; top: 6px; bottom: 30px; width: 2px; height: auto; }
   .flow::after { transform-origin: top; }
@@ -743,6 +761,9 @@ figure.code.hero-copy {
   .faq details p { margin-left: 0; }
   .report-strip { padding: 26px 24px; }
   .po-row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .vs-row > div { padding: 12px 14px; font-size: 13.5px; }
+  .vs-row:not(.vs-head) .vs-kibi { padding-left: 14px; }
+  .vs-row:not(.vs-head) .vs-kibi::before { display: none; }
 }
 
 /* ---------- Responsive ---------- */
@@ -1468,7 +1489,7 @@ export function landingContent(args: {
 <section class="payoff">
   <p class="eyebrow reveal"><span class="eb-num">01</span>The problem</p>
   <h2 class="reveal">Coding agents are fast. They also forget.</h2>
-  <p class="lede reveal">Every session starts from zero. The agent does not know why yesterday&rsquo;s code exists, quietly undoes decisions you made last week, and calls a feature done because the tests pass. Kibi gives it a project memory it has to respect, and gives you a straight answer about what still works.</p>
+  <p class="lede reveal">Every session starts from zero. The agent does not know why yesterday&rsquo;s code exists, quietly undoes decisions you made last week, and calls a feature done because the tests pass. Kibi turns your intent into rules the agent has to follow, and gives you a straight answer about what still works.</p>
   <ul class="payoffs">
     <li class="reveal">
       <span class="po-num">01</span>
@@ -1496,6 +1517,20 @@ export function landingContent(args: {
     </li>
   </ul>
 </section>
+<section class="vs">
+  <p class="eyebrow reveal"><span class="eb-num">02</span>Why not a memory file</p>
+  <h2 class="reveal">Memory remembers. Kibi enforces.</h2>
+  <p class="lede reveal">Notes files and memory servers help an agent recall things. Kibi turns intent into rules that are linked to code, checked for contradictions, put in front of the agent at edit time, and backed by evidence.</p>
+  <div class="vs-table reveal" role="table" aria-label="Project memory compared with Kibi">
+    <div class="vs-row vs-head" role="row"><div role="columnheader"></div><div class="vs-mem" role="columnheader">Project memory</div><div class="vs-kibi" role="columnheader">Kibi</div></div>
+    <div class="vs-row" role="row"><div class="vs-k" role="rowheader">What it holds</div><div class="vs-mem" role="cell">Free-text notes the agent wrote or you pasted.</div><div class="vs-kibi" role="cell">Typed requirements, scenarios and facts, linked to the functions that implement them and the tests that check them.</div></div>
+    <div class="vs-row" role="row"><div class="vs-k" role="rowheader">When the agent sees it</div><div class="vs-mem" role="cell">When it remembers to look, if the note fits in context.</div><div class="vs-kibi" role="cell">Automatically, before it edits code a requirement owns. Hooks put the rule in front of the agent.</div></div>
+    <div class="vs-row" role="row"><div class="vs-k" role="rowheader">Two rules that conflict</div><div class="vs-mem" role="cell">Both are kept. Whichever the agent reads last wins.</div><div class="vs-kibi" role="cell">The new rule is refused, checked against typed facts, not text similarity, with both rules named.</div></div>
+    <div class="vs-row" role="row"><div class="vs-k" role="rowheader">Changing a decision</div><div class="vs-mem" role="cell">Anyone can overwrite a note, silently.</div><div class="vs-kibi" role="cell">A firm decision changes only with your words, and every replacement records why.</div></div>
+    <div class="vs-row" role="row"><div class="vs-k" role="rowheader">Code with no rule</div><div class="vs-mem" role="cell">Invisible.</div><div class="vs-kibi" role="cell">A changed function that no requirement owns is flagged, so the agent records what it does.</div></div>
+    <div class="vs-row" role="row"><div class="vs-k" role="rowheader">Is it still true?</div><div class="vs-mem" role="cell">Unknown.</div><div class="vs-kibi" role="cell">Each requirement is labeled proved, tested, asserted or unverified from fresh evidence on this commit.</div></div>
+  </div>
+</section>
 <section class="demo">
   ${terminalDemoHtml()}
 </section>
@@ -1511,7 +1546,7 @@ export function landingContent(args: {
   </ul>
 </section>
 <section>
-  <p class="eyebrow reveal"><span class="eb-num">02</span>How it works</p>
+  <p class="eyebrow reveal"><span class="eb-num">03</span>How it works</p>
   <h2 class="reveal">From prompt to proof, on one rail</h2>
   <p class="lede reveal">Kibi keeps intent attached to the work at every stage, and it is conservative about the last one.</p>
   <ol class="flow reveal">
@@ -1523,7 +1558,7 @@ export function landingContent(args: {
   </ol>
 </section>
 <section>
-  <p class="eyebrow reveal"><span class="eb-num">03</span>Your part</p>
+  <p class="eyebrow reveal"><span class="eb-num">04</span>Your part</p>
   <h2 class="reveal">What you actually do</h2>
   <p class="lede reveal">Three things, and none of them is filling in a requirements form.</p>
   <ol class="steps">
@@ -1570,7 +1605,7 @@ export function landingContent(args: {
   </ol>
 </section>
 <section class="install" id="install">
-  <p class="eyebrow reveal"><span class="eb-num">04</span>Setup</p>
+  <p class="eyebrow reveal"><span class="eb-num">05</span>Setup</p>
   <h2 class="reveal">Add Kibi to the repository</h2>
   <div class="install-grid">
     <div class="install-copy reveal">
@@ -1587,7 +1622,7 @@ export function landingContent(args: {
   </div>
 </section>
 <section class="paths">
-  <p class="eyebrow reveal"><span class="eb-num">05</span>Docs</p>
+  <p class="eyebrow reveal"><span class="eb-num">06</span>Docs</p>
   <h2 class="reveal">Where to go next</h2>
   <div class="path-grid">
     <a class="path-card reveal" href="${root}guide/welcome.html">
@@ -1620,7 +1655,7 @@ export function landingContent(args: {
 <section>
   <div class="faq-wrap">
     <div class="faq-side">
-      <p class="eyebrow"><span class="eb-num">06</span>FAQ</p>
+      <p class="eyebrow"><span class="eb-num">07</span>FAQ</p>
       <h2>Questions people ask first</h2>
       <p>The short answers. The <a href="${root}guide/welcome.html">guide</a> has the long ones.</p>
     </div>
