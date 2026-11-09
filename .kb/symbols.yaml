@@ -14769,6 +14769,14 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-prolog-system-swipl-smoke
+    title: system SWI-Prolog smoke run
+    sourceFile: scripts/system-swipl-smoke.mjs
+    symbol_role: test
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-bundled-runtime
   - id: SYM-opencode-work-context-resolver-tests
     title: resolveWorkContext test suite
     sourceFile: packages/opencode/tests/work-context-resolver.test.ts
