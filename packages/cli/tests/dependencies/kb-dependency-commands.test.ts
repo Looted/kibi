@@ -336,7 +336,12 @@ describe("dependency scope", () => {
     }
     const commit = git(repo, "rev-parse", "HEAD");
     lockKbDependencies(root);
+    // This project's branch override must not follow the read into the
+    // dependency's detached checkout.
+    const projectBranch = process.env.KIBI_BRANCH;
+    process.env.KIBI_BRANCH = "feature/project-branch";
     expect(applyKbOption({ kb: "provider" })).toBe(true);
+    expect(process.env.KIBI_BRANCH).toBeUndefined();
     expect(process.env[KB_DEPENDENCY_ENV]).toBe(`provider@${commit}`);
     expect(process.cwd()).not.toBe(root);
     expect(git(process.cwd(), "rev-parse", "HEAD")).toBe(commit);
@@ -351,6 +356,11 @@ describe("dependency scope", () => {
 
     process.chdir(root);
     expect(enterKbDependency("provider", root).commit).toBe(commit);
+    if (projectBranch === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    } else {
+      process.env.KIBI_BRANCH = projectBranch;
+    }
   });
 
   test("a JSON route is scoped only when its operation takes kb", () => {

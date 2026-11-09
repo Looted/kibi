@@ -670,17 +670,20 @@ export class WorkspaceRouter {
     if (!command) return null;
     this.evictIfFull();
     // The spawn skips unset (undefined) values.
-    const env = {
+    const env: Record<string, string | undefined> = {
       ...this.env,
+      // KIBI_BRANCH names a branch of this project, not of the dependency's
+      // detached checkout, which is read through its own snapshot.
+      ...(dependencyEnv === undefined ? {} : { KIBI_BRANCH: undefined }),
       ...dependencyEnv,
       KIBI_WORKSPACE: root,
       [ROUTED_CHILD_ENV]: "1",
-    } as Record<string, string>;
+    };
     const transport = new StdioClientTransport({
       command: command.command,
       args: [...command.args],
       cwd: root,
-      env,
+      env: env as Record<string, string>,
       stderr: "pipe",
     });
     const client = new Client({

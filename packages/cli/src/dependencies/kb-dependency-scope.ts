@@ -80,6 +80,9 @@ export function enterKbDependency(
 ): ResolvedKbDependency {
   const dependency = resolveKbDependency(workspaceRoot, name, options);
   process.env[KB_DEPENDENCY_ENV] = kbDependencyLabel(dependency);
+  // KIBI_BRANCH names a branch of this project; in the dependency's detached
+  // checkout it would attach a branch store that does not exist there.
+  Reflect.deleteProperty(process.env, "KIBI_BRANCH");
   process.chdir(dependency.workspaceRoot);
   return dependency;
 }

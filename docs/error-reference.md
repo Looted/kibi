@@ -201,6 +201,20 @@ A tool that rejects its input with a Kibi error code, such as `kb_compile_intent
 
 The read ran under `KIBI_ENGINE_READ_TIME_LIMIT_MS` or `KIBI_ENGINE_READ_INFERENCE_LIMIT` and was stopped before it computed an answer; `error.details.limitExceeded` names the `kind` (`time` or `inferences`) and the `limit`. Nothing was read partially and nothing was written. Narrow the request (a type, id, tag, or smaller page), or raise or unset the limit in the CLI or MCP server environment, then retry.
 
+## KB dependency errors (`DEPENDENCY_*`)
+
+A read with `kb` (MCP) or `--kb` (CLI), and `kibi deps lock|fetch|status`, fail with one of these codes instead of answering from the project's own KB:
+
+- `DEPENDENCY_UNKNOWN`: `.kb/dependencies.json` declares no dependency with that name. The message lists the declared names; fix the name or add the dependency.
+- `DEPENDENCY_NOT_LOCKED`: the dependency is declared but has no pin in `.kb/dependencies.lock.json`. Run `kibi deps lock <name>` and commit the lock file.
+- `DEPENDENCY_LOCK_STALE`: the lock pins the dependency for a different `git` URL, `ref` or `directory` than `.kb/dependencies.json` now declares. Run `kibi deps lock <name>`.
+- `DEPENDENCY_REF_NOT_FOUND`: the repository has no tag, branch or ref with the declared name. Fix `ref` (or remove it to follow the remote `HEAD`).
+- `DEPENDENCY_FETCH_FAILED`: `git` could not list or fetch the repository. Check the URL, the network, and that git already has credentials for a private repository (it runs without a terminal prompt).
+- `DEPENDENCY_NOT_A_KB`: the pinned commit has no `.kb/manifest.json`. Pin a commit that has a Kibi KB, or set `directory` when the workspace is in a subdirectory.
+- `DEPENDENCY_SCHEMA_UNSUPPORTED`: the dependency's KB schema is older than 6 or newer than this Kibi reads. Pin another commit, upgrade Kibi, or run `kibi migrate` in that repository.
+
+A write that names a dependency is refused: MCP tools without a `kb` input fail with "`<tool>` does not take a kb scope: KB dependency '`<name>`' is read-only", and the CLI JSON routes report `VALIDATION_FAILED` for the extra `kb` property. Drop `kb` to write this project's KB.
+
 ## Write refused on a detached HEAD
 
 `<operation> writes the branch KB, but HEAD is detached at <sha> ...` means the checkout has no single branch identity (zero or several local branches point at HEAD). Reads still work from the read-only snapshot and carry a `detached_head_read_only` diagnostic. To write, check out a branch (`git switch <branch>` or `git switch -c <branch>`) or set `KIBI_BRANCH` to name the branch explicitly, then retry.
