@@ -24,7 +24,7 @@ const KB = "/kb/src/kb.pl";
 const FRAME = "__KIBI_QUERY_FRAME_END__\ntrue.\n\n";
 const STDERR_END = "__KIBI_QUERY_STDERR_END__\n";
 const UTF8 =
-  "set_prolog_flag(encoding, utf8), set_stream(user_input, encoding(utf8)), set_stream(user_output, encoding(utf8)), set_stream(user_error, encoding(utf8))";
+  "set_prolog_flag(encoding, utf8), set_stream(user_input, encoding(utf8)), set_stream(user_output, encoding(utf8)), set_stream(user_error, encoding(utf8)), set_stream(user_output, newline(posix)), set_stream(user_error, newline(posix))";
 const ENV_KEYS = [
   "KIBI_KB_PL_PATH",
   "KIBI_PROLOG_DEBUG",
