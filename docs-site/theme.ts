@@ -441,20 +441,35 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 .eyebrow .eb-num { color: var(--mist); }
 .landing .eyebrow { margin: 0 0 18px; }
 
-/* Hero */
-.hero { position: relative; padding: 0; }
+/* Hero: the first screen is the gate itself. */
+.hero {
+  position: relative; min-height: calc(100vh - var(--topbar-h) - 88px); min-height: calc(100svh - var(--topbar-h) - 88px);
+  display: flex; flex-direction: column; justify-content: center; padding: 8px 0 0;
+}
+.hero-stage {
+  position: absolute; z-index: 0; top: -88px; bottom: 0; left: calc(50% - 50vw); width: 100vw;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 82%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 82%, transparent 100%);
+}
+.hero-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero-stage::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(17, 19, 24, 0.96) 0%, rgba(17, 19, 24, 0.9) calc(50% - 120px), rgba(17, 19, 24, 0.4) calc(50% + 200px), rgba(17, 19, 24, 0) calc(50% + 320px));
+}
+.hero-text { position: relative; z-index: 1; max-width: 760px; padding: 32px 0; }
 .hero-title {
-  font-size: clamp(40px, 6.6vw, 86px); line-height: 0.98; letter-spacing: -0.045em;
-  max-width: 11.5em; margin: 0; font-weight: 700; color: var(--snow);
+  font-size: clamp(40px, 5.4vw, 76px); line-height: 1; letter-spacing: -0.045em;
+  margin: 0; font-weight: 700; color: var(--snow); text-wrap: balance;
 }
 .hero-title .hero-title-2 { display: block; color: var(--ice); }
-.hero-lower {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 400px); gap: 28px 56px;
-  align-items: end; margin-top: 34px;
-}
-.landing .hero-sub { color: var(--mist); font-size: 19px; font-weight: 400; line-height: 1.55; max-width: 34em; margin: 0 0 24px; }
+.landing .hero-sub { color: var(--mist); font-size: 19px; font-weight: 400; line-height: 1.55; max-width: 32em; margin: 28px 0 28px; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; }
 .landing .hero-canon { color: var(--mist); font-size: 13.5px; max-width: 36em; margin: 18px 0 0; }
+.hero-foot {
+  position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 28px;
+  padding: 18px 0 22px; border-top: 1px solid rgba(52, 67, 79, 0.6); color: var(--mist); font-size: 13px;
+}
+.landing .hero-foot p { margin: 0; }
 .btn {
   display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; font-size: 14.5px;
   padding: 11px 20px; border-radius: 10px; border: 1px solid transparent;
@@ -468,47 +483,27 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 .btn-ghost { border-color: var(--rail); color: var(--snow); background: rgba(17, 19, 24, 0.6); }
 .btn-ghost:hover { border-color: var(--signal); color: var(--ice); }
 
-/* One-prompt setup chip: copies the same prompt as the install section. */
+/* One-prompt setup line: copies the same prompt as the install section. */
 figure.code.hero-copy {
-  margin: 0; padding: 0; display: block;
-  background: var(--panel); border: 1px solid var(--rail); border-radius: 12px;
+  margin: 22px 0 0; padding: 6px 6px 6px 14px; display: flex; align-items: center; gap: 12px; max-width: 600px;
+  background: rgba(25, 28, 34, 0.9); border: 1px solid var(--rail); border-radius: 10px;
 }
-.hero-copy .hc-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 10px 14px; border-bottom: 1px solid var(--rail);
-  font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mist);
-}
-.hero-copy .hc-body { padding: 14px; font-family: var(--mono); font-size: 13px; line-height: 1.55; color: var(--snow); }
-.hero-copy .hc-body .hc-prompt { color: var(--ice); }
-.hero-copy .hc-body .hc-dim { color: var(--mist); }
-.hero-copy .code-copy { position: static; opacity: 1; }
+.hero-copy .hc-prompt { flex: 1; min-width: 0; font-family: var(--mono); font-size: 13px; color: var(--snow); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hero-copy .hc-caret { color: var(--ice); }
+.hero-copy .code-copy { position: static; opacity: 1; flex-shrink: 0; }
 .hero-copy pre { display: none; }
 
-/* Rail field: requirements riding rails to one gate (decorative, see legend). */
-.railfield-wrap { position: relative; margin: 64px 0 0; width: 100vw; margin-left: calc(50% - 50vw); }
-.railfield {
-  position: relative; height: 280px;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
-}
-.railfield canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.rf-caption {
-  max-width: var(--land-w); margin: 14px auto 0; padding: 0 48px;
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 28px;
-  color: var(--mist); font-size: 13px;
-}
-.rf-caption p { margin: 0; }
 .rf-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; list-style: none; margin: 0; padding: 0; }
 .prose .rf-legend li { margin: 0; display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; }
-.rf-legend .dot { width: 8px; height: 8px; }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
 .dot.intent { background: var(--ice); }
 .dot.proven { background: var(--proven); }
 .dot.waiting { background: transparent; box-shadow: inset 0 0 0 2px var(--warning); }
 .dot.contra { background: var(--contradiction); }
+.landing > section.demo { margin-top: 56px; }
 
 /* Animated terminal: one scene per Kibi use case, replayed by the client script. */
-.kd-section { margin-top: 72px; }
+.kd-section { margin-top: 0; }
 .landing h2.kd-title {
   max-width: none; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--mist); font-weight: 500; margin: 0 0 14px;
@@ -734,7 +729,7 @@ figure.code.hero-copy {
 
 @media (max-width: 979px) {
   .landing > section { margin-top: 88px; }
-  .hero-lower, .landing .install-grid, .faq-wrap, .report-strip, .agents { grid-template-columns: minmax(0, 1fr); }
+  .landing .install-grid, .faq-wrap, .report-strip, .agents { grid-template-columns: minmax(0, 1fr); }
   .faq-side { position: static; }
   .prose .gaps { grid-template-columns: minmax(0, 1fr); }
   .prose .gaps li, .prose .gaps li + li { padding: 26px 0 22px; border-left: none; }
@@ -745,13 +740,14 @@ figure.code.hero-copy {
   .reveal-ready .flow:not(.in)::after { transform: scaleY(0); }
   .prose .flow li { padding: 0 0 0 calc(var(--node) + 22px); }
   .flow .fgate { top: -18px; left: -4px; width: calc(var(--node) + 8px); height: 10px; border: none; border-top: 2px solid var(--signal); border-bottom: 2px solid var(--signal); }
-  .railfield { height: 220px; }
-  .rf-caption { padding: 0 20px; }
+  .hero { min-height: 0; }
+  .hero-stage { top: -48px; }
+  .hero-stage::after { background: rgba(17, 19, 24, 0.78); }
 }
 @media (max-width: 560px) {
   .hero-title { letter-spacing: -0.035em; }
   .landing .hero-sub { font-size: 17px; }
-  .railfield { height: 180px; }
+  .hero-copy .hc-prompt { font-size: 12px; }
   .faq summary { grid-template-columns: 34px minmax(0, 1fr) 18px; font-size: 15px; }
   .faq details p { margin-left: 0; }
   .report-strip { padding: 26px 24px; }
@@ -827,7 +823,7 @@ figure.code.hero-copy {
 @media print {
   :root { --deep: #ffffff; --carbon: #f5f6f8; --panel: #eef1f4; --snow: #12161c; --mist: #4a5560; --rail: #c3ccd4; --ice: #1d5f9e; --signal: #2568a8; }
   body { background: #fff; color: #12161c; }
-  .page-home::before, .page-home::after, .railfield-wrap { display: none; }
+  .page-home::before, .page-home::after, .hero-stage { display: none; }
   .reveal { opacity: 1 !important; transform: none !important; }
   .topbar, .sidebar, .toc, .search, .nav-toggle, .code-copy, .backdrop, .pager, .hlink { display: none !important; }
   .shell { display: block; max-width: none; }
@@ -950,9 +946,10 @@ export const clientScript = String.raw`
     for (var r = 0; r < reveals.length; r++) revealer.observe(reveals[r]);
   }
 
-  /* ----- Rail field (landing page) -----
+  /* ----- Rail field (landing hero) -----
      Requirements ride rails to one gate. Most clear it on fresh evidence and
-     turn proven green; some wait on evidence; a few stop on a contradiction. */
+     turn proven green; some wait on evidence; a few stop on a contradiction.
+     The requirement names are illustrative. */
   var field = document.querySelector("[data-railfield]");
   var fieldCanvas = field ? field.querySelector("canvas") : null;
   if (field && fieldCanvas && fieldCanvas.getContext) {
@@ -961,91 +958,130 @@ export const clientScript = String.raw`
     var C = {
       rail: color("--rail", "#34434f"), signal: color("--signal", "#3e8ed6"), ice: color("--ice", "#a2d3f4"),
       proven: color("--proven", "#63c99a"), warning: color("--warning", "#f2b84b"),
-      contra: color("--contradiction", "#f07178"), deep: color("--deep", "#111318"),
+      contra: color("--contradiction", "#f07178"), deep: color("--deep", "#111318"), mist: color("--mist", "#aab8c2"),
     };
+    var MONO = css.getPropertyValue("--mono") || "monospace";
+    var NAMES = [
+      "session-idle-timeout", "draft-autosave", "checkout-total-positive", "upload-size-limit",
+      "admin-delete-deny", "invite-expiry", "reset-token-single-use", "audit-log-retention",
+      "export-csv-columns", "login-rate-limit", "role-assignment-max", "webhook-signature",
+    ];
     var ctx = fieldCanvas.getContext("2d");
-    var W = 0, H = 0, rails = [], gateX = 0, tokens = [], last = 0, spawnIn = 0, visible = true, frame = 0;
+    var W = 0, H = 0, rails = [], gateX = 0, tokens = [], last = 0, spawnIn = 0, visible = true, frame = 0, labels = false, gateRow = 0;
     var rand = function (a, b) { return a + Math.random() * (b - a); };
+    var pickOne = function (list) { return list[Math.floor(Math.random() * list.length)]; };
     var size = function () {
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = field.clientWidth; H = field.clientHeight;
       fieldCanvas.width = Math.round(W * dpr); fieldCanvas.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var gap = W < 640 ? 26 : 24;
-      var n = Math.max(5, Math.floor((H - 24) / gap));
+      var gap = 30;
+      var n = Math.max(6, Math.floor((H - 40) / gap));
       var top = (H - (n - 1) * gap) / 2;
       rails = [];
-      for (var i = 0; i < n; i++) rails.push({ y: Math.round(top + i * gap) + 0.5, busy: 0 });
-      gateX = Math.round(W * (W < 640 ? 0.7 : 0.74));
+      for (var i = 0; i < n; i++) rails.push({ y: Math.round(top + i * gap) + 0.5, busy: 0, label: 0 });
+      labels = W >= 1100;
+      gateRow = 0;
+      while (gateRow < rails.length - 4 && rails[gateRow].y < H * 0.18) gateRow++;
+      gateX = Math.round(labels ? Math.max(W / 2 + 330, Math.min(W * 0.74, W / 2 + 420)) : W * 0.84);
     };
     var outcome = function () {
       var x = Math.random();
-      return x < 0.64 ? "pass" : x < 0.88 ? "wait" : "contra";
+      return x < 0.62 ? "pass" : x < 0.86 ? "wait" : "contra";
+    };
+    var labelFor = function (tk) {
+      var id = "REQ-" + tk.name;
+      if (tk.fate === "pass") return { text: id + "  " + (Math.random() < 0.2 ? "proved" : "tested"), color: C.proven, side: 1 };
+      if (tk.fate === "wait") return { text: id + "  waiting on evidence", color: C.warning, side: -1 };
+      var other = pickOne(NAMES);
+      if (other === tk.name) other = NAMES[(NAMES.indexOf(other) + 1) % NAMES.length];
+      return { text: id + "  contradicts REQ-" + other, color: C.contra, side: -1 };
     };
     var spawn = function (x) {
       var free = rails.filter(function (r) { return r.busy < 2; });
-      if (!free.length) return;
-      var rail = free[Math.floor(Math.random() * free.length)];
+      if (!free.length) return null;
+      var index = Math.floor(Math.random() * free.length);
+      var rail = free[index];
       rail.busy++;
-      tokens.push({ rail: rail, x: x, v: rand(70, 150), state: "run", fate: outcome(), t: 0, alpha: 1 });
+      var tk = { rail: rail, x: x, v: rand(80, 170), state: "run", fate: outcome(), t: 0, alpha: 1, name: pickOne(NAMES), label: null };
+      tokens.push(tk);
+      return tk;
+    };
+    var canLabel = function (rail) {
+      var at = rails.indexOf(rail);
+      if (at <= gateRow || at > rails.length - 3) return false;
+      for (var i = Math.max(0, at - 1); i <= Math.min(rails.length - 1, at + 1); i++) if (rails[i].label) return false;
+      return tokens.filter(function (t) { return t.label; }).length < 6;
+    };
+    var arrive = function (tk) {
+      if (labels && Math.random() < 0.85 && canLabel(tk.rail)) { tk.label = labelFor(tk); tk.lt = 0; tk.rail.label++; }
     };
     var drawToken = function (tk) {
       var y = tk.rail.y;
-      var colorNow = tk.state === "pass" ? C.proven : tk.state === "wait" ? C.warning : tk.state === "contra" ? C.contra : C.ice;
-      var trail = Math.min(140, Math.max(0, tk.x));
+      var now = tk.state === "pass" ? C.proven : tk.state === "wait" ? C.warning : tk.state === "contra" ? C.contra : C.ice;
+      var trail = Math.min(160, Math.max(0, tk.x));
       var g = ctx.createLinearGradient(tk.x - trail, 0, tk.x, 0);
       g.addColorStop(0, "rgba(62,142,214,0)");
       g.addColorStop(1, tk.state === "pass" ? C.proven : C.signal);
       ctx.globalAlpha = tk.alpha;
       ctx.strokeStyle = g; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(tk.x - trail, y); ctx.lineTo(tk.x, y); ctx.stroke();
-      ctx.beginPath(); ctx.arc(tk.x, y, tk.state === "run" ? 4 : 4.5, 0, Math.PI * 2);
-      if (tk.state === "wait") {
-        ctx.fillStyle = C.deep; ctx.fill(); ctx.strokeStyle = colorNow; ctx.lineWidth = 2; ctx.stroke();
-      } else {
-        ctx.fillStyle = colorNow; ctx.fill();
-      }
-      if (tk.state === "contra") {
-        ctx.strokeStyle = C.contra; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(tk.x + 9, y - 5); ctx.lineTo(tk.x + 15, y + 5);
-        ctx.moveTo(tk.x + 15, y - 5); ctx.lineTo(tk.x + 9, y + 5); ctx.stroke();
+      ctx.beginPath(); ctx.arc(tk.x, y, 4.5, 0, Math.PI * 2);
+      if (tk.state === "wait") { ctx.fillStyle = C.deep; ctx.fill(); ctx.strokeStyle = now; ctx.lineWidth = 2; ctx.stroke(); }
+      else { ctx.fillStyle = now; ctx.fill(); }
+      if (tk.label) {
+        ctx.globalAlpha = Math.min(tk.alpha, Math.max(0, Math.min(1, tk.lt * 5, (3 - tk.lt) / 0.6)));
+        ctx.font = "12px " + MONO;
+        ctx.fillStyle = tk.label.color;
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "left";
+        ctx.fillText(tk.label.text, gateX + 26, y - 11);
       }
       ctx.globalAlpha = 1;
     };
     var draw = function () {
       ctx.clearRect(0, 0, W, H);
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1; ctx.strokeStyle = C.rail; ctx.globalAlpha = 0.8;
       for (var i = 0; i < rails.length; i++) {
-        var y = rails[i].y;
-        ctx.strokeStyle = C.rail; ctx.globalAlpha = 0.75;
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-        ctx.globalAlpha = 1;
-        ctx.strokeStyle = C.signal; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(gateX, y - 7); ctx.lineTo(gateX, y + 7);
-        ctx.moveTo(gateX + 8, y - 7); ctx.lineTo(gateX + 8, y + 7); ctx.stroke();
-        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, rails[i].y); ctx.lineTo(W, rails[i].y); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = C.signal; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(gateX, 0); ctx.lineTo(gateX, H); ctx.moveTo(gateX + 10, 0); ctx.lineTo(gateX + 10, H); ctx.stroke();
+      if (labels) {
+        ctx.font = "11px " + MONO; ctx.fillStyle = C.mist; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+        ctx.fillText("GATE · FRESH EVIDENCE ONLY", gateX + 26, rails[gateRow].y - 15);
       }
       for (var k = 0; k < tokens.length; k++) drawToken(tokens[k]);
     };
     var step = function (dt) {
       spawnIn -= dt;
-      if (spawnIn <= 0) { spawn(-10); spawnIn = rand(0.22, 0.6); }
+      if (spawnIn <= 0) { spawn(-10); spawnIn = rand(0.12, 0.34); }
       for (var i = tokens.length - 1; i >= 0; i--) {
         var tk = tokens[i];
+        if (tk.label) {
+          tk.lt += dt;
+          if (tk.lt > 3) { tk.label = null; tk.rail.label--; }
+        }
         if (tk.state === "run") {
           tk.x += tk.v * dt;
-          if (tk.x >= gateX - 10) {
-            if (tk.fate === "pass") { tk.state = "pass"; tk.x = Math.max(tk.x, gateX + 18); tk.v *= 1.15; }
-            else { tk.state = tk.fate; tk.x = gateX - 10; }
+          if (tk.x >= gateX - 12) {
+            if (tk.fate === "pass") { tk.state = "pass"; tk.x = gateX + 22; tk.v *= 0.8; }
+            else { tk.state = tk.fate; tk.x = gateX - 12; }
+            arrive(tk);
           }
         } else if (tk.state === "pass") {
           tk.x += tk.v * dt;
-          if (tk.x > W + 150) tk.alpha = 0;
+          if (tk.x > W + 170) tk.alpha = 0;
         } else {
           tk.t += dt;
-          if (tk.t > 1.4) tk.alpha = Math.max(0, tk.alpha - dt * 1.6);
+          if (tk.t > (tk.label ? 2.4 : 1.4)) tk.alpha = Math.max(0, tk.alpha - dt * 1.4);
         }
-        if (tk.alpha <= 0) { tk.rail.busy--; tokens.splice(i, 1); }
+        if (tk.alpha <= 0) {
+          tk.rail.busy--;
+          if (tk.label) tk.rail.label--;
+          tokens.splice(i, 1);
+        }
       }
     };
     var loop = function (now) {
@@ -1058,20 +1094,22 @@ export const clientScript = String.raw`
     };
     var start = function () { if (!frame && !reduceMotion) { last = 0; frame = requestAnimationFrame(loop); } };
     var seed = function () {
-      tokens = []; rails.forEach(function (r) { r.busy = 0; });
-      for (var s = 0; s < rails.length; s++) {
-        var x = rand(0.05, 0.95) * W;
-        spawn(x);
-        var tk = tokens[tokens.length - 1];
-        if (!tk) continue;
-        if (x > gateX - 10) {
-          if (tk.fate === "pass") tk.state = "pass";
-          else { tk.state = tk.fate; tk.x = gateX - 10; tk.t = rand(0, 1.2); }
-        }
+      tokens = []; rails.forEach(function (r) { r.busy = 0; r.label = 0; });
+      for (var s = 0; s < rails.length * 1.2; s++) {
+        var x = rand(0.02, 1) * W;
+        var tk = spawn(x);
+        if (!tk || x < gateX - 12) continue;
+        if (tk.fate === "pass") { tk.state = "pass"; tk.x = Math.max(x, gateX + 22); }
+        else { tk.state = tk.fate; tk.x = gateX - 12; tk.t = rand(0, 1.2); }
+        arrive(tk);
       }
     };
     size(); seed(); draw();
-    window.addEventListener("resize", function () { size(); seed(); draw(); });
+    var resizeTimer = 0;
+    window.addEventListener("resize", function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () { size(); seed(); draw(); }, 120);
+    });
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (entries) {
         visible = entries[0].isIntersecting;
@@ -1401,35 +1439,33 @@ export function landingContent(args: {
     : "";
   return `<div class="prose landing">
 <section class="hero">
-  <p class="eyebrow">Open source &middot; requirements compiler for coding agents</p>
-  <h1 class="hero-title">Say what the software should do. <span class="hero-title-2">Kibi holds the agent to it.</span></h1>
-  <div class="hero-lower">
-    <div>
-      <p class="hero-sub">You keep prompting your coding agent. Kibi writes that intent down beside the code, carries it onto every branch, and treats &ldquo;done&rdquo; as a claim that needs fresh evidence.</p>
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="${root}guide/quick-start.html" data-umami-event="cta-click" data-umami-event-target="install">Install Kibi <span class="btn-arrow" aria-hidden="true">&rarr;</span></a>
-        ${reportCta}
-      </div>
-      <p class="hero-canon">${escapeHtml(SITE_TAGLINE)}</p>
+  <div class="hero-stage" data-railfield aria-hidden="true"><canvas></canvas></div>
+  <div class="hero-text">
+    <p class="eyebrow">Open source &middot; requirements compiler for coding agents</p>
+    <h1 class="hero-title">Say what the software should do. <span class="hero-title-2">Kibi holds the agent to it.</span></h1>
+    <p class="hero-sub">You keep prompting your coding agent. Kibi writes that intent down beside the code, carries it onto every branch, and treats &ldquo;done&rdquo; as a claim that needs fresh evidence.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="${root}guide/quick-start.html" data-umami-event="cta-click" data-umami-event-target="install">Install Kibi <span class="btn-arrow" aria-hidden="true">&rarr;</span></a>
+      ${reportCta}
     </div>
     <figure class="code hero-copy" data-pm-panel="hero">
-      <div class="hc-head"><span>Setup is one prompt</span><button type="button" class="code-copy" aria-label="Copy the agent setup prompt">Copy</button></div>
-      <div class="hc-body"><span class="hc-prompt">&rsaquo; Set up Kibi in this repository, then bootstrap its knowledge base.</span><br><span class="hc-dim">Install &middot; initialize &middot; connect &middot; bootstrap &middot; verify. Nothing is written until you approve the plan.</span></div>
+      <span class="hc-prompt"><span class="hc-caret">&rsaquo;</span> Set up Kibi in this repository, then bootstrap its knowledge base.</span>
+      <button type="button" class="code-copy" aria-label="Copy the agent setup prompt">Copy</button>
       <pre><code>${escapeHtml(AGENT_SETUP_PROMPT)}</code></pre>
     </figure>
+    <p class="hero-canon">${escapeHtml(SITE_TAGLINE)}</p>
   </div>
-  <div class="railfield-wrap">
-    <div class="railfield" data-railfield aria-hidden="true"><canvas></canvas></div>
-    <div class="rf-caption">
-      <p>Each line is a requirement on its way to the gate. Only fresh end-to-end evidence clears it.</p>
-      <ul class="rf-legend" aria-label="Legend">
-        <li><span class="dot intent"></span>intent</li>
-        <li><span class="dot proven"></span>cleared the gate</li>
-        <li><span class="dot waiting"></span>waiting on evidence</li>
-        <li><span class="dot contra"></span>contradiction</li>
-      </ul>
-    </div>
+  <div class="hero-foot">
+    <p>Each line is a requirement riding to the gate. Only fresh end-to-end evidence clears it.</p>
+    <ul class="rf-legend" aria-label="Legend">
+      <li><span class="dot intent"></span>intent</li>
+      <li><span class="dot proven"></span>cleared the gate</li>
+      <li><span class="dot waiting"></span>waiting on evidence</li>
+      <li><span class="dot contra"></span>contradiction</li>
+    </ul>
   </div>
+</section>
+<section class="demo">
   ${terminalDemoHtml()}
 </section>
 <section class="agents reveal" aria-label="Supported agents">
