@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "dependencies": {
+    "mutalog": {
+      "git": "https://github.com/Looted/Mutalog.git",
+      "ref": "v0.3.2"
+    },
+    "tree-sitter-swi-prolog": {
+      "git": "https://github.com/Looted/tree-sitter-swi-prolog.git",
+      "ref": "v0.1.3"
+    }
+  }
+}
