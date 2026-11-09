@@ -36785,9 +36785,9 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-007
+        target: TEST-core-journaled-engine-delta-sync
       - type: implements
-        target: REQ-core-extractors
+        target: REQ-core-journaled-engine-persistence
   - id: SYM-sync-next-sync-cache
     title: NextSyncCache
     status: active
