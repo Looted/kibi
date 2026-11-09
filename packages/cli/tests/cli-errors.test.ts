@@ -143,6 +143,7 @@ describe("KbRejection and prefixedFailure", () => {
       expect(plain).not.toBeInstanceOf(KbRejection);
       expect(plain.constructor).toBe(Error);
       expect(plain.message).toBe(message);
+      expect(plain.cause).toBe(error);
     }
   });
 });

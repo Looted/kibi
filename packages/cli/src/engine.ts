@@ -831,12 +831,22 @@ function connectSocket(
   });
 }
 
+/**
+ * How long a client keeps polling after the daemon it spawned exited: long
+ * enough for a daemon that lost the start race to another one to see that
+ * one listening, far shorter than the whole start timeout.
+ */
+const DAEMON_EXIT_GRACE_MS = 1000;
+
 async function connectWithRetry(
   socketPath: string,
   timeoutMs: number,
+  /** How the daemon this client spawned exited, or null while it runs. */
+  daemonExit: () => string | null = () => null,
 ): Promise<net.Socket> {
   const deadline = Date.now() + timeoutMs;
   let lastError: unknown;
+  let exitedAt: number | undefined;
   while (Date.now() < deadline) {
     const errorPath = `${socketPath}.error`;
     if (existsSync(errorPath)) {
@@ -847,6 +857,20 @@ async function connectWithRetry(
         throw Object.assign(
           new Error(
             `Kibi engine failed to start: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+          { code: "ENGINE_START_FAILED" },
+        );
+      }
+    }
+    // A daemon that died without a diagnostic never listens: report it
+    // instead of waiting out the whole start timeout.
+    const exit = daemonExit();
+    if (exit !== null) {
+      exitedAt ??= Date.now();
+      if (Date.now() - exitedAt >= DAEMON_EXIT_GRACE_MS) {
+        throw Object.assign(
+          new Error(
+            `Kibi engine exited (${exit}) before it accepted connections at ${socketPath}`,
           ),
           { code: "ENGINE_START_FAILED" },
         );
@@ -865,8 +889,11 @@ async function connectWithRetry(
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
   }
-  throw new Error(
-    `Unable to connect to Kibi engine at ${socketPath}: ${lastError instanceof Error ? lastError.message : String(lastError)}`,
+  throw Object.assign(
+    new Error(
+      `Unable to connect to Kibi engine at ${socketPath}: ${lastError instanceof Error ? lastError.message : String(lastError)}`,
+    ),
+    { code: "ENGINE_CONNECT_TIMEOUT" },
   );
 }
 
@@ -1009,6 +1036,7 @@ export class EngineClient {
       if (!this.daemonProcessAlive()) {
         const lock = tryAcquireStartLock(lockPath);
         if (lock !== null) {
+          let daemonExit: string | null = null;
           try {
             rmSync(`${socketPath}.error`, { force: true });
             try {
@@ -1036,6 +1064,11 @@ export class EngineClient {
                   },
                 },
               );
+              // Listen before the spawn settles: a daemon that dies at once
+              // can exit right after it spawns.
+              daemon.once("exit", (code, signal) => {
+                daemonExit = signal ?? `exit code ${code}`;
+              });
               await new Promise<void>((resolve, reject) => {
                 daemon.once("spawn", resolve);
                 daemon.once("error", reject);
@@ -1047,7 +1080,11 @@ export class EngineClient {
               );
             }
             this.daemon.unref();
-            return await connectWithRetry(socketPath, this.timeout);
+            return await connectWithRetry(
+              socketPath,
+              this.timeout,
+              () => daemonExit,
+            );
           } finally {
             releaseStartLock(lockPath, lock);
           }
@@ -1055,8 +1092,11 @@ export class EngineClient {
       }
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
-    throw new Error(
-      `Unable to connect to Kibi engine at ${socketPath} while another starter owns ${lockPath}`,
+    throw Object.assign(
+      new Error(
+        `Unable to connect to Kibi engine at ${socketPath} while another starter owns ${lockPath}`,
+      ),
+      { code: "ENGINE_CONNECT_TIMEOUT" },
     );
   }
 

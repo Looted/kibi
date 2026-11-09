@@ -4071,6 +4071,103 @@ describe("engine client start", () => {
     ).toStartWith(`Unable to connect to Kibi engine at ${socketPath}: `);
   });
 
+  test("report a spawned daemon that exits without listening", async () => {
+    const workspace = tempDir();
+    const socketPath = engineSocketPath(workspace, "main");
+    onlyEntry(path.join(SRC_DIR, "engine-daemon.js"));
+    const children: EventEmitter[] = [];
+    fakeSpawn();
+    const spawnSpy = childProcess.spawn as unknown as {
+      mockImplementation(fn: unknown): void;
+      getMockImplementation(): (...args: unknown[]) => EventEmitter;
+    };
+    const fake = spawnSpy.getMockImplementation();
+    spawnSpy.mockImplementation((...args: unknown[]) => {
+      const child = fake(...args);
+      children.push(child);
+      child.once("spawn", () =>
+        setTimeout(() => child.emit("exit", 3, null), 10),
+      );
+      return child;
+    });
+    const startedAt = Date.now();
+    const error = (await client(workspace, { timeout: 60_000 })
+      .start()
+      .catch((e: unknown) => e)) as Error & { code?: string };
+    const elapsed = Date.now() - startedAt;
+    expect(error.message).toBe(
+      `Kibi engine exited (exit code 3) before it accepted connections at ${socketPath}`,
+    );
+    expect(error.code).toBe("ENGINE_START_FAILED");
+    expect(children).toHaveLength(1);
+    expect(elapsed).toBeGreaterThanOrEqual(1000);
+    expect(elapsed).toBeLessThan(5000);
+  });
+
+  test("name the signal that ended a spawned daemon", async () => {
+    const workspace = tempDir();
+    onlyEntry(path.join(SRC_DIR, "engine-daemon.js"));
+    fakeSpawn();
+    const spawnSpy = childProcess.spawn as unknown as {
+      mockImplementation(fn: unknown): void;
+      getMockImplementation(): (...args: unknown[]) => EventEmitter;
+    };
+    const fake = spawnSpy.getMockImplementation();
+    spawnSpy.mockImplementation((...args: unknown[]) => {
+      const child = fake(...args);
+      child.once("spawn", () => child.emit("exit", null, "SIGKILL"));
+      return child;
+    });
+    expect(
+      await client(workspace, { timeout: 60_000 })
+        .start()
+        .catch((e: Error) => e.message),
+    ).toStartWith("Kibi engine exited (SIGKILL) before");
+  });
+
+  test("a daemon that loses the start race still connects to the winner", async () => {
+    const workspace = tempDir();
+    prepareStore(workspace);
+    onlyEntry(path.join(SRC_DIR, "engine-daemon.js"));
+    fakeSpawn();
+    const spawnSpy = childProcess.spawn as unknown as {
+      mockImplementation(fn: unknown): void;
+      getMockImplementation(): (...args: unknown[]) => EventEmitter;
+    };
+    const fake = spawnSpy.getMockImplementation();
+    spawnSpy.mockImplementation((...args: unknown[]) => {
+      const child = fake(...args);
+      child.once("spawn", () => {
+        child.emit("exit", 0, null);
+        setTimeout(() => void fakeEngine(workspace), 300);
+      });
+      return child;
+    });
+    const c = client(workspace, { timeout: 60_000 });
+    await c.start();
+    expect(c.isRunning()).toBe(true);
+  });
+
+  test("a start that times out carries a code", async () => {
+    const workspace = tempDir();
+    const socketPath = engineSocketPath(workspace, "main");
+    const lockPath = engineStartLockPath(workspace, "main");
+    onlyEntry(path.join(SRC_DIR, "engine-daemon.js"));
+    fakeSpawn();
+    const never = (await client(workspace, { timeout: 120 })
+      .start()
+      .catch((e: unknown) => e)) as { code?: string };
+    expect(never.code).toBe("ENGINE_CONNECT_TIMEOUT");
+    mock.restore();
+    writeFileSync(lockPath, `${process.pid}:${Date.now()}\n`);
+    fakeSpawn();
+    const locked = (await client(workspace, { timeout: 120 })
+      .start()
+      .catch((e: unknown) => e)) as { code?: string; message: string };
+    expect(locked.message).toContain(socketPath);
+    expect(locked.code).toBe("ENGINE_CONNECT_TIMEOUT");
+  });
+
   test("time out a connection that never completes", async () => {
     const workspace = tempDir();
     prepareStore(workspace);

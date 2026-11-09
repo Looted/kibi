@@ -54,13 +54,15 @@ export class KbRejection extends Error {
 // implements REQ-kibi-telemetry-expected-outcomes
 /**
  * Wrap a failure in a message prefix such as `Upsert execution failed: `,
- * keeping a rejection's code so the refusal is not counted as a fault.
+ * keeping a rejection's code so the refusal is not counted as a fault, and
+ * any other failure as the `cause`, so telemetry names the error underneath
+ * instead of the wrapper.
  */
 export function prefixedFailure(prefix: string, error: unknown): Error {
   const message = `${prefix}${error instanceof Error ? error.message : String(error)}`;
   return error instanceof KbRejection
     ? new KbRejection(error.code, message, error.issues)
-    : new Error(message);
+    : new Error(message, { cause: error });
 }
 
 // implements REQ-kibi-telemetry-expected-outcomes

@@ -201,6 +201,12 @@ describe("MCP anonymous usage telemetry", () => {
     call(null);
     call(Object.assign(() => undefined, { code: "FUNCTION_CODE" }));
     call(Object.assign(new Error("something broke"), { code: "" }));
+    // A plain wrapper takes the code of the error it wraps.
+    call(
+      new Error("Upsert execution failed: x", {
+        cause: Object.assign(new Error("x"), { code: "ENOENT" }),
+      }),
+    );
 
     const categories = fs
       .readFileSync(path.join(directory, "telemetry-queue.jsonl"), "utf8")
@@ -212,6 +218,7 @@ describe("MCP anonymous usage telemetry", () => {
       "handler_error",
       "handler_error",
       "handler_error",
+      "enoent",
     ]);
   });
 
