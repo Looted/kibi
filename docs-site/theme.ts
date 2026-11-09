@@ -85,28 +85,6 @@ const CLOSING_RAIL_SVG = `<svg class="closing-rail" viewBox="0 0 520 40" aria-hi
   <circle cx="500" cy="20" r="7" fill="#63c99a"/>
 </svg>`;
 
-/** Small rail sketches for the three places intent gets lost. */
-const GAP_ART = {
-  prompt: `<svg class="gap-art" viewBox="0 0 220 40" aria-hidden="true" fill="none">
-  <circle cx="14" cy="20" r="9" fill="#a2d3f4"/>
-  <line x1="23" y1="20" x2="110" y2="20" stroke="#3e8ed6" stroke-width="2"/>
-  <line x1="116" y1="20" x2="206" y2="20" stroke="#34434f" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round"/>
-</svg>`,
-  link: `<svg class="gap-art" viewBox="0 0 220 40" aria-hidden="true" fill="none">
-  <circle cx="14" cy="20" r="9" fill="#a2d3f4"/>
-  <line x1="23" y1="20" x2="92" y2="20" stroke="#3e8ed6" stroke-width="2"/>
-  <path d="M92 12v16M128 12v16" stroke="#f2b84b" stroke-width="2" stroke-linecap="round"/>
-  <line x1="128" y1="20" x2="196" y2="20" stroke="#34434f" stroke-width="2"/>
-  <circle cx="202" cy="20" r="5" fill="#111318" stroke="#34434f" stroke-width="2"/>
-</svg>`,
-  green: `<svg class="gap-art" viewBox="0 0 220 40" aria-hidden="true" fill="none">
-  <circle cx="14" cy="20" r="9" fill="#a2d3f4"/>
-  <line x1="23" y1="20" x2="196" y2="20" stroke="#34434f" stroke-width="2"/>
-  <path d="M150 9v22M164 9v22" stroke="#3e8ed6" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="204" cy="20" r="7" fill="#111318" stroke="#aab8c2" stroke-width="2"/>
-  <text x="204" y="24" text-anchor="middle" fill="#aab8c2" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10">?</text>
-</svg>`,
-};
 
 // implements REQ-docs-site-root-pages
 export const styles = String.raw`
@@ -555,14 +533,25 @@ figure.code.hero-copy {
 .agent-list li.agent-more::before { border-color: var(--rail); }
 .agent-list li.agent-more { color: var(--mist); }
 
-/* Problem cards: three places intent falls off the rail */
-.prose .gaps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--rail); }
-.prose .gaps li { margin: 0; padding: 28px 28px 8px 0; position: relative; }
-.prose .gaps li + li { padding-left: 28px; border-left: 1px solid var(--rail); }
-.gap-art { display: block; width: 100%; max-width: 220px; height: auto; margin: 0 0 22px; }
-.gap-num { display: block; font-family: var(--mono); font-size: 12.5px; color: var(--mist); margin-bottom: 8px; }
-.gaps h3 { margin: 0 0 8px; font-size: 19px; color: var(--snow); letter-spacing: -0.01em; }
-.gaps p { margin: 0; color: var(--mist); font-size: 15px; }
+/* Problem and payoff: what changes for the developer */
+.landing > section.payoff { margin-top: 96px; }
+.landing .payoff h2 { max-width: 22em; }
+.prose .payoffs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.prose .payoffs li {
+  margin: 0; position: relative; overflow: hidden;
+  background: var(--panel); border: 1px solid var(--rail); border-radius: 14px; padding: 26px 26px 22px;
+  transition: border-color 160ms ease;
+}
+.prose .payoffs li:hover { border-color: var(--signal); }
+.po-num { display: block; font-family: var(--mono); font-size: 12px; color: var(--mist); margin-bottom: 8px; }
+.payoffs h3 { margin: 0 0 18px; font-size: 21px; line-height: 1.25; color: var(--snow); letter-spacing: -0.015em; }
+.po-row { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 14px; padding: 12px 0; border-top: 1px solid var(--rail); }
+.po-row span { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase; padding-top: 3px; }
+.landing .po-row p { margin: 0; font-size: 14.5px; line-height: 1.55; }
+.po-without span { color: var(--mist); }
+.landing .po-without p { color: var(--mist); }
+.po-with span { color: var(--ice); }
+.landing .po-with p { color: var(--snow); }
 
 /* Flow: the proof rail as a five-stage diagram that draws itself */
 .prose .flow {
@@ -735,9 +724,7 @@ figure.code.hero-copy {
   .landing > section { margin-top: 88px; }
   .landing .install-grid, .faq-wrap, .report-strip, .agents { grid-template-columns: minmax(0, 1fr); }
   .faq-side { position: static; }
-  .prose .gaps { grid-template-columns: minmax(0, 1fr); }
-  .prose .gaps li, .prose .gaps li + li { padding: 26px 0 22px; border-left: none; }
-  .prose .gaps li + li { border-top: 1px solid var(--rail); }
+  .prose .payoffs { grid-template-columns: minmax(0, 1fr); }
   .prose .flow { grid-template-columns: minmax(0, 1fr); gap: 30px; padding-left: 0; }
   .flow::before, .flow::after { left: calc(var(--node) / 2 - 1px); right: auto; top: 6px; bottom: 30px; width: 2px; height: auto; }
   .flow::after { transform-origin: top; }
@@ -755,6 +742,7 @@ figure.code.hero-copy {
   .faq summary { grid-template-columns: 34px minmax(0, 1fr) 18px; font-size: 15px; }
   .faq details p { margin-left: 0; }
   .report-strip { padding: 26px 24px; }
+  .po-row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
 }
 
 /* ---------- Responsive ---------- */
@@ -1477,6 +1465,37 @@ export function landingContent(args: {
     </ul>
   </div>
 </section>
+<section class="payoff">
+  <p class="eyebrow reveal"><span class="eb-num">01</span>The problem</p>
+  <h2 class="reveal">Coding agents are fast. They also forget.</h2>
+  <p class="lede reveal">Every session starts from zero. The agent does not know why yesterday&rsquo;s code exists, quietly undoes decisions you made last week, and calls a feature done because the tests pass. Kibi gives it a project memory it has to respect, and gives you a straight answer about what still works.</p>
+  <ul class="payoffs">
+    <li class="reveal">
+      <span class="po-num">01</span>
+      <h3>Decisions stop getting undone</h3>
+      <div class="po-row po-without"><span>Without</span><p>The agent rewrites a rule it never knew existed.</p></div>
+      <div class="po-row po-with"><span>With Kibi</span><p>Before it edits a file, the agent is shown the requirement that code implements, what it must keep true, and the decision behind it.</p></div>
+    </li>
+    <li class="reveal reveal-d1">
+      <span class="po-num">02</span>
+      <h3>Intent outlives the chat</h3>
+      <div class="po-row po-without"><span>Without</span><p>The reason for a change disappears when the session ends.</p></div>
+      <div class="po-row po-with"><span>With Kibi</span><p>Requirements live in <code>.kb/</code> beside the code, travel with every branch, and cite the ticket or page they came from.</p></div>
+    </li>
+    <li class="reveal">
+      <span class="po-num">03</span>
+      <h3>Conflicts are caught before the code</h3>
+      <div class="po-row po-without"><span>Without</span><p>Two prompts a week apart contradict each other, and nobody notices.</p></div>
+      <div class="po-row po-with"><span>With Kibi</span><p>A rule that contradicts an existing one is refused with both named, and you decide which wins.</p></div>
+    </li>
+    <li class="reveal reveal-d1">
+      <span class="po-num">04</span>
+      <h3>&ldquo;Done&rdquo; means tested, not claimed</h3>
+      <div class="po-row po-without"><span>Without</span><p>Green CI does not say which product behavior still works on this commit.</p></div>
+      <div class="po-row po-with"><span>With Kibi</span><p>The health report shows which requirements have fresh end-to-end evidence, which rest only on someone&rsquo;s word, and which have gaps.</p></div>
+    </li>
+  </ul>
+</section>
 <section class="demo">
   ${terminalDemoHtml()}
 </section>
@@ -1492,17 +1511,7 @@ export function landingContent(args: {
   </ul>
 </section>
 <section>
-  <p class="eyebrow reveal"><span class="eb-num">01</span>The gap</p>
-  <h2 class="reveal">What usually gets lost</h2>
-  <p class="lede reveal">Agents write code faster than anyone can remember why it exists. Three things fall off the rail first.</p>
-  <ul class="gaps">
-    <li class="reveal">${GAP_ART.prompt}<span class="gap-num">01</span><h3>The prompt</h3><p>The session ends, and the reason for yesterday&rsquo;s change is gone.</p></li>
-    <li class="reveal reveal-d1">${GAP_ART.link}<span class="gap-num">02</span><h3>The link to the code</h3><p>A ticket can say what you wanted. It rarely names the function that was supposed to do it.</p></li>
-    <li class="reveal reveal-d2">${GAP_ART.green}<span class="gap-num">03</span><h3>The meaning of green</h3><p>A passing suite does not say which product behavior is still true on this commit.</p></li>
-  </ul>
-</section>
-<section>
-  <p class="eyebrow reveal"><span class="eb-num">02</span>The rail</p>
+  <p class="eyebrow reveal"><span class="eb-num">02</span>How it works</p>
   <h2 class="reveal">From prompt to proof, on one rail</h2>
   <p class="lede reveal">Kibi keeps intent attached to the work at every stage, and it is conservative about the last one.</p>
   <ol class="flow reveal">
