@@ -553,28 +553,37 @@ figure.code.hero-copy {
 .po-with span { color: var(--ice); }
 .landing .po-with p { color: var(--snow); }
 
-/* Story: one trade-off across two sessions */
-.prose .story { list-style: none; margin: 0 0 48px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; position: relative; }
-.prose .story-step {
-  margin: 0; display: flex; flex-direction: column; gap: 10px;
-  background-color: var(--carbon); border: 1px solid var(--rail); border-radius: 14px; padding: 18px;
-  background-image: linear-gradient(rgba(52, 67, 79, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(52, 67, 79, 0.3) 1px, transparent 1px);
-  background-size: 22px 22px; background-position: -1px -1px;
-  font-family: var(--mono); font-size: 12.5px; line-height: 1.5;
-}
-.story-tag { font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mist); }
-.story-lost .story-tag { color: var(--warning); }
-.story-kept { border-color: var(--signal); }
-.story-kept .story-tag { color: var(--ice); }
-.prose .story-code { margin: 0; padding: 12px; background: var(--deep); border: 1px solid var(--rail); border-radius: 10px; white-space: pre-wrap; }
-.prose .story-code code { font-family: var(--mono); font-size: 12.5px; color: var(--snow); background: none; padding: 0; }
-.sc-dim { color: var(--mist); }
-.story-lost .sk-agent { color: var(--warning); border-color: rgba(242, 184, 75, 0.45); }
-.story-req { color: var(--snow); margin: 8px 0 6px; font-family: var(--sans); font-size: 14px; }
-.story-why { color: var(--snow); background: rgba(162, 211, 244, 0.08); border-left: 2px solid var(--ice); padding: 6px 10px; margin: 0 0 8px; border-radius: 0 6px 6px 0; }
-.story-why span { display: block; color: var(--ice); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
-.story-ok { color: var(--proven); }
-.story-kept .sk-agent { color: var(--ice); }
+/* Intent vs code: the same five lines, with and without their reasons */
+.ix { border: 1px solid var(--rail); border-radius: 14px; overflow: hidden; background: var(--panel); margin: 0 0 48px; }
+.ix-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: var(--carbon); border-bottom: 1px solid var(--rail); }
+.ix-file { font-family: var(--mono); font-size: 12.5px; color: var(--mist); }
+.ix-toggle { display: inline-flex; padding: 3px; gap: 3px; border: 1px solid var(--rail); border-radius: 9px; background: var(--deep); }
+.ix-btn { font: 600 12.5px var(--sans); color: var(--mist); background: transparent; border: none; border-radius: 6px; padding: 5px 11px; cursor: pointer; transition: color 140ms ease, background-color 140ms ease; }
+.ix-btn:hover { color: var(--snow); }
+.ix-btn[aria-pressed="true"] { color: var(--deep); background: var(--ice); }
+.ix-btn:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+.ix-row { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); border-top: 1px solid rgba(52, 67, 79, 0.6); }
+.ix-row:first-child { border-top: none; }
+.prose .ix-code { margin: 0; padding: 14px 20px; background: none; border: none; border-left: 3px solid transparent; white-space: pre; overflow-x: auto; transition: border-color 400ms ease; }
+.prose .ix-code code { font-family: var(--mono); font-size: 13px; line-height: 1.6; color: var(--snow); background: none; padding: 0; }
+.tk-k { color: var(--signal); }
+.tk-n { color: var(--ice); }
+.ix-note { padding: 12px 20px; border-left: 1px solid rgba(52, 67, 79, 0.6); transition: opacity 400ms ease, transform 400ms ease; }
+.ix-tag { display: inline-block; font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; border-radius: 5px; padding: 1px 7px; margin: 0 8px 4px 0; border: 1px solid var(--rail); color: var(--mist); }
+.ix-req { font-family: var(--mono); font-size: 12px; color: var(--ice); }
+.landing .ix-note p { margin: 2px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--snow); }
+.ix-firm .ix-tag { color: var(--deep); background: var(--ice); border-color: var(--ice); }
+.ix-default .ix-tag { color: var(--signal); border-color: var(--signal); }
+.ix-exploratory .ix-tag { border-style: dashed; }
+.ix-untraced .ix-tag { color: var(--warning); border-color: var(--warning); }
+.ix[data-view="intent"] .ix-firm .ix-code { border-left-color: var(--ice); }
+.ix[data-view="intent"] .ix-default .ix-code { border-left-color: var(--signal); }
+.ix[data-view="intent"] .ix-exploratory .ix-code { border-left-color: var(--mist); }
+.ix[data-view="intent"] .ix-untraced .ix-code { border-left-color: var(--warning); }
+.ix[data-view="code"] .ix-note { opacity: 0; transform: translateX(-8px); }
+.ix-foot { margin: 0; padding: 12px 20px; border-top: 1px solid var(--rail); background: var(--carbon); font-size: 13.5px; color: var(--mist); }
+.ix[data-view="intent"] .ix-foot-code, .ix[data-view="code"] .ix-foot-intent { display: none; }
+.ix[data-view="code"] .ix-foot-code { color: var(--warning); }
 
 /* Memory vs Kibi comparison */
 .vs-table { border: 1px solid var(--rail); border-radius: 14px; overflow: hidden; background: var(--panel); }
@@ -762,7 +771,10 @@ figure.code.hero-copy {
   .landing > section { margin-top: 88px; }
   .landing .install-grid, .faq-wrap, .report-strip, .agents { grid-template-columns: minmax(0, 1fr); }
   .faq-side { position: static; }
-  .prose .payoffs, .prose .story { grid-template-columns: minmax(0, 1fr); }
+  .prose .payoffs { grid-template-columns: minmax(0, 1fr); }
+  .ix-row { grid-template-columns: minmax(0, 1fr); }
+  .ix-note { border-left: none; padding-top: 0; }
+  .ix[data-view="code"] .ix-note { display: none; }
   .vs-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .vs-row .vs-k { grid-column: 1 / -1; padding-bottom: 0; }
   .vs-head > div:first-child { display: none; }
@@ -980,6 +992,33 @@ export const clientScript = String.raw`
       });
     }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
     for (var r = 0; r < reveals.length; r++) revealer.observe(reveals[r]);
+  }
+
+  /* ----- Intent vs code toggle (landing page) ----- */
+  var ix = document.querySelector("[data-intent-demo]");
+  if (ix) {
+    var ixButtons = ix.querySelectorAll("[data-ix-view]");
+    var setView = function (view) {
+      ix.setAttribute("data-view", view);
+      ixButtons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-ix-view") === view)); });
+    };
+    var ixTouched = false;
+    ixButtons.forEach(function (b) {
+      b.addEventListener("click", function () {
+        ixTouched = true;
+        setView(b.getAttribute("data-ix-view"));
+        track("intent-toggle", { view: b.getAttribute("data-ix-view") });
+      });
+    });
+    if ("IntersectionObserver" in window && !reduceMotion) {
+      setView("code");
+      var ixObserver = new IntersectionObserver(function (entries) {
+        if (!entries[0].isIntersecting) return;
+        ixObserver.disconnect();
+        setTimeout(function () { if (!ixTouched) setView("intent"); }, 1800);
+      }, { threshold: 0.6 });
+      ixObserver.observe(ix);
+    }
   }
 
   /* ----- Rail field (landing hero) -----
@@ -1512,37 +1551,51 @@ export function landingContent(args: {
 </section>
 <section class="payoff">
   <p class="eyebrow reveal"><span class="eb-num">01</span>The problem</p>
-  <h2 class="reveal">The code survives. The reasons don&rsquo;t.</h2>
-  <p class="lede reveal">Code is full of assumptions, shortcuts and trade-offs. The reasoning behind them lives in the chat where you agreed them: &ldquo;we&rsquo;ll do X to keep users from churning.&rdquo; By the next session it has shrunk to &ldquo;we did X&rdquo;, and the business reason is gone. Kibi keeps that reason next to the code, and makes the next agent respect it.</p>
-  <ol class="story reveal" aria-label="Example: a trade-off over two sessions">
-    <li class="story-step">
-      <span class="story-tag">Session 1 &middot; the chat</span>
-      <div class="sk-bubble">&rsaquo; Cut the trial to 14 days. Shorter trials convert better for us, and we accept a bit more churn.</div>
-      <div class="sk-bubble sk-agent">Done. TRIAL_DAYS is now 14.</div>
-    </li>
-    <li class="story-step story-lost">
-      <span class="story-tag">Session 2 &middot; without Kibi</span>
-      <pre class="story-code"><code><span class="sc-dim">// billing/trial.ts</span>
-export const TRIAL_DAYS = 14;</code></pre>
-      <div class="sk-bubble sk-agent">Most products use a 30-day trial. Changing it to 30 for consistency.</div>
-    </li>
-    <li class="story-step story-kept">
-      <span class="story-tag">Session 2 &middot; with Kibi</span>
-      <div class="sk-card">
-        <div class="sk-row"><span class="sk-id">REQ-trial-length</span><span>firm</span></div>
-        <div class="story-req">The free trial lasts 14 days.</div>
-        <div class="story-why"><span>why</span>Shorter trials convert better. Accepted trade-off: more churn.</div>
-        <div class="sk-row"><span>implemented by</span><span class="sk-id">TRIAL_DAYS</span></div>
-        <div class="sk-row"><span>evidence</span><span class="story-ok">tested</span></div>
+  <h2 class="reveal">Code shows what the software does. Not what it must keep doing.</h2>
+  <p class="lede reveal">In source, every line looks equally deliberate. A hard-won trade-off, a business rule, a temporary assumption, a shortcut and a forgotten leftover all read the same. The difference lived in the conversation where they were decided, and that conversation is gone. So the next agent either &ldquo;cleans up&rdquo; a decision or carefully preserves an accident.</p>
+  <div class="ix reveal" data-intent-demo data-view="intent">
+    <div class="ix-bar">
+      <span class="ix-file">billing.ts</span>
+      <div class="ix-toggle" role="group" aria-label="View">
+        <button type="button" class="ix-btn" data-ix-view="code" aria-pressed="false">What the agent sees</button>
+        <button type="button" class="ix-btn" data-ix-view="intent" aria-pressed="true">What you decided</button>
       </div>
-      <div class="sk-bubble sk-agent">TRIAL_DAYS is a firm decision (REQ-trial-length). Should I change it?</div>
-    </li>
-  </ol>
+    </div>
+    <div class="ix-body">
+      <div class="ix-row ix-firm">
+        <pre class="ix-code"><code><span class="tk-k">export const</span> TRIAL_DAYS = <span class="tk-n">14</span>;</code></pre>
+        <div class="ix-note"><span class="ix-tag">firm: ask before changing</span><span class="ix-req">REQ-trial-length</span><p>A trade-off: shorter trials convert better, and we accept more churn.</p></div>
+      </div>
+      <div class="ix-row ix-firm">
+        <pre class="ix-code"><code><span class="tk-k">export function</span> canCheckout(cart) {
+  <span class="tk-k">return</span> cart.total &gt; <span class="tk-n">0</span>;
+}</code></pre>
+        <div class="ix-note"><span class="ix-tag">firm: ask before changing</span><span class="ix-req">REQ-checkout-total-positive</span><p>A business rule: never charge for an empty cart.</p></div>
+      </div>
+      <div class="ix-row ix-exploratory">
+        <pre class="ix-code"><code><span class="tk-k">export const</span> MAX_SEATS = <span class="tk-n">50</span>;</code></pre>
+        <div class="ix-note"><span class="ix-tag">exploratory</span><span class="ix-req">REQ-seat-cap</span><p>An assumption: holds until enterprise pricing exists. Revisit when this area is touched.</p></div>
+      </div>
+      <div class="ix-row ix-default">
+        <pre class="ix-code"><code><span class="tk-k">export function</span> chargeWithRetry(order) {
+  <span class="tk-k">return</span> retry(() =&gt; charge(order), { attempts: <span class="tk-n">5</span> });
+}</code></pre>
+        <div class="ix-note"><span class="ix-tag">default</span><span class="ix-req">REQ-payment-retry</span><p>A shortcut: the payment provider drops webhooks. A later agent may rework it with evidence.</p></div>
+      </div>
+      <div class="ix-row ix-untraced">
+        <pre class="ix-code"><code><span class="tk-k">export function</span> legacyDiscount(user) {
+  <span class="tk-k">return</span> user.createdAt &lt; CUTOFF ? <span class="tk-n">0.1</span> : <span class="tk-n">0</span>;
+}</code></pre>
+        <div class="ix-note"><span class="ix-tag">no requirement owns this</span><p>Nobody recorded why. Kibi asks the agent to write down what it does before changing it.</p></div>
+      </div>
+    </div>
+    <p class="ix-foot"><span class="ix-foot-code">Five pieces of code. Without the reasons, any of them could be a decision or a mistake.</span><span class="ix-foot-intent">With Kibi, the reasons are written down, linked to the code, and shown to the agent before it edits these lines.</span></p>
+  </div>
   <ul class="payoffs">
     <li class="reveal">
       <span class="po-num">01</span>
       <h3>The why outlives the chat</h3>
-      <div class="po-row po-without"><span>Without</span><p>&ldquo;We&rsquo;ll do X to retain users&rdquo; becomes &ldquo;we did X&rdquo;, and the next agent cannot tell a trade-off from a mistake.</p></div>
+      <div class="po-row po-without"><span>Without</span><p>The chat said &ldquo;we&rsquo;ll do X to retain users&rdquo;. The code only says X, and the next agent cannot tell a trade-off from a mistake.</p></div>
       <div class="po-row po-with"><span>With Kibi</span><p>Each requirement records why it exists, and decisions keep their trade-offs. They live in <code>.kb/</code> beside the code on every branch, and Kibi flags requirements that do not say why.</p></div>
     </li>
     <li class="reveal reveal-d1">
