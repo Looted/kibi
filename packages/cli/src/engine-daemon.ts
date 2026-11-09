@@ -3,7 +3,7 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { runEngineDaemon } from "./engine.js";
+import { engineSidecarPath, runEngineDaemon } from "./engine.js";
 
 // Node 22.14 and earlier do not set `import.meta.main`. The journaled engine
 // client always hosts this file with `node`, so the entry check must work
@@ -53,7 +53,9 @@ export async function runEngineDaemonCli(
     const socketPath = socketIndex >= 0 ? args[socketIndex + 1] : undefined;
     if (socketPath) {
       try {
-        writeFileSync(`${socketPath}.error`, `${message}\n`, { mode: 0o600 });
+        writeFileSync(engineSidecarPath(socketPath, ".error"), `${message}\n`, {
+          mode: 0o600,
+        });
       } catch {
         // Preserve the process exit code even if the diagnostic path is gone.
       }

@@ -41,6 +41,7 @@ import {
   enginePackageVersions,
   enginePidPath,
   enginePublicationLockPath,
+  engineSidecarPath,
   engineSocketPath,
   engineStartLockPath,
   engineSwiplIdentity,
@@ -525,6 +526,18 @@ describe("engine paths", () => {
       `${socket}.publish.lock`,
     );
     expect(engineSocketPath(workspace, "dev")).not.toBe(socket);
+  });
+
+  test("keep a named pipe's files in the runtime directory", () => {
+    expect(engineSidecarPath("/run/kibi-a.sock", ".error")).toBe(
+      "/run/kibi-a.sock.error",
+    );
+    expect(engineSidecarPath("\\\\.\\pipe\\kibi-abc", ".error")).toBe(
+      path.join(runtimeDirectory(), "kibi-abc.error"),
+    );
+    expect(engineSidecarPath("\\\\.\\pipe\\kibi-abc", ".publish.lock")).toBe(
+      path.join(runtimeDirectory(), "kibi-abc.publish.lock"),
+    );
   });
 });
 

@@ -218,6 +218,7 @@ async function smoke({ packagesDir }) {
       path.join(project, "package.json"),
       `${JSON.stringify({ name: "system-smoke", version: "1.0.0", private: true, overrides }, null, 2)}\n`,
     );
+    writeFileSync(path.join(project, ".gitignore"), "node_modules/\n");
     run("git init", "git init -q -b main", at);
     run(
       "git commit",

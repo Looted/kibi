@@ -557,6 +557,24 @@ export function engineSocketPath(
   return path.join(runtimeDirectory(), `kibi-${key}.sock`);
 }
 
+const WINDOWS_PIPE_PREFIX = "\\\\.\\pipe\\";
+
+/**
+ * A file that sits beside the engine socket, such as its start diagnostic.
+ * A Windows named pipe lives in the pipe namespace, where no file can be
+ * written, so its files go to the runtime directory under the pipe's name.
+ */
+// implements REQ-core-journaled-engine-persistence
+export function engineSidecarPath(socketPath: string, suffix: string): string {
+  if (socketPath.startsWith(WINDOWS_PIPE_PREFIX)) {
+    return path.join(
+      runtimeDirectory(),
+      `${socketPath.slice(WINDOWS_PIPE_PREFIX.length)}${suffix}`,
+    );
+  }
+  return `${socketPath}${suffix}`;
+}
+
 export function enginePidPath(workspaceRoot: string, branch: string): string {
   const socket = engineSocketPath(workspaceRoot, branch);
   if (process.platform === "win32") {
@@ -594,7 +612,10 @@ export function enginePublicationLockPath(
   workspaceRoot: string,
   branch: string,
 ): string {
-  return `${engineSocketPath(workspaceRoot, branch)}.publish.lock`;
+  return engineSidecarPath(
+    engineSocketPath(workspaceRoot, branch),
+    ".publish.lock",
+  );
 }
 
 /** Whether the pid stamped in a lock file (`<pid>:<created>`) still runs. */
@@ -848,7 +869,7 @@ async function connectWithRetry(
   let lastError: unknown;
   let exitedAt: number | undefined;
   while (Date.now() < deadline) {
-    const errorPath = `${socketPath}.error`;
+    const errorPath = engineSidecarPath(socketPath, ".error");
     if (existsSync(errorPath)) {
       try {
         const diagnostic = readFileSync(errorPath, "utf8").trim();
@@ -1038,7 +1059,7 @@ export class EngineClient {
         if (lock !== null) {
           let daemonExit: string | null = null;
           try {
-            rmSync(`${socketPath}.error`, { force: true });
+            rmSync(engineSidecarPath(socketPath, ".error"), { force: true });
             try {
               const daemon = spawn(
                 nodePath,
@@ -1893,7 +1914,13 @@ export async function runEngineDaemon(requestedOptions: {
   const serverPrologIdentity = engineSwiplIdentity();
   const serverPackageVersions = enginePackageVersions();
 
-  mkdirSync(path.dirname(options.socketPath), { recursive: true, mode: 0o700 });
+  // A Windows named pipe has no directory to create.
+  if (!options.socketPath.startsWith(WINDOWS_PIPE_PREFIX)) {
+    mkdirSync(path.dirname(options.socketPath), {
+      recursive: true,
+      mode: 0o700,
+    });
+  }
   // A missing socket refuses the probe like a stale one.
   {
     const isLivePeerSignal = (error: unknown): boolean => {

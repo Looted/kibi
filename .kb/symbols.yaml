@@ -1960,6 +1960,56 @@ symbols:
         target: REQ-core-journaled-engine-persistence
       - type: covered_by
         target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-daemon-node-path
+    title: daemonNodePath
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-cli-engine-package-versions-constant
+    title: ENGINE_PACKAGE_VERSIONS
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: config
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-engine-daemon-package-versions
+      - type: implements
+        target: REQ-engine-daemon-package-versions
+  - id: SYM-cli-engine-client-inspect-live-daemon
+    title: EngineClient.inspectLiveDaemon
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-daemon-runtime-identity
+      - type: implements
+        target: REQ-prolog-daemon-runtime-identity
+  - id: SYM-cli-engine-daemon-identity-type
+    title: EngineDaemonIdentity
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: type
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-daemon-runtime-identity
+      - type: implements
+        target: REQ-prolog-daemon-runtime-identity
+  - id: SYM-cli-engine-sidecar-path
+    title: engineSidecarPath
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
   - id: SYM-cli-engine-socket-path
     title: engineSocketPath
     sourceFile: packages/cli/src/engine.ts
