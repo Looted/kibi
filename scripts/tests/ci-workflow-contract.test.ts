@@ -67,12 +67,14 @@ describe("ci.yml CI workflow contract", () => {
     "packed-e2e-mcp-regression",
     "packed-e2e-tarball-verify",
     "packed-e2e-branch-workflow",
+    "packed-e2e-windows-system-swipl",
   ] as const;
   const sourceDependentPackedJobs: readonly string[] = [
     "packed-e2e-cli-regression",
     "packed-e2e-mcp-regression",
     "packed-e2e-tarball-verify",
     "packed-e2e-branch-workflow",
+    "packed-e2e-windows-system-swipl",
   ] as readonly string[];
   const coverageGatedJobs = [...packedJobs] as const;
 
@@ -347,6 +349,15 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
     ]) {
       expect(workflow.jobs[job]?.needs).toContain("prolog-unit-coverage");
     }
+  });
+
+  test("native Windows runs the packed CLI and MCP server on a system SWI-Prolog", () => {
+    const block = extractJobBlock(ci, "packed-e2e-windows-system-swipl");
+    expect(block).toContain("runs-on: windows-2025");
+    expect(block).toContain("choco install swi-prolog");
+    expect(block).not.toContain(ACTION_REF);
+    expect(block).toContain("system-swipl-runtime.test.js");
+    expect(block).toContain('KIBI_PACKED_REQUIRE_SYSTEM_SWIPL: "1"');
   });
 
   test("ci-integration keeps a system SWI-Prolog on PATH and refuses the bundle", () => {
