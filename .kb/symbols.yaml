@@ -36648,6 +36648,166 @@ symbols:
         target: TEST-core-journaled-engine-delta-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-git-text
+    title: gitText
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-sync-assert-no-unresolved-git-conflicts
+    title: assertNoUnresolvedGitConflicts
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-sync-another-branch-store-synced
+    title: anotherBranchStoreSynced
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-sync-relationship-key
+    title: relationshipKey
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-relationship-from-key
+    title: relationshipFromKey
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-normalized-entity-hash
+    title: normalizedEntityHash
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-checkpoint-noop-sync
+    title: checkpointNoopSync
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-store-holds-any-entity
+    title: storeHoldsAnyEntity
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-compiler-cache-has-entity-delta
+    title: compilerCacheHasEntityDelta
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-report-dangling-relationships
+    title: reportDanglingRelationships
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-compiler-cache-is-fresh
+    title: compilerCacheIsFresh
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-compiler-cache-files-match
+    title: compilerCacheFilesMatch
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-embedded-entity-types
+    title: embeddedEntityTypes
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-sync-summary-kb-totals
+  - id: SYM-sync-report-validation-errors
+    title: reportValidationErrors
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-007
+      - type: implements
+        target: REQ-core-extractors
+  - id: SYM-sync-next-sync-cache
+    title: NextSyncCache
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-compiled-sync-cache
+    title: compiledSyncCache
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
   - id: SYM-sync-warn-failed-source-hash
     title: warnFailedSourceHash
     status: active

@@ -2541,6 +2541,18 @@ describe("engine session", () => {
     ]);
   });
 
+  test("escape backslashes in the attached store path", async () => {
+    const parent = tempDir();
+    const store = journalStore(path.join(parent));
+    const windowsLike = path.join(parent, "a\\b");
+    fs.renameSync(store, windowsLike);
+    const { stub, session: s } = session(() => OK, windowsLike);
+    await s.boot();
+    expect(stub.goals[0]).toBe(
+      `kb_attach('${windowsLike.replaceAll("\\", "\\\\")}')`,
+    );
+  });
+
   test("record a dead holder's takeover only after the attach", async () => {
     const store = journalStore();
     writeFileSync(path.join(store, "rdf", "lock"), `pid(${DEAD_PID}).`);

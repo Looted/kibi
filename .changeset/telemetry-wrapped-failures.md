@@ -9,3 +9,5 @@ Telemetry now names the error underneath a plain wrapper such as "Upsert executi
 On native Windows, Kibi now finds a system SWI-Prolog on the search path: it looks for `swipl.exe` and reads the `Path` variable whatever its case. Before, it looked only for an extensionless `swipl` under `PATH`, so doctor and every Prolog-backed command reported that no SWI-Prolog was installed.
 
 The engine daemon now starts on Windows named pipes: it no longer tries to create the pipe namespace as a directory, and its start diagnostic and publication lock are written to the runtime directory instead of beside the pipe, where no file can exist.
+
+Escape backslashes in the file paths Kibi passes to SWI-Prolog, so loading the core modules and attaching a KB work on Windows paths such as `C:\Users\...`.

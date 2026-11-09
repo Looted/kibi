@@ -25,6 +25,7 @@ import { fileURLToPath } from "node:url";
 import { getKbPlPathOverride, isPrologDebugEnabled } from "./env.js";
 import { kibiPackageVersions } from "./package-versions.js";
 import { writePerformanceTraceEvent } from "./performance-trace.js";
+import { escapeAtom } from "./prolog/codec.js";
 import {
   type PrologErrorRecord,
   extractPrologErrorRecord,
@@ -303,7 +304,7 @@ export class PrologProcess {
       launch.bin,
       [
         "-g",
-        `${PROLOG_UTF8_STREAMS_GOAL}, use_module('${kbPath}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
+        `${PROLOG_UTF8_STREAMS_GOAL}, use_module('${escapeAtom(kbPath)}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
         "--quiet",
       ],
       {
@@ -770,7 +771,7 @@ export class PrologProcess {
     const kbModulePath = resolveKbPlPath();
     const prologGoal = [
       PROLOG_UTF8_STREAMS_GOAL,
-      `use_module('${kbModulePath}')`,
+      `use_module('${escapeAtom(kbModulePath)}')`,
       "use_module(library(semweb/rdf_db))",
       "set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])",
       decodeGoalFromEnvGoal("KIBI_GOAL", "GoalAtom"),

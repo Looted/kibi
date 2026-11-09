@@ -16,7 +16,7 @@ import type {
   ExtractionResult,
 } from "../extractors/markdown.js";
 import { PrologProcess } from "../prolog.js";
-import { toPrologAtom, toPrologString } from "../prolog/codec.js";
+import { escapeAtom, toPrologAtom, toPrologString } from "../prolog/codec.js";
 import type { ExtractedSymbol } from "./symbol-extract";
 
 export interface TempKbContext {
@@ -125,7 +125,7 @@ function trace(message: string): void {
 }
 
 function escapePrologAtom(value: string): string {
-  return `'${value.replace(/'/g, "''")}'`;
+  return `'${escapeAtom(value)}'`;
 }
 
 function getEntityField(entity: ExtractedEntity, field: string): unknown {

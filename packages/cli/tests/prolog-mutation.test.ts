@@ -644,6 +644,15 @@ function pickEnv(options: Record<string, unknown>, keys: string[]) {
 }
 
 describe("start", () => {
+  test("escapes a Windows module path in the start goal", async () => {
+    process.env.KIBI_KB_PL_PATH = "C:\\Users\\it's\\kb.pl";
+    await started(undefined, { swiplPath: "/bin/sh" });
+    const [call] = spawned as [Spawned];
+    expect(call.args[1]).toContain(
+      "use_module('C:\\\\Users\\\\it''s\\\\kb.pl')",
+    );
+  });
+
   test("refuses a missing explicit executable", async () => {
     const error = await make({ swiplPath: "/no/such/swipl" })
       .start()

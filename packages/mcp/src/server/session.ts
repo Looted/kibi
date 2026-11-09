@@ -24,6 +24,7 @@ import { PrologProcess } from "kibi-runtime";
 import {
   copyCleanSnapshot,
   ensureBranchStoreManifest,
+  escapeAtomContent,
   getBranchDiagnostic,
   isValidBranchName,
   resolveActiveBranch,
@@ -286,7 +287,9 @@ async function refreshAttachedBranchKb(
     );
   }
 
-  const attachResult = await prolog.query(`kb_attach('${kbPath}')`);
+  const attachResult = await prolog.query(
+    `kb_attach('${escapeAtomContent(kbPath)}')`,
+  );
   await assertGeneration();
   if (!attachResult.success) {
     throw new KbRefreshError(
@@ -458,7 +461,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
       // Attach to new branch KB
       const attachResult = await state.prologProcess.query(
-        `kb_attach('${kbPath}')`,
+        `kb_attach('${escapeAtomContent(kbPath)}')`,
       );
       await assertGeneration();
       if (!attachResult.success) {
@@ -513,7 +516,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   const kbPath = sessionDeps.resolveKbPath(workspaceRoot, targetBranch);
   if (!useEngine) {
     const attachResult = await state.prologProcess.query(
-      `kb_attach('${kbPath}')`,
+      `kb_attach('${escapeAtomContent(kbPath)}')`,
     );
     await assertGeneration();
 

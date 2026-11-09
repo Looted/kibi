@@ -11,6 +11,7 @@ import {
   CapabilityRegistryCache,
   ensureCapabilityRegistry,
 } from "../plugins/registry.js";
+import { escapeAtom } from "../prolog/codec.js";
 import {
   nodeFilesystem,
   nodeGit,
@@ -78,7 +79,7 @@ function workspaceRoot(options: RuntimeOptions): string {
 }
 
 function quoteProlog(value: string): string {
-  return value.replaceAll("'", "''");
+  return escapeAtom(value);
 }
 
 function bindSignal(

@@ -47,7 +47,11 @@ import type {
 import { kibiPackageVersions } from "./package-versions.js";
 import { writePerformanceTraceEvent } from "./performance-trace.js";
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
-import { parseEntityFromList, parseListOfLists } from "./prolog/codec.js";
+import {
+  escapeAtom,
+  parseEntityFromList,
+  parseListOfLists,
+} from "./prolog/codec.js";
 import {
   decideStoreLockTakeover,
   isProcessAlive,
@@ -262,7 +266,7 @@ type PendingRequest = {
 };
 
 function quoteProlog(value: string): string {
-  return value.replaceAll("'", "''");
+  return escapeAtom(value);
 }
 
 function cacheableEngineGoal(goal: string): boolean {
