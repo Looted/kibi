@@ -41,6 +41,7 @@ import {
   enginePackageVersions,
   enginePidPath,
   enginePublicationLockPath,
+  engineSidecarPath,
   engineSocketPath,
   engineStartLockPath,
   engineSwiplIdentity,
@@ -526,6 +527,18 @@ describe("engine paths", () => {
     );
     expect(engineSocketPath(workspace, "dev")).not.toBe(socket);
   });
+
+  test("keep a named pipe's files in the runtime directory", () => {
+    expect(engineSidecarPath("/run/kibi-a.sock", ".error")).toBe(
+      "/run/kibi-a.sock.error",
+    );
+    expect(engineSidecarPath("\\\\.\\pipe\\kibi-abc", ".error")).toBe(
+      path.join(runtimeDirectory(), "kibi-abc.error"),
+    );
+    expect(engineSidecarPath("\\\\.\\pipe\\kibi-abc", ".publish.lock")).toBe(
+      path.join(runtimeDirectory(), "kibi-abc.publish.lock"),
+    );
+  });
 });
 
 describe("durability barrier", () => {
@@ -609,6 +622,36 @@ describe("durability barrier", () => {
     fsyncJournaledBranchStore(store);
     fsyncJournaledBranchStore(path.join(store, "missing"));
     expect(opened).toStrictEqual([store]);
+  });
+
+  test("open files writable and skip directories on Windows", () => {
+    const store = tempDir();
+    mkdirSync(path.join(store, "rdf"), { recursive: true });
+    writeFileSync(path.join(store, "rdf", "j1"), "x");
+    writeFileSync(path.join(store, "CURRENT"), "g");
+    const opened: Array<[string, unknown]> = [];
+    const open = fs.openSync;
+    spyOn(fs, "openSync").mockImplementation(((
+      file: string,
+      flags: unknown,
+      ...rest: unknown[]
+    ) => {
+      opened.push([String(file), flags]);
+      return (open as (...args: unknown[]) => number)(file, flags, ...rest);
+    }) as never);
+    fsyncJournaledBranchStore(store, "win32");
+    expect(opened).toStrictEqual([
+      [path.join(store, "rdf", "j1"), "r+"],
+      [path.join(store, "CURRENT"), "r+"],
+    ]);
+    opened.length = 0;
+    fsyncJournaledBranchStore(store, "linux");
+    expect(opened.map(([, flags]) => flags)).toStrictEqual([
+      "r",
+      "r",
+      "r",
+      "r",
+    ]);
   });
 });
 
@@ -2528,6 +2571,18 @@ describe("engine session", () => {
     ]);
   });
 
+  test("escape backslashes in the attached store path", async () => {
+    const parent = tempDir();
+    const store = journalStore(path.join(parent));
+    const windowsLike = path.join(parent, "a\\b");
+    fs.renameSync(store, windowsLike);
+    const { stub, session: s } = session(() => OK, windowsLike);
+    await s.boot();
+    expect(stub.goals[0]).toBe(
+      `kb_attach('${windowsLike.replaceAll("\\", "\\\\")}')`,
+    );
+  });
+
   test("record a dead holder's takeover only after the attach", async () => {
     const store = journalStore();
     writeFileSync(path.join(store, "rdf", "lock"), `pid(${DEAD_PID}).`);
@@ -4069,6 +4124,103 @@ describe("engine client start", () => {
         .start()
         .catch((e: Error) => e.message),
     ).toStartWith(`Unable to connect to Kibi engine at ${socketPath}: `);
+  });
+
+  test("report a spawned daemon that exits without listening", async () => {
+    const workspace = tempDir();
+    const socketPath = engineSocketPath(workspace, "main");
+    onlyEntry(path.join(SRC_DIR, "engine-daemon.js"));
+    const children: EventEmitter[] = [];
+    fakeSpawn();
+    const spawnSpy = childProcess.spawn as unknown as {
+      mockImplementation(fn: unknown): void;
+      getMockImplementation(): (...args: unknown[]) => EventEmitter;
+    };
+    const fake = spawnSpy.getMockImplementation();
+    spawnSpy.mockImplementation((...args: unknown[]) => {
+      const child = fake(...args);
+      children.push(child);
+      child.once("spawn", () =>
+        setTimeout(() => child.emit("exit", 3, null), 10),
+      );
+      return child;
+    });
+    const startedAt = Date.now();
+    const error = (await client(workspace, { timeout: 60_000 })
+      .start()
+      .catch((e: unknown) => e)) as Error & { code?: string };
+    const elapsed = Date.now() - startedAt;
+    expect(error.message).toBe(
+      `Kibi engine exited (exit code 3) before it accepted connections at ${socketPath}`,
+    );
+    expect(error.code).toBe("ENGINE_START_FAILED");
+    expect(children).toHaveLength(1);
+    expect(elapsed).toBeGreaterThanOrEqual(1000);
+    expect(elapsed).toBeLessThan(5000);
+  });
+
+  test("name the signal that ended a spawned daemon", async () => {
+    const workspace = tempDir();
+    onlyEntry(path.join(SRC_DIR, "engine-daemon.js"));
+    fakeSpawn();
+    const spawnSpy = childProcess.spawn as unknown as {
+      mockImplementation(fn: unknown): void;
+      getMockImplementation(): (...args: unknown[]) => EventEmitter;
+    };
+    const fake = spawnSpy.getMockImplementation();
+    spawnSpy.mockImplementation((...args: unknown[]) => {
+      const child = fake(...args);
+      child.once("spawn", () => child.emit("exit", null, "SIGKILL"));
+      return child;
+    });
+    expect(
+      await client(workspace, { timeout: 60_000 })
+        .start()
+        .catch((e: Error) => e.message),
+    ).toStartWith("Kibi engine exited (SIGKILL) before");
+  });
+
+  test("a daemon that loses the start race still connects to the winner", async () => {
+    const workspace = tempDir();
+    prepareStore(workspace);
+    onlyEntry(path.join(SRC_DIR, "engine-daemon.js"));
+    fakeSpawn();
+    const spawnSpy = childProcess.spawn as unknown as {
+      mockImplementation(fn: unknown): void;
+      getMockImplementation(): (...args: unknown[]) => EventEmitter;
+    };
+    const fake = spawnSpy.getMockImplementation();
+    spawnSpy.mockImplementation((...args: unknown[]) => {
+      const child = fake(...args);
+      child.once("spawn", () => {
+        child.emit("exit", 0, null);
+        setTimeout(() => void fakeEngine(workspace), 300);
+      });
+      return child;
+    });
+    const c = client(workspace, { timeout: 60_000 });
+    await c.start();
+    expect(c.isRunning()).toBe(true);
+  });
+
+  test("a start that times out carries a code", async () => {
+    const workspace = tempDir();
+    const socketPath = engineSocketPath(workspace, "main");
+    const lockPath = engineStartLockPath(workspace, "main");
+    onlyEntry(path.join(SRC_DIR, "engine-daemon.js"));
+    fakeSpawn();
+    const never = (await client(workspace, { timeout: 120 })
+      .start()
+      .catch((e: unknown) => e)) as { code?: string };
+    expect(never.code).toBe("ENGINE_CONNECT_TIMEOUT");
+    mock.restore();
+    writeFileSync(lockPath, `${process.pid}:${Date.now()}\n`);
+    fakeSpawn();
+    const locked = (await client(workspace, { timeout: 120 })
+      .start()
+      .catch((e: unknown) => e)) as { code?: string; message: string };
+    expect(locked.message).toContain(socketPath);
+    expect(locked.code).toBe("ENGINE_CONNECT_TIMEOUT");
   });
 
   test("time out a connection that never completes", async () => {

@@ -197,6 +197,29 @@ export function kibiStackFrames(stack: unknown): string[] {
 
 // implements REQ-kibi-telemetry-agent-signals
 /**
+ * The error a plain wrapper stands for: a message-prefixing `Error` with no
+ * code of its own (such as `Upsert execution failed: ...`) names nothing, so
+ * its `cause` chain is followed to the first error that has a class or code
+ * of its own. Anything else is returned as it is.
+ */
+export function telemetryRootError(error: unknown): unknown {
+  let current = error;
+  for (let depth = 0; depth < 5; depth += 1) {
+    if (!isRecord(current)) return current;
+    const wrapper: { code?: unknown; cause?: unknown } = current;
+    const errorClass: unknown = current.constructor;
+    if (errorClass !== Error) return current;
+    if (typeof wrapper.code === "string" && wrapper.code !== "") {
+      return current;
+    }
+    if (!isRecord(wrapper.cause)) return current;
+    current = wrapper.cause;
+  }
+  return current;
+}
+
+// implements REQ-kibi-telemetry-agent-signals
+/**
  * Where a crash happened in Kibi's own code: the top Kibi frame, and a
  * fingerprint of the error class and the top three Kibi frames that groups
  * the same crash across installs. Null when the stack has no Kibi frame.
@@ -206,7 +229,8 @@ export function telemetryCrash(
   errorClass: string | null,
 ): { frame: string | null; fingerprint: string | null } {
   const frames = kibiStackFrames(
-    (error as { stack?: unknown } | null | undefined)?.stack,
+    (telemetryRootError(error) as { stack?: unknown } | null | undefined)
+      ?.stack,
   );
   if (frames.length === 0) return { frame: null, fingerprint: null };
   const fingerprint = createHash("sha256")

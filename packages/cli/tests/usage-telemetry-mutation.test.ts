@@ -242,6 +242,23 @@ describe("noteCliThrownError", () => {
   });
 });
 
+describe("wrapped failures", () => {
+  test("a plain wrapper is named and placed by the error it wraps", async () => {
+    const cause = Object.assign(crash("inner"), { code: "ENOENT" });
+    noteCliThrownError(new Error("Upsert execution failed: x", { cause }));
+    await finish("upsert", 1);
+    await finish("sync", 1, {
+      error: new Error("Sync failed: x", { cause: crash("thrown") }),
+    });
+    expect(categories()).toStrictEqual(["enoent", "typeerror"]);
+    expect(field("error_class")).toStrictEqual(["TypeError", "TypeError"]);
+    expect(field("crash_frame")).toStrictEqual([
+      "kibi-cli/src/inner#inner",
+      "kibi-cli/src/thrown#thrown",
+    ]);
+  });
+});
+
 describe("noteCliOperationCall", () => {
   test("the first noted call gives the signals, until the event is recorded", async () => {
     noteCliOperationCall({ operation: "kb_upsert", args: { dryRun: true } });

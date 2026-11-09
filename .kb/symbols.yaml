@@ -1960,6 +1960,56 @@ symbols:
         target: REQ-core-journaled-engine-persistence
       - type: covered_by
         target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-daemon-node-path
+    title: daemonNodePath
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-cli-engine-package-versions-constant
+    title: ENGINE_PACKAGE_VERSIONS
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: config
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-engine-daemon-package-versions
+      - type: implements
+        target: REQ-engine-daemon-package-versions
+  - id: SYM-cli-engine-client-inspect-live-daemon
+    title: EngineClient.inspectLiveDaemon
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-daemon-runtime-identity
+      - type: implements
+        target: REQ-prolog-daemon-runtime-identity
+  - id: SYM-cli-engine-daemon-identity-type
+    title: EngineDaemonIdentity
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: type
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-daemon-runtime-identity
+      - type: implements
+        target: REQ-prolog-daemon-runtime-identity
+  - id: SYM-cli-engine-sidecar-path
+    title: engineSidecarPath
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
   - id: SYM-cli-engine-socket-path
     title: engineSocketPath
     sourceFile: packages/cli/src/engine.ts
@@ -14769,6 +14819,14 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-prolog-system-swipl-smoke
+    title: system SWI-Prolog smoke run
+    sourceFile: scripts/system-swipl-smoke.mjs
+    symbol_role: test
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-bundled-runtime
   - id: SYM-opencode-work-context-resolver-tests
     title: resolveWorkContext test suite
     sourceFile: packages/opencode/tests/work-context-resolver.test.ts
@@ -36590,6 +36648,166 @@ symbols:
         target: TEST-core-journaled-engine-delta-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-git-text
+    title: gitText
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-sync-assert-no-unresolved-git-conflicts
+    title: assertNoUnresolvedGitConflicts
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-sync-another-branch-store-synced
+    title: anotherBranchStoreSynced
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-sync-relationship-key
+    title: relationshipKey
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-relationship-from-key
+    title: relationshipFromKey
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-normalized-entity-hash
+    title: normalizedEntityHash
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-checkpoint-noop-sync
+    title: checkpointNoopSync
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-store-holds-any-entity
+    title: storeHoldsAnyEntity
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-compiler-cache-has-entity-delta
+    title: compilerCacheHasEntityDelta
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-report-dangling-relationships
+    title: reportDanglingRelationships
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-compiler-cache-is-fresh
+    title: compilerCacheIsFresh
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-compiler-cache-files-match
+    title: compilerCacheFilesMatch
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-embedded-entity-types
+    title: embeddedEntityTypes
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-sync-summary-kb-totals
+  - id: SYM-sync-report-validation-errors
+    title: reportValidationErrors
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-next-sync-cache
+    title: NextSyncCache
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-compiled-sync-cache
+    title: compiledSyncCache
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
   - id: SYM-sync-warn-failed-source-hash
     title: warnFailedSourceHash
     status: active
@@ -46548,6 +46766,56 @@ symbols:
         target: TEST-prolog-doctor-runtime-report
   - id: SYM-prolog-swipl-resolve
     title: resolveSwipl
+    status: active
+    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-bundled-runtime
+  - id: SYM-prolog-swipl-default-deps
+    title: defaultDeps
+    status: active
+    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-bundled-runtime
+  - id: SYM-prolog-swipl-detect-glibc
+    title: detectGlibc
+    status: active
+    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-bundled-runtime
+  - id: SYM-prolog-swipl-executable-digest
+    title: executableDigest
+    status: active
+    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-bundled-runtime
+  - id: SYM-prolog-swipl-run-goal
+    title: runSwiplGoal
+    status: active
+    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-bundled-runtime
+  - id: SYM-prolog-swipl-run-version
+    title: runSwiplVersion
     status: active
     sourceFile: packages/cli/src/prolog/swipl-resolver.ts
     symbol_role: behavioral

@@ -349,6 +349,17 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
     }
   });
 
+  test("native Windows runs the packed CLI and MCP server on a system SWI-Prolog", () => {
+    const block = extractJobBlock(ci, "packed-e2e-windows-system-swipl");
+    expect(block).toContain("runs-on: windows-2025");
+    expect(block).toContain("choco install swi-prolog");
+    expect(block).not.toContain(ACTION_REF);
+    expect(block).toContain("kibi-tarballs");
+    expect(block).toContain(
+      "node scripts/system-swipl-smoke.mjs --tarballs packages",
+    );
+  });
+
   test("ci-integration keeps a system SWI-Prolog on PATH and refuses the bundle", () => {
     const block = extractJobBlock(ci, "ci-integration");
     expect(block).toContain("bash scripts/ci-install-swi-prolog.sh");

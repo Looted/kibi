@@ -66,6 +66,7 @@ import { analyzeSemanticAdvisorInput } from "../operations/semantic-advisor/anal
 import { validateSemanticInventoryBoundary } from "../operations/semantic-advisor/ingestion-boundary.js";
 import { sourceAnalyzerInstallProblems } from "../plugins/plugin-install-check.js";
 import { PrologProcess } from "../prolog.js";
+import { escapeAtom } from "../prolog/codec.js";
 import {
   type BranchAttachment,
   detachedHeadWriteRefusal,
@@ -1614,7 +1615,9 @@ export async function syncCommand(
       new PrologProcess({ timeout: 120000 });
     await prolog.start();
 
-    const attachResult = await prolog.query(`kb_attach('${stagingPath}')`);
+    const attachResult = await prolog.query(
+      `kb_attach('${escapeAtom(stagingPath)}')`,
+    );
 
     if (!attachResult.success) {
       await prolog.terminate();

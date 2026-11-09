@@ -6,6 +6,7 @@ import {
   recordOperationTelemetry,
   takeTelemetryNotice,
   telemetryErrorClass,
+  telemetryRootError,
 } from "kibi-agent-core/usage-telemetry";
 import { operationTelemetrySignals } from "kibi-cli/telemetry-details";
 
@@ -60,9 +61,10 @@ function resultErrorCode(result: unknown): string | undefined {
 function thrownErrorCategory(error: unknown): string {
   const classified = classifyDiagnosticError(error).error_category;
   if (classified !== "handler_error") return classified;
+  const root = telemetryRootError(error);
   const code =
-    error !== null && typeof error === "object"
-      ? (error as { code?: unknown }).code
+    root !== null && typeof root === "object"
+      ? (root as { code?: unknown }).code
       : undefined;
   return typeof code === "string" && code !== "" ? code : classified;
 }

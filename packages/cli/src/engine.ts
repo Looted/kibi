@@ -47,7 +47,11 @@ import type {
 import { kibiPackageVersions } from "./package-versions.js";
 import { writePerformanceTraceEvent } from "./performance-trace.js";
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
-import { parseEntityFromList, parseListOfLists } from "./prolog/codec.js";
+import {
+  escapeAtom,
+  parseEntityFromList,
+  parseListOfLists,
+} from "./prolog/codec.js";
 import {
   decideStoreLockTakeover,
   isProcessAlive,
@@ -262,7 +266,7 @@ type PendingRequest = {
 };
 
 function quoteProlog(value: string): string {
-  return value.replaceAll("'", "''");
+  return escapeAtom(value);
 }
 
 function cacheableEngineGoal(goal: string): boolean {
@@ -493,8 +497,12 @@ function warnRuntimeDirectoryIgnored(directory: string, reason: string): void {
   );
 }
 
-function fsyncFile(filePath: string): void {
-  const descriptor = openSync(filePath, "r");
+/**
+ * Windows flushes a file only through a handle opened for writing; a
+ * read-only handle fails fsync with EPERM.
+ */
+function fsyncFile(filePath: string, platform: NodeJS.Platform): void {
+  const descriptor = openSync(filePath, platform === "win32" ? "r+" : "r");
   try {
     fsyncSync(descriptor);
   } finally {
@@ -502,17 +510,23 @@ function fsyncFile(filePath: string): void {
   }
 }
 
-function fsyncPath(filePath: string): void {
-  if (existsSync(filePath)) fsyncFile(filePath);
+function fsyncPath(filePath: string, platform: NodeJS.Platform): void {
+  if (existsSync(filePath)) fsyncFile(filePath, platform);
 }
 
 /** Fsync every journal file below `directory`; its directories, leaves first. */
-function fsyncJournalTree(directory: string): string[] {
+function fsyncJournalTree(
+  directory: string,
+  platform: NodeJS.Platform,
+): string[] {
   const directories: string[] = [];
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) directories.push(...fsyncJournalTree(entryPath));
-    else if (entry.isFile() && entry.name !== "lock") fsyncFile(entryPath);
+    if (entry.isDirectory())
+      directories.push(...fsyncJournalTree(entryPath, platform));
+    else if (entry.isFile() && entry.name !== "lock") {
+      fsyncFile(entryPath, platform);
+    }
   }
   directories.push(directory);
   return directories;
@@ -525,17 +539,22 @@ function fsyncJournalTree(directory: string): string[] {
  * survive a host crash as well as a process crash.
  */
 // implements REQ-core-journaled-engine-persistence
-export function fsyncJournaledBranchStore(branchPath: string): void {
+export function fsyncJournaledBranchStore(
+  branchPath: string,
+  platform: NodeJS.Platform = process.platform,
+): void {
   const rdfRoot = path.join(branchPath, "rdf");
-  const directories = existsSync(rdfRoot) ? fsyncJournalTree(rdfRoot) : [];
+  const directories = existsSync(rdfRoot)
+    ? fsyncJournalTree(rdfRoot, platform)
+    : [];
   for (const metadata of ["CURRENT", "storage.json", "kb.rdf"]) {
-    fsyncPath(path.join(branchPath, metadata));
+    fsyncPath(path.join(branchPath, metadata), platform);
   }
   // Publish directory entries from the leaves upward, ending at the branch
   // directory that owns CURRENT and the storage marker.
-  if (process.platform !== "win32") {
-    for (const directory of directories) fsyncFile(directory);
-    fsyncPath(branchPath);
+  if (platform !== "win32") {
+    for (const directory of directories) fsyncFile(directory, platform);
+    fsyncPath(branchPath, platform);
   }
 }
 
@@ -555,6 +574,24 @@ export function engineSocketPath(
     return `\\\\.\\pipe\\kibi-${key}`;
   }
   return path.join(runtimeDirectory(), `kibi-${key}.sock`);
+}
+
+const WINDOWS_PIPE_PREFIX = "\\\\.\\pipe\\";
+
+/**
+ * A file that sits beside the engine socket, such as its start diagnostic.
+ * A Windows named pipe lives in the pipe namespace, where no file can be
+ * written, so its files go to the runtime directory under the pipe's name.
+ */
+// implements REQ-core-journaled-engine-persistence
+export function engineSidecarPath(socketPath: string, suffix: string): string {
+  if (socketPath.startsWith(WINDOWS_PIPE_PREFIX)) {
+    return path.join(
+      runtimeDirectory(),
+      `${socketPath.slice(WINDOWS_PIPE_PREFIX.length)}${suffix}`,
+    );
+  }
+  return `${socketPath}${suffix}`;
 }
 
 export function enginePidPath(workspaceRoot: string, branch: string): string {
@@ -594,7 +631,10 @@ export function enginePublicationLockPath(
   workspaceRoot: string,
   branch: string,
 ): string {
-  return `${engineSocketPath(workspaceRoot, branch)}.publish.lock`;
+  return engineSidecarPath(
+    engineSocketPath(workspaceRoot, branch),
+    ".publish.lock",
+  );
 }
 
 /** Whether the pid stamped in a lock file (`<pid>:<created>`) still runs. */
@@ -831,14 +871,24 @@ function connectSocket(
   });
 }
 
+/**
+ * How long a client keeps polling after the daemon it spawned exited: long
+ * enough for a daemon that lost the start race to another one to see that
+ * one listening, far shorter than the whole start timeout.
+ */
+const DAEMON_EXIT_GRACE_MS = 1000;
+
 async function connectWithRetry(
   socketPath: string,
   timeoutMs: number,
+  /** How the daemon this client spawned exited, or null while it runs. */
+  daemonExit: () => string | null = () => null,
 ): Promise<net.Socket> {
   const deadline = Date.now() + timeoutMs;
   let lastError: unknown;
+  let exitedAt: number | undefined;
   while (Date.now() < deadline) {
-    const errorPath = `${socketPath}.error`;
+    const errorPath = engineSidecarPath(socketPath, ".error");
     if (existsSync(errorPath)) {
       try {
         const diagnostic = readFileSync(errorPath, "utf8").trim();
@@ -847,6 +897,20 @@ async function connectWithRetry(
         throw Object.assign(
           new Error(
             `Kibi engine failed to start: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+          { code: "ENGINE_START_FAILED" },
+        );
+      }
+    }
+    // A daemon that died without a diagnostic never listens: report it
+    // instead of waiting out the whole start timeout.
+    const exit = daemonExit();
+    if (exit !== null) {
+      exitedAt ??= Date.now();
+      if (Date.now() - exitedAt >= DAEMON_EXIT_GRACE_MS) {
+        throw Object.assign(
+          new Error(
+            `Kibi engine exited (${exit}) before it accepted connections at ${socketPath}`,
           ),
           { code: "ENGINE_START_FAILED" },
         );
@@ -865,8 +929,11 @@ async function connectWithRetry(
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
   }
-  throw new Error(
-    `Unable to connect to Kibi engine at ${socketPath}: ${lastError instanceof Error ? lastError.message : String(lastError)}`,
+  throw Object.assign(
+    new Error(
+      `Unable to connect to Kibi engine at ${socketPath}: ${lastError instanceof Error ? lastError.message : String(lastError)}`,
+    ),
+    { code: "ENGINE_CONNECT_TIMEOUT" },
   );
 }
 
@@ -1009,8 +1076,9 @@ export class EngineClient {
       if (!this.daemonProcessAlive()) {
         const lock = tryAcquireStartLock(lockPath);
         if (lock !== null) {
+          let daemonExit: string | null = null;
           try {
-            rmSync(`${socketPath}.error`, { force: true });
+            rmSync(engineSidecarPath(socketPath, ".error"), { force: true });
             try {
               const daemon = spawn(
                 nodePath,
@@ -1036,6 +1104,11 @@ export class EngineClient {
                   },
                 },
               );
+              // Listen before the spawn settles: a daemon that dies at once
+              // can exit right after it spawns.
+              daemon.once("exit", (code, signal) => {
+                daemonExit = signal ?? `exit code ${code}`;
+              });
               await new Promise<void>((resolve, reject) => {
                 daemon.once("spawn", resolve);
                 daemon.once("error", reject);
@@ -1047,7 +1120,11 @@ export class EngineClient {
               );
             }
             this.daemon.unref();
-            return await connectWithRetry(socketPath, this.timeout);
+            return await connectWithRetry(
+              socketPath,
+              this.timeout,
+              () => daemonExit,
+            );
           } finally {
             releaseStartLock(lockPath, lock);
           }
@@ -1055,8 +1132,11 @@ export class EngineClient {
       }
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
-    throw new Error(
-      `Unable to connect to Kibi engine at ${socketPath} while another starter owns ${lockPath}`,
+    throw Object.assign(
+      new Error(
+        `Unable to connect to Kibi engine at ${socketPath} while another starter owns ${lockPath}`,
+      ),
+      { code: "ENGINE_CONNECT_TIMEOUT" },
     );
   }
 
@@ -1853,7 +1933,13 @@ export async function runEngineDaemon(requestedOptions: {
   const serverPrologIdentity = engineSwiplIdentity();
   const serverPackageVersions = enginePackageVersions();
 
-  mkdirSync(path.dirname(options.socketPath), { recursive: true, mode: 0o700 });
+  // A Windows named pipe has no directory to create.
+  if (!options.socketPath.startsWith(WINDOWS_PIPE_PREFIX)) {
+    mkdirSync(path.dirname(options.socketPath), {
+      recursive: true,
+      mode: 0o700,
+    });
+  }
   // A missing socket refuses the probe like a stale one.
   {
     const isLivePeerSignal = (error: unknown): boolean => {

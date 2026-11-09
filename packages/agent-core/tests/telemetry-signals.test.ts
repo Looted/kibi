@@ -24,6 +24,7 @@ import {
   rememberSkillLoad,
   telemetryCrash,
   telemetryField,
+  telemetryRootError,
   telemetryRule,
 } from "../src/telemetry-signals";
 import {
@@ -138,6 +139,58 @@ describe("crash frames", () => {
       frame: null,
       fingerprint: null,
     });
+  });
+
+  test("a plain wrapper's crash is located at its cause", () => {
+    const cause = Object.assign(new TypeError("boom"), { stack });
+    const wrapper = new Error("Upsert execution failed: boom", { cause });
+    expect(telemetryCrash(wrapper, "TypeError")).toEqual(
+      telemetryCrash(cause, "TypeError"),
+    );
+  });
+});
+
+describe("wrapped errors", () => {
+  test("a plain wrapper without a code stands for its cause", () => {
+    const cause = new TypeError("boom");
+    const wrapper = new Error("P: boom", { cause });
+    expect(telemetryRootError(wrapper)).toBe(cause);
+    const twice = new Error("Q: P: boom", { cause: wrapper });
+    expect(telemetryRootError(twice)).toBe(cause);
+    const coded = Object.assign(new Error("enoent"), { code: "ENOENT" });
+    expect(telemetryRootError(new Error("P: enoent", { cause: coded }))).toBe(
+      coded,
+    );
+  });
+
+  test("a coded, classed or causeless error is its own root", () => {
+    const coded = Object.assign(new Error("P"), {
+      code: "ENGINE_START_FAILED",
+      cause: new TypeError("x"),
+    });
+    expect(telemetryRootError(coded)).toBe(coded);
+    const classed = new RangeError("P", { cause: new TypeError("x") });
+    expect(telemetryRootError(classed)).toBe(classed);
+    const blank = Object.assign(new Error("P", { cause: new TypeError("x") }), {
+      code: "",
+    });
+    expect(telemetryRootError(blank)).toBeInstanceOf(TypeError);
+    const plain = new Error("P");
+    expect(telemetryRootError(plain)).toBe(plain);
+    const primitive = new Error("P", { cause: "text" });
+    expect(telemetryRootError(primitive)).toBe(primitive);
+    expect(telemetryRootError("boom")).toBe("boom");
+    expect(telemetryRootError(null)).toBeNull();
+  });
+
+  test("a cause chain is followed at most five links", () => {
+    let error: Error = new TypeError("bottom");
+    const chain: Error[] = [error];
+    for (let index = 0; index < 6; index += 1) {
+      error = new Error(`wrap ${index}`, { cause: error });
+      chain.push(error);
+    }
+    expect(telemetryRootError(error)).toBe(chain[1]);
   });
 });
 
