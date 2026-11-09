@@ -418,9 +418,15 @@ export function addTool<TProlog>(
       // implements REQ-kb-dependencies-git
       // A `kb` scope is answered by that dependency's own kibi-mcp, never
       // by this workspace's engine.
-      const dependency = acceptsKbDependency(inputSchema)
-        ? kbDependencyArgument(args)
-        : undefined;
+      const readsDependencies = acceptsKbDependency(inputSchema);
+      const dependency = kbDependencyArgument(args);
+      if (dependency !== undefined && !readsDependencies) {
+        // A tool without the `kb` input (every write among them) would drop
+        // the scope and act on this workspace's KB instead.
+        throw new Error(
+          `${name} does not take a kb scope: KB dependency '${dependency}' is read-only. Drop kb to act on this project's KB.`,
+        );
+      }
       if (dependency !== undefined) {
         if (!router) {
           throw new Error(
