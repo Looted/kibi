@@ -1451,7 +1451,7 @@ export function landingContent(args: {
   <div class="hero-text">
     <p class="eyebrow">Open source &middot; for Claude Code, Codex, Cursor, OpenCode and any MCP agent</p>
     <h1 class="hero-title">Say what the software should do. <span class="hero-title-2">Your agent won&rsquo;t forget it.</span></h1>
-    <p class="hero-sub"><strong>Kibi is a requirements knowledge base for AI coding agents.</strong> It turns what you prompt into requirements stored in your repository, links each one to the code and tests behind it, and shows the agent the rule before it edits that code.</p>
+    <p class="hero-sub"><strong>Kibi is a requirements framework for AI coding agents.</strong> It turns what you prompt into requirements stored in your repository, links each one to the code and tests behind it, and enforces them: the agent sees the rule before it edits that code, and nothing counts as done without fresh evidence.</p>
     <ul class="hero-points">
       <li>Remembers why code exists, across sessions and branches</li>
       <li>Refuses rules that contradict each other</li>
