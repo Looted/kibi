@@ -27,12 +27,12 @@
     {
       "path": "SBOM.spdx.json",
       "bytes": 3981,
-      "sha256": "27e83274e9c1f04e9a4eb058fdef08d6067f76cbc7d916011831c61f1e9bbd44"
+      "sha256": "8505881fa27347502f0df4e09c6bed6cd1b8f1abc7fa973cd3c1e1a65708320b"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
       "bytes": 2573,
-      "sha256": "942f1846cafc59c32d64422fcf1939be7036af4d82d776957aab8f4aeb107029"
+      "sha256": "a234e5ce74f59a117c0c3a16373cc391abc80355054c46a860137f427a5a9673"
     },
     {
       "path": "assets/queries/bash.scm",
@@ -122,7 +122,7 @@
     {
       "path": "catalog.json",
       "bytes": 18499,
-      "sha256": "2706fa2dc9852231f398352f3433509ca76d8d4141a99c465e1dbcddf82be86d"
+      "sha256": "39ac4836211464916ab33d76905167c98b47e2d700f26969f28cbbf3431292dd"
     },
     {
       "path": "dist/analysis-worker.d.ts",

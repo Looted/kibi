@@ -7,9 +7,9 @@ export const qualifiedSourceAnalyzers = [
     version: "3.1.0",
     files: {
       "SBOM.spdx.json":
-        "27e83274e9c1f04e9a4eb058fdef08d6067f76cbc7d916011831c61f1e9bbd44",
+        "8505881fa27347502f0df4e09c6bed6cd1b8f1abc7fa973cd3c1e1a65708320b",
       "THIRD_PARTY_NOTICES.md":
-        "942f1846cafc59c32d64422fcf1939be7036af4d82d776957aab8f4aeb107029",
+        "a234e5ce74f59a117c0c3a16373cc391abc80355054c46a860137f427a5a9673",
       "assets/queries/bash.scm":
         "6ca535e8fe652b51203ac272831881dab001f7ac508e50551bc2cdc4a15d7b6c",
       "assets/queries/c.scm":
@@ -45,7 +45,7 @@ export const qualifiedSourceAnalyzers = [
       "assets/queries/terraform.scm":
         "8a6974a8eb48e13b5b8cd64e7c81262a825b4251df01ab383aee5cdda8151e7e",
       "catalog.json":
-        "2706fa2dc9852231f398352f3433509ca76d8d4141a99c465e1dbcddf82be86d",
+        "39ac4836211464916ab33d76905167c98b47e2d700f26969f28cbbf3431292dd",
       "dist/analysis-worker.js":
         "e05022b3a689b0b17b616bc5df6a03fc06f658f4581d598e9888b4ae7be4119a",
       "dist/catalog.js":
@@ -73,7 +73,7 @@ export const qualifiedSourceAnalyzers = [
       "dist/references.js":
         "cf763fd23496eb572fcd12439049af3c4fc39494943b31d31b459f3d7d75b7d5",
       "integrity.json":
-        "2301f3e42eaa22f398fc9e9a4003caf357ab10b9a0ed585d24cdf5c12ac640d4",
+        "75e98b1b4cb71acede96511d11c8dbf37948bada8994dc18f8fac6904ad866b6",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":

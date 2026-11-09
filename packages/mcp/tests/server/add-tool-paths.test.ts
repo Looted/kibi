@@ -552,7 +552,34 @@ describe("KB dependency scope", () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  test("tools without the kb input and calls without a kb route as before", async () => {
+  test("a tool without the kb input refuses a kb scope instead of acting on this KB", async () => {
+    const route = mock(async () => ({ kind: "local", args: {} }));
+    const routeKbDependency = mock(async () => ({}));
+    setWorkspaceRouter({
+      route,
+      routeKbDependency,
+    } as unknown as WorkspaceRouter);
+    const { tools } = runtime();
+    const handler = mock(async () => ({}));
+    await expect(
+      register("kb_upsert", handler, tools).call({
+        id: "REQ-1",
+        kb: "billing",
+      }),
+    ).rejects.toThrow(
+      "kb_upsert does not take a kb scope: KB dependency 'billing' is read-only. Drop kb to act on this project's KB.",
+    );
+    await expect(
+      register("kb_search", handler, tools, {
+        inputSchema: { type: "object", properties: null },
+      }).call({ kb: " billing " }),
+    ).rejects.toThrow("KB dependency 'billing' is read-only");
+    expect(handler).not.toHaveBeenCalled();
+    expect(route).not.toHaveBeenCalled();
+    expect(routeKbDependency).not.toHaveBeenCalled();
+  });
+
+  test("calls without a kb route as before", async () => {
     const answer = { content: [], structuredContent: { from: "child" } };
     const routed: unknown[] = [];
     setWorkspaceRouter({
@@ -563,14 +590,14 @@ describe("KB dependency scope", () => {
     } as unknown as WorkspaceRouter);
     const { tools } = runtime();
     const handler = mock(async () => ({}));
-    await register("kb_upsert", handler, tools).call({ kb: "billing" });
-    await register("kb_search", handler, tools, {
-      inputSchema: { type: "object", properties: null },
-    }).call({ kb: "billing" });
+    await register("kb_upsert", handler, tools).call({ kb: " " });
     await register("kb_search", handler, tools, { inputSchema: withKb }).call({
       kb: " ",
     });
-    expect(routed).toEqual([{ kb: "billing" }, { kb: "billing" }, { kb: " " }]);
+    await register("kb_search", handler, tools, { inputSchema: withKb }).call(
+      {},
+    );
+    expect(routed).toEqual([{ kb: " " }, { kb: " " }, {}]);
   });
 });
 

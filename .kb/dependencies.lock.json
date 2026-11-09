@@ -1,0 +1,17 @@
+{
+  "lockVersion": 1,
+  "dependencies": {
+    "mutalog": {
+      "git": "https://github.com/Looted/Mutalog.git",
+      "ref": "v0.3.2",
+      "commit": "4f2ed11157f3c2435bf9e9bd6171353db356e592",
+      "kbSchema": 13
+    },
+    "tree-sitter-swi-prolog": {
+      "git": "https://github.com/Looted/tree-sitter-swi-prolog.git",
+      "ref": "v0.1.3",
+      "commit": "1731abe280700caa64de897e790bdc15c0a00e40",
+      "kbSchema": 13
+    }
+  }
+}
