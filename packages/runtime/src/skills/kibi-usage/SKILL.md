@@ -83,6 +83,18 @@ different workspace than the one you asked for; its `detail.reason` says why.
 Use the CLI from your working directory instead: `npx --no-install kibi ...`
 runs where you are and needs no `workspaceRoot`.
 
+## Reading another repository's knowledge base
+
+When the project declares KB dependencies in `.kb/dependencies.json`, the read
+tools `kb_search`, `kb_query`, `kb_status`, `kb_find_gaps`, `kb_coverage` and
+`kb_graph` take `kb: "<name>"` to answer from that repository's KB at the commit
+pinned in `.kb/dependencies.lock.json` (CLI: `--kb <name>`). Use it when a
+question is about a library or service this project calls rather than about
+this project's own code. A dependency KB is read-only: never pass `kb` to a
+write, and do not copy its requirements into this project's KB. A
+`DEPENDENCY_NOT_LOCKED` or `DEPENDENCY_LOCK_STALE` error means the pin needs
+`kibi deps lock`, which changes committed files, so ask before running it.
+
 ## Reading a hook snippet
 
 On hosts where Kibi hooks are installed, a short block

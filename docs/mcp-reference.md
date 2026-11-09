@@ -1139,16 +1139,25 @@ The call is answered by that repository's own KB at the pinned commit:
   branch store and sync never see the dependency, so its size never slows this
   project's KB.
 - The result carries a `detached_head_read_only` diagnostic naming the
-  dependency and its store; writes are refused.
+  dependency and its store.
+- A dependency is never written. Tools without a `kb` input (`kb_upsert`,
+  `kb_delete`, `kb_apply_plan` and the other writes) refuse a call that names
+  one with "`<tool>` does not take a kb scope: KB dependency '`<name>`' is
+  read-only", instead of dropping `kb` and acting on this project's KB.
 - With `workspaceRoot`, the dependencies of that workspace are used.
 - `KIBI_WORKSPACE` and `KIBI_MCP_ROUTING=0` do not block a dependency read:
   the caller asked for it by name.
 
 Dependencies must carry KB schema 6 or newer, and no newer than this Kibi
-reads. An unknown, unpinned or stale dependency fails the call with its code
-(`DEPENDENCY_UNKNOWN`, `DEPENDENCY_NOT_LOCKED`, `DEPENDENCY_LOCK_STALE`, ...)
-instead of answering from this project's KB. The CLI read commands take the
-same scope as `--kb <name>`, and their JSON routes accept `kb` in the input.
+reads. The answer is only as complete as the dependency's committed KB at the
+pinned commit: Kibi reads its `.kb/` sources as they are, so a release made
+before that repository wrote any requirements answers with nothing. An unknown,
+unpinned or stale dependency fails the call with its code
+(`DEPENDENCY_UNKNOWN`, `DEPENDENCY_NOT_LOCKED`, `DEPENDENCY_LOCK_STALE`, and
+the others in the
+[error reference](error-reference.md#kb-dependency-errors-dependency_)) instead
+of answering from this project's KB. The CLI read commands take the same scope
+as `--kb <name>`, and their JSON routes accept `kb` in the input.
 
 ## Recommended Agent Workflow
 

@@ -1308,9 +1308,16 @@ and `-`.
   cache state (`not_locked`, `lock_stale`, `not_fetched`, `fetched`); it exits
   1 when a dependency needs `kibi deps lock`.
 
-All three accept `--format json`. Git runs without a terminal prompt, so private
-repositories need credentials git already has (SSH keys, a credential helper or
-a CI token).
+All three accept `--format json`. They need `git` on `PATH`. Git runs without a
+terminal prompt, so private repositories need credentials git already has (SSH
+keys, a credential helper or a CI token).
+
+Kibi reads the dependency's committed `.kb/` sources at the pinned commit; the
+dependency publishes nothing extra. Pin a tag whose commit already carries the
+KB you want to read: `kibi deps lock` checks that `.kb/manifest.json` exists and
+names a supported schema, but a KB with no entities yet locks and then answers
+every read with nothing. A good default is the release of the dependency your
+project actually uses, so the answers describe the code you run.
 
 Read a dependency with `--kb <name>` on `kibi search`, `kibi query`,
 `kibi status`, `kibi find-gaps`, `kibi coverage` and `kibi graph`, or with `kb`
@@ -1322,9 +1329,13 @@ printf '%s\n' '{"query":"refund approval","kb":"billing-service"}' | kibi search
 ```
 
 The answer comes from the dependency's own KB at the pinned commit, compiled
-once into a read-only store inside its cached checkout. The project's own
-`.kb/`, branch store, sync, check and hooks never read or write it. Writes are
-refused. The cache lives in `$KIBI_DEPENDENCY_CACHE`, else
+once into a read-only store inside its cached checkout on the first read (a few
+seconds for a large KB; later reads reuse it). The project's own `.kb/`, branch
+store, sync, check and hooks never read or write it. Writes are refused: write
+commands have no `--kb` option, and their JSON routes reject a `kb` field.
+Failures carry a `DEPENDENCY_*` code; the
+[error reference](error-reference.md#kb-dependency-errors-dependency_) lists
+them with their fixes. The cache lives in `$KIBI_DEPENDENCY_CACHE`, else
 `$XDG_CACHE_HOME/kibi/dependencies`, else `~/.cache/kibi/dependencies`, keyed by
 repository URL and commit, so projects pinning the same commit share it.
 
