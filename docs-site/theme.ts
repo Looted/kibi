@@ -553,6 +553,29 @@ figure.code.hero-copy {
 .po-with span { color: var(--ice); }
 .landing .po-with p { color: var(--snow); }
 
+/* Story: one trade-off across two sessions */
+.prose .story { list-style: none; margin: 0 0 48px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; position: relative; }
+.prose .story-step {
+  margin: 0; display: flex; flex-direction: column; gap: 10px;
+  background-color: var(--carbon); border: 1px solid var(--rail); border-radius: 14px; padding: 18px;
+  background-image: linear-gradient(rgba(52, 67, 79, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(52, 67, 79, 0.3) 1px, transparent 1px);
+  background-size: 22px 22px; background-position: -1px -1px;
+  font-family: var(--mono); font-size: 12.5px; line-height: 1.5;
+}
+.story-tag { font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mist); }
+.story-lost .story-tag { color: var(--warning); }
+.story-kept { border-color: var(--signal); }
+.story-kept .story-tag { color: var(--ice); }
+.prose .story-code { margin: 0; padding: 12px; background: var(--deep); border: 1px solid var(--rail); border-radius: 10px; white-space: pre-wrap; }
+.prose .story-code code { font-family: var(--mono); font-size: 12.5px; color: var(--snow); background: none; padding: 0; }
+.sc-dim { color: var(--mist); }
+.story-lost .sk-agent { color: var(--warning); border-color: rgba(242, 184, 75, 0.45); }
+.story-req { color: var(--snow); margin: 8px 0 6px; font-family: var(--sans); font-size: 14px; }
+.story-why { color: var(--snow); background: rgba(162, 211, 244, 0.08); border-left: 2px solid var(--ice); padding: 6px 10px; margin: 0 0 8px; border-radius: 0 6px 6px 0; }
+.story-why span { display: block; color: var(--ice); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.story-ok { color: var(--proven); }
+.story-kept .sk-agent { color: var(--ice); }
+
 /* Memory vs Kibi comparison */
 .vs-table { border: 1px solid var(--rail); border-radius: 14px; overflow: hidden; background: var(--panel); }
 .vs-row { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1.35fr); }
@@ -739,7 +762,7 @@ figure.code.hero-copy {
   .landing > section { margin-top: 88px; }
   .landing .install-grid, .faq-wrap, .report-strip, .agents { grid-template-columns: minmax(0, 1fr); }
   .faq-side { position: static; }
-  .prose .payoffs { grid-template-columns: minmax(0, 1fr); }
+  .prose .payoffs, .prose .story { grid-template-columns: minmax(0, 1fr); }
   .vs-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .vs-row .vs-k { grid-column: 1 / -1; padding-bottom: 0; }
   .vs-head > div:first-child { display: none; }
@@ -1459,11 +1482,12 @@ export function landingContent(args: {
   <div class="hero-stage" data-railfield aria-hidden="true"><canvas></canvas></div>
   <div class="hero-text">
     <p class="eyebrow">Open source &middot; for Claude Code, Codex, Cursor, OpenCode and any MCP agent</p>
-    <h1 class="hero-title">Say what the software should do. <span class="hero-title-2">Your agent won&rsquo;t forget it.</span></h1>
-    <p class="hero-sub"><strong>Kibi is a requirements framework for AI coding agents.</strong> It turns what you prompt into requirements stored in your repository, links each one to the code and tests behind it, and enforces them: the agent sees the rule before it edits that code, and nothing counts as done without fresh evidence.</p>
+    <h1 class="hero-title">Say what the software should do. <span class="hero-title-2">Your agent won&rsquo;t forget why.</span></h1>
+    <p class="hero-sub"><strong>Kibi is a requirements framework for AI coding agents.</strong> It records the reasoning behind your code (the intent, assumptions and trade-offs you agreed in the chat) as requirements in your repository, links them to the code and tests, and makes every later agent respect them.</p>
     <ul class="hero-points">
-      <li>Remembers why code exists, across sessions and branches</li>
-      <li>Refuses rules that contradict each other</li>
+      <li>Keeps the why behind each change, not just the what</li>
+      <li>Shows the agent that reasoning before it edits the code</li>
+      <li>Refuses new rules that contradict old ones</li>
       <li>Reports which requirements are actually tested</li>
     </ul>
     <div class="hero-actions">
@@ -1488,20 +1512,44 @@ export function landingContent(args: {
 </section>
 <section class="payoff">
   <p class="eyebrow reveal"><span class="eb-num">01</span>The problem</p>
-  <h2 class="reveal">Coding agents are fast. They also forget.</h2>
-  <p class="lede reveal">Every session starts from zero. The agent does not know why yesterday&rsquo;s code exists, quietly undoes decisions you made last week, and calls a feature done because the tests pass. Kibi turns your intent into rules the agent has to follow, and gives you a straight answer about what still works.</p>
+  <h2 class="reveal">The code survives. The reasons don&rsquo;t.</h2>
+  <p class="lede reveal">Code is full of assumptions, shortcuts and trade-offs. The reasoning behind them lives in the chat where you agreed them: &ldquo;we&rsquo;ll do X to keep users from churning.&rdquo; By the next session it has shrunk to &ldquo;we did X&rdquo;, and the business reason is gone. Kibi keeps that reason next to the code, and makes the next agent respect it.</p>
+  <ol class="story reveal" aria-label="Example: a trade-off over two sessions">
+    <li class="story-step">
+      <span class="story-tag">Session 1 &middot; the chat</span>
+      <div class="sk-bubble">&rsaquo; Cut the trial to 14 days. Shorter trials convert better for us, and we accept a bit more churn.</div>
+      <div class="sk-bubble sk-agent">Done. TRIAL_DAYS is now 14.</div>
+    </li>
+    <li class="story-step story-lost">
+      <span class="story-tag">Session 2 &middot; without Kibi</span>
+      <pre class="story-code"><code><span class="sc-dim">// billing/trial.ts</span>
+export const TRIAL_DAYS = 14;</code></pre>
+      <div class="sk-bubble sk-agent">Most products use a 30-day trial. Changing it to 30 for consistency.</div>
+    </li>
+    <li class="story-step story-kept">
+      <span class="story-tag">Session 2 &middot; with Kibi</span>
+      <div class="sk-card">
+        <div class="sk-row"><span class="sk-id">REQ-trial-length</span><span>firm</span></div>
+        <div class="story-req">The free trial lasts 14 days.</div>
+        <div class="story-why"><span>why</span>Shorter trials convert better. Accepted trade-off: more churn.</div>
+        <div class="sk-row"><span>implemented by</span><span class="sk-id">TRIAL_DAYS</span></div>
+        <div class="sk-row"><span>evidence</span><span class="story-ok">tested</span></div>
+      </div>
+      <div class="sk-bubble sk-agent">TRIAL_DAYS is a firm decision (REQ-trial-length). Should I change it?</div>
+    </li>
+  </ol>
   <ul class="payoffs">
     <li class="reveal">
       <span class="po-num">01</span>
-      <h3>Decisions stop getting undone</h3>
-      <div class="po-row po-without"><span>Without</span><p>The agent rewrites a rule it never knew existed.</p></div>
-      <div class="po-row po-with"><span>With Kibi</span><p>Before it edits a file, the agent is shown the requirement that code implements, what it must keep true, and the decision behind it.</p></div>
+      <h3>The why outlives the chat</h3>
+      <div class="po-row po-without"><span>Without</span><p>&ldquo;We&rsquo;ll do X to retain users&rdquo; becomes &ldquo;we did X&rdquo;, and the next agent cannot tell a trade-off from a mistake.</p></div>
+      <div class="po-row po-with"><span>With Kibi</span><p>Each requirement records why it exists, and decisions keep their trade-offs. They live in <code>.kb/</code> beside the code on every branch, and Kibi flags requirements that do not say why.</p></div>
     </li>
     <li class="reveal reveal-d1">
       <span class="po-num">02</span>
-      <h3>Intent outlives the chat</h3>
-      <div class="po-row po-without"><span>Without</span><p>The reason for a change disappears when the session ends.</p></div>
-      <div class="po-row po-with"><span>With Kibi</span><p>Requirements live in <code>.kb/</code> beside the code, travel with every branch, and cite the ticket or page they came from.</p></div>
+      <h3>Decisions stop getting undone</h3>
+      <div class="po-row po-without"><span>Without</span><p>The agent rewrites a rule it never knew existed.</p></div>
+      <div class="po-row po-with"><span>With Kibi</span><p>Before it edits a file, the agent is shown the requirement that code implements, what it must keep true, and the decision behind it.</p></div>
     </li>
     <li class="reveal">
       <span class="po-num">03</span>
@@ -1520,9 +1568,10 @@ export function landingContent(args: {
 <section class="vs">
   <p class="eyebrow reveal"><span class="eb-num">02</span>Why not a memory file</p>
   <h2 class="reveal">Memory remembers. Kibi enforces.</h2>
-  <p class="lede reveal">Notes files and memory servers help an agent recall things. Kibi turns intent into rules that are linked to code, checked for contradictions, put in front of the agent at edit time, and backed by evidence.</p>
+  <p class="lede reveal">Notes files and memory servers help an agent recall things. Kibi turns intent and its reasons into rules that are linked to code, checked for contradictions, put in front of the agent at edit time, and backed by evidence.</p>
   <div class="vs-table reveal" role="table" aria-label="Project memory compared with Kibi">
     <div class="vs-row vs-head" role="row"><div role="columnheader"></div><div class="vs-mem" role="columnheader">Project memory</div><div class="vs-kibi" role="columnheader">Kibi</div></div>
+    <div class="vs-row" role="row"><div class="vs-k" role="rowheader">The why behind the code</div><div class="vs-mem" role="cell">Sometimes, somewhere in prose.</div><div class="vs-kibi" role="cell">Every requirement records why it exists and decisions keep their trade-offs. A requirement that does not say why is flagged.</div></div>
     <div class="vs-row" role="row"><div class="vs-k" role="rowheader">What it holds</div><div class="vs-mem" role="cell">Free-text notes the agent wrote or you pasted.</div><div class="vs-kibi" role="cell">Typed requirements, scenarios and facts, linked to the functions that implement them and the tests that check them.</div></div>
     <div class="vs-row" role="row"><div class="vs-k" role="rowheader">When the agent sees it</div><div class="vs-mem" role="cell">When it remembers to look, if the note fits in context.</div><div class="vs-kibi" role="cell">Automatically, before it edits code a requirement owns. Hooks put the rule in front of the agent.</div></div>
     <div class="vs-row" role="row"><div class="vs-k" role="rowheader">Two rules that conflict</div><div class="vs-mem" role="cell">Both are kept. Whichever the agent reads last wins.</div><div class="vs-kibi" role="cell">The new rule is refused, checked against typed facts, not text similarity, with both rules named.</div></div>
