@@ -48,7 +48,7 @@ readline.createInterface({ input: process.stdin }).on("line", (line) => {
     return;
   }
   if (m.method === "tools/call") {
-    const data = { workspace: process.env.KIBI_WORKSPACE, dependency: process.env.KIBI_KB_DEPENDENCY, routed: process.env.KIBI_MCP_ROUTED, tool: m.params.name, args: m.params.arguments ?? {}, pid: process.pid };
+    const data = { workspace: process.env.KIBI_WORKSPACE, dependency: process.env.KIBI_KB_DEPENDENCY, branch: process.env.KIBI_BRANCH, routed: process.env.KIBI_MCP_ROUTED, tool: m.params.name, args: m.params.arguments ?? {}, pid: process.pid };
     send({ jsonrpc: "2.0", id: m.id, result: { content: [{ type: "text", text: "ok" }], structuredContent: { data } } });
     return;
   }
@@ -96,7 +96,11 @@ describe("KB dependency routing", () => {
       server: fakeServer,
       workspaceRoot: attached,
       // Pinned: ordinary routing is off, dependency reads still work.
-      env: { PATH: process.env.PATH ?? "", KIBI_WORKSPACE: attached },
+      env: {
+        PATH: process.env.PATH ?? "",
+        KIBI_WORKSPACE: attached,
+        KIBI_BRANCH: "feature/project-branch",
+      },
       resolveDependency: (root, name) => {
         resolved.push([root, name]);
         return dependency(checkout, name);
@@ -117,6 +121,7 @@ describe("KB dependency routing", () => {
         kb: "billing",
       }),
     );
+    expect(first.branch).toBeUndefined();
     expect(first).toMatchObject({
       workspace: checkout,
       dependency: `billing@${"a".repeat(40)}`,
