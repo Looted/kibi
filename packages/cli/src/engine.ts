@@ -497,8 +497,12 @@ function warnRuntimeDirectoryIgnored(directory: string, reason: string): void {
   );
 }
 
-function fsyncFile(filePath: string): void {
-  const descriptor = openSync(filePath, "r");
+/**
+ * Windows flushes a file only through a handle opened for writing; a
+ * read-only handle fails fsync with EPERM.
+ */
+function fsyncFile(filePath: string, platform: NodeJS.Platform): void {
+  const descriptor = openSync(filePath, platform === "win32" ? "r+" : "r");
   try {
     fsyncSync(descriptor);
   } finally {
@@ -506,17 +510,23 @@ function fsyncFile(filePath: string): void {
   }
 }
 
-function fsyncPath(filePath: string): void {
-  if (existsSync(filePath)) fsyncFile(filePath);
+function fsyncPath(filePath: string, platform: NodeJS.Platform): void {
+  if (existsSync(filePath)) fsyncFile(filePath, platform);
 }
 
 /** Fsync every journal file below `directory`; its directories, leaves first. */
-function fsyncJournalTree(directory: string): string[] {
+function fsyncJournalTree(
+  directory: string,
+  platform: NodeJS.Platform,
+): string[] {
   const directories: string[] = [];
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) directories.push(...fsyncJournalTree(entryPath));
-    else if (entry.isFile() && entry.name !== "lock") fsyncFile(entryPath);
+    if (entry.isDirectory())
+      directories.push(...fsyncJournalTree(entryPath, platform));
+    else if (entry.isFile() && entry.name !== "lock") {
+      fsyncFile(entryPath, platform);
+    }
   }
   directories.push(directory);
   return directories;
@@ -529,17 +539,22 @@ function fsyncJournalTree(directory: string): string[] {
  * survive a host crash as well as a process crash.
  */
 // implements REQ-core-journaled-engine-persistence
-export function fsyncJournaledBranchStore(branchPath: string): void {
+export function fsyncJournaledBranchStore(
+  branchPath: string,
+  platform: NodeJS.Platform = process.platform,
+): void {
   const rdfRoot = path.join(branchPath, "rdf");
-  const directories = existsSync(rdfRoot) ? fsyncJournalTree(rdfRoot) : [];
+  const directories = existsSync(rdfRoot)
+    ? fsyncJournalTree(rdfRoot, platform)
+    : [];
   for (const metadata of ["CURRENT", "storage.json", "kb.rdf"]) {
-    fsyncPath(path.join(branchPath, metadata));
+    fsyncPath(path.join(branchPath, metadata), platform);
   }
   // Publish directory entries from the leaves upward, ending at the branch
   // directory that owns CURRENT and the storage marker.
-  if (process.platform !== "win32") {
-    for (const directory of directories) fsyncFile(directory);
-    fsyncPath(branchPath);
+  if (platform !== "win32") {
+    for (const directory of directories) fsyncFile(directory, platform);
+    fsyncPath(branchPath, platform);
   }
 }
 

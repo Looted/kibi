@@ -312,7 +312,24 @@ async function smoke({ packagesDir }) {
     }
     return completed;
   } finally {
-    rmSync(root, { recursive: true, force: true, maxRetries: 5 });
+    // The engine daemon holds the store open; Windows refuses to delete it
+    // while it runs. Cleanup must not replace the smoke's own error.
+    if (existsSync(path.join(project, "node_modules", "kibi-cli"))) {
+      try {
+        run(
+          "kibi engine stop",
+          `node ${JSON.stringify(packageBin(project, "kibi-cli", "kibi"))} engine stop`,
+          { cwd: project, env, allowFailure: true },
+        );
+      } catch (error) {
+        console.warn(`engine stop failed: ${error.message}`);
+      }
+    }
+    try {
+      rmSync(root, { recursive: true, force: true, maxRetries: 5 });
+    } catch (error) {
+      console.warn(`could not remove ${root}: ${error.message}`);
+    }
   }
 }
 

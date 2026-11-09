@@ -13,3 +13,5 @@ The engine daemon now starts on Windows named pipes: it no longer tries to creat
 Escape backslashes in the file paths Kibi passes to SWI-Prolog, so loading the core modules and attaching a KB work on Windows paths such as `C:\Users\...`.
 
 SWI-Prolog's standard output and error now use LF line ends on every platform, so queries complete on Windows, where SWI-Prolog otherwise writes CRLF.
+
+The engine flushes its journal through writable file handles on Windows, where fsync on a read-only handle fails with EPERM.

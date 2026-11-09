@@ -623,6 +623,36 @@ describe("durability barrier", () => {
     fsyncJournaledBranchStore(path.join(store, "missing"));
     expect(opened).toStrictEqual([store]);
   });
+
+  test("open files writable and skip directories on Windows", () => {
+    const store = tempDir();
+    mkdirSync(path.join(store, "rdf"), { recursive: true });
+    writeFileSync(path.join(store, "rdf", "j1"), "x");
+    writeFileSync(path.join(store, "CURRENT"), "g");
+    const opened: Array<[string, unknown]> = [];
+    const open = fs.openSync;
+    spyOn(fs, "openSync").mockImplementation(((
+      file: string,
+      flags: unknown,
+      ...rest: unknown[]
+    ) => {
+      opened.push([String(file), flags]);
+      return (open as (...args: unknown[]) => number)(file, flags, ...rest);
+    }) as never);
+    fsyncJournaledBranchStore(store, "win32");
+    expect(opened).toStrictEqual([
+      [path.join(store, "rdf", "j1"), "r+"],
+      [path.join(store, "CURRENT"), "r+"],
+    ]);
+    opened.length = 0;
+    fsyncJournaledBranchStore(store, "linux");
+    expect(opened.map(([, flags]) => flags)).toStrictEqual([
+      "r",
+      "r",
+      "r",
+      "r",
+    ]);
+  });
 });
 
 const DEAD_PID = 2_147_483_000;
