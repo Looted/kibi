@@ -143,12 +143,12 @@ describe("diagnostic usage telemetry through the registration path", () => {
       count: 7,
     }));
 
-    await callTool(handlers, "kb_check", { rules: ["orphan-symbols"] });
+    await callTool(handlers, "kb_check", { rules: ["required-fields"] });
 
     expect(rows[0]).toMatchObject({
       tool: "kb_check",
       violation_count: 7,
-      requested_rules: ["orphan-symbols"],
+      requested_rules: ["required-fields"],
       result_summary: "7 violations",
     });
   });

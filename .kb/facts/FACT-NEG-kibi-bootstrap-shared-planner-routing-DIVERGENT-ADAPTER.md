@@ -15,4 +15,4 @@ origin:
 id: FACT-NEG-kibi-bootstrap-shared-planner-routing-DIVERGENT-ADAPTER
 type: fact
 ---
-The MCP adapter and the CLI route answer the same plan-bootstrap input differently, because one of them validates against its own copy of the workflow.
+The MCP adapter and the CLI route answer the same plan-bootstrap input differently, because one of them validates against its own copy of the contract or silently drops a field the planner does not define.

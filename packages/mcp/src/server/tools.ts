@@ -33,6 +33,7 @@ import {
   KB_DEPENDENCY_ARGUMENT,
   kbDependencyArgument,
   operationData,
+  prepareOperationInput,
   toKibiResult,
 } from "kibi-runtime";
 import type { z } from "zod";
@@ -389,7 +390,14 @@ export function addTool<TProlog>(
   spec?: RuntimeOperationSpec<Record<string, unknown>, unknown>,
   annotations?: ToolAnnotations,
   outputSchema?: object,
+  // The operation's canonical input contract, which the CLI JSON route
+  // validates too. MCP checks the same contract so both peers accept and
+  // refuse the same input with the same error.
+  businessInputSchema?: object,
 ): void {
+  if (businessInputSchema !== undefined) {
+    deferInputValidationToKibi(server, name);
+  }
   const wrappedHandler = async (
     rawArgs: Record<string, unknown>,
     extra?: ToolRequestExtra,
@@ -480,15 +488,17 @@ export function addTool<TProlog>(
       // withToolTimeout installs touch before the operation can report.
       const activity = {} as ToolTimeoutActivity;
       const onProgress = progressReporter(extra, activity);
-      const handlerPromise = executeOperation(
-        observed.runtime,
-        operationSpec,
-        businessArgs,
-        {
-          signal: controller.signal,
-          ...(onProgress ? { onProgress } : {}),
-        },
-      );
+      const inputError =
+        businessInputSchema === undefined
+          ? undefined
+          : canonicalInputError(businessArgs, businessInputSchema);
+      const handlerPromise =
+        inputError === undefined
+          ? executeOperation(observed.runtime, operationSpec, businessArgs, {
+              signal: controller.signal,
+              ...(onProgress ? { onProgress } : {}),
+            })
+          : Promise.reject(inputError);
       trackedRequests.set(requestId, handlerPromise);
       let resetAttempted = false;
       let resetSucceeded = false;
@@ -773,6 +783,67 @@ export function addTool<TProlog>(
     },
     wrappedHandler,
   );
+}
+
+/** MCP-only arguments the canonical operation contract does not define. */
+const MCP_ONLY_ARGUMENTS = new Set(["_requestId"]);
+
+/**
+ * The VALIDATION_FAILED error for input the operation's canonical contract
+ * refuses, with the messages the CLI JSON route gives, or undefined.
+ */
+// implements REQ-kibi-operation-interface-parity
+function canonicalInputError(
+  args: Record<string, unknown>,
+  schema: object,
+): Error | undefined {
+  const input = Object.fromEntries(
+    Object.entries(args).filter(([key]) => !MCP_ONLY_ARGUMENTS.has(key)),
+  );
+  const prepared = prepareOperationInput(input, schema);
+  if (prepared.valid) return undefined;
+  const detail = prepared.errors.join("; ");
+  return Object.assign(new Error(detail), {
+    name: "InputError",
+    code: "VALIDATION_FAILED",
+    detail,
+    retryable: false,
+  });
+}
+
+type ToolInputValidator = (
+  tool: unknown,
+  args: unknown,
+  toolName: string,
+) => Promise<unknown>;
+
+const kibiValidatedTools = new WeakMap<McpServer, Set<string>>();
+
+/**
+ * Let a Kibi operation's own handler validate its input. The SDK would refuse
+ * a wrong type with a plain protocol message before the handler runs, so a
+ * client would get no coded error envelope; the handler checks the canonical
+ * contract instead and answers like the CLI.
+ */
+// implements REQ-kibi-operation-interface-parity
+function deferInputValidationToKibi(server: McpServer, name: string): void {
+  let names = kibiValidatedTools.get(server);
+  if (names === undefined) {
+    const registered = new Set<string>();
+    names = registered;
+    kibiValidatedTools.set(server, registered);
+    const host = server as unknown as {
+      validateToolInput?: ToolInputValidator;
+    };
+    const sdkValidate = host.validateToolInput?.bind(server);
+    if (sdkValidate !== undefined) {
+      host.validateToolInput = async (tool, args, toolName) =>
+        registered.has(toolName)
+          ? (args ?? {})
+          : sdkValidate(tool, args, toolName);
+    }
+  }
+  names.add(name);
 }
 
 // implements REQ-002, REQ-013
