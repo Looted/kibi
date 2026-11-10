@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12419e23adf8
+  - type: assumes
+    from: SCEN-NEG-prolog-bundle-verification-CORRUPT-BUNDLE
+    to: FACT-NEG-prolog-bundle-verification-CORRUPT-BUNDLE
+    created_at: 2026-11-10T20:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d334b85e90d
+  - type: verified_by
+    from: SCEN-NEG-prolog-bundle-verification-CORRUPT-BUNDLE
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-11-10T20:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6036997c61e0

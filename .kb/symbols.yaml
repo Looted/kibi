@@ -24659,80 +24659,50 @@ symbols:
     sourceFile: packages/cli/src/prolog/swipl-resolver.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-swipl-resolution-order
       - type: covered_by
         target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
-  - id: SYM-prolog-swipl-default-deps
-    title: defaultDeps
-    status: active
-    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-prolog-swipl-detect-glibc
     title: detectGlibc
     status: active
     sourceFile: packages/cli/src/prolog/swipl-resolver.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-swipl-resolution-order
       - type: covered_by
         target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-prolog-swipl-executable-digest
     title: executableDigest
     status: active
     sourceFile: packages/cli/src/prolog/swipl-resolver.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-bundle-verification
       - type: covered_by
         target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
-  - id: SYM-prolog-swipl-run-goal
-    title: runSwiplGoal
-    status: active
-    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-prolog-swipl-run-version
     title: runSwiplVersion
     status: active
     sourceFile: packages/cli/src/prolog/swipl-resolver.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-swipl-resolution-order
       - type: covered_by
         target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
-  - id: SYM-prolog-swipl-reset-cache
-    title: resetSwiplResolverCache
-    status: active
-    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-prolog-swipl-parse-version
     title: parseSwiplVersion
     status: active
     sourceFile: packages/cli/src/prolog/swipl-resolver.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-swipl-resolution-order
       - type: covered_by
         target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-prolog-swipl-identity
     title: swiplIdentity
     status: active
@@ -24751,22 +24721,22 @@ symbols:
     sourceFile: packages/cli/src/prolog/swipl-resolver.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-bundle-verification
       - type: covered_by
         target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-prolog-swipl-inspect-bundle
     title: inspectSwiplBundle
     status: active
     sourceFile: packages/cli/src/prolog/swipl-resolver.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-bundle-verification
       - type: covered_by
         target: TEST-prolog-bundled-runtime
       - type: covered_by
         target: TEST-prolog-doctor-runtime-report
-      - type: implements
-        target: REQ-prolog-bundled-runtime
       - type: implements
         target: REQ-prolog-doctor-runtime-report
   - id: SYM-prolog-swipl-probe-libraries
@@ -24785,10 +24755,10 @@ symbols:
     sourceFile: packages/cli/src/prolog/swipl-resolver.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-swipl-resolution-order
       - type: covered_by
         target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-prolog-engine-swipl-identity
     title: engineSwiplIdentity
     status: active
@@ -24805,90 +24775,50 @@ symbols:
     sourceFile: packages/swipl/index.js
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-swipl-resolution-order
       - type: covered_by
         target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-prolog-swipl-pkg-locate
     title: locatePlatformPackage
     status: active
     sourceFile: packages/swipl/index.js
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-swipl-resolution-order
       - type: covered_by
         target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-prolog-swipl-pkg-validate-manifest
     title: validateBuildManifest
     status: active
     sourceFile: packages/swipl/index.js
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-bundle-verification
       - type: covered_by
         target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-prolog-swipl-pkg-sha256
     title: sha256File
     status: active
     sourceFile: packages/swipl/index.js
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-bundle-verification
       - type: covered_by
         target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
-  - id: SYM-prolog-swipl-pkg-platform-key-dts
-    title: platformKey
-    status: active
-    sourceFile: packages/swipl/index.d.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
-  - id: SYM-prolog-swipl-pkg-locate-dts
-    title: locatePlatformPackage
-    status: active
-    sourceFile: packages/swipl/index.d.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
-  - id: SYM-prolog-swipl-pkg-validate-manifest-dts
-    title: validateBuildManifest
-    status: active
-    sourceFile: packages/swipl/index.d.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
-  - id: SYM-prolog-swipl-pkg-sha256-dts
-    title: sha256File
-    status: active
-    sourceFile: packages/swipl/index.d.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-prolog-swipl-verify-payload
     title: verifySwiplPayload
     status: active
     sourceFile: scripts/verify-swipl-payload.mjs
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-prolog-bundle-verification
       - type: covered_by
         target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-test-helper-install-fake-swipl
     title: installFakeSwipl
     status: active
@@ -24903,12 +24833,12 @@ symbols:
     sourceFile: packages/cli/src/prolog/swipl-resolver.ts
     symbol_role: config
     relationships:
+      - type: implements
+        target: REQ-prolog-swipl-resolution-order
       - type: covered_by
         target: TEST-prolog-bundled-runtime
       - type: covered_by
         target: TEST-proof-swipl-minimum-major
-      - type: implements
-        target: REQ-prolog-bundled-runtime
       - type: implements
         target: REQ-prolog-swipl-minimum-version
   - id: SYM-prolog-swipl-required-swipl-libraries-src
@@ -24922,75 +24852,7 @@ symbols:
       - type: covered_by
         target: TEST-proof-required-swipl-libraries
       - type: implements
-        target: REQ-prolog-bundled-runtime
-      - type: implements
         target: REQ-prolog-runtime-libraries
-  - id: SYM-prolog-swipl-manifest-file-dts
-    title: MANIFEST_FILE
-    status: active
-    sourceFile: packages/swipl/index.d.ts
-    symbol_role: config
-    granularity_reason: config-artifact
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
-  - id: SYM-prolog-swipl-manifest-schema-dts
-    title: MANIFEST_SCHEMA
-    status: active
-    sourceFile: packages/swipl/index.d.ts
-    symbol_role: config
-    granularity_reason: config-artifact
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
-  - id: SYM-prolog-swipl-bundled-binary-path-dts
-    title: BUNDLED_BINARY_PATH
-    status: active
-    sourceFile: packages/swipl/index.d.ts
-    symbol_role: config
-    granularity_reason: config-artifact
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
-  - id: SYM-prolog-swipl-platform-packages-dts
-    title: PLATFORM_PACKAGES
-    status: active
-    sourceFile: packages/swipl/index.d.ts
-    symbol_role: config
-    granularity_reason: config-artifact
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
-  - id: SYM-prolog-swipl-manifest-file-js
-    title: MANIFEST_FILE
-    status: active
-    sourceFile: packages/swipl/index.js
-    symbol_role: config
-    granularity_reason: config-artifact
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
-  - id: SYM-prolog-swipl-platform-packages-js
-    title: PLATFORM_PACKAGES
-    status: active
-    sourceFile: packages/swipl/index.js
-    symbol_role: config
-    granularity_reason: config-artifact
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-bundled-runtime
-      - type: implements
-        target: REQ-prolog-bundled-runtime
   - id: SYM-test-helper-fake-swipl-spec
     title: FakeSwiplSpec
     status: active

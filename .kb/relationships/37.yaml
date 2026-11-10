@@ -412,3 +412,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-533123205dfa
+  - type: constrains
+    from: REQ-prolog-bundle-verification
+    to: FACT-prolog-bundled-subject
+    created_at: 2026-11-10T09:18:13.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-186203524993
+  - type: requires_property
+    from: REQ-prolog-bundle-verification
+    to: FACT-prolog-bundled-refuses-corrupt-bundle
+    created_at: 2026-11-10T09:18:13.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23e454a73df8
+  - type: requires_property
+    from: REQ-prolog-bundle-verification
+    to: FACT-prolog-bundled-sets-swi-home-dir-for-bundled-child
+    created_at: 2026-11-10T09:18:13.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c520ad180060
+  - type: specified_by
+    from: REQ-prolog-bundle-verification
+    to: SCEN-prolog-bundled-runtime
+    created_at: 2026-11-10T09:18:13.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12583cc58ab3
+  - type: specified_by
+    from: REQ-prolog-bundle-verification
+    to: SCEN-NEG-prolog-bundle-verification-CORRUPT-BUNDLE
+    created_at: 2026-11-10T09:18:13.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e4422fd5d43
+  - type: verified_by
+    from: REQ-prolog-bundle-verification
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-11-10T09:18:13.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa635f53bb03
+  - type: supersedes
+    from: REQ-prolog-bundle-verification
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-11-10T09:18:13.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c352b185b14

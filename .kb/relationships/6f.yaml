@@ -112,20 +112,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-9f82455c872d
   - type: implements
-    from: SYM-prolog-swipl-pkg-sha256-dts
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T22:56:53.029Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-64bb8ce3affb
-  - type: covered_by
-    from: SYM-prolog-swipl-pkg-sha256-dts
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T22:56:53.054Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0516dd6ac24d
-  - type: implements
     from: SYM-source-authoring-republish-pending-source-receipt
     to: REQ-cli-schema-migration
     created_at: 2026-10-14T10:13:51.401Z

@@ -140,20 +140,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-7ecb45394878
   - type: implements
-    from: SYM-prolog-swipl-manifest-file-dts
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:16.027Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d14c3d9b0c3c
-  - type: covered_by
-    from: SYM-prolog-swipl-manifest-file-dts
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:16.039Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1d951958f911
-  - type: implements
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates
     to: REQ-bootstrap-intent-claim-accounting
     created_at: 2026-10-06T11:21:36.599Z

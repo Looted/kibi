@@ -36,13 +36,6 @@ relationships:
     id: rel-3b25cfef3b49
   - type: implements
     from: SYM-prolog-swipl-inspect-bundle
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T22:55:31.133Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-df21f7510cbe
-  - type: implements
-    from: SYM-prolog-swipl-inspect-bundle
     to: REQ-prolog-doctor-runtime-report
     created_at: 2026-09-30T22:55:31.152Z
     created_by: kibi/upsert
@@ -146,3 +139,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5efc6e7224bb
+  - type: constrains
+    from: REQ-prolog-swipl-resolution-order
+    to: FACT-prolog-bundled-subject
+    created_at: 2026-11-10T09:17:02.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dff059f86e2
+  - type: requires_property
+    from: REQ-prolog-swipl-resolution-order
+    to: FACT-prolog-bundled-resolves-env-then-bundled-then-path
+    created_at: 2026-11-10T09:17:02.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e57d316fe937
+  - type: requires_property
+    from: REQ-prolog-swipl-resolution-order
+    to: FACT-prolog-bundled-skips-bundle-when-env-is-system
+    created_at: 2026-11-10T09:17:02.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-414d786726fb
+  - type: requires_property
+    from: REQ-prolog-swipl-resolution-order
+    to: FACT-prolog-bundled-rejects-path-swipl-older-than-9
+    created_at: 2026-11-10T09:17:02.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2192ef0422e
+  - type: requires_property
+    from: REQ-prolog-swipl-resolution-order
+    to: FACT-prolog-bundled-names-platform-package-and-install-command-when-missing
+    created_at: 2026-11-10T09:17:02.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5a2f0317e34
+  - type: specified_by
+    from: REQ-prolog-swipl-resolution-order
+    to: SCEN-prolog-bundled-runtime
+    created_at: 2026-11-10T09:17:02.346Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-552c38b79548
+  - type: specified_by
+    from: REQ-prolog-swipl-resolution-order
+    to: SCEN-NEG-prolog-bundled-runtime-OLD-PATH-SWIPL
+    created_at: 2026-11-10T09:17:02.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-185f6373d7e7
+  - type: verified_by
+    from: REQ-prolog-swipl-resolution-order
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-11-10T09:17:02.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-579bfd7305fd
+  - type: supersedes
+    from: REQ-prolog-swipl-resolution-order
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-11-10T09:17:02.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0586506674d4
