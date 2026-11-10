@@ -33,6 +33,8 @@ describe("Kibi MCP tool names", () => {
       "kb_",
       "kb_Check",
       "kb_check2",
+      // A kb_ name whose tail looks like an operation is still not one.
+      "kb_X.kb_check",
       "xkb_check",
       "kb_check__Read",
       "mcp__kibi__",

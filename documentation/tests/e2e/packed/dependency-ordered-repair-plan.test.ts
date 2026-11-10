@@ -513,29 +513,35 @@ if (RUN_NODE_TEST_SUITE) {
         type PlanCarrier = {
           migrationPlan?: { version: string; planHash: string };
         };
-        const outputs = [
-          await kibi(sandbox, ["status", "--format", "json"]),
-          await kibi(sandbox, ["check", "--format", "json"]),
-          await kibi(sandbox, ["coverage", "--by", "req", "--format", "json"]),
-          await kibi(sandbox, ["migrate", "--format", "json"]),
+        const commands = [
+          ["status", "--format", "json"],
+          ["check", "--format", "json"],
+          ["coverage", "--by", "req", "--format", "json"],
+          ["migrate", "--format", "json"],
         ];
-        const plans = outputs.flatMap((result) => {
+        const plans: { version: string; planHash: string }[] = [];
+        for (const args of commands) {
+          const result = await kibi(sandbox, args);
+          const label = `kibi ${args.join(" ")}`;
+          let parsed: {
+            data?: PlanCarrier;
+            structuredContent?: PlanCarrier;
+          } & PlanCarrier;
           try {
-            const parsed = JSON.parse(result.stdout) as {
-              data?: PlanCarrier;
-              structuredContent?: PlanCarrier;
-            } & PlanCarrier;
-            const plan = (parsed.data ?? parsed.structuredContent ?? parsed)
-              .migrationPlan;
-            return plan === undefined ? [] : [plan];
+            parsed = JSON.parse(result.stdout);
           } catch {
-            return [];
+            assert.fail(
+              `${label} printed no JSON (exit ${result.exitCode}): ${result.stdout.slice(0, 200)} ${result.stderr.slice(0, 200)}`,
+            );
           }
-        });
-        assert.ok(
-          plans.length > 0,
-          `no migration plan in: ${outputs.map((result) => result.stdout.slice(0, 200)).join(" | ")}`,
-        );
+          const plan = (parsed.data ?? parsed.structuredContent ?? parsed)
+            .migrationPlan;
+          assert.ok(
+            plan !== undefined,
+            `${label} returned no migration plan: ${result.stdout.slice(0, 200)}`,
+          );
+          plans.push(plan);
+        }
         for (const plan of plans) {
           assert.strictEqual(plan.version, "kibi.migration-plan.v2");
           assert.match(plan.planHash, /^[a-f0-9]{64}$/);

@@ -47,10 +47,10 @@ function strings(value: unknown): string[] {
 export function canonicalKbOperation(
   toolName: string | undefined,
 ): string | undefined {
-  // A canonical name always starts with kb_, and `String(undefined)` never
-  // matches, so only the operation's characters are checked.
+  // The whole operation must be kb_ plus lowercase letters and underscores;
+  // `String(undefined)` never matches.
   const operation = canonicalKbToolName(toolName);
-  return /kb_[a-z_]+$/.test(String(operation)) ? operation : undefined;
+  return /^kb_[a-z_]+$/.test(String(operation)) ? operation : undefined;
 }
 
 function payloadOf(toolInput: unknown): Record<string, unknown> {

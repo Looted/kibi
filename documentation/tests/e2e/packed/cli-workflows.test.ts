@@ -1069,12 +1069,21 @@ if (RUN_NODE_TEST_SUITE) {
         return;
       }
 
-      // A stand-in browser launcher records every file it is asked to open.
+      if (process.platform === "win32") {
+        testContext.skip("the report opener is a shell stand-in");
+        return;
+      }
+
+      // A stand-in browser launcher records every file it is asked to open,
+      // under the opener name the CLI uses on this platform.
       const launcherDir = path.join(sandbox.repoDir, ".launcher-bin");
       const launches = path.join(sandbox.repoDir, ".launcher-calls");
       await mkdir(launcherDir, { recursive: true });
       await writeFile(
-        path.join(launcherDir, "xdg-open"),
+        path.join(
+          launcherDir,
+          process.platform === "darwin" ? "open" : "xdg-open",
+        ),
         `#!/bin/sh\necho "$1" >> "${launches}"\n`,
         { mode: 0o755 },
       );
@@ -1101,10 +1110,6 @@ if (RUN_NODE_TEST_SUITE) {
         0,
         `a failed write must fail the report. Output: ${failed.stdout}${failed.stderr}`,
       );
-      await assert.rejects(
-        readFile(launches, "utf8"),
-        "the browser must not open after a failed write",
-      );
 
       const opened = await run(
         "node",
@@ -1122,8 +1127,18 @@ if (RUN_NODE_TEST_SUITE) {
         calls = await readFile(launches, "utf8").catch(() => "");
         if (calls === "") await new Promise((done) => setTimeout(done, 100));
       }
-      assert.match(calls, new RegExp(path.basename(path.dirname(expected))));
-      assert.match(calls, /index\.html/);
+      // The launcher is detached, so a launch after the failed write could land
+      // late; by now it would have, and only the written report was opened.
+      const opens = calls.trim().split("\n");
+      assert.strictEqual(
+        opens.length,
+        1,
+        `the browser must open only the written report, not after a failed write: ${calls}`,
+      );
+      const [opened0 = ""] = opens;
+      assert.match(opened0, new RegExp(path.basename(path.dirname(expected))));
+      assert.match(opened0, /index\.html/);
+      assert.doesNotMatch(opened0, /report-blocker/);
     });
 
     it(
