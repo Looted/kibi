@@ -48,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-48c7bc09da9d
-  - type: implements
-    from: SYM-quality-junit-ambiguousNativeBindings
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-14T19:07:37.969Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dc724ac1b969
   - type: covered_by
     from: SYM-quality-junit-ambiguousNativeBindings
     to: TEST-native-report-integrity

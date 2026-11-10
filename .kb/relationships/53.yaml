@@ -328,3 +328,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e63be25a957
+  - type: assumes
+    from: SCEN-kibi-proof-producers
+    to: FACT-PROP-kibi-proof-producers-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-230d50352085
+  - type: assumes
+    from: SCEN-kibi-proof-producers
+    to: FACT-PROP-kibi-proof-producers-c02
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d33235dbf124
+  - type: verified_by
+    from: SCEN-kibi-proof-producers
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77b40eed1a8d

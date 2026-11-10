@@ -538,3 +538,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ddf66a311c7
+  - type: assumes
+    from: SCEN-NEG-kibi-proof-producers-INVENTED-ATTEMPTS
+    to: FACT-NEG-kibi-proof-producers-INVENTED-ATTEMPTS
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e33ad4835ee4
+  - type: verified_by
+    from: SCEN-NEG-kibi-proof-producers-INVENTED-ATTEMPTS
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a73715a06b5

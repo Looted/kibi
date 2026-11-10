@@ -388,3 +388,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d565926aaf89
+  - type: constrains
+    from: REQ-kibi-proof-producers
+    to: FACT-SUBJ-kibi-proof-producers
+    created_at: 2026-11-10T11:28:46.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f603c1ed170
+  - type: requires_property
+    from: REQ-kibi-proof-producers
+    to: FACT-PROP-kibi-proof-producers-c01
+    created_at: 2026-11-10T11:28:46.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b2282ff1e0f
+  - type: requires_property
+    from: REQ-kibi-proof-producers
+    to: FACT-PROP-kibi-proof-producers-c02
+    created_at: 2026-11-10T11:28:46.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-314ca49e22d3
+  - type: specified_by
+    from: REQ-kibi-proof-producers
+    to: SCEN-kibi-proof-producers
+    created_at: 2026-11-10T11:28:46.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d48d55a3a87c
+  - type: specified_by
+    from: REQ-kibi-proof-producers
+    to: SCEN-NEG-kibi-proof-producers-INVENTED-ATTEMPTS
+    created_at: 2026-11-10T11:28:46.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6dbf46737f23
+  - type: relates_to
+    from: REQ-kibi-proof-producers
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-11-10T11:28:46.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-addee9fc2929

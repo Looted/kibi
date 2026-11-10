@@ -16054,11 +16054,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
+      - type: implements
+        target: REQ-kibi-proof-producers
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-native-report-integrity
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-convert-junit-xml
     title: convertJUnitXml
     sourceFile: packages/cli/src/proof/producers/junit-adapter.ts
@@ -16067,11 +16069,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
+      - type: implements
+        target: REQ-kibi-proof-producers
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-native-report-integrity
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-kibi-playwright-producer
     title: KibiPlaywrightProducer
     sourceFile: packages/cli/src/proof/producers/playwright-reporter.ts
@@ -16080,9 +16084,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
+        target: REQ-kibi-proof-producers
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-kibi-playwright-producer-on-end
     title: KibiPlaywrightProducer.onEnd
     sourceFile: packages/cli/src/proof/producers/playwright-reporter.ts
@@ -16091,9 +16097,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
+        target: REQ-kibi-proof-producers
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-convert-tap
     title: convertTap
     sourceFile: packages/cli/src/proof/producers/tap-adapter.ts
@@ -16102,11 +16110,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
+      - type: implements
+        target: REQ-kibi-proof-producers
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-native-report-integrity
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-playwright-case-id
     title: playwrightCaseId
     sourceFile: packages/cli/src/proof/producers/playwright-case-id.ts
@@ -16115,9 +16125,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
+        target: REQ-kibi-proof-producers
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-normalize-playwright-source-file
     title: normalizePlaywrightSourceFile
     sourceFile: packages/cli/src/proof/producers/playwright-case-id.ts
@@ -16126,9 +16138,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
+        target: REQ-kibi-proof-producers
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-test-ingest-proof
     title: ingest proof tests
     sourceFile: packages/cli/tests/operations/ingest-proof.test.ts
@@ -16533,12 +16547,12 @@ symbols:
     sourceFile: packages/cli/src/proof/producers/junit-adapter.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-producers
       - type: covered_by
         target: TEST-e2e-proof-maintenance-ops
       - type: covered_by
         target: TEST-native-report-integrity
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-quality-maintenance-executeMigrateLegacyReceipts
     title: executeMigrateLegacyReceipts
     status: active

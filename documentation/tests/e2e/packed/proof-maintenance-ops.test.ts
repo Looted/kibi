@@ -1,7 +1,9 @@
 import assert from "node:assert";
+import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
+import { pathToFileURL } from "node:url";
 
 import {
   type Tarballs,
@@ -612,6 +614,214 @@ Exercises proof protocol schema validation.
           undefined,
           "a malformed artifact must never append receipts",
         );
+      },
+    );
+
+    it(
+      "producers report what ran and Kibi evaluates it: a Playwright first-attempt pass proves, plain JUnit and TAP passes do not",
+      { timeout: 300000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const runsDir = join(sandbox.repoDir, ".kb", "proof", "runs");
+        const e2eDir = join(sandbox.repoDir, "tests", "e2e");
+        mkdirSync(runsDir, { recursive: true });
+        mkdirSync(e2eDir, { recursive: true });
+        const reporterUrl = pathToFileURL(
+          join(
+            sandbox.npmPrefix,
+            "node_modules",
+            "kibi-cli",
+            "dist",
+            "proof",
+            "producers",
+            "playwright-reporter.js",
+          ),
+        ).href;
+        // A stand-in for Playwright: drives the installed reporter through
+        // the callbacks Playwright calls, for one passing case.
+        writeFileSync(
+          join(e2eDir, "pw-run.mjs"),
+          `const { KibiPlaywrightProducer } = await import(process.argv[2]);
+const producer = new KibiPlaywrightProducer({ workspaceRoot: process.env.KIBI_PROOF_WORKSPACE });
+producer.onBegin();
+producer.onTestEnd(
+  {
+    titlePath: () => ["suite", "greets"],
+    location: { file: process.env.KIBI_PROOF_WORKSPACE + "/tests/e2e/pw.spec.ts", line: 1 },
+    project: () => ({ name: "default" }),
+  },
+  { status: "passed", duration: 5 },
+);
+await producer.onEnd({ status: "passed" });
+`,
+        );
+        writeFileSync(
+          join(e2eDir, "junit-pass.xml"),
+          `<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="suite" tests="1" failures="0">
+  <testcase name="greets" classname="suite" time="0.01"/>
+</testsuite>
+`,
+        );
+        writeFileSync(
+          join(e2eDir, "tap-pass.tap"),
+          "TAP version 13\n1..1\nok 1 - greets\n",
+        );
+        writeFileSync(
+          join(e2eDir, "producers.test.ts"),
+          "export const producerBehavior = 'v1';\n",
+        );
+        writeFileSync(
+          join(sandbox.repoDir, ".kb", "proof", "integrations.json"),
+          `${JSON.stringify(
+            {
+              version: "kibi.proof-integration.v1",
+              integrations: [
+                {
+                  id: "pw-fixture",
+                  producer: "playwright",
+                  command: ["node", "tests/e2e/pw-run.mjs", reporterUrl],
+                  targets: ["default"],
+                },
+                {
+                  id: "junit-pass",
+                  producer: "junit",
+                  command: [
+                    "cp",
+                    "tests/e2e/junit-pass.xml",
+                    ".kb/proof/runs/junit-pass.xml",
+                  ],
+                  artifact: ".kb/proof/runs/junit-pass.xml",
+                  targets: ["default"],
+                },
+                {
+                  id: "tap-pass",
+                  producer: "tap",
+                  command: [
+                    "cp",
+                    "tests/e2e/tap-pass.tap",
+                    ".kb/proof/runs/tap-pass.tap",
+                  ],
+                  artifact: ".kb/proof/runs/tap-pass.tap",
+                  targets: ["default"],
+                },
+              ],
+            },
+            null,
+            2,
+          )}\n`,
+        );
+        const playwrightSymbol = `SYM-PW-${createHash("sha256")
+          .update("tests/e2e/pw.spec.ts\0suite > greets")
+          .digest("hex")
+          .slice(0, 16)
+          .toUpperCase()}`;
+        const producerTest = (
+          id: string,
+          integration: string,
+          symbolId: string,
+          nativeId: string | null,
+        ): string => `---
+id: ${id}
+title: Packed ${integration} producer E2E
+status: passing
+source: tests/e2e/producers.test.ts
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: ${integration}
+  required_proofs:
+    - symbol_id: ${symbolId}
+      target: default
+  success_policy: all_required_first_attempt
+${
+  nativeId
+    ? `proof_bindings:
+  - symbol_id: ${symbolId}
+    target: default
+    native_id: ${nativeId}
+`
+    : ""
+}links:
+  - type: validates
+    target: SCEN-PACKED-MAINTENANCE
+---
+
+Exercises the ${integration} proof producer.
+`;
+        const tests = [
+          [
+            "TEST-PACKED-PW",
+            "pw-fixture",
+            playwrightSymbol,
+            "tests/e2e/pw.spec.ts:1:1 › suite › greets",
+          ],
+          [
+            "TEST-PACKED-JUNIT-PASS",
+            "junit-pass",
+            "SYM-PACKED-JUNIT-PASS",
+            "suite::greets",
+          ],
+          ["TEST-PACKED-TAP-PASS", "tap-pass", "SYM-PACKED-TAP-PASS", "greets"],
+        ] as const;
+        for (const [id, integration, symbolId, nativeId] of tests) {
+          writeFileSync(
+            join(sandbox.repoDir, ".kb", "tests", `${id}.md`),
+            producerTest(id, integration, symbolId, nativeId),
+          );
+          stageSourceFile(sandbox, `.kb/tests/${id}.md`);
+        }
+        for (const sourcePath of [
+          ".kb/proof/integrations.json",
+          "tests/e2e/pw-run.mjs",
+          "tests/e2e/junit-pass.xml",
+          "tests/e2e/tap-pass.tap",
+          "tests/e2e/producers.test.ts",
+        ]) {
+          stageSourceFile(sandbox, sourcePath);
+        }
+        const sync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
+
+        const playwright = await kibi(sandbox, [
+          "prove",
+          "--test",
+          "TEST-PACKED-PW",
+        ]);
+        assert.strictEqual(
+          playwright.exitCode,
+          0,
+          `a first-attempt Playwright pass must prove: ${playwright.stdout}${playwright.stderr}`,
+        );
+        const proved = await queryTest(sandbox, "TEST-PACKED-PW");
+        assert.strictEqual(proved?.proof_receipts?.length, 1);
+
+        for (const id of ["TEST-PACKED-JUNIT-PASS", "TEST-PACKED-TAP-PASS"]) {
+          const prove = await kibi(sandbox, ["prove", "--test", id]);
+          assert.notStrictEqual(
+            prove.exitCode,
+            0,
+            `${id}: a plain native pass carries no attempt history`,
+          );
+          assert.match(
+            prove.stdout + prove.stderr,
+            /attempt history unavailable/,
+            `${id}: Kibi must refuse the pass for missing attempt history, got: ${prove.stdout}${prove.stderr}`,
+          );
+          const after = await queryTest(sandbox, id);
+          assert.ok(
+            !after?.proof_receipts?.some(
+              (receipt) =>
+                (receipt as { outcome?: string }).outcome === "passed",
+            ),
+            `${id}: no passing receipt without attempt history`,
+          );
+        }
       },
     );
 
