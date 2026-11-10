@@ -426,3 +426,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-949e60812dd1
+  - type: assumes
+    from: SCEN-kibi-analysis-gate
+    to: FACT-PROP-kibi-analysis-gate-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6096bd57c17f
+  - type: assumes
+    from: SCEN-kibi-analysis-gate
+    to: FACT-PROP-kibi-analysis-gate-c02
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8915cc467e62
+  - type: verified_by
+    from: SCEN-kibi-analysis-gate
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3e46bdc822c

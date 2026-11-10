@@ -356,3 +356,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7b875f9ecd7f
+  - type: constrains
+    from: REQ-kibi-change-snapshots
+    to: FACT-SUBJ-kibi-change-snapshots
+    created_at: 2026-11-10T10:47:09.308Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-930432d7d8fd
+  - type: requires_property
+    from: REQ-kibi-change-snapshots
+    to: FACT-PROP-kibi-change-snapshots-c01
+    created_at: 2026-11-10T10:47:09.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f277886c2c4
+  - type: specified_by
+    from: REQ-kibi-change-snapshots
+    to: SCEN-kibi-change-snapshots
+    created_at: 2026-11-10T10:47:09.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11a0dfe4e2e7
+  - type: specified_by
+    from: REQ-kibi-change-snapshots
+    to: SCEN-NEG-kibi-change-snapshots-WORKING-TREE-BYTES
+    created_at: 2026-11-10T10:47:09.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85ac6e31cc49
+  - type: relates_to
+    from: REQ-kibi-change-snapshots
+    to: REQ-source-analysis-v2
+    created_at: 2026-11-10T10:47:09.429Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56e79c8e3ad9

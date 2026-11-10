@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-daff3f4826cd
+  - type: assumes
+    from: SCEN-NEG-kibi-analysis-gate-AFTER-GAP-PASSES
+    to: FACT-NEG-kibi-analysis-gate-AFTER-GAP-PASSES
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82e551335d64
+  - type: verified_by
+    from: SCEN-NEG-kibi-analysis-gate-AFTER-GAP-PASSES
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40fd091d0faa

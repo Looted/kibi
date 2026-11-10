@@ -2082,9 +2082,140 @@ async function runInstalledImpactPolicyWorkflow(
       "syntax-derived partial output must remain non-waivable under the explicit unsupported-review policy",
     );
 
+    await assertSnapshotAndAnalysisGateContracts(sandbox);
+
     assertExplicitMigrationDocumentation();
   } finally {
     await sandbox.cleanup();
+  }
+}
+
+type GateRange = Readonly<{ startLine: number; endLine: number }>;
+type GateInput = Readonly<{
+  status: "ok" | "partial" | "unsupported" | "failed";
+  diagnosticCodes: readonly string[];
+  uncoveredRanges: readonly (GateRange & Readonly<{ reason: string }>)[];
+}>;
+type InstalledSnapshot = Readonly<{
+  headTree: string;
+  inventory: readonly Readonly<{ path: string; content?: string }>[];
+  assertUnchanged: () => void;
+}>;
+
+/**
+ * Change snapshots and the analysis gate, through the installed modules: a
+ * staged snapshot is one tree written from the index, so a working-tree edit
+ * never enters it and a later index change is detected; a revision diff
+ * resolves the explicit base and head; failed analysis and non-local gaps
+ * block only on the after side.
+ */
+async function assertSnapshotAndAnalysisGateContracts(
+  sandbox: TestSandbox,
+): Promise<void> {
+  const snapshots = (await installedModule(
+    sandbox,
+    "traceability/git-change-snapshot.js",
+  )) as Readonly<{
+    captureStagedSnapshot: (repoDir: string) => InstalledSnapshot;
+    captureDiffSnapshot: (
+      repoDir: string,
+      base: string,
+      head: string,
+    ) => InstalledSnapshot;
+  }>;
+  const indexSnapshot = snapshots.captureStagedSnapshot(sandbox.repoDir);
+  writeFileSync(
+    join(sandbox.repoDir, "src/malformed.ts"),
+    "export function unstagedWorkingTreeEdit(): void {}\n",
+    "utf8",
+  );
+  const afterWorkingTreeEdit = snapshots.captureStagedSnapshot(sandbox.repoDir);
+  assert.equal(
+    afterWorkingTreeEdit.headTree,
+    indexSnapshot.headTree,
+    "an unstaged working-tree edit must not change the staged snapshot tree",
+  );
+  assert.doesNotMatch(
+    afterWorkingTreeEdit.inventory.find(
+      (entry) => entry.path === "src/malformed.ts",
+    )?.content ?? "",
+    /unstagedWorkingTreeEdit/,
+    "the staged snapshot must inventory index objects, not working-tree bytes",
+  );
+  indexSnapshot.assertUnchanged();
+  const restage = await stage(sandbox, ["src/malformed.ts"]);
+  assertExit(restage, 0, "stage the working-tree edit");
+  assert.throws(
+    () => indexSnapshot.assertUnchanged(),
+    /Git index or HEAD changed during staged analysis/,
+    "a staged snapshot must detect an index change made after capture",
+  );
+  const sameRevision = snapshots.captureDiffSnapshot(
+    sandbox.repoDir,
+    "HEAD",
+    "HEAD",
+  );
+  assert.equal(
+    sameRevision.inventory.length,
+    0,
+    "a revision diff between identical explicit revisions has no changes",
+  );
+  assert.throws(
+    () =>
+      snapshots.captureDiffSnapshot(
+        sandbox.repoDir,
+        "HEAD",
+        "no-such-revision-for-kibi",
+      ),
+    "a revision diff must refuse a head revision that does not resolve",
+  );
+
+  const gate = (await installedModule(
+    sandbox,
+    "traceability/analysis-gate.js",
+  )) as Readonly<{
+    analysisObligation: (
+      side: "before" | "after",
+      analysis: GateInput,
+      hunks: readonly Readonly<{ start: number; end: number }>[],
+    ) => Readonly<{ kind: string; reason?: string }>;
+  }>;
+  const failed: GateInput = {
+    status: "failed",
+    diagnosticCodes: ["PROVIDER_CRASHED"],
+    uncoveredRanges: [],
+  };
+  const syntaxGap: GateInput = {
+    status: "partial",
+    diagnosticCodes: ["SYNTAX_ERROR"],
+    uncoveredRanges: [{ startLine: 1, endLine: 1, reason: "syntax error" }],
+  };
+  const localGap: GateInput = {
+    status: "partial",
+    diagnosticCodes: [],
+    uncoveredRanges: [{ startLine: 10, endLine: 12, reason: "decorator" }],
+  };
+  assert.equal(
+    gate.analysisObligation("after", failed, []).kind,
+    "blocked",
+    "failed after-side analysis must block",
+  );
+  assert.equal(
+    gate.analysisObligation("after", syntaxGap, [{ start: 40, end: 41 }]).kind,
+    "blocked",
+    "a non-local after-side gap must block even away from the changed lines",
+  );
+  assert.equal(
+    gate.analysisObligation("after", localGap, [{ start: 1, end: 2 }]).kind,
+    "none",
+    "a local after-side gap away from the changed lines does not block",
+  );
+  for (const analysis of [failed, syntaxGap, localGap]) {
+    assert.deepEqual(
+      gate.analysisObligation("before", analysis, [{ start: 1, end: 12 }]),
+      { kind: "none" },
+      `a before-side ${analysis.status} analysis must stay informational`,
+    );
   }
 }
 

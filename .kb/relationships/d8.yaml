@@ -468,3 +468,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c85f84a7fe36
+  - type: assumes
+    from: SCEN-NEG-kibi-change-snapshots-WORKING-TREE-BYTES
+    to: FACT-NEG-kibi-change-snapshots-WORKING-TREE-BYTES
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-893e76d2d191
+  - type: verified_by
+    from: SCEN-NEG-kibi-change-snapshots-WORKING-TREE-BYTES
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa5fde12a27d

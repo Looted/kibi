@@ -111,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fac6dc5cf906
-  - type: implements
-    from: SYM-source-analysis-v2-readsnapshotsourceconfig-2fef553a
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T16:57:11.073Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-65798ec13154
   - type: validates
     from: TEST-release-mcp-registry-visibility
     to: REQ-020
@@ -363,3 +356,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-575cb215b763
+  - type: constrains
+    from: REQ-kibi-analysis-gate
+    to: FACT-SUBJ-kibi-analysis-gate
+    created_at: 2026-11-10T10:47:12.244Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7977518e1976
+  - type: requires_property
+    from: REQ-kibi-analysis-gate
+    to: FACT-PROP-kibi-analysis-gate-c01
+    created_at: 2026-11-10T10:47:12.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cebf50fefada
+  - type: requires_property
+    from: REQ-kibi-analysis-gate
+    to: FACT-PROP-kibi-analysis-gate-c02
+    created_at: 2026-11-10T10:47:12.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7e8bd1ddd6a
+  - type: specified_by
+    from: REQ-kibi-analysis-gate
+    to: SCEN-kibi-analysis-gate
+    created_at: 2026-11-10T10:47:12.360Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90ce842f0a50
+  - type: specified_by
+    from: REQ-kibi-analysis-gate
+    to: SCEN-NEG-kibi-analysis-gate-AFTER-GAP-PASSES
+    created_at: 2026-11-10T10:47:12.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e05bbe31df7
+  - type: relates_to
+    from: REQ-kibi-analysis-gate
+    to: REQ-source-analysis-v2
+    created_at: 2026-11-10T10:47:12.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6cf2dbf79c7d

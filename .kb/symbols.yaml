@@ -20493,9 +20493,11 @@ symbols:
     sourceFile: packages/cli/src/traceability/git-change-snapshot.ts
     relationships:
       - type: covered_by
-        target: TEST-source-analysis-v2-contract
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-source-analysis-v2
+        target: REQ-kibi-change-snapshots
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
   - id: SYM-source-analysis-v2-createsymbolextractorv2adapter-b56c8cdd
     title: createSymbolExtractorV2Adapter
     status: active
@@ -20543,9 +20545,11 @@ symbols:
     status: active
     relationships:
       - type: covered_by
-        target: TEST-source-analysis-v2-contract
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-source-analysis-v2
+        target: REQ-kibi-change-snapshots
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
   - id: SYM-source-analysis-v2-sourceanalysisservice-analyzetextv2-12afca51
     title: SourceAnalysisService.analyzeTextV2
     status: active
@@ -20561,17 +20565,6 @@ symbols:
         target: TEST-source-analysis-v2-contract
       - type: implements
         target: REQ-multilingual-language-catalog
-      - type: implements
-        target: REQ-source-analysis-v2
-  - id: SYM-source-analysis-v2-symbol-extractor-v2-capability-id-43e5dbce
-    title: SYMBOL_EXTRACTOR_V2_CAPABILITY_ID
-    symbol_role: config
-    granularity_reason: config-artifact
-    sourceFile: packages/plugin-sdk/src/protocol.ts
-    status: active
-    relationships:
-      - type: covered_by
-        target: TEST-source-analysis-v2-contract
       - type: implements
         target: REQ-source-analysis-v2
   - id: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
@@ -20687,8 +20680,6 @@ symbols:
         target: TEST-source-analysis-v2-contract
       - type: implements
         target: REQ-multilingual-language-catalog
-      - type: implements
-        target: REQ-source-analysis-v2
   - id: SYM-treesitter-normalize-language
     symbol_role: behavioral
     tags:
@@ -20704,8 +20695,6 @@ symbols:
         target: TEST-source-analysis-v2-contract
       - type: implements
         target: REQ-multilingual-language-catalog
-      - type: implements
-        target: REQ-source-analysis-v2
   - id: SYM-cap-plugin-createbuiltintsmorphsymbolextractorv2
     title: createBuiltinTsMorphSymbolExtractorV2
     status: active
@@ -20751,39 +20740,11 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-source-analysis-v2-contract
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-source-analysis-v2
-  - id: SYM-source-analysis-v2-classifiedextensions
-    title: classifiedExtensions
-    status: active
-    sourceFile: packages/cli/src/plugins/source-classification.ts
-    symbol_role: behavioral
-    relationships:
+        target: REQ-kibi-analysis-gate
       - type: covered_by
         target: TEST-source-analysis-v2-contract
-      - type: implements
-        target: REQ-source-analysis-v2
-  - id: SYM-source-analysis-v2-isqualifiedsourcepath
-    title: isQualifiedSourcePath
-    status: active
-    sourceFile: packages/cli/src/plugins/source-classification.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-source-analysis-v2-contract
-      - type: implements
-        target: REQ-source-analysis-v2
-  - id: SYM-source-analysis-v2-istsjssourcepath
-    title: isTsJsSourcePath
-    status: active
-    sourceFile: packages/cli/src/plugins/source-classification.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-source-analysis-v2-contract
-      - type: implements
-        target: REQ-source-analysis-v2
   - id: SYM-source-analysis-v2-analysisobligation
     title: analysisObligation
     status: active
@@ -20791,9 +20752,11 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-source-analysis-v2-contract
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-source-analysis-v2
+        target: REQ-kibi-analysis-gate
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
   - id: SYM-impact-stage-e-fingerprintimpactevaluator
     title: fingerprintImpactEvaluator
     status: active
@@ -25819,9 +25782,11 @@ symbols:
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
       - type: covered_by
-        target: TEST-source-analysis-v2-contract
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-source-analysis-v2
+        target: REQ-kibi-change-snapshots
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
   - id: SYM-staged-inventory-drift-STAGED_INVENTORY_DRIFT_RULE
     title: STAGED_INVENTORY_DRIFT_RULE
     status: active
