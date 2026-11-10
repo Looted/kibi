@@ -33,17 +33,17 @@ id: TEST-e2e-skillopt-optimizer-toolchain
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-412cec7b224832fbd5e1d2d7
+    receipt_id: PR-f9436dd059dc4e9b2be52ff1
     test_id: TEST-e2e-skillopt-optimizer-toolchain
     scope: end_to_end
     outcome: passed
-    code_snapshot: b48ae08dc345eb89b585026e0d0dd163f0e79dcb623e1b2d37670be026d13f9b
+    code_snapshot: c05f77bba7df77f015b0b2d3c442676cd9c4f40576ae886f262844f8bf718d9b
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-04T13:09:30.000Z'
-    finished_at: '2026-11-04T13:09:36.185Z'
-    artifact_digest: 617a8ed7ff475162e24adc5b28e32902244ad20750aa70cf5641077f9f36d095
+    started_at: '2026-11-10T10:06:52.902Z'
+    finished_at: '2026-11-10T10:06:58.854Z'
+    artifact_digest: 4186f4898066878f6a191a155c75894206d9229f70fc9ecf3ff87bf239d603cc
     contract_hash: b977b8213d90a0216336d280a5005b90043306c1948949ef87399b30a41ee0d7
-    binding_hash: ff12cf3c09a5ce6b582e5657f863aa3a1b5ec9e21d3c51379e5d88d33490e092
+    binding_hash: bab21dcb17d0152229f08d2f0db46fe5a8b2d226c943906896e7709aca3a9c93
     fingerprint: f35b6b6d55cf486b0806960e8d9f553ef6ff877551997a36a52a7128b68aaff8
     fingerprint_components:
       contract: b977b8213d90a0216336d280a5005b90043306c1948949ef87399b30a41ee0d7
