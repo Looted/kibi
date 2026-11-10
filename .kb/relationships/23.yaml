@@ -45,13 +45,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4bc9b5d06caf
-  - type: implements
-    from: SYM-cli-canonical-filesystem-path
-    to: REQ-cli-canonical-runtime
-    created_at: 2026-09-30T14:45:45.844Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0ef22db85a1c
   - type: covered_by
     from: SYM-cli-canonical-filesystem-path
     to: TEST-cli-canonical-runtime

@@ -126,20 +126,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-050b94383760
   - type: implements
-    from: SYM-compilerFingerprintReason
-    to: REQ-cli-canonical-runtime
-    created_at: 2026-09-29T11:26:34.686Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8230d200c215
-  - type: covered_by
-    from: SYM-compilerFingerprintReason
-    to: TEST-cli-canonical-runtime
-    created_at: 2026-09-29T11:26:34.707Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0c17f008bb71
-  - type: implements
     from: SYM-plan-apply-journal-recoverPlanApplyJournal
     to: REQ-kibi-change-to-proof-plan-compiler-v2
     created_at: 2026-10-04T03:14:33.747Z
@@ -356,3 +342,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-537be7921908
+  - type: constrains
+    from: REQ-kibi-canonical-source-authoring
+    to: FACT-SUBJ-REQ-CLI-CANONICAL-RUNTIME
+    created_at: 2026-11-10T05:15:46.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea22e609f473
+  - type: requires_property
+    from: REQ-kibi-canonical-source-authoring
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C06
+    created_at: 2026-11-10T05:15:46.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c2ab3ab5ba9
+  - type: requires_property
+    from: REQ-kibi-canonical-source-authoring
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C07
+    created_at: 2026-11-10T05:15:46.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-456c13f73d9b
+  - type: requires_property
+    from: REQ-kibi-canonical-source-authoring
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C08
+    created_at: 2026-11-10T05:15:46.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f49f467fd998
+  - type: specified_by
+    from: REQ-kibi-canonical-source-authoring
+    to: SCEN-cli-canonical-runtime
+    created_at: 2026-11-10T05:15:46.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98e3e5b28e3e
+  - type: specified_by
+    from: REQ-kibi-canonical-source-authoring
+    to: SCEN-NEG-kibi-canonical-source-authoring-DERIVED-TREE-WRITE
+    created_at: 2026-11-10T05:15:46.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb5a6e073b5f
+  - type: verified_by
+    from: REQ-kibi-canonical-source-authoring
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-11-10T05:15:46.437Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-135b1cce237f
+  - type: relates_to
+    from: REQ-kibi-canonical-source-authoring
+    to: ADR-026
+    created_at: 2026-11-10T05:15:46.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32ff97c13f0e
+  - type: supersedes
+    from: REQ-kibi-canonical-source-authoring
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-11-10T05:15:46.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-592d50bcc709

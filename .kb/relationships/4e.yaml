@@ -195,3 +195,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f6330dea76b
+  - type: constrains
+    from: REQ-kibi-sync-canonical-discovery
+    to: FACT-SUBJ-REQ-CLI-CANONICAL-RUNTIME
+    created_at: 2026-11-10T05:15:26.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5564d39a341
+  - type: requires_property
+    from: REQ-kibi-sync-canonical-discovery
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C01
+    created_at: 2026-11-10T05:15:26.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d078a3d1ef8
+  - type: requires_property
+    from: REQ-kibi-sync-canonical-discovery
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C02
+    created_at: 2026-11-10T05:15:26.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa6aed21960b
+  - type: requires_property
+    from: REQ-kibi-sync-canonical-discovery
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C03
+    created_at: 2026-11-10T05:15:26.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb80e9c3a388
+  - type: requires_property
+    from: REQ-kibi-sync-canonical-discovery
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C04
+    created_at: 2026-11-10T05:15:26.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d693b46b34c8
+  - type: requires_property
+    from: REQ-kibi-sync-canonical-discovery
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C05
+    created_at: 2026-11-10T05:15:26.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e7a8441a23d
+  - type: specified_by
+    from: REQ-kibi-sync-canonical-discovery
+    to: SCEN-cli-canonical-runtime
+    created_at: 2026-11-10T05:15:26.804Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac0d8f056ebf
+  - type: specified_by
+    from: REQ-kibi-sync-canonical-discovery
+    to: SCEN-NEG-cli-canonical-runtime-README-INGESTED
+    created_at: 2026-11-10T05:15:26.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-737846b9295e
+  - type: verified_by
+    from: REQ-kibi-sync-canonical-discovery
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-11-10T05:15:26.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bb73010b9fc
+  - type: relates_to
+    from: REQ-kibi-sync-canonical-discovery
+    to: ADR-026
+    created_at: 2026-11-10T05:15:26.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f126cc1d140
+  - type: supersedes
+    from: REQ-kibi-sync-canonical-discovery
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-11-10T05:15:26.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a3383be2a99

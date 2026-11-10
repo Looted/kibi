@@ -3287,6 +3287,7 @@ async function runHookCliIfMain(isMain = isInvokedAsCli(process.argv[1], import.
 runHookCliIfMain();
 var hookRunnerPath = fileURLToPath2(import.meta.url);
 export {
+  hasKibiConfig,
   hookRunnerPath,
   isInvokedAsCli,
   kibiWorkspaceFor,

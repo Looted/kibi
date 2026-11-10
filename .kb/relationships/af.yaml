@@ -195,3 +195,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2926d42dd6c5
+  - type: constrains
+    from: REQ-kibi-manifest-initialized-signal
+    to: FACT-SUBJ-REQ-CLI-CANONICAL-RUNTIME
+    created_at: 2026-11-10T05:16:21.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-401f9da190ba
+  - type: requires_property
+    from: REQ-kibi-manifest-initialized-signal
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C09
+    created_at: 2026-11-10T05:16:21.181Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99a2672c9794
+  - type: specified_by
+    from: REQ-kibi-manifest-initialized-signal
+    to: SCEN-cli-canonical-runtime
+    created_at: 2026-11-10T05:16:21.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3dede1bbb2a1
+  - type: specified_by
+    from: REQ-kibi-manifest-initialized-signal
+    to: SCEN-NEG-kibi-manifest-initialized-signal-CONFIG-AS-INITIALIZED
+    created_at: 2026-11-10T05:16:21.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2043de1d86c
+  - type: verified_by
+    from: REQ-kibi-manifest-initialized-signal
+    to: TEST-mcp-canonical-activation
+    created_at: 2026-11-10T05:16:21.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52fbcb0cf73b
+  - type: verified_by
+    from: REQ-kibi-manifest-initialized-signal
+    to: TEST-cursor-canonical-manifest
+    created_at: 2026-11-10T05:16:21.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed3caf816cd2
+  - type: verified_by
+    from: REQ-kibi-manifest-initialized-signal
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-11-10T05:16:21.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f9ee08555e4
+  - type: verified_by
+    from: REQ-kibi-manifest-initialized-signal
+    to: TEST-mcp-workspace-routing
+    created_at: 2026-11-10T05:16:21.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cbf48e01d50
+  - type: relates_to
+    from: REQ-kibi-manifest-initialized-signal
+    to: ADR-026
+    created_at: 2026-11-10T05:16:21.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84ec56ea9b42
+  - type: supersedes
+    from: REQ-kibi-manifest-initialized-signal
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-11-10T05:16:21.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-924f70e19e54

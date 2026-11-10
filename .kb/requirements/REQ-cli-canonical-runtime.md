@@ -1,6 +1,6 @@
 ---
 title: Runtime operations honor the canonical .kb/ contract
-status: open
+status: closed
 priority: must
 tags:
   - cli
@@ -99,7 +99,7 @@ id: REQ-cli-canonical-runtime
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Runtime operations honor the canonical `.kb/` contract after init.

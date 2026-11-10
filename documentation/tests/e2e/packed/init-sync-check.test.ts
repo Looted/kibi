@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
@@ -212,6 +212,60 @@ if (RUN_NODE_TEST_SUITE) {
 
         assert.ok(stdout.includes("Authentication Required"));
         assert.ok(stdout.includes("security"));
+      },
+    );
+
+    it(
+      "should refuse a document.path inside a derived .kb tree and write nothing there",
+      { timeout: 60000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        await kibi(sandbox, ["init"]);
+        const upsert = (path: string) => {
+          const inputPath = join(sandbox.repoDir, "derived-target.json");
+          writeFileSync(
+            inputPath,
+            JSON.stringify({
+              type: "scenario",
+              id: "SCEN-DERIVED-TARGET",
+              properties: { title: "Derived target", status: "active" },
+              document: {
+                path,
+                body: "Given a scenario aimed at a derived tree, when it is upserted, then Kibi refuses the write and leaves the tree untouched.",
+              },
+            }),
+            "utf8",
+          );
+          return kibi(sandbox, ["upsert", "--input", inputPath]);
+        };
+
+        for (const derived of [
+          ".kb/branches/main/SCEN-DERIVED-TARGET.md",
+          ".kb/migrations/SCEN-DERIVED-TARGET.md",
+        ]) {
+          const refused = await upsert(derived);
+          assert.notStrictEqual(refused.exitCode, 0, refused.stdout);
+          assert.match(
+            refused.stdout + refused.stderr,
+            /SOURCE_PATH_INVALID[\s\S]*derived state/,
+          );
+          assert.ok(
+            !existsSync(join(sandbox.repoDir, derived)),
+            `${derived} must not be written`,
+          );
+        }
+
+        const authored = await upsert(".kb/scenarios/SCEN-DERIVED-TARGET.md");
+        assert.strictEqual(authored.exitCode, 0, authored.stderr);
+        assert.ok(
+          existsSync(
+            join(sandbox.repoDir, ".kb/scenarios/SCEN-DERIVED-TARGET.md"),
+          ),
+        );
       },
     );
 

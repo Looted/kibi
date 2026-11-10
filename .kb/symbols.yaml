@@ -1904,8 +1904,6 @@ symbols:
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
       - type: implements
-        target: REQ-cli-canonical-runtime
-      - type: implements
         target: REQ-cli-staged-impact-enforcement
   - id: SYM-classifyKnowledge
     title: classifyKnowledge
@@ -3370,14 +3368,14 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-canonical-source-authoring
       - type: covered_by
         target: TEST-008
       - type: covered_by
         target: TEST-cli-canonical-runtime
       - type: implements
         target: REQ-001
-      - type: implements
-        target: REQ-cli-canonical-runtime
   - id: SYM-createSessionEditState
     title: createSessionEditState
     status: active
@@ -3951,14 +3949,14 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-sync-canonical-discovery
       - type: covered_by
         target: TEST-cli-canonical-runtime
       - type: covered_by
         target: TEST-cli-sync-discovery-readme-ignore
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-cli-canonical-runtime
       - type: implements
         target: REQ-core-extractors
   - id: SYM-discovery-execute-query
@@ -16109,14 +16107,14 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-canonical-source-authoring
       - type: covered_by
         target: TEST-cli-canonical-runtime
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-cli-canonical-runtime
   - id: SYM-auto-2E8B94C6ABB2
     title: normalizeAuthoredSourcePath
     status: active
@@ -16139,14 +16137,14 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-canonical-source-authoring
       - type: covered_by
         target: TEST-cli-canonical-runtime
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-cli-canonical-runtime
   - id: SYM-auto-897151BA8338
     title: hasConfiguredSourceTarget
     status: active
@@ -16897,17 +16895,6 @@ symbols:
         target: TEST-proof-relationship-type-vocabulary
       - type: implements
         target: REQ-kibi-relationship-type-vocabulary
-  - id: SYM-getStagedFiles
-    title: getStagedFiles
-    status: active
-    sourceFile: packages/cli/src/traceability/git-staged.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-canonical-runtime
-      - type: implements
-        target: REQ-cli-canonical-runtime
   - id: SYM-canonical-createManifestFile
     title: createManifestFile
     status: active
@@ -16926,14 +16913,14 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-cli-init-canonical
       - type: covered_by
         target: TEST-cli-canonical-init
       - type: covered_by
         target: TEST-cli-canonical-runtime
       - type: covered_by
         target: TEST-cli-migrate
-      - type: implements
-        target: REQ-cli-canonical-runtime
   - id: SYM-canonical-applyLegacyStorageMigration
     title: applyLegacyStorageMigration
     status: active
@@ -16947,8 +16934,6 @@ symbols:
         target: TEST-cli-canonical-runtime
       - type: covered_by
         target: TEST-cli-migrate
-      - type: implements
-        target: REQ-cli-canonical-runtime
       - type: implements
         target: REQ-cli-init-canonical
   - id: SYM-canonical-needsLegacyStorageMigration
@@ -17264,10 +17249,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-sync-canonical-discovery
       - type: covered_by
         target: TEST-cli-canonical-runtime
-      - type: implements
-        target: REQ-cli-canonical-runtime
   - id: SYM-canonical-refreshSymbolCoordinates
     title: refreshSymbolCoordinates
     status: active
@@ -17275,9 +17260,11 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
+        target: TEST-symbol-coordinates-derived-locally
       - type: implements
-        target: REQ-cli-canonical-runtime
+        target: REQ-symbol-coordinates-derived-locally
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-canonical-runtime
   - id: SYM-canonical-analyzeKbCheckImpact
@@ -17313,17 +17300,6 @@ symbols:
         target: TEST-004
       - type: implements
         target: REQ-cli-check
-  - id: SYM-canonical-readLegacyChecksHint
-    title: readLegacyChecksHint
-    status: active
-    sourceFile: packages/cli/src/public/operations/check-helpers.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-canonical-runtime
-      - type: implements
-        target: REQ-cli-canonical-runtime
   - id: SYM-canonical-resolveCheckRules
     title: resolveCheckRules
     status: active
@@ -20184,16 +20160,6 @@ symbols:
         target: TEST-core-journaled-engine-delta-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
-  - id: SYM-sync-assert-no-unresolved-git-conflicts
-    title: assertNoUnresolvedGitConflicts
-    status: active
-    sourceFile: packages/cli/src/commands/sync.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-cli-canonical-runtime
-      - type: covered_by
-        target: TEST-cli-branch-store-recovery
   - id: SYM-sync-another-branch-store-synced
     title: anotherBranchStoreSynced
     status: active
@@ -24045,16 +24011,6 @@ symbols:
         target: TEST-kibi-local-proof-parity
       - type: implements
         target: REQ-kibi-local-proof-parity
-  - id: SYM-compilerFingerprintReason
-    title: compilerFingerprintReason
-    status: active
-    sourceFile: packages/cli/src/commands/sync/cache.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-cli-canonical-runtime
-      - type: implements
-        target: REQ-cli-canonical-runtime
   - id: SYM-renderShardWithout
     title: renderShardWithout
     status: active
@@ -25553,6 +25509,8 @@ symbols:
     sourceFile: packages/cli/src/utils/canonical-path.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-canonical-source-authoring
       - type: covered_by
         target: TEST-cli-canonical-runtime
       - type: covered_by
@@ -25563,8 +25521,6 @@ symbols:
         target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-cli-canonical-runtime
   - id: SYM-test-cli-engine-runtime-paths
     title: engine runtime paths tests
     status: active
@@ -44981,3 +44937,23 @@ symbols:
         target: TEST-kibi-html-health-report
       - type: implements
         target: REQ-kibi-health-report-complete-data
+  - id: SYM-cursor-hasKibiConfig
+    title: hasKibiConfig
+    status: active
+    sourceFile: packages/cursor/src/hook-runner.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-manifest-initialized-signal
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+  - id: SYM-mcp-kibiWorkspaceFor
+    title: kibiWorkspaceFor
+    status: active
+    sourceFile: packages/mcp/src/server/workspace-router.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-manifest-initialized-signal
+      - type: covered_by
+        target: TEST-mcp-workspace-routing

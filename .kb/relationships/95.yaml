@@ -41,20 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e54d249fb7fd
-  - type: implements
-    from: SYM-canonical-readLegacyChecksHint
-    to: REQ-cli-canonical-runtime
-    created_at: 2026-08-18T17:36:15.860Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-de5a828216b8
-  - type: covered_by
-    from: SYM-canonical-readLegacyChecksHint
-    to: TEST-cli-canonical-runtime
-    created_at: 2026-08-18T17:36:15.869Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-026d63310d10
   - type: executable_for
     from: SYM-kibi-predicate-suggestion-relevance-e2e
     to: TEST-kibi-predicate-suggestion-relevance-v1

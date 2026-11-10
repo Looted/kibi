@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fa774acd7a1
+  - type: assumes
+    from: SCEN-NEG-kibi-canonical-source-authoring-DERIVED-TREE-WRITE
+    to: FACT-NEG-kibi-canonical-source-authoring-DERIVED-TREE-WRITE
+    created_at: 2026-11-10T09:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65e4a087cd50
+  - type: verified_by
+    from: SCEN-NEG-kibi-canonical-source-authoring-DERIVED-TREE-WRITE
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-11-10T09:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cf712d9a656
