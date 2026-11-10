@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dad9bf7f65c1
+  - type: verified_by
+    from: SCEN-NEG-kibi-impact-receipts-advisories-opt-in-NO-POLICY
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-10T16:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2dad1173ad1

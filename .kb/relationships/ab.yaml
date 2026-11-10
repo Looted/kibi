@@ -423,3 +423,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a99af8a5a0cf
+  - type: verified_by
+    from: SCEN-NEG-kibi-impact-aggregate-pr-gate-POLICY-WEAKENING
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-10T16:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb23fb2bd8fb

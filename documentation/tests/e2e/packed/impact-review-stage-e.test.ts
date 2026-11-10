@@ -1375,6 +1375,20 @@ async function runInstalledDerivedCoordinateWorkflow(
       "generated gate needs no review for derived decorator coordinates",
     );
 
+    // This fixture never enabled an impact policy, so a staged change to an
+    // owned declaration keeps the existing staged check behavior.
+    const noPolicyCheck = await kibi(
+      sandbox,
+      ["check", "--staged", "--format", "json"],
+      { timeoutMs: COMMAND_TIMEOUT_MS },
+    );
+    parseJsonObject(noPolicyCheck.stdout, "staged check without impact policy");
+    assert.doesNotMatch(
+      outputOf(noPolicyCheck),
+      /Staged impact review failed|impact review record missing/i,
+      "a project without an impact policy must not be held to impact review",
+    );
+
     const coordinateSync = await kibi(
       sandbox,
       ["sync", "--refresh-symbol-coordinates"],
@@ -1934,6 +1948,92 @@ async function runInstalledImpactPolicyWorkflow(
       "the staged review and PR diff gate must bind the same captured source/knowledge bytes after receipt-only append",
     );
     assert.notEqual(reviewedHead, receiptHead);
+
+    // A pull request that edits the impact policy is refused by the trusted
+    // gate instead of being judged by its own candidate policy.
+    await assertGit(
+      sandbox,
+      ["switch", "-c", "feature/impact-policy-change", receiptHead],
+      "branch a candidate policy change from the reviewed head",
+    );
+    const policyPath = join(sandbox.repoDir, ".kibi/impact-policy.json");
+    const candidatePolicy = parseJsonObject(
+      readFileSync(policyPath, "utf8"),
+      "trusted impact policy",
+    );
+    writeFileSync(
+      policyPath,
+      `${JSON.stringify({ ...candidatePolicy, notApplicablePaths: ["src"] }, null, 2)}\n`,
+      "utf8",
+    );
+    assertExit(
+      await stage(sandbox, [".kibi/impact-policy.json"]),
+      0,
+      "stage the candidate policy change",
+    );
+    await assertGit(
+      sandbox,
+      ["commit", "-m", "loosen the impact policy in the candidate"],
+      "commit the candidate policy change",
+    );
+    const policyHead = await assertGit(
+      sandbox,
+      ["rev-parse", "HEAD"],
+      "read the candidate policy head",
+    );
+    const policyEventPath = join(
+      sandbox.baseDir,
+      "policy-change-pull-request-event.json",
+    );
+    writeFileSync(
+      policyEventPath,
+      `${JSON.stringify(
+        {
+          repository: { full_name: repository },
+          pull_request: {
+            base: {
+              ref: "main",
+              sha: targetCommit,
+              repo: { full_name: repository },
+            },
+            head: { sha: policyHead },
+          },
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+    await assertGit(
+      sandbox,
+      ["switch", "main"],
+      "return to the protected target for the policy-change gate",
+    );
+    const policyChangeGate = await run(
+      "node",
+      [sandbox.kibiBin, "check-diff"],
+      {
+        cwd: sandbox.repoDir,
+        env: {
+          ...sandbox.env,
+          GITHUB_EVENT_NAME: "pull_request_target",
+          GITHUB_EVENT_PATH: policyEventPath,
+          GITHUB_REPOSITORY: repository,
+          KIBI_IMPACT_TRUSTED_TARGET_REF: "refs/heads/main",
+          GITHUB_SHA: targetCommit,
+        },
+        timeoutMs: COMMAND_TIMEOUT_MS,
+      },
+    );
+    assertExit(
+      policyChangeGate,
+      1,
+      "trusted gate refuses a candidate that edits the impact policy",
+    );
+    assert.match(
+      outputOf(policyChangeGate),
+      /Impact policy changes must be merged to the protected target separately before reviewed changes/,
+    );
 
     writeFileSync(
       join(sandbox.repoDir, "src/malformed.ts"),
