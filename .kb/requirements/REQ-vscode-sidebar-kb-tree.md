@@ -11,7 +11,6 @@ tags:
   - vscode
   - kibi
   - treeview
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-vscode-sidebar-kb-tree
@@ -78,3 +77,6 @@ rationale: "People need to browse the requirement, scenario and test chain where
 - The Kibi tree must group entities by type.
 - The Kibi tree must let the user expand linked entities hierarchically, such as REQ to SCEN to TEST.
 - The Kibi tree must refresh when the underlying KB snapshot changes.
+
+## Rationale
+People need to browse the requirement, scenario and test chain where they write code, not only through the CLI.

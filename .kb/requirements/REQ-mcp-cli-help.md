@@ -8,7 +8,6 @@ tags:
   - mcp
   - cli
   - help
-  - review:context-missing
 links:
   - type: depends_on
     target: REQ-002
@@ -52,3 +51,6 @@ rationale: Lets users and system administrators verify the binary installation a
 ---
 
 The `kibi-mcp` binary must support standard CLI help flags (`--help`, `-h`) and exit immediately with human-readable help text. It must NOT start the MCP stdio server or wait for input when help is requested. This allows users and system administrators to verify the binary installation and inspect usage information without needing an MCP client.
+
+## Rationale
+Lets users and system administrators verify the binary installation and inspect usage information without an MCP client.

@@ -10,7 +10,6 @@ tags:
   - opencode
   - kibi
   - ux
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-sync-feedback
@@ -63,3 +62,6 @@ rationale: "People need to see that sync ran and why it failed, without the sess
 - The OpenCode plugin must report sync progress and completion through structured logs and non-intrusive toasts.
 - The OpenCode plugin must report sync errors without blocking the OpenCode session.
 - The OpenCode plugin must log every sync-related event as a structured log entry.
+
+## Rationale
+People need to see that sync ran and why it failed, without the session being interrupted.

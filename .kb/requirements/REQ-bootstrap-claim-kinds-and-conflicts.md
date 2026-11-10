@@ -8,7 +8,6 @@ tags:
   - intent-claims
   - knowledge-sources
   - review
-  - review:context-missing
 rationale: Test project onboarding runs held conflicts and open questions in an external ledger because bootstrapContext had no place for them, so the most contested part of the interview never reached the KB.
 semantic_text: The bootstrap planner must not turn intent claims declared as observations or open questions into requirement candidates. The bootstrap planner must plan each observation or open question claim as a cited observation fact and tag open questions review:open-question. The bootstrap planner must plan each declared conflict between declared claims as a cited observation fact tagged review:conflict. The bootstrap planner must bind claim kinds and declared conflicts into the plan hash.
 semantic_clauses:
@@ -62,3 +61,6 @@ id: REQ-bootstrap-claim-kinds-and-conflicts
 type: req
 ---
 The bootstrap planner must not turn intent claims declared as observations or open questions into requirement candidates. The bootstrap planner must plan each observation or open question claim as a cited observation fact and tag open questions review:open-question. The bootstrap planner must plan each declared conflict between declared claims as a cited observation fact tagged review:conflict. The bootstrap planner must bind claim kinds and declared conflicts into the plan hash.
+
+## Rationale
+Test project onboarding runs held conflicts and open questions in an external ledger because bootstrapContext had no place for them, so the most contested part of the interview never reached the KB.

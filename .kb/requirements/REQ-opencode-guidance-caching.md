@@ -10,7 +10,6 @@ tags:
   - opencode
   - kibi
   - cache
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-guidance-caching
@@ -83,3 +82,6 @@ rationale: "Recomputing guidance on every turn is slow, but stale guidance from 
 - The OpenCode plugin must keep guidance cached for one git worktree from applying to another.
 - The OpenCode plugin must invalidate its guidance cache when .kb/manifest.json or the workspace posture changes.
 - The OpenCode plugin must expire cached guidance after a configurable time to live.
+
+## Rationale
+Recomputing guidance on every turn is slow, but stale guidance from another branch or worktree is wrong, so the cache is invalidated on exactly those changes.

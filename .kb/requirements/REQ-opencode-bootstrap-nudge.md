@@ -9,7 +9,6 @@ tags:
   - opencode
   - kibi
   - bootstrap
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-bootstrap-nudge
@@ -64,3 +63,6 @@ rationale: "Repositories that want Kibi but have no usable KB should be led to t
 - The OpenCode plugin must detect uninitialized or weakly seeded repositories that declare Kibi intent.
 - The OpenCode plugin must route the agent to the canonical kibi-bootstrap skill and the kb_plan_bootstrap plan and apply contract for initial inference and seed.
 - The OpenCode plugin must escalate to the user or operator when environment setup or repair is required.
+
+## Rationale
+Repositories that want Kibi but have no usable KB should be led to the one supported bootstrap path instead of agents improvising a KB.

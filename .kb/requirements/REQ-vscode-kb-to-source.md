@@ -10,7 +10,6 @@ tags:
   - vscode
   - kibi
   - navigation
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-vscode-kb-to-source
@@ -63,3 +62,6 @@ rationale: "Reviewers browsing the KB need to jump straight to the code a symbol
 - Clicking a symbol entity in the Kibi tree sidebar must open its source file at its line.
 - The VS Code extension must resolve navigation coordinates from .kb/symbols.yaml and the generated .kb/symbol-coordinates.yaml.
 - A symbol node in the Kibi tree must stay expandable to show its linked KB entities while it navigates to source.
+
+## Rationale
+Reviewers browsing the KB need to jump straight to the code a symbol names.

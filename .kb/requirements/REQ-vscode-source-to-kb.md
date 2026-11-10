@@ -10,7 +10,6 @@ tags:
   - vscode
   - kibi
   - discovery
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-vscode-source-to-kb
@@ -63,3 +62,6 @@ rationale: "While editing code, people should see which requirements and tests a
 - A registered symbol in the editor must offer a Kibi: Browse linked entities code action.
 - Selecting the Browse linked entities action must open a Quick Pick listing the symbol's related KB entities.
 - A registered symbol must show a Code Lens with the count of its linked requirements and tests.
+
+## Rationale
+While editing code, people should see which requirements and tests a symbol carries before changing it.

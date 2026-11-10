@@ -12,7 +12,6 @@ tags:
   - python
   - javascript
   - typescript
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-python-comment-routing
@@ -145,3 +144,6 @@ Acceptance examples:
 - Short or ordinary comments do not trigger guidance.
 - Repeated saves of identical comments do not repeat the warning.
 - Sync and targeted validation behavior stay unchanged.
+
+## Rationale
+Durable knowledge written as long code comments is invisible to Kibi; routing it to KB entities keeps it traceable and checkable.

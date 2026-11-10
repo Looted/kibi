@@ -10,7 +10,6 @@ tags:
   - mcp
   - kibi
   - query
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-mcp-tool-query
@@ -73,3 +72,6 @@ rationale: "Agents need precise, pageable lookups by id, type, file and tag, and
 - The kb_query MCP tool must page results with the limit and offset parameters.
 - The kb_query MCP tool must return entities as structured content.
 - The kb_query MCP tool must return an empty result, not an error, when no entity matches.
+
+## Rationale
+Agents need precise, pageable lookups by id, type, file and tag, and an empty match must not look like a failure.

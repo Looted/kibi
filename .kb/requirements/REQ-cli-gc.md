@@ -9,7 +9,6 @@ priority: should
 tags:
   - cli
   - gc
-  - review:context-missing
 links:
   - type: supersedes
     target: REQ-003
@@ -40,3 +39,6 @@ rationale: Keeps the .kb/branches/ directory clean and prevents disk bloat from 
 ---
 
 The `kibi gc` command removes stale KB branch stores that no longer have a corresponding local git branch.
+
+## Rationale
+Keeps the .kb/branches/ directory clean and prevents disk bloat from long-deleted features.

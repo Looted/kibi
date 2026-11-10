@@ -8,7 +8,6 @@ tags:
   - cli
   - discovery
   - status
-  - review:context-missing
 links:
   - type: depends_on
     target: REQ-mcp-search-discovery
@@ -45,3 +44,6 @@ rationale: Lets tools and agents discover the KB and its status programmatically
 ---
 
 Kibi CLI must support `status` command immediately after `kibi init`, providing essential metadata about the repository's KB state even before the first `kibi sync` has been performed. This enables tools and agents to discover the KB presence and status programmatically in a fresh environment.
+
+## Rationale
+Lets tools and agents discover the KB and its status programmatically in a fresh environment.

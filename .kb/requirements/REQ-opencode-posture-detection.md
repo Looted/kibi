@@ -10,7 +10,6 @@ tags:
   - opencode
   - kibi
   - posture
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-posture-detection
@@ -93,3 +92,6 @@ rationale: "The plugin's behaviour depends on whether a usable KB exists, so it 
 - The OpenCode plugin must classify the workspace as vendored_only when Kibi is present only in vendored dependencies.
 - The OpenCode plugin must classify the workspace as hybrid_root_plus_vendored, with the root authoritative, when the root .kb/manifest.json exists alongside vendored Kibi trees.
 - The OpenCode plugin must add a maintenanceDegraded overlay when runtime execution is unavailable.
+
+## Rationale
+The plugin's behaviour depends on whether a usable KB exists, so it must classify the workspace reliably before enforcing anything.

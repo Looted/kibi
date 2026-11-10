@@ -9,7 +9,6 @@ tags:
   - testing
   - diagnostics
   - root-suite
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-root-suite-batch-diagnostics
@@ -52,3 +51,6 @@ rationale: "A hung or partial test batch otherwise fails with no clue which pack
 ---
 - The curated unit suite (test/root.test.ts) must run package-scoped batches as spawned bun subprocesses bounded by BATCH_TIMEOUT_MINUTES (25 minutes).
 - When a batch times out, exits non-zero or produces an unexpected number of bun summaries, getBatchFailureMessage must report the batch label, timeout status, exit code and summary count.
+
+## Rationale
+A hung or partial test batch otherwise fails with no clue which package broke, so each failure names the batch, the timeout and the exit status.

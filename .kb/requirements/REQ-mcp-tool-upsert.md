@@ -10,7 +10,6 @@ tags:
   - mcp
   - kibi
   - mutation
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-mcp-tool-upsert
@@ -83,3 +82,6 @@ rationale: "Upsert is how agents write the KB, so it must validate relationships
 - The kb_upsert MCP tool must validate relationship types against the supported canonical list.
 - The kb_upsert MCP tool must reject a write that contradicts an existing requirement unless the write declares a supersedes relationship.
 - The kb_upsert MCP tool must refresh symbol coordinates when the upsert affects symbol linkage.
+
+## Rationale
+Upsert is how agents write the KB, so it must validate relationships and refuse silent contradictions of existing requirements unless the write says what it supersedes.
