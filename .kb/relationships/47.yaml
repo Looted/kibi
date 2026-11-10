@@ -63,13 +63,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-09787881bea3
   - type: covered_by
-    from: SYM-resetModuleState
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:18:37.859Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-340a4301c818
-  - type: covered_by
     from: SYM-proof-binding-kinds
     to: TEST-kibi-verification-evidence-contract
     created_at: 2026-09-05T17:31:11.820Z

@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e73ef40ee3f8
+  - type: assumes
+    from: SCEN-NEG-kibi-staged-overlay-kb-BRANCH-STORE-WRITE
+    to: FACT-NEG-kibi-staged-overlay-kb-BRANCH-STORE-WRITE
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da05b0af0740
+  - type: verified_by
+    from: SCEN-NEG-kibi-staged-overlay-kb-BRANCH-STORE-WRITE
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c466847fc104

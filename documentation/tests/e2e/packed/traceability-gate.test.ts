@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawn } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
@@ -455,6 +462,27 @@ function testMarkdown(id: string, title: string): string {
     "Test fixture that gives the staged symbol relationships of the traceability gate production coverage.",
     "",
   ].join("\n");
+}
+
+/** Digest of every file under a directory, so a test can prove it is untouched. */
+function treeDigest(root: string): string {
+  const hash = createHash("sha256");
+  if (!existsSync(root)) return "absent";
+  const files = (
+    readdirSync(root, { recursive: true, withFileTypes: true }) as {
+      isFile(): boolean;
+      name: string;
+      parentPath: string;
+    }[]
+  )
+    .filter((entry) => entry.isFile())
+    .map((entry) => join(entry.parentPath, entry.name))
+    .sort();
+  for (const file of files) {
+    hash.update(file.slice(root.length));
+    hash.update(readFileSync(file));
+  }
+  return hash.digest("hex");
 }
 
 function writeSandboxFile(
@@ -1178,6 +1206,111 @@ if (RUN_NODE_TEST_SUITE) {
       const output = commandText(result);
       assert.match(output, /kibi_impact_evidence_missing/);
       assert.match(output, /src\/sample\.js/);
+    });
+
+    it("treats a comment-only staged edit as non-behavioral and checks staged knowledge in an overlay without touching the branch store", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      assertCommandExit(
+        await run(
+          "git",
+          ["reset", "-q", "--hard", "HEAD"],
+          gitOptions(sandbox),
+        ),
+        0,
+        "discarding the previous case's staged fixture",
+      );
+      assertCommandExit(
+        await run("git", ["clean", "-q", "-fd"], gitOptions(sandbox)),
+        0,
+        "removing the previous case's untracked fixture",
+      );
+      assertCommandExit(
+        await kibi(sandbox, ["sync"], { timeoutMs: CHECK_TIMEOUT_MS }),
+        0,
+        "syncing the committed baseline",
+      );
+
+      writeSandboxFile(
+        sandbox,
+        "src/sample.js",
+        "export function hello() { return 'ok'; }\n// Greets the caller.\n",
+      );
+      assertCommandExit(
+        await run("git", ["add", "--", "src/sample.js"], gitOptions(sandbox)),
+        0,
+        "staging a comment-only source edit",
+      );
+      const commentOnly = await kibi(sandbox, ["check", "--staged"], {
+        timeoutMs: CHECK_TIMEOUT_MS,
+      });
+      assert.doesNotMatch(
+        commandText(commentOnly),
+        /kibi_impact_evidence_missing/,
+        "a comment-only edit is not a behavior-changing edit",
+      );
+      assertCommandExit(
+        commentOnly,
+        0,
+        "staged check for a comment-only source edit",
+      );
+
+      const branchStore = join(sandbox.repoDir, ".kb", "branches");
+      const storeBefore = treeDigest(branchStore);
+      assert.notStrictEqual(storeBefore, "absent", "sync wrote a branch store");
+      writeSandboxFile(
+        sandbox,
+        ".kb/requirements/REQ-STAGED-ONLY.md",
+        [
+          "---",
+          "id: REQ-STAGED-ONLY",
+          "title: Staged-only requirement",
+          "status: open",
+          "priority: must",
+          `created_at: ${FIXTURE_TIME}`,
+          `updated_at: ${FIXTURE_TIME}`,
+          "---",
+          "",
+          "A staged requirement that was never synced.",
+          "",
+          "## Context",
+          "",
+          "Fixture requirement that exists only in the Git index.",
+          "",
+        ].join("\n"),
+      );
+      assertCommandExit(
+        await run(
+          "git",
+          ["add", "--", ".kb/requirements/REQ-STAGED-ONLY.md"],
+          gitOptions(sandbox),
+        ),
+        0,
+        "staging a requirement without syncing it",
+      );
+      const stagedKnowledge = await kibi(sandbox, ["check", "--staged"], {
+        timeoutMs: CHECK_TIMEOUT_MS,
+      });
+      assert.match(
+        commandText(stagedKnowledge),
+        /REQ-STAGED-ONLY/,
+        "the staged check evaluates the staged requirement",
+      );
+      assert.strictEqual(
+        treeDigest(branchStore),
+        storeBefore,
+        "the staged check must not change the branch store",
+      );
+      const query = await kibi(sandbox, ["query", "req"], {
+        timeoutMs: CHECK_TIMEOUT_MS,
+      });
+      assert.doesNotMatch(
+        query.stdout,
+        /REQ-STAGED-ONLY/,
+        "the staged requirement stays out of the branch store",
+      );
     });
   });
 }

@@ -181,3 +181,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7b177a94842
+  - type: constrains
+    from: REQ-kibi-staged-overlay-kb
+    to: FACT-SUBJ-kibi-staged-overlay-kb
+    created_at: 2026-11-10T11:09:10.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4f5a61b4904
+  - type: requires_property
+    from: REQ-kibi-staged-overlay-kb
+    to: FACT-PROP-kibi-staged-overlay-kb-c01
+    created_at: 2026-11-10T11:09:10.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a05cc956181
+  - type: specified_by
+    from: REQ-kibi-staged-overlay-kb
+    to: SCEN-kibi-staged-overlay-kb
+    created_at: 2026-11-10T11:09:10.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5416330733d9
+  - type: specified_by
+    from: REQ-kibi-staged-overlay-kb
+    to: SCEN-NEG-kibi-staged-overlay-kb-BRANCH-STORE-WRITE
+    created_at: 2026-11-10T11:09:10.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64cf3fd111f8
+  - type: relates_to
+    from: REQ-kibi-staged-overlay-kb
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-11-10T11:09:10.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f8eb336e8e9

@@ -18,13 +18,6 @@ relationships:
     created_by: migration/adr-017
     source: documentation/tests/TEST-005.md
   - type: covered_by
-    from: SYM-setPrologFactory
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:18:43.346Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f52a38737077
-  - type: covered_by
     from: SYM-register-proof-command
     to: TEST-kibi-verification-evidence-contract
     created_at: 2026-09-05T17:33:10.508Z

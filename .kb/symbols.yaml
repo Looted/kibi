@@ -1926,17 +1926,6 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
       - type: implements
         target: REQ-cli-staged-impact-enforcement
-  - id: SYM-cli-impact-uniqueSorted
-    title: uniqueSorted
-    sourceFile: packages/cli/src/public/impact/source-changes.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-cli-input-error
     title: InputError
     status: active
@@ -2945,10 +2934,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-staged-overlay-kb
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-createRepoIgnorePolicy
     title: createRepoIgnorePolicy
     status: active
@@ -3001,10 +2990,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-staged-overlay-kb
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-CURRENT_CHANGED_PATHS
     title: CURRENT_CHANGED_PATHS
     sourceFile: packages/cli/tests/traceability/release-audit-fixture.ts
@@ -7501,6 +7490,8 @@ symbols:
     granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-staged-overlay-kb
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
       - type: covered_by
@@ -7511,8 +7502,6 @@ symbols:
         target: TEST-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-PROMPTS
     title: PROMPTS
     status: active
@@ -7800,16 +7789,6 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
-  - id: SYM-resetModuleState
-    title: resetModuleState
-    sourceFile: packages/cli/src/traceability/temp-kb.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-resetProlog
     title: resetProlog
     sourceFile: packages/mcp/src/server/session.ts
@@ -8272,16 +8251,6 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
-  - id: SYM-setPrologFactory
-    title: _setPrologFactory
-    sourceFile: packages/cli/src/traceability/temp-kb.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-setupDocsAndPrompts
     title: setupDocsAndPrompts
     status: active
@@ -10434,16 +10403,6 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
-  - id: SYM-skipNonIntegerFactNumber
-    title: skipNonIntegerFactNumber
-    sourceFile: packages/cli/src/traceability/temp-kb.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-suggest-predicates-core-handler
     title: handleKbSuggestPredicates
     status: active
