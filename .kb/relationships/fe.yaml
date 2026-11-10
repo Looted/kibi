@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8f6595e4306
+  - type: assumes
+    from: SCEN-NEG-kibi-check-rule-selection-CONFIG-DISABLES
+    to: FACT-NEG-kibi-check-rule-selection-CONFIG-DISABLES
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e272f54d322f
+  - type: verified_by
+    from: SCEN-NEG-kibi-check-rule-selection-CONFIG-DISABLES
+    to: TEST-008
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac993c058dd4

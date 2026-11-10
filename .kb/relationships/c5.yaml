@@ -230,24 +230,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-012fa6e0d739
-  - type: implements
-    from: SYM-checkStrictReqFactPairing
-    to: REQ-cli-check
-    created_at: 2026-09-14T20:26:47.248Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-654f2b90e077
-  - type: covered_by
-    from: SYM-checkStrictReqFactPairing
-    to: TEST-cli-check-integrity
-    created_at: 2026-09-14T20:26:47.266Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-41e7ea63736f
-  - type: covered_by
-    from: SYM-checkStrictReqFactPairing
-    to: TEST-004
-    created_at: 2026-09-18T07:38:44.656Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ee80350d39e7

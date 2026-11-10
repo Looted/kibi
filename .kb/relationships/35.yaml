@@ -370,3 +370,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8efd740f22c4
+  - type: assumes
+    from: SCEN-kibi-check-rule-selection
+    to: FACT-PROP-kibi-check-rule-selection-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-694d9e259e3f
+  - type: assumes
+    from: SCEN-kibi-check-rule-selection
+    to: FACT-PROP-kibi-check-rule-selection-c02
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d634430a4841
+  - type: assumes
+    from: SCEN-kibi-check-rule-selection
+    to: FACT-PROP-kibi-check-rule-selection-c03
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba1e5347ab3f
+  - type: verified_by
+    from: SCEN-kibi-check-rule-selection
+    to: TEST-008
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9ab27f1e85b

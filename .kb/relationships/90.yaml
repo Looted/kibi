@@ -552,3 +552,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a73715a06b5
+  - type: assumes
+    from: SCEN-kibi-symbol-granularity-quality
+    to: FACT-PROP-kibi-symbol-granularity-quality-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c145f6323b03
+  - type: verified_by
+    from: SCEN-kibi-symbol-granularity-quality
+    to: TEST-008
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f32c18a848e

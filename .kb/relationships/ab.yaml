@@ -423,3 +423,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e274d938a5ea
+  - type: constrains
+    from: REQ-kibi-symbol-granularity-quality
+    to: FACT-SUBJ-kibi-symbol-granularity-quality
+    created_at: 2026-11-10T14:53:12.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62156f5f8176
+  - type: requires_property
+    from: REQ-kibi-symbol-granularity-quality
+    to: FACT-PROP-kibi-symbol-granularity-quality-c01
+    created_at: 2026-11-10T14:53:12.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a008a785509
+  - type: specified_by
+    from: REQ-kibi-symbol-granularity-quality
+    to: SCEN-kibi-symbol-granularity-quality
+    created_at: 2026-11-10T14:53:12.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ac9d26dcea5
+  - type: specified_by
+    from: REQ-kibi-symbol-granularity-quality
+    to: SCEN-NEG-kibi-symbol-granularity-quality-UNREPORTED
+    created_at: 2026-11-10T14:53:12.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c304e0547d8d
+  - type: relates_to
+    from: REQ-kibi-symbol-granularity-quality
+    to: REQ-audit-quality-diagnostics-v1
+    created_at: 2026-11-10T14:53:12.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-889d89eb6279
+  - type: assumes
+    from: SCEN-NEG-kibi-symbol-granularity-quality-UNREPORTED
+    to: FACT-NEG-kibi-symbol-granularity-quality-UNREPORTED
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ac3268e1a56
+  - type: verified_by
+    from: SCEN-NEG-kibi-symbol-granularity-quality-UNREPORTED
+    to: TEST-008
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5580a58452b6

@@ -1,11 +1,4 @@
 relationships:
-  - type: implements
-    from: SYM-canonical-resolveCheckRules
-    to: REQ-cli-check
-    created_at: 2026-08-18T17:36:20.407Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bf8afa7f654c
   - type: covered_by
     from: SYM-canonical-resolveCheckRules
     to: TEST-004

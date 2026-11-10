@@ -1659,11 +1659,13 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-008
+      - type: implements
+        target: REQ-kibi-symbol-granularity-quality
+      - type: covered_by
         target: TEST-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-cli-symbol-quality-diagnostics
-      - type: implements
-        target: REQ-audit-quality-diagnostics-v1
   - id: SYM-cli-impact-analyzeChangedFileImpact
     title: analyzeChangedFileImpact
     sourceFile: packages/cli/src/public/impact/analyzer.ts
@@ -1797,6 +1799,10 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-008
+      - type: implements
+        target: REQ-kibi-symbol-granularity-quality
+      - type: covered_by
         target: TEST-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-cli-mixed-purpose-diagnostics
@@ -1806,8 +1812,6 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-cli-symbol-quality-diagnostics
-      - type: implements
-        target: REQ-audit-quality-diagnostics-v1
   - id: SYM-cli-impact-hasBlockingImpactDiagnostics
     title: hasBlockingImpactDiagnostics
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
@@ -1851,11 +1855,13 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-008
+      - type: implements
+        target: REQ-kibi-symbol-granularity-quality
+      - type: covered_by
         target: TEST-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-cli-symbol-quality-diagnostics
-      - type: implements
-        target: REQ-audit-quality-diagnostics-v1
   - id: SYM-cli-impact-narrowerExtractedSymbols
     title: narrowerExtractedSymbols
     sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
@@ -1864,11 +1870,13 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-008
+      - type: implements
+        target: REQ-kibi-symbol-granularity-quality
+      - type: covered_by
         target: TEST-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-cli-symbol-quality-diagnostics
-      - type: implements
-        target: REQ-audit-quality-diagnostics-v1
   - id: SYM-cli-impact-narrowerManifestSymbols
     title: narrowerManifestSymbols
     sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
@@ -1877,11 +1885,13 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-008
+      - type: implements
+        target: REQ-kibi-symbol-granularity-quality
+      - type: covered_by
         target: TEST-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-cli-symbol-quality-diagnostics
-      - type: implements
-        target: REQ-audit-quality-diagnostics-v1
   - id: SYM-cli-input-error
     title: InputError
     status: active
@@ -2346,13 +2356,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-008
+      - type: implements
+        target: REQ-kibi-check-rule-selection
+      - type: covered_by
         target: TEST-001
       - type: covered_by
         target: TEST-004
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-RULES
     title: RULES
     status: active
@@ -2381,13 +2393,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-008
+      - type: implements
+        target: REQ-kibi-check-rule-selection
+      - type: covered_by
         target: TEST-001
       - type: covered_by
         target: TEST-004
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-core-validation-rules
   - id: SYM-cli-run-aggregated-checks
     title: runAggregatedChecks
     status: active
@@ -13441,17 +13455,6 @@ symbols:
         target: REQ-kibi-legacy-config-read-only
       - type: covered_by
         target: TEST-cli-canonical-init
-  - id: SYM-cli-rule-registry-getRuleDefinition
-    title: getRuleDefinition
-    status: active
-    sourceFile: packages/cli/src/utils/rule-registry.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
   - id: SYM-cli-rule-registry-getDefaultRules
     title: getDefaultRules
     status: active
@@ -13460,9 +13463,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-004
+        target: TEST-008
       - type: implements
-        target: REQ-cli-check
+        target: REQ-kibi-check-rule-selection
+      - type: covered_by
+        target: TEST-004
   - id: SYM-cli-rule-registry-getCanonicalRules
     title: getCanonicalRules
     status: active
@@ -13471,9 +13476,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-004
+        target: TEST-008
       - type: implements
-        target: REQ-cli-check
+        target: REQ-kibi-check-rule-selection
+      - type: covered_by
+        target: TEST-004
   - id: SYM-cli-rule-registry-isCanonicalRule
     title: isCanonicalRule
     status: active
@@ -13482,9 +13489,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-004
+        target: TEST-008
       - type: implements
-        target: REQ-cli-check
+        target: REQ-kibi-check-rule-selection
+      - type: covered_by
+        target: TEST-004
   - id: SYM-canonical-loadKbSyncPaths
     title: loadKbSyncPaths
     status: active
@@ -13534,17 +13543,6 @@ symbols:
         target: TEST-004
       - type: implements
         target: REQ-cli-check
-  - id: SYM-canonical-collectQueryPlanSafetyViolations
-    title: collectQueryPlanSafetyViolations
-    status: active
-    sourceFile: packages/cli/src/public/operations/check-helpers.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
   - id: SYM-canonical-qualityDiagnosticsFromImpact
     title: qualityDiagnosticsFromImpact
     status: active
@@ -13564,9 +13562,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-004
+        target: TEST-008
       - type: implements
-        target: REQ-cli-check
+        target: REQ-kibi-check-rule-selection
+      - type: covered_by
+        target: TEST-004
   - id: SYM-canonical-shouldHandleFile
     title: shouldHandleFile
     status: active
@@ -13666,13 +13666,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-008
+      - type: implements
+        target: REQ-kibi-check-rule-selection
+      - type: covered_by
         target: TEST-004
       - type: covered_by
         target: TEST-cli-quality-diagnostics-contract
       - type: covered_by
         target: TEST-kibi-proof-aware-quality-diagnostics
-      - type: implements
-        target: REQ-cli-check
       - type: implements
         target: REQ-kibi-proof-aware-quality-diagnostics
   - id: SYM-cli-rule-registry-getRuleEnforcementClass
@@ -13683,11 +13685,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-008
+      - type: implements
+        target: REQ-kibi-check-rule-selection
+      - type: covered_by
         target: TEST-004
       - type: covered_by
         target: TEST-cli-quality-diagnostics-contract
-      - type: implements
-        target: REQ-cli-check
   - id: SYM-cli-report-favicon
     title: renderKibiFaviconSvg
     status: active
@@ -16572,12 +16576,12 @@ symbols:
     granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: covered_by
         target: TEST-004
-      - type: implements
-        target: REQ-cli-check
   - id: SYM-checkNoCycles
     title: checkNoCycles
     status: active
@@ -16585,12 +16589,12 @@ symbols:
     granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: covered_by
         target: TEST-004
-      - type: implements
-        target: REQ-cli-check
   - id: SYM-checkNoDanglingRefs
     title: checkNoDanglingRefs
     status: active
@@ -16598,12 +16602,12 @@ symbols:
     granularity_reason: legacy-link
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: covered_by
         target: TEST-004
-      - type: implements
-        target: REQ-cli-check
   - id: SYM-checkRequiredFields
     title: checkRequiredFields
     status: active
@@ -16632,19 +16636,6 @@ symbols:
         target: REQ-cli-check
   - id: SYM-checkStrictReadiness
     title: checkStrictReadiness
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    granularity_reason: legacy-link
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-checkStrictReqFactPairing
-    title: checkStrictReqFactPairing
     status: active
     sourceFile: packages/cli/src/commands/check.ts
     granularity_reason: legacy-link
@@ -18286,8 +18277,6 @@ symbols:
         target: TEST-004
       - type: covered_by
         target: TEST-symbol-coordinates-derived-locally
-      - type: implements
-        target: REQ-cli-check
       - type: implements
         target: REQ-symbol-coordinates-derived-locally
   - id: SYM-normalizeResultPayload
