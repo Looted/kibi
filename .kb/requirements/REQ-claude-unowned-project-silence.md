@@ -41,7 +41,6 @@ tags:
   - plugin
   - hooks
   - progressive-disclosure
-  - review:context-missing
 id: REQ-claude-unowned-project-silence
 type: req
 ---

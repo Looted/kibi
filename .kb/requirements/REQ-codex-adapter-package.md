@@ -60,7 +60,6 @@ tags:
   - codex
   - plugin
   - mcp
-  - review:context-missing
 owner: codex-team
 id: REQ-codex-adapter-package
 type: req

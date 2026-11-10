@@ -65,7 +65,6 @@ tags:
   - doctor
   - cli
   - mcp
-  - review:context-missing
 id: REQ-kibi-env-bootstrap-shared
 type: req
 ---

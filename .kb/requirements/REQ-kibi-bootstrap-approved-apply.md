@@ -34,8 +34,6 @@ origin:
   ref: 'Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   approved_by: maintainer
   recorded_at: '2026-11-10T04:30:57.590Z'
-tags:
-  - review:context-missing
 id: REQ-kibi-bootstrap-approved-apply
 type: req
 ---

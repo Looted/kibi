@@ -29,7 +29,6 @@ tags:
   - doctor
   - cli
   - mcp
-  - review:context-missing
 id: REQ-kibi-env-bootstrap-workspace-root
 type: req
 ---

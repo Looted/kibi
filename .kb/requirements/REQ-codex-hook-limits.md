@@ -40,7 +40,6 @@ tags:
   - codex
   - plugin
   - mcp
-  - review:context-missing
 owner: codex-team
 id: REQ-codex-hook-limits
 type: req

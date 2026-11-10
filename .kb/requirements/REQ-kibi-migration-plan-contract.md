@@ -51,7 +51,6 @@ tags:
   - migration
   - agents
   - safety
-  - review:context-missing
 id: REQ-kibi-migration-plan-contract
 type: req
 ---

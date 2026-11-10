@@ -71,7 +71,6 @@ tags:
   - cli
   - discovery
   - search
-  - review:context-missing
 id: REQ-kibi-discovery-inspection
 type: req
 ---

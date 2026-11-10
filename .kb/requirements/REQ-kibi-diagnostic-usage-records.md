@@ -63,7 +63,6 @@ tags:
   - correlation
   - cli
   - mcp
-  - review:context-missing
 id: REQ-kibi-diagnostic-usage-records
 type: req
 ---

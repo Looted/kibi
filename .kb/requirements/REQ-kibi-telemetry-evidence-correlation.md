@@ -43,7 +43,6 @@ tags:
   - correlation
   - cli
   - mcp
-  - review:context-missing
 id: REQ-kibi-telemetry-evidence-correlation
 type: req
 ---

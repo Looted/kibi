@@ -61,7 +61,6 @@ tags:
   - plugin
   - hooks
   - progressive-disclosure
-  - review:context-missing
 id: REQ-claude-adapter-isolation
 type: req
 ---

@@ -38,7 +38,6 @@ tags:
   - coordinates
   - sync
   - proof
-  - review:context-missing
 owner: platform-team
 id: REQ-generated-coordinate-authoring
 type: req

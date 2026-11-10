@@ -41,7 +41,6 @@ tags:
   - cursor
   - plugin
   - mcp
-  - review:context-missing
 owner: cursor-team
 id: REQ-cursor-hook-limits
 type: req

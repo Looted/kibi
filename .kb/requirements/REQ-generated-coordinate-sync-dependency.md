@@ -47,7 +47,6 @@ tags:
   - coordinates
   - sync
   - proof
-  - review:context-missing
 owner: platform-team
 id: REQ-generated-coordinate-sync-dependency
 type: req

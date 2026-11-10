@@ -41,7 +41,6 @@ tags:
   - zcode
   - plugin
   - mcp
-  - review:context-missing
 id: REQ-zcode-unowned-workspace-silence
 type: req
 ---

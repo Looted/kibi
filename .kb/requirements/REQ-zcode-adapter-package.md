@@ -81,7 +81,6 @@ tags:
   - zcode
   - plugin
   - mcp
-  - review:context-missing
 id: REQ-zcode-adapter-package
 type: req
 ---

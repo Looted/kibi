@@ -61,7 +61,6 @@ tags:
   - cursor
   - plugin
   - mcp
-  - review:context-missing
 owner: cursor-team
 id: REQ-cursor-adapter-package
 type: req

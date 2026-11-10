@@ -73,7 +73,6 @@ tags:
   - correlation
   - cli
   - mcp
-  - review:context-missing
 id: REQ-kibi-telemetry-remediation-report
 type: req
 ---

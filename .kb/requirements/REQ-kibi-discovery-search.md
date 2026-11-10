@@ -41,7 +41,6 @@ tags:
   - cli
   - discovery
   - search
-  - review:context-missing
 id: REQ-kibi-discovery-search
 type: req
 ---

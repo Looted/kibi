@@ -51,7 +51,6 @@ tags:
   - migration
   - agents
   - safety
-  - review:context-missing
 id: REQ-kibi-migration-apply-gate
 type: req
 ---
