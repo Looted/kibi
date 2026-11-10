@@ -120,13 +120,6 @@ relationships:
     id: rel-03000cc4f808
   - type: implements
     from: SYM-cli-discovery-renderCoverageTable
-    to: REQ-kibi-conservative-requirement-proof
-    created_at: 2026-09-18T07:01:48.899Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-988e4fbe1853
-  - type: implements
-    from: SYM-cli-discovery-renderCoverageTable
     to: REQ-kibi-dependency-ordered-repair-plan
     created_at: 2026-09-18T07:01:48.910Z
     created_by: kibi/upsert

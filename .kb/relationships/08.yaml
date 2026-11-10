@@ -120,13 +120,6 @@ relationships:
     id: rel-667af4c4a3dc
   - type: implements
     from: SYM-cli-persistEntities
-    to: REQ-kibi-conservative-requirement-proof
-    created_at: 2026-09-18T07:03:39.131Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-322bab881d60
-  - type: implements
-    from: SYM-cli-persistEntities
     to: REQ-kibi-logical-requirement-coverage
     created_at: 2026-09-18T07:03:39.137Z
     created_by: kibi/upsert

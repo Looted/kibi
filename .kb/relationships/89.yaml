@@ -335,3 +335,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c37f9aff7ce
+  - type: constrains
+    from: REQ-kibi-proof-ledger-grounding-contradictions
+    to: FACT-SUBJECT-kibi-proof-requirement
+    created_at: 2026-11-10T08:17:13.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c44fd81ee250
+  - type: requires_predicate
+    from: REQ-kibi-proof-ledger-grounding-contradictions
+    to: FACT-REQ-PROOF-COMPLETE-LEDGER
+    created_at: 2026-11-10T08:17:13.633Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6f41598cda1
+  - type: requires_property
+    from: REQ-kibi-proof-ledger-grounding-contradictions
+    to: FACT-REQ-PROOF-ONE-GROUNDING
+    created_at: 2026-11-10T08:17:13.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7390bcd6cba
+  - type: requires_predicate
+    from: REQ-kibi-proof-ledger-grounding-contradictions
+    to: FACT-REQ-PROOF-INCOMPLETE-CONTRADICTION
+    created_at: 2026-11-10T08:17:13.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40a714e8bac8
+  - type: requires_property
+    from: REQ-kibi-proof-ledger-grounding-contradictions
+    to: FACT-REQ-PROOF-CONTRADICTION-BLOCKS
+    created_at: 2026-11-10T08:17:13.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef7863e87629
+  - type: specified_by
+    from: REQ-kibi-proof-ledger-grounding-contradictions
+    to: SCEN-kibi-conservative-requirement-proof
+    created_at: 2026-11-10T08:17:13.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee61620fd54c
+  - type: specified_by
+    from: REQ-kibi-proof-ledger-grounding-contradictions
+    to: SCEN-CASE-kibi-conservative-requirement-proof-CONTRADICTION-UNBLOCKED
+    created_at: 2026-11-10T08:17:13.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ad7f794706a
+  - type: specified_by
+    from: REQ-kibi-proof-ledger-grounding-contradictions
+    to: SCEN-CASE-kibi-conservative-requirement-proof-TWO-GROUNDINGS
+    created_at: 2026-11-10T08:17:13.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b407e10b714
+  - type: specified_by
+    from: REQ-kibi-proof-ledger-grounding-contradictions
+    to: SCEN-CASE-kibi-conservative-requirement-proof-NO-GROUNDING
+    created_at: 2026-11-10T08:17:13.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f7cc536c1f0
+  - type: verified_by
+    from: REQ-kibi-proof-ledger-grounding-contradictions
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-11-10T08:17:13.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c488beb43c3f
+  - type: verified_by
+    from: REQ-kibi-proof-ledger-grounding-contradictions
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-11-10T08:17:13.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1291b3ba60dd
+  - type: supersedes
+    from: REQ-kibi-proof-ledger-grounding-contradictions
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-11-10T08:17:13.830Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0199c93da25a

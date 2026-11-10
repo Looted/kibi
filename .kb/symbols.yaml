@@ -1248,32 +1248,6 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-core-audit-logging
-  - id: SYM-core-kb-literal-to-value
-    title: literal_to_value
-    sourceFile: packages/core/src/kb.pl
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-coverage-proof-status
-      - type: covered_by
-        target: TEST-kibi-conservative-requirement-proof
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
-  - id: SYM-core-kb-value-to-literal
-    title: value_to_literal
-    sourceFile: packages/core/src/kb.pl
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-coverage-proof-status
-      - type: covered_by
-        target: TEST-kibi-conservative-requirement-proof
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
   - id: SYM-core-validate-entity-shape
     title: validate_entity_shape
     status: active
@@ -1763,6 +1737,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-outcome-and-repair-guidance
       - type: covered_by
         target: TEST-audit-quality-diagnostics-v1
       - type: covered_by
@@ -1773,8 +1749,6 @@ symbols:
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-dependency-ordered-repair-plan
   - id: SYM-cli-discovery-renderDiscoveryTable
@@ -2180,8 +2154,6 @@ symbols:
         target: REQ-audit-quality-diagnostics-v1
       - type: implements
         target: REQ-core-persistence
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
   - id: SYM-cli-persistRelationships
@@ -6777,8 +6749,6 @@ symbols:
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
-        target: REQ-kibi-conservative-requirement-proof
-      - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-delete-spec
     title: deleteSpec
@@ -7765,8 +7735,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
   - id: SYM-PROMPTS
     title: PROMPTS
     status: active
@@ -14366,19 +14334,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
-  - id: SYM-core-requirement-proof-context
-    title: requirement_proof_context
-    sourceFile: packages/core/src/requirement_proof.pl
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-coverage-proof-status
-      - type: covered_by
-        target: TEST-kibi-conservative-requirement-proof
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
   - id: SYM-core-requirement-proof
     title: requirement_proof
     sourceFile: packages/core/src/requirement_proof.pl
@@ -14386,14 +14341,14 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-outcome-and-repair-guidance
       - type: covered_by
         target: TEST-e2e-coverage-proof-status
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
         target: TEST-kibi-evidence-levels
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-evidence-levels
   - id: SYM-core-discovery-requirementCoverageRow
@@ -14403,38 +14358,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-outcome-and-repair-guidance
       - type: covered_by
         target: TEST-e2e-coverage-proof-status
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
-  - id: SYM-core-discovery-symbolCoverageRow
-    title: symbol_coverage_row
-    sourceFile: packages/core/src/discovery.pl
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-coverage-proof-status
-      - type: covered_by
-        target: TEST-kibi-conservative-requirement-proof
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
-  - id: SYM-core-discovery-coverageSummary
-    title: coverage_summary
-    sourceFile: packages/core/src/discovery.pl
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-coverage-proof-status
-      - type: covered_by
-        target: TEST-kibi-conservative-requirement-proof
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
   - id: SYM-core-entity-type
     title: entity_type
     sourceFile: packages/core/schema/entities.pl
@@ -14470,8 +14399,6 @@ symbols:
       - type: implements
         target: REQ-004
       - type: implements
-        target: REQ-kibi-conservative-requirement-proof
-      - type: implements
         target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-core-relationship-type
     title: relationship_type
@@ -14488,19 +14415,6 @@ symbols:
         target: TEST-kibi-entity-relationship-schema-roundtrip
       - type: implements
         target: REQ-005
-  - id: SYM-core-validation-check-kind
-    title: check_kind
-    sourceFile: packages/core/schema/validation.pl
-    symbol_role: structural
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-coverage-proof-status
-      - type: covered_by
-        target: TEST-kibi-conservative-requirement-proof
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
   - id: SYM-operation-executeCoverage
     title: executeCoverage
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
@@ -15086,12 +15000,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-outcome-and-repair-guidance
       - type: covered_by
         target: TEST-e2e-coverage-proof-status
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
   - id: SYM-reqcompiler-sync-cache-version
     title: SYNC_CACHE_VERSION
     sourceFile: packages/cli/src/commands/sync/cache.ts
@@ -16881,12 +16795,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-outcome-and-repair-guidance
       - type: covered_by
         target: TEST-e2e-coverage-proof-status
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
-      - type: implements
-        target: REQ-kibi-conservative-requirement-proof
   - id: SYM-cli-report-filter-counts
     title: reportFilterCounts
     status: active
@@ -43872,3 +43786,63 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-impact-policy-opt-in-unit
+  - id: SYM-core-proof-semantic-inventory-stage
+    title: semantic_inventory_stage
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-kibi-proof-ledger-grounding-contradictions
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+  - id: SYM-core-proof-logic-grounding-stage
+    title: logic_grounding_stage
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-kibi-proof-ledger-grounding-contradictions
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+  - id: SYM-core-proof-passing-e2e-stage
+    title: passing_e2e_stage
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-kibi-proof-e2e-evidence-chain
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+  - id: SYM-core-proof-executable-symbol-stage
+    title: executable_symbol_stage
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-kibi-proof-e2e-evidence-chain
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+  - id: SYM-core-proof-production-symbol-stage
+    title: production_symbol_stage_from_sets
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-kibi-proof-e2e-evidence-chain
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+  - id: SYM-core-proof-source-coordinate-stage
+    title: source_coordinate_stage
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-kibi-proof-e2e-evidence-chain
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status

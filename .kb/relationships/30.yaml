@@ -419,3 +419,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d6001259a14
+  - type: constrains
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: FACT-SUBJECT-kibi-proof-requirement
+    created_at: 2026-11-10T08:17:35.026Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87de0bf8a03b
+  - type: requires_predicate
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: FACT-REQ-PROOF-SCENARIO-E2E
+    created_at: 2026-11-10T08:17:35.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-300efc33c00a
+  - type: requires_property
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: FACT-REQ-PROOF-EXECUTABLE-SYMBOL
+    created_at: 2026-11-10T08:17:35.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e68741cd8040
+  - type: requires_property
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: FACT-REQ-PROOF-PRODUCTION-IMPLEMENTS
+    created_at: 2026-11-10T08:17:35.134Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ee80db6e8e8
+  - type: requires_property
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: FACT-REQ-PROOF-PRODUCTION-COVERED
+    created_at: 2026-11-10T08:17:35.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a384d6570ea
+  - type: requires_property
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: FACT-REQ-PROOF-SOURCE-COORDINATES
+    created_at: 2026-11-10T08:17:35.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac9066dd01fe
+  - type: specified_by
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: SCEN-kibi-conservative-requirement-proof
+    created_at: 2026-11-10T08:17:35.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa4604b1941e
+  - type: specified_by
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: SCEN-NEG-kibi-conservative-requirement-proof-unit-only-chain
+    created_at: 2026-11-10T08:17:35.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f08a907a574f
+  - type: specified_by
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: SCEN-CASE-kibi-conservative-requirement-proof-TEST-NO-EXECUTABLE-SYMBOL
+    created_at: 2026-11-10T08:17:35.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fe2b35249b3
+  - type: specified_by
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: SCEN-CASE-kibi-conservative-requirement-proof-SYMBOL-NOT-IMPLEMENTING
+    created_at: 2026-11-10T08:17:35.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-894b1bc311f3
+  - type: specified_by
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: SCEN-CASE-kibi-conservative-requirement-proof-SYMBOL-UNCOVERED
+    created_at: 2026-11-10T08:17:35.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46b41a478a62
+  - type: specified_by
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: SCEN-CASE-kibi-conservative-requirement-proof-SYMBOL-NO-COORDINATES
+    created_at: 2026-11-10T08:17:35.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43b1188836f7
+  - type: verified_by
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-11-10T08:17:35.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9a0f0cebcbc
+  - type: verified_by
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-11-10T08:17:35.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c556fdbae190
+  - type: supersedes
+    from: REQ-kibi-proof-e2e-evidence-chain
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-11-10T08:17:35.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2712cb2e8c29
