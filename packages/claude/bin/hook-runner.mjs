@@ -2492,7 +2492,7 @@ function strings(value) {
 }
 function canonicalKbOperation(toolName) {
   const operation = canonicalKbToolName(toolName);
-  return /kb_[a-z_]+$/.test(String(operation)) ? operation : undefined;
+  return /^kb_[a-z_]+$/.test(String(operation)) ? operation : undefined;
 }
 function payloadOf(toolInput) {
   if (!isRecord3(toolInput))
