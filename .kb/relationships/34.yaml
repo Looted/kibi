@@ -83,13 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ebd0cb3ba375
-  - type: implements
-    from: SYM-source-analysis-v2-qualifiedsourceanalyzers
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-27T10:00:12.825Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3abefb30d060
   - type: covered_by
     from: SYM-source-analysis-v2-sourceanalysisservice-analyzetextv2-12afca51
     to: TEST-multilingual-language-catalog
@@ -405,3 +398,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b9bfa171154c
+  - type: constrains
+    from: REQ-kibi-approved-source-analyzers
+    to: FACT-SUBJ-kibi-approved-source-analyzers
+    created_at: 2026-11-10T14:31:19.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a88c23e46c8
+  - type: requires_property
+    from: REQ-kibi-approved-source-analyzers
+    to: FACT-PROP-kibi-approved-source-analyzers-c01
+    created_at: 2026-11-10T14:31:19.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44e8779ebeb5
+  - type: requires_property
+    from: REQ-kibi-approved-source-analyzers
+    to: FACT-PROP-kibi-approved-source-analyzers-c02
+    created_at: 2026-11-10T14:31:19.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cfe585dd242
+  - type: specified_by
+    from: REQ-kibi-approved-source-analyzers
+    to: SCEN-kibi-approved-source-analyzers
+    created_at: 2026-11-10T14:31:19.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-201acfa4413c
+  - type: specified_by
+    from: REQ-kibi-approved-source-analyzers
+    to: SCEN-NEG-kibi-approved-source-analyzers-UNAPPROVED-RUNS
+    created_at: 2026-11-10T14:31:19.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d71f4628126c
+  - type: relates_to
+    from: REQ-kibi-approved-source-analyzers
+    to: REQ-source-analysis-v2
+    created_at: 2026-11-10T14:31:19.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-667da1c9a8d1

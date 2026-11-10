@@ -1278,6 +1278,52 @@ async function runInstalledDerivedCoordinateWorkflow(
       /Source analyzer is not approved for impact review: kibi-unapproved-analyzer/,
       "an analyzer without a release approval must be refused",
     );
+    const approvals = (await installedModule(
+      sandbox,
+      "plugins/approved-source-analyzers.js",
+    )) as Readonly<{
+      APPROVED_SOURCE_ANALYZERS: readonly Readonly<{
+        packageName: string;
+        files: Readonly<Record<string, string>>;
+      }>[];
+    }>;
+    const treeSitterApproval = approvals.APPROVED_SOURCE_ANALYZERS.find(
+      (approval) => approval.packageName === "kibi-plugin-treesitter",
+    );
+    assert.ok(treeSitterApproval, "Tree-sitter has a release approval");
+    const verifier = (await installedModule(
+      sandbox,
+      "plugins/maintenance-source-analysis.js",
+    )) as Readonly<{
+      verifyApprovedSourceAnalyzer: (root: string, approval: unknown) => string;
+    }>;
+    const treeSitterRoot = join(
+      sandbox.repoDir,
+      "node_modules",
+      "kibi-plugin-treesitter",
+    );
+    const [pinnedFile] = Object.keys(treeSitterApproval.files);
+    assert.ok(pinnedFile, "the approval pins at least one installed file");
+    const pinnedPath = join(treeSitterRoot, pinnedFile);
+    const pinnedBytes = readFileSync(pinnedPath);
+    writeFileSync(pinnedPath, Buffer.concat([pinnedBytes, Buffer.from("\n")]));
+    try {
+      assert.throws(
+        () =>
+          verifier.verifyApprovedSourceAnalyzer(
+            treeSitterRoot,
+            treeSitterApproval,
+          ),
+        /Source analyzer integrity mismatch/,
+        "an installed analyzer file that differs from its approval must be refused",
+      );
+    } finally {
+      writeFileSync(pinnedPath, pinnedBytes);
+    }
+    assert.ok(
+      verifier.verifyApprovedSourceAnalyzer(treeSitterRoot, treeSitterApproval),
+      "the restored analyzer matches its approval again",
+    );
     const analysisService = (await installedModule(
       sandbox,
       "plugins/source-analysis-service.js",

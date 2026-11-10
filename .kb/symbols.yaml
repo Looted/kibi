@@ -1671,12 +1671,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-next-actions
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-search-answer-hygiene
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
       - type: implements
         target: REQ-kb-check-unverified-requirement-statements
   - id: SYM-cli-impact-buildNextActions
@@ -1718,10 +1718,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-next-actions
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-cli-impact-collectSourceChanges
     title: collectSourceChanges
     sourceFile: packages/cli/src/public/impact/source-changes.ts
@@ -1759,17 +1759,6 @@ symbols:
         target: TEST-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-coverage-depth-labels
-  - id: SYM-cli-impact-createImpactManifestLookup
-    title: createImpactManifestLookup
-    sourceFile: packages/cli/src/public/impact/manifest.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-cli-impact-createRequirementQualityDiagnostics
     title: createRequirementQualityDiagnostics
     status: active
@@ -1789,17 +1778,6 @@ symbols:
         target: REQ-audit-quality-diagnostics-v1
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
-  - id: SYM-cli-impact-createSemanticReviewDiagnostics
-    title: createSemanticReviewDiagnostics
-    sourceFile: packages/cli/src/public/impact/diagnostics.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-cli-impact-createSymbolGranularityDiagnostics
     title: createSymbolGranularityDiagnostics
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
@@ -1807,10 +1785,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-next-actions
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-cli-impact-createSymbolQualityDiagnostics
     title: createSymbolQualityDiagnostics
     sourceFile: packages/cli/src/public/impact/symbol-quality.ts
@@ -1830,17 +1808,6 @@ symbols:
         target: TEST-cli-symbol-quality-diagnostics
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
-  - id: SYM-cli-impact-formatExtractedSymbols
-    title: formatExtractedSymbols
-    sourceFile: packages/cli/src/public/impact/summaries.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-cli-impact-hasBlockingImpactDiagnostics
     title: hasBlockingImpactDiagnostics
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
@@ -1848,10 +1815,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-next-actions
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-cli-impact-hasBlockingQualityDiagnostics
     title: hasBlockingQualityDiagnostics
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
@@ -1872,10 +1839,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-behavior-edit-detection
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-cli-impact-isModuleOrConfig
     title: isModuleOrConfig
     sourceFile: packages/cli/src/public/impact/symbol-quality-model.ts
@@ -1915,17 +1882,6 @@ symbols:
         target: TEST-cli-symbol-quality-diagnostics
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
-  - id: SYM-cli-impact-readImpactManifestResults
-    title: readImpactManifestResults
-    sourceFile: packages/cli/src/public/impact/manifest.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-cli-input-error
     title: InputError
     status: active
@@ -2906,16 +2862,6 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
-  - id: SYM-createManifestLookupSentinelKey
-    title: createManifestLookupSentinelKey
-    sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-createMcpRuntime
     title: createMcpRuntime
     status: active
@@ -4064,16 +4010,6 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
-  - id: SYM-getKbEvidencePaths
-    title: getKbEvidencePaths
-    sourceFile: packages/cli/src/traceability/evidence-model.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-getKbExistenceTargets
     title: getKbExistenceTargets
     status: active
@@ -4327,16 +4263,6 @@ symbols:
         target: REQ-002
       - type: implements
         target: REQ-prolog-library-adoption
-  - id: SYM-hasOverrideRationale
-    title: hasOverrideRationale
-    sourceFile: packages/cli/src/traceability/evidence-model.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-HeldOutEvidenceError-name
     title: HeldOutEvidenceError.name
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -4495,26 +4421,16 @@ symbols:
         target: TEST-mcp-upsert-symbol-behavioral-anchors
       - type: implements
         target: REQ-symbol-behavioral-anchors
-  - id: SYM-isAuditedNoImpactOverrideAllowed
-    title: isAuditedNoImpactOverrideAllowed
-    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-isBehaviorSourceEdit
     title: isBehaviorSourceEdit
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-behavior-edit-detection
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-COARSE_GRANULARITY_REASONS
     title: COARSE_GRANULARITY_REASONS
     sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
@@ -4680,8 +4596,6 @@ symbols:
       - type: covered_by
         target: TEST-proof-entity-schema-doc
       - type: implements
-        target: REQ-cli-staged-impact-enforcement
-      - type: implements
         target: REQ-staged-impact-identifiers
   - id: SYM-KIBI-FOCUS-KB-COMMAND
     title: KIBI_FOCUS_KB_COMMAND
@@ -4711,16 +4625,6 @@ symbols:
         target: TEST-proof-impact-diagnostic-ids
       - type: implements
         target: REQ-staged-impact-identifiers
-  - id: SYM-KIBI-IMPACT-DIAGNOSTICS
-    title: KIBI_IMPACT_DIAGNOSTICS
-    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-kibi-mcp-bin-entrypoint
     title: kibi-mcp CLI entrypoint
     status: active
@@ -4768,16 +4672,6 @@ symbols:
         target: TEST-vscode-traceability-coverage
       - type: implements
         target: REQ-vscode-extension-ids
-  - id: SYM-KIBI-STAGED-IMPACT-EVIDENCE-DOC
-    title: KIBI_STAGED_IMPACT_EVIDENCE_DOC
-    sourceFile: packages/cli/src/traceability/evidence-model.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-KIBI-SYMBOL-COORDINATES-PATH
     title: KIBI_SYMBOL_COORDINATES_PATH
     sourceFile: packages/cli/src/traceability/evidence-model.ts
@@ -4788,8 +4682,6 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-proof-symbol-coordinates-path
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
       - type: implements
         target: REQ-staged-impact-identifiers
   - id: SYM-KIBI-SYMBOLS-MANIFEST-PATH
@@ -7109,16 +7001,6 @@ symbols:
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-paid-matrix-infrastructure
-  - id: SYM-parseKibiImpactOverride
-    title: parseKibiImpactOverride
-    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-parseRdfRelationships
     title: parseRdfRelationships
     sourceFile: packages/vscode/src/shared/rdf-parser.ts
@@ -13314,7 +13196,7 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: implements
-        target: REQ-cli-init-canonical
+        target: REQ-kibi-legacy-config-read-only
       - type: covered_by
         target: TEST-cli-canonical-init
       - type: covered_by
@@ -13343,12 +13225,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-legacy-config-read-only
       - type: covered_by
         target: TEST-cli-canonical-init
       - type: covered_by
         target: TEST-cli-migrate
-      - type: implements
-        target: REQ-cli-init-canonical
   - id: SYM-canonical-missingCanonicalLanes
     title: missingCanonicalLanes
     status: active
@@ -13356,12 +13238,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-legacy-config-read-only
       - type: covered_by
         target: TEST-cli-canonical-init
       - type: covered_by
         target: TEST-cli-migrate
-      - type: implements
-        target: REQ-cli-init-canonical
   - id: SYM-canonical-loadEntityPaths
     title: loadEntityPaths
     status: active
@@ -13380,10 +13262,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-legacy-config-read-only
       - type: covered_by
         target: TEST-cli-canonical-init
-      - type: implements
-        target: REQ-cli-init-canonical
   - id: SYM-canonical-readLegacyKbConfig
     title: readLegacyKbConfig
     status: active
@@ -13391,10 +13273,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-legacy-config-read-only
       - type: covered_by
         target: TEST-cli-canonical-init
-      - type: implements
-        target: REQ-cli-init-canonical
   - id: SYM-canonical-resolveLegacyEntityPaths
     title: resolveLegacyEntityPaths
     status: active
@@ -13402,10 +13284,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-legacy-config-read-only
       - type: covered_by
         target: TEST-cli-canonical-init
-      - type: implements
-        target: REQ-cli-init-canonical
   - id: SYM-canonical-writeKbManifest
     title: writeKbManifest
     status: active
@@ -13555,10 +13437,10 @@ symbols:
     symbol_role: config
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-legacy-config-read-only
       - type: covered_by
         target: TEST-cli-canonical-init
-      - type: implements
-        target: REQ-cli-init-canonical
   - id: SYM-cli-rule-registry-getRuleDefinition
     title: getRuleDefinition
     status: active
@@ -13685,17 +13567,6 @@ symbols:
         target: TEST-004
       - type: implements
         target: REQ-cli-check
-  - id: SYM-canonical-validateStagedMarkdown
-    title: validateStagedMarkdown
-    status: active
-    sourceFile: packages/cli/src/traceability/markdown-validate.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-canonical-shouldHandleFile
     title: shouldHandleFile
     status: active
@@ -20410,9 +20281,11 @@ symbols:
     granularity_reason: config-artifact
     relationships:
       - type: covered_by
-        target: TEST-source-analysis-v2-contract
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-source-analysis-v2
+        target: REQ-kibi-approved-source-analyzers
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
   - id: SYM-source-analysis-v2-capabilityregistry-resolvesymbolextractorsv2-ed6a09db
     title: CapabilityRegistry.resolveSymbolExtractorsV2
     symbol_role: behavioral
@@ -20472,9 +20345,11 @@ symbols:
     sourceFile: packages/cli/src/plugins/approved-source-analyzers.generated.ts
     relationships:
       - type: covered_by
-        target: TEST-source-analysis-v2-contract
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-source-analysis-v2
+        target: REQ-kibi-approved-source-analyzers
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
   - id: SYM-source-analysis-v2-readsnapshotsourceconfig-2fef553a
     title: readSnapshotSourceConfig
     symbol_role: behavioral
@@ -20667,9 +20542,11 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-source-analysis-v2-contract
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-source-analysis-v2
+        target: REQ-kibi-approved-source-analyzers
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
   - id: SYM-source-analysis-v2-assertsourceanalysisgate
     title: assertSourceAnalysisGate
     status: active
@@ -39941,3 +39818,23 @@ symbols:
         target: REQ-skillopt-cursor-compat
       - type: covered_by
         target: TEST-skillopt-cursor-compat
+  - id: SYM-maintenance-verifyApprovedSourceAnalyzer
+    title: verifyApprovedSourceAnalyzer
+    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-approved-source-analyzers
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+  - id: SYM-maintenance-fingerprintMaintenanceSourceSet
+    title: fingerprintMaintenanceSourceSet
+    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-approved-source-analyzers
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e

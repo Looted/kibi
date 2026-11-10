@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72d511f042c1
+  - type: assumes
+    from: SCEN-NEG-kibi-legacy-config-read-only-GUESSED-PATHS
+    to: FACT-NEG-kibi-legacy-config-read-only-GUESSED-PATHS
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87313154e88e
+  - type: verified_by
+    from: SCEN-NEG-kibi-legacy-config-read-only-GUESSED-PATHS
+    to: TEST-cli-canonical-init
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a62328aa5b1

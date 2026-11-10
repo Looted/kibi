@@ -356,3 +356,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bcfb011b626e
+  - type: constrains
+    from: REQ-kibi-behavior-edit-detection
+    to: FACT-SUBJ-kibi-behavior-edit-detection
+    created_at: 2026-11-10T14:32:37.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-469db9db7e55
+  - type: requires_property
+    from: REQ-kibi-behavior-edit-detection
+    to: FACT-PROP-kibi-behavior-edit-detection-c01
+    created_at: 2026-11-10T14:32:37.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39873575ce7c
+  - type: specified_by
+    from: REQ-kibi-behavior-edit-detection
+    to: SCEN-kibi-behavior-edit-detection
+    created_at: 2026-11-10T14:32:37.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-497003cbfd7b
+  - type: specified_by
+    from: REQ-kibi-behavior-edit-detection
+    to: SCEN-NEG-kibi-behavior-edit-detection-COMMENT-COUNTS
+    created_at: 2026-11-10T14:32:37.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f7918199ec1
+  - type: relates_to
+    from: REQ-kibi-behavior-edit-detection
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-11-10T14:32:37.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30ed9b5382be

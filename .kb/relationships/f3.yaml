@@ -164,3 +164,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4cae7738ec5c
+  - type: assumes
+    from: SCEN-kibi-legacy-config-read-only
+    to: FACT-PROP-kibi-legacy-config-read-only-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9723f6ab3a14
+  - type: verified_by
+    from: SCEN-kibi-legacy-config-read-only
+    to: TEST-cli-canonical-init
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac4cb989e2da

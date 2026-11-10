@@ -1312,5 +1312,113 @@ if (RUN_NODE_TEST_SUITE) {
         "the staged requirement stays out of the branch store",
       );
     });
+
+    it("lists the entities linked to each changed symbol and gives each blocking impact diagnostic a suggestion that clears it", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      assertCommandExit(
+        await run(
+          "git",
+          ["reset", "-q", "--hard", "HEAD"],
+          gitOptions(sandbox),
+        ),
+        0,
+        "discarding the previous case's staged fixture",
+      );
+      assertCommandExit(
+        await run("git", ["clean", "-q", "-fd"], gitOptions(sandbox)),
+        0,
+        "removing the previous case's untracked fixture",
+      );
+      // A coarse whole-file symbol next to the narrow `hello` declaration is
+      // the blocking granularity case the impact check must explain.
+      writeSandboxFile(
+        sandbox,
+        ".kb/symbols.yaml",
+        symbolsManifest([
+          OWNED_HELLO_SYMBOL,
+          {
+            id: "SYM-SAMPLE-MODULE",
+            title: "sample module",
+            sourceFile: "src/sample.js",
+            relations: [{ type: "implements", target: "REQ-001" }],
+          },
+        ]),
+      );
+      assertCommandExit(
+        await kibi(sandbox, ["sync", "--refresh-symbol-coordinates"], {
+          timeoutMs: CHECK_TIMEOUT_MS,
+        }),
+        0,
+        "syncing the coarse module symbol",
+      );
+      writeSandboxFile(
+        sandbox,
+        "impact-input.json",
+        JSON.stringify({
+          sourceFiles: ["src/sample.js"],
+          includeImpactDiagnostics: true,
+        }),
+      );
+      const result = await kibi(
+        sandbox,
+        ["check", "--input", "impact-input.json"],
+        { timeoutMs: CHECK_TIMEOUT_MS },
+      );
+      const parsed = JSON.parse(result.stdout) as {
+        data?: {
+          linkedEntities?: Array<{
+            id: string;
+            relationshipType: string;
+            sourceSymbolId: string;
+          }>;
+          impactDiagnostics?: Array<{
+            id: string;
+            blocking: boolean;
+            suggestion?: string;
+          }>;
+        };
+      };
+      const linked = parsed.data?.linkedEntities ?? [];
+      assert.ok(
+        linked.some(
+          (entity) =>
+            entity.id === "REQ-001" &&
+            entity.relationshipType === "implements" &&
+            entity.sourceSymbolId === "SYM-HELLO-001",
+        ),
+        `the changed hello symbol lists REQ-001: ${JSON.stringify(linked)}`,
+      );
+      assert.ok(
+        linked.some(
+          (entity) =>
+            entity.id === BASELINE_TEST_ID &&
+            entity.sourceSymbolId === "SYM-HELLO-001",
+        ),
+        "the changed hello symbol lists its covering test",
+      );
+      const blocking = (parsed.data?.impactDiagnostics ?? []).filter(
+        (diagnostic) => diagnostic.blocking,
+      );
+      assert.ok(
+        blocking.some(
+          (diagnostic) => diagnostic.id === "symbol_granularity_violation",
+        ),
+        "the coarse module symbol is a blocking granularity diagnostic",
+      );
+      for (const diagnostic of blocking) {
+        assert.ok(
+          (diagnostic.suggestion ?? "").trim().length > 0,
+          `blocking diagnostic ${diagnostic.id} carries a suggestion`,
+        );
+      }
+      assert.match(
+        blocking.find((d) => d.id === "symbol_granularity_violation")
+          ?.suggestion ?? "",
+        /hello|granularity_reason/,
+      );
+    });
   });
 }

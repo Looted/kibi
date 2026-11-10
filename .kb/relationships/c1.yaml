@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e862400dd43
+  - type: assumes
+    from: SCEN-kibi-behavior-edit-detection
+    to: FACT-PROP-kibi-behavior-edit-detection-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a2443bfbc36
+  - type: verified_by
+    from: SCEN-kibi-behavior-edit-detection
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2b696fc5183

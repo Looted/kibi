@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4e128a63c2ee
+  - type: assumes
+    from: SCEN-NEG-kibi-approved-source-analyzers-UNAPPROVED-RUNS
+    to: FACT-NEG-kibi-approved-source-analyzers-UNAPPROVED-RUNS
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6ac296e5381
+  - type: verified_by
+    from: SCEN-NEG-kibi-approved-source-analyzers-UNAPPROVED-RUNS
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aad141dc6500

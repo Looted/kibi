@@ -63,13 +63,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0a4bf6d803ce
   - type: covered_by
-    from: SYM-cli-impact-createImpactManifestLookup
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:16:10.086Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-326a4e125557
-  - type: covered_by
     from: SYM-modeling-predicate-inference-1-inferMutualExclusionArgs
     to: TEST-mcp-suggest-predicates
     created_at: 2026-09-05T17:42:10.404Z

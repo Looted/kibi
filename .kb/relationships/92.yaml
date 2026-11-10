@@ -325,3 +325,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-31a4dd4c53e5
+  - type: assumes
+    from: SCEN-kibi-impact-next-actions
+    to: FACT-PROP-kibi-impact-next-actions-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35590287701a
+  - type: verified_by
+    from: SCEN-kibi-impact-next-actions
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a91dd0475b70

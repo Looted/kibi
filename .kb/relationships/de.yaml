@@ -374,3 +374,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d53bceb4221b
+  - type: assumes
+    from: SCEN-NEG-kibi-behavior-edit-detection-COMMENT-COUNTS
+    to: FACT-NEG-kibi-behavior-edit-detection-COMMENT-COUNTS
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f8a7ab8c1fc
+  - type: verified_by
+    from: SCEN-NEG-kibi-behavior-edit-detection-COMMENT-COUNTS
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8d343a3ac93

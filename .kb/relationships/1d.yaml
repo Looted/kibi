@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-15T12:41:40.305Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-canonical-needsLegacyStorageMigration
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:01:13.857Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c945a1711371
   - type: covered_by
     from: SYM-canonical-needsLegacyStorageMigration
     to: TEST-cli-migrate

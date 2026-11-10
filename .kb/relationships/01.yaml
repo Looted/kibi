@@ -349,3 +349,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4eb1ba2a0486
+  - type: constrains
+    from: REQ-kibi-legacy-config-read-only
+    to: FACT-SUBJ-kibi-legacy-config-read-only
+    created_at: 2026-11-10T14:31:45.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4f685ed0c80
+  - type: requires_property
+    from: REQ-kibi-legacy-config-read-only
+    to: FACT-PROP-kibi-legacy-config-read-only-c01
+    created_at: 2026-11-10T14:31:45.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25f3b085c809
+  - type: specified_by
+    from: REQ-kibi-legacy-config-read-only
+    to: SCEN-kibi-legacy-config-read-only
+    created_at: 2026-11-10T14:31:45.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a4fee691e44
+  - type: specified_by
+    from: REQ-kibi-legacy-config-read-only
+    to: SCEN-NEG-kibi-legacy-config-read-only-GUESSED-PATHS
+    created_at: 2026-11-10T14:31:45.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91af219ca06c
+  - type: relates_to
+    from: REQ-kibi-legacy-config-read-only
+    to: REQ-cli-init-canonical
+    created_at: 2026-11-10T14:31:45.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3530760cb91b

@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba52f0e12f8d
+  - type: assumes
+    from: SCEN-NEG-kibi-impact-next-actions-NO-SUGGESTION
+    to: FACT-NEG-kibi-impact-next-actions-NO-SUGGESTION
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-566a1ce6548a
+  - type: verified_by
+    from: SCEN-NEG-kibi-impact-next-actions-NO-SUGGESTION
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce160bb55d07

@@ -185,3 +185,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de8c34c00989
+  - type: constrains
+    from: REQ-kibi-impact-next-actions
+    to: FACT-SUBJ-kibi-impact-next-actions
+    created_at: 2026-11-10T14:32:54.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e788a6667ab
+  - type: requires_property
+    from: REQ-kibi-impact-next-actions
+    to: FACT-PROP-kibi-impact-next-actions-c01
+    created_at: 2026-11-10T14:32:54.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1a7412445c2
+  - type: specified_by
+    from: REQ-kibi-impact-next-actions
+    to: SCEN-kibi-impact-next-actions
+    created_at: 2026-11-10T14:32:54.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b34d56a18513
+  - type: specified_by
+    from: REQ-kibi-impact-next-actions
+    to: SCEN-NEG-kibi-impact-next-actions-NO-SUGGESTION
+    created_at: 2026-11-10T14:32:54.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c67b57fe1f10
+  - type: relates_to
+    from: REQ-kibi-impact-next-actions
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-11-10T14:32:54.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37a73b00890a
