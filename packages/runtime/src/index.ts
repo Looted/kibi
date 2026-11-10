@@ -323,3 +323,14 @@ export {
   validateSkillBundle,
 } from "./skills.js";
 export type { SkillBundle, SkillManifest } from "./skills.js";
+// implements REQ-kb-dependencies-git
+export {
+  KB_DEPENDENCY_ARGUMENT,
+  KB_DEPENDENCY_ENV,
+  KbDependencyError,
+  type ResolvedKbDependency,
+  kbDependencyArgument,
+  kbDependencyLabel,
+  resolveKbDependency,
+  withoutKbDependencyArgument,
+} from "kibi-cli/dependencies";

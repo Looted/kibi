@@ -91,7 +91,6 @@ import {
   planProofContractClaimPins,
 } from "./proof-contract-claims.js";
 import {
-  DELIVERED_REQUIREMENT_TAG,
   type RequirementStatusFinding,
   applyDeliveredStatusMappings,
   applyRequirementStatusMapping,
@@ -350,6 +349,8 @@ function plannedDrops(
  * (`implemented`, `done`, `completed`): sync cannot compile them, and their
  * one lossless reading is `closed` plus the tag `implemented`.
  */
+type DeliveredMapping = NonNullable<RequirementStatusFinding["automatic"]>;
+
 function deliveredStatusAction(
   findings: readonly RequirementStatusFinding[],
 ): MigrationAction {
@@ -367,13 +368,17 @@ function deliveredStatusAction(
       reason:
         "Delivery statuses are outside the entity schema, so kibi sync cannot compile these requirements and every store-backed tool misses them. Each becomes status closed with the tag implemented, which Kibi reads as a delivered requirement that still owes coverage; only the status line and the tags change.",
       count: findings.length,
-      mappings: findings.map((finding) => ({
-        requirementId: finding.requirementId,
-        path: finding.path,
-        from: finding.status,
-        to: finding.automatic?.status ?? "closed",
-        tag: finding.automatic?.tag ?? DELIVERED_REQUIREMENT_TAG,
-      })),
+      mappings: findings.map((finding) => {
+        // Only findings with an automatic mapping reach this action.
+        const { status, tag } = finding.automatic as DeliveredMapping;
+        return {
+          requirementId: finding.requirementId,
+          path: finding.path,
+          from: finding.status,
+          to: status,
+          tag,
+        };
+      }),
     },
   });
 }
@@ -505,6 +510,8 @@ export function unapprovedExceptionsFromSources(
   workspaceRoot: string,
 ): Array<{ exceptionId: string; exempts: string[]; source: string }> {
   const requirements = new Map<string, SourceRequirement>();
+  // rationale: a placeholder element has no type, so every filter below drops it.
+  // Stryker disable next-line ArrayDeclaration
   const relationships: ExtractedRelationship[] = [];
   for (const file of listLaneMarkdownFiles(workspaceRoot, ["requirements"])) {
     try {
@@ -586,6 +593,8 @@ export function buildSchema6MigrationFragment(input: {
   const actions: MigrationAction[] = [];
   const sourceRewriteActionIds: string[] = [];
   const diagnostics: string[] = [];
+  // A missing or invalid version upgrades through every step.
+  const version = input.currentSchemaVersion ?? 0;
   const polarityTargets = planPolarityValueBackfill(input.workspaceRoot);
   if (polarityTargets.length > 0) {
     const id = "polarity-value-backfill";
@@ -638,10 +647,7 @@ export function buildSchema6MigrationFragment(input: {
   }
   // Schema 8: pin the checked meaning, then acknowledge missing context. A
   // missing or invalid version upgrades through every step, so it is planned.
-  if (
-    input.currentSchemaVersion === null ||
-    input.currentSchemaVersion < BODY_CONTEXT_SCHEMA_VERSION
-  ) {
+  if (version < BODY_CONTEXT_SCHEMA_VERSION) {
     const pins = planSemanticTextPins(input.workspaceRoot);
     if (pins.targets.length > 0) {
       const id = "semantic-text-pin";
@@ -701,10 +707,7 @@ export function buildSchema6MigrationFragment(input: {
   }
   // Schema 9: acknowledge supersedes recorded before they had to explain
   // themselves. Manifest only; no source changes and no reason is written.
-  if (
-    input.currentSchemaVersion === null ||
-    input.currentSchemaVersion < DECISION_FIRMNESS_SCHEMA_VERSION
-  ) {
+  if (version < DECISION_FIRMNESS_SCHEMA_VERSION) {
     const unexplained = planSupersedesReasonAcknowledgement(
       input.workspaceRoot,
     );
@@ -741,10 +744,7 @@ export function buildSchema6MigrationFragment(input: {
   // Schema 10: a decision without firmness that an agent did not write now
   // reads as firm. Acknowledge supersedes of such decisions recorded before
   // that, so history does not block; new ones must come from a person.
-  if (
-    input.currentSchemaVersion === null ||
-    input.currentSchemaVersion < FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION
-  ) {
+  if (version < FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION) {
     const edges = planFirmSupersedeAcknowledgement(input.workspaceRoot);
     if (edges.length > 0) {
       const id = "firm-supersede-acknowledge";
@@ -761,9 +761,10 @@ export function buildSchema6MigrationFragment(input: {
             kind: "cli",
             command_argv: ["kibi", "migrate", "--yes"],
           },
-          affectedEntityIds: [
-            ...new Set(edges.map((edge) => edge.split(" -> ")[0] ?? edge)),
-          ].sort(),
+          // The action input dedupes and sorts the ids.
+          affectedEntityIds: edges.map(
+            (edge) => edge.split(" -> ")[0] as string,
+          ),
           affectedFiles: [".kb/manifest.json"],
           postconditions: [{ rule: "decision-firm-superseded", findings: 0 }],
           evidence: {
@@ -780,10 +781,7 @@ export function buildSchema6MigrationFragment(input: {
   // Schema 11: a firm requirement needs tested evidence. Record an asserted
   // floor on current firm requirements without a passing proof path, so the
   // upgraded knowledge base passes evidence-floor.
-  if (
-    input.currentSchemaVersion === null ||
-    input.currentSchemaVersion < EVIDENCE_FLOOR_SCHEMA_VERSION
-  ) {
+  if (version < EVIDENCE_FLOOR_SCHEMA_VERSION) {
     const floors = planEvidenceFloorPins(
       input.workspaceRoot,
       input.ladderFloors,
@@ -818,11 +816,7 @@ export function buildSchema6MigrationFragment(input: {
   }
   // Schema 12: a certificate contract names the claims it proves. Pin proves
   // where the test reaches one provable claim; list the rest for review.
-  if (
-    (input.currentSchemaVersion === null ||
-      input.currentSchemaVersion < CLAIM_BINDING_SCHEMA_VERSION) &&
-    input.claimCandidates
-  ) {
+  if (version < CLAIM_BINDING_SCHEMA_VERSION && input.claimCandidates) {
     const claims = planProofContractClaimPins(
       input.workspaceRoot,
       input.claimCandidates,
@@ -901,16 +895,13 @@ export function buildSchema6MigrationFragment(input: {
   }
   // A missing or invalid version upgrades through every step, schema 6's
   // backfill included, so it is planned here too.
-  const preOrigin =
-    input.currentSchemaVersion === null ||
-    input.currentSchemaVersion < ORIGIN_SCHEMA_VERSION;
-  if (preOrigin) {
+  if (version < ORIGIN_SCHEMA_VERSION) {
     const backfill = planOriginBackfill(input.workspaceRoot);
     if (backfill.targets.length > 0) {
       const byType: Record<string, number> = {};
       for (const target of backfill.targets) {
-        byType[target.type || "unknown"] =
-          (byType[target.type || "unknown"] ?? 0) + 1;
+        const type = target.type || "unknown";
+        byType[type] = (byType[type] ?? 0) + 1;
       }
       actions.push(
         migrationAction({
@@ -932,8 +923,7 @@ export function buildSchema6MigrationFragment(input: {
             byType,
             entityIds: backfill.targets.map((target) => target.id),
             skipped: backfill.skipped,
-            ...(input.currentSchemaVersion === null ||
-            input.currentSchemaVersion < 5
+            ...(version < 5
               ? {
                   note: "Knowledge the schema upgrade moves into .kb/ is stamped when it moves.",
                 }
@@ -1003,6 +993,9 @@ export function buildLifecycleRepairActions(workspaceRoot: string): {
           value: repair.value,
           file: repair.file,
           reason: repair.refused,
+          // rationale: a removal has no `to`, and the review reads an undefined
+          // rewrite as none, so testing the kind only keeps the key tidy.
+          // Stryker disable next-line ConditionalExpression
           ...(repair.fix.kind === "rewrite" ? { rewrite: repair.fix.to } : {}),
         }),
       ),
@@ -1056,12 +1049,15 @@ export function migrationSyncAction(
   return migrationAction(migrationSyncActionInput(dependsOn));
 }
 
+/**
+ * The rows of a planned evidence list, each boxed as an object so it can be
+ * destructured; a row that is not a record has none of the expected fields.
+ */
 function plannedRecords(value: unknown): Record<string, unknown>[] {
+  // rationale: a placeholder element has none of the expected fields.
+  // Stryker disable next-line ArrayDeclaration
   if (!Array.isArray(value)) return [];
-  return value.filter(
-    (raw): raw is Record<string, unknown> =>
-      raw !== null && typeof raw === "object" && !Array.isArray(raw),
-  );
+  return value.map((raw) => Object(raw) as Record<string, unknown>);
 }
 
 /** The rewrites and removals an approved source_path_rewrite action lists. */

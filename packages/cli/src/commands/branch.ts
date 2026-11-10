@@ -539,11 +539,36 @@ export async function branchRecoverCommand(
       null,
       2,
     )}\n`,
-    "utf8",
   );
   console.log(`Recovered exact branch KB '${attachment.kbBranch}'.`);
   console.log(`Original bytes preserved at ${backupPath}.`);
   console.log(`Recovery audit: ${auditPath}`);
+}
+
+/**
+ * The newest quarantine entry whose metadata names the branch. Entries that
+ * are not directories, or whose metadata cannot be read, never match.
+ */
+function newestQuarantinedStore(
+  keyRoot: string,
+  branch: string,
+): string | undefined {
+  return fs
+    .readdirSync(keyRoot)
+    .map((name) => path.join(keyRoot, name))
+    .sort()
+    .reverse()
+    .find((candidate) => {
+      let metadata: { branch?: unknown } | null = null;
+      try {
+        metadata = JSON.parse(
+          fs.readFileSync(path.join(candidate, "quarantine.json")).toString(),
+        );
+      } catch {
+        // Unreadable metadata names no branch.
+      }
+      return metadata?.branch === branch;
+    });
 }
 
 /** Restore the newest quarantined store for an exact branch identity. */
@@ -566,24 +591,9 @@ export async function branchRestoreCommand(
     "branches",
     path.basename(targetPath),
   );
-  const candidates = fs.existsSync(keyRoot)
-    ? fs
-        .readdirSync(keyRoot, { withFileTypes: true })
-        .filter((entry) => entry.isDirectory())
-        .map((entry) => path.join(keyRoot, entry.name))
-        .sort()
-        .reverse()
-    : [];
-  const source = candidates.find((candidate) => {
-    try {
-      const metadata = JSON.parse(
-        fs.readFileSync(path.join(candidate, "quarantine.json"), "utf8"),
-      ) as { branch?: string };
-      return metadata.branch === branch;
-    } catch {
-      return false;
-    }
-  });
+  const source = fs.existsSync(keyRoot)
+    ? newestQuarantinedStore(keyRoot, branch)
+    : undefined;
   if (!source) throw new Error(`No quarantined store found for '${branch}'.`);
   console.log(`Branch restore preview: ${branch}`);
   console.log(`Source: ${source}`);
@@ -592,8 +602,15 @@ export async function branchRestoreCommand(
     console.log("Preview only. Re-run with --apply to restore the store.");
     return;
   }
+  // Quarantine entries are named by time, so only the manifest itself (not
+  // the directory name) carries the identity until the store is moved back.
   const manifest = readBranchStoreManifest(source);
-  if (manifest === null || !branchStoreManifestMatches(source, branch)) {
+  const expected = expectedBranchStoreManifest(branch);
+  if (
+    manifest === null ||
+    manifest.branch !== expected.branch ||
+    manifest.key !== expected.key
+  ) {
     throw new Error(`Quarantined store identity mismatch for '${branch}'.`);
   }
   fs.mkdirSync(path.dirname(targetPath), { recursive: true });

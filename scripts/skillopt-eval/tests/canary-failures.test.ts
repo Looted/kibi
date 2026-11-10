@@ -350,7 +350,8 @@ describe("Codex capability canary failures", () => {
       // Given
       const fixture = await authEnvironment();
       let modelCalls = 0;
-      const partialStdout = `${JSON.stringify({ type: "turn.started" })}\n${JSON.stringify({ type: "item.started" })}\n`;
+      // A stopped process can leave its last event half written.
+      const partialStdout = `${JSON.stringify({ type: "turn.started" })}\n${JSON.stringify({ type: "item.started" })}\n{"type":"item.comp`;
 
       // When
       const receipt = await runCapabilityCanary(

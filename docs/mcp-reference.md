@@ -1113,6 +1113,52 @@ meaning: the tree to inspect for impact diagnostics. The CLI JSON routes do not
 take `workspaceRoot`; they run in the current directory, which makes them the
 fallback when a result reports a mismatch.
 
+## KB Dependencies
+
+A project can read the knowledge bases of other repositories it depends on,
+such as a library it calls or the other services that share a user journey,
+without mixing them into its own KB. The read tools `kb_search`, `kb_query`,
+`kb_status`, `kb_find_gaps`, `kb_coverage` and `kb_graph` accept a `kb`
+argument: the name of a dependency declared in `.kb/dependencies.json` and
+pinned in `.kb/dependencies.lock.json` (see
+[`kibi deps`](cli-reference.md#kibi-deps-lockfetchstatus)).
+
+```json
+{ "query": "how are refunds approved", "kb": "billing-service" }
+```
+
+The call is answered by that repository's own KB at the pinned commit:
+
+- The pinned commit is fetched once into a shared cache
+  (`$KIBI_DEPENDENCY_CACHE`, else `$XDG_CACHE_HOME/kibi/dependencies`, else
+  `~/.cache/kibi/dependencies`) as a detached checkout, and compiled into that
+  checkout's own read-only snapshot store on first read.
+- A child `kibi-mcp` started in the checkout (this server's own entry, with
+  `KIBI_KB_DEPENDENCY=<name>@<commit>`) answers it, pooled and retired like the
+  children of [Workspace Routing](#workspace-routing). This server's engine,
+  branch store and sync never see the dependency, so its size never slows this
+  project's KB.
+- The result carries a `detached_head_read_only` diagnostic naming the
+  dependency and its store.
+- A dependency is never written. Tools without a `kb` input (`kb_upsert`,
+  `kb_delete`, `kb_apply_plan` and the other writes) refuse a call that names
+  one with "`<tool>` does not take a kb scope: KB dependency '`<name>`' is
+  read-only", instead of dropping `kb` and acting on this project's KB.
+- With `workspaceRoot`, the dependencies of that workspace are used.
+- `KIBI_WORKSPACE` and `KIBI_MCP_ROUTING=0` do not block a dependency read:
+  the caller asked for it by name.
+
+Dependencies must carry KB schema 6 or newer, and no newer than this Kibi
+reads. The answer is only as complete as the dependency's committed KB at the
+pinned commit: Kibi reads its `.kb/` sources as they are, so a release made
+before that repository wrote any requirements answers with nothing. An unknown,
+unpinned or stale dependency fails the call with its code
+(`DEPENDENCY_UNKNOWN`, `DEPENDENCY_NOT_LOCKED`, `DEPENDENCY_LOCK_STALE`, and
+the others in the
+[error reference](error-reference.md#kb-dependency-errors-dependency_)) instead
+of answering from this project's KB. The CLI read commands take the same scope
+as `--kb <name>`, and their JSON routes accept `kb` in the input.
+
 ## Recommended Agent Workflow
 
 1. **Interactive Bootstrap**: Start with the `/kibi-bootstrap` workflow, inspect typed status, and let `kb_plan_bootstrap` return any bounded context questions. Always preview candidates for user approval before applying.

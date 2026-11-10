@@ -148,6 +148,7 @@ const CLI_SUPPORT_TEST_DIRECTORIES = [
   "./packages/cli/tests/runtime",
   "./packages/cli/tests/signoff",
   "./packages/cli/tests/helpers",
+  "./packages/cli/tests/dependencies",
 ];
 const CLI_SUPPORT_TESTS = CLI_SUPPORT_TEST_DIRECTORIES.flatMap((directory) =>
   readdirSync(directory, { recursive: true, encoding: "utf8" })
@@ -157,20 +158,23 @@ const CLI_SUPPORT_TESTS = CLI_SUPPORT_TEST_DIRECTORIES.flatMap((directory) =>
 const CLI_OPERATIONS_DIRS = [
   "./packages/cli/tests/operations",
   "./packages/cli/tests/operations-coverage",
+  "./packages/cli/tests/operations-mutation",
 ];
 const CLI_OPERATIONS_TESTS = CLI_OPERATIONS_DIRS.flatMap((directory) =>
   readdirSync(directory, { recursive: true, encoding: "utf8" })
     .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
     .map((entry) => `${directory}/${entry}`),
 ).sort();
-const CLI_COMMANDS_COVERAGE_DIR = "./packages/cli/tests/commands-coverage";
-const CLI_COMMANDS_COVERAGE_TESTS = readdirSync(CLI_COMMANDS_COVERAGE_DIR, {
-  recursive: true,
-  encoding: "utf8",
-})
-  .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
-  .map((entry) => `${CLI_COMMANDS_COVERAGE_DIR}/${entry}`)
-  .sort();
+const CLI_COMMANDS_COVERAGE_DIRS = [
+  "./packages/cli/tests/commands-coverage",
+  "./packages/cli/tests/commands-mutation",
+];
+const CLI_COMMANDS_COVERAGE_TESTS = CLI_COMMANDS_COVERAGE_DIRS.flatMap(
+  (directory) =>
+    readdirSync(directory, { recursive: true, encoding: "utf8" })
+      .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
+      .map((entry) => `${directory}/${entry}`),
+).sort();
 const CLI_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
   .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
   .map((entry) => `${CLI_COMMANDS_DIR}/${entry}`);
@@ -278,6 +282,7 @@ export const COVERAGE_SHARDS: readonly {
     paths: [
       "./packages/cli/tests/public",
       "./packages/cli/tests/public-coverage",
+      "./packages/cli/tests/public-mutation",
     ],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },

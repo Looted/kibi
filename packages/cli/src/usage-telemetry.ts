@@ -6,6 +6,7 @@ import {
   recordOperationTelemetry,
   takeTelemetryNotice,
   telemetryErrorClass,
+  telemetryRootError,
 } from "kibi-agent-core/usage-telemetry";
 
 import { operationTelemetrySignals } from "./telemetry-details.js";
@@ -56,9 +57,10 @@ export function noteCliErrorCategory(category: string | undefined): void {
  * one, and its class. Never its message.
  */
 export function noteCliThrownError(error: unknown): void {
+  const root = telemetryRootError(error);
   const code =
-    error !== null && typeof error === "object"
-      ? (error as { code?: unknown }).code
+    root !== null && typeof root === "object"
+      ? (root as { code?: unknown }).code
       : undefined;
   // An empty code is no category: noteCliErrorCategory ignores it.
   if (typeof code === "string") noteCliErrorCategory(code);
@@ -97,7 +99,8 @@ export function noteCliResultError(stdout: string | undefined): void {
 }
 
 /** A thrown error's code or class name; never its message. */
-function thrownErrorCategory(error: unknown): string {
+function thrownErrorCategory(thrown: unknown): string {
+  const error = telemetryRootError(thrown);
   if (error !== null && typeof error === "object") {
     const code = (error as { code?: unknown }).code;
     if (typeof code === "string" && code !== "") return code;

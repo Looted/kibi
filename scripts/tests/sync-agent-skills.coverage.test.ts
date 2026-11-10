@@ -14,6 +14,7 @@ import {
   processTarget,
   syncAgentSkills,
   syncAgentSkillsUnlocked,
+  transformZcodeSkillFrontmatter,
 } from "../sync-agent-skills";
 
 const roots: string[] = [];
@@ -143,5 +144,54 @@ describe("sync-agent-skills remaining CLI and drift branches", () => {
       targets: ["cursor"],
     });
     expect(result.driftedTargets).toEqual([]);
+  });
+});
+
+describe("skill frontmatter parsing refusals", () => {
+  test.each([
+    [
+      "no opening line",
+      "name: x\n",
+      "Skill frontmatter must start with a `---` line",
+    ],
+    [
+      "no closing line",
+      "---\nname: x\n",
+      "Skill frontmatter is missing its closing `---` line",
+    ],
+    [
+      "a stray list item",
+      "---\n  - item\n---\n",
+      "List item outside a frontmatter key:   - item",
+    ],
+    [
+      "a nested key",
+      "---\nname: x\n  nested: y\n---\n",
+      "Unsupported nested frontmatter line:   nested: y",
+    ],
+    [
+      "an invalid line",
+      "---\nname: x\nnot a key\n---\n",
+      "Invalid frontmatter line: not a key",
+    ],
+    [
+      "a duplicate key",
+      "---\nname: x\nname: y\n---\n",
+      "Duplicate frontmatter key: name",
+    ],
+  ])("refuses %s", (_label, content, message) => {
+    expect(() => transformZcodeSkillFrontmatter(Buffer.from(content))).toThrow(
+      message,
+    );
+  });
+
+  test("blank frontmatter lines are ignored", () => {
+    expect(
+      String(
+        transformZcodeSkillFrontmatter(
+          Buffer.from("---\nname: x\n\n---\nBody\n"),
+        ),
+      ),
+    ).toBe("---\nname: x\nlicense: AGPL-3.0-or-later\nmetadata:\n---\nBody\n");
   });
 });

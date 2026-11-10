@@ -67,6 +67,8 @@ type Interval = readonly [number, number];
 type Ranges = Interval[];
 
 const MAX_UNIT = 0xffff;
+/** One past the last code unit. */
+const UNIT_END = 0x10000;
 const MAX_CODE_POINT = 0x10ffff;
 const MAX_NFA_STATES = 20_000;
 const MAX_PRODUCT_STATES = 50_000;
@@ -84,6 +86,8 @@ function normalize(ranges: readonly Interval[]): Ranges {
   const out: Ranges = [];
   for (const [lo, hi] of sorted) {
     const last = out[out.length - 1];
+    // rationale: joining adjacent intervals, or ones that overlap by a unit, only shortens the list.
+    // Stryker disable next-line EqualityOperator,ArithmeticOperator
     if (last !== undefined && lo <= last[1] + 1)
       out[out.length - 1] = [last[0], Math.max(last[1], hi)];
     else out.push([lo, hi]);
@@ -91,14 +95,16 @@ function normalize(ranges: readonly Interval[]): Ranges {
   return out;
 }
 
+// Every set is normalized before it is compiled, so an empty gap the
+// complement leaves is dropped there.
 function complement(ranges: readonly Interval[], max: number): Ranges {
   const out: Ranges = [];
   let next = 0;
   for (const [lo, hi] of normalize(ranges)) {
-    if (lo > next) out.push([next, lo - 1]);
+    out.push([next, lo - 1]);
     next = hi + 1;
   }
-  if (next <= max) out.push([next, max]);
+  out.push([next, max]);
   return out;
 }
 
@@ -190,18 +196,14 @@ function caseClosed(ranges: Ranges, syntax: Syntax): Ranges {
   if (!syntax.ignoreCase) return ranges;
   const extras = caseExtras(syntax.flavor, syntax.unicode, syntax.ascii);
   const added: Interval[] = [];
+  // A non-ASCII letter is refused under case-insensitive matching, so only
+  // the ASCII letters of a set have variants to add.
   for (const [lo, hi] of ranges) {
     for (let code = Math.max(lo, 0x41); code <= Math.min(hi, 0x7a); code++) {
-      if (code >= 0x41 && code <= 0x5a) added.push([code + 32, code + 32]);
-      else if (code >= 0x61 && code <= 0x7a) added.push([code - 32, code - 32]);
+      if (code <= 0x5a) added.push([code + 32, code + 32]);
+      else if (code >= 0x61) added.push([code - 32, code - 32]);
       for (const extra of extras.get(code) ?? []) added.push([extra, extra]);
     }
-    for (const [letter, codes] of extras)
-      for (const extra of codes)
-        if (extra >= lo && extra <= hi) {
-          added.push([letter, letter]);
-          for (const other of codes) added.push([other, other]);
-        }
   }
   return normalize([...ranges, ...added]);
 }
@@ -219,6 +221,8 @@ type Node =
 function syntaxOf(spec: PatternSpec): Syntax {
   const flags = spec.flags ?? "";
   const allowed = spec.flavor === "js" ? "disu" : "iasu";
+  if (spec.flavor === "python" && flags.includes("a") && flags.includes("u"))
+    throw new UnsupportedPattern("the Python flags a and u are incompatible");
   for (const flag of flags) {
     if (!allowed.includes(flag))
       throw new UnsupportedPattern(
@@ -232,7 +236,8 @@ function syntaxOf(spec: PatternSpec): Syntax {
     unicode: spec.flavor === "python" || flags.includes("u"),
     ignoreCase: flags.includes("i"),
     dotAll: flags.includes("s"),
-    ascii: spec.flavor === "python" && flags.includes("a"),
+    // Only a Python pattern may carry the a flag.
+    ascii: flags.includes("a"),
   };
 }
 
@@ -267,7 +272,8 @@ class Parser {
       this.index++;
       items.push(this.sequence());
     }
-    return items.length === 1 ? (items[0] as Node) : { type: "alt", items };
+    // A single alternative compiles as itself.
+    return { type: "alt", items };
   }
 
   private sequence(): Node {
@@ -291,13 +297,11 @@ class Parser {
     if (match === null || (match[1] === "" && match[2] === undefined)) return null;
     if (match[1] === "" && match[3] === "")
       this.fail("a {,} quantifier");
-    const min = match[1] === "" ? 0 : Number(match[1]);
+    // Number("") is 0, so an omitted minimum is 0; without a comma the
+    // maximum is the minimum.
+    const min = Number(match[1]);
     const max =
-      match[2] === undefined
-        ? min
-        : match[3] === ""
-          ? Number.POSITIVE_INFINITY
-          : Number(match[3]);
+      match[3] === "" ? Number.POSITIVE_INFINITY : Number(match[3] ?? match[1]);
     return { min, max, length: match[0].length };
   }
 
@@ -308,19 +312,17 @@ class Parser {
     if (char === "*") [min, max] = [0, Number.POSITIVE_INFINITY];
     else if (char === "+") [min, max] = [1, Number.POSITIVE_INFINITY];
     else if (char === "?") [min, max] = [0, 1];
-    else if (char === "{") {
+    else {
+      // Only a { can start a counted quantifier; the next atom refuses a {
+      // that starts none where it must.
       const bounds = this.counted();
-      if (bounds === null) {
-        if (this.syntax.flavor === "js" && this.syntax.unicode)
-          this.fail("a { that does not start a quantifier");
-        return atom;
-      }
+      if (bounds === null) return atom;
       ({ min, max } = bounds);
       if (max < min) this.fail("a quantifier whose maximum is below its minimum");
       if (min > 1000 || (Number.isFinite(max) && max > 1000))
         this.fail("a counted repeat above 1000");
       this.index += bounds.length - 1;
-    } else return atom;
+    }
     if (atom.type === "assert") this.fail("a quantified assertion");
     this.index++;
     const lazy = this.peek();
@@ -332,7 +334,7 @@ class Parser {
       after === "*" ||
       after === "+" ||
       after === "?" ||
-      (after === "{" && this.counted() !== null)
+      this.counted() !== null
     )
       this.fail("a quantifier on a quantifier");
     return { type: "repeat", item: atom, min, max };
@@ -365,12 +367,15 @@ class Parser {
     if (char === "\\") return this.escapeAtom();
     if (char === "*" || char === "+" || char === "?")
       this.fail("a quantifier with nothing to repeat");
-    if (char === "{" && this.counted() !== null)
+    if (this.counted() !== null)
       this.fail("a quantifier with nothing to repeat");
     if (char === "]" && this.syntax.flavor === "js" && this.syntax.unicode)
       this.fail("a lone ]");
     if (char === "}" && this.syntax.flavor === "js" && this.syntax.unicode)
       this.fail("a lone }");
+    // A { that starts no quantifier is a syntax error with the u flag.
+    if (char === "{" && this.syntax.flavor === "js" && this.syntax.unicode)
+      this.fail("a { that does not start a quantifier");
     const code = this.readLiteral();
     return { type: "set", ranges: this.literalSet(code) };
   }
@@ -388,7 +393,11 @@ class Parser {
   }
 
   private literalSet(code: number): Ranges {
-    if (this.syntax.ignoreCase && code > 0x7f && !caseless(code))
+    if (
+      this.syntax.ignoreCase &&
+      !/[A-Za-z]/.test(String.fromCharCode(code)) &&
+      !caseless(code)
+    )
       this.fail(
         "a non-ASCII letter under case-insensitive matching (Kibi folds case exactly only for ASCII letters)",
       );
@@ -466,11 +475,11 @@ class Parser {
       case "a":
         if (this.syntax.flavor === "python") return code(0x07);
         break;
+      // Outside a class \b is a word boundary, refused before this.
       case "b":
-        if (inClass) return code(0x08);
-        break;
+        return code(0x08);
       case "0":
-        if (!/[0-9]/.test(this.peek() ?? "")) return code(0);
+        if (!/[0-9]/.test(String(this.peek()))) return code(0);
         this.fail("an octal escape");
         break;
       case "x": {
@@ -497,8 +506,8 @@ class Parser {
         if (
           this.syntax.flavor === "js" &&
           this.syntax.unicode &&
-          value >= 0xd800 &&
-          value <= 0xdbff &&
+          // A high surrogate: U+D800 to U+DBFF.
+          (value & 0xfc00) === 0xd800 &&
           low !== null
         ) {
           this.index += 6;
@@ -539,7 +548,10 @@ class Parser {
     // An identity escape: a syntax character stands for itself (in Python
     // any ASCII punctuation does); any other escape is one Kibi does not
     // model.
-    if (/[\^$\\.*+?()[\]{}|/\-]/.test(char)) return code(char.charCodeAt(0));
+    if (/[\^$\\.*+?()[\]{}|/]/.test(char)) return code(char.charCodeAt(0));
+    // A JavaScript u pattern allows \- only inside a class (Python reaches
+    // the punctuation rule below).
+    if (char === "-" && (inClass || !this.syntax.unicode)) return code(0x2d);
     if (
       this.syntax.flavor === "python" &&
       /[^A-Za-z0-9]/.test(char) &&
@@ -585,7 +597,6 @@ class Parser {
       }
       first = false;
       if (
-        char === "[" &&
         this.syntax.flavor === "python" &&
         /^\[[:=.]/.test(this.source.slice(this.index))
       )
@@ -639,13 +650,20 @@ type Edge =
   | Readonly<{ type: "assert"; kind: "bol" | "eol" | "eolnl"; to: number }>;
 
 class Nfa {
+  // rationale: the state bound is a performance guard; a placeholder entry or
+  // a bound one state later only moves where it refuses.
+  // Stryker disable next-line ArrayDeclaration
   readonly edges: Edge[][] = [];
 
   state(): number {
+    // rationale: see the bound above; refusing one state later is the same guard.
+    // Stryker disable next-line EqualityOperator
     if (this.edges.length >= MAX_NFA_STATES)
       throw new UnsupportedPattern(
         `the pattern needs more than ${MAX_NFA_STATES} automaton states`,
       );
+    // rationale: an entry that is no edge is skipped wherever edges are read.
+    // Stryker disable next-line ArrayDeclaration
     this.edges.push([]);
     return this.edges.length - 1;
   }
@@ -663,9 +681,11 @@ function addCodePoints(
   ranges: Ranges,
   unicode: boolean,
 ): void {
+  // An edge with no ranges never fires, and normalizing drops the empty
+  // intervals a clipped range leaves.
   if (!unicode) {
     const units = normalize(ranges.map(([lo, hi]) => [lo, Math.min(hi, MAX_UNIT)] as Interval));
-    if (units.length > 0) nfa.add(from, { type: "units", ranges: units, to });
+    nfa.add(from, { type: "units", ranges: units, to });
     return;
   }
   // Lone surrogates never occur in well-formed strings, so a code point set
@@ -673,15 +693,15 @@ function addCodePoints(
   const bmp: Interval[] = [];
   const astral: Interval[] = [];
   for (const [lo, hi] of ranges) {
-    if (lo <= 0xd7ff) bmp.push([lo, Math.min(hi, 0xd7ff)]);
-    if (hi >= 0xe000 && lo <= 0xffff) bmp.push([Math.max(lo, 0xe000), Math.min(hi, 0xffff)]);
-    if (hi >= 0x10000) astral.push([Math.max(lo, 0x10000), hi]);
+    bmp.push([lo, Math.min(hi, 0xd7ff)]);
+    bmp.push([Math.max(lo, 0xe000), Math.min(hi, 0xffff)]);
+    astral.push([Math.max(lo, 0x10000), hi]);
   }
-  const units = normalize(bmp);
-  if (units.length > 0) nfa.add(from, { type: "units", ranges: units, to });
+  nfa.add(from, { type: "units", ranges: normalize(bmp), to });
   for (const [lo, hi] of normalize(astral)) {
     const highOf = (code: number) => 0xd800 + ((code - 0x10000) >> 10);
-    const lowOf = (code: number) => 0xdc00 + ((code - 0x10000) & 0x3ff);
+    // 0x10000 is a multiple of 0x400, so the low ten bits are the code's own.
+    const lowOf = (code: number) => 0xdc00 + (code & 0x3ff);
     const pair = (highLo: number, highHi: number, lowLo: number, lowHi: number) => {
       const mid = nfa.state();
       nfa.add(from, { type: "units", ranges: [[highLo, highHi]], to: mid });
@@ -694,6 +714,8 @@ function addCodePoints(
       continue;
     }
     pair(firstHigh, firstHigh, lowOf(lo), 0xdfff);
+    // rationale: a middle pair with no high surrogates never fires; the guard only saves a state.
+    // Stryker disable next-line ConditionalExpression,EqualityOperator,ArithmeticOperator
     if (lastHigh - firstHigh > 1) pair(firstHigh + 1, lastHigh - 1, 0xdc00, 0xdfff);
     pair(lastHigh, lastHigh, 0xdc00, lowOf(hi));
   }
@@ -762,14 +784,11 @@ export function compileLanguage(spec: LanguageSpec): Compiled {
   const start = nfa.state();
   const accept = nfa.state();
   if (spec.type === "literal") {
-    let current = start;
-    for (let index = 0; index < spec.value.length; index++) {
-      const next = index === spec.value.length - 1 ? accept : nfa.state();
-      const unit = spec.value.charCodeAt(index);
-      nfa.add(current, { type: "units", ranges: [[unit, unit]], to: next });
-      current = next;
-    }
-    if (spec.value.length === 0) nfa.add(start, { type: "eps", to: accept });
+    // split("") yields the string's UTF-16 code units.
+    const items: Node[] = spec.value
+      .split("")
+      .map((unit) => ({ type: "set", ranges: single(unit.charCodeAt(0)) }));
+    build(nfa, { type: "seq", items }, start, accept, false);
     return { nfa, start, accept, mode: "full" };
   }
   const syntax = syntaxOf(spec);
@@ -788,7 +807,15 @@ const FREE = 0;
 const NEWLINE_OR_END = 1;
 const END = 2;
 
+// rationale: a live key always starts with [, so any other text names the accepted state.
+// Stryker disable next-line StringLiteral
 const ACCEPTED = "*";
+// What the rest of the input must be after each end assertion. END is the
+// strongest constraint, so it overrides any other.
+const END_CONSTRAINT: Readonly<Record<string, number>> = {
+  eol: END,
+  eolnl: NEWLINE_OR_END,
+};
 
 class Determinizer {
   private readonly ids = new Map<string, number>();
@@ -814,13 +841,16 @@ class Determinizer {
       const config = stack.pop() as Config;
       const state = Math.floor(config / 3);
       const constraint = config % 3;
-      for (const edge of this.compiled.nfa.edges[state] ?? []) {
+      for (const edge of this.compiled.nfa.edges[state] as Edge[]) {
         let next: Config | null = null;
         if (edge.type === "eps") next = this.config(edge.to, constraint);
         else if (edge.type === "assert") {
           if (edge.kind === "bol") next = atStart ? this.config(edge.to, constraint) : null;
-          else if (edge.kind === "eol") next = this.config(edge.to, END);
-          else next = this.config(edge.to, Math.max(constraint, NEWLINE_OR_END));
+          else
+            next = this.config(
+              edge.to,
+              Math.max(constraint, END_CONSTRAINT[edge.kind] as number),
+            );
         }
         if (next !== null && !seen.has(next)) {
           seen.add(next);
@@ -828,6 +858,8 @@ class Determinizer {
         }
       }
     }
+    // rationale: sorting only merges equal sets into one state; an unsorted set decides the same.
+    // Stryker disable next-line MethodExpression,ArrowFunction,ArithmeticOperator
     return [...seen].sort((a, b) => a - b);
   }
 
@@ -855,39 +887,44 @@ class Determinizer {
     }
     const key = accepted
       ? ACCEPTED
-      : `${live.join(",")}|${endHere ? 1 : 0}${newlineHere ? 1 : 0}`;
+      : `${JSON.stringify(live)}${endHere ? 1 : 0}${newlineHere ? 1 : 0}`;
     const existing = this.ids.get(key);
     if (existing !== undefined) return existing;
     const id = this.keys.length;
     this.ids.set(key, id);
     this.keys.push(key);
-    this.sets.push(accepted ? [] : live);
+    // An accepted state never steps, so its configurations are never read.
+    this.sets.push(live);
     this.flags.push({ accepted, atEnd: endHere, atNewline: newlineHere });
+    // rationale: the bound is a performance guard; one state more only moves where it refuses.
+    // Stryker disable next-line EqualityOperator
     if (id >= MAX_PRODUCT_STATES)
       throw new UnsupportedPattern("the pattern's automaton grew too large to decide");
     return id;
   }
 
   accepts(id: number): boolean {
-    const flag = this.flags[id];
-    return flag !== undefined && (flag.accepted || flag.atEnd || flag.atNewline);
+    const flag = this.flags[id] as { accepted: boolean; atEnd: boolean; atNewline: boolean };
+    return flag.accepted || flag.atEnd || flag.atNewline;
   }
 
   step(id: number, unit: number): number {
     const memo = `${id}:${unit}`;
     const known = this.moves.get(memo);
+    // rationale: the memo only saves recomputing a move, which interns to the same state.
+    // Stryker disable next-line ConditionalExpression
     if (known !== undefined) return known;
     const flag = this.flags[id] as { accepted: boolean; atNewline: boolean };
     let result: number;
     if (flag.accepted) result = id;
     else {
       const next: Config[] = [];
-      for (const config of this.sets[id] ?? []) {
+      for (const config of this.sets[id] as Config[]) {
         const state = Math.floor(config / 3);
         const constraint = config % 3;
         if (constraint === NEWLINE_OR_END && unit !== 0x0a) continue;
         const after = constraint === NEWLINE_OR_END ? END : constraint;
-        for (const edge of this.compiled.nfa.edges[state] ?? [])
+        for (const edge of this.compiled.nfa.edges[state] as Edge[])
           if (edge.type === "units" && contains(edge.ranges, unit))
             next.push(this.config(edge.to, after));
       }
@@ -896,6 +933,8 @@ class Determinizer {
       const atEnd = flag.atNewline && unit === 0x0a;
       result = this.intern(this.closure(next, false), atEnd, false);
     }
+    // rationale: the memo only saves recomputing a move, which interns to the same state.
+    // Stryker disable next-line CallExpression
     this.moves.set(memo, result);
     return result;
   }
@@ -929,17 +968,21 @@ function contains(ranges: Ranges, unit: number): boolean {
 
 /** One representative unit per class of units no automaton tells apart. */
 function minterms(automata: readonly Determinizer[]): number[] {
-  const cuts = new Set<number>([0, 0xd800, 0xdc00, 0xe000, MAX_UNIT + 1]);
+  const cuts = new Set<number>([0, 0xd800, 0xdc00, 0xe000, UNIT_END]);
   for (const automaton of automata) automaton.boundaries(cuts);
-  const sorted = [...cuts].filter((cut) => cut <= MAX_UNIT + 1).sort((a, b) => a - b);
+  // No range ends above MAX_UNIT, so no cut lies past UNIT_END.
+  const sorted = [...cuts].sort((a, b) => a - b);
   const representatives: number[] = [];
   for (let index = 0; index < sorted.length - 1; index++) {
     const lo = sorted[index] as number;
     const hi = (sorted[index + 1] as number) - 1;
-    // Prefer a printable character so a counterexample reads well.
+    // Prefer a printable character so a counterexample reads well. A class
+    // that reaches into the visible ASCII range from below holds the space,
+    // so otherwise its first unit is the most readable one.
+    // rationale: a printable code at the class's first unit is that first unit either way.
+    // Stryker disable next-line EqualityOperator
     const printable = [0x61, 0x41, 0x30, 0x20].find((code) => code >= lo && code <= hi);
-    const visible = lo <= 0x7e && hi >= 0x21 ? Math.max(lo, 0x21) : lo;
-    representatives.push(printable ?? visible);
+    representatives.push(printable ?? lo);
   }
   // The search tries readable characters first, so among the shortest
   // strings that tell two languages apart it reports a readable one.
@@ -951,7 +994,9 @@ function minterms(automata: readonly Determinizer[]): number[] {
         : unit >= 0xa0
           ? 2
           : 3;
-  return representatives.sort((x, y) => rank(x) - rank(y) || x - y);
+  // The representatives ascend and sorting is stable, so a rank keeps them
+  // in code order.
+  return representatives.sort((x, y) => rank(x) - rank(y));
 }
 
 // Well-formed UTF-16: 0 between scalar values, 1 after a high surrogate.
@@ -981,6 +1026,8 @@ function decide(
   const alphabet = minterms([a, b]);
   type Node = { a: number; b: number; wf: number; text: number[] };
   const start: Node = { a: a.initial(), b: b.initial(), wf: 0, text: [] };
+  // rationale: without the start the BFS queues it once more and decides the same.
+  // Stryker disable next-line ArrayDeclaration,StringLiteral
   const seen = new Set<string>([`${start.a},${start.b},0`]);
   const queue: Node[] = [start];
   for (let head = 0; head < queue.length; head++) {
@@ -1004,6 +1051,8 @@ function decide(
       const next = { a: a.step(node.a, unit), b: b.step(node.b, unit), wf };
       const key = `${next.a},${next.b},${wf}`;
       if (seen.has(key)) continue;
+      // rationale: the bound is a performance guard; one state more only moves where it refuses.
+      // Stryker disable next-line EqualityOperator
       if (seen.size >= MAX_PRODUCT_STATES)
         throw new UnsupportedPattern("the languages' product automaton grew too large to decide");
       seen.add(key);

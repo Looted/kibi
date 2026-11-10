@@ -6,6 +6,7 @@ import { noteCliErrorCategory } from "../usage-telemetry.js";
 
 import { executeIngestProof } from "../operations/proof/ingest-proof.js";
 import type { IngestProofResult } from "../operations/proof/ingest-proof.js";
+import { parseAtomList, parsePairList } from "../prolog/codec.js";
 import {
   type FailedProofStep,
   PROOF_TEST_REPORT_ENV,
@@ -84,10 +85,8 @@ export function describeWorkspaceDrift(
   if (!snapshot.available) return " (workspace snapshot unavailable)";
   const changes = snapshot.snapshot.changes ?? [];
   const relevant = changes.filter((change) => change.snapshotRelevant);
-  const pool =
-    relevant.length > 0
-      ? relevant
-      : changes.filter((change) => !change.snapshotRelevant);
+  // Without a relevant change, every change is a receipt-only one.
+  const pool = relevant.length > 0 ? relevant : changes;
   if (pool.length === 0) {
     return " (git reported no workspace changes; the hash drift may come from file content that git treats as unchanged)";
   }
@@ -132,13 +131,10 @@ export function testId(test: SelectedTest): string {
 
 function parseContract(test: Record<string, unknown>): ProofContract | null {
   const contract = test.proof_contract;
-  if (
-    contract === null ||
-    typeof contract !== "object" ||
-    Array.isArray(contract)
-  )
-    return null;
-  return contract as ProofContract;
+  // typeof null is "object", and null is returned as it is.
+  return typeof contract === "object" && !Array.isArray(contract)
+    ? (contract as ProofContract | null)
+    : null;
 }
 
 /** Run a proof integration's command and resolve with its exit code. */
@@ -232,7 +228,7 @@ export async function readProveProgress(
 ): Promise<ProveProgress | null> {
   try {
     const parsed = JSON.parse(
-      await readFile(path.join(runsDir, PROVE_PROGRESS_FILE), "utf8"),
+      (await readFile(path.join(runsDir, PROVE_PROGRESS_FILE))).toString(),
     ) as Partial<ProveProgress>;
     if (
       parsed.version !== "kibi.prove-progress.v1" ||
@@ -255,7 +251,6 @@ async function recordProgressReset(
   await writeFile(
     path.join(runsDir, PROVE_PROGRESS_FILE),
     `${JSON.stringify(progress, null, 2)}\n`,
-    "utf8",
   );
 }
 
@@ -320,10 +315,8 @@ function proofSourceFiles(test: SelectedTest): string[] {
   const raw = test.proof_bindings;
   if (!Array.isArray(raw)) return [];
   return raw.flatMap((entry) => {
-    const file =
-      entry !== null && typeof entry === "object"
-        ? (entry as Record<string, unknown>).source_file
-        : undefined;
+    // A scalar entry has no source_file either.
+    const file = (entry as { source_file?: unknown } | null)?.source_file;
     return typeof file === "string" && file !== "" ? [file] : [];
   });
 }
@@ -342,24 +335,25 @@ function collectBindings(tests: readonly SelectedTest[]): {
   }[] = [];
   for (const test of tests) {
     const raw = test.proof_bindings;
-    if (raw === undefined || raw === null) continue;
     if (!Array.isArray(raw)) continue;
     const errors = proofBindingsErrors(raw);
     if (errors.length > 0)
       throw new Error(
         `prove: test ${test.id} has invalid proof_bindings: ${errors.join("; ")}`,
       );
+    // proofBindingsErrors has checked every field's type.
     for (const entry of raw) {
-      const row = entry as Record<string, unknown>;
+      const row = entry as {
+        symbol_id: string;
+        target: string;
+        native_id?: string;
+        aliases?: string[];
+      };
       bindings.push({
-        symbol_id: String(row.symbol_id),
-        target: String(row.target),
-        ...(row.native_id !== undefined
-          ? { native_id: String(row.native_id) }
-          : {}),
-        ...(row.aliases !== undefined
-          ? { aliases: (row.aliases as unknown[]).map(String) }
-          : {}),
+        symbol_id: row.symbol_id,
+        target: row.target,
+        ...(row.native_id !== undefined ? { native_id: row.native_id } : {}),
+        ...(row.aliases !== undefined ? { aliases: row.aliases } : {}),
       });
     }
   }
@@ -443,7 +437,7 @@ async function selectTestsBySelector(
       type: "test",
       projection: "proof_contract",
     });
-  let candidates: SelectedTest[] = [];
+  let candidates: SelectedTest[];
   if (options.testId) {
     const found = await loadEntities(context.prolog as never, {
       id: options.testId,
@@ -452,36 +446,25 @@ async function selectTestsBySelector(
     });
     candidates = found.map(withId);
   } else if (options.requirement) {
-    const requirementId = options.requirement;
+    const requirement = toPrologAtom(options.requirement);
     const scenarioResult = await context.prolog?.query(
-      `findall([S,T], (kb_relationship(specified_by, '${requirementId}', S), (kb_relationship(verified_by, S, T) ; kb_relationship(validates, T, S))), Rows)`,
+      `findall([S,T], (kb_relationship(specified_by, ${requirement}, S), (kb_relationship(verified_by, S, T) ; kb_relationship(validates, T, S))), Rows)`,
     );
-    const rowsRaw = scenarioResult?.success
+    const ids = new Set<string>();
+    const scenarioRows = scenarioResult?.success
       ? scenarioResult.bindings.Rows
       : undefined;
-    const ids = new Set<string>();
-    if (typeof rowsRaw === "string") {
-      for (const match of rowsRaw.matchAll(
-        /\[['"]?([^,\]]+)['"]?,['"]?([^,\]]+)['"]?\]/g,
-      )) {
-        const test = match[2];
-        if (test) ids.add(test.trim());
-      }
-    }
+    if (typeof scenarioRows === "string")
+      for (const [, test] of parsePairList(scenarioRows)) ids.add(test);
     const directResult = await context.prolog?.query(
-      `findall(T, kb_relationship(validates, T, '${requirementId}'), Rows)`,
+      `findall(T, kb_relationship(validates, T, ${requirement}), Rows)`,
     );
-    const directRaw = directResult?.success
+    const directRows = directResult?.success
       ? directResult.bindings.Rows
       : undefined;
-    if (typeof directRaw === "string") {
-      for (const match of directRaw.matchAll(
-        /\[?['"]?([A-Za-z0-9_-]+)['"]?\]?/g,
-      )) {
-        const candidate: string | undefined = match[1];
-        if (candidate?.startsWith("TEST-")) ids.add(candidate);
-      }
-    }
+    // Ids that name no loaded test drop out below.
+    if (typeof directRows === "string")
+      for (const id of parseAtomList(directRows)) ids.add(id);
     const all = await loadAll();
     candidates = all.filter((entity) => ids.has(String(entity.id))).map(withId);
   } else {
@@ -500,15 +483,11 @@ async function selectTestsBySelector(
   );
   if (includeIds.size === 0 && excludeIds.size === 0) return selected;
   const filtered = selected.filter((entity) => {
-    const contract = parseContract(entity);
-    if (!contract) return false;
-    if (includeIds.size > 0 && !includeIds.has(contract.integration))
-      return false;
-    if (excludeIds.size > 0 && excludeIds.has(contract.integration))
-      return false;
-    return true;
+    const { integration } = parseContract(entity) as ProofContract;
+    if (includeIds.size > 0 && !includeIds.has(integration)) return false;
+    return !excludeIds.has(integration);
   });
-  if (filtered.length === 0 && includeIds.size + excludeIds.size > 0) {
+  if (filtered.length === 0) {
     const requested = [
       ...(includeIds.size > 0
         ? [`integrations: ${[...includeIds].sort().join(", ")}`]
@@ -557,9 +536,8 @@ function refusedCount(result: IngestProofResult): number {
     (row) =>
       row.outcome === "passed" &&
       (row.certificateRejection !== undefined ||
-        (row.claimBindings ?? []).some(
-          (binding) => binding.binding === "rejected",
-        )),
+        row.claimBindings?.some((binding) => binding.binding === "rejected") ===
+          true),
   ).length;
 }
 
@@ -621,11 +599,11 @@ export async function proveCommand(
 
     const groups = new Map<string, SelectedTest[]>();
     for (const test of selected) {
-      const contract = parseContract(test);
-      if (!contract) continue;
-      const list = groups.get(contract.integration) ?? [];
-      list.push(test as SelectedTest);
-      groups.set(contract.integration, list);
+      // Selection keeps only tests with a contract.
+      const { integration } = parseContract(test) as ProofContract;
+      const list = groups.get(integration) ?? [];
+      list.push(test);
+      groups.set(integration, list);
     }
 
     const runsDir = path.join(context.workspaceRoot, PROOF_RUNS_DIR);
@@ -659,7 +637,6 @@ export async function proveCommand(
       await writeFile(
         path.join(runsDir, PROVE_PROGRESS_FILE),
         `${JSON.stringify(progress, null, 2)}\n`,
-        "utf8",
       );
     };
     if (!options.resume) await recordProgressReset(runsDir, progress);
@@ -797,10 +774,11 @@ export async function proveCommand(
         );
         continue;
       }
-      const artifactErrors = [
-        ...(evaluated.wholeRun === undefined ? [] : [evaluated.wholeRun]),
-        ...evaluated.artifacts.map((entry) => entry.artifact),
-      ].flatMap((artifact) => proofRunArtifactErrors(artifact));
+      // A whole-run artifact is built from the same parts as its partitions
+      // and carries only their certificates, so checking them covers it.
+      const artifactErrors = evaluated.artifacts.flatMap((entry) =>
+        proofRunArtifactErrors(entry.artifact),
+      );
       if (artifactErrors.length > 0) {
         failures.push(
           `integration '${integrationId}' produced an invalid kibi.proof-run.v1 artifact: ${artifactErrors.join("; ")}`,
@@ -810,15 +788,13 @@ export async function proveCommand(
       await mkdir(path.dirname(artifactPath), { recursive: true });
       await writeFile(
         artifactPath,
-        `${JSON.stringify(evaluated.wholeRun ?? evaluated.artifacts[0]?.artifact, null, 2)}\n`,
-        "utf8",
+        `${JSON.stringify(evaluated.wholeRun ?? (evaluated.artifacts[0] as EvaluatedRun["artifacts"][number]).artifact, null, 2)}\n`,
       );
       if (evaluated.wholeRun !== undefined) {
         for (const entry of evaluated.artifacts) {
           await writeFile(
             partitionArtifactPath(artifactPath, entry.artifact.run.outcome),
             `${JSON.stringify(entry.artifact, null, 2)}\n`,
-            "utf8",
           );
         }
       }
@@ -844,19 +820,17 @@ export async function proveCommand(
         partitionResults.push(ingested.structuredContent);
       }
       const merged = mergeIngestResults(partitionResults);
-      if (merged !== undefined) {
-        ingestResults.push(merged);
-        runAttribution.set(merged, evaluated);
-        await recordProgress(integrationId, selectedTestIds);
-        process.stderr.write(
-          `prove: ingested integration '${integrationId}' (${summarize(merged)})\n`,
-        );
-        for (const line of [
-          ...certificateRejectionLines(merged),
-          ...claimBindingLines(merged),
-        ])
-          process.stderr.write(`prove: ${line}\n`);
-      }
+      ingestResults.push(merged);
+      runAttribution.set(merged, evaluated);
+      await recordProgress(integrationId, selectedTestIds);
+      process.stderr.write(
+        `prove: ingested integration '${integrationId}' (${summarize(merged)})\n`,
+      );
+      for (const line of [
+        ...certificateRejectionLines(merged),
+        ...claimBindingLines(merged),
+      ])
+        process.stderr.write(`prove: ${line}\n`);
       const afterIngest = await readWorkspaceSnapshot(context);
       if (!afterIngest.available || afterIngest.snapshot.hash !== snapshot) {
         failures.push(
@@ -897,7 +871,7 @@ export async function proveCommand(
       failed,
       unchanged,
       runs: ingestResults.map((result) => {
-        const attribution = runAttribution.get(result)?.attribution;
+        const { attribution } = runAttribution.get(result) as EvaluatedRun;
         return {
           integration: result.integration,
           summary: summarize(result),
@@ -905,9 +879,9 @@ export async function proveCommand(
             ? {}
             : {
                 attribution: attribution.attribution,
-                ...(attribution.attribution === "aggregate"
-                  ? { attributionReason: attribution.reason }
-                  : {}),
+                // Only an aggregate attribution has a reason; JSON drops
+                // the undefined one of a per-test attribution.
+                attributionReason: (attribution as { reason?: string }).reason,
                 ...(attribution.failedSteps.length > 0
                   ? { failedSteps: attribution.failedSteps }
                   : {}),
@@ -954,7 +928,9 @@ export async function readCertificateDir(
   for (const name of names.sort()) {
     let parsed: unknown;
     try {
-      parsed = JSON.parse(await readFile(path.join(directory, name), "utf8"));
+      parsed = JSON.parse(
+        (await readFile(path.join(directory, name))).toString(),
+      );
     } catch {
       throw new Error(`certificate ${name} is not valid JSON`);
     }
@@ -988,7 +964,7 @@ export function attachCertificates(
     testIds: readonly string[],
   ): ProofRunArtifact => {
     const own = certificates.filter((certificate) =>
-      testIds.includes(String(certificate.test_id ?? "")),
+      testIds.includes(certificate.test_id as string),
     );
     return own.length === 0
       ? artifact
@@ -1036,7 +1012,7 @@ export async function readCommandAttribution(
 ): Promise<ProofRunAttribution> {
   let raw: string;
   try {
-    raw = await readFile(reportPath, "utf8");
+    raw = (await readFile(reportPath)).toString();
   } catch {
     return attributeCommandRun({
       selectedTestIds,
@@ -1183,12 +1159,11 @@ export function buildCommandRunArtifacts(input: {
   return { artifacts, wholeRun, attribution };
 }
 
+// Every evaluated run has at least one artifact, so there is a first result.
 function mergeIngestResults(
   results: readonly IngestProofResult[],
-): IngestProofResult | undefined {
-  const [first] = results;
-  if (first === undefined) return undefined;
-  if (results.length === 1) return first;
+): IngestProofResult {
+  const first = results[0] as IngestProofResult;
   return {
     ...first,
     passed: results.reduce((sum, result) => sum + result.passed, 0),
@@ -1232,9 +1207,11 @@ async function buildArtifact(input: {
       throw new Error(
         `producer '${integration.producer}' requires an artifact path in .kb/proof/integrations.json`,
       );
+    // The producer runs in the workspace root, where artifactPath already
+    // resolves its native report.
     let native: string;
     try {
-      native = await readFile(path.resolve(context_path(nativePath)), "utf8");
+      native = (await readFile(artifactPath)).toString();
     } catch {
       throw new Error(
         `producer '${integration.producer}' did not produce its native report at ${nativePath}`,
@@ -1285,7 +1262,7 @@ async function buildArtifact(input: {
   // kibi.proof-run.v1 artifact and enforce the process outcome.
   let parsed: Record<string, unknown>;
   try {
-    parsed = JSON.parse(await readFile(artifactPath, "utf8")) as Record<
+    parsed = JSON.parse((await readFile(artifactPath)).toString()) as Record<
       string,
       unknown
     >;
@@ -1305,10 +1282,4 @@ async function buildArtifact(input: {
     }
   }
   return artifact;
-}
-
-function context_path(nativePath: string): string {
-  return path.isAbsolute(nativePath)
-    ? nativePath
-    : path.join(process.cwd(), nativePath);
 }

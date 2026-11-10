@@ -202,36 +202,31 @@ export function createStubBuiltinPlugin(): KibiPluginV1 {
 /** Default host builtin from the published kibi-plugin-builtin package. */
 async function defaultBuiltinFactory(): Promise<KibiPluginV1> {
   const mod = (await import("kibi-plugin-builtin")) as {
-    kibiPlugin?: KibiPluginV1;
-    default?: KibiPluginV1;
+    kibiPlugin: KibiPluginV1;
   };
-  const plugin = mod.kibiPlugin;
-  if (!plugin) {
-    throw new Error("kibi-plugin-builtin did not export kibiPlugin");
-  }
-  const validated = validateKibiPlugin(plugin);
+  // Validation rejects a missing export.
+  const validated = validateKibiPlugin(mod.kibiPlugin);
   let packageVersion = validated.version;
+  let builtinPackageJson: { version?: unknown } = {};
   try {
     const { createRequire } = await import("node:module");
     const require = createRequire(import.meta.url);
-    const builtinPackageJson = require("kibi-plugin-builtin/package.json") as {
-      version?: string;
-    };
-    if (
-      typeof builtinPackageJson.version === "string" &&
-      builtinPackageJson.version.trim()
-    ) {
-      packageVersion = builtinPackageJson.version.trim();
-    }
+    builtinPackageJson = require("kibi-plugin-builtin/package.json");
   } catch {
     // Fall back to the export version when package.json is not resolvable.
+  }
+  if (
+    typeof builtinPackageJson.version === "string" &&
+    builtinPackageJson.version.trim()
+  ) {
+    packageVersion = builtinPackageJson.version.trim();
   }
   if (validated.version !== packageVersion) {
     throw new Error(
       `kibi-plugin-builtin export version '${validated.version}' does not match package.json version '${packageVersion}'`,
     );
   }
-  return { ...validated, version: packageVersion };
+  return validated;
 }
 
 // implements REQ-capability-plugin-activation-disclosure-v1
@@ -256,8 +251,7 @@ function stampFor(
 
 // implements REQ-capability-plugin-activation-disclosure-v1
 function disclosedModel(capability: unknown): string | undefined {
-  if (typeof capability !== "object" || capability === null) return undefined;
-  if (!("model" in capability)) return undefined;
+  // Validated capabilities are objects.
   const model = (capability as { model?: unknown }).model;
   return typeof model === "string" && model.trim() !== ""
     ? model.trim()
@@ -461,9 +455,6 @@ export class CapabilityRegistry {
 
     const config = await this.getProjectConfig();
     const entries = config.plugins ?? [];
-    const relevant = entries.filter(
-      (entry) => entry.capabilities[capabilityId] !== undefined,
-    );
 
     let replace: CapabilityProviderBinding<unknown> | null = null;
     const augment: CapabilityProviderBinding<unknown>[] = [];
@@ -471,11 +462,9 @@ export class CapabilityRegistry {
     const pluginIds = new Map<string, string>([
       [builtinPlugin.id, "kibi-plugin-builtin"],
     ]);
-    const providerIds = new Set<string>([
-      builtinCapability.id ?? builtinPlugin.id,
-    ]);
+    const providerIds = new Set<string>([builtinCapability.id]);
 
-    for (const entry of relevant) {
+    for (const entry of entries) {
       const modeConfig = entry.capabilities[capabilityId];
       if (!modeConfig) continue;
       const loaded = await this.ensurePackageLoaded(entry);
@@ -494,15 +483,14 @@ export class CapabilityRegistry {
           `Plugin package '${entry.package}' is activated for ${capabilityId} but does not export that capability`,
         );
       }
-      if ("id" in capability && typeof capability.id === "string") {
-        if (providerIds.has(capability.id)) {
-          throw new PluginResolutionError(
-            "DUPLICATE_PROVIDER_ID",
-            `Provider id '${capability.id}' for ${capabilityId} is not unique`,
-          );
-        }
-        providerIds.add(capability.id);
+      // Plugin validation gives every capability a string id.
+      if (providerIds.has(capability.id)) {
+        throw new PluginResolutionError(
+          "DUPLICATE_PROVIDER_ID",
+          `Provider id '${capability.id}' for ${capabilityId} is not unique`,
+        );
       }
+      providerIds.add(capability.id);
       const binding = bindingFor(
         loaded.plugin,
         entry.package,
@@ -544,9 +532,7 @@ export class CapabilityRegistry {
     try {
       return await promise;
     } catch (error) {
-      if (this.loadedPackages.get(entry.package) === promise) {
-        this.loadedPackages.delete(entry.package);
-      }
+      this.loadedPackages.delete(entry.package);
       throw error;
     }
   }

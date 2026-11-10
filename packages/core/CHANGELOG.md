@@ -1,5 +1,44 @@
 # kibi-core
 
+## 0.31.0
+
+### Minor Changes
+
+- 43cf20f: Every relationship write now checks the strict-lane pairing of its target fact. A `constrains` link must point at a `subject`, `observation` or `meta` fact, and a `requires_property` link at a `property_value`, `observation` or `meta` fact; a fact without a `fact_kind` is still accepted for either. Before, the KB layer had the check but never ran it, so only the CLI and MCP upsert pre-checks refused the two obvious mismatches (`constrains` to a `property_value` fact, `requires_property` to a `subject` fact), and `kibi sync` or any other direct write stored any pairing. Now `kb_assert_relationship/4`, upserts, batch upserts, upsert dry runs and `kibi sync` all refuse a mismatched link with a `validation_error` naming the target and the fact kinds it needs, which also covers targets such as `predicate`, `rule` or `predicate_schema` facts. Links already stored are left as they are and still read back; `kibi sync` reports a refused link as a failed relationship of its source file.
+- 2924762: Every Kibi release now has one release version, such as `2026.11.0`, that names its exact package set. `kibi --version` prints it next to the CLI version (`Kibi 2026.11.0 (kibi-cli 2.41.0)`), the MCP server title names it, and `kibi doctor` gains a "Kibi release" check that warns when installed Kibi packages come from different releases. The release also declares its compatibility versions (KB schema, operation result protocol, plugin API), so compatibility questions no longer depend on individual package versions.
+  - kibi-core ships `release.json`: the release version (`YYYY.M.N`, counting releases within a month), every publishable package's version, and the compatibility versions. `releases/history.json` keeps every release.
+  - `bun run version-packages` assigns the next release version, patch-bumps kibi-core when no pending changeset does (so the manifest always ships), and rewrites the manifest and history. `bun run release:check` (CI and the publish workflow) fails when a package version drifts from the manifest.
+  - The publish workflow creates a `kibi@<release>` GitHub release that lists the package set, with `release.json` attached.
+  - `kibi doctor --format json` carries the manifest under `runtime.release`. A local pack stamped `<version>-dev.<suffix>` counts as its base version.
+  - Relationship shards are now read in file-name order on every filesystem, so readers and removal plans no longer depend on directory listing order.
+
+### Patch Changes
+
+- b12a8cf: Fix several aggregated checks in `checks.pl`:
+  - A full `kibi check` now runs `related-requirement-unmodeled`. Before, only a check that selected the rule by name reported it.
+  - `strict-req-fact-pairing` and `predicate-verifiability` now report a link to a legacy fact (one with no `fact_kind`) once. Before, the same link was also reported as "a fact_kind=legacy fact".
+  - `semantic-completeness` now names an unclassified ledger entry by its `claim_key`. Before, the message printed the whole entry, and its text changed from run to run.
+  - The unused `run_checks_json/0` entry point is removed. It could not encode any violation.
+
+- 64a1563: Attaching a journaled KB store whose `CURRENT` head file exists but cannot be read now fails with the read error. Before, the store was attached as if it had no commit history (generation 1, sequence 0), and the next save overwrote the head with that restarted numbering.
+- 5d33486: Facts with a start date and no end date now overlap later facts in the consistency checker. Before, an open end was compared as an empty date, so a real contradiction between such facts was reported as unresolved ("validity windows never overlap") instead of as a contradiction.
+- 015376e: Edge-case rows in a requirement proof no longer carry an empty `waiver` object when their grounding fact records no case waiver; only rows whose fact has a `case_waiver` show one.
+- e3328ea: A requirement proof now lists a rejected certificate once, instead of once per scenario the certificate's test verifies.
+- 0d20a9a: Graph expansion no longer fails when a seed id or a relationship end is not a known entity; such ids are now left out of the returned graph.
+- e3328ea: Requirement proofs no longer list the same gap (and its repair) more than once when several conditions of that gap hold at the same time.
+- 44f2265: Migrating a legacy KB store now validates every migrated entity: an entity whose integer or number field held text that does not decode as a number used to skip validation and is now rejected like any other invalid entity. Requirement verification checks now read a `verification_perspective` fact as well as a `verification_scope` fact, where only the scope was read before. The KB module also drops an in-memory symbol coordinate index that nothing read, and a few other unused helpers.
+
+  Symbol coverage no longer counts a covering test that validates a scenario as direct coverage of that scenario, as if the scenario were a requirement: a scenario now covers a symbol only through the requirement that specifies it, so the requirement's verification scope and perspective apply.
+
+- 529a3f1: The schema 12 migration review now lists each claim candidate once, even when the test reaches a requirement through more than one scenario. Candidates are ordered by claim key, then by requirement. Proof contract claim issues are ordered by test and claim key, and an issue repeated in `proves` is reported once.
+- 50e0d5c: domain-implication findings now come back in a stable order: by subject, property, scope and unit, then by the stronger and the weaker requirement. Before, the order depended on how Prolog happened to compare the witness objects.
+- 529a3f1: The reason given when a numeric fact meets a rule, state_machine or regex certificate now reads "a rule certificate" instead of "an rule certificate".
+- 5de5af7: A `precedes` obligation whose pair holds more than one `->` arrow, such as `A -> B -> C`, is now reported as misspelled. Before, the check split it at the first arrow and compared `A` with `B -> C`.
+- 653a8d7: A rule code certificate whose predicate table holds an error row without its arguments is now rejected. Before, the check found the error, could not name the call that failed and accepted the certificate.
+- 3ce342f: The CHR pilot's derived coverage gaps no longer depend on the order of edges in the KB: it now checks each must-priority requirement for a scenario and a test, where it used to see only the first requirement with a scenario edge and the first with a test edge, and so reported covered requirements as gaps.
+- d1207be: Fix the Prolog remote SPARQL client (`remote_sparql_select_json/4`): it failed on every query that reached the endpoint, because it treated the one row `sparql_query/3` returns per answer as a list of rows. It now returns every row, with unbound variables as `null` and language-tagged literals as their text. Queries whose PREFIX or BASE declarations sit on their own lines are accepted again (normalizing the whole query first had joined them to the SELECT line), bracketed IPv6 loopback and unique-local endpoints such as `http://[::1]:3030/` are refused like other local hosts, and public host names that start with `fc` or `fd` (such as `fdic.gov`) are no longer mistaken for private IPv6 addresses.
+- 4d7c099: `kb_status` no longer lists the same stale reason twice when two entities name one file with different `#` anchors (for example `src/a.ts` and `src/a.ts#top`), so `staleReasonCount` counts each stale path once.
+
 ## 0.30.0
 
 ### Minor Changes

@@ -1,0 +1,67 @@
+{
+  "empty": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Graph traversal returned no nodes."
+      }
+    ],
+    "structuredContent": {
+      "nodes": [],
+      "edges": []
+    }
+  },
+  "missing": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Graph traversal returned no nodes."
+      }
+    ],
+    "structuredContent": {}
+  },
+  "nodes": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Graph traversal returned 2 nodes and 1 edges from A, B."
+      }
+    ],
+    "structuredContent": {
+      "nodes": [
+        {
+          "id": "A"
+        },
+        {
+          "id": "B"
+        }
+      ],
+      "edges": [
+        {
+          "from": "A",
+          "to": "B"
+        }
+      ],
+      "truncated": false,
+      "meta": {
+        "branch": "main",
+        "branchStoreKey": "key"
+      }
+    }
+  },
+  "noEdges": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Graph traversal returned 1 nodes and 0 edges from A, B."
+      }
+    ],
+    "structuredContent": {
+      "nodes": [
+        {
+          "id": "A"
+        }
+      ]
+    }
+  }
+}

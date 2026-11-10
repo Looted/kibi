@@ -122,6 +122,11 @@ describe("error classes", () => {
     expect(telemetryErrorClass(new TypeError("x"))).toBe("TypeError");
     expect(telemetryErrorClass(new SyncError("x"))).toBe("SyncError");
     expect(telemetryErrorClass(new Error("secret /home/alice"))).toBeNull();
+    expect(
+      telemetryErrorClass(
+        new Error("Upsert execution failed: x", { cause: new TypeError("x") }),
+      ),
+    ).toBe("TypeError");
     expect(telemetryErrorClass({ message: "x" })).toBeNull();
     expect(telemetryErrorClass(Object.create(null))).toBeNull();
     expect(telemetryErrorClass("boom")).toBeNull();

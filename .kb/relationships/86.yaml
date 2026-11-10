@@ -307,6 +307,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8302dadcfa6f
+  - type: implements
+    from: SYM-deps-deps-status-command
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:53:31.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99e0d8c04572
+  - type: covered_by
+    from: SYM-deps-deps-status-command
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:53:31.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfa5f2b4d5dd
   - type: constrains
     from: REQ-kb-decision-firmness-default-from-origin
     to: FACT-SUBJECT-KIBI-DECISION-FIRMNESS

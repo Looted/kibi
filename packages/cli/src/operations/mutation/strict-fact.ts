@@ -152,27 +152,23 @@ export function validateFactModelingShape(
   }
   if (entity.type === "fact" && entity.fact_kind === "rule") {
     const validation = validateLogicIr(entity.rule_ir);
-    if (!validation.valid || !validation.semanticKey) {
+    // A valid IR always carries its semantic key.
+    if (!validation.valid) {
       throw new KbRejection(
         "ENTITY_VALIDATION_FAILED",
         `Entity validation failed: rule_ir is unsafe or malformed (${validation.errors.join("; ")})`,
         [{ rule: "rule_ir_invalid", field: "rule_ir" }],
       );
     }
-    if (
-      entity.rule_hash !== undefined &&
-      entity.rule_hash !== validation.ruleHash
-    ) {
+    // The shape hints above already require rule_hash and semantic_key.
+    if (entity.rule_hash !== validation.ruleHash) {
       throw new KbRejection(
         "ENTITY_VALIDATION_FAILED",
         `Entity validation failed: rule_hash must equal ${validation.ruleHash}`,
         [{ rule: "rule_hash_mismatch", field: "rule_hash" }],
       );
     }
-    if (
-      entity.semantic_key !== undefined &&
-      entity.semantic_key !== validation.semanticKey
-    ) {
+    if (entity.semantic_key !== validation.semanticKey) {
       throw new KbRejection(
         "ENTITY_VALIDATION_FAILED",
         `Entity validation failed: semantic_key must equal ${validation.semanticKey}`,
@@ -200,6 +196,6 @@ export function validateFactModelingShape(
         [{ rule: "required", field: "rule_name" }],
       );
     }
-    assertRuleSchemaArity(entity.argument_names, entity.argument_types);
+    // The shape hints above already reject unequal argument lists.
   }
 }

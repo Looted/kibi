@@ -36,10 +36,8 @@ export async function gapsCommand(
 }
 
 function csvValues(value?: string): string[] {
-  if (!value?.trim()) {
-    return [];
-  }
-  return value
+  // A blank value splits into blank items, which the filter drops.
+  return (value ?? "")
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);

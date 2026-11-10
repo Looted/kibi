@@ -81,16 +81,22 @@ function printCaseTable(
   format: "json" | "table" | undefined,
   structured: unknown,
 ): void {
-  const rows = Array.isArray((structured as { rows?: unknown })?.rows)
-    ? ((structured as { rows: unknown[] }).rows as Record<string, unknown>[])
+  const rows = (structured as { rows?: unknown } | undefined)?.rows;
+  const withCases = Array.isArray(rows)
+    ? (rows as Record<string, unknown>[]).flatMap((row) => {
+        const stages = row.proofStages as Record<string, unknown> | undefined;
+        const stage = stages?.cases as
+          | {
+              status?: string;
+              cases?: CaseRow[];
+              summary?: Record<string, number>;
+            }
+          | undefined;
+        return stage?.cases?.length
+          ? [{ id: String(row.id), stage, cases: stage.cases }]
+          : [];
+      })
     : [];
-  const withCases = rows.flatMap((row) => {
-    const stages = row.proofStages as Record<string, unknown> | undefined;
-    const stage = stages?.cases as
-      | { status?: string; cases?: CaseRow[]; summary?: Record<string, number> }
-      | undefined;
-    return stage?.cases?.length ? [{ id: String(row.id), stage }] : [];
-  });
   if (format === "json") {
     console.log(
       JSON.stringify(
@@ -106,12 +112,12 @@ function printCaseTable(
     return;
   }
   const lines: string[] = [];
-  for (const { id, stage } of withCases) {
+  for (const { id, stage, cases } of withCases) {
     const summary = stage.summary ?? {};
     lines.push(
       `${id}: ${stage.status} (${summary.covered ?? 0} covered, ${summary.uncovered ?? 0} uncovered, ${summary.unspecified ?? 0} unspecified, ${summary.waived ?? 0} waived)`,
     );
-    for (const row of stage.cases ?? []) {
+    for (const row of cases) {
       const where =
         row.coverage === "covered"
           ? ` by ${(row.scenarios ?? []).join(", ")}`

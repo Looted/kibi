@@ -1,6 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { coarseCoordinateSpan } from "../../extractors/symbol-coordinates.js";
 import {
   type ManifestSymbolEntry,
   analyzeSourceText,
@@ -77,33 +76,27 @@ export async function inspectCoordinateRepairs(
   return new Map(
     entries.map((entry, index) => {
       const sourceFile = entry.sourceFile ?? null;
-      let source: string | null = null;
-      if (sourceFile) {
-        try {
-          source = readFileSync(
-            path.resolve(workspaceRoot, sourceFile),
-            "utf8",
-          );
-        } catch {
-          /* A missing or unreadable source requires authored repair. */
-        }
+      let readable = false;
+      try {
+        // Without a sourceFile the path does not resolve, as a missing file.
+        readFileSync(path.resolve(workspaceRoot, sourceFile as string));
+        readable = true;
+      } catch {
+        /* A missing or unreadable source requires authored repair. */
       }
       const extracted =
         entry.title.length > 0 && coordinatesPresent(enriched[index] ?? {});
-      const coarse =
-        source !== null &&
-        sourceFile !== null &&
-        isCoarseGranularityReason(entry.granularity_reason) &&
-        coarseCoordinateSpan(sourceFile, entry.title, source) !== null;
-      const reason =
-        source === null
-          ? "source_unavailable"
-          : extracted
-            ? "extractable"
-            : coarse
-              ? "coarse_anchor"
-              : "extractor_miss";
-      const refreshable = source !== null && (extracted || coarse);
+      // A coarse anchor always has a span in readable source: the title's
+      // first match, or the whole file.
+      const coarse = isCoarseGranularityReason(entry.granularity_reason);
+      const reason = !readable
+        ? "source_unavailable"
+        : extracted
+          ? "extractable"
+          : coarse
+            ? "coarse_anchor"
+            : "extractor_miss";
+      const refreshable = readable && (extracted || coarse);
       return [
         entry.id,
         {
@@ -113,7 +106,7 @@ export async function inspectCoordinateRepairs(
           reason,
           suggestion: refreshable
             ? "Refresh and persist current symbol coordinates."
-            : source === null
+            : !readable
               ? "Repair sourceFile to point to readable implementation code before refreshing."
               : "Query and validate the symbol, then author a resolvable title/sourceFile or an explicit granularity_reason: extractor-miss (or another intentional coarse anchor) through kb_upsert before refreshing.",
         },
@@ -146,7 +139,7 @@ export async function addCoordinateRepairEvidence(
     context.workspaceRoot,
   );
   return rows.map((row, index) => {
-    const missing = missingByRow[index] ?? [];
+    const missing = missingByRow[index] as string[];
     if (missing.length === 0) return row;
     const coordinateRepairs = missing.map(
       (id) =>
@@ -199,27 +192,27 @@ function currentCandidates(
     readonly { name: string; kind: string }[]
   >,
 ): Readonly<Record<string, unknown>>[] {
-  const title = typeof entity.title === "string" ? entity.title : "";
-  const kind = typeof entity.symbol_kind === "string" ? entity.symbol_kind : "";
-  const source = sourceFileOf(entity);
-  const extracted = source ? (extractedByPath.get(source) ?? []) : [];
+  const title = entity.title;
+  const kind = entity.symbol_kind;
+  // Names the current extraction of the entity's file declares with its
+  // kind; extracted kinds are never empty, so a symbol without a kind, or
+  // without a source, matches none.
   const names = new Set(
-    extracted
-      .filter((candidate) => !kind || candidate.kind === kind)
+    extractedByPath
+      .get(sourceFileOf(entity) as string)
+      ?.filter((candidate) => candidate.kind === kind)
       .map((candidate) => candidate.name),
   );
   return symbols
     .filter((candidate) => candidate.id !== entity.id)
-    .filter((candidate) => {
-      const candidateTitle =
-        typeof candidate.title === "string" ? candidate.title : "";
-      const candidateKind =
-        typeof candidate.symbol_kind === "string" ? candidate.symbol_kind : "";
-      return (
-        (title !== "" && candidateTitle === title) ||
-        (kind !== "" && candidateKind === kind && names.has(candidateTitle))
-      );
-    })
+    .filter(
+      (candidate) =>
+        (typeof title === "string" &&
+          title !== "" &&
+          candidate.title === title) ||
+        (candidate.symbol_kind === kind &&
+          names.has(candidate.title as string)),
+    )
     .map((candidate) => ({
       symbolId: String(candidate.id),
       title: candidate.title,
@@ -250,8 +243,8 @@ export async function buildSymbolRepairPlan(
     const absolute = path.isAbsolute(source)
       ? source
       : path.resolve(context.workspaceRoot, source);
-    if (!existsSync(absolute)) continue;
     try {
+      // A missing file fails the read like an unreadable one.
       const content = readFileSync(absolute, "utf8");
       // Coverage/impact is a maintenance path: never import project plugins.
       const analysis = analyzeSourceText(absolute, content);
@@ -282,7 +275,7 @@ export async function buildSymbolRepairPlan(
         ? source
         : path.resolve(context.workspaceRoot, source)
       : null;
-    const exists = absolute !== null && existsSync(absolute);
+    const exists = existsSync(absolute as string);
     const candidates = currentCandidates(entity, symbols, extractedByPath);
     const extraction = source ? extractedByPath.get(source) : undefined;
     const extractionProvesAbsent =
@@ -301,7 +294,12 @@ export async function buildSymbolRepairPlan(
       : extractionProvesAbsent && entity.symbol_origin === "extracted"
         ? "delete_obsolete_symbol"
         : !coordinatesPresent(entity)
-          ? coordinateEvidence.get(String(entity.id))?.refreshable === true
+          ? // Every symbol without coordinates was inspected above.
+            (
+              coordinateEvidence.get(
+                String(entity.id),
+              ) as CoordinateRepairEvidence
+            ).refreshable
             ? "refresh_coordinates"
             : "review"
           : candidates.length > 0

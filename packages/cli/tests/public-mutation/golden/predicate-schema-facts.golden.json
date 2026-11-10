@@ -1,0 +1,233 @@
+[
+  {
+    "rule": "predicate-schema-conformance",
+    "entityId": "F-alias",
+    "description": "Predicate fact F-alias (paint:color/2); argument hue uses alias crimson for red",
+    "suggestion": "Mechanical repair available: review and apply it with kibi migrate --apply-safe (or replay the kb_upsert in the migration action).",
+    "source": "src/f.md",
+    "evidence": {
+      "factId": "F-alias",
+      "predicateName": "color",
+      "namespace": "paint",
+      "arity": 2,
+      "issue": "alias_in_use",
+      "schemaId": "SCH-color",
+      "alignment": null,
+      "candidateNamespaces": ["ui"],
+      "rewrites": [
+        {
+          "index": 1,
+          "argumentName": "hue",
+          "from": "crimson",
+          "to": "red"
+        }
+      ],
+      "undeclared": [],
+      "repair": {
+        "type": "fact",
+        "id": "F-alias",
+        "properties": {
+          "fact_kind": "predicate",
+          "predicate_name": "color",
+          "predicate_namespace": "paint",
+          "predicate_args": ["car", "red"],
+          "title": "Predicate: color(car,red)",
+          "status": "active",
+          "canonical_key": "color(car,red)"
+        }
+      }
+    }
+  },
+  {
+    "rule": "predicate-schema-conformance",
+    "entityId": "F-alias-titled",
+    "description": "Predicate fact F-alias-titled (paint:color/2); argument hue uses alias crimson for red",
+    "suggestion": "Mechanical repair available: review and apply it with kibi migrate --apply-safe (or replay the kb_upsert in the migration action).",
+    "evidence": {
+      "factId": "F-alias-titled",
+      "predicateName": "color",
+      "namespace": "paint",
+      "arity": 2,
+      "issue": "alias_in_use",
+      "schemaId": "SCH-color",
+      "alignment": null,
+      "candidateNamespaces": ["ui"],
+      "rewrites": [
+        {
+          "index": 1,
+          "argumentName": "hue",
+          "from": "crimson",
+          "to": "red"
+        }
+      ],
+      "undeclared": [],
+      "repair": {
+        "type": "fact",
+        "id": "F-alias-titled",
+        "properties": {
+          "fact_kind": "predicate",
+          "predicate_name": "color",
+          "predicate_namespace": "paint",
+          "predicate_args": ["crimson", "red"],
+          "title": "Custom",
+          "canonical_key": "color(crimson,red)"
+        }
+      }
+    }
+  },
+  {
+    "rule": "predicate-schema-conformance",
+    "entityId": "F-undeclared",
+    "description": "Predicate fact F-undeclared (paint:color/2); argument hue value green is not a declared constant (red, blue)",
+    "suggestion": "Use a declared constant, add the value to argument_constants, or map it with argument_aliases so kibi migrate can rewrite it.",
+    "evidence": {
+      "factId": "F-undeclared",
+      "predicateName": "color",
+      "namespace": "paint",
+      "arity": 2,
+      "issue": "undeclared_constant",
+      "schemaId": "SCH-color",
+      "alignment": null,
+      "candidateNamespaces": ["ui"],
+      "rewrites": [],
+      "undeclared": [
+        {
+          "index": 1,
+          "argumentName": "hue",
+          "value": "green",
+          "allowed": ["red", "blue"]
+        }
+      ],
+      "repair": null
+    }
+  },
+  {
+    "rule": "predicate-schema-conformance",
+    "entityId": "F-missing",
+    "description": "Predicate fact F-missing uses default:nothing/1, which has no predicate_schema",
+    "suggestion": "Declare a predicate_schema for this signature (kb_model mode predicates helps pick an existing one) or move the claim to a schema that already exists.",
+    "evidence": {
+      "factId": "F-missing",
+      "predicateName": "nothing",
+      "namespace": "default",
+      "arity": 1,
+      "issue": "missing_schema",
+      "schemaId": null,
+      "alignment": null,
+      "candidateNamespaces": [],
+      "rewrites": [],
+      "undeclared": [],
+      "repair": null
+    }
+  },
+  {
+    "rule": "predicate-schema-conformance",
+    "entityId": "F-align",
+    "description": "Predicate fact F-align uses default:solo/1, but its schema SCH-solo is in namespace other",
+    "suggestion": "Mechanical repair available: review and apply it with kibi migrate --apply-safe (or replay the kb_upsert in the migration action).",
+    "evidence": {
+      "factId": "F-align",
+      "predicateName": "solo",
+      "namespace": "default",
+      "arity": 1,
+      "issue": "missing_schema",
+      "schemaId": null,
+      "alignment": {
+        "namespace": "other",
+        "schemaId": "SCH-solo",
+        "origin": "project_local"
+      },
+      "candidateNamespaces": ["other"],
+      "rewrites": [],
+      "undeclared": [],
+      "repair": {
+        "type": "fact",
+        "id": "F-align",
+        "properties": {
+          "fact_kind": "predicate",
+          "predicate_name": "solo",
+          "predicate_args": ["x"],
+          "title": "Solo",
+          "predicate_namespace": "other"
+        }
+      }
+    }
+  },
+  {
+    "rule": "predicate-schema-conformance",
+    "entityId": "F-multi",
+    "description": "Predicate fact F-multi uses default:multi/1; schemas with this signature exist in several namespaces (alpha, zeta)",
+    "suggestion": "Set predicate_namespace to the schema this claim belongs to.",
+    "evidence": {
+      "factId": "F-multi",
+      "predicateName": "multi",
+      "namespace": "default",
+      "arity": 1,
+      "issue": "missing_schema",
+      "schemaId": null,
+      "alignment": null,
+      "candidateNamespaces": ["alpha", "zeta"],
+      "rewrites": [],
+      "undeclared": [],
+      "repair": null
+    }
+  },
+  {
+    "rule": "predicate-schema-conformance",
+    "entityId": "F-state",
+    "description": "Predicate fact F-state (default:state/2); argument value value dim is not a declared constant (on, off)",
+    "suggestion": "Use a declared constant, add the value to argument_constants, or map it with argument_aliases so kibi migrate can rewrite it.",
+    "evidence": {
+      "factId": "F-state",
+      "predicateName": "state",
+      "namespace": "default",
+      "arity": 2,
+      "issue": "undeclared_constant",
+      "schemaId": "SCH-state",
+      "alignment": null,
+      "candidateNamespaces": [],
+      "rewrites": [],
+      "undeclared": [
+        {
+          "index": 1,
+          "argumentName": "value",
+          "value": "dim",
+          "allowed": ["on", "off"]
+        }
+      ],
+      "repair": null
+    }
+  },
+  {
+    "rule": "predicate-schema-conformance",
+    "entityId": "F-guard-elsewhere",
+    "description": "Predicate fact F-guard-elsewhere uses custom:guard/3, but its schema FACT-SCHEMA-GUARD is in namespace default",
+    "suggestion": "Mechanical repair available: review and apply it with kibi migrate --apply-safe (or replay the kb_upsert in the migration action).",
+    "evidence": {
+      "factId": "F-guard-elsewhere",
+      "predicateName": "guard",
+      "namespace": "custom",
+      "arity": 3,
+      "issue": "missing_schema",
+      "schemaId": null,
+      "alignment": {
+        "namespace": "default",
+        "schemaId": "FACT-SCHEMA-GUARD",
+        "origin": "built_in"
+      },
+      "candidateNamespaces": ["default"],
+      "rewrites": [],
+      "undeclared": [],
+      "repair": {
+        "type": "fact",
+        "id": "F-guard-elsewhere",
+        "properties": {
+          "fact_kind": "predicate",
+          "predicate_name": "guard",
+          "predicate_namespace": "default",
+          "predicate_args": ["a", "b", "c"]
+        }
+      }
+    }
+  }
+]

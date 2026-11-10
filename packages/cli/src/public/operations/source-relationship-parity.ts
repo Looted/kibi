@@ -4,7 +4,10 @@ import { sourceExtractionRemediation } from "../../commands/sync/cache.js";
 import { discoverSourceFiles } from "../../commands/sync/discovery.js";
 import { processExtractions } from "../../commands/sync/extraction.js";
 import { findUntrackedDocumentMatches } from "../../commands/sync/untracked-targets.js";
-import type { ExtractedRelationship } from "../../extractors/markdown.js";
+import type {
+  ExtractedRelationship,
+  ExtractionResult,
+} from "../../extractors/markdown.js";
 import { RELATIONSHIP_TYPES } from "../../operations/mutation/relationships.js";
 import { parseListOfLists, parsePrologValue } from "../../prolog/codec.js";
 import { readAllShards } from "../../relationships/shards.js";
@@ -92,20 +95,22 @@ export function compareRelationshipParity(
 }
 
 function isGitWorkspace(workspaceRoot: string): boolean {
+  let answer: string | undefined;
   try {
-    return (
-      execFileSync(
-        "git",
-        ["-C", workspaceRoot, "rev-parse", "--is-inside-work-tree"],
-        {
-          encoding: "utf8",
-          stdio: ["ignore", "pipe", "ignore"],
-        },
-      ).trim() === "true"
+    answer = execFileSync(
+      "git",
+      ["-C", workspaceRoot, "rev-parse", "--is-inside-work-tree"],
+      {
+        encoding: "utf8",
+        // rationale: the streams only keep git's own complaint off the console
+        // Stryker disable next-line ArrayDeclaration
+        stdio: ["ignore", "pipe", "ignore"],
+      },
     );
   } catch {
-    return false;
+    // Outside a work tree git fails, which reads as no work tree.
   }
+  return answer?.trim() === "true";
 }
 
 async function compiledRelationships(
@@ -122,7 +127,8 @@ async function compiledRelationships(
       );
     }
     relationships.push(
-      ...parseCompiledRelationshipRows(type, result.bindings.Rows ?? "[]"),
+      // A missing binding reads as no rows.
+      ...parseCompiledRelationshipRows(type, String(result.bindings.Rows)),
     );
   }
   return relationships;
@@ -133,7 +139,8 @@ export function parseCompiledRelationshipRows(
   rows: string,
 ): RelationshipParityRecord[] {
   return parseListOfLists(rows).flatMap(([rawFrom, rawTo, rawSource]) => {
-    const from = String(parsePrologValue(rawFrom ?? ""));
+    // A parsed row always has a first column.
+    const from = String(parsePrologValue(rawFrom as string));
     const to = String(parsePrologValue(rawTo ?? ""));
     const source = String(parsePrologValue(rawSource ?? ""));
     if (!from || !to) return [];
@@ -235,6 +242,12 @@ export async function collectSourceRelationshipParityViolations(
     });
   }
 
+  const duplicates = duplicateEntityViolations(
+    workspaceRoot,
+    extraction.results,
+  );
+  if (duplicates.length > 0) return duplicates;
+
   const authored: RelationshipParityRecord[] = extraction.results.flatMap(
     ({ entity, relationships }) =>
       relationships.map((relationship) =>
@@ -257,6 +270,54 @@ export async function collectSourceRelationshipParityViolations(
 }
 
 /**
+ * Two authored declarations of one entity id compile into one store entity,
+ * so the store-backed rules cannot see the second copy, while the staged gate
+ * refuses every commit over it. One blocking finding per id names each
+ * declaration and the fix.
+ */
+// implements REQ-kibi-duplicate-entity-declarations
+export function duplicateEntityViolations(
+  workspaceRoot: string,
+  results: readonly ExtractionResult[],
+): Violation[] {
+  const byId = new Map<string, ExtractionResult[]>();
+  for (const result of results) {
+    const declarations = byId.get(result.entity.id);
+    if (declarations) declarations.push(result);
+    else byId.set(result.entity.id, [result]);
+  }
+  return [...byId].flatMap(([id, declarations]) => {
+    if (declarations.length < 2) return [];
+    // Ordered by file, and within a file as written, whatever order
+    // discovery listed the files in.
+    const shown = declarations
+      .map(({ entity, sourceFile }) => ({
+        source: path
+          .relative(workspaceRoot, path.resolve(workspaceRoot, entity.source))
+          .replaceAll(path.sep, "/"),
+        title: entity.title,
+        status: entity.status,
+        ...(sourceFile !== undefined ? { sourceFile } : {}),
+      }))
+      .sort((a, b) => (a.source < b.source ? -1 : a.source > b.source ? 1 : 0));
+    const sources = [...new Set(shown.map(({ source }) => source))];
+    return [
+      {
+        rule: "source-relationship-parity",
+        entityId: id,
+        source: sources.join(", "),
+        description: `${id} is declared ${declarations.length} times (${shown.map(({ source, title }) => `'${title}' in ${source}`).join("; ")}), so the KB keeps only one of the declarations and the staged gate refuses every commit until one remains`,
+        suggestion: `Keep one declaration of ${id} that carries the fields and links of every copy. When the copies differ only in their links, a kb_upsert of ${id} with its title and status merges them into one record. Otherwise edit ${sources.join(" and ")} by hand, then run kibi sync and rerun kb_check. Copies like these usually come from a merge without the Kibi merge driver; kibi doctor reports how to set it up.`,
+        evidence: {
+          direction: "duplicate_entity",
+          declarations: shown,
+        },
+      },
+    ];
+  });
+}
+
+/**
  * An authored relationship is missing from the compiled KB most often
  * because an endpoint is declared in a file sync cannot see: one Git does not
  * track and no pending-source receipt covers (for example a `.kb/symbols.yaml`
@@ -275,9 +336,8 @@ function explainUntrackedEndpoints(
     endpoints.add(relationship.from);
     endpoints.add(relationship.to);
   }
-  if (endpoints.size === 0) return violations;
+  // No endpoint, or no untracked file, leaves every violation as it is.
   const untracked = findUntrackedDocumentMatches(workspaceRoot, [...endpoints]);
-  if (untracked.size === 0) return violations;
   return violations.map((violation) => {
     const relationship = authoredToCompiledRelationship(violation);
     if (relationship === null) return violation;
@@ -301,13 +361,13 @@ function explainUntrackedEndpoints(
 function authoredToCompiledRelationship(
   violation: Violation,
 ): { from: string; to: string } | null {
-  const evidence = violation.evidence as
-    | { direction?: unknown; relationship?: { from?: unknown; to?: unknown } }
-    | undefined;
-  if (evidence?.direction !== "authored_to_compiled") return null;
-  const from = evidence.relationship?.from;
-  const to = evidence.relationship?.to;
-  return typeof from === "string" && typeof to === "string"
-    ? { from, to }
+  // Every parity violation carries its direction and, between entities, the
+  // relationship.
+  const evidence = violation.evidence as {
+    direction: unknown;
+    relationship: { from: string; to: string };
+  };
+  return evidence.direction === "authored_to_compiled"
+    ? evidence.relationship
     : null;
 }

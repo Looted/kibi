@@ -3,8 +3,11 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(filesex)).
 :- use_module('../src/kb.pl', [kb_attach/1, kb_detach/0]).
+:- use_module(kb_fixture, [detach_leftover_kb/0, fixture_setups_fail_tests/0]).
 :- use_module('../src/logic_ir.pl').
 :- use_module(test_helpers).
+
+:- fixture_setups_fail_tests.
 
 % Shared helpers for the decoding and evaluation units below.
 
@@ -1458,6 +1461,7 @@ attach_kb :-
     tmp_file(logic_ir_kb, Dir),
     make_directory_path(Dir),
     assertz(kb_dir(Dir)),
+    detach_leftover_kb,
     kb_attach(Dir).
 
 detach_kb :-

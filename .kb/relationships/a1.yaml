@@ -209,3 +209,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-efc6bbcb29d0
+  - type: constrains
+    from: REQ-kibi-update-notice
+    to: FACT-kibi-update-notice-subject
+    created_at: 2026-11-04T13:22:29.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08928660a88b
+  - type: requires_property
+    from: REQ-kibi-update-notice
+    to: FACT-kibi-update-notice-prints-update-notice
+    created_at: 2026-11-04T13:22:29.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e61af41d1c9d
+  - type: requires_property
+    from: REQ-kibi-update-notice
+    to: FACT-kibi-update-notice-checks-registry-daily-in-background
+    created_at: 2026-11-04T13:22:29.219Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2ed0da09efa
+  - type: requires_property
+    from: REQ-kibi-update-notice
+    to: FACT-kibi-update-notice-silent-without-person-at-terminal
+    created_at: 2026-11-04T13:22:29.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37a157de12b7
+  - type: requires_property
+    from: REQ-kibi-update-notice
+    to: FACT-kibi-update-notice-names-kb-schema-change
+    created_at: 2026-11-04T13:22:29.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f1dee7fe1d7
+  - type: requires_property
+    from: REQ-kibi-update-notice
+    to: FACT-kibi-update-notice-doctor-reports-update
+    created_at: 2026-11-04T13:22:29.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f156fbcdeffc
+  - type: specified_by
+    from: REQ-kibi-update-notice
+    to: SCEN-kibi-update-notice
+    created_at: 2026-11-04T13:23:08.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dd96d0c0c50
+  - type: specified_by
+    from: REQ-kibi-update-notice
+    to: SCEN-NEG-kibi-update-notice-NOTICE-MISSING
+    created_at: 2026-11-04T13:26:30.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e003e24a541
+  - type: specified_by
+    from: REQ-kibi-update-notice
+    to: SCEN-NEG-kibi-update-notice-CHECK-EVERY-RUN
+    created_at: 2026-11-04T13:26:30.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-978a65548820
+  - type: specified_by
+    from: REQ-kibi-update-notice
+    to: SCEN-NEG-kibi-update-notice-NOTICE-IN-AUTOMATION
+    created_at: 2026-11-04T13:26:30.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fd56f480d7b
+  - type: specified_by
+    from: REQ-kibi-update-notice
+    to: SCEN-NEG-kibi-update-notice-SCHEMA-CHANGE-HIDDEN
+    created_at: 2026-11-04T13:26:30.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbb0e7a73690
+  - type: specified_by
+    from: REQ-kibi-update-notice
+    to: SCEN-NEG-kibi-update-notice-DOCTOR-SILENT
+    created_at: 2026-11-04T13:26:30.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b33c0544d0b

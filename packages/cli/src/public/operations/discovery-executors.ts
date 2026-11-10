@@ -305,8 +305,8 @@ function requireProlog(context: OperationContext): PrologPort {
 }
 
 function isStatusPayload(value: unknown): value is StatusPayload {
-  if (value === null || typeof value !== "object") return false;
-  const record = Object.fromEntries(Object.entries(value));
+  // Object() boxes a primitive and makes null and undefined an empty record.
+  const record = Object.fromEntries(Object.entries(Object(value)));
   return (
     typeof record.branch === "string" &&
     typeof record.snapshotId === "string" &&
@@ -332,7 +332,7 @@ function requireEnum<T extends string>(
   field: string,
   allowed: readonly T[],
 ): T {
-  if (typeof value !== "string" || !allowed.includes(value as T)) {
+  if (!allowed.includes(value as T)) {
     throw new Error(`${field} must be one of: ${allowed.join(", ")}.`);
   }
   return value as T;
@@ -417,15 +417,14 @@ function factQueryNext(
           why: "full fact text and relationships of one row",
         });
       }
+      // The call text is JSON, which leaves out the filters not given.
       const filters = {
         predicate: input.predicate,
-        ...(input.namespace !== undefined
-          ? { namespace: input.namespace }
-          : {}),
-        ...(input.where !== undefined ? { where: input.where } : {}),
-        ...(input.args !== undefined ? { args: input.args } : {}),
-        ...(input.polarity !== undefined ? { polarity: input.polarity } : {}),
-        ...(input.scope !== undefined ? { scope: input.scope } : {}),
+        namespace: input.namespace,
+        where: input.where,
+        args: input.args,
+        polarity: input.polarity,
+        scope: input.scope,
       };
       const names = Array.isArray(
         (response.schema as { argumentNames?: unknown } | null)?.argumentNames,
@@ -436,14 +435,26 @@ function factQueryNext(
             (name): name is string => typeof name === "string",
           )
         : [];
-      const bound = new Set(Object.keys(input.where ?? {}));
+      // Positional args name the same arguments as where, by schema position.
+      const requested: Record<string, string> = {
+        ...Object.fromEntries(
+          names.flatMap((name, index) => {
+            const value = input.args?.[index];
+            return typeof value === "string" && value !== "*"
+              ? [[name, value]]
+              : [];
+          }),
+        ),
+        ...input.where,
+      };
+      const bound = new Set(Object.keys(requested));
       const free = names.filter((name) => !bound.has(name));
       if (
         input.distinct === undefined &&
         response.count > 0 &&
         free.length > 0
       ) {
-        const argument = free[free.length - 1] ?? free[0];
+        const argument = free[free.length - 1] as string;
         next.push({
           call: callText({ ...filters, distinct: argument }),
           why: `count the distinct values of '${argument}' across these facts`,
@@ -452,21 +463,22 @@ function factQueryNext(
       if (
         response.count === 0 &&
         response.suggestions &&
-        typeof response.suggestions === "object" &&
-        (response.warnings ?? []).length === 0
+        // The executor passes the warnings as a list.
+        (response.warnings as readonly string[]).length === 0
       ) {
         // Suggest a correction only for an argument whose requested value
         // does not exist; a key whose value exists is not the cause.
         for (const [key, values] of Object.entries(response.suggestions)) {
           if (!Array.isArray(values)) continue;
-          const requested = input.where?.[key];
-          if (requested !== undefined && values.includes(requested)) continue;
+          if (values.includes(requested[key])) continue;
           const value = values[0];
           if (typeof value === "string") {
             next.push({
+              // kb_query takes where or args, never both.
               call: callText({
                 ...filters,
-                where: { ...(input.where ?? {}), [key]: value },
+                args: undefined,
+                where: { ...requested, [key]: value },
               }),
               why: `'${key}' has no fact with that value; '${value}' is one that exists`,
             });
@@ -685,7 +697,7 @@ async function executeFactQuery(
       ? { suggestions: response.suggestions }
       : {}),
     warnings,
-    next: factQueryNext(input, { ...response, rows, count }),
+    next: factQueryNext(input, { ...response, rows, count, warnings }),
   };
   const subject =
     response.mode === "predicate"
@@ -759,9 +771,7 @@ export async function executeQuery(
         entity.firmness,
         entity.origin,
       );
-      return firmness === undefined || entity.firmness === firmness
-        ? entity
-        : { ...entity, firmness };
+      return entity.firmness === firmness ? entity : { ...entity, firmness };
     });
     // An empty page from a never-compiled store says nothing about the
     // authored entities, so the answer names the store state.
@@ -780,9 +790,10 @@ export async function executeQuery(
             })
             .join(", ")}`;
     const body =
-      input.includeBody === true && id !== undefined
+      input.includeBody === true
         ? await readQueryBody(
-            id,
+            // includeBody without an id was refused above.
+            id as string,
             paginated.find((entity) => entity.id === id),
             context,
           )
@@ -812,8 +823,8 @@ async function readQueryBody(
   entity: Readonly<Record<string, unknown>> | undefined,
   context: OperationContext,
 ): Promise<QueryBody> {
-  const source = typeof entity?.source === "string" ? entity.source : "";
-  const relative = source.split("#", 1)[0]?.trim() ?? "";
+  if (typeof entity?.source !== "string") return { id, path: null, text: null };
+  const relative = (entity.source.split("#", 1)[0] as string).trim();
   const root = path.resolve(context.workspaceRoot);
   const resolved = path.resolve(root, relative);
   if (!relative.endsWith(".md") || !resolved.startsWith(root + path.sep)) {
@@ -825,13 +836,13 @@ async function readQueryBody(
     raw = String(
       context.fs
         ? await context.fs.readFile(resolved)
-        : await readFile(resolved, "utf8"),
+        : await readFile(resolved),
     );
   } catch {
     return { id, path: bodyPath, text: null };
   }
   const authored = readAuthoredEntity(raw, bodyPath)?.body;
-  if (authored === undefined || authored === null) {
+  if (authored === undefined) {
     return { id, path: bodyPath, text: null };
   }
   return authored.length > QUERY_BODY_MAX_CHARS
@@ -981,7 +992,7 @@ export async function executeSearch(
     semanticFacets,
     sourceLocations,
     minScore,
-    fields = "summary",
+    fields,
     answer,
     hints: hintsWanted = true,
   } = input;
@@ -1166,7 +1177,6 @@ export async function executeStatus(
         lastSyncSource: "unavailable",
         staleReasons: [],
         staleReasonCount: 0,
-        staleReasonsTruncated: false,
       };
     } else
       try {
@@ -1221,7 +1231,6 @@ export async function executeStatus(
           lastSyncSource: "unavailable",
           staleReasons: [],
           staleReasonCount: 0,
-          staleReasonsTruncated: false,
         };
       } finally {
         await ownedEngine?.terminate();
@@ -1269,19 +1278,20 @@ export async function executeStatus(
       store.state === "healthy"
         ? sourceExtractionFailureReasons(context.workspaceRoot, store.path)
         : [];
+    // A status the engine could not give always carries its code and detail.
     const engineReason = engineStatus
       ? {
-          code: engineStatus.errorCode ?? "engine_status_unavailable",
+          code: engineStatus.errorCode as string,
           path: store.path,
           entityIds: [],
-          detail:
-            engineStatus.detail ??
-            "The branch store is structurally readable but the engine status response is unavailable.",
+          detail: engineStatus.detail as string,
           // implements REQ-prolog-doctor-runtime-report
           // A missing or unusable SWI-Prolog is not fixed by restarting the
           // engine; point at the diagnostic that reports the resolution.
           remediation: {
-            command_argv: engineStatus.errorCode?.startsWith("swipl_")
+            command_argv: (engineStatus.errorCode as string).startsWith(
+              "swipl_",
+            )
               ? ["kibi", "doctor"]
               : ["kibi", "engine", "stop"],
             applyRequired: false,
@@ -1409,12 +1419,14 @@ export async function executeStatus(
             incompleteApplications.push({
               journalId: path.basename(journalPath, ".json"),
               state: journal.state,
-              appliedActions: (journal.results ?? []).filter(
-                (row: { outcome?: string }) => row.outcome === "applied",
-              ).length,
-              failedActions: (journal.results ?? []).filter(
-                (row: { outcome?: string }) => row.outcome === "failed",
-              ),
+              appliedActions:
+                journal.results?.filter(
+                  (row: { outcome?: string }) => row.outcome === "applied",
+                ).length ?? 0,
+              failedActions:
+                journal.results?.filter(
+                  (row: { outcome?: string }) => row.outcome === "failed",
+                ) ?? [],
               nextOperation:
                 journal.state === "rejected"
                   ? "kb_plan_bootstrap"
@@ -1486,7 +1498,7 @@ export async function executeStatus(
       content: [
         {
           type: "text",
-          text: `Branch ${payload.branch} is ${enrichedPayload.syncState} (snapshot ${payload.snapshotId}, dirty=${enrichedPayload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})${storeUncompiled ? `. Blocking: ${String(storeReason?.detail)} Run kibi sync.` : ""}${takeoverNotice ? `. Note: ${String(takeoverNotice.detail)}` : ""}`,
+          text: `Branch ${payload.branch} is ${enrichedPayload.syncState} (snapshot ${payload.snapshotId}, dirty=${enrichedPayload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})${storeUncompiled ? `. Blocking: ${String((storeReason as NonNullable<typeof storeReason>).detail)} Run kibi sync.` : ""}${takeoverNotice ? `. Note: ${String(takeoverNotice.detail)}` : ""}`,
         },
       ],
       structuredContent: statusWithPlan,

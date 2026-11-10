@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "2.41.0",
+  "version": "2.42.0",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -104,6 +104,10 @@
     "./schemas/relationship": {
       "types": "./dist/public/schemas/relationship.d.ts",
       "default": "./dist/public/schemas/relationship.js"
+    },
+    "./dependencies": {
+      "types": "./dist/dependencies/index.d.ts",
+      "default": "./dist/dependencies/index.js"
     },
     "./utils/branch-resolver": {
       "types": "./dist/public/branch-resolver.d.ts",
@@ -244,14 +248,14 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.30.0",
-    "kibi-plugin-builtin": "^0.5.5",
-    "kibi-plugin-sdk": "^0.7.0",
-    "kibi-swipl": "^1.0.1",
+    "kibi-core": "^0.31.0",
+    "kibi-plugin-builtin": "^0.5.6",
+    "kibi-plugin-sdk": "^0.7.1",
+    "kibi-swipl": "^1.0.2",
     "saxes": "^6.0.0",
     "ignore": "^5.3.0",
     "yaml": "^2.9.1",
-    "kibi-agent-core": "^0.11.2"
+    "kibi-agent-core": "^0.12.0"
   },
   "devDependencies": {
     "@types/node": "latest",
@@ -261,6 +265,9 @@
   },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
+  "kibi": {
+    "kbSchema": 13
+  },
   "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",

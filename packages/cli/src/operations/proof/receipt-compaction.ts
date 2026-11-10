@@ -93,31 +93,27 @@ export function compactProofReceipts(
   receipts: readonly Receipt[],
   anchor: ReceiptCompactionAnchor,
 ): ReceiptCompaction {
-  if (receipts.length === 0) return { kept: [], removed: 0 };
   const all = receipts.map((_, index) => index);
-  const keep = new Set<number>();
-  const add = (index: number | undefined): void => {
-    if (index !== undefined) keep.add(index);
-  };
-
-  add(newest(receipts, all));
-  add(
+  // An empty group adds undefined, which no kept index matches.
+  const keep = new Set<number | undefined>();
+  keep.add(newest(receipts, all));
+  keep.add(
     newest(
       receipts,
-      all.filter((index) => receipts[index]?.outcome === "passed"),
+      all.filter((index) => (receipts[index] as Receipt).outcome === "passed"),
     ),
   );
 
   const selectors: Array<(receipt: Receipt) => boolean> = [];
   for (const bindingHash of [
     anchor.bindingHash,
-    ...(anchor.legacyBindingHashes ?? []),
-  ]) {
-    if (bindingHash === undefined || bindingHash === "") continue;
+    anchor.legacyBindingHashes,
+  ].flat()) {
+    if (!bindingHash) continue;
     selectors.push((receipt) => receipt.binding_hash === bindingHash);
   }
-  if (anchor.codeSnapshot !== undefined && anchor.codeSnapshot !== "") {
-    const codeSnapshot = anchor.codeSnapshot;
+  const codeSnapshot = anchor.codeSnapshot;
+  if (codeSnapshot) {
     selectors.push((receipt) => receipt.code_snapshot === codeSnapshot);
   }
   for (const selector of selectors) {
@@ -130,7 +126,7 @@ export function compactProofReceipts(
       group.push(index);
       groups.set(key, group);
     }
-    for (const group of groups.values()) add(newest(receipts, group));
+    for (const group of groups.values()) keep.add(newest(receipts, group));
   }
 
   const kept = all

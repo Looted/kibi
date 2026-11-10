@@ -1,8 +1,9 @@
-import { afterEach, expect, test } from "bun:test";
+import { afterEach, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import * as bundledSkills from "../../../packages/cli/src/public/skills";
 import { missingRequiredGuidance } from "../candidate-body";
 import { CANONICAL_SKILLS } from "../catalog";
 import { main } from "../inspect-history";
@@ -122,4 +123,57 @@ test("missing bundled baseline fails rather than silently screening without it",
   expect(await main(["--baseline-root", root], output.output)).toBe(1);
   expect(output.read().stdout).toBe("");
   expect(output.read().stderr).toContain("Historical screening failed");
+});
+
+test("writes to the process streams and checks the built baseline against source", async () => {
+  const root = await mkdtemp(join(tmpdir(), "skillopt-inspect-defaults-"));
+  roots.push(root);
+  const stdout: string[] = [];
+  const stderr: string[] = [];
+  const out = spyOn(process.stdout, "write").mockImplementation(((
+    text: string,
+  ) => {
+    stdout.push(text);
+    return true;
+  }) as never);
+  const err = spyOn(process.stderr, "write").mockImplementation(((
+    text: string,
+  ) => {
+    stderr.push(text);
+    return true;
+  }) as never);
+  const realLoad = bundledSkills.loadBundledSkillFrom;
+  const load = spyOn(bundledSkills, "loadBundledSkillFrom");
+  try {
+    expect(await main(["--help"])).toBe(0);
+    expect(stdout.join("")).toContain("Offline inventory");
+    expect(await main(["--bogus"])).toBe(2);
+    expect(stderr.join("")).toContain("Usage: inspect-history.ts");
+
+    load.mockImplementation(((skillRoot: string, skill: string) =>
+      skillRoot.includes("/dist/")
+        ? {
+            ...realLoad(skillRoot.replace("/dist/", "/src/"), skill as never),
+            body: "stale",
+          }
+        : realLoad(skillRoot, skill as never)) as never);
+    stderr.length = 0;
+    expect(await main(["--artifact-root", join(root, "runs")])).toBe(1);
+    expect(stderr.join("")).toContain(
+      `Bundled baseline ${CANONICAL_SKILLS[0]} is stale; run bun run build:cli`,
+    );
+
+    load.mockImplementation(((skillRoot: string, skill: string) =>
+      realLoad(skillRoot.replace("/dist/", "/src/"), skill as never)) as never);
+    stdout.length = 0;
+    await mkdir(join(root, "runs"));
+    expect(await main(["--artifact-root", join(root, "runs")])).toBe(0);
+    expect(JSON.parse(stdout.join("")).baselineRoot).toContain(
+      "packages/cli/dist/public/skills",
+    );
+  } finally {
+    load.mockRestore();
+    out.mockRestore();
+    err.mockRestore();
+  }
 });

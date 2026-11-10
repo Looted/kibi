@@ -289,6 +289,31 @@ describe("MCP Registry GitHub namespace", () => {
   );
 });
 
+describe("MCP Registry manifest presence", () => {
+  test("a missing server.json is reported", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-registry-missing-"));
+    metadataFixtures.push(root);
+    for (const dir of PUBLISHABLE_DIRS) {
+      mkdirSync(join(root, dir));
+      writeFileSync(
+        join(root, dir, "package.json"),
+        readFileSync(join(packagesRoot, dir, "package.json"), "utf8"),
+      );
+    }
+    const issues = verifyPublishMetadata(root, {
+      GITHUB_REPOSITORY: "Looted/kibi",
+      GITHUB_REPOSITORY_OWNER: "Looted",
+    });
+    expect(
+      issues.some(
+        (issue) =>
+          issue.pkg === "mcp" &&
+          issue.problem.startsWith("server.json is missing or unreadable: "),
+      ),
+    ).toBe(true);
+  });
+});
+
 describe("kibi-swipl family release invariants", () => {
   function familyRoot(
     mutate?: (manifests: Record<string, Record<string, unknown>>) => void,
@@ -387,6 +412,25 @@ describe("kibi-swipl family release invariants", () => {
     );
     expect(problems.some((p) => p.includes("files must be exactly"))).toBe(
       true,
+    );
+  });
+
+  test("a missing platform package, a wrong name and a wrong target are refused", () => {
+    const root = familyRoot((manifests) => {
+      manifests["swipl-darwin-x64"].name = "kibi-swipl-renamed";
+      (manifests["swipl-darwin-arm64"].kibi as Record<string, string>).target =
+        "linux-x64-gnu";
+    });
+    rmSync(join(root, "swipl-linux-arm64-gnu"), { recursive: true });
+    const problems = problemsOf(root);
+    expect(problems).toContain(
+      "swipl-linux-arm64-gnu: package.json is missing or unreadable",
+    );
+    expect(problems).toContain(
+      "swipl-darwin-x64: name 'kibi-swipl-renamed' must be 'kibi-swipl-darwin-x64'",
+    );
+    expect(problems).toContain(
+      "swipl-darwin-arm64: kibi.target must be 'darwin-arm64'",
     );
   });
 

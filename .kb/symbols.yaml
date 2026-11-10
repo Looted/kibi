@@ -966,6 +966,56 @@ symbols:
         target: TEST-core-journaled-engine-delta-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
+  - id: SYM-cli-engine-daemon-node-path
+    title: daemonNodePath
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-cli-engine-package-versions-constant
+    title: ENGINE_PACKAGE_VERSIONS
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: config
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-engine-daemon-package-versions
+      - type: implements
+        target: REQ-engine-daemon-package-versions
+  - id: SYM-cli-engine-client-inspect-live-daemon
+    title: EngineClient.inspectLiveDaemon
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-daemon-runtime-identity
+      - type: implements
+        target: REQ-prolog-daemon-runtime-identity
+  - id: SYM-cli-engine-daemon-identity-type
+    title: EngineDaemonIdentity
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: type
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-daemon-runtime-identity
+      - type: implements
+        target: REQ-prolog-daemon-runtime-identity
+  - id: SYM-cli-engine-sidecar-path
+    title: engineSidecarPath
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
   - id: SYM-cli-sync-normalized-hash
     title: hashNormalized
     sourceFile: packages/cli/src/commands/sync/cache.ts
@@ -5357,28 +5407,6 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
-  - id: SYM-opencode-analyzeCodeFile
-    title: analyzeCodeFile
-    status: active
-    sourceFile: packages/opencode/src/comment-analysis.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-opencode-python-comment-routing
-      - type: implements
-        target: REQ-opencode-comment-routing
-  - id: SYM-opencode-computeEffectiveMode
-    title: computeEffectiveMode
-    status: active
-    sourceFile: packages/opencode/src/smart-enforcement.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-opencode-enforcement-surface
-      - type: covered_by
-        target: TEST-opencode-smart-enforcement-v1-coverage
-      - type: implements
-        target: REQ-opencode-smart-enforcement-v1
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -8497,6 +8525,14 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-prolog-system-swipl-smoke
+    title: system SWI-Prolog smoke run
+    sourceFile: scripts/system-swipl-smoke.mjs
+    symbol_role: test
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-bundled-runtime
   - id: SYM-opencode-work-context-resolver-tests
     title: resolveWorkContext test suite
     sourceFile: packages/opencode/tests/work-context-resolver.test.ts
@@ -16870,6 +16906,8 @@ symbols:
       - type: implements
         target: REQ-kibi-uncompiled-source-reported
       - type: covered_by
+        target: TEST-kibi-duplicate-entity-declarations
+      - type: covered_by
         target: TEST-kibi-source-relationship-parity
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
@@ -20083,50 +20121,6 @@ symbols:
         target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-e2e-skillopt-trust-boundaries
-  - id: SYM-e2e-cli-workflows
-    title: cli-workflows.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-001
-      - type: executable_for
-        target: TEST-003
-      - type: executable_for
-        target: TEST-011
-      - type: executable_for
-        target: TEST-audit-quality-diagnostics-v1
-      - type: executable_for
-        target: TEST-cli-staged-impact-enforcement
-      - type: executable_for
-        target: TEST-kibi-logical-requirement-coverage
-      - type: executable_for
-        target: TEST-kibi-proof-aware-quality-diagnostics
-      - type: executable_for
-        target: TEST-mcp-tool-check-coverage
-      - type: executable_for
-        target: TEST-opencode-smart-enforcement
-      - type: executable_for
-        target: TEST-prolog-library-adoption-core
-  - id: SYM-e2e-init-sync-check
-    title: init-sync-check.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/init-sync-check.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-008
-      - type: executable_for
-        target: TEST-012
-      - type: executable_for
-        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-      - type: executable_for
-        target: TEST-cli-canonical-init
-      - type: executable_for
-        target: TEST-cli-canonical-runtime
   - id: SYM-e2e-test-agent-guided-migration-orchestration
     title: dependency-ordered-repair-plan.test
     status: active
@@ -20145,43 +20139,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-005
-  - id: SYM-e2e-traceability-gate
-    title: traceability-gate.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/traceability-gate.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-010
-      - type: executable_for
-        target: TEST-vscode-traceability
-      - type: executable_for
-        target: TEST-vscode-traceability-coverage
-  - id: SYM-e2e-release-package-contract
-    title: release-package-contract.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/release-package-contract.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-014
-      - type: executable_for
-        target: TEST-cli-doctor-packed-provenance
-  - id: SYM-e2e-mcp-cli-operation-parity
-    title: mcp-cli-operation-parity.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-agent-kibi-interface-selection
-      - type: executable_for
-        target: TEST-kibi-operation-interface-parity
-      - type: executable_for
-        target: TEST-mcp-tag-filtering-server-side
   - id: SYM-e2e-test-cli-migrate
     title: source-first-recovery.test
     status: active
@@ -20191,28 +20148,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-migrate
-  - id: SYM-e2e-cli-status-pre-first-sync
-    title: cli-status-pre-first-sync.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cli-status-pre-first-sync.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-cli-status-pre-first-sync
-      - type: executable_for
-        target: TEST-cli-sync-discovery-readme-ignore
-  - id: SYM-e2e-telemetry-acceptance-gate
-    title: telemetry-acceptance-gate.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/telemetry-acceptance-gate.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-cli-usage-metrics-v1
-      - type: executable_for
-        target: TEST-skillopt-paid-launch-accounting
   - id: SYM-e2e-test-codex-kibi-plugin-v1
     title: codex-plugin.test
     status: active
@@ -20222,47 +20157,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-codex-kibi-plugin-v1
-  - id: SYM-e2e-cursor-plugin-launcher
-    title: cursor-plugin-launcher.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-cursor-agent-plugin-v1
-      - type: executable_for
-        target: TEST-cursor-kibi-plugin-v1
-      - type: executable_for
-        target: TEST-cursor-stop-job-vs-plan
-      - type: executable_for
-        target: TEST-cursor-worktree-kibi-continuity
-      - type: executable_for
-        target: TEST-skillopt-cursor-compat
-  - id: SYM-e2e-source-relationship-parity
-    title: source-relationship-parity.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/source-relationship-parity.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-cli-symbol-behavioral-anchors
-      - type: executable_for
-        target: TEST-generated-coordinate-repair
-  - id: SYM-e2e-mcp-cli-help
-    title: mcp-cli-help.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/mcp-cli-help.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-cli-help
-      - type: executable_for
-        target: TEST-mcp-skills-resource-discoverability
-      - type: executable_for
-        target: TEST-skill-cli-load-validate
   - id: SYM-e2e-test-mcp-kb-freshness
     title: mcp-pnpm-upgrade-stale-path.test
     status: active
@@ -20272,17 +20166,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-kb-freshness
-  - id: SYM-e2e-mcp-crud
-    title: mcp-crud.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/mcp-crud.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-relationship-preflight
-      - type: executable_for
-        target: TEST-mcp-upsert-coverage
   - id: SYM-e2e-test-mcp-search-discovery
     title: discovery-bundle.test
     status: active
@@ -20301,30 +20184,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-semantic-advisor-preflight
-  - id: SYM-e2e-predicate-suggestion-relevance
-    title: predicate-suggestion-relevance.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-suggest-predicates
-      - type: executable_for
-        target: TEST-skillopt-predicate-first-requirements
-  - id: SYM-e2e-opencode-plugin
-    title: opencode-plugin.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/opencode-plugin.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-e2e-opencode-v2-plugin-load
-      - type: executable_for
-        target: TEST-opencode-kibi-plugin-v1
-      - type: executable_for
-        target: TEST-opencode-smart-enforcement-v1-coverage
   - id: SYM-e2e-test-opencode-python-comment-routing
     title: opencode-comment-guidance.test python-routing
     status: active
@@ -20352,17 +20211,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-root-suite-batch-diagnostics
-  - id: SYM-e2e-ontology-convergence-witnesses
-    title: ontology-convergence-witnesses.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-skillopt-external-adoption-verdict
-      - type: executable_for
-        target: TEST-skillopt-logical-evidence-fidelity
   - id: SYM-test-root-cli-engine-batch-timeout
     title: CLI_ENGINE_BATCH_TIMEOUT_MS
     status: active
@@ -20442,6 +20290,166 @@ symbols:
     sourceFile: packages/cli/src/commands/sync.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-git-text
+    title: gitText
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-sync-assert-no-unresolved-git-conflicts
+    title: assertNoUnresolvedGitConflicts
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-sync-another-branch-store-synced
+    title: anotherBranchStoreSynced
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-sync-relationship-key
+    title: relationshipKey
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-relationship-from-key
+    title: relationshipFromKey
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-normalized-entity-hash
+    title: normalizedEntityHash
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-checkpoint-noop-sync
+    title: checkpointNoopSync
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-store-holds-any-entity
+    title: storeHoldsAnyEntity
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-compiler-cache-has-entity-delta
+    title: compilerCacheHasEntityDelta
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-report-dangling-relationships
+    title: reportDanglingRelationships
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-compiler-cache-is-fresh
+    title: compilerCacheIsFresh
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-compiler-cache-files-match
+    title: compilerCacheFilesMatch
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-embedded-entity-types
+    title: embeddedEntityTypes
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-sync-summary-kb-totals
+  - id: SYM-sync-report-validation-errors
+    title: reportValidationErrors
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-next-sync-cache
+    title: NextSyncCache
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sync-compiled-sync-cache
+    title: compiledSyncCache
+    status: active
+    sourceFile: packages/cli/src/commands/sync.ts
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-core-journaled-engine-delta-sync
@@ -23898,15 +23906,6 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
-  - id: SYM-unit-test-agent-core-shared-hook-inputs
-    title: shared-hook-inputs.test
-    status: active
-    sourceFile: packages/agent-core/tests/shared-hook-inputs.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-agent-core-shared-hook-inputs
   - id: SYM-agent-core-classifyPath
     title: classifyPath
     status: active
@@ -26040,6 +26039,56 @@ symbols:
         target: TEST-prolog-bundled-runtime
       - type: implements
         target: REQ-prolog-bundled-runtime
+  - id: SYM-prolog-swipl-default-deps
+    title: defaultDeps
+    status: active
+    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-bundled-runtime
+  - id: SYM-prolog-swipl-detect-glibc
+    title: detectGlibc
+    status: active
+    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-bundled-runtime
+  - id: SYM-prolog-swipl-executable-digest
+    title: executableDigest
+    status: active
+    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-bundled-runtime
+  - id: SYM-prolog-swipl-run-goal
+    title: runSwiplGoal
+    status: active
+    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-bundled-runtime
+  - id: SYM-prolog-swipl-run-version
+    title: runSwiplVersion
+    status: active
+    sourceFile: packages/cli/src/prolog/swipl-resolver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-bundled-runtime
   - id: SYM-prolog-swipl-reset-cache
     title: resetSwiplResolverCache
     status: active
@@ -26650,46 +26699,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-ci-kb-merge-resolution
-  - id: SYM-claude-mcp-launcher-resolveKibiWorkspace
-    title: resolveKibiWorkspace
-    status: active
-    sourceFile: packages/claude/bin/mcp-launcher.cjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-plugin-package
-  - id: SYM-codex-mcp-launcher-resolveKibiWorkspace
-    title: resolveKibiWorkspace
-    status: active
-    sourceFile: packages/codex/bin/mcp-launcher.cjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-plugin-package
-  - id: SYM-zcode-mcp-launcher-resolveKibiWorkspace
-    title: resolveKibiWorkspace
-    status: active
-    sourceFile: packages/zcode/bin/mcp-launcher.cjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-zcode-manual-mcp-configuration-v1
-  - id: SYM-cli-engine-daemon-run-if-entrypoint
-    title: runEngineDaemonIfEntrypoint
-    status: active
-    sourceFile: packages/cli/src/engine-daemon.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-runtime-packed-engine-daemon
-      - type: implements
-        target: REQ-runtime-packed-engine-daemon
   - id: SYM-claude-mcp-launcher
     title: Claude Code MCP launcher (workspace-gated kibi-mcp proxy)
     status: active
@@ -31197,6 +31206,8 @@ symbols:
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
       - type: covered_by
+        target: TEST-cli-doctor-merge-driver-remediation
+      - type: covered_by
         target: TEST-cli-doctor-workflows
       - type: implements
         target: REQ-cli-doctor
@@ -33438,18 +33449,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-e2e-skillopt-host-neutral-optimization
-  - id: SYM-e2e-skillopt-optimizer-toolchain
-    title: skillopt-optimizer-toolchain.e2e
-    status: active
-    sourceFile: documentation/tests/e2e/skillopt-optimizer-toolchain.e2e.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-04T13:30:00.000Z
-    relationships:
-      - type: executable_for
-        target: TEST-e2e-skillopt-optimizer-toolchain
   - id: SYM-skillopt-first-missing-required-call
     title: firstMissingRequiredCall
     status: active
@@ -43529,6 +43528,708 @@ symbols:
         target: REQ-kibi-telemetry-event-contents
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
+  - id: SYM-cli-json-command-with-console-on-stderr
+    title: withConsoleOnStderr
+    status: active
+    sourceFile: packages/cli/src/cli-json-command.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:03.902Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-json-command-write-optional-stderr
+    title: writeOptionalStderr
+    status: active
+    sourceFile: packages/cli/src/cli-json-command.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:09.920Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-deps-deps-command-options-type
+    title: DepsCommandOptions
+    status: active
+    sourceFile: packages/cli/src/commands/deps.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:16.050Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-deps-deps-fetch-command
+    title: depsFetchCommand
+    status: active
+    sourceFile: packages/cli/src/commands/deps.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:20.690Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-deps-deps-lock-command
+    title: depsLockCommand
+    status: active
+    sourceFile: packages/cli/src/commands/deps.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:25.338Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-deps-deps-status-command
+    title: depsStatusCommand
+    status: active
+    sourceFile: packages/cli/src/commands/deps.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:29.925Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-default-git-runner
+    title: defaultGitRunner
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:34.611Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-git-runner-type
+    title: GitRunner
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:39.512Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependencies-lock-path
+    title: KB_DEPENDENCIES_LOCK_PATH
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:44.265Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependencies-lock-version
+    title: KB_DEPENDENCIES_LOCK_VERSION
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:49.053Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependencies-path
+    title: KB_DEPENDENCIES_PATH
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:53.571Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependencies-version
+    title: KB_DEPENDENCIES_VERSION
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:53:57.932Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-cache-env
+    title: KB_DEPENDENCY_CACHE_ENV
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:54:02.486Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-min-schema-version
+    title: KB_DEPENDENCY_MIN_SCHEMA_VERSION
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:54:06.977Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-cache-root
+    title: kbDependencyCacheRoot
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:54:11.709Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-checkout-path
+    title: kbDependencyCheckoutPath
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:54:16.223Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-error-code
+    title: KbDependencyError.code
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:54:45.668Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-error
+    title: KbDependencyError
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:07.767Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-error-code-type
+    title: KbDependencyErrorCode
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:12.727Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-lock-type
+    title: KbDependencyLock
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:17.072Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-lock-entry-type
+    title: KbDependencyLockEntry
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:21.753Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-lock-outcome-type
+    title: KbDependencyLockOutcome
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:26.338Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-options-type
+    title: KbDependencyOptions
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:30.843Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-spec-type
+    title: KbDependencySpec
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:35.302Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-status
+    title: kbDependencyStatus
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:39.832Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-kb-dependency-status-type
+    title: KbDependencyStatus
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:44.367Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-lock-entry-matches
+    title: lockEntryMatches
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:49.049Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-lock-kb-dependencies
+    title: lockKbDependencies
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:53.901Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-materialize-kb-dependency
+    title: materializeKbDependency
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:55:58.418Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-read-dependency-schema
+    title: readDependencySchema
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:02.882Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-read-kb-dependencies
+    title: readKbDependencies
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:07.515Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-read-kb-dependency-lock
+    title: readKbDependencyLock
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:12.152Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-resolved-kb-dependency-type
+    title: ResolvedKbDependency
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:16.654Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-resolve-git-ref
+    title: resolveGitRef
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:21.238Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-resolve-kb-dependency
+    title: resolveKbDependency
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:25.881Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-write-kb-dependency-lock
+    title: writeKbDependencyLock
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:30.446Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-cli-apply-kb-option
+    title: applyKbOption
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-cli.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:34.958Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-cli-kb-option-description
+    title: KB_OPTION_DESCRIPTION
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-cli.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:40.216Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-cli-scope-json-input-to-kb-dependency
+    title: scopeJsonInputToKbDependency
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-cli.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:44.653Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-enter-kb-dependency
+    title: enterKbDependency
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:48.765Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-kb-dependency-argument-name
+    title: KB_DEPENDENCY_ARGUMENT
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:51.892Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-kb-dependency-env
+    title: KB_DEPENDENCY_ENV
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:54.957Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-kb-dependency-input-schema
+    title: KB_DEPENDENCY_INPUT_SCHEMA
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:56:58.107Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-kb-dependency-argument
+    title: kbDependencyArgument
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:01.191Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-kb-dependency-label
+    title: kbDependencyLabel
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:04.422Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependency-scope-without-kb-dependency-argument
+    title: withoutKbDependencyArgument
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependency-scope.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:07.541Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-operation-reporting-with-branch-name
+    title: withBranchName
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:11.430Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-branch-resolver-detached-snapshot-kb-branch
+    title: DETACHED_SNAPSHOT_KB_BRANCH
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:16.690Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-branch-resolver-detached-head-write-refusal
+    title: detachedHeadWriteRefusal
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:21.092Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-branch-resolver-detached-read-only-attachment-type
+    title: DetachedReadOnlyAttachment
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:25.679Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-branch-resolver-resolve-read-branch-attachment
+    title: resolveReadBranchAttachment
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:30.090Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-branch-resolver-unreadable-migration-journal-error
+    title: unreadableMigrationJournalError
+    status: active
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:34.357Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-workspace-router-workspace-router-route-kb-dependency
+    title: WorkspaceRouter.routeKbDependency
+    status: active
+    sourceFile: packages/mcp/src/server/workspace-router.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:38.731Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependencies-git
+      - type: implements
+        target: REQ-kb-dependencies-git
+  - id: SYM-kb-dependencies-git-verifier
+    title: KB dependencies from git verifier
+    status: active
+    sourceFile: packages/cli/tests/dependencies/kb-dependency-commands.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T10:57:42.321Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-dependencies-git
   - id: SYM-test-kibi-release-version-script
     title: Kibi release script suite
     status: active
@@ -43684,6 +44385,746 @@ symbols:
         target: TEST-kibi-release-version
       - type: implements
         target: REQ-kibi-release-version
+  - id: SYM-cli-update-check-update-cache-file
+    title: UPDATE_CACHE_FILE
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:12.907Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-check-interval-ms
+    title: UPDATE_CHECK_INTERVAL_MS
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:19.326Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-notice-interval-ms
+    title: UPDATE_NOTICE_INTERVAL_MS
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:25.382Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-fetch-timeout-ms
+    title: UPDATE_FETCH_TIMEOUT_MS
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:31.764Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-default-npm-registry
+    title: DEFAULT_NPM_REGISTRY
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:38.578Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-cache
+    title: UpdateCache
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:45.323Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-check-off-reason
+    title: updateCheckOffReason
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:52.620Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-cache-path
+    title: updateCachePath
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:23:59.660Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-read-update-cache
+    title: readUpdateCache
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:06.519Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-write-update-cache
+    title: writeUpdateCache
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:13.397Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-is-newer-release
+    title: isNewerRelease
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:20.213Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-check-due
+    title: updateCheckDue
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:27.168Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-install-command
+    title: updateInstallCommand
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:33.679Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-format-update-notice
+    title: formatUpdateNotice
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:40.329Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-registry-url
+    title: registryUrl
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:47.102Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-parse-latest-manifest
+    title: parseLatestManifest
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:53.067Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-refresh-update-cache
+    title: refreshUpdateCache
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:24:59.730Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-spawn-update-refresh
+    title: spawnUpdateRefresh
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:06.690Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-command-context
+    title: UpdateCommandContext
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:13.903Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-has-machine-output
+    title: hasMachineOutput
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:21.040Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-track-update-command
+    title: trackUpdateCommand
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:28.063Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-finish-update-check
+    title: finishUpdateCheck
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:34.676Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-doctor-result
+    title: UpdateDoctorResult
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:40.834Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-check-kibi-updates
+    title: checkKibiUpdates
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:47.688Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-test-kibi-update-notice-cli
+    title: Kibi update notice suite
+    status: active
+    sourceFile: packages/cli/tests/update-check.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:25:57.258Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-update-notice
+  - id: SYM-cli-update-check-run-update-refresh-entrypoint
+    title: runUpdateRefreshEntrypoint
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:49:27.421Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-cli-update-check-update-refresh-argument
+    title: UPDATE_REFRESH_ARGUMENT
+    status: active
+    sourceFile: packages/cli/src/update-check.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:49:34.047Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-update-notice
+      - type: implements
+        target: REQ-kibi-update-notice
+  - id: SYM-kibi-duplicate-entity-declarations-verifier
+    title: Duplicate entity declarations verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/duplicate-entity-declarations.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T11:48:07.300Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-duplicate-entity-declarations
+  - id: SYM-cli-doctor-merge-driver-remediation-verifier
+    title: Doctor merge driver remediation verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/doctor-merge-driver-hint.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T11:48:12.481Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-doctor-merge-driver-remediation
+  - id: SYM-duplicateEntityViolations
+    title: duplicateEntityViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/source-relationship-parity.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T11:49:03.618Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-duplicate-entity-declarations
+      - type: implements
+        target: REQ-kibi-duplicate-entity-declarations
+  - id: SYM-merge-driver-setup-mergeDriverSetup
+    title: mergeDriverSetup
+    status: active
+    sourceFile: packages/cli/src/utils/merge-driver-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T11:49:17.465Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-doctor-merge-driver-remediation
+      - type: implements
+        target: REQ-cli-doctor-merge-driver-remediation
+  - id: SYM-merge-driver-setup-MERGE_ATTRIBUTE_GAP
+    title: MERGE_ATTRIBUTE_GAP
+    status: active
+    sourceFile: packages/cli/src/utils/merge-driver-setup.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T11:49:24.013Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-doctor-merge-driver-remediation
+      - type: implements
+        target: REQ-cli-doctor-merge-driver-remediation
+  - id: SYM-merge-driver-setup-MERGE_DRIVER_GAP
+    title: MERGE_DRIVER_GAP
+    status: active
+    sourceFile: packages/cli/src/utils/merge-driver-setup.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T11:49:30.463Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-doctor-merge-driver-remediation
+      - type: implements
+        target: REQ-cli-doctor-merge-driver-remediation
+  - id: SYM-migrate-command-apply-plan-command
+    title: applyPlanCommand
+    status: active
+    sourceFile: packages/cli/src/commands/migrate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T12:07:09.209Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migrate-command-plan-changed-message
+    title: planChangedMessage
+    status: active
+    sourceFile: packages/cli/src/commands/migrate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T12:07:18.055Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-merge-driver-setup-localKibiCommand
+    title: localKibiCommand
+    status: active
+    sourceFile: packages/cli/src/utils/merge-driver-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-05T12:07:26.785Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-doctor-merge-driver-remediation
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-cli-doctor
+  - id: SYM-opencode-analyzeCodeFile
+    title: analyzeCodeFile
+    status: active
+    sourceFile: packages/opencode/src/comment-analysis.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-python-comment-routing
+      - type: implements
+        target: REQ-opencode-comment-routing
+  - id: SYM-opencode-computeEffectiveMode
+    title: computeEffectiveMode
+    status: active
+    sourceFile: packages/opencode/src/smart-enforcement.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-opencode-enforcement-surface
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement-v1-coverage
+      - type: implements
+        target: REQ-opencode-smart-enforcement-v1
+  - id: SYM-e2e-cli-workflows
+    title: cli-workflows.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-001
+      - type: executable_for
+        target: TEST-003
+      - type: executable_for
+        target: TEST-011
+      - type: executable_for
+        target: TEST-audit-quality-diagnostics-v1
+      - type: executable_for
+        target: TEST-cli-staged-impact-enforcement
+      - type: executable_for
+        target: TEST-kibi-logical-requirement-coverage
+      - type: executable_for
+        target: TEST-kibi-proof-aware-quality-diagnostics
+      - type: executable_for
+        target: TEST-mcp-tool-check-coverage
+      - type: executable_for
+        target: TEST-opencode-smart-enforcement
+      - type: executable_for
+        target: TEST-prolog-library-adoption-core
+  - id: SYM-e2e-init-sync-check
+    title: init-sync-check.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/init-sync-check.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-008
+      - type: executable_for
+        target: TEST-012
+      - type: executable_for
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: executable_for
+        target: TEST-cli-canonical-init
+      - type: executable_for
+        target: TEST-cli-canonical-runtime
+  - id: SYM-e2e-traceability-gate
+    title: traceability-gate.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/traceability-gate.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-010
+      - type: executable_for
+        target: TEST-vscode-traceability
+      - type: executable_for
+        target: TEST-vscode-traceability-coverage
+  - id: SYM-e2e-release-package-contract
+    title: release-package-contract.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/release-package-contract.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-014
+      - type: executable_for
+        target: TEST-cli-doctor-packed-provenance
+  - id: SYM-e2e-mcp-cli-operation-parity
+    title: mcp-cli-operation-parity.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-agent-kibi-interface-selection
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+      - type: executable_for
+        target: TEST-mcp-tag-filtering-server-side
+  - id: SYM-e2e-cli-status-pre-first-sync
+    title: cli-status-pre-first-sync.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cli-status-pre-first-sync.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-status-pre-first-sync
+      - type: executable_for
+        target: TEST-cli-sync-discovery-readme-ignore
+  - id: SYM-e2e-telemetry-acceptance-gate
+    title: telemetry-acceptance-gate.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/telemetry-acceptance-gate.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-usage-metrics-v1
+      - type: executable_for
+        target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-e2e-cursor-plugin-launcher
+    title: cursor-plugin-launcher.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cursor-agent-plugin-v1
+      - type: executable_for
+        target: TEST-cursor-kibi-plugin-v1
+      - type: executable_for
+        target: TEST-cursor-stop-job-vs-plan
+      - type: executable_for
+        target: TEST-cursor-worktree-kibi-continuity
+      - type: executable_for
+        target: TEST-skillopt-cursor-compat
+  - id: SYM-e2e-source-relationship-parity
+    title: source-relationship-parity.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/source-relationship-parity.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: executable_for
+        target: TEST-generated-coordinate-repair
+  - id: SYM-e2e-mcp-cli-help
+    title: mcp-cli-help.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/mcp-cli-help.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-cli-help
+      - type: executable_for
+        target: TEST-mcp-skills-resource-discoverability
+      - type: executable_for
+        target: TEST-skill-cli-load-validate
+  - id: SYM-e2e-mcp-crud
+    title: mcp-crud.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/mcp-crud.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-relationship-preflight
+      - type: executable_for
+        target: TEST-mcp-upsert-coverage
+  - id: SYM-e2e-predicate-suggestion-relevance
+    title: predicate-suggestion-relevance.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-suggest-predicates
+      - type: executable_for
+        target: TEST-skillopt-predicate-first-requirements
+  - id: SYM-e2e-opencode-plugin
+    title: opencode-plugin.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/opencode-plugin.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-opencode-v2-plugin-load
+      - type: executable_for
+        target: TEST-opencode-kibi-plugin-v1
+      - type: executable_for
+        target: TEST-opencode-smart-enforcement-v1-coverage
+  - id: SYM-e2e-ontology-convergence-witnesses
+    title: ontology-convergence-witnesses.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-external-adoption-verdict
+      - type: executable_for
+        target: TEST-skillopt-logical-evidence-fidelity
+  - id: SYM-unit-test-agent-core-shared-hook-inputs
+    title: shared-hook-inputs.test
+    status: active
+    sourceFile: packages/agent-core/tests/shared-hook-inputs.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-agent-core-shared-hook-inputs
+  - id: SYM-claude-mcp-launcher-resolveKibiWorkspace
+    title: resolveKibiWorkspace
+    status: active
+    sourceFile: packages/claude/bin/mcp-launcher.cjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-plugin-package
+  - id: SYM-codex-mcp-launcher-resolveKibiWorkspace
+    title: resolveKibiWorkspace
+    status: active
+    sourceFile: packages/codex/bin/mcp-launcher.cjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-plugin-package
+  - id: SYM-zcode-mcp-launcher-resolveKibiWorkspace
+    title: resolveKibiWorkspace
+    status: active
+    sourceFile: packages/zcode/bin/mcp-launcher.cjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-manual-mcp-configuration-v1
+  - id: SYM-cli-engine-daemon-run-if-entrypoint
+    title: runEngineDaemonIfEntrypoint
+    status: active
+    sourceFile: packages/cli/src/engine-daemon.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-runtime-packed-engine-daemon
+      - type: implements
+        target: REQ-runtime-packed-engine-daemon
+  - id: SYM-e2e-skillopt-optimizer-toolchain
+    title: skillopt-optimizer-toolchain.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/skillopt-optimizer-toolchain.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-04T13:30:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-skillopt-optimizer-toolchain
   - id: SYM-cli-report-assert-complete-rows
     title: assertCompleteRequirementRows
     status: active

@@ -286,6 +286,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-230cd46332a7
+  - type: implements
+    from: SYM-kb-dependencies-kb-dependency-lock-outcome-type
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:55:27.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1f94d454b1c
+  - type: covered_by
+    from: SYM-kb-dependencies-kb-dependency-lock-outcome-type
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:55:27.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f3efd53cc1c
   - type: constrains
     from: REQ-kibi-evidence-floor-rule-name
     to: FACT-kibi-check-rule-names-component

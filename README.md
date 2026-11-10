@@ -80,7 +80,7 @@ pnpm, Yarn, and Bun work the same way through their local runners. The [installa
 
 **Upgrading.** After updating the Kibi packages, run `kibi migrate` (or ask your agent to). It shows what would change and applies nothing until you approve; the [CLI reference](https://looted.github.io/kibi/reference/cli.html#kibi-migrate) covers each schema version.
 
-**Versions.** Each release has one Kibi release version, such as `2026.11.0`, that names its exact package set and declares the KB schema it uses. `kibi --version` and `kibi doctor` show it, and doctor warns when installed packages come from different releases. See [Kibi release versions](https://looted.github.io/kibi/guide/install.html#kibi-release-versions).
+**Versions.** Each release has one Kibi release version, such as `2026.11.0`, that names its exact package set and declares the KB schema it uses. `kibi --version` and `kibi doctor` show it, and doctor warns when installed packages come from different releases. When a newer `kibi-cli` is out, the CLI says so in one stderr line at a terminal (checked at most daily in the background, silent in CI, JSON output and agent runs, off with `KIBI_UPDATE_CHECK=0`), and `kibi doctor` reports it for every host. See [Kibi release versions](https://looted.github.io/kibi/guide/install.html#kibi-release-versions).
 
 ## Connect your coding agent
 
@@ -197,6 +197,7 @@ Kibi's skill subsystem gives the agent seven bundled skills that teach it how to
 - **Plain-language answers.** Ask "what governs checkout rounding?" and `kb_search` returns the current requirements, the tests and decisions behind them, and what Kibi's checks say about each.
 - **A review of every change.** `kb_check` on the files the agent touched quotes the requirements that code implements and flags new code no requirement covers.
 - **Safe writes.** Every write can be previewed first, and a plan you approve lands in full or not at all.
+- **Other repositories' knowledge, read-only.** Declare a repository your code depends on in `.kb/dependencies.json`, pin it with `kibi deps lock`, and `kb_search` (or `kibi search --kb <name>`) answers from that repository's own KB at the pinned commit. Its KB stays separate from yours, is never written to, and can be on an older KB schema (6 or later).
 
 The [MCP reference](https://looted.github.io/kibi/reference/mcp.html) lists every tool. Generic agents can start from [agent onboarding](https://looted.github.io/kibi/reference/agent-onboarding.html).
 

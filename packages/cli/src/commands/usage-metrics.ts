@@ -147,11 +147,8 @@ export function buildUsageMetricsReport(
   let zeroResultCount = 0;
 
   for (const row of rows) {
-    increment(toolCounts, normalizeKey(row.tool, "unknown"));
-    increment(
-      branchCounts,
-      normalizeKey(row.active_branch || row.branch, "unknown"),
-    );
+    increment(toolCounts, countKey(row.tool));
+    increment(branchCounts, countKey(row.active_branch || row.branch));
 
     const outcome = getOutcome(row);
     if (outcome === "success") {
@@ -166,7 +163,7 @@ export function buildUsageMetricsReport(
         errorStages,
         row.error_stage ?? inferErrorStage(row.error_message ?? row.error),
       );
-      increment(errorsByTool, normalizeKey(row.tool, "unknown"));
+      increment(errorsByTool, countKey(row.tool));
     }
 
     if (hasCompleteTelemetry(row)) {
@@ -177,7 +174,7 @@ export function buildUsageMetricsReport(
 
     if (isZeroResult(row)) {
       zeroResultCount += 1;
-      increment(zeroResultToolCounts, normalizeKey(row.tool, "unknown"));
+      increment(zeroResultToolCounts, countKey(row.tool));
 
       const sourceFile = getSourceFile(row);
       if (sourceFile) {
@@ -199,7 +196,7 @@ export function buildUsageMetricsReport(
     if (row.tool === "kb_upsert" && outcome === "error") {
       increment(
         upsertErrorCategories,
-        categorizeUpsertError(row.error_message ?? row.error),
+        categorizeError(row.error_message ?? row.error),
       );
     }
   }
@@ -286,28 +283,15 @@ function isZeroResult(row: UsageLogRow): boolean {
 }
 
 function getSourceFile(row: UsageLogRow): string | null {
-  if (typeof row.sourceFile === "string" && row.sourceFile.trim()) {
-    return row.sourceFile;
-  }
-  if (
-    row.args &&
-    typeof row.args.sourceFile === "string" &&
-    row.args.sourceFile.trim()
-  ) {
-    return row.args.sourceFile;
-  }
-  if (
-    row.business_args &&
-    typeof row.business_args.sourceFile === "string" &&
-    row.business_args.sourceFile.trim()
-  ) {
-    return row.business_args.sourceFile;
+  const candidates = [
+    row.sourceFile,
+    row.args?.sourceFile,
+    row.business_args?.sourceFile,
+  ];
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim()) return candidate;
   }
   return null;
-}
-
-function categorizeUpsertError(errorMessage: string | undefined): string {
-  return categorizeError(errorMessage);
 }
 
 function categorizeError(errorMessage: string | undefined): string {
@@ -403,8 +387,8 @@ function increment(counts: Map<string, number>, key: string): void {
   counts.set(key, (counts.get(key) ?? 0) + 1);
 }
 
-function normalizeKey(value: string | undefined, fallback: string): string {
-  return typeof value === "string" && value.trim() ? value : fallback;
+function countKey(value: string | undefined): string {
+  return typeof value === "string" && value.trim() ? value : "unknown";
 }
 
 function sortCountEntries(
@@ -440,46 +424,53 @@ function renderUsageMetricsReport(report: UsageMetricsReport): string {
     renderCountsTable("Error Categories", "Category", report.errors.categories),
     renderCountsTable("Error Stages", "Stage", report.errors.stages),
     renderCountsTable("Errors By Tool", "Tool", report.errors.byTool),
-  ].filter(Boolean);
+  ];
 
   return sections.join("\n\n");
 }
 
+function renderTable(
+  head: string[],
+  colWidths: number[],
+  rows: string[][],
+): string {
+  const table = new Table({ head, colWidths, wordWrap: true });
+  table.push(...rows);
+  return table.toString();
+}
+
+/** Count rows, or one placeholder row when there is nothing to count. */
+function countRows(rows: string[][]): string[][] {
+  return rows.length === 0 ? [["-", "0"]] : rows;
+}
+
 function renderAcceptanceTable(report: TelemetryAcceptanceReport): string {
-  const table = new Table({
-    head: ["Metric", "Status", "Observed", "Rate"],
-    colWidths: [36, 24, 18, 14],
-    wordWrap: true,
-  });
-  for (const metric of report.metrics) {
-    table.push([
-      metric.id,
-      metric.status,
-      `${metric.numerator}/${metric.denominator}`,
-      metric.rate === undefined ? "-" : formatRate(metric.rate),
-    ]);
-  }
   return [
     `Telemetry Acceptance (${report.version})`,
     `Status: ${report.status}; evidence fresh: ${report.scope.fresh ? "yes" : "no"}`,
-    table.toString(),
+    renderTable(
+      ["Metric", "Status", "Observed", "Rate"],
+      [36, 24, 18, 14],
+      report.metrics.map((metric) => [
+        metric.id,
+        metric.status,
+        `${metric.numerator}/${metric.denominator}`,
+        metric.rate === undefined ? "-" : formatRate(metric.rate),
+      ]),
+    ),
   ].join("\n");
 }
 
 function renderSummaryTable(report: UsageMetricsReport): string {
-  const table = new Table({
-    head: ["Field", "Value"],
-    colWidths: [24, 56],
-    wordWrap: true,
-  });
-
-  table.push(
-    ["Row Count", String(report.rowCount)],
-    ["First Timestamp", report.dateRange.first ?? "-"],
-    ["Last Timestamp", report.dateRange.last ?? "-"],
+  return renderTable(
+    ["Field", "Value"],
+    [24, 56],
+    [
+      ["Row Count", String(report.rowCount)],
+      ["First Timestamp", report.dateRange.first ?? "-"],
+      ["Last Timestamp", report.dateRange.last ?? "-"],
+    ],
   );
-
-  return table.toString();
 }
 
 function renderCountsTable(
@@ -487,107 +478,61 @@ function renderCountsTable(
   label: string,
   counts: Record<string, number>,
 ): string {
-  const entries = Object.entries(counts);
-  const table = new Table({
-    head: [label, "Count"],
-    colWidths: [48, 12],
-    wordWrap: true,
-  });
-
-  if (entries.length === 0) {
-    table.push(["-", "0"]);
-  } else {
-    for (const [key, count] of entries) {
-      table.push([key, String(count)]);
-    }
-  }
-
-  return `${title}\n${table.toString()}`;
+  const rows = Object.entries(counts).map(([key, count]) => [
+    key,
+    String(count),
+  ]);
+  return `${title}\n${renderTable([label, "Count"], [48, 12], countRows(rows))}`;
 }
 
 function renderTelemetryTable(report: UsageMetricsReport): string {
-  const table = new Table({
-    head: ["Metric", "Value"],
-    colWidths: [32, 28],
-    wordWrap: true,
-  });
-
-  table.push(
-    ["Complete", String(report.telemetry.completeCount)],
-    ["Missing", String(report.telemetry.missingCount)],
-    ["Completeness Rate", formatRate(report.telemetry.completenessRate)],
-  );
-
-  return `Telemetry\n${table.toString()}`;
+  return `Telemetry\n${renderTable(
+    ["Metric", "Value"],
+    [32, 28],
+    [
+      ["Complete", String(report.telemetry.completeCount)],
+      ["Missing", String(report.telemetry.missingCount)],
+      ["Completeness Rate", formatRate(report.telemetry.completenessRate)],
+    ],
+  )}`;
 }
 
 function renderZeroResultsTable(report: UsageMetricsReport): string {
-  const summary = new Table({
-    head: ["Metric", "Value"],
-    colWidths: [32, 28],
-    wordWrap: true,
-  });
-
-  summary.push(
-    ["Count", String(report.zeroResults.count)],
-    ["Rate", formatRate(report.zeroResults.rate)],
-  );
-
-  const byTool = new Table({
-    head: ["Tool", "Count"],
-    colWidths: [48, 12],
-    wordWrap: true,
-  });
-
-  const byToolEntries = Object.entries(report.zeroResults.byTool);
-  if (byToolEntries.length === 0) {
-    byTool.push(["-", "0"]);
-  } else {
-    for (const [tool, count] of byToolEntries) {
-      byTool.push([tool, String(count)]);
-    }
-  }
-
-  const sourceFiles = new Table({
-    head: ["Source File", "Zero Results"],
-    colWidths: [48, 14],
-    wordWrap: true,
-  });
-
-  if (report.zeroResults.topSourceFiles.length === 0) {
-    sourceFiles.push(["-", "0"]);
-  } else {
-    for (const entry of report.zeroResults.topSourceFiles) {
-      sourceFiles.push([entry.sourceFile, String(entry.count)]);
-    }
-  }
-
   return [
     "Zero Results",
-    summary.toString(),
-    "Zero-Result Counts By Tool",
-    byTool.toString(),
+    renderTable(
+      ["Metric", "Value"],
+      [32, 28],
+      [
+        ["Count", String(report.zeroResults.count)],
+        ["Rate", formatRate(report.zeroResults.rate)],
+      ],
+    ),
+    renderCountsTable(
+      "Zero-Result Counts By Tool",
+      "Tool",
+      report.zeroResults.byTool,
+    ),
     "Zero-Result Source Files",
-    sourceFiles.toString(),
+    renderTable(
+      ["Source File", "Zero Results"],
+      [48, 14],
+      countRows(
+        report.zeroResults.topSourceFiles.map((entry) => [
+          entry.sourceFile,
+          String(entry.count),
+        ]),
+      ),
+    ),
   ].join("\n");
 }
 
 function renderViolationTrendTable(report: UsageMetricsReport): string {
-  const table = new Table({
-    head: ["Timestamp", "Violations"],
-    colWidths: [32, 12],
-    wordWrap: true,
-  });
-
-  if (report.kbCheck.violationTrend.length === 0) {
-    table.push(["-", "0"]);
-  } else {
-    for (const entry of report.kbCheck.violationTrend) {
-      table.push([entry.timestamp, String(entry.violationCount)]);
-    }
-  }
-
-  return `KB Check Violation Trend\n${table.toString()}`;
+  const rows = report.kbCheck.violationTrend.map((entry) => [
+    entry.timestamp,
+    String(entry.violationCount),
+  ]);
+  return `KB Check Violation Trend\n${renderTable(["Timestamp", "Violations"], [32, 12], countRows(rows))}`;
 }
 
 function formatRate(value: number): string {

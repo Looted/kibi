@@ -30,6 +30,13 @@ import {
   CallToolResultSchema,
   RootsListChangedNotificationSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import {
+  KB_DEPENDENCY_ARGUMENT,
+  KB_DEPENDENCY_ENV,
+  type ResolvedKbDependency,
+  kbDependencyLabel,
+  resolveKbDependency,
+} from "kibi-runtime";
 
 /**
  * Workspace routing: answer every tool call from the workspace the caller is
@@ -127,7 +134,15 @@ export interface WorkspaceRouterOptions {
     roots: readonly string[],
   ) => boolean;
   /** How to start kibi-mcp for a workspace, or null when it cannot be. */
-  readonly resolveChildCommand?: (workspaceRoot: string) => ChildCommand | null;
+  readonly resolveChildCommand?: (
+    workspaceRoot: string,
+    options?: { readonly ownEntryOnly?: boolean },
+  ) => ChildCommand | null;
+  /** Resolve (and fetch) a project's KB dependency; see routeKbDependency. */
+  readonly resolveDependency?: (
+    workspaceRoot: string,
+    name: string,
+  ) => ResolvedKbDependency;
   readonly maxChildren?: number;
   readonly idleRetireMs?: number;
   readonly rootsTimeoutMs?: number;
@@ -269,9 +284,10 @@ const OWN_ENTRIES = (): readonly (string | undefined)[] => [
 export function defaultResolveChildCommand(
   workspaceRoot: string,
   ownEntries: readonly (string | undefined)[] = OWN_ENTRIES(),
+  options: { readonly ownEntryOnly?: boolean } = {},
 ): ChildCommand | null {
   const marker = path.join(workspaceRoot, "package.json");
-  if (fs.existsSync(marker)) {
+  if (options.ownEntryOnly !== true && fs.existsSync(marker)) {
     try {
       const entry = createRequire(marker).resolve(KIBI_MCP_PACKAGE);
       let current = path.dirname(entry);
@@ -328,6 +344,7 @@ export class WorkspaceRouter {
   ) => boolean;
   private readonly resolveChildCommand: (
     workspaceRoot: string,
+    options?: { readonly ownEntryOnly?: boolean },
   ) => ChildCommand | null;
   private readonly log: (text: string) => void;
   private readonly now: () => number;
@@ -347,7 +364,9 @@ export class WorkspaceRouter {
     this.isRoutable =
       options.isRoutable ?? defaultIsRoutable(this.attachedRoot, this.env);
     this.resolveChildCommand =
-      options.resolveChildCommand ?? defaultResolveChildCommand;
+      options.resolveChildCommand ??
+      ((root, childOptions) =>
+        defaultResolveChildCommand(root, OWN_ENTRIES(), childOptions));
     this.log =
       options.log ?? ((text) => process.stderr.write(`[kibi-mcp] ${text}\n`));
     this.now = options.now ?? Date.now;
@@ -420,6 +439,48 @@ export class WorkspaceRouter {
     const desired = workspaceFromRoots(roots, this.resolveWorkspace);
     if (!desired) return { kind: "local", args: rest };
     return this.routeTo(desired, roots[0] as string, toolName, rest);
+  }
+
+  /**
+   * Answer `toolName(args)` from the KB dependency `name` of the workspace
+   * the call is about (its `workspaceRoot`, else the attached one). The
+   * dependency's pinned checkout is served by its own kibi-mcp child, started
+   * from this server's entry and marked with the dependency, so its engine,
+   * store and lifetime stay apart from this workspace's KB. Routing switches
+   * and pins do not apply: the caller named the dependency explicitly.
+   */
+  // implements REQ-kb-dependencies-git
+  async routeKbDependency(
+    toolName: string,
+    name: string,
+    args: Record<string, unknown>,
+  ): Promise<CallToolResult> {
+    const {
+      [WORKSPACE_ROOT_ARGUMENT]: requestedRaw,
+      [KB_DEPENDENCY_ARGUMENT]: _scope,
+      ...rest
+    } = args;
+    const requested =
+      typeof requestedRaw === "string" && requestedRaw.trim().length > 0
+        ? this.resolveWorkspace(requestedRaw.trim())
+        : null;
+    const base = requested ?? this.attachedRoot;
+    const dependency = (this.options.resolveDependency ?? resolveKbDependency)(
+      base,
+      name,
+    );
+    const root = realpathOrSelf(dependency.workspaceRoot);
+    const child = await this.childFor(root, {
+      [KB_DEPENDENCY_ENV]: kbDependencyLabel(dependency),
+    });
+    if (!child) {
+      throw new Error(
+        `kibi-mcp could not be started for KB dependency '${name}' at ${root}`,
+      );
+    }
+    const decision = await this.callChild(child, toolName, rest);
+    // callChild always answers remotely.
+    return (decision as { result: CallToolResult }).result;
   }
 
   /** Polls for a job started in a child go to that child. */
@@ -581,33 +642,48 @@ export class WorkspaceRouter {
     }
   }
 
-  private async childFor(root: string): Promise<Child | null> {
+  private async childFor(
+    root: string,
+    dependencyEnv?: Readonly<Record<string, string>>,
+  ): Promise<Child | null> {
     const existing = this.children.get(root);
     if (existing && !existing.closed) return existing;
     const pending = this.starting.get(root);
     if (pending) return pending;
-    const start = this.startChild(root).finally(() => {
+    const start = this.startChild(root, dependencyEnv).finally(() => {
       this.starting.delete(root);
     });
     this.starting.set(root, start);
     return start;
   }
 
-  private async startChild(root: string): Promise<Child | null> {
-    const command = this.resolveChildCommand(root);
+  private async startChild(
+    root: string,
+    dependencyEnv?: Readonly<Record<string, string>>,
+  ): Promise<Child | null> {
+    // A dependency checkout has no install of its own: this server's Kibi
+    // reads it.
+    const command =
+      dependencyEnv === undefined
+        ? this.resolveChildCommand(root)
+        : this.resolveChildCommand(root, { ownEntryOnly: true });
     if (!command) return null;
     this.evictIfFull();
     // The spawn skips unset (undefined) values.
-    const env = {
+    const env: Record<string, string | undefined> = {
       ...this.env,
+      // KIBI_BRANCH names a branch of this project, not of the dependency's
+      // detached checkout, which is read through its own snapshot.
+      ...(dependencyEnv === undefined ? {} : { KIBI_BRANCH: undefined }),
+      ...dependencyEnv,
       KIBI_WORKSPACE: root,
       [ROUTED_CHILD_ENV]: "1",
-    } as Record<string, string>;
+    };
     const transport = new StdioClientTransport({
       command: command.command,
       args: [...command.args],
       cwd: root,
-      env,
+      env: env as Record<string, string>,
       stderr: "pipe",
     });
     const client = new Client({

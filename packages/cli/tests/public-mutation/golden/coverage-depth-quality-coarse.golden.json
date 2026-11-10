@@ -1,0 +1,73 @@
+[
+  {
+    "id": "coarse_anchor_only_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "R-a",
+    "source": ".kb/req/R-a.md",
+    "files": [".kb/req/R-a.md"],
+    "message": "Requirement R-a (R-a title) is implemented only by whole-file anchors, so its coverage says a test touches those files, not the code behind the claim.",
+    "suggestion": "Link the functions, methods or types that implement the requirement with implements (and covered_by to their tests); keep the file anchor only for genuinely module-level behavior.",
+    "evidence": {
+      "requirementId": "R-a",
+      "title": "R-a title",
+      "symbols": [
+        {
+          "id": "SYM-closed",
+          "granularityReason": "config-artifact"
+        }
+      ]
+    }
+  },
+  {
+    "id": "coarse_anchor_only_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "R-coarse",
+    "source": ".kb/req/R-coarse.md",
+    "files": [".kb/req/R-coarse.md"],
+    "message": "Requirement R-coarse (R-coarse title) is implemented only by whole-file anchors, so its coverage says a test touches those files, not the code behind the claim.",
+    "suggestion": "Link the functions, methods or types that implement the requirement with implements (and covered_by to their tests); keep the file anchor only for genuinely module-level behavior.",
+    "evidence": {
+      "requirementId": "R-coarse",
+      "title": "R-coarse title",
+      "symbols": [
+        {
+          "id": "SYM-file",
+          "granularityReason": "config-artifact"
+        },
+        {
+          "id": "SYM-file2",
+          "granularityReason": "test-suite"
+        }
+      ]
+    }
+  },
+  {
+    "id": "coarse_anchor_only_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "R-pair",
+    "source": ".kb/req/R-pair.md",
+    "files": [".kb/req/R-pair.md"],
+    "message": "Requirement R-pair (R-pair title) is implemented only by whole-file anchors, so its coverage says a test touches those files, not the code behind the claim.",
+    "suggestion": "Link the functions, methods or types that implement the requirement with implements (and covered_by to their tests); keep the file anchor only for genuinely module-level behavior.",
+    "evidence": {
+      "requirementId": "R-pair",
+      "title": "R-pair title",
+      "symbols": [
+        {
+          "id": "SYM-aa",
+          "granularityReason": "config-artifact"
+        },
+        {
+          "id": "SYM-zz",
+          "granularityReason": "config-artifact"
+        }
+      ]
+    }
+  }
+]

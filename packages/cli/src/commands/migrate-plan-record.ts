@@ -43,15 +43,16 @@ function recordPath(workspaceRoot: string): string {
 
 function readRecords(workspaceRoot: string): PrintedPlan[] {
   try {
+    // Buffer#toString decodes UTF-8.
     const parsed: unknown = JSON.parse(
-      fs.readFileSync(recordPath(workspaceRoot), "utf8"),
+      fs.readFileSync(recordPath(workspaceRoot)).toString(),
     );
     return Array.isArray(parsed)
       ? parsed.filter(
+          // Optional chaining also drops nulls; other non-objects have no
+          // string planHash.
           (entry): entry is PrintedPlan =>
-            typeof entry === "object" &&
-            entry !== null &&
-            typeof (entry as PrintedPlan).planHash === "string" &&
+            typeof (entry as PrintedPlan | null)?.planHash === "string" &&
             Array.isArray((entry as PrintedPlan).actions),
         )
       : [];

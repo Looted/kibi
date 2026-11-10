@@ -1,9 +1,8 @@
 name: Prolog mutation
 
 # Mutalog mutation run over the Prolog core (see docs/mutation-testing.md).
-# It runs only when dispatched by hand. Modules in
-# mutalog.config.pl gate at 100%: a surviving mutant fails the job. Modules in
-# mutalog.backlog.config.pl only report.
+# It runs only when dispatched by hand. Every module in mutalog.config.pl
+# gates at 100%: a surviving mutant fails the job.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,7 +25,7 @@ jobs:
   prolog-mutation:
     needs: [swipl-bundle]
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 240
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -36,7 +35,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: '1.4.2'
+          bun-version: '1.4.4'
 
       - name: Use the pipeline-built SWI-Prolog
         uses: ./.github/actions/use-bundled-swipl
@@ -44,17 +43,11 @@ jobs:
       - name: Run Mutalog on the gated modules
         run: bun run test:mutation:prolog -- --reporters clear_text,html,json
 
-      - name: Run Mutalog on the backlog modules (report only)
-        if: ${{ !cancelled() }}
-        run: bun run test:mutation:prolog:backlog -- --reporters clear_text,html,json
-
       - name: Upload mutation report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: prolog-mutation-report
-          path: |
-            reports/mutation/prolog/
-            reports/mutation/prolog-backlog/
+          path: reports/mutation/prolog/
           if-no-files-found: ignore
           retention-days: 14

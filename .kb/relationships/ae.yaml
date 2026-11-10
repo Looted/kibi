@@ -321,6 +321,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-543472e414d6
+  - type: implements
+    from: SYM-cli-update-check-registry-url
+    to: REQ-kibi-update-notice
+    created_at: 2026-11-04T13:24:48.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce669dc83ac5
+  - type: covered_by
+    from: SYM-cli-update-check-registry-url
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:24:48.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e403a71a25da
   - type: requires_predicate
     from: REQ-kibi-telemetry-session-signals
     to: FACT-PRED-telemetry-upsert-attempt

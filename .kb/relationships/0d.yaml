@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8fee5385e354
+  - type: executable_for
+    from: SYM-kibi-duplicate-entity-declarations-verifier
+    to: TEST-kibi-duplicate-entity-declarations
+    created_at: 2026-11-05T11:48:09.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b16108d77337

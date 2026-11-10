@@ -66,6 +66,9 @@ export class MutationRollbackFailureError extends AggregateError {
 
 // implements REQ-014
 export class MutationSaga {
+  // rationale: rollback() swallows the TypeError a non-step entry throws, so
+  // a seeded initial entry is unobservable.
+  // Stryker disable next-line ArrayDeclaration
   private readonly steps: SagaStep[] = [];
   private rollbackCompleted = false;
   private committedAt: number | null = null;

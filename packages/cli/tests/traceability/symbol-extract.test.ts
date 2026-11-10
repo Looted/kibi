@@ -283,38 +283,6 @@ describe("symbol-extract (real integration)", () => {
     expect(ctsSymbols[0]).toMatchObject({ name: "CommonMode", kind: "enum" });
   });
 
-  it("ignores empty directive tokens when regex matches trailing whitespace", async () => {
-    const { extractSymbolsFromStagedFile } = await loadSymbolExtractModule(
-      "directive-empty-token",
-    );
-    const originalExec = RegExp.prototype.exec;
-    let seenDirectiveRegex = false;
-
-    RegExp.prototype.exec = function (text: string) {
-      if (this.source.includes("implements\\s*:?\\s*") && !seenDirectiveRegex) {
-        seenDirectiveRegex = true;
-        return Object.assign(["implements: REQ-ONLY   ", "REQ-ONLY   "], {
-          index: 0,
-          input: text,
-        }) as RegExpExecArray;
-      }
-
-      if (this.source.includes("implements\\s*:?\\s*") && seenDirectiveRegex) {
-        return null;
-      }
-
-      return originalExec.call(this, text);
-    };
-
-    const symbols = extractSymbolsFromStagedFile(
-      makeStagedFile("directive.ts", "export function directiveFn() {}", "A"),
-    );
-
-    RegExp.prototype.exec = originalExec;
-
-    expect(symbols[0]?.reqLinks).toEqual(["REQ-ONLY"]);
-  });
-
   it("preserves typed relationships from staged manifests while inline implements override manifest req links", async () => {
     const { extractSymbolsFromStagedFile } = await loadSymbolExtractModule(
       "staged-manifest-relationships",

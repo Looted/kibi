@@ -88,6 +88,10 @@ The same check applies when the store does not hold the requirement but its file
 
 `Upsert of <ID> refused: <ID> exists in <file> but is not compiled (<error>), and this write would leave the file uncompilable: <error>` means the write merges into that existing file and the result still would not compile. Send the field that fixes the error (for example a valid `status`). `... exists but kibi sync cannot compile it (...), and its front matter does not parse` means the YAML itself is broken; fix it in the file. A successful write into such a file returns the warning `<ID> was not in the compiled KB; this write updated its authored file <file>...`; run `kibi sync` to compile it.
 
+## Duplicate entity declaration (`source-relationship-parity`, `duplicate_entity`)
+
+`<ID> is declared N times ('<title>' in <file>; ...), so the KB keeps only one of the declarations and the staged gate refuses every commit until one remains` means authored `.kb/` sources declare one entity id more than once: two records in `.kb/symbols.yaml`, two entity files with the same `id`, or both. The compiled store keeps one entity per id, so `kb_check` reports it as a blocking `source-relationship-parity` violation (evidence `direction: duplicate_entity` lists every declaration), and `kibi check --staged` refuses every commit with `Duplicate snapshot entities` until one declaration remains. Copies like these usually come from a line-based Git merge of two branches that each added the record, in a clone without the Kibi merge driver (`kibi doctor` reports how to set it up). When the copies in `.kb/symbols.yaml` differ only in their links, a `kb_upsert` of the id with its title and status merges them into one record. Otherwise keep one declaration with the fields and links of every copy by hand, then run `kibi sync` and `kb_check` again.
+
 ## Semantic advisor clauses must be verbatim fragments of the requirement prose
 
 `kb_compile_intent` and `kb_model` (`mode: "analyze"`) refuse a `clauses` entry that does not occur in the intent or `text`, naming each such clause. Clauses split the prose; they do not restate it. Copy each clause from the prose unchanged (whitespace layout, a leading list marker and closing punctuation may differ), or omit `clauses` to let Kibi split the prose. To change what the requirement says, change the intent itself.
@@ -196,6 +200,20 @@ A tool that rejects its input with a Kibi error code, such as `kb_compile_intent
 ## Read stopped at its engine limit (`QUERY_LIMIT_EXCEEDED`)
 
 The read ran under `KIBI_ENGINE_READ_TIME_LIMIT_MS` or `KIBI_ENGINE_READ_INFERENCE_LIMIT` and was stopped before it computed an answer; `error.details.limitExceeded` names the `kind` (`time` or `inferences`) and the `limit`. Nothing was read partially and nothing was written. Narrow the request (a type, id, tag, or smaller page), or raise or unset the limit in the CLI or MCP server environment, then retry.
+
+## KB dependency errors (`DEPENDENCY_*`)
+
+A read with `kb` (MCP) or `--kb` (CLI), and `kibi deps lock|fetch|status`, fail with one of these codes instead of answering from the project's own KB:
+
+- `DEPENDENCY_UNKNOWN`: `.kb/dependencies.json` declares no dependency with that name. The message lists the declared names; fix the name or add the dependency.
+- `DEPENDENCY_NOT_LOCKED`: the dependency is declared but has no pin in `.kb/dependencies.lock.json`. Run `kibi deps lock <name>` and commit the lock file.
+- `DEPENDENCY_LOCK_STALE`: the lock pins the dependency for a different `git` URL, `ref` or `directory` than `.kb/dependencies.json` now declares. Run `kibi deps lock <name>`.
+- `DEPENDENCY_REF_NOT_FOUND`: the repository has no tag, branch or ref with the declared name. Fix `ref` (or remove it to follow the remote `HEAD`).
+- `DEPENDENCY_FETCH_FAILED`: `git` could not list or fetch the repository. Check the URL, the network, and that git already has credentials for a private repository (it runs without a terminal prompt).
+- `DEPENDENCY_NOT_A_KB`: the pinned commit has no `.kb/manifest.json`. Pin a commit that has a Kibi KB, or set `directory` when the workspace is in a subdirectory.
+- `DEPENDENCY_SCHEMA_UNSUPPORTED`: the dependency's KB schema is older than 6 or newer than this Kibi reads. Pin another commit, upgrade Kibi, or run `kibi migrate` in that repository.
+
+A write that names a dependency is refused: MCP tools without a `kb` input fail with "`<tool>` does not take a kb scope: KB dependency '`<name>`' is read-only", and the CLI JSON routes report `VALIDATION_FAILED` for the extra `kb` property. Drop `kb` to write this project's KB.
 
 ## Write refused on a detached HEAD
 

@@ -50,96 +50,47 @@ const LOWER_PAST: Partial<Record<NumericOp, NumericOp>> = {
   gt: "lte",
 };
 
-// A value set on one variable: an interval with open or closed ends, or the
-// complement of a point (neq).
-type Region =
-  | {
-      readonly kind: "interval";
-      readonly lo: number;
-      readonly loOpen: boolean;
-      readonly hi: number;
-      readonly hiOpen: boolean;
-    }
-  | { readonly kind: "except"; readonly value: number };
+// One end of the values a constraint admits; undefined is unbounded. On
+// integers a strict bound is the closed bound one step in.
+type Bound = { readonly at: number; readonly open: boolean } | undefined;
 
-function region({ op, value }: Constraint, integer: boolean): Region {
-  // On integers a strict bound is the closed bound one step in.
-  const v = value;
-  switch (op) {
-    case "eq":
-      return { kind: "interval", lo: v, loOpen: false, hi: v, hiOpen: false };
-    case "neq":
-      return { kind: "except", value: v };
-    case "lt":
-      return integer
-        ? {
-            kind: "interval",
-            lo: Number.NEGATIVE_INFINITY,
-            loOpen: true,
-            hi: v - 1,
-            hiOpen: false,
-          }
-        : {
-            kind: "interval",
-            lo: Number.NEGATIVE_INFINITY,
-            loOpen: true,
-            hi: v,
-            hiOpen: true,
-          };
-    case "lte":
-      return {
-        kind: "interval",
-        lo: Number.NEGATIVE_INFINITY,
-        loOpen: true,
-        hi: v,
-        hiOpen: false,
-      };
-    case "gt":
-      return integer
-        ? {
-            kind: "interval",
-            lo: v + 1,
-            loOpen: false,
-            hi: Number.POSITIVE_INFINITY,
-            hiOpen: true,
-          }
-        : {
-            kind: "interval",
-            lo: v,
-            loOpen: true,
-            hi: Number.POSITIVE_INFINITY,
-            hiOpen: true,
-          };
-    case "gte":
-      return {
-        kind: "interval",
-        lo: v,
-        loOpen: false,
-        hi: Number.POSITIVE_INFINITY,
-        hiOpen: true,
-      };
-  }
+function lowerBound({ op, value }: Constraint, integer: boolean): Bound {
+  if (op === "eq" || op === "gte") return { at: value, open: false };
+  if (op !== "gt") return undefined;
+  return { at: integer ? value + 1 : value, open: !integer };
 }
 
-function contains(r: Region, value: number): boolean {
-  if (r.kind === "except") return value !== r.value;
-  const aboveLo = r.loOpen ? value > r.lo : value >= r.lo;
-  const belowHi = r.hiOpen ? value < r.hi : value <= r.hi;
-  return aboveLo && belowHi;
+function upperBound({ op, value }: Constraint, integer: boolean): Bound {
+  if (op === "eq" || op === "lte") return { at: value, open: false };
+  if (op !== "lt") return undefined;
+  return { at: integer ? value - 1 : value, open: !integer };
 }
 
-/** Whether every value constraint a admits, constraint b admits too. */
+/** Whether bound a sits on or inside bound b, both lower or both upper. */
+function inside(a: Bound, b: Bound, lower: boolean): boolean {
+  if (b === undefined) return true;
+  if (a === undefined) return false;
+  return (
+    (lower ? a.at > b.at : a.at < b.at) ||
+    (a.at === b.at && (a.open || !b.open))
+  );
+}
+
+/**
+ * Whether every value case constraint a admits, constraint b admits too.
+ * A case is never a neq class, so only b can be the complement of a point:
+ * a lies inside it when a admits no value equal to the point.
+ */
 function entails(a: Constraint, b: Constraint, integer: boolean): boolean {
-  const ra = region(a, integer);
-  const rb = region(b, integer);
-  if (ra.kind === "except")
-    return rb.kind === "except" && rb.value === ra.value;
-  if (rb.kind === "except") return !contains(ra, rb.value);
-  const loInside =
-    ra.lo > rb.lo || (ra.lo === rb.lo && (ra.loOpen || !rb.loOpen));
-  const hiInside =
-    ra.hi < rb.hi || (ra.hi === rb.hi && (ra.hiOpen || !rb.hiOpen));
-  return loInside && hiInside;
+  if (b.op === "neq")
+    return !(
+      inside({ at: b.value, open: false }, lowerBound(a, integer), true) &&
+      inside({ at: b.value, open: false }, upperBound(a, integer), false)
+    );
+  return (
+    inside(lowerBound(a, integer), lowerBound(b, integer), true) &&
+    inside(upperBound(a, integer), upperBound(b, integer), false)
+  );
 }
 
 type RawCase = {
@@ -158,19 +109,20 @@ function numericCases(integer: boolean, op: NumericOp, v: number): RawCase[] {
   if (integer && op === "lt") add("boundary", "eq", v - 1);
   if (integer && op === "gt") add("boundary", "eq", v + 1);
   const upper = UPPER_PAST[op];
+  // rationale: a class with no bound straddles every claim, so predict drops
+  // it and skipping the missing upper side changes no case.
+  // Stryker disable next-line ConditionalExpression
   if (upper) add("boundary", upper, v);
   const lower = LOWER_PAST[op];
-  if (
-    lower &&
-    !(integer && lower === "lt" && v <= 0) &&
-    !(integer && lower === "lte" && v < 0)
-  )
+  // An integer counts something: no count lies below zero, so x < V for
+  // V <= 0 and x <= V for V < 0 name no class.
+  if (lower && !(integer && (lower === "lt" ? v <= 0 : v < 0)))
     add("boundary", lower, v);
-  if (integer && v >= 1) {
-    add("cardinality", "eq", 0);
-    add("cardinality", "eq", 1);
-    add("cardinality", "gte", 2);
-  }
+  // At a bound of one the boundary rows already hold the value one, so the
+  // one class starts at a bound of two (as in cases.pl).
+  if (integer && v >= 1) add("cardinality", "eq", 0);
+  if (integer && v >= 2) add("cardinality", "eq", 1);
+  if (integer && v >= 1) add("cardinality", "gte", 2);
   return cases;
 }
 
@@ -193,18 +145,17 @@ function numericPreviews(
 ): CasePreview[] {
   const integer = claim.value_type === "int";
   const value = integer ? claim.value_int : claim.value_number;
-  if (typeof value !== "number" || !Number.isFinite(value)) return [];
-  const bound = { op, value };
+  if (!Number.isFinite(value)) return [];
+  const bound = { op, value: value as number };
   const kept: { raw: RawCase; predicted: "success" | "rejection" }[] = [];
-  for (const raw of numericCases(integer, op, value)) {
+  for (const raw of numericCases(integer, op, bound.value)) {
     const predicted = predict(bound, raw.constraint, integer);
     if (predicted === undefined) continue;
-    // A class already named, or inside an earlier class with the same
-    // outcome, is not a case of its own.
-    const subsumed = kept.some(
-      (earlier) =>
-        earlier.predicted === predicted &&
-        entails(raw.constraint, earlier.raw.constraint, integer),
+    // A class already named, or inside an earlier class, is not a case of
+    // its own. Only a class with the same outcome can hold it: a nonempty
+    // class cannot both satisfy and break the claim.
+    const subsumed = kept.some((earlier) =>
+      entails(raw.constraint, earlier.raw.constraint, integer),
     );
     if (!subsumed) kept.push({ raw, predicted });
   }
@@ -224,7 +175,9 @@ function numericPreviews(
 }
 
 function setPreviews(claim: SemanticStrictPropertyClaim): CasePreview[] {
-  const members = claim.value_set ?? [];
+  // A set fact whose value is not a list has no cases, as in cases.pl.
+  const members = claim.value_set;
+  if (members === undefined) return [];
   const assumption = (value: readonly string[]) => ({
     fact_kind: "property_value",
     subject_key: claim.subject_key,

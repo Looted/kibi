@@ -1,0 +1,44 @@
+{
+  "comparisons": {
+    "stamps": [],
+    "classification": {
+      "fallbackUsed": false,
+      "decisions": [],
+      "shadowComparisons": [
+        {
+          "pluginId": "shadowc",
+          "pluginVersion": "1",
+          "capability": "cap-shadowc",
+          "mode": "shadow",
+          "external": true,
+          "network": false,
+          "metered": false,
+          "decisions": []
+        }
+      ]
+    },
+    "ontology": {
+      "replaced": false,
+      "matchCount": 0,
+      "shadowMatchCount": 0,
+      "shadowMatches": []
+    }
+  },
+  "matches": {
+    "stamps": [],
+    "classification": null,
+    "ontology": {
+      "replaced": false,
+      "matchCount": 0,
+      "shadowMatchCount": 1,
+      "shadowMatches": [
+        {
+          "packId": "p",
+          "schemaId": "p.holds",
+          "predicateName": "holds",
+          "confidence": 0.5
+        }
+      ]
+    }
+  }
+}

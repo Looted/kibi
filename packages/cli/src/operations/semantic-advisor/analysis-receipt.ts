@@ -46,12 +46,12 @@ function summary(
  * How an agent reaches a catalog operation: MCP serves the modeling
  * operations as modes of kb_model.
  */
-function hostToolName(operation: string): string {
-  if (operation === "kb_model_requirement")
-    return "kb_model (mode requirement)";
-  if (operation === "kb_suggest_predicates")
-    return "kb_model (mode predicates)";
-  return operation;
+function hostToolName(
+  operation: "kb_model_requirement" | "kb_suggest_predicates",
+): string {
+  return operation === "kb_model_requirement"
+    ? "kb_model (mode requirement)"
+    : "kb_model (mode predicates)";
 }
 
 // implements REQ-mcp-semantic-advisor-preflight
@@ -92,7 +92,7 @@ export function buildAdvisorResult(
     : candidateLane === "none"
       ? "not_applicable"
       : "needs_modeling";
-  const tools = modeled
+  const tools: ("kb_model_requirement" | "kb_suggest_predicates")[] = modeled
     ? []
     : candidateLane === "strict_property"
       ? ["kb_model_requirement"]

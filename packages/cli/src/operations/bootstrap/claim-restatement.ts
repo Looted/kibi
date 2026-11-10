@@ -41,18 +41,18 @@ export type RestatementMatch = {
 export function normalizeRestatementText(text: string): string {
   return text
     .toLowerCase()
-    .split(/[^\p{L}\p{N}]+/u)
+    .split(/[^\p{L}\p{N}]/u)
     .filter((token) => token !== "")
     .join(" ");
 }
 
-/** The whole prose and each of its sentences. */
+/**
+ * The whole prose and each of its sentences. Whitespace and empty pieces
+ * never change a normalized comparison or a token-set score, so the pieces
+ * are not trimmed or filtered.
+ */
 function proseUnits(text: string): readonly string[] {
-  const sentences = text
-    .split(/(?<=[.!?])\s+|\n+/)
-    .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence !== "");
-  return [text, ...sentences];
+  return [text, ...text.split(/(?<=[.!?])\s|\n/)];
 }
 
 function references(requirement: ExistingRequirement): readonly {
@@ -65,7 +65,7 @@ function references(requirement: ExistingRequirement): readonly {
       field: "semantic_text" as const,
       text,
     })),
-  ].filter((reference) => normalizeRestatementText(reference.text) !== "");
+  ];
 }
 
 /**
@@ -84,10 +84,12 @@ export function findRestatement(
   const texts = claimTexts
     .filter((text): text is string => typeof text === "string")
     .map((text) => ({ text, normalized: normalizeRestatementText(text) }))
+    // An empty claim would equal an empty reference.
     .filter((text) => text.normalized !== "");
-  if (texts.length === 0) return null;
+  // A stable sort only asks whether a pair is out of order, so equal ids
+  // keep their input order without a separate 0 result.
   const ordered = [...requirements].sort((left, right) =>
-    left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
+    left.id < right.id ? -1 : 1,
   );
   let near: RestatementMatch | null = null;
   let nearScore = 0;

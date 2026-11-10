@@ -1,0 +1,43 @@
+{
+  "ALLOWED_GRANULARITY_REASONS": [
+    "config-artifact",
+    "module-level-behavior",
+    "extractor-miss",
+    "legacy-link",
+    "test-suite"
+  ],
+  "ALLOWED_GRANULARITY_REASONS_PROSE": "config-artifact, module-level-behavior, extractor-miss, legacy-link, or test-suite",
+  "COARSE_GRANULARITY_REASONS": [
+    "config-artifact",
+    "module-level-behavior",
+    "extractor-miss",
+    "test-suite"
+  ],
+  "COARSE_GRANULARITY_REASONS_PARENTHESIZED": "(config-artifact, module-level-behavior, extractor-miss, test-suite)",
+  "COARSE_GRANULARITY_REASONS_PROSE": "config-artifact, module-level-behavior, extractor-miss, or test-suite",
+  "ROLE_INFERENCE": {
+    "function": "behavioral",
+    "class": "behavioral",
+    "method": "behavioral",
+    "property": "behavioral",
+    "accessor": "behavioral",
+    "interface": "type-shape",
+    "type": "type-shape",
+    "enum": "type-shape",
+    "variable": "unknown",
+    "unknown": "unknown"
+  },
+  "SYMBOL_ROLES": [
+    "behavioral",
+    "structural",
+    "type-shape",
+    "config",
+    "module",
+    "unknown"
+  ],
+  "TRACEABILITY_RELATIONSHIP_TYPES": [
+    "implements",
+    "covered_by",
+    "executable_for"
+  ]
+}

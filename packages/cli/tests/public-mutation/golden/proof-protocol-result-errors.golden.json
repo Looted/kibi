@@ -1,0 +1,62 @@
+{
+  "valid": [],
+  "validFull": [],
+  "null": [
+    "r must be an object with symbol_id, target, outcome, binding, and attempts"
+  ],
+  "array": [
+    "r must be an object with symbol_id, target, outcome, binding, and attempts"
+  ],
+  "string": [
+    "r must be an object with symbol_id, target, outcome, binding, and attempts"
+  ],
+  "empty": [
+    "r.symbol_id must be a non-empty proof symbol ID (SYM-*)",
+    "r.target must be a non-empty execution target",
+    "r.outcome must be one of: passed, failed, timed_out, skipped, interrupted, errored; received null",
+    "r.binding must be one of: native_case, aggregate_run; received null",
+    "r.attempts must be an object: {status: \"complete\", entries: [...]} or {status: \"unavailable\"}"
+  ],
+  "blankStrings": [
+    "r.symbol_id must be a non-empty proof symbol ID (SYM-*)",
+    "r.target must be a non-empty execution target",
+    "r.native_id must be a non-empty string when present"
+  ],
+  "badEnums": [
+    "r.outcome must be one of: passed, failed, timed_out, skipped, interrupted, errored; received \"great\"",
+    "r.binding must be one of: native_case, aggregate_run; received \"loose\""
+  ],
+  "attemptsNull": [
+    "r.attempts must be an object: {status: \"complete\", entries: [...]} or {status: \"unavailable\"}"
+  ],
+  "attemptsNoStatus": [
+    "r.attempts.status must be one of: complete, unavailable; received null"
+  ],
+  "attemptsBadStatus": [
+    "r.attempts.status must be one of: complete, unavailable; received \"partial\""
+  ],
+  "unavailableWithEntries": [
+    "r.attempts.entries must be omitted when status is unavailable"
+  ],
+  "completeNoEntries": [
+    "r.attempts.entries must be a non-empty array when status is complete"
+  ],
+  "completeEmpty": [
+    "r.attempts.entries must be a non-empty array when status is complete"
+  ],
+  "completeNotArray": [
+    "r.attempts.entries must be a non-empty array when status is complete"
+  ],
+  "entries": [
+    "r.attempts.entries[0] must be an object with outcome (and optional duration_ms)",
+    "r.attempts.entries[1].outcome must be one of: passed, failed, timed_out, skipped, interrupted, errored; received null",
+    "r.attempts.entries[2].outcome must be one of: passed, failed, timed_out, skipped, interrupted, errored; received \"great\"",
+    "r.attempts.entries[3].duration_ms must be a non-negative integer; received -1",
+    "r.attempts.entries[4].duration_ms must be a non-negative integer; received 1.5",
+    "r.attempts.entries[5].duration_ms must be a non-negative integer; received \"3\"",
+    "r.attempts.entries[6].duration_ms must be a non-negative integer; received null"
+  ],
+  "diagnosticsString": ["r.diagnostics must be an array of non-empty strings"],
+  "diagnosticsBlank": ["r.diagnostics must be an array of non-empty strings"],
+  "diagnosticsEmpty": []
+}

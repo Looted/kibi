@@ -33,12 +33,39 @@ export function localKibiCommand(cwd: string): string {
   return "npm exec --no -- kibi";
 }
 
-/** How to route the authored manifests to `kibi merge-driver`. */
+/** The gap {@link manifestMergeDriverGaps} reports for a missing attribute. */
 // implements REQ-cli-doctor
-export function mergeDriverSetup(cwd?: string): string {
+export const MERGE_ATTRIBUTE_GAP =
+  ".kb/symbols.yaml is not routed to merge=kibi";
+
+/** The gap {@link manifestMergeDriverGaps} reports for an unset driver. */
+// implements REQ-cli-doctor
+export const MERGE_DRIVER_GAP = "merge.kibi.driver is not set";
+
+/**
+ * How to route the authored manifests to `kibi merge-driver`. Given the
+ * gaps {@link manifestMergeDriverGaps} found, it names only the missing
+ * steps, so a repository whose `.gitattributes` already routes the manifests
+ * is not told to add them again.
+ */
+// implements REQ-cli-doctor, REQ-cli-doctor-merge-driver-remediation
+export function mergeDriverSetup(
+  cwd?: string,
+  gaps: readonly string[] = [MERGE_ATTRIBUTE_GAP, MERGE_DRIVER_GAP],
+): string {
   const command =
     cwd === undefined ? "npm exec --no -- kibi" : localKibiCommand(cwd);
-  return `Add to .gitattributes: ".kb/symbols.yaml merge=kibi" and ".kb/relationships/*.yaml merge=kibi"; then run: git config merge.kibi.driver "${command} merge-driver %O %A %B" (see docs/cli-reference.md#kibi-merge-driver-base-current-other).`;
+  const attribute = gaps.includes(MERGE_ATTRIBUTE_GAP)
+    ? 'Add to .gitattributes: ".kb/symbols.yaml merge=kibi" and ".kb/relationships/*.yaml merge=kibi"'
+    : "";
+  const driver = gaps.includes(MERGE_DRIVER_GAP)
+    ? `git config merge.kibi.driver "${command} merge-driver %O %A %B"`
+    : "";
+  const steps =
+    attribute && driver
+      ? `${attribute}; then run: ${driver}`
+      : attribute || `Run: ${driver}`;
+  return `${steps} (see docs/cli-reference.md#kibi-merge-driver-base-current-other).`;
 }
 
 /** The npm form of {@link mergeDriverSetup}. */
@@ -90,7 +117,7 @@ export function manifestMergeDriverGaps(cwd: string): string[] | null {
   const routed = attribute.endsWith(": merge: kibi");
   const driver = gitOutput(cwd, ["config", "--get", "merge.kibi.driver"]);
   return [
-    ...(routed ? [] : [".kb/symbols.yaml is not routed to merge=kibi"]),
-    ...(driver ? [] : ["merge.kibi.driver is not set"]),
+    ...(routed ? [] : [MERGE_ATTRIBUTE_GAP]),
+    ...(driver ? [] : [MERGE_DRIVER_GAP]),
   ];
 }

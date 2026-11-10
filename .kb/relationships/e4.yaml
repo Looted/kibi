@@ -342,3 +342,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e7c23d99c111
+  - type: validates
+    from: TEST-kb-dependencies-git
+    to: SCEN-kb-dependencies-git
+    created_at: 2026-11-04T10:43:11.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48d0127159b8
+  - type: validates
+    from: TEST-kb-dependencies-git
+    to: SCEN-NEG-kb-dependencies-git-refused
+    created_at: 2026-11-04T10:43:11.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03f6474f7aac
+  - type: implements
+    from: SYM-kb-dependencies-kb-dependency-checkout-path
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:54:17.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9df4d436608
+  - type: covered_by
+    from: SYM-kb-dependencies-kb-dependency-checkout-path
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:54:17.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7851c05f9e9

@@ -1,0 +1,82 @@
+{
+  "none": {
+    "content": [
+      {
+        "type": "text",
+        "text": "No matching gaps found."
+      }
+    ],
+    "structuredContent": {
+      "rows": [],
+      "count": 0
+    }
+  },
+  "noRows": {
+    "content": [
+      {
+        "type": "text",
+        "text": "No matching gaps found."
+      }
+    ],
+    "structuredContent": {
+      "count": 0
+    }
+  },
+  "stubs": {
+    "content": [
+      {
+        "type": "text",
+        "text": "No matching gaps found. 2 provenance stub(s) matched the filters and are counted apart (summary.provenanceStubs)."
+      }
+    ],
+    "structuredContent": {
+      "count": 0,
+      "summary": {
+        "total": 0,
+        "provenanceStubs": 2
+      }
+    }
+  },
+  "rows": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Found 7 gap rows. Showing 2: REQ-a, REQ-b. 1 provenance stub(s) matched the filters and are counted apart (summary.provenanceStubs)."
+      }
+    ],
+    "structuredContent": {
+      "rows": [
+        {
+          "id": "REQ-a"
+        },
+        {
+          "id": "REQ-b"
+        }
+      ],
+      "count": 7,
+      "summary": {
+        "total": 7,
+        "provenanceStubs": 1
+      },
+      "meta": {
+        "branch": "main",
+        "branchStoreKey": "key"
+      }
+    }
+  },
+  "uncounted": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Found 1 gap rows. Showing 1: REQ-a."
+      }
+    ],
+    "structuredContent": {
+      "rows": [
+        {
+          "id": "REQ-a"
+        }
+      ]
+    }
+  }
+}

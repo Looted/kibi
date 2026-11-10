@@ -50,48 +50,61 @@ const MAX_CONTENT_SNIFF_LENGTH = 65_536;
 const MAX_SHEBANG_TOKENS = 16;
 const MAX_TOKEN_LENGTH = 128;
 
+const LANGUAGE_EXTENSIONS: Readonly<Record<string, string>> = {
+  ".bash": "bash",
+  ".c": "c",
+  ".cc": "cpp",
+  ".cjs": "javascript",
+  ".cpp": "cpp",
+  ".cs": "csharp",
+  ".cts": "typescript",
+  ".cxx": "cpp",
+  ".go": "go",
+  ".hcl": "hcl",
+  ".hh": "cpp",
+  ".hpp": "cpp",
+  ".hxx": "cpp",
+  ".java": "java",
+  ".js": "javascript",
+  ".jsx": "javascript",
+  ".kt": "kotlin",
+  ".mjs": "javascript",
+  ".mts": "typescript",
+  ".php": "php",
+  ".plt": "prolog",
+  ".py": "python",
+  ".pyi": "python",
+  ".rb": "ruby",
+  ".rs": "rust",
+  ".swift": "swift",
+  ".ts": "typescript",
+  ".tsx": "typescript",
+  ".tf": "terraform",
+};
+
 const EXTENSIONS: Readonly<Record<string, ExtensionSignal>> = {
-  ".bash": { kind: "language", language: "bash" },
-  ".c": { kind: "language", language: "c" },
-  ".cc": { kind: "language", language: "cpp" },
-  ".cjs": { kind: "language", language: "javascript" },
-  ".cpp": { kind: "language", language: "cpp" },
-  ".cs": { kind: "language", language: "csharp" },
-  ".cts": { kind: "language", language: "typescript" },
-  ".cxx": { kind: "language", language: "cpp" },
-  ".go": { kind: "language", language: "go" },
+  ...Object.fromEntries(
+    Object.entries(LANGUAGE_EXTENSIONS).map(([extension, language]) => [
+      extension,
+      { kind: "language", language },
+    ]),
+  ),
   ".h": { kind: "ambiguous", language: "c-or-cpp", candidates: ["c", "cpp"] },
-  ".hcl": { kind: "language", language: "hcl" },
-  ".hh": { kind: "language", language: "cpp" },
-  ".hpp": { kind: "language", language: "cpp" },
-  ".hxx": { kind: "language", language: "cpp" },
   ".html": {
     kind: "file-level",
     language: "html",
     reason: "HTML is classified as a file-level document.",
   },
-  ".java": { kind: "language", language: "java" },
-  ".js": { kind: "language", language: "javascript" },
-  ".jsx": { kind: "language", language: "javascript" },
   ".json": {
     kind: "file-level",
     language: "json",
     reason: "JSON is classified as a file-level document.",
   },
-  ".kt": { kind: "language", language: "kotlin" },
-  ".mjs": { kind: "language", language: "javascript" },
-  ".mts": { kind: "language", language: "typescript" },
-  ".php": { kind: "language", language: "php" },
-  ".plt": { kind: "language", language: "prolog" },
   ".pl": {
     kind: "ambiguous",
     language: "perl-or-prolog",
     candidates: ["perl", "prolog"],
   },
-  ".py": { kind: "language", language: "python" },
-  ".pyi": { kind: "language", language: "python" },
-  ".rb": { kind: "language", language: "ruby" },
-  ".rs": { kind: "language", language: "rust" },
   ".sh": {
     kind: "file-level",
     language: "shell",
@@ -102,10 +115,6 @@ const EXTENSIONS: Readonly<Record<string, ExtensionSignal>> = {
     language: "sql",
     reason: "SQL is classified as a file-level document.",
   },
-  ".swift": { kind: "language", language: "swift" },
-  ".ts": { kind: "language", language: "typescript" },
-  ".tsx": { kind: "language", language: "typescript" },
-  ".tf": { kind: "language", language: "terraform" },
   ".yaml": {
     kind: "file-level",
     language: "yaml",
@@ -203,7 +212,7 @@ const SHELL_INTERPRETERS = new Set([
 ]);
 
 function basename(value: string): string {
-  return value.split(/[\\/]/).at(-1) ?? value;
+  return value.split(/[\\/]/).at(-1) as string;
 }
 
 function extensionOf(filePath: string): string {
@@ -212,21 +221,19 @@ function extensionOf(filePath: string): string {
   return dot <= 0 ? "" : name.slice(dot).toLowerCase();
 }
 
-function canonicalLanguage(value: string): string | undefined {
-  const language = value.trim().toLowerCase();
-  if (language === "") return undefined;
-  if (["py", "python", "python2", "python3"].includes(language))
-    return "python";
-  if (["bash", "bash5"].includes(language)) return "bash";
-  if (["rb", "ruby"].includes(language) || /^ruby\d+(?:\.\d+)*$/.test(language))
-    return "ruby";
-  if (["js", "javascript", "node", "nodejs"].includes(language))
-    return "javascript";
-  if (["ts", "typescript"].includes(language)) return "typescript";
-  if (["c++", "cpp", "cxx"].includes(language)) return "cpp";
-  if (["c#", "c-sharp", "csharp", "cs"].includes(language)) return "csharp";
-  if (["perl", "pl"].includes(language)) return "perl";
-  if (["prolog", "swipl"].includes(language)) return "prolog";
+/** The catalog name for a trimmed, non-empty language hint. */
+function canonicalLanguage(value: string): string {
+  const language = value.toLowerCase();
+  // Names that are already canonical pass through unchanged.
+  if (["py", "python2", "python3"].includes(language)) return "python";
+  if (language === "bash5") return "bash";
+  if (language === "rb" || /^ruby\d+(?:\.\d+)*$/.test(language)) return "ruby";
+  if (["js", "node", "nodejs"].includes(language)) return "javascript";
+  if (language === "ts") return "typescript";
+  if (["c++", "cxx"].includes(language)) return "cpp";
+  if (["c#", "c-sharp", "cs"].includes(language)) return "csharp";
+  if (language === "pl") return "perl";
+  if (language === "swipl") return "prolog";
   if (language === "tf") return "terraform";
   return language;
 }
@@ -244,15 +251,14 @@ function tokenizeWords(value: string): string[] | undefined {
       started = true;
       continue;
     }
+    // The escaped character, or the opening quote, starts the word.
     if (character === "\\" && quote !== "'") {
       escaped = true;
-      started = true;
       continue;
     }
     if (quote !== undefined) {
       if (character === quote) quote = undefined;
       else current += character;
-      started = true;
       continue;
     }
     if (character === "'" || character === '"') {
@@ -263,7 +269,6 @@ function tokenizeWords(value: string): string[] | undefined {
     if (/\s/.test(character)) {
       if (started) {
         words.push(current);
-        if (words.length > MAX_SHEBANG_TOKENS) return undefined;
         current = "";
         started = false;
       }
@@ -280,8 +285,7 @@ function tokenizeWords(value: string): string[] | undefined {
 
 function envCommand(arguments_: readonly string[]): string | undefined {
   for (let index = 0; index < arguments_.length; index += 1) {
-    const argument = arguments_[index];
-    if (argument === undefined) return undefined;
+    const argument = arguments_[index] as string;
     if (argument === "--") return arguments_[index + 1];
     if (argument === "-S" || argument === "--split-string") {
       const commandText = arguments_.slice(index + 1).join(" ");
@@ -322,8 +326,7 @@ function commandInSplitString(value: string): string | undefined {
   if (!words) return undefined;
   let index = 0;
   while (index < words.length) {
-    const argument = words[index];
-    if (argument === undefined) return undefined;
+    const argument = words[index] as string;
     if (argument === "--") return words[index + 1];
     if (argument === "-i" || argument === "--ignore-environment") {
       index += 1;
@@ -331,7 +334,8 @@ function commandInSplitString(value: string): string | undefined {
     }
     if (argument === "-u" || argument === "--unset") {
       const name = words[index + 1];
-      if (name === undefined || name === "") return undefined;
+      // A missing name ends the loop below without a command.
+      if (name === "") return undefined;
       index += 2;
       continue;
     }
@@ -381,23 +385,23 @@ function shebangFor(content: string): ShebangInterpreter | undefined {
   const bomOffset = content.charCodeAt(0) === 0xfeff ? 1 : 0;
   const prefix = content.slice(bomOffset, bomOffset + MAX_SHEBANG_LENGTH + 2);
   if (!prefix.startsWith("#!")) return undefined;
-  const lineEnd = prefix.search(/[\r\n]/);
-  if (lineEnd < 0 && content.length > bomOffset + MAX_SHEBANG_LENGTH + 2) {
+  const line = prefix.split(/[\r\n]/, 1)[0] as string;
+  if (line === prefix && content.length > bomOffset + MAX_SHEBANG_LENGTH + 2) {
     return { name: "overlong-shebang" };
   }
-  const line = prefix.slice(2, lineEnd < 0 ? undefined : lineEnd).trim();
-  const words = tokenizeWords(line);
-  if (!words || words.length === 0 || words[0] === undefined) {
+  // The tokenizer skips the blanks around words.
+  const [first, ...rest] = tokenizeWords(line.slice(2)) ?? [];
+  if (first === undefined) {
     return { name: "malformed-shebang" };
   }
-  const executable = basename(words[0]).toLowerCase();
+  const executable = basename(first).toLowerCase();
   if (executable === "env") {
-    const command = envCommand(words.slice(1));
+    const command = envCommand(rest);
     return command === undefined
       ? { name: "malformed-env-shebang" }
       : interpreterFor(command);
   }
-  return interpreterFor(words[0]);
+  return interpreterFor(first);
 }
 
 // Lines only Prolog source starts with: a directive, a clause or DCG rule
@@ -423,7 +427,7 @@ function perlOrPrologByContent(content: string): string | undefined {
 
 // C++-only constructs; `extern "C"` guards and C23 attributes are not among them.
 const CPP_ONLY =
-  /^\s*(?:class|namespace|template\s*<|using\s+namespace)\b|^\s*(?:public|private|protected)\s*:|\b(?:virtual|constexpr|nullptr|operator\s*[^\w\s]|static_cast|dynamic_cast|reinterpret_cast|noexcept)\b|\bstd::|[A-Za-z_]\w*::[A-Za-z_~]/m;
+  /^\s*(?:class|namespace|template\s*<|using\s+namespace)\b|^\s*(?:public|private|protected)\s*:|\b(?:virtual|constexpr|nullptr|static_cast|dynamic_cast|reinterpret_cast|noexcept)\b|\boperator\s*[^\w\s]|\bstd::|[A-Za-z_]\w*::[A-Za-z_~]/m;
 
 /**
  * Resolves a `.h` header without a shebang: C++ when its code uses a
@@ -435,7 +439,7 @@ function cOrCppByContent(content: string): string {
   const code = content
     .slice(0, MAX_CONTENT_SNIFF_LENGTH)
     .replace(/\/\*[\s\S]*?\*\//g, " ")
-    .replace(/\/\/[^\n]*/g, " ")
+    .replace(/\/\/[^\n]*/g, "")
     .replace(/"(?:[^"\\\n]|\\.)*"/g, '""');
   return CPP_ONLY.test(code) ? "cpp" : "c";
 }
@@ -461,7 +465,8 @@ function isExtensionCompatibleWith(
 ): boolean {
   if (extension.kind === "ambiguous")
     return extension.candidates.includes(language);
-  if (extension.kind === "file-level" && extension.language === "shell") {
+  // Only the file-level .sh extension names the shell family.
+  if (extension.language === "shell") {
     return language === "bash" || language === "shell";
   }
   return extension.language === language;
@@ -472,7 +477,7 @@ function conflict(
   details: Pick<
     Extract<SourceClassification, { kind: "conflict" }>,
     "extensionLanguage" | "shebangLanguage" | "explicitLanguage"
-  > = {},
+  >,
 ): SourceClassification {
   return { kind: "conflict", language: "unknown", reason, ...details };
 }
@@ -488,12 +493,6 @@ export function classifySource(
   const explicit = explicitRaw ? canonicalLanguage(explicitRaw) : undefined;
   const shebang = shebangFor(content);
   const shebangLanguage = shebang?.language;
-
-  if (explicitRaw && explicit === undefined) {
-    return conflict(
-      `The explicit language hint '${explicitRaw}' is not recognized.`,
-    );
-  }
 
   if (explicit !== undefined) {
     if (
@@ -544,14 +543,12 @@ export function classifySource(
         kind: "ambiguous",
         language: extension.language,
         candidates: extension.candidates,
-        reason: `The '${extension.language === "c-or-cpp" ? ".h" : ".pl"}' extension does not select one language.`,
+        // A .h header always resolves by content, so only .pl stays open.
+        reason: "The '.pl' extension does not select one language.",
       };
     }
-    const resolvedLanguage = shebang.language;
-    if (
-      resolvedLanguage !== undefined &&
-      extension.candidates.includes(resolvedLanguage)
-    ) {
+    const resolvedLanguage = shebang.language as string;
+    if (extension.candidates.includes(resolvedLanguage)) {
       return classificationForLanguage(resolvedLanguage, "shebang");
     }
     return conflict(

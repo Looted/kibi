@@ -202,3 +202,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2a3a3ea960cb
+  - type: implements
+    from: SYM-cli-json-command-write-optional-stderr
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-11-04T10:53:11.333Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72f2c6ed83eb
+  - type: covered_by
+    from: SYM-cli-json-command-write-optional-stderr
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-11-04T10:53:11.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40ddf0e4eba8
+  - type: executable_for
+    from: SYM-cli-doctor-merge-driver-remediation-verifier
+    to: TEST-cli-doctor-merge-driver-remediation
+    created_at: 2026-11-05T11:48:14.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fa222848b51

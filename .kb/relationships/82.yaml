@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8ebc82ab8667
+  - type: implements
+    from: SYM-migrate-command-apply-plan-command
+    to: REQ-cli-schema-migration
+    created_at: 2026-11-05T12:07:10.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-932c168c7071
+  - type: covered_by
+    from: SYM-migrate-command-apply-plan-command
+    to: TEST-kibi-schema6-migration-cli
+    created_at: 2026-11-05T12:07:10.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba265f86c053

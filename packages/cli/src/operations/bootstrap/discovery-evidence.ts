@@ -26,6 +26,11 @@ const SCAN_PATTERNS = [
 ] as const;
 const CODE_EXTENSION =
   /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|py|pyi|rb|go|rs|java|kt|swift|php|c|cc|cpp|cxx|h|hh|hpp|hxx|cs|sh|bash|tf|hcl|pl|plt)$/i;
+const METADATA_LANGUAGE: Readonly<Record<string, string>> = {
+  "Cargo.toml": "rust",
+  "go.mod": "go",
+  "pyproject.toml": "python",
+};
 const LAYOUT_ROOTS = new Set([
   "src",
   "app",
@@ -132,12 +137,20 @@ function prologModuleEvidence(
   const declaration = content.match(
     /^:-\s*module\(\s*([a-z][A-Za-z0-9_]*|'(?:[^'\\]|'')*')\s*,\s*\[([^\]]*)\]/m,
   );
-  const moduleName = declaration?.[1]?.replace(/^'|'$/g, "");
-  const exports = [
-    ...(declaration?.[2] ?? "")
-      .replace(/%[^\n]*/g, "")
-      .matchAll(/([a-z][A-Za-z0-9_]*|'(?:[^'\\]|'')*')\s*(\/\/?)\s*(\d+)/g),
-  ].map(([, name, slash, arity]) => `${name}${slash}${arity}`);
+  const moduleName =
+    declaration === null
+      ? undefined
+      : (declaration[1] as string).replace(/^'|'$/g, "");
+  const exports =
+    declaration === null
+      ? []
+      : [
+          ...(declaration[2] as string)
+            .replace(/%[^\n]*/g, "")
+            .matchAll(
+              /([a-z][A-Za-z0-9_]*|'(?:[^'\\]|'')*')\s*(\/\/?)\s*(\d+)/g,
+            ),
+        ].map(([, name, slash, arity]) => `${name}${slash}${arity}`);
   const title = `Source module: ${moduleName ?? path.basename(relativePath, ".pl")}`;
   return {
     title,
@@ -148,7 +161,8 @@ function prologModuleEvidence(
     symbolCount: exports.length,
     ...(moduleName === undefined ? {} : { module: moduleName }),
     exports,
-    ...(moduleName !== undefined && exports.length > 0
+    // Exports come only from a declaration, which names the module.
+    ...(exports.length > 0
       ? {
           claim: `Prolog module ${moduleName} (${relativePath}) exports ${exports.join(", ")}.`,
         }
@@ -163,7 +177,8 @@ function evidenceData(
 ): Readonly<Record<string, unknown>> {
   if (provider === "repo_metadata") {
     const languages = new Set<string>();
-    if (/^package\.json$/i.test(path.basename(relativePath))) {
+    const name = path.basename(relativePath);
+    if (name === "package.json") {
       try {
         const parsed = JSON.parse(content) as {
           bin?: unknown;
@@ -177,11 +192,10 @@ function evidenceData(
         // The scanner records a parse warning separately below.
       }
     }
-    if (/Cargo\.toml$/i.test(relativePath)) languages.add("rust");
-    if (/go\.mod$/i.test(relativePath)) languages.add("go");
-    if (/pyproject\.toml$/i.test(relativePath)) languages.add("python");
+    const language = METADATA_LANGUAGE[name];
+    if (language) languages.add(language);
     return {
-      title: `Repository metadata: ${path.basename(relativePath)}`,
+      title: `Repository metadata: ${name}`,
       factKind: "meta",
       confidence: relativePath.includes("tsconfig") ? 0.9 : 0.86,
       evidence: [`repo_metadata:${relativePath}`],
@@ -214,24 +228,22 @@ function evidenceData(
         : {}),
     };
   }
-  if (provider === "source_symbols" && /\.pl$/i.test(relativePath))
+  if (provider !== "source_symbols") return {};
+  if (/\.pl$/i.test(relativePath))
     return prologModuleEvidence(relativePath, content);
-  if (provider === "source_symbols") {
-    const symbolCount = Array.from(
-      content.matchAll(
-        /\b(?:export\s+)?(?:function|class|const|let|var|interface|type)\s+([A-Za-z_$][\w$]*)/g,
-      ),
-    ).length;
-    return {
-      title: `Source module: ${path.basename(relativePath, path.extname(relativePath))}`,
-      factKind: "observation",
-      confidence: 0.82,
-      evidence: [`source_symbols:${relativePath}`],
-      analysisMode: "parser",
-      symbolCount,
-    };
-  }
-  return {};
+  const symbolCount = Array.from(
+    content.matchAll(
+      /\b(?:function|class|const|let|var|interface|type)\s+[A-Za-z_$]/g,
+    ),
+  ).length;
+  return {
+    title: `Source module: ${path.basename(relativePath, path.extname(relativePath))}`,
+    factKind: "observation",
+    confidence: 0.82,
+    evidence: [`source_symbols:${relativePath}`],
+    analysisMode: "parser",
+    symbolCount,
+  };
 }
 
 function layoutEvidence(
@@ -243,7 +255,7 @@ function layoutEvidence(
     ...new Set(
       files
         .filter((file) => !ignored.has(file))
-        .map((file) => file.split("/", 1)[0] ?? "")
+        .map((file) => file.split("/", 1)[0] as string)
         .filter((root) => LAYOUT_ROOTS.has(root)),
     ),
   ];
@@ -293,10 +305,8 @@ export async function scanEvidence(
       const classification = classifyFile(relativePath, content);
       if (!classification) continue;
       const [provider, kind] = classification;
-      if (
-        provider === "repo_metadata" &&
-        path.basename(relativePath) === "package.json"
-      ) {
+      // Only repository metadata is named package.json.
+      if (path.basename(relativePath) === "package.json") {
         try {
           JSON.parse(content);
         } catch {

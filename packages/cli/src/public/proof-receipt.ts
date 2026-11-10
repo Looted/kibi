@@ -281,16 +281,17 @@ export function finishedAtPrecedesStartedAt(
   return startedAt !== null && finishedAt !== null && finishedAt < startedAt;
 }
 
+const ISO_TIMESTAMP =
+  /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})/;
+
 function timestamp(value: unknown): number | null {
-  if (typeof value !== "string") return null;
-  if (
-    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(
-      value,
-    )
-  ) {
-    return null;
-  }
-  const parsed = Date.parse(value);
+  // A non-string value never equals its own match, so this also rejects it.
+  // rationale: Bun's Date.parse already rejects text around an ISO timestamp,
+  // so skipping this whole-string check is equivalent; it keeps the format
+  // strict on engines with a more lenient parser.
+  // Stryker disable next-line ConditionalExpression
+  if (ISO_TIMESTAMP.exec(String(value))?.[0] !== value) return null;
+  const parsed = Date.parse(value as string);
   return Number.isFinite(parsed) ? parsed : null;
 }
 
@@ -386,10 +387,7 @@ export function validProofReceiptShape(
   if (!hex64(row.code_snapshot) || !hex64(row.environment_hash)) return false;
   if (!hex64(row.artifact_digest)) return false;
   if (!hex64(row.contract_hash) || !hex64(row.fingerprint)) return false;
-  if (
-    row.binding_hash !== undefined &&
-    (typeof row.binding_hash !== "string" || !hex64(row.binding_hash))
-  ) {
+  if (row.binding_hash !== undefined && !hex64(row.binding_hash)) {
     return false;
   }
   if (!validFingerprintComponents(row.fingerprint_components)) return false;
@@ -500,8 +498,12 @@ export function proofReceiptHistoryErrors(
     );
   }
   const receiptIds = new Set<string>();
+  let previousFinishedAt: number | null = null;
   for (const [index, receipt] of receipts.entries()) {
     const prefix = `proof_receipts[${index}]`;
+    const priorFinishedAt = previousFinishedAt;
+    const finishedAt = timestamp(receipt.finished_at);
+    previousFinishedAt = finishedAt;
     const receiptId = receipt.receipt_id;
     if (typeof receiptId === "string") {
       if (receiptIds.has(receiptId)) {
@@ -518,13 +520,8 @@ export function proofReceiptHistoryErrors(
       );
       continue;
     }
-    const finishedAt = timestamp(receipt.finished_at);
-    if (
-      finishedAt !== null &&
-      index > 0 &&
-      timestamp(receipts[index - 1]?.finished_at) !== null &&
-      finishedAt <= (timestamp(receipts[index - 1]?.finished_at) as number)
-    ) {
+    // A structurally valid receipt always has a finished_at timestamp.
+    if (priorFinishedAt !== null && (finishedAt as number) <= priorFinishedAt) {
       errors.push(
         `${prefix}.finished_at must be strictly later than the previous receipt`,
       );

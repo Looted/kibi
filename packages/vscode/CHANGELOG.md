@@ -1,5 +1,33 @@
 # kibi-vscode
 
+## 1.1.1
+
+### Patch Changes
+
+- b6ac04c: CodeLens titles now label a single uncategorized linked entity as "1 other" instead of "1 othe". The Knowledge Base tree no longer misreads an entity whose type matches a built-in object property name (such as `constructor`) as having a documentation folder.
+- Updated dependencies [fccc13a]
+- Updated dependencies [282f7ba]
+- Updated dependencies [46ecef0]
+- Updated dependencies [7a4b299]
+- Updated dependencies [82232ab]
+- Updated dependencies [d7698a2]
+- Updated dependencies [8b88fec]
+- Updated dependencies [38ffe61]
+- Updated dependencies [a994bd3]
+- Updated dependencies [d96582d]
+- Updated dependencies [0962e49]
+- Updated dependencies [a8508a1]
+- Updated dependencies [7268060]
+- Updated dependencies [43cf20f]
+- Updated dependencies [dd11641]
+- Updated dependencies [2924762]
+- Updated dependencies [2db1175]
+- Updated dependencies [b08edea]
+- Updated dependencies [8c94528]
+- Updated dependencies [029f99b]
+- Updated dependencies [03d2308]
+  - kibi-cli@2.42.0
+
 ## 1.1.0
 
 ### Minor Changes

@@ -20,19 +20,16 @@ hand from the Actions tab (pick the branch to test). The contract test in
 | Task | Command |
 | --- | --- |
 | Run the gated Prolog mutation suite | `bun run test:mutation:prolog` |
-| Run the report-only backlog | `bun run test:mutation:prolog:backlog` |
 | List the mutants without running tests | `swipl scripts/run-prolog-mutation.pl list` |
 | Re-run chosen mutants | `bun run test:mutation:prolog -- --only <id>,<id>` |
-| Inspect the reports | open `reports/mutation/prolog/mutation.html` or `reports/mutation/prolog-backlog/mutation.html` |
+| Inspect the reports | open `reports/mutation/prolog/mutation.html` |
 | Raw machine report | `reports/mutation/prolog/mutation.json` |
 
-Mutalog's thresholds apply to a whole run, so the lane has two configs at
-the repository root:
+The lane has one config at the repository root:
 
 | Config | Modules | Gate | Mutants | Run time |
 | --- | --- | --- | --- | --- |
-| `mutalog.config.pl` | `logic_ir.pl`, `intervals.pl`, `units.pl`, `symbol_classification.pl`, `derived_chr.pl`, `sparql_client.pl`, `kb_consistency.pl`, `certificates.pl`, `cases.pl`, `rule_registry.pl`, `status.pl`, `code_certificates.pl`, `certificate_check.pl`, `model_check.pl`, `claim_obligations.pl`, `semantic_quality.pl`, `discovery.pl`, `checks.pl`, `requirement_proof.pl` and the `schema/` `entities.pl`, `relationships.pl` and `validation.pl`, each tested by its own `.plt` (`requirement_proof.pl` also by `kb.plt`) | `break(100)` | ~25,000 | about 50 minutes on 4 cores |
-| `mutalog.backlog.config.pl` | `kb.pl` (tested by `logic_ir.plt` and `kb.plt`) | `break(0)`, report only | 4,840, 32.1% | about 10 minutes on 3 workers |
+| `mutalog.config.pl` | `logic_ir.pl`, `intervals.pl`, `units.pl`, `symbol_classification.pl`, `derived_chr.pl`, `sparql_client.pl`, `kb_consistency.pl`, `certificates.pl`, `cases.pl`, `rule_registry.pl`, `status.pl`, `code_certificates.pl`, `certificate_check.pl`, `model_check.pl`, `claim_obligations.pl`, `semantic_quality.pl`, `discovery.pl`, `checks.pl`, `requirement_proof.pl`, the KB store `kb.pl` and the `schema/` `entities.pl`, `relationships.pl` and `validation.pl`, each tested by its own `.plt` (`requirement_proof.pl` also by `kb.plt`) | `break(100)` | ~30,000 | about 2 hours on 4 cores |
 
 - Like the Stryker gate, `mutalog.config.pl` **gates at 100%**: any
   surviving mutant fails the run. An equivalent mutant is suppressed in the
@@ -49,21 +46,17 @@ the repository root:
   inserted after a deterministic first goal of a clause that no later clause
   can also match. In `intervals.pl` they also cover cuts whose caller keeps
   only the first answer.
-- `mutalog.backlog.config.pl` holds modules whose survivors are not triaged
-  yet. Once a module's survivors are killed or suppressed as equivalents, move it
-  to `mutalog.config.pl`.
 - `scripts/run-prolog-mutation.pl` pins the Mutalog version. On first use
   it downloads the release archive with `curl` and unpacks it with `tar`
   into `.cache/prolog-packs` (gitignored), leaving the user's own packs
   alone. Set `MUTALOG_HOME` to a
   Mutalog checkout to run that instead.
-- `.github/workflows/mutation-prolog.yml` runs both configs on the bundled
-  SWI-Prolog when dispatched by hand from the Actions tab. Only the gated
-  run can fail the job. Both reports are uploaded as the
-  `prolog-mutation-report` artifact.
+- `.github/workflows/mutation-prolog.yml` runs the config on the bundled
+  SWI-Prolog when dispatched by hand from the Actions tab. The report is
+  uploaded as the `prolog-mutation-report` artifact.
 
 To add a module, add it to `mutate` and its plunit file to `tests` in
-`mutalog.backlog.config.pl`.
+`mutalog.config.pl`, then kill or suppress every survivor.
 Measure the module's run time first and raise the job's `timeout-minutes` if
 needed.
 

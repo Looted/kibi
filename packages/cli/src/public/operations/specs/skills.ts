@@ -9,7 +9,7 @@ import type { OperationContext } from "../runtime-types.js";
 import type { OperationResult, OperationSpec } from "../types.js";
 
 function assertNonEmptyString(value: string, field: string): void {
-  if (typeof value !== "string" || value.trim() === "") {
+  if (value.trim() === "") {
     throw new Error(`${field} must be a non-empty string`);
   }
 }
@@ -44,9 +44,7 @@ async function executeSkillsLoad(
   assertNonEmptyString(id, "id");
   const bundle = loadBundledSkill(id);
   const resources = bundle.manifest.resources ?? [];
-  const contentHash = createHash("sha256")
-    .update(bundle.body, "utf8")
-    .digest("hex");
+  const contentHash = createHash("sha256").update(bundle.body).digest("hex");
   const resourceList = resources.length === 0 ? "none" : resources.join(", ");
   return {
     content: [

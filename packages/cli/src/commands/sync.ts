@@ -66,6 +66,7 @@ import { analyzeSemanticAdvisorInput } from "../operations/semantic-advisor/anal
 import { validateSemanticInventoryBoundary } from "../operations/semantic-advisor/ingestion-boundary.js";
 import { sourceAnalyzerInstallProblems } from "../plugins/plugin-install-check.js";
 import { PrologProcess } from "../prolog.js";
+import { escapeAtom } from "../prolog/codec.js";
 import {
   type BranchAttachment,
   detachedHeadWriteRefusal,
@@ -78,7 +79,6 @@ import {
   ensureBranchStoreManifest,
   expectedBranchStoreManifest,
 } from "../utils/branch-store-locator.js";
-import { loadEntityPaths } from "../utils/config.js";
 import {
   SYNC_CACHE_TTL_MS,
   SYNC_CACHE_VERSION,
@@ -135,35 +135,52 @@ import {
 
 export { SyncError };
 
-function relationshipKey(relationship: ExtractedRelationship): string {
+/** The output of a git command run in `cwd`; throws when git fails. */
+export function gitText(cwd: string, command: string): string {
+  return execSync(command, {
+    cwd,
+    encoding: "utf8",
+    timeout: 5000,
+    // rationale: stdio only keeps git's stderr off the terminal; the output
+    // read here is the same either way, so no test can observe it.
+    // Stryker disable next-line ArrayDeclaration,StringLiteral
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+}
+
+export function relationshipKey(relationship: ExtractedRelationship): string {
   return `${relationship.type}\0${relationship.from}\0${relationship.to}`;
 }
 
-function relationshipFromKey(key: string): ExtractedRelationship {
-  const [type, from, to] = key.split("\0");
-  if (type === undefined || from === undefined || to === undefined) {
+export function relationshipFromKey(key: string): ExtractedRelationship {
+  const parts = key.split("\0");
+  if (parts.length < 3) {
     throw new SyncError(`Invalid cached relationship key: ${key}`);
   }
+  const [type, from, to] = parts as [string, string, string];
   return { type, from, to };
 }
 
-function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
-  let conflicted = "";
+/** The non-empty entries of a git command's output, or none when git fails. */
+function gitEntries(cwd: string, command: string, separator: string): string[] {
   try {
-    conflicted = execSync("git diff --name-only --diff-filter=U --", {
-      cwd: workspaceRoot,
-      encoding: "utf8",
-      timeout: 5000,
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
+    return gitText(cwd, command).split(separator).filter(Boolean);
   } catch {
-    // A non-Git workspace is handled by branch resolution below. Do not turn
-    // a missing Git binary into a misleading conflict diagnostic.
-    return;
+    return [];
   }
-  if (conflicted) {
+}
+
+export function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
+  // A non-Git workspace is handled by branch resolution below. Do not turn
+  // a missing Git binary into a misleading conflict diagnostic.
+  const conflicted = gitEntries(
+    workspaceRoot,
+    "git diff --name-only --diff-filter=U --",
+    "\n",
+  );
+  if (conflicted.length > 0) {
     throw new SyncError(
-      `Unresolved Git conflicts block Kibi compilation; resolve these authored files first: ${conflicted.split("\n").join(", ")}`,
+      `Unresolved Git conflicts block Kibi compilation; resolve these authored files first: ${conflicted.join(", ")}`,
     );
   }
 }
@@ -179,30 +196,20 @@ function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
  */
 // implements REQ-kibi-proposition-complete-ingestion
 export function stagedNewSourceKeys(workspaceRoot: string): Set<string> {
-  try {
-    return new Set(
-      execSync(
-        // --no-renames: a staged rename is a new source key too, judged on
-        // the parent branch like any other addition.
-        "git diff --cached --no-renames --name-only --relative --diff-filter=A -z HEAD",
-        {
-          cwd: workspaceRoot,
-          encoding: "utf8",
-          timeout: 5000,
-          stdio: ["pipe", "pipe", "pipe"],
-        },
-      )
-        .split("\0")
-        .filter(Boolean)
-        .map((file) => file.replaceAll("\\", "/")),
-    );
-  } catch {
-    return new Set();
-  }
+  // Git prints forward-slash paths on every platform.
+  return new Set(
+    gitEntries(
+      workspaceRoot,
+      // --no-renames: a staged rename is a new source key too, judged on
+      // the parent branch like any other addition.
+      "git diff --cached --no-renames --name-only --relative --diff-filter=A -z HEAD",
+      "\0",
+    ),
+  );
 }
 
 /** Whether a branch store other than `livePath` has a non-empty sync cache. */
-function anotherBranchStoreSynced(
+export function anotherBranchStoreSynced(
   workspaceRoot: string,
   livePath: string,
 ): boolean {
@@ -220,10 +227,10 @@ function anotherBranchStoreSynced(
       const cache = JSON.parse(
         readFileSync(path.join(storePath, "sync-cache.json"), "utf8"),
       ) as { hashes?: unknown };
+      // Null hashes throw here: such a cache is unreadable too.
       if (
-        cache.hashes !== null &&
         typeof cache.hashes === "object" &&
-        Object.keys(cache.hashes).length > 0
+        Object.keys(cache.hashes as object).length > 0
       )
         return true;
     } catch {
@@ -237,20 +244,15 @@ export function trackedRelationshipFiles(
   workspaceRoot: string,
   relationshipsDir: string,
   recoverMissingPendingSources = false,
-  recoveredPendingReceiptPaths: PendingSourceReceiptSnapshot[] = [],
+  recoveredPendingReceiptPaths?: PendingSourceReceiptSnapshot[],
 ): string[] {
   let tracked: Set<string>;
   try {
     tracked = new Set(
-      execSync("git ls-files --cached -- .kb/relationships", {
-        cwd: workspaceRoot,
-        encoding: "utf8",
-        timeout: 5000,
-        stdio: ["pipe", "pipe", "pipe"],
-      })
-        .split("\n")
-        .filter(Boolean)
-        .map((file) => file.replaceAll("\\", "/")),
+      gitText(
+        workspaceRoot,
+        "git ls-files --cached -- .kb/relationships",
+      ).split("\n"),
     );
   } catch {
     // A non-Git workspace has no tracked relationship inputs. The caller's
@@ -294,11 +296,11 @@ export function trackedRelationshipFiles(
         if (recoverMissingPendingSources) {
           const receiptPath = path.join(pendingRoot, receiptName);
           if (
-            !recoveredPendingReceiptPaths.some(
+            !recoveredPendingReceiptPaths?.some(
               (candidate) => candidate.receiptPath === receiptPath,
             )
           ) {
-            recoveredPendingReceiptPaths.push({
+            recoveredPendingReceiptPaths?.push({
               receiptPath,
               path: relative,
               afterHash: receipt.afterHash,
@@ -321,23 +323,25 @@ export function trackedRelationshipFiles(
     }
   }
 
+  let names: string[];
   try {
-    return readdirSync(relationshipsDir)
-      .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
-      .map((file) => path.join(relationshipsDir, file))
-      .filter((file) => {
-        const relative = path
-          .relative(workspaceRoot, file)
-          .replaceAll(path.sep, "/");
-        return tracked.has(relative) || pending.has(relative);
-      })
-      .sort();
+    names = readdirSync(relationshipsDir);
   } catch {
     return [];
   }
+  return names
+    .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
+    .map((file) => path.join(relationshipsDir, file))
+    .filter((file) => {
+      const relative = path
+        .relative(workspaceRoot, file)
+        .replaceAll(path.sep, "/");
+      return tracked.has(relative) || pending.has(relative);
+    })
+    .sort();
 }
 
-function normalizedEntityHash(result: ExtractionResult): string {
+export function normalizedEntityHash(result: ExtractionResult): string {
   const entity = { ...result.entity } as Record<string, unknown>;
   // Manifest defaults are generated at extraction time. They must not turn a
   // one-record edit into 10,000 false-positive symbol updates.
@@ -353,7 +357,7 @@ function normalizedEntityHash(result: ExtractionResult): string {
 }
 
 // implements REQ-kibi-proposition-complete-ingestion
-function semanticBoundaryRelationships(
+export function semanticBoundaryRelationships(
   result: ExtractionResult,
   shardRelationships: readonly ExtractedRelationship[],
 ): ExtractedRelationship[] {
@@ -365,7 +369,7 @@ function semanticBoundaryRelationships(
   return [...relationships.values()];
 }
 
-async function checkpointNoopSync(
+export async function checkpointNoopSync(
   workspaceRoot: string,
   branch: string,
 ): Promise<void> {
@@ -389,7 +393,7 @@ async function checkpointNoopSync(
 
 /** Whether the branch's compiled store already holds any of `ids`. */
 // implements REQ-cli-status-pre-first-sync
-async function storeHoldsAnyEntity(
+export async function storeHoldsAnyEntity(
   workspaceRoot: string,
   branch: string,
   ids: readonly string[],
@@ -437,7 +441,7 @@ interface SyncCommandRuntime {
   acquireSymbolCompilerLock?: typeof acquireSymbolCompilerLock;
 }
 
-function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
+export function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
   return (
     cache.entityHashes !== undefined && cache.sourceEntityIds !== undefined
   );
@@ -449,7 +453,7 @@ function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
  * without a pending-source receipt): staging that file is the fix.
  */
 // implements REQ-core-persistence
-function reportDanglingRelationships(
+export function reportDanglingRelationships(
   workspaceRoot: string,
   validationErrors: ReturnType<typeof validateRelationships>,
 ): void {
@@ -477,7 +481,7 @@ function reportDanglingRelationships(
   }
 }
 
-function compilerCacheIsFresh(
+export function compilerCacheIsFresh(
   cache: SyncCache,
   workspaceRoot: string,
   sourceFiles: readonly string[],
@@ -488,18 +492,16 @@ function compilerCacheIsFresh(
     return false;
   }
   return sourceKeys.every((key) => {
-    const lastSeen = cache.seenAt[key];
-    const lastSeenMs = lastSeen ? Date.parse(lastSeen) : Number.NaN;
+    // A missing or unreadable sighting parses to NaN, which is never fresh.
+    const lastSeenMs = Date.parse(String(cache.seenAt[key]));
     return (
       typeof cache.hashes[key] === "string" &&
-      lastSeen !== undefined &&
-      !Number.isNaN(lastSeenMs) &&
       nowMs - lastSeenMs <= SYNC_CACHE_TTL_MS
     );
   });
 }
 
-function compilerCacheFilesMatch(
+export function compilerCacheFilesMatch(
   cache: SyncCache,
   workspaceRoot: string,
   sourceFiles: readonly string[],
@@ -576,15 +578,82 @@ export function maybePushDocsNotIndexedDiagnostic(
   markdownFileCount: number,
   entityCount: number,
 ): void {
-  if (
-    performedFullReindex &&
-    markdownFileCount > 0 &&
-    entityCount < markdownFileCount
-  ) {
+  if (performedFullReindex && entityCount < markdownFileCount) {
     diagnostics.push(
       createDocsNotIndexedDiagnostic(markdownFileCount, entityCount),
     );
   }
+}
+
+/**
+ * The entity types an authoring error says were embedded where they do not
+ * belong, or null when the error is not about embedding.
+ */
+export function embeddedEntityTypes(message: string): string[] | null {
+  const types = ["scenario", "test"].filter((type) => message.includes(type));
+  if (types.length > 0) return types;
+  return message.includes("Embedded Entity Violation") ? ["entity"] : null;
+}
+
+/** Print each extraction error and the failure count. */
+export function reportValidationErrors(
+  errors: ReadonlyArray<{ file: string; message: string }>,
+): void {
+  for (const err of errors) {
+    console.error(`${err.file}: ${err.message}`);
+  }
+  console.error(`FAILED: ${errors.length} errors found`);
+}
+
+/** Everything one sync compiled, before failed sources are left out. */
+export interface NextSyncCache {
+  hashes: Record<string, string>;
+  seenAt: Record<string, string>;
+  semanticHashes: Record<string, string>;
+  semanticContracts: Record<string, boolean>;
+  relationshipHashes: Record<string, string>;
+  entityHashes: Record<string, string>;
+  sourceEntityIds: Record<string, string[]>;
+  shardRelationships: Record<string, string[]>;
+  extractionFailures: NonNullable<SyncCache["extractionFailures"]>;
+  nowIso: string;
+}
+
+/**
+ * The cache a sync writes: every compiled source except those `skip` names,
+ * so a skipped source recompiles next time.
+ */
+export function compiledSyncCache(
+  next: NextSyncCache,
+  skip: (key: string) => boolean,
+): SyncCache {
+  const hashes: Record<string, string> = {};
+  const seenAt: Record<string, string> = {};
+  const semanticHashes: Record<string, string> = {};
+  const semanticContracts: Record<string, boolean> = {};
+  for (const [key, hash] of Object.entries(next.hashes)) {
+    if (skip(key)) continue;
+    hashes[key] = hash;
+    seenAt[key] = next.seenAt[key] ?? next.nowIso;
+    const semanticHash = next.semanticHashes[key];
+    if (semanticHash !== undefined) {
+      semanticHashes[key] = semanticHash;
+      semanticContracts[key] = next.semanticContracts[key] === true;
+    }
+  }
+  return {
+    version: SYNC_CACHE_VERSION,
+    hashes,
+    relationshipHashes: next.relationshipHashes,
+    entityHashes: next.entityHashes,
+    sourceEntityIds: next.sourceEntityIds,
+    shardRelationships: next.shardRelationships,
+    seenAt,
+    semanticHashes,
+    semanticContracts,
+    compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
+    extractionFailures: next.extractionFailures,
+  };
 }
 
 // implements REQ-003, REQ-007
@@ -623,31 +692,37 @@ export async function syncCommand(
   const startTime = Date.now();
   const diagnostics: Diagnostic[] = [];
   const entityCounts: Record<string, number> = {};
-  let published = false;
   let currentBranch: string | undefined;
   let stagingPath: string | undefined;
   let publicationLease: EnginePublicationLease | undefined;
   let compilerLock: SymbolCompilerLockHandle | undefined;
   let operationFailure: { readonly error: unknown } | undefined;
 
-  const getCurrentCommit = (): string | undefined => {
-    try {
-      return execSync("git rev-parse HEAD", {
-        cwd: workspaceRoot,
-        encoding: "utf8",
-        timeout: 5000,
-        stdio: ["pipe", "pipe", "pipe"],
-      }).trim();
-    } catch {
-      return undefined;
-    }
-  };
+  const getCurrentCommit = (): string | undefined =>
+    gitEntries(workspaceRoot, "git rev-parse HEAD", "\n")[0];
 
   const withOptionalCommit = <T extends object>(
     value: T,
     commit: string | undefined,
   ): T & { commit?: string } =>
     commit !== undefined ? { ...value, commit } : value;
+
+  /** The result of a sync that published nothing. */
+  const unpublished = (branch: string, success: boolean): SyncResult =>
+    withOptionalCommit(
+      {
+        branch,
+        timestamp: new Date().toISOString(),
+        entityCounts,
+        relationshipCount: 0,
+        success,
+        published: false,
+        failures: diagnostics,
+        durationMs: Date.now() - startTime,
+        exitCode: success ? 0 : 1,
+      },
+      getCurrentCommit(),
+    );
 
   try {
     if (!validateOnly) {
@@ -763,8 +838,6 @@ export async function syncCommand(
       console.log("[kibi-debug] currentBranch:", currentBranch);
     }
 
-    const paths = loadEntityPaths(workspaceRoot);
-
     const {
       markdownFiles,
       manifestFiles,
@@ -826,6 +899,8 @@ export async function syncCommand(
         try {
           await refreshManifestCoordinates(file, workspaceRoot, {
             incremental: true,
+            // A read-only snapshot compile keeps the reader's stdout clean.
+            ...(options.quiet === true ? { quiet: true } : {}),
           });
         } catch (error) {
           const message =
@@ -867,20 +942,7 @@ export async function syncCommand(
     ) {
       await checkpointNoopSync(workspaceRoot, currentBranch);
       info("✓ Imported 0 entities, 0 relationships (no changes)");
-      return withOptionalCommit(
-        {
-          branch: currentBranch,
-          timestamp: new Date().toISOString(),
-          entityCounts,
-          relationshipCount: 0,
-          success: true,
-          published: false,
-          failures: diagnostics,
-          durationMs: Date.now() - startTime,
-          exitCode: 0,
-        },
-        getCurrentCommit(),
-      );
+      return unpublished(currentBranch, true);
     }
 
     // Explicit coordinate refresh must precede fingerprinting so the manifest
@@ -921,12 +983,11 @@ export async function syncCommand(
           )
         : hashFile(workspaceRoot, file);
 
-    const changedSourceHashes = new Map<string, string>();
-    for (const file of sourceFiles) {
-      const key = toCacheKey(workspaceRoot, file);
-      const hash = effectiveSourceHash(file);
-      if (syncCache.hashes[key] !== hash) changedSourceHashes.set(key, hash);
-    }
+    const hashedSources = sourceFiles.map((file) => ({
+      file,
+      key: toCacheKey(workspaceRoot, file),
+      hash: effectiveSourceHash(file),
+    }));
 
     const nextHashes: Record<string, string> = {};
     const nextSeenAt: Record<string, string> = {};
@@ -941,11 +1002,16 @@ export async function syncCommand(
     const addedShardRelationships: ExtractedRelationship[] = [];
     const removedShardRelationships: ExtractedRelationship[] = [];
     const initialSemanticBaseline = Object.keys(syncCache.hashes).length === 0;
-    const baselineExcludedKeys =
-      initialSemanticBaseline &&
-      anotherBranchStoreSynced(workspaceRoot, livePathForEngine)
+    // On a first sync every source joins the semantic baseline, except a
+    // source staged as new while another branch store has already synced:
+    // that one is judged as an addition.
+    const baselineExcludedKeys = initialSemanticBaseline
+      ? anotherBranchStoreSynced(workspaceRoot, livePathForEngine)
         ? stagedNewSourceKeys(workspaceRoot)
-        : new Set<string>();
+        : new Set<string>()
+      : undefined;
+    const inSemanticBaseline = (key: string): boolean =>
+      baselineExcludedKeys !== undefined && !baselineExcludedKeys.has(key);
 
     const changedMarkdownFiles: string[] = [];
     const changedManifestFiles: string[] = [];
@@ -984,18 +1050,16 @@ export async function syncCommand(
             .sort((left, right) => left.localeCompare(right))
         : previousKeys;
       nextShardRelationships[key] = currentKeys;
-      if (shardChanged) {
-        const previous = new Set(previousKeys);
-        const current = new Set(currentKeys);
-        for (const edge of previous) {
-          if (!current.has(edge)) {
-            removedShardRelationships.push(relationshipFromKey(edge));
-          }
+      const previous = new Set(previousKeys);
+      const current = new Set(currentKeys);
+      for (const edge of previous) {
+        if (!current.has(edge)) {
+          removedShardRelationships.push(relationshipFromKey(edge));
         }
-        for (const edge of current) {
-          if (!previous.has(edge)) {
-            addedShardRelationships.push(relationshipFromKey(edge));
-          }
+      }
+      for (const edge of current) {
+        if (!previous.has(edge)) {
+          addedShardRelationships.push(relationshipFromKey(edge));
         }
       }
     }
@@ -1011,11 +1075,8 @@ export async function syncCommand(
       addedShardRelationships.length > 0 ||
       removedShardRelationships.length > 0;
 
-    for (const file of sourceFiles) {
+    for (const { file, key, hash } of hashedSources) {
       rememberChangedSourceOrWarn(file, () => {
-        const key = toCacheKey(workspaceRoot, file);
-        const hash = changedSourceHashes.get(key) ?? syncCache.hashes[key];
-        if (hash === undefined) return;
         const lastSeen = syncCache.seenAt[key];
         const lastSeenMs = lastSeen ? Date.parse(lastSeen) : Number.NaN;
         const expired =
@@ -1027,7 +1088,7 @@ export async function syncCommand(
         nextSeenAt[key] = nowIso;
 
         const isChanged =
-          expired || changedSourceHashes.has(key) || validateOnly || rebuild;
+          expired || syncCache.hashes[key] !== hash || validateOnly || rebuild;
 
         if (isChanged) {
           if (expired) forceEntitySourceKeys.add(key);
@@ -1042,10 +1103,8 @@ export async function syncCommand(
 
     // A v1 cache has only whole-file hashes. Perform one compiler-metadata
     // backfill so subsequent edits can be reduced to normalized entity deltas.
-    if (
-      syncCache.entityHashes === undefined ||
-      syncCache.sourceEntityIds === undefined
-    ) {
+    const supportsEntityDelta = compilerCacheHasEntityDelta(syncCache);
+    if (!supportsEntityDelta) {
       for (const file of markdownFiles) {
         if (!changedMarkdownFiles.includes(file))
           changedMarkdownFiles.push(file);
@@ -1105,8 +1164,7 @@ export async function syncCommand(
       nextExtractionFailures[key] = {
         hash,
         message: failure.message,
-        ...((initialSemanticBaseline && !baselineExcludedKeys.has(key)) ||
-        previousFailure?.baseline === true
+        ...(inSemanticBaseline(key) || previousFailure?.baseline === true
           ? { baseline: true }
           : {}),
         ...(semanticHash !== undefined ? { semanticHash } : {}),
@@ -1125,9 +1183,6 @@ export async function syncCommand(
     };
     const removedEntityIds = new Set<string>();
     const changedEntityIds = new Set<string>();
-    const supportsEntityDelta =
-      syncCache.entityHashes !== undefined &&
-      syncCache.sourceEntityIds !== undefined;
     const useEntityDelta =
       supportsEntityDelta &&
       !validateOnly &&
@@ -1143,9 +1198,9 @@ export async function syncCommand(
       !useEntityDelta ||
       changedMarkdownFiles.length > 0 ||
       changedManifestFiles.length > 0;
-    const allRelationships = materializeAllRelationships
-      ? Object.values(nextShardRelationships).flat().map(relationshipFromKey)
-      : [...addedShardRelationships, ...removedShardRelationships];
+    const allRelationships = Object.values(nextShardRelationships)
+      .flat()
+      .map(relationshipFromKey);
 
     for (const deletedSource of deletedSourceFiles) {
       const sourceKey = toCacheKey(workspaceRoot, deletedSource);
@@ -1239,8 +1294,7 @@ export async function syncCommand(
               previousFailure,
               boundary.sourceHash,
             )
-          : (syncCache.hashes[key] === undefined &&
-              (!initialSemanticBaseline || baselineExcludedKeys.has(key))) ||
+          : (syncCache.hashes[key] === undefined && !inSemanticBaseline(key)) ||
             syncCache.semanticContracts[key] === true ||
             (previousSemanticHash !== undefined &&
               previousSemanticHash !== boundary.sourceHash));
@@ -1275,22 +1329,8 @@ export async function syncCommand(
 
     // Collect INVALID_AUTHORING diagnostics
     for (const err of errors) {
-      const error = new Error(err.message) as Error & {
-        classification?: string;
-      };
-      if (
-        err.message.includes("Embedded Entity Violation") ||
-        err.message.includes("scenario") ||
-        err.message.includes("test")
-      ) {
-        const embeddedTypes =
-          err.message.includes("scenario") && err.message.includes("test")
-            ? ["scenario", "test"]
-            : err.message.includes("scenario")
-              ? ["scenario"]
-              : err.message.includes("test")
-                ? ["test"]
-                : ["entity"];
+      const embeddedTypes = embeddedEntityTypes(err.message);
+      if (embeddedTypes !== null) {
         diagnostics.push(
           createInvalidAuthoringDiagnostic(err.file, embeddedTypes),
         );
@@ -1298,26 +1338,22 @@ export async function syncCommand(
     }
 
     if (validateOnly && errors.length > 0 && results.length === 0) {
-      for (const err of errors) {
-        console.error(`${err.file}: ${err.message}`);
-      }
-      console.error(`FAILED: ${errors.length} errors found`);
-      return withOptionalCommit(
-        {
-          branch: currentBranch,
-          timestamp: new Date().toISOString(),
-          entityCounts,
-          relationshipCount: 0,
-          success: false,
-          published: false,
-          failures: diagnostics,
-          durationMs: Date.now() - startTime,
-          exitCode: 1,
-        },
-        getCurrentCommit(),
-      );
+      reportValidationErrors(errors);
+      return unpublished(currentBranch, false);
     }
 
+    const nextCache: NextSyncCache = {
+      hashes: nextHashes,
+      seenAt: nextSeenAt,
+      semanticHashes: nextSemanticHashes,
+      semanticContracts: nextSemanticContracts,
+      relationshipHashes: nextRelationshipHashes,
+      entityHashes: nextEntityHashes,
+      sourceEntityIds: nextSourceEntityIds,
+      shardRelationships: nextShardRelationships,
+      extractionFailures: nextExtractionFailures,
+      nowIso,
+    };
     if (
       results.length === 0 &&
       removedEntityIds.size === 0 &&
@@ -1327,23 +1363,6 @@ export async function syncCommand(
       deletedSourceFiles.length === 0 &&
       !rebuild
     ) {
-      const evictedHashes: Record<string, string> = {};
-      const evictedSeenAt: Record<string, string> = {};
-      const evictedSemanticHashes: Record<string, string> = {};
-      const evictedSemanticContracts: Record<string, boolean> = {};
-
-      for (const [key, hash] of Object.entries(nextHashes)) {
-        if (failedCacheKeys.has(key)) {
-          continue;
-        }
-        evictedHashes[key] = hash;
-        evictedSeenAt[key] = nextSeenAt[key] ?? nowIso;
-        if (nextSemanticHashes[key] !== undefined) {
-          evictedSemanticHashes[key] = nextSemanticHashes[key];
-          evictedSemanticContracts[key] = nextSemanticContracts[key] === true;
-        }
-      }
-
       // The durable KB checkpoint must precede the cache write: if the
       // checkpoint fails, cached fingerprints must stay stale so the next
       // sync recompiles instead of trusting uncommitted compiler output.
@@ -1351,35 +1370,13 @@ export async function syncCommand(
         await checkpointNoopSync(workspaceRoot, currentBranch);
       }
 
-      writeSyncCache(cachePath, {
-        version: SYNC_CACHE_VERSION,
-        hashes: evictedHashes,
-        relationshipHashes: nextRelationshipHashes,
-        entityHashes: nextEntityHashes,
-        sourceEntityIds: nextSourceEntityIds,
-        shardRelationships: nextShardRelationships,
-        seenAt: evictedSeenAt,
-        semanticHashes: evictedSemanticHashes,
-        semanticContracts: evictedSemanticContracts,
-        compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
-        extractionFailures: nextExtractionFailures,
-      });
+      writeSyncCache(
+        cachePath,
+        compiledSyncCache(nextCache, (key) => failedCacheKeys.has(key)),
+      );
 
       info("✓ Imported 0 entities, 0 relationships (no changes)");
-      return withOptionalCommit(
-        {
-          branch: currentBranch,
-          timestamp: new Date().toISOString(),
-          entityCounts,
-          relationshipCount: 0,
-          success: true,
-          published: false,
-          failures: diagnostics,
-          durationMs: Date.now() - startTime,
-          exitCode: 0,
-        },
-        getCurrentCommit(),
-      );
+      return unpublished(currentBranch, true);
     }
 
     const livePath = branchStorePath(workspaceRoot, currentBranch);
@@ -1508,15 +1505,11 @@ export async function syncCommand(
           ),
         );
         const shardDeltaByKey = new Map<string, ExtractedRelationship>();
-        const shardCandidates =
-          useEntityDelta && !materializeAllRelationships
-            ? [
-                ...addedShardRelationships,
-                ...allRelationships.filter((relationship) =>
-                  changedEntityIds.has(relationship.from),
-                ),
-              ]
-            : allRelationships;
+        // Without a refreshed source no entity changed, so only the edges a
+        // shard added are new.
+        const shardCandidates = materializeAllRelationships
+          ? allRelationships
+          : addedShardRelationships;
         for (const relationship of shardCandidates) {
           if (
             !danglingKeys.has(
@@ -1557,44 +1550,20 @@ export async function syncCommand(
           );
         }
 
-        const evictedHashes: Record<string, string> = {};
-        const evictedSeenAt: Record<string, string> = {};
-        const evictedSemanticHashes: Record<string, string> = {};
-        const evictedSemanticContracts: Record<string, boolean> = {};
-        for (const [key, hash] of Object.entries(nextHashes)) {
-          if (failedCacheKeys.has(key) || relationshipRetryKeys.has(key))
-            continue;
-          evictedHashes[key] = hash;
-          evictedSeenAt[key] = nextSeenAt[key] ?? nowIso;
-          if (nextSemanticHashes[key] !== undefined) {
-            evictedSemanticHashes[key] = nextSemanticHashes[key];
-            evictedSemanticContracts[key] = nextSemanticContracts[key] === true;
-          }
-        }
-        writeSyncCache(path.join(livePath, "sync-cache.json"), {
-          version: SYNC_CACHE_VERSION,
-          hashes: evictedHashes,
-          relationshipHashes: nextRelationshipHashes,
-          entityHashes: nextEntityHashes,
-          sourceEntityIds: nextSourceEntityIds,
-          shardRelationships: nextShardRelationships,
-          seenAt: evictedSeenAt,
-          semanticHashes: evictedSemanticHashes,
-          semanticContracts: evictedSemanticContracts,
-          compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
-          extractionFailures: nextExtractionFailures,
-        });
+        writeSyncCache(
+          path.join(livePath, "sync-cache.json"),
+          compiledSyncCache(
+            nextCache,
+            (key) => failedCacheKeys.has(key) || relationshipRetryKeys.has(key),
+          ),
+        );
 
-        published = true;
-        if (
-          performedFullReindex &&
-          markdownFiles.length > 0 &&
-          entityCount < markdownFiles.length
-        ) {
-          diagnostics.push(
-            createDocsNotIndexedDiagnostic(markdownFiles.length, entityCount),
-          );
-        }
+        maybePushDocsNotIndexedDiagnostic(
+          diagnostics,
+          performedFullReindex,
+          markdownFiles.length,
+          entityCount,
+        );
         info(
           `✓ Imported ${entityCount} entities, ${relationshipCount} relationships (removed ${removedCount} entities)`,
         );
@@ -1607,7 +1576,7 @@ export async function syncCommand(
             ...(storeTotals !== undefined ? { storeTotals } : {}),
             relationshipCount,
             success: true,
-            published,
+            published: true,
             failures: diagnostics,
             durationMs: Date.now() - startTime,
           },
@@ -1641,254 +1610,194 @@ export async function syncCommand(
       );
     }
 
-    try {
-      const prolog =
-        runtime.createProlog?.({ timeout: 120000 }) ??
-        new PrologProcess({ timeout: 120000 });
-      await prolog.start();
+    const prolog =
+      runtime.createProlog?.({ timeout: 120000 }) ??
+      new PrologProcess({ timeout: 120000 });
+    await prolog.start();
 
-      const attachResult = await prolog.query(`kb_attach('${stagingPath}')`);
+    const attachResult = await prolog.query(
+      `kb_attach('${escapeAtom(stagingPath)}')`,
+    );
 
-      if (!attachResult.success) {
-        await prolog.terminate();
-        throw new SyncError(
-          `Failed to attach to staging KB: ${attachResult.error || "Unknown error"}`,
-        );
-      }
-      await runtime.afterAttach?.(runtimeContext);
-
-      const entityIds = new Set<string>();
-
-      for (const { entity } of results) {
-        entityCounts[entity.type] = (entityCounts[entity.type] || 0) + 1;
-      }
-
-      // A copied generation retains entities from old source contents. Remove
-      // only successfully extracted/deleted sources before applying the new
-      // entities; failed extraction deliberately leaves the previous data.
-      await retractEntitiesForSources(
-        prolog,
-        [
-          ...changedMarkdownFiles,
-          ...changedManifestFiles,
-          ...deletedSourceFiles,
-        ].filter(
-          (file) => !failedCacheKeys.has(toCacheKey(workspaceRoot, file)),
-        ),
+    if (!attachResult.success) {
+      await prolog.terminate();
+      throw new SyncError(
+        `Failed to attach to staging KB: ${attachResult.error || "Unknown error"}`,
       );
+    }
+    await runtime.afterAttach?.(runtimeContext);
 
-      if (relationshipChanged) {
-        const clearRelationships = await prolog.query(
-          "kb_retract_all_relationships",
-        );
-        assertRelationshipsCleared(clearRelationships);
-      }
+    const entityIds = new Set<string>();
 
-      const { entityCount, kbModified: entitiesModified } =
-        await persistEntities(prolog, results, entityIds);
+    for (const { entity } of results) {
+      entityCounts[entity.type] = (entityCounts[entity.type] || 0) + 1;
+    }
 
-      const validationErrors = validateRelationships(
-        allRelationships,
-        entityIds,
+    // A copied generation retains entities from old source contents. Remove
+    // only successfully extracted/deleted sources before applying the new
+    // entities; failed extraction deliberately leaves the previous data.
+    await retractEntitiesForSources(
+      prolog,
+      [
+        ...changedMarkdownFiles,
+        ...changedManifestFiles,
+        ...deletedSourceFiles,
+      ].filter((file) => !failedCacheKeys.has(toCacheKey(workspaceRoot, file))),
+    );
+
+    if (relationshipChanged) {
+      const clearRelationships = await prolog.query(
+        "kb_retract_all_relationships",
       );
-      if (validationErrors.length > 0) {
-        reportDanglingRelationships(workspaceRoot, validationErrors);
-      }
-      const danglingKeys = new Set(
-        validationErrors.map(
-          ({ relationship: r }) => `${r.type}|${r.from}|${r.to}`,
-        ),
-      );
-      const validRelationships = allRelationships.filter(
-        (r) => !danglingKeys.has(`${r.type}|${r.from}|${r.to}`),
-      );
+      assertRelationshipsCleared(clearRelationships);
+    }
 
-      // Persist relationships
-      const {
-        relationshipCount,
-        kbModified: relationshipsModified,
-        retrySources,
-      } = await persistRelationships(prolog, results, validRelationships, {
-        workspaceRoot,
-      });
-      const relationshipRetryKeys = new Set(
-        retrySources.map((source) => toCacheKey(workspaceRoot, source)),
-      );
+    const { entityCount, kbModified: entitiesModified } = await persistEntities(
+      prolog,
+      results,
+      entityIds,
+    );
 
-      const kbModified = entitiesModified || relationshipsModified;
+    const validationErrors = validateRelationships(allRelationships, entityIds);
+    if (validationErrors.length > 0) {
+      reportDanglingRelationships(workspaceRoot, validationErrors);
+    }
+    const danglingKeys = new Set(
+      validationErrors.map(
+        ({ relationship: r }) => `${r.type}|${r.from}|${r.to}`,
+      ),
+    );
+    const validRelationships = allRelationships.filter(
+      (r) => !danglingKeys.has(`${r.type}|${r.from}|${r.to}`),
+    );
 
-      if (validateOnly) {
-        await prolog.query("kb_detach");
-        await prolog.terminate();
-        cleanupStaging(stagingPath);
+    // Persist relationships
+    const {
+      relationshipCount,
+      kbModified: relationshipsModified,
+      retrySources,
+    } = await persistRelationships(prolog, results, validRelationships, {
+      workspaceRoot,
+    });
+    const relationshipRetryKeys = new Set(
+      retrySources.map((source) => toCacheKey(workspaceRoot, source)),
+    );
 
-        if (errors.length > 0) {
-          for (const err of errors) {
-            console.error(`${err.file}: ${err.message}`);
-          }
-          console.error(`FAILED: ${errors.length} errors found`);
-          return withOptionalCommit(
-            {
-              branch: currentBranch,
-              timestamp: new Date().toISOString(),
-              entityCounts,
-              relationshipCount: 0,
-              success: false,
-              published: false,
-              failures: diagnostics,
-              durationMs: Date.now() - startTime,
-              exitCode: 1,
-            },
-            getCurrentCommit(),
-          );
-        }
+    const kbModified = entitiesModified || relationshipsModified;
 
-        info(`OK: Validation passed (${entityCount} entities)`);
-        return withOptionalCommit(
-          {
-            branch: currentBranch,
-            timestamp: new Date().toISOString(),
-            entityCounts,
-            relationshipCount: 0,
-            success: true,
-            published: false,
-            failures: diagnostics,
-            durationMs: Date.now() - startTime,
-            exitCode: 0,
-          },
-          getCurrentCommit(),
-        );
-      }
-
-      if (kbModified) {
-        prolog.invalidateCache();
-      }
-
-      await runtime.beforeSave?.({ ...runtimeContext, kbModified });
-      const storeTotals = await queryStoreTotals(prolog);
-
-      const saveResult = await prolog.query("kb_save");
-      if (!saveResult.success) {
-        throw new SyncError(
-          `Failed to save staging KB: ${saveResult.error || "Unknown error"}`,
-        );
-      }
+    if (validateOnly) {
       await prolog.query("kb_detach");
       await prolog.terminate();
-
-      const journaledLive = existsSync(path.join(livePath, "storage.json"));
-      if (recoveryBackupPath !== undefined) {
-        if (!existsSync(livePath)) {
-          throw new SyncError(
-            `Recovery target disappeared before publication: ${livePath}`,
-          );
-        }
-        if (existsSync(recoveryBackupPath)) {
-          throw new SyncError(
-            `Recovery backup path already exists: ${recoveryBackupPath}`,
-          );
-        }
-        mkdirSync(path.dirname(recoveryBackupPath), { recursive: true });
-        // Same-filesystem renames give us a recoverable two-step publication:
-        // the original bytes stay at the reported backup path if anything
-        // later needs forensic inspection.
-        renameSync(livePath, recoveryBackupPath);
-        try {
-          renameSync(stagingPath, livePath);
-        } catch (error) {
-          renameSync(recoveryBackupPath, livePath);
-          throw error;
-        }
-      } else if (rebuild && journaledLive) {
-        atomicPublishGeneration(stagingPath, livePath);
-      } else {
-        atomicPublish(stagingPath, livePath);
-      }
-      fsyncJournaledBranchStore(livePath);
-      try {
-        if (
-          recoveryBackupPath !== undefined &&
-          recoveredPendingReceiptPaths.length > 0
-        ) {
-          clearRecoveredPendingSourceReceipts(
-            workspaceRoot,
-            recoveredPendingReceiptPaths,
-          );
-        }
-      } finally {
-        // Receipt compare-and-delete can fail closed after publication when a
-        // newer receipt wins a race.  Staging bytes are still disposable;
-        // leave the published store and surface the pending intent error.
-        cleanupStaging(stagingPath);
-      }
-
-      const evictedHashes: Record<string, string> = {};
-      const evictedSeenAt: Record<string, string> = {};
-      const evictedSemanticHashes: Record<string, string> = {};
-      const evictedSemanticContracts: Record<string, boolean> = {};
-
-      for (const [key, hash] of Object.entries(nextHashes)) {
-        if (failedCacheKeys.has(key) || relationshipRetryKeys.has(key)) {
-          continue;
-        }
-        evictedHashes[key] = hash;
-        evictedSeenAt[key] = nextSeenAt[key] ?? nowIso;
-        if (nextSemanticHashes[key] !== undefined) {
-          evictedSemanticHashes[key] = nextSemanticHashes[key];
-          evictedSemanticContracts[key] = nextSemanticContracts[key] === true;
-        }
-      }
-
-      const liveCachePath = path.join(livePath, "sync-cache.json");
-      writeSyncCache(liveCachePath, {
-        version: SYNC_CACHE_VERSION,
-        hashes: evictedHashes,
-        relationshipHashes: nextRelationshipHashes,
-        entityHashes: nextEntityHashes,
-        sourceEntityIds: nextSourceEntityIds,
-        shardRelationships: nextShardRelationships,
-        seenAt: evictedSeenAt,
-        semanticHashes: evictedSemanticHashes,
-        semanticContracts: evictedSemanticContracts,
-        compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
-        extractionFailures: nextExtractionFailures,
-      });
-
-      published = true;
-
-      maybePushDocsNotIndexedDiagnostic(
-        diagnostics,
-        performedFullReindex,
-        markdownFiles.length,
-        entityCount,
-      );
-
-      info(
-        `✓ Imported ${entityCount} entities, ${relationshipCount} relationships`,
-      );
-
-      const commit = getCurrentCommit();
-      const summary: SyncSummary = withOptionalCommit(
-        {
-          branch: currentBranch,
-          timestamp: new Date().toISOString(),
-          entityCounts,
-          ...(storeTotals !== undefined ? { storeTotals } : {}),
-          relationshipCount,
-          success: true,
-          published,
-          failures: diagnostics,
-          durationMs: Date.now() - startTime,
-        },
-        commit,
-      );
-
-      info(formatSyncSummary(summary));
-      return { ...summary, exitCode: 0 };
-    } catch (error) {
       cleanupStaging(stagingPath);
-      throw error;
+
+      if (errors.length > 0) {
+        reportValidationErrors(errors);
+        return unpublished(currentBranch, false);
+      }
+
+      info(`OK: Validation passed (${entityCount} entities)`);
+      return unpublished(currentBranch, true);
     }
+
+    if (kbModified) {
+      prolog.invalidateCache();
+    }
+
+    await runtime.beforeSave?.({ ...runtimeContext, kbModified });
+    const storeTotals = await queryStoreTotals(prolog);
+
+    const saveResult = await prolog.query("kb_save");
+    if (!saveResult.success) {
+      throw new SyncError(
+        `Failed to save staging KB: ${saveResult.error || "Unknown error"}`,
+      );
+    }
+    await prolog.query("kb_detach");
+    await prolog.terminate();
+
+    const journaledLive = existsSync(path.join(livePath, "storage.json"));
+    if (recoveryBackupPath !== undefined) {
+      if (!existsSync(livePath)) {
+        throw new SyncError(
+          `Recovery target disappeared before publication: ${livePath}`,
+        );
+      }
+      if (existsSync(recoveryBackupPath)) {
+        throw new SyncError(
+          `Recovery backup path already exists: ${recoveryBackupPath}`,
+        );
+      }
+      mkdirSync(path.dirname(recoveryBackupPath), { recursive: true });
+      // Same-filesystem renames give us a recoverable two-step publication:
+      // the original bytes stay at the reported backup path if anything
+      // later needs forensic inspection.
+      renameSync(livePath, recoveryBackupPath);
+      try {
+        renameSync(stagingPath, livePath);
+      } catch (error) {
+        renameSync(recoveryBackupPath, livePath);
+        throw error;
+      }
+    } else if (rebuild && journaledLive) {
+      atomicPublishGeneration(stagingPath, livePath);
+    } else {
+      atomicPublish(stagingPath, livePath);
+    }
+    fsyncJournaledBranchStore(livePath);
+    try {
+      if (
+        recoveryBackupPath !== undefined &&
+        recoveredPendingReceiptPaths.length > 0
+      ) {
+        clearRecoveredPendingSourceReceipts(
+          workspaceRoot,
+          recoveredPendingReceiptPaths,
+        );
+      }
+    } finally {
+      // Receipt compare-and-delete can fail closed after publication when a
+      // newer receipt wins a race.  Staging bytes are still disposable;
+      // leave the published store and surface the pending intent error.
+      cleanupStaging(stagingPath);
+    }
+
+    writeSyncCache(
+      path.join(livePath, "sync-cache.json"),
+      compiledSyncCache(
+        nextCache,
+        (key) => failedCacheKeys.has(key) || relationshipRetryKeys.has(key),
+      ),
+    );
+
+    maybePushDocsNotIndexedDiagnostic(
+      diagnostics,
+      performedFullReindex,
+      markdownFiles.length,
+      entityCount,
+    );
+
+    info(
+      `✓ Imported ${entityCount} entities, ${relationshipCount} relationships`,
+    );
+
+    const commit = getCurrentCommit();
+    const summary: SyncSummary = withOptionalCommit(
+      {
+        branch: currentBranch,
+        timestamp: new Date().toISOString(),
+        entityCounts,
+        ...(storeTotals !== undefined ? { storeTotals } : {}),
+        relationshipCount,
+        success: true,
+        published: true,
+        failures: diagnostics,
+        durationMs: Date.now() - startTime,
+      },
+      commit,
+    );
+
+    info(formatSyncSummary(summary));
+    return { ...summary, exitCode: 0 };
   } catch (error) {
     operationFailure = { error };
     if (stagingPath) {
@@ -1897,21 +1806,6 @@ export async function syncCommand(
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${errorMessage}`);
     markErrorReported(error);
-
-    const commit = getCurrentCommit();
-    const summary: SyncSummary = withOptionalCommit(
-      {
-        branch: currentBranch || "unknown",
-        timestamp: new Date().toISOString(),
-        entityCounts,
-        relationshipCount: 0,
-        success: false,
-        published: false,
-        failures: diagnostics,
-        durationMs: Date.now() - startTime,
-      },
-      commit,
-    );
 
     if (diagnostics.length > 0) {
       info("\nDiagnostics:");

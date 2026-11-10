@@ -1,0 +1,36 @@
+{
+  "rule": "supersedes-reason-acknowledged",
+  "entityId": "workspace",
+  "description": "26 current superseding requirements and ADRs were recorded before schema 9 without a 'Why this changed' section",
+  "suggestion": "When you next touch one, add the reason if the history or a person states it; never invent one",
+  "evidence": {
+    "total": 26,
+    "ids": [
+      "REQ-00",
+      "REQ-01",
+      "REQ-02",
+      "REQ-03",
+      "REQ-04",
+      "REQ-05",
+      "REQ-06",
+      "REQ-07",
+      "REQ-08",
+      "REQ-09",
+      "REQ-10",
+      "REQ-11",
+      "REQ-12",
+      "REQ-13",
+      "REQ-14",
+      "REQ-15",
+      "REQ-16",
+      "REQ-17",
+      "REQ-18",
+      "REQ-19",
+      "REQ-20",
+      "REQ-21",
+      "REQ-22",
+      "REQ-23",
+      "REQ-24"
+    ]
+  }
+}

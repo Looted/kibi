@@ -1,0 +1,3763 @@
+{
+  "names": [
+    "inferConditionalBehaviorArgs",
+    "inferDefaultValueArgs",
+    "inferDocumentationStandardRuleArgs",
+    "inferEnforcementLocationRuleArgs",
+    "inferRateLimitArgs",
+    "inferReconciliationRuleArgs",
+    "inferScopedAuthorizationRuleArgs",
+    "inferStateMembershipArgs",
+    "inferStateTransitionArgs",
+    "inferTemporalOrderArgs",
+    "inferThrottlePolicyRuleArgs",
+    "inferUniquenessArgs",
+    "inferVisualLayoutRuleArgs",
+    "inferWarmupPolicyRuleArgs"
+  ],
+  "cases": [
+    {
+      "text": "The toolbar must remain visually aligned with the canvas.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["the_toolbar", "aligned_with", "the_canvas"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nThe toolbar must remain visually aligned with the canvas.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The toolbar must remain visually aligned with the canvas.x",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["the_toolbar", "aligned_with", "the_canvas_x"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The toolbar\n\nmust remain visually aligned with the canvas.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["the_toolbar", "aligned_with", "the_canvas"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The toolbar must\n\nremain visually aligned with the canvas.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["the_toolbar", "aligned_with", "the_canvas"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The toolbar must remain\n\nvisually aligned with the canvas.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["the_toolbar", "aligned_with", "the_canvas"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The toolbar must remain visually\n\naligned with the canvas.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["the_toolbar", "aligned_with", "the_canvas"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The toolbar must remain visually aligned\n\nwith the canvas.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["the_toolbar", "aligned_with", "the_canvas"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The toolbar must remain visually aligned with\n\nthe canvas.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["the_toolbar", "aligned_with", "the_canvas"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Limits must be enforced at the gateway.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["limits", "the_gateway"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nLimits must be enforced at the gateway.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Limits must be enforced at the gateway.x",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["limits", "the_gateway_x"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Limits\n\nmust be enforced at the gateway.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["limits", "the_gateway"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Limits must\n\nbe enforced at the gateway.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["limits", "the_gateway"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Limits must be\n\nenforced at the gateway.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["limits", "the_gateway"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Limits must be enforced\n\nat the gateway.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["limits", "the_gateway"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Limits must be enforced at\n\nthe gateway.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["limits", "the_gateway"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts and clear stale caches.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["the_client", "reconnect", "drafts", "clear_stale_caches"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nOn reconnect, the client must reconcile drafts and clear stale caches.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts and clear stale caches.x",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["the_client", "reconnect", "drafts", "clear_stale_caches_x"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "On\n\nreconnect, the client must reconcile drafts and clear stale caches.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["the_client", "reconnect", "drafts", "clear_stale_caches"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "On reconnect,\n\nthe client must reconcile drafts and clear stale caches.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["the_client", "reconnect", "drafts", "clear_stale_caches"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "On reconnect, the client\n\nmust reconcile drafts and clear stale caches.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["the_client", "reconnect", "drafts", "clear_stale_caches"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "On reconnect, the client must\n\nreconcile drafts and clear stale caches.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["the_client", "reconnect", "drafts", "clear_stale_caches"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "On reconnect, the client must reconcile\n\ndrafts and clear stale caches.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["the_client", "reconnect", "drafts", "clear_stale_caches"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts\n\nand clear stale caches.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["the_client", "reconnect", "drafts", "clear_stale_caches"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts and\n\nclear stale caches.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["the_client", "reconnect", "drafts", "clear_stale_caches"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts and clear\n\nstale caches.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["the_client", "reconnect", "drafts", "clear_stale_caches"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "On reconnect, the client must reconcile drafts and clear stale\n\ncaches.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["the_client", "reconnect", "drafts", "clear_stale_caches"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Uploads must be throttled for free users.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["uploads", "free_users"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nUploads must be throttled for free users.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Uploads must be throttled for free users.x",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["uploads", "free_users_x"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Uploads\n\nmust be throttled for free users.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["uploads", "free_users"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Uploads must\n\nbe throttled for free users.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["uploads", "free_users"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Uploads must be\n\nthrottled for free users.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["uploads", "free_users"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Uploads must be throttled\n\nfor free users.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["uploads", "free_users"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Uploads must be throttled for\n\nfree users.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["uploads", "free_users"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The renderer initializes after the store is ready.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["renderer", "store_ready", "initializes"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nThe renderer initializes after the store is ready.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The renderer initializes after the store is ready.\nx",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The renderer initializes after the store is ready",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["renderer", "store_ready", "initializes"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The\n\nrenderer initializes after the store is ready.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["renderer", "store_ready", "initializes"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The renderer\n\ninitializes after the store is ready.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["renderer", "store_ready", "initializes"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The renderer initializes\n\nafter the store is ready.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["renderer", "store_ready", "initializes"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The renderer initializes after\n\nthe store is ready.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["renderer", "store_ready", "initializes"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The renderer initializes after the\n\nstore is ready.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["renderer", "store_ready", "initializes"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The renderer initializes after the store\n\nis ready.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["renderer", "store_ready", "initializes"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The renderer initializes after the store is\n\nready.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["renderer", "store_ready", "initializes"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saving, the editor transitions from draft to saved.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["editor", "draft", "saved", "saving"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nWhen saving, the editor transitions from draft to saved.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saving, the editor transitions from draft to saved.\nx",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saving, the editor transitions from draft to saved",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["editor", "draft", "saved", "saving"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When\n\nsaving, the editor transitions from draft to saved.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["editor", "draft", "saved", "saving"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saving,\n\nthe editor transitions from draft to saved.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["editor", "draft", "saved", "saving"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saving, the\n\neditor transitions from draft to saved.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["editor", "draft", "saved", "saving"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saving, the editor\n\ntransitions from draft to saved.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["editor", "draft", "saved", "saving"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saving, the editor transitions\n\nfrom draft to saved.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["editor", "draft", "saved", "saving"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saving, the editor transitions from\n\ndraft to saved.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["editor", "draft", "saved", "saving"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saving, the editor transitions from draft\n\nto saved.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["editor", "draft", "saved", "saving"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saving, the editor transitions from draft to\n\nsaved.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["editor", "draft", "saved", "saving"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Viewers may comment.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Users are not allowed to delete posts.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Only admins can delete posts.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Admins cannot delete.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Admins can't delete.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Admins must not delete.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Users have no permission to delete.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "User has permission to delete.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Users should not be able to delete.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Users must be able to read.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Admins are permitted to delete.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Admins is forbidden to delete.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Admins are entitled to refunds.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Admins are able to delete.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Users are allowed to read.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saving, editors transition from draft_1 to saved-2.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["editor", "draft_1", "saved-2", "saving"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saving, the editor transitions from a to b.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["editor", "", "b", "saving"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Uploads should be throttled for free users.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["uploads", "free_users"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Limits shall be enforced at the gateway.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["limits", "the_gateway"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Autosave drafts.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "auto-save drafts.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Commit changes.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Persist changes.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Save changes.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "It saves changes.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Close without save.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Nothing saved before exit.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Nothing.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "the renderer initializes after store is ready.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["renderer", "store_ready", "initializes"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Guests must be denied edit access.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["guests", "edit_access", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nGuests must be denied edit access.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Guests must be denied edit access.x",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["guests", "edit_access_x", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Guests\n\nmust be denied edit access.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["guests", "edit_access", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Guests must\n\nbe denied edit access.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["guests", "edit_access", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Guests must be\n\ndenied edit access.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["guests", "edit_access", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Guests must be denied\n\nedit access.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["guests", "edit_access", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Public APIs must be documented in the handbook.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["public_apis", "documented_in", "the_handbook"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nPublic APIs must be documented in the handbook.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Public APIs must be documented in the handbook.x",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["public_apis", "documented_in", "the_handbook_x"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Public APIs\n\nmust be documented in the handbook.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["public_apis", "documented_in", "the_handbook"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Public APIs must\n\nbe documented in the handbook.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["public_apis", "documented_in", "the_handbook"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Public APIs must be\n\ndocumented in the handbook.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["public_apis", "documented_in", "the_handbook"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Public APIs must be documented\n\nin the handbook.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["public_apis", "documented_in", "the_handbook"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Public APIs must be documented in\n\nthe handbook.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["public_apis", "documented_in", "the_handbook"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The cache must warm up on startup.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["cache", "startup"]
+      ]
+    },
+    {
+      "text": "\nThe cache must warm up on startup.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The cache must warm up on startup.x",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["cache", "startup_x"]
+      ]
+    },
+    {
+      "text": "The\n\ncache must warm up on startup.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["cache", "startup"]
+      ]
+    },
+    {
+      "text": "The cache\n\nmust warm up on startup.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["cache", "startup"]
+      ]
+    },
+    {
+      "text": "The cache must\n\nwarm up on startup.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["cache", "startup"]
+      ]
+    },
+    {
+      "text": "The cache must warm\n\nup on startup.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["cache", "startup"]
+      ]
+    },
+    {
+      "text": "The cache must warm up\n\non startup.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["cache", "startup"]
+      ]
+    },
+    {
+      "text": "The cache must warm up on\n\nstartup.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["cache", "startup"]
+      ]
+    },
+    {
+      "text": "Caches should warm up on deploy.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["caches", "deploy"]
+      ]
+    },
+    {
+      "text": "The theme defaults to dark mode.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["theme", "mode", "dark"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nThe theme defaults to dark mode.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The theme defaults to dark mode",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["theme", "mode", "dark"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The\n\ntheme defaults to dark mode.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["theme", "mode", "dark"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The theme\n\ndefaults to dark mode.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["theme", "mode", "dark"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The theme defaults\n\nto dark mode.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["theme", "mode", "dark"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The theme defaults to\n\ndark mode.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["theme", "mode", "dark"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Theme default to light.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["theme", "value", "light"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The editor defaults to read only state.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["editor", "state", "read_only"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The sync defaults to paused status.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["sync", "status", "paused"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There must be at most one owner per project.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["owner", "project"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nThere must be at most one owner per project.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There must be at most one owner per project.x",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["owner", "project_x"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There\n\nmust be at most one owner per project.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["owner", "project"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There must\n\nbe at most one owner per project.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["owner", "project"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There must be\n\nat most one owner per project.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["owner", "project"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There must be at\n\nmost one owner per project.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["owner", "project"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There must be at most\n\none owner per project.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["owner", "project"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There must be at most one\n\nowner per project.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["owner", "project"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There must be at most one owner per\n\nproject.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["owner", "project"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Must be at most one primary key per table per tenant.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["primary_key", "table,tenant"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There should be at most one leader per cluster per region.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["leader", "cluster,region"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Orders terminal states are shipped, cancelled and refunded.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["order", "shipped,cancelled,refunded"],
+        ["subj_key", "from_state", "to_state", "cancel"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nOrders terminal states are shipped, cancelled and refunded.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "cancel"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Orders terminal states are shipped, cancelled and refunded.x",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["order", "shipped,cancelled,refunded_x"],
+        ["subj_key", "from_state", "to_state", "cancel"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Orders\n\nterminal states are shipped, cancelled and refunded.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["order", "shipped,cancelled,refunded"],
+        ["subj_key", "from_state", "to_state", "cancel"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Orders terminal\n\nstates are shipped, cancelled and refunded.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["order", "shipped,cancelled,refunded"],
+        ["subj_key", "from_state", "to_state", "cancel"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Orders terminal states\n\nare shipped, cancelled and refunded.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["order", "shipped,cancelled,refunded"],
+        ["subj_key", "from_state", "to_state", "cancel"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Orders terminal states are\n\nshipped, cancelled and refunded.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["order", "shipped,cancelled,refunded"],
+        ["subj_key", "from_state", "to_state", "cancel"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Order states are open or closed.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["order", "open,closed"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Order states are a, , b.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["order", ",b"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Renderer initializes after store is ready.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["renderer", "store_ready", "initializes"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Invoices must be approved before payment.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["invoices", "approved", "payment"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nInvoices must be approved before payment.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Invoices must be approved before payment.x",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["invoices", "approved", "payment_x"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Invoices\n\nmust be approved before payment.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["invoices", "approved", "payment"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Invoices must\n\nbe approved before payment.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["invoices", "approved", "payment"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Invoices must be\n\napproved before payment.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["invoices", "approved", "payment"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Invoices must be approved before\n\npayment.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["invoices", "approved", "payment"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Invoice drafts should be reviewed before the release.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["invoice.drafts", "reviewed", "release"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When the cache expires, the service must refresh tokens.",
+      "results": [
+        ["service", "cache_expires", "refresh_tokens"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nWhen the cache expires, the service must refresh tokens.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When the cache expires, the service must refresh tokens.x",
+      "results": [
+        ["service", "cache_expires", "refresh_tokens_x"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When\n\nthe cache expires, the service must refresh tokens.",
+      "results": [
+        ["service", "cache_expires", "refresh_tokens"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When the cache expires,\n\nthe service must refresh tokens.",
+      "results": [
+        ["service", "cache_expires", "refresh_tokens"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When the cache expires, the\n\nservice must refresh tokens.",
+      "results": [
+        ["service", "cache_expires", "refresh_tokens"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When the cache expires, the service\n\nmust refresh tokens.",
+      "results": [
+        ["service", "cache_expires", "refresh_tokens"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When the cache expires, the service must\n\nrefresh tokens.",
+      "results": [
+        ["service", "cache_expires", "refresh_tokens"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When caches expire, service must refresh tokens.",
+      "results": [
+        ["service", "caches_expire", "refresh_tokens"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "If a user is offline, the client app must queue writes.",
+      "results": [
+        ["user", "is_offline", "app_must_queue_writes"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nIf a user is offline, the client app must queue writes.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "If a user is offline, the client app must queue writes.x",
+      "results": [
+        ["user", "is_offline", "app_must_queue_writes_x"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "If\n\na user is offline, the client app must queue writes.",
+      "results": [
+        ["user", "is_offline", "app_must_queue_writes"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "If a\n\nuser is offline, the client app must queue writes.",
+      "results": [
+        ["user", "is_offline", "app_must_queue_writes"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "If a user\n\nis offline, the client app must queue writes.",
+      "results": [
+        ["user", "is_offline", "app_must_queue_writes"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "If a user is offline,\n\nthe client app must queue writes.",
+      "results": [
+        ["user", "is_offline", "app_must_queue_writes"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "If a user is offline, the\n\nclient app must queue writes.",
+      "results": [
+        ["user", "is_offline", "app_must_queue_writes"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "If a user is offline, the client app\n\nmust queue writes.",
+      "results": [
+        ["user", "is_offline", "must_queue_writes"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "If an order fails, it must be retried.",
+      "results": [
+        ["order", "fails", "must_be_retried"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "If an order fails, it\n\nmust be retried.",
+      "results": [
+        ["order", "fails", "must_be_retried"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "If the cache misses, they reload.",
+      "results": [
+        ["cache", "misses", "reload"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "If uploads stall, the upload worker retries.",
+      "results": [
+        ["upload", "stall", "worker_retries"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "When saved, documents transition from draft_1 to final-2.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["document", "draft_1", "final-2", "saved"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "API requests must be rate limited to 100 calls per minute.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["api.request", "calls", "minute", "100"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "\nAPI requests must be rate limited to 100 calls per minute.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "API requests must be rate limited to 100 calls per minute.\nx",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "API requests must be rate limited to 100 calls per minute",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["api.request", "calls", "minute", "100"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "API requests\n\nmust be rate limited to 100 calls per minute.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["api.request", "calls", "minute", "100"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "API requests must\n\nbe rate limited to 100 calls per minute.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["api.request", "calls", "minute", "100"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "API requests must be\n\nrate limited to 100 calls per minute.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["api.request", "calls", "minute", "100"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "API requests must be rate\n\nlimited to 100 calls per minute.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["api.request", "calls", "minute", "100"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "API requests must be rate limited\n\nto 100 calls per minute.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["api.request", "calls", "minute", "100"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "API requests must be rate limited to\n\n100 calls per minute.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["api.request", "calls", "minute", "100"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "API requests must be rate limited to 100\n\ncalls per minute.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["api.request", "calls", "minute", "100"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "API requests must be rate limited to 100 calls per\n\nminute.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["api.request", "calls", "minute", "100"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Login request must be rate limited to 5 attempts per hour.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["login.request", "attempts", "hour", "5"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Uploads must be rate limited to 10 big files per day.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["uploads", "big_files", "day", "10"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Invoices must be signed off before payment.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["invoices", "signed_off", "payment"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "Login request logs must be rate limited to 5 attempts per hour.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["login_request_logs", "attempts", "hour", "5"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There must be at most one owner per team per  per b.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["owner", "team,per_b"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There must be at most one owner per team per per b.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["owner", "team,per_b"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "The theme defaults to dark  mode.",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["theme", "mode", "dark"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["subject", "scope"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    },
+    {
+      "text": "There must be at most one admin per tenant per .",
+      "results": [
+        ["subj_key", "condition", "behavior"],
+        ["subj_key", "value", "value"],
+        ["subject", "documented_in", "documentation"],
+        ["subject", "location"],
+        ["requirement.subject", "action", "window", "0"],
+        ["subject", "trigger", "target", "action"],
+        ["actor", "action", "deny"],
+        ["subj_key", "state"],
+        ["subj_key", "from_state", "to_state", "unspecified_trigger"],
+        ["subj_key", "before_event", "after_event"],
+        ["subject", "condition"],
+        ["admin", "tenant"],
+        ["subject", "aligned_with", "target"],
+        ["subject", "trigger"]
+      ]
+    }
+  ]
+}

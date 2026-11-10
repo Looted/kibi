@@ -1,0 +1,69 @@
+{
+  "impactDiagnostics": [
+    {
+      "id": "source_file_unowned",
+      "severity": "info",
+      "blocking": false,
+      "category": "requirement",
+      "files": ["src/loose.ts"],
+      "docs": ["docs/symbol-traceability-taxonomy.md"],
+      "message": "No symbol in src/loose.ts is linked to a requirement, so this check finds no owner for it; that does not mean no recorded rule covers the behavior it implements.",
+      "suggestion": "kb_search({query:\"<the behavior>\", sourceLocations:[{path:\"src/loose.ts\"}]}) for a requirement that already describes it. If none does and the change adds behavior, record a requirement with a scenario and link it with implements as part of this change; if behavior is unchanged, say so in the final report.",
+      "evidence": {
+        "candidates": []
+      }
+    },
+    {
+      "id": "source_file_unowned",
+      "severity": "info",
+      "blocking": false,
+      "category": "requirement",
+      "files": ["notes.txt"],
+      "docs": ["docs/symbol-traceability-taxonomy.md"],
+      "message": "No symbol in notes.txt is linked to a requirement, so this check finds no owner for it; that does not mean no recorded rule covers the behavior it implements.",
+      "suggestion": "kb_search({query:\"<the behavior>\", sourceLocations:[{path:\"notes.txt\"}]}) for a requirement that already describes it. If none does and the change adds behavior, record a requirement with a scenario and link it with implements as part of this change; if behavior is unchanged, say so in the final report.",
+      "evidence": {
+        "candidates": []
+      }
+    },
+    {
+      "id": "symbol_semantic_review_needed",
+      "severity": "warning",
+      "blocking": false,
+      "category": "symbol",
+      "files": ["src/loose.ts"],
+      "docs": ["docs/symbol-traceability-taxonomy.md"],
+      "message": "Changed behavioral symbol loose is in a file no requirement owns, so no recorded intent covers the behavior it has after this change",
+      "suggestion": "If the change adds or alters behavior, record it as part of this change; that is part of finishing it, not a separate request, so it needs no permission: kb_search({query:\"<the behavior>\", sourceLocations:[{path:\"src/loose.ts\"}]}) for a requirement that already describes it and link loose to it; if none does, kb_upsert a requirement with a scenario and link the symbol with implements. If behavior is unchanged (a refactor, renaming), say so in the final report instead."
+    }
+  ],
+  "sourceFiles": ["notes.txt", "src/loose.ts"],
+  "extractedSymbols": [
+    {
+      "id": "SYM-loose",
+      "name": "loose",
+      "kind": "function",
+      "role": "behavioral",
+      "location": {
+        "file": "src/loose.ts",
+        "startLine": 1,
+        "endLine": 3
+      },
+      "hunkRanges": [
+        {
+          "start": 2,
+          "end": 2
+        }
+      ],
+      "linkedEntityIds": []
+    }
+  ],
+  "linkedEntities": [],
+  "nextActions": [
+    "kb_search({ query: \"notes.txt src/loose.ts\" }) to discover requirements/tests that may describe the changed behavior.",
+    "kb_query({ sourceFile: \"notes.txt\" }) to inspect exact source-linked Kibi entities before deciding whether requirements/tests need updates.",
+    "kb_query({ sourceFile: \"src/loose.ts\" }) to inspect exact source-linked Kibi entities before deciding whether requirements/tests need updates.",
+    "Update narrower symbols, requirements, tests, or strict facts when diagnostics show broad or stale modeling.",
+    "rerun kb_check with the same sourceFiles/impact options after Kibi updates."
+  ]
+}

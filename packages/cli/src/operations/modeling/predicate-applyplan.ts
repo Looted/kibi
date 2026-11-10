@@ -78,7 +78,8 @@ export function buildSuggestion(
       : -1;
   const boundArgs = schema.argument_names.map((name, index) => {
     const exactBinding = argumentBindings[name];
-    if (index === reviewedSubjectArgument) return reviewedSubject ?? "unknown";
+    // reviewedSubjectArgument is -1 unless reviewedSubject is defined.
+    if (index === reviewedSubjectArgument) return reviewedSubject as string;
     return typeof exactBinding === "string" && exactBinding.trim().length > 0
       ? exactBinding.trim()
       : (inferredArgs[index] ?? "unknown");
@@ -107,8 +108,9 @@ export function buildSuggestion(
   const hintedFirstArgument =
     explicitSubject &&
     subjectArgument < 0 &&
-    !hasExactBinding(schema.argument_names[0] ?? "") &&
+    // A leading argument equal to the subject means the schema has one.
     predicateArgs[0] === subject &&
+    !hasExactBinding(schema.argument_names[0] as string) &&
     !isParticipantArgumentType(schema.argument_types[0])
       ? 0
       : -1;
@@ -166,7 +168,8 @@ export function buildSuggestion(
   const subjectPairing: PredicateSuggestion["subject_pairing"] =
     plannedSubjects.length === 0
       ? "not_required"
-      : subjectKey !== null && plannedSubjects.includes(subjectKey)
+      : // A null subjectKey is in no list of subject keys.
+        plannedSubjects.includes(subjectKey as string)
         ? "paired"
         : "unpaired";
   const bindingProvenance = aggregateBindingProvenance(
@@ -175,7 +178,10 @@ export function buildSuggestion(
   const unboundArguments = schema.argument_names.filter(
     (name) =>
       undeclaredArguments.has(name) ||
-      !bindingCanBeApplied(bindingProvenanceByArgument[name] ?? "placeholder"),
+      // Every argument name has a provenance entry.
+      !bindingCanBeApplied(
+        bindingProvenanceByArgument[name] as BindingProvenance,
+      ),
   );
   // An unpaired predicate would leave kb_check's strict-req-fact-pairing on
   // the requirement, so the subject still needs a binding: the `subject`
@@ -193,7 +199,8 @@ export function buildSuggestion(
   // delete from the same sentence.
   const decisionArgument = schema.argument_names.indexOf("decision");
   const reviewedDecision =
-    decisionArgument >= 0 && bindingProvenanceByArgument.decision === "explicit"
+    // Only a schema with a decision argument has a decision provenance.
+    bindingProvenanceByArgument.decision === "explicit"
       ? predicateArgs[decisionArgument]
       : undefined;
   const polarity =
@@ -295,6 +302,19 @@ export function buildPredicateApplyPlan(
   ];
 }
 
+/** The claim a relationship plan records, merged into the requirement's claims. */
+function claimFields(
+  claimText: string,
+  existingLogicClaims: readonly string[],
+): Record<string, unknown> {
+  const claimKey = semanticClaimKey(claimText);
+  return {
+    claimKey,
+    claimText: claimText.trim(),
+    logicClaims: Array.from(new Set([...existingLogicClaims, claimKey])),
+  };
+}
+
 // implements REQ-mcp-suggest-predicates
 export function buildRelationshipPlan(
   factId: string | undefined,
@@ -303,10 +323,6 @@ export function buildRelationshipPlan(
   existingLogicClaims: readonly string[] = [],
 ): Record<string, unknown> | null {
   if (!factId || !requirementId) return null;
-  const claimKey = claimText ? semanticClaimKey(claimText) : null;
-  const logicClaims = Array.from(
-    new Set([...existingLogicClaims, ...(claimKey === null ? [] : [claimKey])]),
-  );
   return {
     applyAfter: factId,
     requiresExistingReq: requirementId,
@@ -315,13 +331,7 @@ export function buildRelationshipPlan(
       from: requirementId,
       to: factId,
     },
-    ...(claimText
-      ? {
-          claimKey,
-          claimText: claimText.trim(),
-          logicClaims,
-        }
-      : {}),
+    ...(claimText ? claimFields(claimText, existingLogicClaims) : {}),
     instructions: `Apply the predicate fact ${factId} first, update the requirement with the returned merged logicClaims manifest, then attach this relationship without overwriting other requirement metadata. The relationship target is the planned fact id ${factId}, never a candidates[].id (SUGGEST-...).`,
   };
 }
@@ -430,7 +440,8 @@ export function buildPredicateSchemaDraft(
     const candidate =
       name === "condition"
         ? lower.match(
-            /(?:when|if|unless)\s+(.+?)(?:,|\s+then\s+|\s+must\s+)/i,
+            // Only the capture matters: one space after then or must is enough.
+            /(?:when|if|unless)\s+(.+?)(?:,|\s+then\s|\s+must\s)/i,
           )?.[1]
         : lower.match(/(?:must|shall|should)\s+(.+?)(?:\.|$)/i)?.[1];
     if (candidate) {

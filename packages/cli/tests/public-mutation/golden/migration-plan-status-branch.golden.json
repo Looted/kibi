@@ -1,0 +1,127 @@
+[
+  [
+    {
+      "id": "branch-legacy-attachment",
+      "code": "legacy_branch_storage",
+      "category": "branch",
+      "state": "ready",
+      "safety": "automatic",
+      "invocation": {
+        "kind": "cli",
+        "command_argv": [
+          "kibi",
+          "branch",
+          "migrate",
+          "--from",
+          "master",
+          "--to",
+          "main",
+          "--apply"
+        ]
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [".kb/branches/master"],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "attachment": {
+          "migrationRequired": true,
+          "kind": "legacy_compat",
+          "gitBranch": "main",
+          "kbBranch": "master",
+          "storePath": ".kb/branches/master"
+        }
+      },
+      "autoApplicable": true,
+      "dispositionRequired": false,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    }
+  ],
+  [
+    {
+      "id": "branch-legacy-attachment",
+      "code": "ambiguous_branch_attachment",
+      "category": "branch",
+      "state": "blocked",
+      "safety": "operator",
+      "invocation": {
+        "kind": "review",
+        "instruction": "Resolve branch and KB provenance explicitly; Kibi will not guess or rename Git branches."
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [".kb/branches"],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "attachment": {
+          "migrationRequired": true,
+          "kind": "legacy_compat",
+          "gitBranch": "main"
+        }
+      },
+      "autoApplicable": false,
+      "dispositionRequired": true,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    }
+  ],
+  [
+    {
+      "id": "branch-legacy-attachment",
+      "code": "ambiguous_branch_attachment",
+      "category": "branch",
+      "state": "blocked",
+      "safety": "operator",
+      "invocation": {
+        "kind": "review",
+        "instruction": "Resolve branch and KB provenance explicitly; Kibi will not guess or rename Git branches."
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [".kb/branches"],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "attachment": {
+          "migrationRequired": true,
+          "kind": "other",
+          "gitBranch": "main",
+          "kbBranch": "master"
+        }
+      },
+      "autoApplicable": false,
+      "dispositionRequired": true,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    }
+  ],
+  [
+    {
+      "id": "branch-legacy-attachment",
+      "code": "ambiguous_branch_attachment",
+      "category": "branch",
+      "state": "blocked",
+      "safety": "operator",
+      "invocation": {
+        "kind": "review",
+        "instruction": "Resolve branch and KB provenance explicitly; Kibi will not guess or rename Git branches."
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [".kb/branches"],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "attachment": {
+          "migrationRequired": true,
+          "kind": "legacy_compat",
+          "kbBranch": "master"
+        }
+      },
+      "autoApplicable": false,
+      "dispositionRequired": true,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    }
+  ],
+  []
+]

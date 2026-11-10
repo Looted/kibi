@@ -16,7 +16,7 @@ import type {
   ExtractionResult,
 } from "../extractors/markdown.js";
 import { PrologProcess } from "../prolog.js";
-import { toPrologAtom, toPrologString } from "../prolog/codec.js";
+import { escapeAtom, toPrologAtom, toPrologString } from "../prolog/codec.js";
 import type { ExtractedSymbol } from "./symbol-extract";
 
 export interface TempKbContext {
@@ -48,16 +48,21 @@ export function resetModuleState(): void {
 // Factory function for creating PrologProcess instances.
 // Default uses the imported PrologProcess. Tests can override via _setPrologFactory
 // to bypass mock.module() pollution from other test files.
-let _createProlog = (opts: { timeout: number; oneShot: false }) =>
+const defaultPrologFactory = (opts: { timeout: number; oneShot: false }) =>
   new PrologProcess(opts);
+let _createProlog = defaultPrologFactory;
 
 /**
  * Override the PrologProcess factory — used by tests to inject the real constructor
- * when mock.module() has replaced the module-level binding.
+ * when mock.module() has replaced the module-level binding. Without an
+ * argument it restores the default.
  */
 export function _setPrologFactory(
   // implements REQ-014
-  factory: (opts: { timeout: number; oneShot: false }) => PrologProcess,
+  factory: (opts: {
+    timeout: number;
+    oneShot: false;
+  }) => PrologProcess = defaultPrologFactory,
 ): void {
   _createProlog = factory;
 }
@@ -120,7 +125,7 @@ function trace(message: string): void {
 }
 
 function escapePrologAtom(value: string): string {
-  return `'${value.replace(/'/g, "''")}'`;
+  return `'${escapeAtom(value)}'`;
 }
 
 function getEntityField(entity: ExtractedEntity, field: string): unknown {
@@ -162,7 +167,7 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
 
   for (const field of FACT_NUMBER_FIELDS) {
     const value = getEntityField(entity, field);
-    if (value !== undefined && value !== null && typeof value === "number") {
+    if (typeof value === "number") {
       if (skipNonIntegerFactNumber(field, value)) {
         continue;
       }
@@ -172,7 +177,7 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
 
   for (const field of FACT_BOOLEAN_FIELDS) {
     const value = getEntityField(entity, field);
-    if (value !== undefined && value !== null && typeof value === "boolean") {
+    if (typeof value === "boolean") {
       fields.push(`${field}=${value}`);
     }
   }
@@ -328,14 +333,9 @@ function buildRelationshipAssertionGoal(
 }
 
 function createCleanupHandler(tempDir: string): () => void {
-  let inProgress = false;
-
+  // cleanupTempKb marks the directory before its first await, so a repeated
+  // signal finds it cleaned and does nothing.
   return () => {
-    if (inProgress || cleanedTempDirs.has(tempDir)) {
-      return;
-    }
-    inProgress = true;
-
     void cleanupTempKb(tempDir).catch((error: unknown) => {
       const message = error instanceof Error ? error.message : String(error);
       trace(`cleanup on signal/exit failed for ${tempDir}: ${message}`);
@@ -477,9 +477,9 @@ export async function createTempKb(
   trace(`copying base KB ${baseKbPath} -> ${kbPath}`);
   if (baseKbPath !== undefined)
     await cp(baseKbPath, kbPath, { recursive: true });
-  else await mkdir(kbPath, { recursive: true });
+  else await mkdir(kbPath);
 
-  await writeFile(overlayPath, "", "utf8");
+  await writeFile(overlayPath, "");
 
   const prolog = _createProlog({ timeout: 120000, oneShot: false });
   await prolog.start();
@@ -536,6 +536,9 @@ export async function cleanupTempKb(tempDir: string): Promise<void> {
   const unregister = cleanupByTempDir.get(tempDir);
   if (unregister) {
     unregister();
+    // rationale: only frees the entry; cleanedTempDirs keeps every later
+    // cleanup of this directory from reading it again.
+    // Stryker disable next-line CallExpression
     cleanupByTempDir.delete(tempDir);
   }
 

@@ -231,6 +231,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-4a43b1a66808
   - type: implements
+    from: SYM-kb-dependency-scope-kb-dependency-argument-name
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:56:53.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-031aebe79ce2
+  - type: covered_by
+    from: SYM-kb-dependency-scope-kb-dependency-argument-name
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:56:53.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdd980d36e10
+  - type: implements
     from: SYM-cli-report-assert-complete-rows
     to: REQ-kibi-health-report-complete-data
     created_at: 2026-11-05T06:56:41.056Z

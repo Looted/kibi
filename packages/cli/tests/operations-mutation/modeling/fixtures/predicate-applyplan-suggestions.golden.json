@@ -1,0 +1,289 @@
+{
+  "cases": [
+    {
+      "schema": {
+        "builtin": "state"
+      },
+      "text": "The toolbar must remain visually aligned\n\nwith the canvas.",
+      "score": 0,
+      "expected": "{\"id\":\"SUGGEST-BF00FDC5D3FF\",\"predicate_name\":\"state\",\"predicate_args\":[\"unknown\",\"active\"],\"canonical_key\":\"state(unknown,active)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"subject\",\"state\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"subject\":\"placeholder\",\"state\":\"inferred\"},\"subject_key\":null,\"subject_pairing\":\"not_required\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0,\"score_components\":{\"exact_pattern\":0,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0},\"score\":0,\"rationale\":\"Matched state because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-STATE\",\"predicate_name\":\"state\",\"title\":\"State assertion\",\"description\":\"A subject has or enters a named state.\",\"argument_names\":[\"subject\",\"state\"],\"argument_types\":[\"entity\",\"state\"],\"examples\":[\"state(editor.annotation, idle)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "state"
+      },
+      "text": "The toolbar must remain visually aligned\n\nwith the canvas.",
+      "score": 0,
+      "subject": "billing",
+      "polarity": "deny",
+      "diagnostics": {
+        "eligibility": "rejected",
+        "rejectionReasons": ["r1"],
+        "applicabilityScore": 0.3,
+        "scoreComponents": {
+          "total": 9
+        }
+      },
+      "expected": "{\"id\":\"SUGGEST-0F3ECE851EF6\",\"predicate_name\":\"state\",\"predicate_args\":[\"billing\",\"active\"],\"canonical_key\":\"state(billing,active)\",\"polarity\":\"deny\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"subject\",\"state\"],\"binding_provenance\":\"inferred\",\"binding_provenance_by_argument\":{\"subject\":\"inferred\",\"state\":\"inferred\"},\"subject_key\":null,\"subject_pairing\":\"not_required\",\"eligibility\":\"rejected\",\"rejection_reasons\":[\"r1\"],\"applicability_score\":0.3,\"score_components\":{\"total\":9},\"score\":0,\"rationale\":\"Matched state because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-STATE\",\"predicate_name\":\"state\",\"title\":\"State assertion\",\"description\":\"A subject has or enters a named state.\",\"argument_names\":[\"subject\",\"state\"],\"argument_types\":[\"entity\",\"state\"],\"examples\":[\"state(editor.annotation, idle)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "state"
+      },
+      "text": "The toolbar must remain visually aligned\n\nwith the canvas.",
+      "score": 0,
+      "subject": "billing",
+      "bindings": "decision-deny",
+      "diagnostics": {
+        "explicitSubject": true
+      },
+      "expected": "{\"id\":\"SUGGEST-B9C3AF5C8842\",\"predicate_name\":\"state\",\"predicate_args\":[\"billing\",\"deny\"],\"canonical_key\":\"state(billing,deny)\",\"polarity\":\"deny\",\"binding_status\":\"complete\",\"unbound_arguments\":[],\"binding_provenance\":\"explicit\",\"binding_provenance_by_argument\":{\"subject\":\"explicit\",\"state\":\"explicit\"},\"subject_key\":\"billing\",\"subject_pairing\":\"paired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0,\"score_components\":{\"exact_pattern\":0,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0},\"score\":0,\"rationale\":\"Matched state because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-STATE\",\"predicate_name\":\"state\",\"title\":\"State assertion\",\"description\":\"A subject has or enters a named state.\",\"argument_names\":[\"subject\",\"state\"],\"argument_types\":[\"entity\",\"state\"],\"examples\":[\"state(editor.annotation, idle)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "state"
+      },
+      "text": "The toolbar must remain visually aligned\n\nwith the canvas.",
+      "score": 0,
+      "subject": "billing",
+      "bindings": "subject",
+      "diagnostics": {
+        "requirementSubject": "orders",
+        "constrainedSubjects": ["orders", "billing"]
+      },
+      "expected": "{\"id\":\"SUGGEST-0F3ECE851EF6\",\"predicate_name\":\"state\",\"predicate_args\":[\"billing\",\"active\"],\"canonical_key\":\"state(billing,active)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"state\"],\"binding_provenance\":\"inferred\",\"binding_provenance_by_argument\":{\"subject\":\"explicit\",\"state\":\"inferred\"},\"subject_key\":\"billing\",\"subject_pairing\":\"paired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0,\"score_components\":{\"exact_pattern\":0,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0},\"score\":0,\"rationale\":\"Matched state because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-STATE\",\"predicate_name\":\"state\",\"title\":\"State assertion\",\"description\":\"A subject has or enters a named state.\",\"argument_names\":[\"subject\",\"state\"],\"argument_types\":[\"entity\",\"state\"],\"examples\":[\"state(editor.annotation, idle)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "state"
+      },
+      "text": "The toolbar must remain visually aligned\n\nwith the canvas.",
+      "score": 0,
+      "subject": "unknown",
+      "diagnostics": {
+        "constrainedSubjects": ["orders"]
+      },
+      "expected": "{\"id\":\"SUGGEST-BF00FDC5D3FF\",\"predicate_name\":\"state\",\"predicate_args\":[\"unknown\",\"active\"],\"canonical_key\":\"state(unknown,active)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"subject\",\"state\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"subject\":\"placeholder\",\"state\":\"inferred\"},\"subject_key\":\"unknown\",\"subject_pairing\":\"unpaired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0,\"score_components\":{\"exact_pattern\":0,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0},\"score\":0,\"rationale\":\"Matched state because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-STATE\",\"predicate_name\":\"state\",\"title\":\"State assertion\",\"description\":\"A subject has or enters a named state.\",\"argument_names\":[\"subject\",\"state\"],\"argument_types\":[\"entity\",\"state\"],\"examples\":[\"state(editor.annotation, idle)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "state"
+      },
+      "text": "Guests cannot delete posts.",
+      "score": 0.25,
+      "subject": "unknown",
+      "diagnostics": {
+        "requirementSubject": "orders",
+        "constrainedSubjects": ["orders"]
+      },
+      "expected": "{\"id\":\"SUGGEST-64BC05AC5269\",\"predicate_name\":\"state\",\"predicate_args\":[\"orders\",\"active\"],\"canonical_key\":\"state(orders,active)\",\"polarity\":\"deny\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"state\"],\"binding_provenance\":\"inferred\",\"binding_provenance_by_argument\":{\"subject\":\"requirement\",\"state\":\"inferred\"},\"subject_key\":\"orders\",\"subject_pairing\":\"paired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0.25,\"score_components\":{\"exact_pattern\":0.25,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0.25},\"score\":0.25,\"rationale\":\"Matched state because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-STATE\",\"predicate_name\":\"state\",\"title\":\"State assertion\",\"description\":\"A subject has or enters a named state.\",\"argument_names\":[\"subject\",\"state\"],\"argument_types\":[\"entity\",\"state\"],\"examples\":[\"state(editor.annotation, idle)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "state"
+      },
+      "text": "Guests cannot delete posts.",
+      "score": 0.25,
+      "subject": "billing",
+      "bindings": "blank",
+      "expected": "{\"id\":\"SUGGEST-3F6C025E87CC\",\"predicate_name\":\"state\",\"predicate_args\":[\"billing\",\"active\"],\"canonical_key\":\"state(billing,active)\",\"polarity\":\"deny\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"subject\",\"state\"],\"binding_provenance\":\"inferred\",\"binding_provenance_by_argument\":{\"subject\":\"inferred\",\"state\":\"inferred\"},\"subject_key\":null,\"subject_pairing\":\"not_required\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0.25,\"score_components\":{\"exact_pattern\":0.25,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0.25},\"score\":0.25,\"rationale\":\"Matched state because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-STATE\",\"predicate_name\":\"state\",\"title\":\"State assertion\",\"description\":\"A subject has or enters a named state.\",\"argument_names\":[\"subject\",\"state\"],\"argument_types\":[\"entity\",\"state\"],\"examples\":[\"state(editor.annotation, idle)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "state"
+      },
+      "text": "Builds must pass review before\n\nrelease.",
+      "score": 0.5,
+      "subject": "billing",
+      "diagnostics": {
+        "explicitSubject": true,
+        "constrainedSubjects": ["other"]
+      },
+      "expected": "{\"id\":\"SUGGEST-1565372C0829\",\"predicate_name\":\"state\",\"predicate_args\":[\"billing\",\"active\"],\"canonical_key\":\"state(billing,active)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"state\",\"subject\"],\"binding_provenance\":\"inferred\",\"binding_provenance_by_argument\":{\"subject\":\"explicit\",\"state\":\"inferred\"},\"subject_key\":\"billing\",\"subject_pairing\":\"unpaired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0.5,\"score_components\":{\"exact_pattern\":0.5,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0.5},\"score\":0.5,\"rationale\":\"Matched state because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-STATE\",\"predicate_name\":\"state\",\"title\":\"State assertion\",\"description\":\"A subject has or enters a named state.\",\"argument_names\":[\"subject\",\"state\"],\"argument_types\":[\"entity\",\"state\"],\"examples\":[\"state(editor.annotation, idle)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "state"
+      },
+      "text": "Builds must pass review before\n\nrelease.",
+      "score": 0.5,
+      "subject": "billing",
+      "bindings": "first",
+      "expected": "{\"id\":\"SUGGEST-3B8020FA8504\",\"predicate_name\":\"state\",\"predicate_args\":[\"bound_value\",\"active\"],\"canonical_key\":\"state(bound_value,active)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"state\"],\"binding_provenance\":\"inferred\",\"binding_provenance_by_argument\":{\"subject\":\"explicit\",\"state\":\"inferred\"},\"subject_key\":null,\"subject_pairing\":\"not_required\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0.5,\"score_components\":{\"exact_pattern\":0.5,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0.5},\"score\":0.5,\"rationale\":\"Matched state because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-STATE\",\"predicate_name\":\"state\",\"title\":\"State assertion\",\"description\":\"A subject has or enters a named state.\",\"argument_names\":[\"subject\",\"state\"],\"argument_types\":[\"entity\",\"state\"],\"examples\":[\"state(editor.annotation, idle)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "state"
+      },
+      "text": "Admins must be able to read reports and must not delete them.",
+      "score": 0.5,
+      "expected": "{\"id\":\"SUGGEST-B11C4FF88575\",\"predicate_name\":\"state\",\"predicate_args\":[\"unknown\",\"active\"],\"canonical_key\":\"state(unknown,active)\",\"polarity\":\"deny\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"subject\",\"state\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"subject\":\"placeholder\",\"state\":\"inferred\"},\"subject_key\":null,\"subject_pairing\":\"not_required\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0.5,\"score_components\":{\"exact_pattern\":0.5,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0.5},\"score\":0.5,\"rationale\":\"Matched state because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-STATE\",\"predicate_name\":\"state\",\"title\":\"State assertion\",\"description\":\"A subject has or enters a named state.\",\"argument_names\":[\"subject\",\"state\"],\"argument_types\":[\"entity\",\"state\"],\"examples\":[\"state(editor.annotation, idle)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "state"
+      },
+      "text": "Users shall not export.",
+      "score": 0.5,
+      "expected": "{\"id\":\"SUGGEST-73B34C38DFD7\",\"predicate_name\":\"state\",\"predicate_args\":[\"unknown\",\"active\"],\"canonical_key\":\"state(unknown,active)\",\"polarity\":\"deny\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"subject\",\"state\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"subject\":\"placeholder\",\"state\":\"inferred\"},\"subject_key\":null,\"subject_pairing\":\"not_required\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0.5,\"score_components\":{\"exact_pattern\":0.5,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0.5},\"score\":0.5,\"rationale\":\"Matched state because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-STATE\",\"predicate_name\":\"state\",\"title\":\"State assertion\",\"description\":\"A subject has or enters a named state.\",\"argument_names\":[\"subject\",\"state\"],\"argument_types\":[\"entity\",\"state\"],\"examples\":[\"state(editor.annotation, idle)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "state"
+      },
+      "text": "Users shall  not export.",
+      "score": 0.5,
+      "expected": "{\"id\":\"SUGGEST-E4DCA5755E9E\",\"predicate_name\":\"state\",\"predicate_args\":[\"unknown\",\"active\"],\"canonical_key\":\"state(unknown,active)\",\"polarity\":\"deny\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"subject\",\"state\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"subject\":\"placeholder\",\"state\":\"inferred\"},\"subject_key\":null,\"subject_pairing\":\"not_required\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0.5,\"score_components\":{\"exact_pattern\":0.5,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0.5},\"score\":0.5,\"rationale\":\"Matched state because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-STATE\",\"predicate_name\":\"state\",\"title\":\"State assertion\",\"description\":\"A subject has or enters a named state.\",\"argument_names\":[\"subject\",\"state\"],\"argument_types\":[\"entity\",\"state\"],\"examples\":[\"state(editor.annotation, idle)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "transition"
+      },
+      "text": "\nTracking must require explicit consent before collection.",
+      "score": 0.25,
+      "subject": "billing",
+      "bindings": "decision-deny",
+      "diagnostics": {
+        "explicitSubject": true
+      },
+      "expected": "{\"id\":\"SUGGEST-BD1D1FC5D887\",\"predicate_name\":\"transition\",\"predicate_args\":[\"billing\",\"draft\",\"active\",\"deny\"],\"canonical_key\":\"transition(billing,draft,active,deny)\",\"polarity\":\"deny\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"from_state\",\"to_state\",\"trigger\"],\"binding_provenance\":\"inferred\",\"binding_provenance_by_argument\":{\"subject\":\"explicit\",\"from_state\":\"inferred\",\"to_state\":\"inferred\",\"trigger\":\"explicit\"},\"subject_key\":\"billing\",\"subject_pairing\":\"paired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0.25,\"score_components\":{\"exact_pattern\":0.25,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0.25},\"score\":0.25,\"rationale\":\"Matched transition because the prose overlaps with state, workflow cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-TRANSITION\",\"predicate_name\":\"transition\",\"title\":\"State transition\",\"description\":\"A subject transitions between states because of a trigger.\",\"argument_names\":[\"subject\",\"from_state\",\"to_state\",\"trigger\"],\"argument_types\":[\"entity\",\"state\",\"state\",\"trigger\"],\"argument_constants\":{\"trigger\":[\"escape\",\"cancel\",\"submit\",\"navigation\",\"click\",\"timeout\"]},\"argument_aliases\":{\"trigger\":{\"esc\":\"escape\",\"escape_key\":\"escape\",\"cancellation\":\"cancel\",\"submission\":\"submit\",\"navigate\":\"navigation\",\"navigates\":\"navigation\",\"navigating\":\"navigation\",\"navigation_away\":\"navigation\",\"clicks\":\"click\",\"time_out\":\"timeout\",\"timed_out\":\"timeout\"}},\"examples\":[\"transition(editor.annotation, draft, idle, navigation)\"],\"tags\":[\"state\",\"workflow\"],\"usage_hints\":{\"use_when\":[\"Use for workflow prose where a subject moves between states because of a trigger.\"],\"do_not_use_when\":[\"Do not use for one current state, allowed terminal states, or non-state conditional behavior.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "mutual_exclusion"
+      },
+      "text": "The admin role is the only exception to approval rules.x",
+      "score": 0,
+      "subject": "launcher",
+      "diagnostics": {
+        "explicitSubject": true
+      },
+      "expected": "{\"id\":\"SUGGEST-725BDE0F4F1B\",\"predicate_name\":\"mutual_exclusion\",\"predicate_args\":[\"left\",\"right\"],\"canonical_key\":\"mutual_exclusion(left,right)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"left\",\"right\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"left\":\"placeholder\",\"right\":\"placeholder\"},\"subject_key\":\"launcher\",\"subject_pairing\":\"paired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0,\"score_components\":{\"exact_pattern\":0,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0},\"score\":0,\"rationale\":\"Matched mutual_exclusion because the prose overlaps with constraint, exclusivity cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-MUTUAL-EXCLUSION\",\"predicate_name\":\"mutual_exclusion\",\"title\":\"Mutual exclusion\",\"description\":\"Two modes, states, options, or behaviors cannot be true or active together.\",\"argument_names\":[\"left\",\"right\"],\"argument_types\":[\"entity\",\"entity\"],\"examples\":[\"mutual_exclusion(practice_mode, exam_mode)\"],\"tags\":[\"constraint\",\"exclusivity\"],\"usage_hints\":{\"use_when\":[\"Use when two modes, states, options, or behaviors cannot be true or active together.\"],\"do_not_use_when\":[\"Do not use for uniqueness per scope, allowed state sets, or ordinary permission denials.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "mutual_exclusion"
+      },
+      "text": "The admin role is the only exception to approval rules.x",
+      "score": 0,
+      "subject": "left",
+      "bindings": "first-is-subject",
+      "diagnostics": {
+        "explicitSubject": true
+      },
+      "expected": "{\"id\":\"SUGGEST-725BDE0F4F1B\",\"predicate_name\":\"mutual_exclusion\",\"predicate_args\":[\"left\",\"right\"],\"canonical_key\":\"mutual_exclusion(left,right)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"left\",\"right\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"left\":\"placeholder\",\"right\":\"placeholder\"},\"subject_key\":\"left\",\"subject_pairing\":\"paired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0,\"score_components\":{\"exact_pattern\":0,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0},\"score\":0,\"rationale\":\"Matched mutual_exclusion because the prose overlaps with constraint, exclusivity cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-MUTUAL-EXCLUSION\",\"predicate_name\":\"mutual_exclusion\",\"title\":\"Mutual exclusion\",\"description\":\"Two modes, states, options, or behaviors cannot be true or active together.\",\"argument_names\":[\"left\",\"right\"],\"argument_types\":[\"entity\",\"entity\"],\"examples\":[\"mutual_exclusion(practice_mode, exam_mode)\"],\"tags\":[\"constraint\",\"exclusivity\"],\"usage_hints\":{\"use_when\":[\"Use when two modes, states, options, or behaviors cannot be true or active together.\"],\"do_not_use_when\":[\"Do not use for uniqueness per scope, allowed state sets, or ordinary permission denials.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "mutual_exclusion"
+      },
+      "text": "The toolbar\n\nmust remain visually aligned with the canvas.",
+      "score": 0.25,
+      "subject": "left",
+      "diagnostics": {
+        "explicitSubject": false
+      },
+      "expected": "{\"id\":\"SUGGEST-2FAEE41996E1\",\"predicate_name\":\"mutual_exclusion\",\"predicate_args\":[\"left\",\"right\"],\"canonical_key\":\"mutual_exclusion(left,right)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"left\",\"right\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"left\":\"placeholder\",\"right\":\"placeholder\"},\"subject_key\":null,\"subject_pairing\":\"not_required\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0.25,\"score_components\":{\"exact_pattern\":0.25,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0.25},\"score\":0.25,\"rationale\":\"Matched mutual_exclusion because the prose overlaps with constraint, exclusivity cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-MUTUAL-EXCLUSION\",\"predicate_name\":\"mutual_exclusion\",\"title\":\"Mutual exclusion\",\"description\":\"Two modes, states, options, or behaviors cannot be true or active together.\",\"argument_names\":[\"left\",\"right\"],\"argument_types\":[\"entity\",\"entity\"],\"examples\":[\"mutual_exclusion(practice_mode, exam_mode)\"],\"tags\":[\"constraint\",\"exclusivity\"],\"usage_hints\":{\"use_when\":[\"Use when two modes, states, options, or behaviors cannot be true or active together.\"],\"do_not_use_when\":[\"Do not use for uniqueness per scope, allowed state sets, or ordinary permission denials.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "mutual_exclusion"
+      },
+      "text": "Settings must synchronize across\n\ndevices.",
+      "score": 1,
+      "subject": "billing",
+      "diagnostics": {
+        "explicitSubject": true,
+        "constrainedSubjects": ["other"]
+      },
+      "expected": "{\"id\":\"SUGGEST-02F6C833B585\",\"predicate_name\":\"mutual_exclusion\",\"predicate_args\":[\"left\",\"right\"],\"canonical_key\":\"mutual_exclusion(left,right)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"left\",\"right\",\"subject_key\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"left\":\"placeholder\",\"right\":\"placeholder\"},\"subject_key\":\"billing\",\"subject_pairing\":\"unpaired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":1,\"score_components\":{\"exact_pattern\":1,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":1},\"score\":1,\"rationale\":\"Matched mutual_exclusion because the prose overlaps with constraint, exclusivity cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-MUTUAL-EXCLUSION\",\"predicate_name\":\"mutual_exclusion\",\"title\":\"Mutual exclusion\",\"description\":\"Two modes, states, options, or behaviors cannot be true or active together.\",\"argument_names\":[\"left\",\"right\"],\"argument_types\":[\"entity\",\"entity\"],\"examples\":[\"mutual_exclusion(practice_mode, exam_mode)\"],\"tags\":[\"constraint\",\"exclusivity\"],\"usage_hints\":{\"use_when\":[\"Use when two modes, states, options, or behaviors cannot be true or active together.\"],\"do_not_use_when\":[\"Do not use for uniqueness per scope, allowed state sets, or ordinary permission denials.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "mutual_exclusion"
+      },
+      "text": "Widgets should avoid framework globals.",
+      "score": 0,
+      "subject": "left",
+      "diagnostics": {
+        "explicitSubject": true
+      },
+      "expected": "{\"id\":\"SUGGEST-B62B9D41731C\",\"predicate_name\":\"mutual_exclusion\",\"predicate_args\":[\"left\",\"right\"],\"canonical_key\":\"mutual_exclusion(left,right)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"right\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"left\":\"explicit\",\"right\":\"placeholder\"},\"subject_key\":\"left\",\"subject_pairing\":\"paired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0,\"score_components\":{\"exact_pattern\":0,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0},\"score\":0,\"rationale\":\"Matched mutual_exclusion because the prose overlaps with constraint, exclusivity cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-MUTUAL-EXCLUSION\",\"predicate_name\":\"mutual_exclusion\",\"title\":\"Mutual exclusion\",\"description\":\"Two modes, states, options, or behaviors cannot be true or active together.\",\"argument_names\":[\"left\",\"right\"],\"argument_types\":[\"entity\",\"entity\"],\"examples\":[\"mutual_exclusion(practice_mode, exam_mode)\"],\"tags\":[\"constraint\",\"exclusivity\"],\"usage_hints\":{\"use_when\":[\"Use when two modes, states, options, or behaviors cannot be true or active together.\"],\"do_not_use_when\":[\"Do not use for uniqueness per scope, allowed state sets, or ordinary permission denials.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "conflict_resolution_rule"
+      },
+      "text": "Guests must\n\nnot delete posts unless invited.",
+      "score": 1,
+      "expected": "{\"id\":\"SUGGEST-DCF99E0AC97A\",\"predicate_name\":\"conflict_resolution_rule\",\"predicate_args\":[\"subject\",\"strategy\"],\"canonical_key\":\"conflict_resolution_rule(subject,strategy)\",\"polarity\":\"deny\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"subject\",\"strategy\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"subject\":\"placeholder\",\"strategy\":\"placeholder\"},\"subject_key\":null,\"subject_pairing\":\"not_required\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":1,\"score_components\":{\"exact_pattern\":1,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":1},\"score\":1,\"rationale\":\"Matched conflict_resolution_rule because the prose overlaps with sync, conflict-resolution cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-CONFLICT-RESOLUTION-RULE\",\"predicate_name\":\"conflict_resolution_rule\",\"title\":\"Conflict resolution rule\",\"description\":\"Concurrent or synchronized updates resolve conflicts with a named strategy.\",\"argument_names\":[\"subject\",\"strategy\"],\"argument_types\":[\"entity\",\"strategy\"],\"examples\":[\"conflict_resolution_rule(profile_updates, latest_write_wins)\"],\"tags\":[\"sync\",\"conflict-resolution\"],\"usage_hints\":{\"use_when\":[\"Use when synchronization or concurrent updates require a named conflict-resolution strategy.\"],\"do_not_use_when\":[\"Do not use for ordinary state transitions, dependency ordering, or fallback behavior.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "environment_safety_rule"
+      },
+      "text": "If a user is offline, the client app must queue writes.",
+      "score": 0.5,
+      "subject": "billing",
+      "bindings": "decision-deny",
+      "diagnostics": {
+        "explicitSubject": true
+      },
+      "expected": "{\"id\":\"SUGGEST-B1E0D5D76701\",\"predicate_name\":\"environment_safety_rule\",\"predicate_args\":[\"action\",\"forbidden\",\"environment\"],\"canonical_key\":\"environment_safety_rule(action,forbidden,environment)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"action\",\"environment\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"action\":\"placeholder\",\"decision\":\"explicit\",\"environment\":\"placeholder\"},\"subject_key\":\"billing\",\"subject_pairing\":\"paired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0.5,\"score_components\":{\"exact_pattern\":0.5,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0.5},\"score\":0.5,\"rationale\":\"Matched environment_safety_rule because the prose overlaps with environment, safety cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-ENVIRONMENT-SAFETY-RULE\",\"predicate_name\":\"environment_safety_rule\",\"title\":\"Environment safety rule\",\"description\":\"A named action is allowed or forbidden in a deployment environment.\",\"argument_names\":[\"action\",\"decision\",\"environment\"],\"argument_types\":[\"action\",\"decision\",\"environment\"],\"argument_constants\":{\"decision\":[\"allowed\",\"forbidden\",\"read-only\"]},\"argument_aliases\":{\"decision\":{\"allow\":\"allowed\",\"deny\":\"forbidden\",\"denied\":\"forbidden\",\"read_only\":\"read-only\",\"readonly\":\"read-only\"}},\"examples\":[\"environment_safety_rule(destructive_operations, forbidden, production)\"],\"tags\":[\"environment\",\"safety\"],\"usage_hints\":{\"use_when\":[\"Use when an action is allowed or forbidden in a named environment such as production or staging.\"],\"do_not_use_when\":[\"Do not use for actor permissions that are independent of deployment environment.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "environment_safety_rule"
+      },
+      "text": "Admins is forbidden to delete.",
+      "score": 0,
+      "expected": "{\"id\":\"SUGGEST-732E8D2337D8\",\"predicate_name\":\"environment_safety_rule\",\"predicate_args\":[\"action\",\"decision\",\"environment\"],\"canonical_key\":\"environment_safety_rule(action,decision,environment)\",\"polarity\":\"deny\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"action\",\"decision\",\"environment\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"action\":\"placeholder\",\"decision\":\"placeholder\",\"environment\":\"placeholder\"},\"subject_key\":null,\"subject_pairing\":\"not_required\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0,\"score_components\":{\"exact_pattern\":0,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0},\"score\":0,\"rationale\":\"Matched environment_safety_rule because the prose overlaps with environment, safety cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-ENVIRONMENT-SAFETY-RULE\",\"predicate_name\":\"environment_safety_rule\",\"title\":\"Environment safety rule\",\"description\":\"A named action is allowed or forbidden in a deployment environment.\",\"argument_names\":[\"action\",\"decision\",\"environment\"],\"argument_types\":[\"action\",\"decision\",\"environment\"],\"argument_constants\":{\"decision\":[\"allowed\",\"forbidden\",\"read-only\"]},\"argument_aliases\":{\"decision\":{\"allow\":\"allowed\",\"deny\":\"forbidden\",\"denied\":\"forbidden\",\"read_only\":\"read-only\",\"readonly\":\"read-only\"}},\"examples\":[\"environment_safety_rule(destructive_operations, forbidden, production)\"],\"tags\":[\"environment\",\"safety\"],\"usage_hints\":{\"use_when\":[\"Use when an action is allowed or forbidden in a named environment such as production or staging.\"],\"do_not_use_when\":[\"Do not use for actor permissions that are independent of deployment environment.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "environment_safety_rule"
+      },
+      "text": "Admins must be able to read reports and must not delete them.",
+      "score": 0.5,
+      "subject": "billing",
+      "bindings": "decision-deny",
+      "diagnostics": {
+        "explicitSubject": true
+      },
+      "expected": "{\"id\":\"SUGGEST-6731207A58FF\",\"predicate_name\":\"environment_safety_rule\",\"predicate_args\":[\"action\",\"forbidden\",\"environment\"],\"canonical_key\":\"environment_safety_rule(action,forbidden,environment)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"action\",\"environment\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"action\":\"placeholder\",\"decision\":\"explicit\",\"environment\":\"placeholder\"},\"subject_key\":\"billing\",\"subject_pairing\":\"paired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0.5,\"score_components\":{\"exact_pattern\":0.5,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0.5},\"score\":0.5,\"rationale\":\"Matched environment_safety_rule because the prose overlaps with environment, safety cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-ENVIRONMENT-SAFETY-RULE\",\"predicate_name\":\"environment_safety_rule\",\"title\":\"Environment safety rule\",\"description\":\"A named action is allowed or forbidden in a deployment environment.\",\"argument_names\":[\"action\",\"decision\",\"environment\"],\"argument_types\":[\"action\",\"decision\",\"environment\"],\"argument_constants\":{\"decision\":[\"allowed\",\"forbidden\",\"read-only\"]},\"argument_aliases\":{\"decision\":{\"allow\":\"allowed\",\"deny\":\"forbidden\",\"denied\":\"forbidden\",\"read_only\":\"read-only\",\"readonly\":\"read-only\"}},\"examples\":[\"environment_safety_rule(destructive_operations, forbidden, production)\"],\"tags\":[\"environment\",\"safety\"],\"usage_hints\":{\"use_when\":[\"Use when an action is allowed or forbidden in a named environment such as production or staging.\"],\"do_not_use_when\":[\"Do not use for actor permissions that are independent of deployment environment.\"]}}}"
+    },
+    {
+      "schema": {
+        "builtin": "scoped_authorization_rule"
+      },
+      "text": "\nDark mode and high contrast must be mutually exclusive.",
+      "score": 0.5,
+      "subject": "billing",
+      "bindings": "decision-deny",
+      "diagnostics": {
+        "explicitSubject": true
+      },
+      "expected": "{\"id\":\"SUGGEST-F12918BD5D10\",\"predicate_name\":\"scoped_authorization_rule\",\"predicate_args\":[\"actor\",\"action\",\"deny\"],\"canonical_key\":\"scoped_authorization_rule(actor,action,deny)\",\"polarity\":\"deny\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"actor_scope\",\"action\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"actor_scope\":\"placeholder\",\"action\":\"placeholder\",\"decision\":\"explicit\"},\"subject_key\":\"billing\",\"subject_pairing\":\"paired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0.5,\"score_components\":{\"exact_pattern\":0.5,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0.5},\"score\":0.5,\"rationale\":\"Matched scoped_authorization_rule because the prose overlaps with authorization, scope cues.\",\"schema\":{\"id\":\"FACT-SCHEMA-SCOPED-AUTHORIZATION-RULE\",\"predicate_name\":\"scoped_authorization_rule\",\"title\":\"Scoped authorization rule\",\"description\":\"A scoped actor is allowed or denied an action because of assignment, ownership, or membership.\",\"argument_names\":[\"actor_scope\",\"action\",\"decision\"],\"argument_types\":[\"actor_scope\",\"action\",\"decision\"],\"argument_constants\":{\"decision\":[\"allow\",\"deny\"]},\"argument_aliases\":{\"decision\":{\"assert\":\"allow\",\"allowed\":\"allow\",\"permit\":\"allow\",\"permitted\":\"allow\",\"denied\":\"deny\",\"forbid\":\"deny\",\"forbidden\":\"deny\"}},\"examples\":[\"scoped_authorization_rule(unassigned_instructors, signed_url_generation, deny)\"],\"tags\":[\"authorization\",\"scope\"],\"usage_hints\":{\"use_when\":[\"Use when an actor is allowed or denied an action because they are assigned, unassigned, owner, member, or otherwise scoped to a resource.\"],\"do_not_use_when\":[\"Do not use for simple actor/action/resource permissions without a scope qualifier; use permission_rule instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "custom": "C-STATE3"
+      },
+      "text": "The save button must stay disabled until the form is valid.",
+      "score": 0,
+      "expected": "{\"id\":\"SUGGEST-CCBFE2DD935F\",\"predicate_name\":\"state\",\"predicate_args\":[\"unknown\",\"active\",\"unknown\"],\"canonical_key\":\"state(unknown,active,unknown)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"subject\",\"state\",\"extra\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"subject\":\"placeholder\",\"state\":\"inferred\",\"extra\":\"placeholder\"},\"subject_key\":null,\"subject_pairing\":\"not_required\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0,\"score_components\":{\"exact_pattern\":0,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0},\"score\":0,\"rationale\":\"Matched state because the prose overlaps with custom, probe cues.\",\"schema\":{\"id\":\"C-STATE3\",\"predicate_name\":\"state\",\"title\":\"t\",\"description\":\"d\",\"argument_names\":[\"subject\",\"state\",\"extra\"],\"argument_types\":[\"entity\",\"state\",\"note\"],\"examples\":[],\"tags\":[\"custom\",\"probe\"],\"usage_hints\":{\"use_when\":[\"Use for one subject being in, entering, or requiring one named state.\"],\"do_not_use_when\":[\"Do not use for allowed state sets or explicit state-to-state movement; use state_membership or state_transition instead.\"]}}}"
+    },
+    {
+      "schema": {
+        "custom": "C-CLOSEDSUBJ"
+      },
+      "text": "The save button must stay disabled until the form is valid.",
+      "score": 0,
+      "subject": "billing",
+      "diagnostics": {
+        "explicitSubject": true
+      },
+      "expected": "{\"id\":\"SUGGEST-BD95E3F5FA8D\",\"predicate_name\":\"closed_subject\",\"predicate_args\":[\"billing\",\"unknown\"],\"canonical_key\":\"closed_subject(billing,unknown)\",\"polarity\":\"assert\",\"binding_status\":\"incomplete\",\"unbound_arguments\":[\"subject\",\"value\"],\"binding_provenance\":\"placeholder\",\"binding_provenance_by_argument\":{\"subject\":\"inferred\",\"value\":\"placeholder\"},\"subject_key\":\"billing\",\"subject_pairing\":\"paired\",\"eligibility\":\"eligible\",\"rejection_reasons\":[],\"applicability_score\":0,\"score_components\":{\"exact_pattern\":0,\"keyword_hits\":0,\"descriptor_overlap\":0,\"usage_match\":0,\"negative_evidence\":0,\"broad_token_penalty\":0,\"specificity_bonus\":0,\"total\":0},\"score\":0,\"rationale\":\"Matched closed_subject because the prose overlaps with custom, probe cues.\",\"schema\":{\"id\":\"C-CLOSEDSUBJ\",\"predicate_name\":\"closed_subject\",\"title\":\"t\",\"description\":\"d\",\"argument_names\":[\"subject\",\"value\"],\"argument_types\":[\"entity\",\"value\"],\"argument_constants\":{\"subject\":[\"alpha\"]},\"examples\":[],\"tags\":[\"custom\",\"probe\"],\"usage_hints\":{\"use_when\":[\"Use when the prose matches this predicate signature and all required arguments can be named explicitly.\"],\"do_not_use_when\":[\"Do not use when a stricter scalar property, a more specific predicate, or an ontology-gap observation better preserves the claim.\"]}}}"
+    }
+  ]
+}

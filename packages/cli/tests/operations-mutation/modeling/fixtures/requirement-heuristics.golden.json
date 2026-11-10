@@ -1,0 +1,494 @@
+[
+  {
+    "text": "The cache must be retained for 30 days.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "cache",
+        "propertyKey": "Retention Days",
+        "operator": "eq",
+        "value": 30,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Logs shall be retained for 2 months.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Logs",
+        "propertyKey": "Retention Months",
+        "operator": "eq",
+        "value": 2,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Logs should be retained for 1 year.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Logs",
+        "propertyKey": "Retention Years",
+        "operator": "eq",
+        "value": 1,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Logs must be retained for 3 years.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Logs",
+        "propertyKey": "Retention Years",
+        "operator": "eq",
+        "value": 3,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Logs must be retained for 1 day.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Logs",
+        "propertyKey": "Retention Days",
+        "operator": "eq",
+        "value": 1,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Logs must be retained for 4 month.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Logs",
+        "propertyKey": "Retention Months",
+        "operator": "eq",
+        "value": 4,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Logs shall be enabled.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Logs",
+        "propertyKey": "enabled",
+        "operator": "bool",
+        "value": true,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Logs must be disabled",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Logs",
+        "propertyKey": "enabled",
+        "operator": "bool",
+        "value": false,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Users must not delete posts.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Users",
+        "propertyKey": "delete posts",
+        "operator": "polarity",
+        "value": "forbid",
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Users should export reports.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Users",
+        "propertyKey": "export reports",
+        "operator": "polarity",
+        "value": "require",
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "a must b",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "a",
+        "propertyKey": "b",
+        "operator": "polarity",
+        "value": "require",
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "\nThe cache must be retained for 30 days.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "cache",
+        "propertyKey": "Retention Days",
+        "operator": "eq",
+        "value": 30,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "The cache must be retained for 30 days.\nx",
+    "claim": null
+  },
+  {
+    "text": "The cache\n\nmust be retained for 30 days.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "cache",
+        "propertyKey": "Retention Days",
+        "operator": "eq",
+        "value": 30,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "The cache must\n\nbe retained for 30 days.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "cache",
+        "propertyKey": "Retention Days",
+        "operator": "eq",
+        "value": 30,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "The cache must be retained for 30 days",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "cache",
+        "propertyKey": "Retention Days",
+        "operator": "eq",
+        "value": 30,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "The cache must be\n\nretained for 30 days.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "cache",
+        "propertyKey": "Retention Days",
+        "operator": "eq",
+        "value": 30,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "The cache must be retained\n\nfor 30 days.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "cache",
+        "propertyKey": "Retention Days",
+        "operator": "eq",
+        "value": 30,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "The cache must be retained for\n\n30 days.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "cache",
+        "propertyKey": "Retention Days",
+        "operator": "eq",
+        "value": 30,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "The cache must be retained for 30\n\ndays.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "cache",
+        "propertyKey": "Retention Days",
+        "operator": "eq",
+        "value": 30,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "\nLogs shall be enabled.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Logs",
+        "propertyKey": "enabled",
+        "operator": "bool",
+        "value": true,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Logs shall be enabled.\nx",
+    "claim": null
+  },
+  {
+    "text": "Logs\n\nshall be enabled.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Logs",
+        "propertyKey": "enabled",
+        "operator": "bool",
+        "value": true,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Logs shall\n\nbe enabled.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Logs",
+        "propertyKey": "enabled",
+        "operator": "bool",
+        "value": true,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Logs shall be\n\nenabled.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Logs",
+        "propertyKey": "enabled",
+        "operator": "bool",
+        "value": true,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "\nUsers must not delete posts.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Users",
+        "propertyKey": "delete posts",
+        "operator": "polarity",
+        "value": "forbid",
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Users must not delete posts.\nx",
+    "claim": null
+  },
+  {
+    "text": "Users must not delete posts.x",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Users",
+        "propertyKey": "delete posts.x",
+        "operator": "polarity",
+        "value": "forbid",
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Users\n\nmust not delete posts.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Users",
+        "propertyKey": "delete posts",
+        "operator": "polarity",
+        "value": "forbid",
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Users must\n\nnot delete posts.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Users",
+        "propertyKey": "delete posts",
+        "operator": "polarity",
+        "value": "forbid",
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Users must not\n\ndelete posts.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Users",
+        "propertyKey": "delete posts",
+        "operator": "polarity",
+        "value": "forbid",
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Users\n\nshould export reports.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Users",
+        "propertyKey": "export reports",
+        "operator": "polarity",
+        "value": "require",
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Users should\n\nexport reports.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Users",
+        "propertyKey": "export reports",
+        "operator": "polarity",
+        "value": "require",
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Users\n\nshould not export.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Users",
+        "propertyKey": "export",
+        "operator": "polarity",
+        "value": "forbid",
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  },
+  {
+    "text": "Logs\n\nmust be enabled.",
+    "claim": {
+      "claim": {
+        "source": "docs/req.md",
+        "subjectKey": "Logs",
+        "propertyKey": "enabled",
+        "operator": "bool",
+        "value": true,
+        "confidence": 0.7
+      },
+      "extractionMode": "heuristic",
+      "extractionWarnings": []
+    }
+  }
+]

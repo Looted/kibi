@@ -230,6 +230,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e23583389e72
+  - type: implements
+    from: SYM-cli-update-check-is-newer-release
+    to: REQ-kibi-update-notice
+    created_at: 2026-11-04T13:24:22.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c8244bce986
+  - type: covered_by
+    from: SYM-cli-update-check-is-newer-release
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:24:22.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7371e018a47
   - type: assumes
     from: SCEN-NEG-kibi-dimension-gap-VERDICT-ONLY
     to: FACT-NEG-kibi-dimension-gap-verdict-only-tested

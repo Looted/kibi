@@ -419,6 +419,34 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1103f84544e
+  - type: implements
+    from: SYM-kb-dependencies-default-git-runner
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:53:36.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-496f5722152b
+  - type: covered_by
+    from: SYM-kb-dependencies-default-git-runner
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:53:36.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4152f7f82ab
+  - type: implements
+    from: SYM-kb-dependencies-kb-dependencies-lock-version
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-04T10:53:50.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44ed9bd6944d
+  - type: covered_by
+    from: SYM-kb-dependencies-kb-dependencies-lock-version
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-04T10:53:50.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb080bc15216
   - type: covered_by
     from: SYM-checkStrictFactShape
     to: TEST-cli-check-integrity

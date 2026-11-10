@@ -23,10 +23,12 @@ import { StringDecoder } from "node:string_decoder";
  * Prolog goal that switches the child's standard streams and its default
  * file encoding to UTF-8. SWI-Prolog otherwise follows the process locale,
  * and under a POSIX locale every non-ASCII byte read from stdin becomes
- * U+FFFD, which the store then persists.
+ * U+FFFD, which the store then persists. It also writes plain LF line ends:
+ * on Windows SWI-Prolog writes CRLF to its standard streams, and the query
+ * framing matches LF-terminated markers.
  */
 export const PROLOG_UTF8_STREAMS_GOAL =
-  "set_prolog_flag(encoding, utf8), set_stream(user_input, encoding(utf8)), set_stream(user_output, encoding(utf8)), set_stream(user_error, encoding(utf8))";
+  "set_prolog_flag(encoding, utf8), set_stream(user_input, encoding(utf8)), set_stream(user_output, encoding(utf8)), set_stream(user_error, encoding(utf8)), set_stream(user_output, newline(posix)), set_stream(user_error, newline(posix))";
 
 // implements REQ-prolog-utf8-text
 /**

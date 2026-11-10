@@ -1,0 +1,87 @@
+{
+  "empty": {},
+  "wrongTypes": {},
+  "emptyMaps": {},
+  "full": {
+    "kind": "rule",
+    "domain_source": {
+      "symbol_id": "S",
+      "export": "E",
+      "field": "f",
+      "arg": 2
+    },
+    "witness": {
+      "path": "w.ts"
+    },
+    "constraint_source": {
+      "fact_ids": ["FACT-1", "FACT-3"]
+    },
+    "value_source": [
+      {
+        "source": {
+          "reader": "json",
+          "file": "data.json"
+        },
+        "measure": "count"
+      },
+      {
+        "symbol_id": "S",
+        "export": "E",
+        "arg": 1,
+        "measure": "value"
+      },
+      {
+        "symbol_id": "S",
+        "measure": "count"
+      },
+      {
+        "symbol_id": "S"
+      }
+    ],
+    "proves": ["CLAIM-a"],
+    "predicate_source": {
+      "p": {
+        "symbol_id": "S",
+        "export": "p",
+        "arg": 1,
+        "harness_for": ["h"]
+      },
+      "q": {
+        "symbol_id": "S"
+      }
+    },
+    "domains": {
+      "t": {
+        "source": {
+          "reader": "json",
+          "file": "data.json"
+        }
+      },
+      "u": {
+        "symbol_id": "S"
+      }
+    },
+    "source": {
+      "reader": "json",
+      "file": "data.json"
+    },
+    "initial_source": {
+      "symbol_id": "S",
+      "export": "I"
+    },
+    "pattern_source": {
+      "symbol_id": "S",
+      "arg": 3
+    }
+  },
+  "exportNumber": {
+    "pattern_source": {
+      "symbol_id": "S"
+    }
+  },
+  "minimal": {
+    "domain_source": {
+      "symbol_id": "S"
+    }
+  }
+}

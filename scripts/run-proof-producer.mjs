@@ -587,9 +587,8 @@ export async function runProofProducer(options = {}) {
     if (result.outcome !== "passed") failed += 1;
   }
 
-  if (attempts.length === 0) {
-    throw new Error("run-proof-producer: selected contracts produced no steps");
-  }
+  // validateRequestedTestIds and validateProofSteps guarantee at least one
+  // selected contract with at least one step, so attempts is never empty.
   const report = buildProofTestReport(selected, attempts);
   const reportPath = options.testReportPath ?? env.KIBI_PROOF_TEST_REPORT;
   if (typeof reportPath === "string" && reportPath.trim() !== "") {

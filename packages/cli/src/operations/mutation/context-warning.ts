@@ -8,16 +8,13 @@ import type { UpsertInput } from "./types.js";
 
 function readBody(workspaceRoot: string, source: unknown): string | undefined {
   if (typeof source !== "string" || !source.endsWith(".md")) return undefined;
+  let content: string;
   try {
-    return (
-      readAuthoredEntity(
-        readFileSync(path.resolve(workspaceRoot, source), "utf8"),
-        source,
-      )?.body ?? undefined
-    );
+    content = readFileSync(path.resolve(workspaceRoot, source), "utf8");
   } catch {
     return undefined;
   }
+  return readAuthoredEntity(content, source)?.body;
 }
 
 /**
@@ -43,10 +40,9 @@ export function upsertDocumentBody(
   workspaceRoot: string,
   paths: UpsertDocumentPaths = {},
 ): string {
-  if (paths.writtenPath !== undefined) {
-    const written = readBody(workspaceRoot, paths.writtenPath);
-    if (written !== undefined) return written;
-  }
+  // readBody answers undefined for a missing path, too.
+  const written = readBody(workspaceRoot, paths.writtenPath);
+  if (written !== undefined) return written;
   if (input.document?.body !== undefined) return input.document.body;
   const existing = readBody(
     workspaceRoot,
@@ -71,12 +67,12 @@ export function entityContextWarnings(
   const semanticText =
     typeof entity.semantic_text === "string" && entity.semantic_text.trim()
       ? entity.semantic_text
-      : input.type === "req"
-        ? requirementSemanticText(body)
-        : undefined;
-  const acknowledged = (
-    readKbManifest(workspaceRoot)?.contextAcknowledged ?? []
-  ).includes(input.id);
+      : // Only a requirement's finding reads semantic_text, so other types
+        // may carry the derived statement unused.
+        requirementSemanticText(body);
+  const acknowledged =
+    readKbManifest(workspaceRoot)?.contextAcknowledged?.includes(input.id) ===
+    true;
   const finding = contextFinding(
     input.type,
     input.id,

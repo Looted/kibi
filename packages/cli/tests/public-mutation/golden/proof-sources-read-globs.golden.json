@@ -1,0 +1,76 @@
+{
+  "none": {
+    "ok": false,
+    "reason": "nothing/*, none/* matches no file"
+  },
+  "plain": {
+    "ok": true,
+    "model": {
+      "members": [
+        "docs/.hidden.md",
+        "docs/a.md",
+        "docs/link.md",
+        "docs/sub/b.md",
+        "docs/sub/deep/c.md"
+      ]
+    }
+  },
+  "list": {
+    "ok": true,
+    "model": {
+      "members": ["docs/.hidden.md", "docs/a.md", "docs/link.md", "docs/x1.txt"]
+    }
+  },
+  "captureStar": {
+    "ok": true,
+    "model": {
+      "members": [".hidden", "a", "link"]
+    }
+  },
+  "captureGlobstar": {
+    "ok": true,
+    "model": {
+      "members": [".hidden", "a", "link", "sub/b", "sub/deep/c"]
+    }
+  },
+  "captureTail": {
+    "ok": true,
+    "model": {
+      "members": ["b.md", "deep/c.md"]
+    }
+  },
+  "captureQuestion": {
+    "ok": true,
+    "model": {
+      "members": ["1"]
+    }
+  },
+  "captureList": {
+    "ok": true,
+    "model": {
+      "members": [".hidden", "a", "b", "link"]
+    }
+  },
+  "captureBraces": {
+    "ok": false,
+    "reason": "capture reads only *, ** and ? in the pattern; docs/a.md matched a pattern Kibi cannot capture from (braces or classes)"
+  },
+  "captureLiteral": {
+    "ok": true,
+    "model": {
+      "members": [""]
+    }
+  },
+  "captureEmptyParts": {
+    "ok": true,
+    "model": {
+      "members": [""]
+    }
+  },
+  "captureEscapes": {
+    "ok": true,
+    "model": {
+      "members": [""]
+    }
+  }
+}

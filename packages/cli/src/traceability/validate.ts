@@ -4,6 +4,7 @@ import {
   type ParsedViolation,
   escapeAtom,
   parseViolationRows,
+  splitTopLevelGeneral,
   toPrologAtom,
 } from "../prolog/codec.js";
 
@@ -22,112 +23,31 @@ export interface Violation {
   requiredLinks: number;
 }
 
+// SWI-Prolog writes quoted atoms with backslash escapes (`'it\\'s'`); the
+// doubled-quote form (`'it''s'`) is accepted too.
 function unquoteAtom(value: string): string {
-  // remove surrounding single quotes and unescape doubled quotes
   const trimmed = value.trim();
   if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
-    return trimmed.slice(1, -1).replace(/''/g, "'");
+    return trimmed
+      .slice(1, -1)
+      .replace(/''|\\(.)/g, (_match, escaped?: string) => escaped ?? "'");
   }
   return trimmed;
 }
 
-function splitTopLevelComma(s: string): string[] {
-  const parts: string[] = [];
-  let cur = "";
-  let inQuote = false;
-  for (let i = 0; i < s.length; i++) {
-    const ch = s[i];
-    if (ch === "'") {
-      // handle doubled '' inside atom
-      if (inQuote && s[i + 1] === "'") {
-        cur += "'";
-        i++;
-        continue;
-      }
-      inQuote = !inQuote;
-      cur += ch;
-      continue;
-    }
-    if (ch === "," && !inQuote) {
-      parts.push(cur.trim());
-      cur = "";
-      continue;
-    }
-    cur += ch;
-  }
-  if (cur !== "") parts.push(cur.trim());
-  return parts;
-}
-
-function splitTopLevelLists(value: string): string[] {
-  const lists: string[] = [];
-  let cur = "";
-  let inQuote = false;
-  let depth = 0;
-
-  for (let i = 0; i < value.length; i++) {
-    const ch = value[i];
-
-    if (ch === "'") {
-      // handle doubled '' inside atom
-      if (inQuote && i + 1 < value.length && value[i + 1] === "'") {
-        cur += "'";
-        i++;
-        continue;
-      }
-      inQuote = !inQuote;
-      cur += ch;
-      continue;
-    }
-
-    if (!inQuote) {
-      if (ch === "[") {
-        depth++;
-        cur += ch;
-        continue;
-      }
-      if (ch === "]") {
-        depth--;
-        cur += ch;
-        if (depth === 0) {
-          lists.push(cur.trim());
-          cur = "";
-        }
-        continue;
-      }
-    }
-
-    // Only collect characters that are inside a list; commas and
-    // whitespace between top-level lists are ignored.
-    if (depth > 0) {
-      cur += ch;
-    }
-  }
-
-  return lists;
-}
-
+// Rows are split with the shared Prolog scanner so quoted commas, brackets
+// and escaped quotes inside atoms never split a row or a column.
 function parsePrologListOfLists(value: string): string[][] {
-  // value expected like: [[a,1,'file.pl',10,0,'name'],[...]] or []
+  // value is a Prolog list like [[a,1,'file.pl',10,0,'name'],[...]] or [].
   const out: string[][] = [];
-  const trimmed = value.trim();
-  if (trimmed === "[]" || trimmed === "") return out;
-
-  // Strip a single outer list wrapper, if present.
-  const withoutOuter =
-    trimmed.startsWith("[") && trimmed.endsWith("]")
-      ? trimmed.slice(1, -1)
-      : trimmed;
-
-  const rowStrings = splitTopLevelLists(withoutOuter);
-  for (const row of rowStrings) {
+  for (const row of splitTopLevelGeneral(value.trim().slice(1, -1), ",")) {
     const rowTrimmed = row.trim();
     if (!rowTrimmed.startsWith("[") || !rowTrimmed.endsWith("]")) {
       continue;
     }
-    const inner = rowTrimmed.slice(1, -1);
-    const cols = splitTopLevelComma(inner);
-    out.push(cols.map((c) => c.trim()));
+    out.push(
+      splitTopLevelGeneral(rowTrimmed.slice(1, -1), ",").map((c) => c.trim()),
+    );
   }
   return out;
 }
@@ -145,23 +65,20 @@ export async function validateStagedSymbols(
     throw new Error(`Prolog query failed: ${res.error || "unknown error"}`);
   }
 
-  const rowsRaw = res.bindings.Rows ?? "[]";
-  const lists = parsePrologListOfLists(rowsRaw);
+  const rowsRaw = res.bindings.Rows;
+  const lists = rowsRaw === undefined ? [] : parsePrologListOfLists(rowsRaw);
   const violations: Violation[] = [];
   for (const row of lists) {
     // row: [Sym,Count,File,Line,Col,Name]
     if (row.length < 6) continue;
-    const [sym, count, file, line, col, name] = row;
-    if (
-      sym === undefined ||
-      count === undefined ||
-      file === undefined ||
-      line === undefined ||
-      col === undefined ||
-      name === undefined
-    ) {
-      continue;
-    }
+    const [sym, count, file, line, col, name] = row as [
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+    ];
 
     const symbolId = unquoteAtom(sym);
     const currentLinks = Number(count.replace(/[^0-9]/g, "")) || 0;
@@ -210,7 +127,8 @@ export async function validateStagedSymbolCoverage(options: {
       `Prolog symbol-coverage query failed: ${res.error || "unknown error"}`,
     );
   }
-  return parseViolationRows(res.bindings.Violations ?? "[]");
+  const rows = res.bindings.Violations;
+  return rows === undefined ? [] : parseViolationRows(rows);
 }
 
 /** Text lines for staged symbol-coverage violations, in `kibi check` form. */
@@ -234,9 +152,10 @@ export function formatCoverageViolations(
 
 export function formatViolations(violations: Violation[]): string {
   // implements REQ-014
-  if (!violations || violations.length === 0) return "";
+  if (violations.length === 0) return "";
   const total = violations.length;
-  const minLinks = violations[0]?.requiredLinks ?? 0;
+  const [first] = violations as [Violation, ...Violation[]];
+  const minLinks = first.requiredLinks ?? 0;
   const lines: string[] = [
     `Traceability failed: ${total} changed symbol(s) have fewer than ${minLinks} requirement link(s) (minLinks=${minLinks}):`,
   ];
@@ -247,7 +166,7 @@ export function formatViolations(violations: Violation[]): string {
   }
   lines.push(
     "To link a symbol, give it an owning requirement, stage the change and re-run kibi check --staged:",
-    `  - Add a .kb/symbols.yaml entry with kb_upsert (CLI: kibi upsert --input -): title as listed above (e.g. ${JSON.stringify(violations[0]?.name ?? "")}), sourceFile, and the relationship implements -> REQ-<area>-<behavior> for production code or executable_for -> TEST-<area>-<behavior> for executable test code. Stage .kb/symbols.yaml with the code.`,
+    `  - Add a .kb/symbols.yaml entry with kb_upsert (CLI: kibi upsert --input -): title as listed above (e.g. ${JSON.stringify(first.name)}), sourceFile, and the relationship implements -> REQ-<area>-<behavior> for production code or executable_for -> TEST-<area>-<behavior> for executable test code. Stage .kb/symbols.yaml with the code.`,
     "  - Or write a comment `implements REQ-<area>-<behavior>` directly above the declaration.",
     "  If no requirement fits, find one with kb_search or create it with kb_upsert (type req) first; production symbols also need covered_by -> TEST-<area>-<behavior>.",
   );
@@ -257,7 +176,5 @@ export function formatViolations(violations: Violation[]): string {
 // Test helpers for edge-case coverage
 export const __test__ = {
   unquoteAtom,
-  splitTopLevelComma,
-  splitTopLevelLists,
   parsePrologListOfLists,
 };

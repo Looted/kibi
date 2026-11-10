@@ -262,6 +262,8 @@ export async function listSearchCandidates(
         "Search candidate listing failed",
         signal,
       ),
+    // rationale: the listing goal reads no query text
+    // Stryker disable next-line StringLiteral
     { query: "", maxCandidates: input.maxCandidates },
   );
 }
@@ -294,7 +296,8 @@ async function readCandidatePages(
       // kept for the rest of the scan. Only a single row that overflows on its
       // own is a real failure.
       if (pageSize > 1 && isPrologOutputOverflow(error)) {
-        pageSize = Math.max(1, Math.floor(pageSize / 2));
+        // A page size above one halves to at least one.
+        pageSize = Math.floor(pageSize / 2);
         continue;
       }
       throw error;
@@ -372,7 +375,7 @@ export async function queryEntityChunks(
     if (first) count = chunk.count;
     first = false;
     entities.push(...chunk.entities);
-    if (chunk.entities.length < chunkLimit || chunkLimit === 0) break;
+    if (chunk.entities.length < chunkLimit) break;
   }
   return { entities, count };
 }
@@ -410,8 +413,10 @@ export async function loadEntityIds(
       `Entity id enumeration failed: ${result.error ?? "Unknown error"}`,
     );
   }
-  return parseAtomList(result.bindings.Ids ?? "[]").map(normalizeEntityId);
+  return parseAtomList(result.bindings.Ids ?? "").map(normalizeEntityId);
 }
+
+type RequirementText = { id: string; title: string; semanticText: string };
 
 /**
  * Id, title and semantic text of every current requirement (open,
@@ -422,31 +427,34 @@ export async function loadEntityIds(
 // implements REQ-bootstrap-claim-restatement
 export async function loadCurrentRequirementTexts(
   prolog: Pick<PrologPort, "query">,
-): Promise<{ id: string; title: string; semanticText: string }[]> {
+): Promise<RequirementText[]> {
   const result = await prolog.query("findall(R, kb:current_req(R), Ids)");
   if (!result.success) {
     throw new Error(
       `Current requirement enumeration failed: ${result.error ?? "Unknown error"}`,
     );
   }
-  const ids = parseAtomList(result.bindings.Ids ?? "[]").map(normalizeEntityId);
+  const ids = parseAtomList(result.bindings.Ids ?? "").map(normalizeEntityId);
   const rows = await loadEntityRows(prolog, ids, [
     "id",
     "title",
     "semantic_text",
   ]);
-  return rows
-    .filter((row) => row.type === "req")
-    .map((row) => ({
-      id: String(row.id ?? ""),
-      title: typeof row.title === "string" ? row.title : "",
-      semanticText:
-        typeof row.semantic_text === "string" ? row.semantic_text : "",
-    }))
-    .filter((row) => row.id !== "")
-    .sort((left, right) =>
-      left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
-    );
+  // Rows are unique by id once other types are left out.
+  const byId = new Map(
+    rows
+      .filter((row) => row.type === "req")
+      // Every parsed row of a type carries its id.
+      .map((row) => ({
+        id: row.id as string,
+        title: typeof row.title === "string" ? row.title : "",
+        semanticText:
+          typeof row.semantic_text === "string" ? row.semantic_text : "",
+      }))
+      .filter((row) => row.id !== "")
+      .map((row) => [row.id, row] as const),
+  );
+  return [...byId.keys()].sort().map((id) => byId.get(id) as RequirementText);
 }
 
 /**
@@ -515,7 +523,8 @@ export async function loadEntityRows(
       throw new Error(result.error || "Entity row query failed");
     }
     rows.push(
-      ...parseListOfLists(result.bindings.Results ?? "[]").map(
+      // A missing binding reads as text that holds no rows.
+      ...parseListOfLists(String(result.bindings.Results)).map(
         parseEntityFromList,
       ),
     );
@@ -556,7 +565,7 @@ export function dedupeEntities(
 ): Record<string, unknown>[] {
   const seen = new Set<string>();
   return entities.filter((entity) => {
-    const key = `${String(entity.type ?? "")}::${String(entity.id ?? "")}`;
+    const key = JSON.stringify([entity.type, entity.id]);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

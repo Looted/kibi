@@ -51,23 +51,33 @@ export async function probeFixtureReadiness(
   }
 }
 
-if (import.meta.main) {
-  const [workspace, cliRoot, ...extra] = process.argv.slice(2);
+/** Command-line entry: the exit code for one readiness probe. */
+// implements REQ-skillopt-codex-optimization
+export async function main(
+  args: readonly string[],
+  dependencies: FixtureReadinessDependencies = defaultFixtureReadinessDependencies,
+): Promise<number> {
+  const [workspace, cliRoot, ...extra] = args;
   if (!workspace || !cliRoot || extra.length > 0) {
     process.stderr.write(
       "Usage: fixture-readiness.ts NEW_WORKSPACE CLI_ROOT\n",
     );
-    process.exitCode = 2;
-  } else {
-    probeFixtureReadiness(resolve(workspace), resolve(cliRoot))
-      .then(() => {
-        process.stdout.write("seeded-fixture-readiness:pass\n");
-      })
-      .catch((error) => {
-        process.stderr.write(
-          `${error instanceof Error ? error.message : String(error)}\n`,
-        );
-        process.exitCode = 1;
-      });
+    return 2;
+  }
+  try {
+    await probeFixtureReadiness(
+      resolve(workspace),
+      resolve(cliRoot),
+      dependencies,
+    );
+    process.stdout.write("seeded-fixture-readiness:pass\n");
+    return 0;
+  } catch (error) {
+    process.stderr.write(
+      `${error instanceof Error ? error.message : String(error)}\n`,
+    );
+    return 1;
   }
 }
+
+if (import.meta.main) process.exitCode = await main(process.argv.slice(2));

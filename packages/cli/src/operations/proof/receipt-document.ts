@@ -18,6 +18,44 @@
 
 import { dump as dumpYaml } from "js-yaml";
 
+/** Split after each newline, keeping it: joining the parts restores the text. */
+function splitLines(content: string): string[] {
+  return content.split(/(?<=\n)/);
+}
+
+const TOP_LEVEL_KEY = /^[A-Za-z_][A-Za-z0-9_-]*\s*:/;
+
+type Frontmatter = Readonly<{ lines: readonly string[]; closing: number }>;
+
+/** The lines of a document that opens with a closed `---` frontmatter. */
+function frontmatter(content: string): Frontmatter | null {
+  const lines = splitLines(content);
+  // Splitting always yields at least one (possibly empty) line.
+  if ((lines[0] as string).trim() !== "---") return null;
+  const closing = lines.findIndex(
+    (line, index) => index > 0 && line.trim() === "---",
+  );
+  return closing === -1 ? null : { lines, closing };
+}
+
+/**
+ * The [start, end) lines of the first frontmatter block whose key line
+ * matches `keyLine`: up to the next top-level key or the closing `---`.
+ */
+function blockRange(
+  { lines, closing }: Frontmatter,
+  keyLine: RegExp,
+): readonly [number, number] | null {
+  // Only the lines between the opening and closing `---` are searched.
+  const body = lines.slice(1, closing);
+  const key = body.findIndex((line) => keyLine.test(line));
+  if (key === -1) return null;
+  const next = body.findIndex(
+    (line, index) => index > key && TOP_LEVEL_KEY.test(line),
+  );
+  return [key + 1, next === -1 ? closing : next + 1];
+}
+
 /**
  * Remove a top-level frontmatter block (`key:` plus its nested lines) from a
  * markdown document, leaving every other byte untouched. Returns the patched
@@ -32,33 +70,15 @@ export function removeFrontmatterBlock(
   content: string,
   key: string,
 ): string | null {
-  const lines = content.match(/[^\n]*\n|[^\n]+$/g) ?? [];
-  if (lines.length === 0 || lines[0]?.trim() !== "---") return null;
-  let closingIndex = -1;
-  for (let index = 1; index < lines.length; index++) {
-    if (lines[index]?.trim() === "---") {
-      closingIndex = index;
-      break;
-    }
-  }
-  if (closingIndex === -1) return null;
-  let blockStart = -1;
-  let blockEnd = closingIndex;
-  for (let index = 1; index < closingIndex; index++) {
-    if (new RegExp(`^${key}\\s*:`).test(lines[index] ?? "")) {
-      blockStart = index;
-      break;
-    }
-  }
-  if (blockStart === -1) return null;
-  for (let index = blockStart + 1; index < closingIndex; index++) {
-    const line = lines[index] ?? "";
-    if (/^[A-Za-z_][A-Za-z0-9_-]*\s*:/.test(line)) {
-      blockEnd = index;
-      break;
-    }
-  }
-  return [...lines.slice(0, blockStart), ...lines.slice(blockEnd)].join("");
+  const document = frontmatter(content);
+  if (document === null) return null;
+  const range = blockRange(document, new RegExp(`^${key}\\s*:`));
+  if (range === null) return null;
+  const [start, end] = range;
+  return [
+    ...document.lines.slice(0, start),
+    ...document.lines.slice(end),
+  ].join("");
 }
 
 /**
@@ -83,44 +103,20 @@ export function patchReceiptsIntoDocument(
   content: string,
   receipts: readonly Readonly<Record<string, unknown>>[],
 ): string | null {
-  const lines = content.match(/[^\n]*\n|[^\n]+$/g) ?? [];
-  if (lines.length === 0 || lines[0]?.trim() !== "---") return null;
-  let closingIndex = -1;
-  for (let index = 1; index < lines.length; index++) {
-    if (lines[index]?.trim() === "---") {
-      closingIndex = index;
-      break;
-    }
-  }
-  if (closingIndex === -1) return null;
-
-  let receiptsStart = -1;
-  let receiptsEnd = closingIndex;
-  for (let index = 1; index < closingIndex; index++) {
-    if (/^proof_receipts\s*:/.test(lines[index] ?? "")) {
-      receiptsStart = index;
-      break;
-    }
-  }
-  if (receiptsStart !== -1) {
-    for (let index = receiptsStart + 1; index < closingIndex; index++) {
-      const line = lines[index] ?? "";
-      if (/^[A-Za-z_][A-Za-z0-9_-]*\s*:/.test(line)) {
-        receiptsEnd = index;
-        break;
-      }
-    }
-  }
-
+  const document = frontmatter(content);
+  if (document === null) return null;
+  // Without a receipts block, the new one goes just before the closing line.
+  const [start, end] = blockRange(document, /^proof_receipts\s*:/) ?? [
+    document.closing,
+    document.closing,
+  ];
   const block = dumpYaml(
     { proof_receipts: receipts.map((receipt) => ({ ...receipt })) },
     { noRefs: true, lineWidth: -1, sortKeys: false },
   );
-  const blockLines = block.match(/[^\n]*\n|[^\n]+$/g) ?? [];
-  const spliced = [
-    ...lines.slice(0, receiptsStart === -1 ? closingIndex : receiptsStart),
-    ...blockLines,
-    ...lines.slice(receiptsEnd),
-  ];
-  return spliced.join("");
+  return [
+    ...document.lines.slice(0, start),
+    block,
+    ...document.lines.slice(end),
+  ].join("");
 }

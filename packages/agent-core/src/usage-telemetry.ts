@@ -15,10 +15,12 @@ import {
   rememberSkillLoad,
   telemetryCrash,
   telemetryField,
+  telemetryRootError,
   telemetryRule,
 } from "./telemetry-signals.js";
 
 export type { OperationSignals, RejectionIssue } from "./telemetry-signals.js";
+export { telemetryRootError } from "./telemetry-signals.js";
 
 /**
  * Anonymous usage telemetry shared by the CLI, the MCP server and the host
@@ -208,9 +210,11 @@ export function telemetryOutcome(
 /**
  * The class name of a thrown value as sent: an identifier such as
  * `TypeError`, or null for a plain `Error`, a non-error or a name that is not
- * an identifier. Never the message.
+ * an identifier. A plain wrapper is named by its cause (see
+ * telemetryRootError). Never the message.
  */
-export function telemetryErrorClass(error: unknown): string | null {
+export function telemetryErrorClass(thrown: unknown): string | null {
+  const error = telemetryRootError(thrown);
   if (error === null || typeof error !== "object") return null;
   const name = (error as { constructor?: { name?: unknown } }).constructor
     ?.name;

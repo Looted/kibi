@@ -1,0 +1,26 @@
+{
+  "object": ["proof_bindings must be an array of binding objects"],
+  "empty": [],
+  "valid": [],
+  "bad": [
+    "proof_bindings[0] must be an object with symbol_id and target",
+    "proof_bindings[1] must be an object with symbol_id and target",
+    "proof_bindings[2].symbol_id must be a non-empty proof symbol ID (SYM-*)",
+    "proof_bindings[2].target must be a non-empty execution target",
+    "proof_bindings[3].symbol_id must be a non-empty proof symbol ID (SYM-*)",
+    "proof_bindings[3].target must be a non-empty execution target",
+    "proof_bindings[4].native_id must be a non-empty string when present",
+    "proof_bindings[4].aliases must be an array of non-empty strings",
+    "proof_bindings[4].source_file must be a non-empty string when present",
+    "proof_bindings[4].line must be a positive integer when present",
+    "proof_bindings[5].aliases must be an array of non-empty strings",
+    "proof_bindings[5].line must be a positive integer when present",
+    "proof_bindings[6].line must be a positive integer when present",
+    "proof_bindings[7] duplicates target/symbol_id 't/SYM-a'",
+    "proof_bindings[9].line must be a positive integer when present",
+    "proof_bindings[9] duplicates target/symbol_id 't/SYM-b'",
+    "proof_bindings[10].symbol_id must be a non-empty proof symbol ID (SYM-*)",
+    "proof_bindings[11].target must be a non-empty execution target",
+    "proof_bindings[12].target must be a non-empty execution target"
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "valid": [],
+  "validFull": [],
+  "null": [
+    "artifact must be an object with version, producer, command_argv, code_snapshot, environment, run, and proof_results"
+  ],
+  "array": [
+    "artifact must be an object with version, producer, command_argv, code_snapshot, environment, run, and proof_results"
+  ],
+  "empty": [
+    "artifact.version must be kibi.proof-run.v1; received null",
+    "artifact.producer is required",
+    "artifact.command_argv must be a non-empty array of the exact executed command arguments",
+    "artifact.code_snapshot must be the 64-hex workspace snapshot captured before the run",
+    "artifact.environment must be a typed environment object",
+    "artifact.run must be an object with outcome, exit_code, started_at, and finished_at",
+    "artifact.proof_results must be a non-empty array of proof results with symbol_id, target, outcome, binding, and attempts"
+  ],
+  "badVersion": [
+    "artifact.version must be kibi.proof-run.v1; received \"kibi.proof-run.v0\""
+  ],
+  "producerString": [
+    "artifact.producer must be an object with a non-empty name (and optional version)"
+  ],
+  "producerBlank": ["artifact.producer.name must be a non-empty string"],
+  "producerBadVersion": [
+    "artifact.producer.version must be a non-empty string when present"
+  ],
+  "executorBad": [
+    "artifact.executor.name must be a non-empty string",
+    "artifact.executor.version must be a non-empty string when present"
+  ],
+  "executorNull": [
+    "artifact.executor must be an object with a non-empty name (and optional version)"
+  ],
+  "argvString": [
+    "artifact.command_argv must be a non-empty array of the exact executed command arguments"
+  ],
+  "argvEmpty": [
+    "artifact.command_argv must be a non-empty array of the exact executed command arguments"
+  ],
+  "argvBlank": [
+    "artifact.command_argv must be a non-empty array of the exact executed command arguments"
+  ],
+  "snapshotUpper": [
+    "artifact.code_snapshot must be the 64-hex workspace snapshot captured before the run"
+  ],
+  "snapshotLong": [
+    "artifact.code_snapshot must be the 64-hex workspace snapshot captured before the run"
+  ],
+  "snapshotPrefixed": [
+    "artifact.code_snapshot must be the 64-hex workspace snapshot captured before the run"
+  ],
+  "snapshotNumber": [
+    "artifact.code_snapshot must be the 64-hex workspace snapshot captured before the run"
+  ],
+  "snapshotObject": [
+    "artifact.code_snapshot must be the 64-hex workspace snapshot captured before the run"
+  ],
+  "diagnosticsMixed": [
+    "artifact.diagnostics must be an array of non-empty strings"
+  ],
+  "environmentArray": [
+    "artifact.environment must be a typed environment object"
+  ],
+  "environmentUndefinedValue": [
+    "artifact.environment must contain only JSON values"
+  ],
+  "environmentNestedUndefined": [
+    "artifact.environment must contain only JSON values"
+  ],
+  "environmentFunction": ["artifact.environment must contain only JSON values"],
+  "runString": [
+    "artifact.run must be an object with outcome, exit_code, started_at, and finished_at"
+  ],
+  "runEmpty": [
+    "artifact.run.outcome must be one of: passed, failed, errored, cancelled, timed_out, interrupted, no_results; received null",
+    "artifact.run.exit_code must be an integer; received null",
+    "artifact.run.started_at must be a non-empty ISO timestamp",
+    "artifact.run.finished_at must be a non-empty ISO timestamp"
+  ],
+  "runBad": [
+    "artifact.run.outcome must be one of: passed, failed, errored, cancelled, timed_out, interrupted, no_results; received \"great\"",
+    "artifact.run.exit_code must be an integer; received 1.5",
+    "artifact.run.started_at must be a non-empty ISO timestamp",
+    "artifact.run.finished_at must be a non-empty ISO timestamp",
+    "artifact.run.failure_phase must be one of: setup, collection, execution, teardown, infrastructure; received \"lunch\""
+  ],
+  "runNullPhase": [
+    "artifact.run.failure_phase must be one of: setup, collection, execution, teardown, infrastructure; received null"
+  ],
+  "runPhase": [],
+  "resultsString": [
+    "artifact.proof_results must be a non-empty array of proof results with symbol_id, target, outcome, binding, and attempts"
+  ],
+  "resultsEmpty": [
+    "artifact.proof_results must be a non-empty array of proof results with symbol_id, target, outcome, binding, and attempts"
+  ],
+  "resultsTooMany": [
+    "artifact.proof_results must contain at most 1000 results"
+  ],
+  "resultsDuplicate": [
+    "artifact.proof_results[1] must be an object with symbol_id, target, outcome, binding, and attempts",
+    "artifact.proof_results[2].symbol_id must be a non-empty proof symbol ID (SYM-*)",
+    "artifact.proof_results[3].target must be a non-empty execution target",
+    "artifact.proof_results[5] duplicates target/symbol_id 'default/SYM-a'"
+  ],
+  "integrationBlank": [
+    "artifact.integration must be a non-empty string when present"
+  ],
+  "diagnosticsBad": [
+    "artifact.diagnostics must be an array of non-empty strings"
+  ],
+  "diagnosticsString": [
+    "artifact.diagnostics must be an array of non-empty strings"
+  ],
+  "certificatesString": ["artifact.certificates must be an array when present"],
+  "certificatesBad": [
+    "artifact.certificates[0] must be a JSON object with version, a certificate kind (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source) and test_id",
+    "artifact.certificates[1] must be a JSON object with version, a certificate kind (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source) and test_id",
+    "artifact.certificates[2] must be a JSON object with version, a certificate kind (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source) and test_id",
+    "artifact.certificates[3] must be a JSON object with version, a certificate kind (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source) and test_id",
+    "artifact.certificates[4] must be a JSON object with version, a certificate kind (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source) and test_id"
+  ]
+}

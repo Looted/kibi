@@ -941,6 +941,7 @@ Verifies environment setup and diagnostics.
 
 **Behavior:**
 - Reports the Kibi release this install belongs to ("Kibi release"), using the release manifest that the installed `kibi-core` ships (`release.json`): the release version and its KB schema, operation protocol and plugin API versions. It warns ("Mixed install") when an installed Kibi package has a different version than that release lists, and also warns when `kibi-core` predates release manifests. A local pack stamped `<version>-dev.<suffix>` counts as its base version. JSON output carries the manifest under `runtime.release` and the per-package comparison under the check's `details`
+- Reports whether a newer `kibi-cli` is published on npm ("Kibi updates"): a newer version is a warning that names both versions, the update command for this install and, when the newer release writes a newer KB schema, the schema move and `kibi migrate`. It uses the cached daily answer and asks the registry only when that is a day old; an unreachable registry passes without a warning, and CI, tests and `KIBI_UPDATE_CHECK=0` / `NO_UPDATE_NOTIFIER` skip the check (see [Update notices](install.md#update-notices))
 - Resolves the SWI-Prolog Kibi runs (`KIBI_SWIPL`, then the bundled `kibi-swipl-<platform>` package, then `swipl` on `PATH`), reports its source, path, and version, and loads every library Kibi requires; when the bundle is missing on a supported platform it names the package to add
 - Verifies `.kb/` directory exists
 - Validates `.kb/manifest.json` syntax
@@ -952,7 +953,7 @@ Verifies environment setup and diagnostics.
 - Otherwise treats a hook without a kibi-managed section as the project's own hook (hand-written, husky, lefthook, ...). A custom pre-commit passes when it runs both `kibi check-generated --staged --changed-only` and `kibi check --staged` (via `kibi`, `npx kibi`, `node_modules/.bin/kibi` or `"$KIBI_BIN"`; commented lines do not count), and a custom post-rewrite passes when it runs `kibi sync`. Otherwise the check fails and the remediation shows what to delegate to and `kibi init --print-hook <hook>`, because `kibi init` never edits a custom hook
 - Fails when an installed kibi-managed hook section differs from what the running CLI installs ("Kibi-managed hook sections"), for example a pre-commit hook written before the generated-manifest gate
 - Reports the engine daemon serving this workspace and branch ("Engine daemon"), without starting one: its package versions and SWI-Prolog from the daemon handshake. A daemon with other package versions than this CLI is reported, not failed; the next Kibi command stops and replaces it
-- Warns ("Manifest merge driver"), once `.kb/symbols.yaml` holds a symbol, when Git does not route `.kb/symbols.yaml` to `kibi merge-driver` (`merge=kibi` in `.gitattributes`) or `merge.kibi.driver` is not set, and prints both setup lines; merges still work without it, with ordinary line conflicts; the driver command names the project's package manager (from its lockfile)
+- Warns ("Manifest merge driver"), once `.kb/symbols.yaml` holds a symbol, when Git does not route `.kb/symbols.yaml` to `kibi merge-driver` (`merge=kibi` in `.gitattributes`) or `merge.kibi.driver` is not set, and prints only the setup steps that are missing (the `.gitattributes` lines, the `git config` command, or both); merges still work without it, with ordinary line conflicts; the driver command names the project's package manager (from its lockfile)
 - Fails ("Capability plugins") when a plugin `package.json#kibi.plugins` declares is not installed in the workspace (run `npm install`), and when an installed release-qualified source analyzer such as `kibi-plugin-treesitter` is not the exact build this Kibi pins (its pinned file hashes or version differ, for example an older build published under the same version): the remediation is to remove `node_modules/<package>` and install the qualified build. Doctor resolves and hashes the package; it never imports plugin code
 - Warns, rather than fails, when the secret of an activated plugin is missing and every capability of that plugin is in `augment` mode (for example `TYPESAFE_API_KEY` for `kibi-plugin-jev`): the plugin is skipped and builtin providers keep answering. In `replace` mode the missing secret is a failure
 - Reports issues with remediation suggestions
@@ -1276,6 +1277,67 @@ kibi branch migrate --from old-ref --to feature/target --apply --approval-hash <
 kibi branch recover
 kibi branch recover --apply
 ```
+
+## `kibi deps lock|fetch|status`
+
+Manage KB dependencies: other repositories' knowledge bases this project reads,
+read-only, at pinned commits. Declare them in `.kb/dependencies.json`:
+
+```json
+{
+  "version": 1,
+  "dependencies": {
+    "billing-service": { "git": "git@example.com:acme/billing-service.git", "ref": "v3.2.0" },
+    "catalog": { "git": "https://example.com/acme/platform.git", "ref": "main", "directory": "services/catalog" }
+  }
+}
+```
+
+`git` is any URL or path `git` can fetch; `ref` is a tag, branch or commit (the
+remote `HEAD` when absent); `directory` names the subdirectory that holds the
+Kibi workspace in a monorepo. Names use lowercase letters, digits, `.`, `_`
+and `-`.
+
+- `kibi deps lock [names...]` resolves each ref to a commit, fetches it, checks
+  that it holds a Kibi KB of schema 6 or newer, and writes
+  `.kb/dependencies.lock.json`. Existing pins are kept, so a dependency only
+  moves when you name it or pass `--update`. Commit both files.
+- `kibi deps fetch` fetches every pinned commit into the shared cache, for CI or
+  before going offline. Reads fetch on first use otherwise.
+- `kibi deps status` lists each dependency with its pinned commit, KB schema and
+  cache state (`not_locked`, `lock_stale`, `not_fetched`, `fetched`); it exits
+  1 when a dependency needs `kibi deps lock`.
+
+All three accept `--format json`. They need `git` on `PATH`. Git runs without a
+terminal prompt, so private repositories need credentials git already has (SSH
+keys, a credential helper or a CI token).
+
+Kibi reads the dependency's committed `.kb/` sources at the pinned commit; the
+dependency publishes nothing extra. Pin a tag whose commit already carries the
+KB you want to read: `kibi deps lock` checks that `.kb/manifest.json` exists and
+names a supported schema, but a KB with no entities yet locks and then answers
+every read with nothing. A good default is the release of the dependency your
+project actually uses, so the answers describe the code you run.
+
+Read a dependency with `--kb <name>` on `kibi search`, `kibi query`,
+`kibi status`, `kibi find-gaps`, `kibi coverage` and `kibi graph`, or with `kb`
+in their JSON route input:
+
+```bash
+kibi search "how are refunds approved" --kb billing-service
+printf '%s\n' '{"query":"refund approval","kb":"billing-service"}' | kibi search --input -
+```
+
+The answer comes from the dependency's own KB at the pinned commit, compiled
+once into a read-only store inside its cached checkout on the first read (a few
+seconds for a large KB; later reads reuse it). The project's own `.kb/`, branch
+store, sync, check and hooks never read or write it. Writes are refused: write
+commands have no `--kb` option, and their JSON routes reject a `kb` field.
+Failures carry a `DEPENDENCY_*` code; the
+[error reference](error-reference.md#kb-dependency-errors-dependency_) lists
+them with their fixes. The cache lives in `$KIBI_DEPENDENCY_CACHE`, else
+`$XDG_CACHE_HOME/kibi/dependencies`, else `~/.cache/kibi/dependencies`, keyed by
+repository URL and commit, so projects pinning the same commit share it.
 
 ## `kibi skills`
 

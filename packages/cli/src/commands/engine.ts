@@ -22,16 +22,8 @@ function currentBranch(root: string): string {
 }
 
 function client(): EngineClient {
-  const workspaceRoot = path.resolve(
-    process.env.KIBI_WORKSPACE ??
-      process.env.KIBI_PROJECT_ROOT ??
-      process.env.KIBI_ROOT ??
-      process.cwd(),
-  );
-  return new EngineClient({
-    workspaceRoot,
-    branch: currentBranch(workspaceRoot),
-  });
+  const root = workspaceRoot();
+  return new EngineClient({ workspaceRoot: root, branch: currentBranch(root) });
 }
 
 function workspaceRoot(): string {
@@ -50,15 +42,13 @@ export async function engineStatusCommand(): Promise<void> {
     if (!result.success)
       throw new Error(result.error ?? "Engine status failed");
     let status: unknown = result.bindings.Status ?? null;
-    const encoded = result.bindings.Json;
-    if (encoded !== undefined) {
-      try {
-        const decoded = JSON.parse(encoded);
-        status = typeof decoded === "string" ? JSON.parse(decoded) : decoded;
-      } catch {
-        // Preserve the raw Prolog dict text for diagnostics when a mismatched
-        // engine version cannot provide the negotiated JSON binding.
-      }
+    try {
+      // A missing Json binding fails the parse like a malformed one.
+      const decoded = JSON.parse(result.bindings.Json as string);
+      status = typeof decoded === "string" ? JSON.parse(decoded) : decoded;
+    } catch {
+      // Preserve the raw Prolog dict text for diagnostics when a mismatched
+      // engine version cannot provide the negotiated JSON binding.
     }
     console.log(
       JSON.stringify({
@@ -160,10 +150,9 @@ export async function engineJanitorCommand(
       );
       continue;
     }
-    const holder =
-      "pid" in finding && finding.pid !== undefined
-        ? ` pid=${finding.pid}`
-        : "";
+    // Only lock and socket findings carry a pid.
+    const pid = (finding as { pid?: number }).pid;
+    const holder = pid !== undefined ? ` pid=${pid}` : "";
     const workspace =
       finding.kind === "store-lock" && finding.workspaceRoot !== undefined
         ? ` workspace=${finding.workspaceRoot}`

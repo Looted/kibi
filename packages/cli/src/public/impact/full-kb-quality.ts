@@ -72,43 +72,100 @@ function optionalStringField(
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-function optionalNumberField(
-  entity: Record<string, unknown>,
-  key: string,
-): number | undefined {
-  const value = entity[key];
-  return typeof value === "number" ? value : undefined;
-}
+/** Optional fields copied when they hold a non-empty string. */
+const STRING_FIELDS = [
+  "owner",
+  "priority",
+  "severity",
+  "text_ref",
+  "semantic_text",
+  "semantic_source_hash",
+  "granularity_reason",
+  "symbol_kind",
+  "symbol_role",
+  "subject_key",
+  "property_key",
+  "value_string",
+  "unit",
+  "scope",
+  "valid_from",
+  "valid_to",
+  "canonical_key",
+  "claim_key",
+  "claim_text",
+  "predicate_name",
+  "predicate_namespace",
+  "rule_hash",
+  "rule_schema_id",
+  "rule_name",
+  "semantic_key",
+  "proof_exempt_reason",
+] as const;
 
-function optionalStringArrayField(
-  entity: Record<string, unknown>,
-  key: string,
-): string[] | undefined {
-  const value = entity[key];
-  if (!Array.isArray(value)) return undefined;
-  return value.map((item) => String(item));
-}
+/** Optional fields copied when they hold one of the listed strings. */
+const ENUM_FIELDS: Readonly<Record<string, ReadonlySet<string>>> = {
+  semantic_inventory_version: new Set(["kibi.semantic-inventory.v1"]),
+  semantic_source_field: new Set(["semantic_text", "text_ref", "title"]),
+  verification_scope: new Set(["unit", "integration", "end_to_end"]),
+  verification_perspective: new Set(["internal", "consumer"]),
+  fact_kind: new Set([
+    "subject",
+    "property_value",
+    "observation",
+    "meta",
+    "predicate_schema",
+    "predicate",
+    "rule_schema",
+    "rule",
+  ]),
+  operator: new Set(["eq", "neq", "lt", "lte", "gt", "gte"]),
+  value_type: new Set(["string", "int", "number", "bool"]),
+  polarity: new Set(["require", "forbid", "assert", "deny"]),
+};
 
-function optionalBooleanField(
-  entity: Record<string, unknown>,
-  key: string,
-): boolean | undefined {
-  const value = entity[key];
-  return typeof value === "boolean" ? value : undefined;
-}
+/** Optional fields copied as strings when they hold a list. */
+const STRING_ARRAY_FIELDS = [
+  "tags",
+  "logic_claims",
+  "semantic_clauses",
+  "argument_names",
+  "argument_types",
+  "argument_descriptions",
+  "key_arguments",
+  "aliases",
+  "examples",
+  "predicate_args",
+  "value_set",
+] as const;
 
-function optionalObjectField(
-  entity: Record<string, unknown>,
-  key: string,
-): Record<string, unknown> | undefined {
-  const value = entity[key];
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : undefined;
-}
+/** Optional fields copied as they are when they hold a list. */
+const LIST_FIELDS = [
+  "semantic_inventory",
+  "proof_bindings",
+  "proof_receipts",
+] as const;
+
+/** Optional fields copied when they hold an object that is not a list. */
+const OBJECT_FIELDS = ["proof_contract", "rule_ir"] as const;
+
+/** Optional fields copied when they hold a number. */
+const NUMBER_FIELDS = [
+  "sourceLine",
+  "sourceColumn",
+  "sourceEndLine",
+  "sourceEndColumn",
+  "value_int",
+  "value_number",
+  "predicate_arity",
+  "claim_span_start",
+  "claim_span_end",
+] as const;
+
+/** Optional fields copied when they hold a boolean. */
+const BOOLEAN_FIELDS = ["value_bool", "closed_world"] as const;
 
 function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
-  const extracted: ExtractedEntity = {
+  const extracted: Record<string, unknown> = {
     id: stringField(entity, "id"),
     type: stringField(entity, "type"),
     title: stringField(entity, "title"),
@@ -117,81 +174,6 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
     updated_at: stringField(entity, "updated_at"),
     source: stringField(entity, "source"),
   };
-  const tags = optionalStringArrayField(entity, "tags");
-  if (tags !== undefined) extracted.tags = tags;
-  const owner = optionalStringField(entity, "owner");
-  if (owner !== undefined) extracted.owner = owner;
-  const priority = optionalStringField(entity, "priority");
-  if (priority !== undefined) extracted.priority = priority;
-  const severity = optionalStringField(entity, "severity");
-  if (severity !== undefined) extracted.severity = severity;
-  const textRef = optionalStringField(entity, "text_ref");
-  if (textRef !== undefined) extracted.text_ref = textRef;
-  const semanticText = optionalStringField(entity, "semantic_text");
-  if (semanticText !== undefined) extracted.semantic_text = semanticText;
-  const logicClaims = optionalStringArrayField(entity, "logic_claims");
-  if (logicClaims !== undefined) extracted.logic_claims = logicClaims;
-  const semanticClauses = optionalStringArrayField(entity, "semantic_clauses");
-  if (semanticClauses !== undefined)
-    extracted.semantic_clauses = semanticClauses;
-  const semanticInventoryVersion = optionalStringField(
-    entity,
-    "semantic_inventory_version",
-  );
-  if (semanticInventoryVersion === "kibi.semantic-inventory.v1") {
-    extracted.semantic_inventory_version = semanticInventoryVersion;
-  }
-  const semanticSourceField = optionalStringField(
-    entity,
-    "semantic_source_field",
-  );
-  if (
-    semanticSourceField === "semantic_text" ||
-    semanticSourceField === "text_ref" ||
-    semanticSourceField === "title"
-  ) {
-    extracted.semantic_source_field = semanticSourceField;
-  }
-  const semanticSourceHash = optionalStringField(
-    entity,
-    "semantic_source_hash",
-  );
-  if (semanticSourceHash !== undefined) {
-    extracted.semantic_source_hash = semanticSourceHash;
-  }
-  const semanticInventory = entity.semantic_inventory;
-  if (Array.isArray(semanticInventory)) {
-    extracted.semantic_inventory = semanticInventory as readonly Record<
-      string,
-      unknown
-    >[];
-  }
-  const granularityReason = optionalStringField(entity, "granularity_reason");
-  if (granularityReason !== undefined) {
-    extracted.granularity_reason = granularityReason;
-  }
-  const symbolKind = optionalStringField(entity, "symbol_kind");
-  if (symbolKind !== undefined) extracted.symbol_kind = symbolKind;
-  const symbolRole = optionalStringField(entity, "symbol_role");
-  if (symbolRole !== undefined) extracted.symbol_role = symbolRole;
-  const verificationScope = optionalStringField(entity, "verification_scope");
-  if (
-    verificationScope === "unit" ||
-    verificationScope === "integration" ||
-    verificationScope === "end_to_end"
-  ) {
-    extracted.verification_scope = verificationScope;
-  }
-  const verificationPerspective = optionalStringField(
-    entity,
-    "verification_perspective",
-  );
-  if (
-    verificationPerspective === "internal" ||
-    verificationPerspective === "consumer"
-  ) {
-    extracted.verification_perspective = verificationPerspective;
-  }
   // Stored as a Prolog atom, so the projection may answer "true" or true.
   const proofExempt = entity.proof_exempt;
   if (proofExempt === true || proofExempt === "true") {
@@ -199,130 +181,37 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
   } else if (proofExempt === false || proofExempt === "false") {
     extracted.proof_exempt = false;
   }
-  const proofExemptReason = optionalStringField(entity, "proof_exempt_reason");
-  if (proofExemptReason !== undefined) {
-    extracted.proof_exempt_reason = proofExemptReason;
-  }
-  const proofContract = optionalObjectField(entity, "proof_contract");
-  if (proofContract !== undefined) {
-    extracted.proof_contract = proofContract as NonNullable<
-      ExtractedEntity["proof_contract"]
-    >;
-  }
-  const proofBindings = entity.proof_bindings;
-  if (Array.isArray(proofBindings)) {
-    extracted.proof_bindings = proofBindings as NonNullable<
-      ExtractedEntity["proof_bindings"]
-    >;
-  }
-  const proofReceipts = entity.proof_receipts;
-  if (Array.isArray(proofReceipts)) {
-    extracted.proof_receipts = proofReceipts as NonNullable<
-      ExtractedEntity["proof_receipts"]
-    >;
-  }
-  const sourceLine = optionalNumberField(entity, "sourceLine");
-  if (sourceLine !== undefined) extracted.sourceLine = sourceLine;
-  const sourceColumn = optionalNumberField(entity, "sourceColumn");
-  if (sourceColumn !== undefined) extracted.sourceColumn = sourceColumn;
-  const sourceEndLine = optionalNumberField(entity, "sourceEndLine");
-  if (sourceEndLine !== undefined) extracted.sourceEndLine = sourceEndLine;
-  const sourceEndColumn = optionalNumberField(entity, "sourceEndColumn");
-  if (sourceEndColumn !== undefined)
-    extracted.sourceEndColumn = sourceEndColumn;
-  const factKind = optionalStringField(entity, "fact_kind");
-  if (
-    factKind === "subject" ||
-    factKind === "property_value" ||
-    factKind === "observation" ||
-    factKind === "meta" ||
-    factKind === "predicate_schema" ||
-    factKind === "predicate" ||
-    factKind === "rule_schema" ||
-    factKind === "rule"
-  ) {
-    extracted.fact_kind = factKind;
-  }
-  for (const field of [
-    "subject_key",
-    "property_key",
-    "value_string",
-    "unit",
-    "scope",
-    "valid_from",
-    "valid_to",
-    "canonical_key",
-    "claim_key",
-    "claim_text",
-    "predicate_name",
-    "predicate_namespace",
-    "rule_hash",
-    "rule_schema_id",
-    "rule_name",
-    "semantic_key",
-  ] as const) {
+  for (const field of STRING_FIELDS) {
     const value = optionalStringField(entity, field);
     if (value !== undefined) extracted[field] = value;
   }
-  const operator = optionalStringField(entity, "operator");
-  if (
-    operator === "eq" ||
-    operator === "neq" ||
-    operator === "lt" ||
-    operator === "lte" ||
-    operator === "gt" ||
-    operator === "gte"
-  ) {
-    extracted.operator = operator;
+  for (const [field, allowed] of Object.entries(ENUM_FIELDS)) {
+    const value = entity[field];
+    // has() takes any value; only an allowed string is in the set.
+    if (allowed.has(value as string)) extracted[field] = value;
   }
-  const valueType = optionalStringField(entity, "value_type");
-  if (
-    valueType === "string" ||
-    valueType === "int" ||
-    valueType === "number" ||
-    valueType === "bool"
-  ) {
-    extracted.value_type = valueType;
+  for (const field of STRING_ARRAY_FIELDS) {
+    const value = entity[field];
+    if (Array.isArray(value)) extracted[field] = value.map(String);
   }
-  const polarity = optionalStringField(entity, "polarity");
-  if (
-    polarity === "require" ||
-    polarity === "forbid" ||
-    polarity === "assert" ||
-    polarity === "deny"
-  ) {
-    extracted.polarity = polarity;
+  for (const field of LIST_FIELDS) {
+    const value = entity[field];
+    if (Array.isArray(value)) extracted[field] = value;
   }
-  const valueInt = optionalNumberField(entity, "value_int");
-  if (valueInt !== undefined) extracted.value_int = valueInt;
-  const valueNumber = optionalNumberField(entity, "value_number");
-  if (valueNumber !== undefined) extracted.value_number = valueNumber;
-  const predicateArity = optionalNumberField(entity, "predicate_arity");
-  if (predicateArity !== undefined) extracted.predicate_arity = predicateArity;
-  const claimSpanStart = optionalNumberField(entity, "claim_span_start");
-  if (claimSpanStart !== undefined) extracted.claim_span_start = claimSpanStart;
-  const claimSpanEnd = optionalNumberField(entity, "claim_span_end");
-  if (claimSpanEnd !== undefined) extracted.claim_span_end = claimSpanEnd;
-  const valueBool = optionalBooleanField(entity, "value_bool");
-  if (valueBool !== undefined) extracted.value_bool = valueBool;
-  const closedWorld = optionalBooleanField(entity, "closed_world");
-  if (closedWorld !== undefined) extracted.closed_world = closedWorld;
-  const ruleIr = optionalObjectField(entity, "rule_ir");
-  if (ruleIr !== undefined) extracted.rule_ir = ruleIr;
-  for (const field of [
-    "argument_names",
-    "argument_types",
-    "argument_descriptions",
-    "key_arguments",
-    "aliases",
-    "examples",
-    "predicate_args",
-    "value_set",
-  ] as const) {
-    const values = optionalStringArrayField(entity, field);
-    if (values !== undefined) extracted[field] = values;
+  for (const field of OBJECT_FIELDS) {
+    const value = entity[field];
+    if (typeof value === "object" && value !== null && !Array.isArray(value))
+      extracted[field] = value;
   }
-  return extracted;
+  for (const field of NUMBER_FIELDS) {
+    const value = entity[field];
+    if (typeof value === "number") extracted[field] = value;
+  }
+  for (const field of BOOLEAN_FIELDS) {
+    const value = entity[field];
+    if (typeof value === "boolean") extracted[field] = value;
+  }
+  return extracted as unknown as ExtractedEntity;
 }
 
 function sourceFileFor(entity: Record<string, unknown>): string | undefined {
@@ -332,12 +221,8 @@ function sourceFileFor(entity: Record<string, unknown>): string | undefined {
   );
 }
 
-class BoundedEntityProjectionError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "BoundedEntityProjectionError";
-  }
-}
+/** An entity batch whose answer overflowed the Prolog output. */
+class BoundedEntityProjectionError extends Error {}
 
 function isOutputCapacityError(error: string | undefined): boolean {
   return error?.includes(PROLOG_OUTPUT_CAPACITY_MARKER) === true;
@@ -345,10 +230,7 @@ function isOutputCapacityError(error: string | undefined): boolean {
 
 function parseAuthoritativeEntityIds(raw: string): string[] {
   const trimmed = raw.trim();
-  if (
-    trimmed !== "[]" &&
-    (!trimmed.startsWith("[") || !trimmed.endsWith("]"))
-  ) {
+  if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
     throw new Error("Full KB entity ID enumeration returned malformed data");
   }
   // parseAtomList drops empty atoms, so every ID it returns is non-empty.
@@ -424,9 +306,8 @@ function validateIndexedEntityPage(
 }
 
 function isOutputCapacityException(error: unknown): boolean {
-  return isOutputCapacityError(
-    error instanceof Error ? error.message : String(error),
-  );
+  // An Error reads as "Name: message", which holds the message.
+  return isOutputCapacityError(String(error));
 }
 
 async function loadIndexedEntityProjection(
@@ -595,10 +476,9 @@ export async function loadKbExtractionResults(
         `Full KB relationship projection query failed for ${relationshipType}: ${relResult.error ?? "Unknown error"}`,
       );
     }
-    const rows = relResult.bindings.Rels
-      ? parseTriples(relResult.bindings.Rels)
-      : [];
-    for (const [rawFrom, rawTo, type] of rows) {
+    const rawRows = relResult.bindings.Rels;
+    if (rawRows === undefined) continue;
+    for (const [rawFrom, rawTo, type] of parseTriples(rawRows)) {
       const from = normalizeEntityId(rawFrom);
       const to = normalizeEntityId(rawTo);
       const current = relationships.get(from) ?? [];
@@ -674,6 +554,8 @@ async function loadCoverageProofEvidence(
       prolog as PrologPort,
       "discovery.pl",
       `discovery:coverage_evidence_json(${toPrologList([])}, ${binding}, ${toPrologAtom(proofSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
+      // rationale: the label only names a failure, which this caller swallows
+      // Stryker disable next-line StringLiteral
       "Quality diagnostic coverage evidence",
     );
   } catch {
@@ -681,6 +563,7 @@ async function loadCoverageProofEvidence(
     // unavailable; a failed advisory query must not make kb_check fail.
     return new Map();
   }
+  if (!Array.isArray(payload.rows)) return new Map();
   const evidence = new Map<
     string,
     Readonly<{
@@ -690,9 +573,9 @@ async function loadCoverageProofEvidence(
       readonly receiptGapCodes?: readonly string[];
     }>
   >();
-  for (const row of payload.rows ?? []) {
-    const id = typeof row.id === "string" ? row.id : undefined;
-    if (id === undefined) continue;
+  for (const row of payload.rows) {
+    // A row without a string id is kept under a key no requirement id equals.
+    const id = row.id as string;
     const passingE2eTests = stringArrayField(row.passingE2eTests) ?? [];
     evidence.set(id, {
       ...(typeof row.proofStatus === "string"
@@ -714,7 +597,8 @@ function capDiagnostics(
   diagnostics: readonly QualityDiagnostic[],
   maxDiagnostics: number | undefined,
 ): readonly QualityDiagnostic[] {
-  return maxDiagnostics !== undefined && maxDiagnostics >= 0
+  // undefined >= 0 is false, so no cap keeps every diagnostic.
+  return (maxDiagnostics as number) >= 0
     ? diagnostics.slice(0, maxDiagnostics)
     : diagnostics;
 }
@@ -734,7 +618,7 @@ function telemetryReadDiagnostic(message: string): QualityDiagnostic {
 
 async function collectTelemetryDiagnostics(
   workspaceRoot: string | undefined,
-  now: Date,
+  now: Date | undefined,
 ): Promise<readonly QualityDiagnostic[]> {
   if (workspaceRoot === undefined) return [];
   const usageLogPath = path.join(workspaceRoot, ".kb", "usage.log");
@@ -742,18 +626,12 @@ async function collectTelemetryDiagnostics(
   try {
     contents = await readFile(usageLogPath, "utf8");
   } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
-      return [];
-    }
-    const message = error instanceof Error ? error.message : String(error);
+    // readFile rejects with a system error that carries a code.
+    const failure = error as NodeJS.ErrnoException;
+    if (failure.code === "ENOENT") return [];
     return [
       telemetryReadDiagnostic(
-        `Telemetry acceptance evidence is unreadable: ${message}`,
+        `Telemetry acceptance evidence is unreadable: ${failure.message}`,
       ),
     ];
   }
@@ -765,10 +643,10 @@ async function collectTelemetryDiagnostics(
     );
     return createTelemetryAcceptanceDiagnostics(report);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    // The parser and the analysis throw only Error values.
     return [
       telemetryReadDiagnostic(
-        `Telemetry acceptance evidence is malformed: ${message}`,
+        `Telemetry acceptance evidence is malformed: ${(error as Error).message}`,
       ),
     ];
   }
@@ -779,10 +657,7 @@ export async function collectFullKbQualityDiagnostics(
 ): Promise<readonly QualityDiagnostic[]> {
   const [manifestResults, telemetryDiagnostics] = await Promise.all([
     loadKbExtractionResults(options.prolog),
-    collectTelemetryDiagnostics(
-      options.workspaceRoot,
-      options.now ?? new Date(),
-    ),
+    collectTelemetryDiagnostics(options.workspaceRoot, options.now),
   ]);
   const proofEvidence = await loadCoverageProofEvidence(
     options.prolog,
@@ -797,12 +672,9 @@ export async function collectFullKbQualityDiagnostics(
   );
   const diagnostics = [
     ...telemetryDiagnostics,
-    ...createRequirementQualityDiagnostics({
-      manifestResults,
-      ...(options.hardViolationEntityIds !== undefined
-        ? { hardViolationEntityIds: options.hardViolationEntityIds }
-        : {}),
-    }),
+    // The requirement review reads only manifestResults and
+    // hardViolationEntityIds from these options.
+    ...createRequirementQualityDiagnostics({ ...options, manifestResults }),
     ...coverageDepthDiagnostics,
     ...createCoarseAnchorQualityDiagnostics(manifestResults),
     ...createSymbolQualityDiagnostics({

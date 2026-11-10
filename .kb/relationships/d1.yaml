@@ -468,3 +468,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec1a70acf7d1
+  - type: assumes
+    from: SCEN-NEG-cli-doctor-merge-driver-remediation
+    to: FACT-NEG-doctor-merge-driver-remediation
+    created_at: 2026-11-05T11:47:38.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccee49cc1591

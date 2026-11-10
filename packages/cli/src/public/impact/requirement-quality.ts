@@ -193,8 +193,10 @@ function exceedsBroadThreshold(fanout: RequirementFanout): boolean {
 }
 
 function isUmbrellaRequirement(result: ExtractionResult): boolean {
-  const tags = result.entity.tags ?? [];
-  return tags.some((tag) => tag === "umbrella" || tag === "epic");
+  return (
+    result.entity.tags?.some((tag) => tag === "umbrella" || tag === "epic") ===
+    true
+  );
 }
 
 function createBroadRequirementDiagnostics(

@@ -60,6 +60,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+/**
+ * The record's own value for `key`. Argument names are free text, so a name
+ * such as `constructor` must not read an Object.prototype member.
+ */
+function own<T>(
+  record: Readonly<Record<string, T>>,
+  key: string,
+): T | undefined {
+  return Object.hasOwn(record, key) ? record[key] : undefined;
+}
+
 /** Structured fields arrive as objects from Markdown or as JSON strings from Prolog. */
 function structuredField(value: unknown): unknown {
   if (typeof value !== "string") return value;
@@ -80,28 +91,31 @@ export function predicateVocabularyFromEntity(
 ): PredicateVocabulary {
   const rawConstants = structuredField(entity.argument_constants);
   const rawAliases = structuredField(entity.argument_aliases);
-  const constants: Record<string, string[]> = {};
-  if (isRecord(rawConstants)) {
-    for (const [name, values] of Object.entries(rawConstants)) {
-      if (!Array.isArray(values)) continue;
-      const strings = values.filter(
-        (value): value is string =>
-          typeof value === "string" && value.length > 0,
-      );
-      if (strings.length > 0) constants[name] = [...new Set(strings)];
-    }
-  }
-  const aliases: Record<string, Record<string, string>> = {};
-  if (isRecord(rawAliases)) {
-    for (const [name, mapping] of Object.entries(rawAliases)) {
-      if (!isRecord(mapping)) continue;
-      const entries = Object.entries(mapping).filter(
-        (entry): entry is [string, string] =>
-          typeof entry[1] === "string" && entry[1].length > 0,
-      );
-      if (entries.length > 0) aliases[name] = Object.fromEntries(entries);
-    }
-  }
+  // Object.fromEntries keeps every name an own key, `__proto__` included.
+  const constants = Object.fromEntries(
+    Object.entries(isRecord(rawConstants) ? rawConstants : {}).flatMap(
+      ([name, values]) => {
+        if (!Array.isArray(values)) return [];
+        const strings = values.filter(
+          (value): value is string =>
+            typeof value === "string" && value.length > 0,
+        );
+        return strings.length > 0 ? [[name, [...new Set(strings)]]] : [];
+      },
+    ),
+  ) as Record<string, string[]>;
+  const aliases = Object.fromEntries(
+    Object.entries(isRecord(rawAliases) ? rawAliases : {}).flatMap(
+      ([name, mapping]) => {
+        if (!isRecord(mapping)) return [];
+        const entries = Object.entries(mapping).filter(
+          (entry): entry is [string, string] =>
+            typeof entry[1] === "string" && entry[1].length > 0,
+        );
+        return entries.length > 0 ? [[name, Object.fromEntries(entries)]] : [];
+      },
+    ),
+  ) as Record<string, Record<string, string>>;
   return { constants, aliases };
 }
 
@@ -164,7 +178,7 @@ export function predicateVocabularyErrors(
         );
         continue;
       }
-      const declared = vocabulary.constants[name];
+      const declared = own(vocabulary.constants, name);
       if (declared === undefined) {
         errors.push(
           `argument_aliases.${name} requires argument_constants.${name} to declare the canonical constants`,
@@ -178,7 +192,8 @@ export function predicateVocabularyErrors(
         continue;
       }
       for (const [alias, target] of Object.entries(mapping)) {
-        if (typeof target !== "string" || !declared.includes(target)) {
+        // A non-string target is never among the declared string constants.
+        if (!(declared as readonly unknown[]).includes(target)) {
           errors.push(
             `argument_aliases.${name}.${alias} must name a declared constant of ${name}`,
           );
@@ -210,10 +225,14 @@ export function predicateArgumentConformance(
   args.forEach((value, index) => {
     const argumentName = argumentNames[index];
     if (argumentName === undefined) return;
-    const allowed = vocabulary.constants[argumentName];
+    const allowed = own(vocabulary.constants, argumentName);
     if (allowed === undefined || allowed.includes(value)) return;
-    const canonical = vocabulary.aliases[argumentName]?.[value];
-    if (canonical !== undefined && allowed.includes(canonical)) {
+    const mapping = own(vocabulary.aliases, argumentName);
+    // An absent alias (undefined) is never among the declared constants.
+    const canonical = (
+      mapping === undefined ? undefined : own(mapping, value)
+    ) as string;
+    if (allowed.includes(canonical)) {
       rewrites.push({ index, argumentName, from: value, to: canonical });
       return;
     }

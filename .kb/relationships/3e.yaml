@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b48f539b097a
+  - type: implements
+    from: SYM-cli-update-check-update-check-interval-ms
+    to: REQ-kibi-update-notice
+    created_at: 2026-11-04T13:23:21.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a4b1ea6ae33
+  - type: covered_by
+    from: SYM-cli-update-check-update-check-interval-ms
+    to: TEST-kibi-update-notice
+    created_at: 2026-11-04T13:23:21.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49ec6dfaabdd

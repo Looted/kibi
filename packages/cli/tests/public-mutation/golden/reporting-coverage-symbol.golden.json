@@ -1,0 +1,48 @@
+{
+  "rows": [
+    {
+      "id": "SYM-a",
+      "coverage": 0
+    }
+  ],
+  "symbolRepairPlan": {
+    "version": "kibi.symbol-repair-plan.v1",
+    "readOnly": true,
+    "autoApplicable": false,
+    "repairs": []
+  },
+  "migrationPlan": {
+    "version": "kibi.migration-plan.v2",
+    "expected": {
+      "branch": "dev",
+      "kbBranch": "kb-dev",
+      "kbSnapshotId": null,
+      "workspaceSnapshot": "unknown",
+      "configHash": null
+    },
+    "scope": {
+      "evaluatedDomains": ["proof", "semantic", "symbol"],
+      "incompleteDomains": [],
+      "complete": true
+    },
+    "actions": [],
+    "diagnostics": [],
+    "planHash": "233f52fd114161a7e9b474b450ff4c199b9005a4c40625178331f9aaa71b3959",
+    "status": "no_actions",
+    "summary": {
+      "actionCount": 0,
+      "readyActionCount": 0,
+      "blockedActionCount": 0,
+      "automaticActionCount": 0,
+      "reviewActionCount": 0,
+      "operatorActionCount": 0,
+      "executionActionCount": 0
+    }
+  },
+  "meta": {
+    "proofReceiptMaxAgeSeconds": 604800,
+    "proofSnapshot": "unknown",
+    "proofSnapshotAvailable": false,
+    "proofSnapshotError": "The active operation runtime does not expose workspace snapshots."
+  }
+}

@@ -1,0 +1,59 @@
+[
+  [
+    "REQ-a",
+    {
+      "requirementId": "REQ-a",
+      "title": "REQ-a title",
+      "source": ".kb/REQ-a.md",
+      "coverageDepth": "unit_only",
+      "directTests": ["TEST-unit"],
+      "scenarioTests": [],
+      "testStatuses": ["passing"],
+      "verificationScopes": ["unit"],
+      "proofStatus": "unresolved",
+      "passingE2eStatus": "missing",
+      "passingE2eTests": ["T-1", "2"],
+      "receiptGapCodes": ["stale", "3"]
+    }
+  ],
+  [
+    "REQ-b",
+    {
+      "requirementId": "REQ-b",
+      "title": "REQ-b title",
+      "source": ".kb/REQ-b.md",
+      "coverageDepth": "no_test_evidence",
+      "directTests": [],
+      "scenarioTests": [],
+      "testStatuses": [],
+      "verificationScopes": []
+    }
+  ],
+  [
+    "REQ-c",
+    {
+      "requirementId": "REQ-c",
+      "title": "REQ-c title",
+      "source": ".kb/REQ-c.md",
+      "coverageDepth": "no_test_evidence",
+      "directTests": [],
+      "scenarioTests": [],
+      "testStatuses": [],
+      "verificationScopes": [],
+      "passingE2eTests": []
+    }
+  ],
+  [
+    "REQ-d",
+    {
+      "requirementId": "REQ-d",
+      "title": "REQ-d title",
+      "source": ".kb/REQ-d.md",
+      "coverageDepth": "no_test_evidence",
+      "directTests": [],
+      "scenarioTests": [],
+      "testStatuses": [],
+      "verificationScopes": []
+    }
+  ]
+]

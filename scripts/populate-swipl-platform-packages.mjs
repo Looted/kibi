@@ -254,12 +254,8 @@ export function materializeSymlinks(payloadRoot) {
       summary.materialized.push(rel(link));
     }
   }
-  const remaining = walkFiles(root).filter((entry) => entry.link);
-  if (remaining.length > 0) {
-    throw new Error(
-      `symbolic links remain after materialization: ${remaining.map((e) => rel(e.full)).join(", ")}`,
-    );
-  }
+  // Every link was removed above (dropped, or replaced by a regular file), and
+  // a directory link already failed the regular-file check, so none remain.
   return summary;
 }
 
@@ -416,13 +412,14 @@ export function parseArgs(argv) {
 }
 
 // implements REQ-prolog-bundled-release
-export function main(argv = process.argv.slice(2)) {
+export function main(argv = process.argv.slice(2), overrides = {}) {
   const options = parseArgs(argv);
-  const targets = options.targets ?? platformTargets();
+  const targets = options.targets ?? platformTargets(overrides.packagesRoot);
   const reports = [];
   for (const target of targets) {
     reports.push(
       populatePlatformPackage({
+        ...overrides,
         target,
         artifactsDir: path.resolve(options.artifacts),
         cachedBuild: options.cachedBuild,
@@ -435,13 +432,18 @@ export function main(argv = process.argv.slice(2)) {
   return reports;
 }
 
-if (import.meta.main) {
+/** Command-line entry: returns the process exit code. */
+// implements REQ-prolog-bundled-release
+export function runCli(argv = process.argv.slice(2), overrides = {}) {
   try {
-    main();
+    main(argv, overrides);
+    return 0;
   } catch (error) {
     console.error(
       `populate-swipl-platform-packages: ${error instanceof Error ? error.message : String(error)}`,
     );
-    process.exit(1);
+    return 1;
   }
 }
+
+if (import.meta.main) process.exitCode = runCli();

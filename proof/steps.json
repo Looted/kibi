@@ -930,16 +930,6 @@
     ]
   },
   {
-    "test_id": "TEST-e2e-opencode-v2-plugin-load",
-    "steps": [
-      [
-        "node",
-        "scripts/run-proof-packed-e2e.mjs",
-        "documentation/tests/e2e/packed/opencode-plugin.test.ts"
-      ]
-    ]
-  },
-  {
     "test_id": "TEST-opencode-kibi-plugin-v1",
     "steps": [
       [
@@ -2172,16 +2162,6 @@
         "bun",
         "run",
         "documentation/tests/e2e/skillopt-host-neutral-optimization.e2e.ts"
-      ]
-    ]
-  },
-  {
-    "test_id": "TEST-e2e-skillopt-optimizer-toolchain",
-    "steps": [
-      [
-        "bun",
-        "run",
-        "documentation/tests/e2e/skillopt-optimizer-toolchain.e2e.ts"
       ]
     ]
   },
@@ -7364,6 +7344,79 @@
         "120000",
         "./packages/mcp/tests/kibi-release.test.ts",
         "./packages/mcp/tests/server/server-start-exact.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-update-notice",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/update-check.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kb-dependencies-git",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "180000",
+        "./packages/cli/tests/dependencies/kb-dependencies.test.ts",
+        "./packages/cli/tests/dependencies/kb-dependency-commands.test.ts",
+        "./packages/mcp/tests/server/workspace-router-dependency.test.ts",
+        "./packages/mcp/tests/server/add-tool-paths.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-duplicate-entity-declarations",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/commands/duplicate-entity-declarations.test.ts",
+        "./packages/cli/tests/public-mutation/operations/source-relationship-parity.mutation.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-doctor-merge-driver-remediation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/commands/doctor-merge-driver-hint.test.ts",
+        "./packages/cli/tests/utils/merge-driver-setup.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-opencode-v2-plugin-load",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/opencode-plugin.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-skillopt-optimizer-toolchain",
+    "steps": [
+      [
+        "bun",
+        "run",
+        "documentation/tests/e2e/skillopt-optimizer-toolchain.e2e.ts"
       ]
     ]
   },
