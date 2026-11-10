@@ -244,3 +244,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f0d1c8d3a2a
+  - type: constrains
+    from: REQ-kibi-proof-receipt-maintenance
+    to: FACT-SUBJ-kibi-proof-receipt-maintenance
+    created_at: 2026-11-10T11:19:56.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae8c30b5d344
+  - type: requires_property
+    from: REQ-kibi-proof-receipt-maintenance
+    to: FACT-PROP-kibi-proof-receipt-maintenance-c01
+    created_at: 2026-11-10T11:19:56.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d6d94a4df2b
+  - type: requires_property
+    from: REQ-kibi-proof-receipt-maintenance
+    to: FACT-PROP-kibi-proof-receipt-maintenance-c02
+    created_at: 2026-11-10T11:19:56.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1ccf44b2792
+  - type: specified_by
+    from: REQ-kibi-proof-receipt-maintenance
+    to: SCEN-kibi-proof-receipt-maintenance
+    created_at: 2026-11-10T11:19:56.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b01b0d10e67d
+  - type: specified_by
+    from: REQ-kibi-proof-receipt-maintenance
+    to: SCEN-NEG-kibi-proof-receipt-maintenance-BEYOND-KEEP
+    created_at: 2026-11-10T11:19:56.462Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7002a3cf86e
+  - type: specified_by
+    from: REQ-kibi-proof-receipt-maintenance
+    to: SCEN-NEG-kibi-proof-receipt-maintenance-LEGACY-ONLY
+    created_at: 2026-11-10T11:19:56.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a35fe55f371
+  - type: relates_to
+    from: REQ-kibi-proof-receipt-maintenance
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-11-10T11:19:56.494Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b432fb95237

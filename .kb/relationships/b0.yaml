@@ -272,3 +272,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e7c9e3baa7b6
+  - type: assumes
+    from: SCEN-kibi-ci-proof-reuse
+    to: FACT-PROP-kibi-ci-proof-reuse-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5031cb47faf
+  - type: assumes
+    from: SCEN-kibi-ci-proof-reuse
+    to: FACT-PROP-kibi-ci-proof-reuse-c02
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eda9e067f676
+  - type: verified_by
+    from: SCEN-kibi-ci-proof-reuse
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8280945eb4fd

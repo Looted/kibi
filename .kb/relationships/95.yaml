@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa2c8c5e76cc
+  - type: assumes
+    from: SCEN-NEG-kibi-proof-protocol-schemas-ACCEPTED-MALFORMED
+    to: FACT-NEG-kibi-proof-protocol-schemas-ACCEPTED-MALFORMED
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4405cff38411
+  - type: verified_by
+    from: SCEN-NEG-kibi-proof-protocol-schemas-ACCEPTED-MALFORMED
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1f4770a1b67

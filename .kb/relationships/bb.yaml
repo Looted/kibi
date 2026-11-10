@@ -475,3 +475,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8f2d62fa1ce4
+  - type: assumes
+    from: SCEN-kibi-proof-receipt-maintenance
+    to: FACT-PROP-kibi-proof-receipt-maintenance-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-403e14597343
+  - type: assumes
+    from: SCEN-kibi-proof-receipt-maintenance
+    to: FACT-PROP-kibi-proof-receipt-maintenance-c02
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7853ced78b0b
+  - type: verified_by
+    from: SCEN-kibi-proof-receipt-maintenance
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc80da3f39c6

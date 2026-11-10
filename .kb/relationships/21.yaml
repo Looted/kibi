@@ -55,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b3d5433e5c9
-  - type: implements
-    from: SYM-CI-PROOF-REUSE-DECISION
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-25T12:16:39.282Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fd2a00c52f47
   - type: covered_by
     from: SYM-CI-PROOF-REUSE-DECISION
     to: TEST-kibi-verification-evidence-contract
@@ -412,3 +405,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c554669d4c14
+  - type: constrains
+    from: REQ-kibi-proof-protocol-schemas
+    to: FACT-SUBJ-kibi-proof-protocol-schemas
+    created_at: 2026-11-10T11:19:53.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5a4bbdc02e8
+  - type: requires_property
+    from: REQ-kibi-proof-protocol-schemas
+    to: FACT-PROP-kibi-proof-protocol-schemas-c01
+    created_at: 2026-11-10T11:19:53.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d00fe3f0d1c
+  - type: specified_by
+    from: REQ-kibi-proof-protocol-schemas
+    to: SCEN-kibi-proof-protocol-schemas
+    created_at: 2026-11-10T11:19:53.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52b500c36823
+  - type: specified_by
+    from: REQ-kibi-proof-protocol-schemas
+    to: SCEN-NEG-kibi-proof-protocol-schemas-ACCEPTED-MALFORMED
+    created_at: 2026-11-10T11:19:53.644Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e507b241fa08
+  - type: relates_to
+    from: REQ-kibi-proof-protocol-schemas
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-11-10T11:19:53.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02c160d4a138

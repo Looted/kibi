@@ -15700,9 +15700,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
+        target: REQ-kibi-proof-protocol-schemas
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-proof-contract-errors
     title: proofContractErrors
     sourceFile: packages/cli/src/public/proof-protocol.ts
@@ -15711,9 +15713,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
+        target: REQ-kibi-proof-protocol-schemas
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-proof-bindings-errors
     title: proofBindingsErrors
     sourceFile: packages/cli/src/public/proof-protocol.ts
@@ -15722,9 +15726,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
+        target: REQ-kibi-proof-protocol-schemas
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-proof-run-version
     title: PROOF_RUN_VERSION
     sourceFile: packages/cli/src/public/proof-protocol.ts
@@ -15887,9 +15893,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
+        target: REQ-kibi-proof-protocol-schemas
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-proof-contract-schema
     title: PROOF_CONTRACT_SCHEMA
     sourceFile: packages/cli/src/public/proof-protocol.ts
@@ -15898,9 +15906,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
+        target: REQ-kibi-proof-protocol-schemas
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-proof-bindings-schema
     title: PROOF_BINDINGS_SCHEMA
     sourceFile: packages/cli/src/public/proof-protocol.ts
@@ -15909,9 +15919,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
+        target: REQ-kibi-proof-protocol-schemas
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-proof-receipt-history-errors
     title: proofReceiptHistoryErrors
     sourceFile: packages/cli/src/public/proof-receipt.ts
@@ -16533,48 +16545,48 @@ symbols:
     sourceFile: packages/cli/src/operations/proof/migrate-legacy-receipts.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-maintenance
       - type: covered_by
         target: TEST-e2e-proof-maintenance-ops
       - type: covered_by
         target: TEST-proof-maintenance-roundtrip
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-quality-maintenance-executePruneReceipts
     title: executePruneReceipts
     status: active
     sourceFile: packages/cli/src/operations/proof/prune-receipts.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-maintenance
       - type: covered_by
         target: TEST-e2e-proof-maintenance-ops
       - type: covered_by
         target: TEST-proof-maintenance-roundtrip
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-quality-maintenance-proofMigrateLegacyCommand
     title: proofMigrateLegacyCommand
     status: active
     sourceFile: packages/cli/src/commands/proof-migrate-legacy.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-maintenance
       - type: covered_by
         target: TEST-e2e-proof-maintenance-ops
       - type: covered_by
         target: TEST-proof-maintenance-roundtrip
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-quality-maintenance-proofPruneCommand
     title: proofPruneCommand
     status: active
     sourceFile: packages/cli/src/commands/proof-prune.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-maintenance
       - type: covered_by
         target: TEST-e2e-proof-maintenance-ops
       - type: covered_by
         target: TEST-proof-maintenance-roundtrip
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-quality-eval-main
     title: main
     status: active
@@ -18640,10 +18652,10 @@ symbols:
     sourceFile: scripts/ci-proof-reuse.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-ci-proof-reuse
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-buildUpsertBatchCommitGoal
     title: buildUpsertBatchCommitGoal
     status: active

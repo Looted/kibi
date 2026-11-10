@@ -363,3 +363,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-318f87e3bf4b
+  - type: constrains
+    from: REQ-kibi-ci-proof-reuse
+    to: FACT-SUBJ-kibi-ci-proof-reuse
+    created_at: 2026-11-10T11:19:59.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92f6b1834cfb
+  - type: requires_property
+    from: REQ-kibi-ci-proof-reuse
+    to: FACT-PROP-kibi-ci-proof-reuse-c01
+    created_at: 2026-11-10T11:19:59.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc8337d80563
+  - type: requires_property
+    from: REQ-kibi-ci-proof-reuse
+    to: FACT-PROP-kibi-ci-proof-reuse-c02
+    created_at: 2026-11-10T11:19:59.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f330abc436a4
+  - type: specified_by
+    from: REQ-kibi-ci-proof-reuse
+    to: SCEN-kibi-ci-proof-reuse
+    created_at: 2026-11-10T11:19:59.242Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-598a9eee99ee
+  - type: specified_by
+    from: REQ-kibi-ci-proof-reuse
+    to: SCEN-NEG-kibi-ci-proof-reuse-CHANGED-SNAPSHOT
+    created_at: 2026-11-10T11:19:59.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e4f0e5800ce
+  - type: relates_to
+    from: REQ-kibi-ci-proof-reuse
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-11-10T11:19:59.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6cedd8e6817e

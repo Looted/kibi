@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cd10a92fbbe2
+  - type: assumes
+    from: SCEN-kibi-proof-protocol-schemas
+    to: FACT-PROP-kibi-proof-protocol-schemas-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c4ee6dd3d52
+  - type: verified_by
+    from: SCEN-kibi-proof-protocol-schemas
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d87b3eec8b12

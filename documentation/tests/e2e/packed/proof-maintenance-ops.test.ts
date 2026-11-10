@@ -349,6 +349,24 @@ Legacy receipts without a proof contract must stay untouched.
           untouchedDoc.includes("verification_receipts:"),
           "tests without a proof contract must not be migrated",
         );
+        const legacyOnly = await kibi(sandbox, [
+          "proof",
+          "migrate-legacy",
+          "--test",
+          "TEST-PACKED-LEGACY-ONLY",
+        ]);
+        assert.match(
+          legacyOnly.stdout + legacyOnly.stderr,
+          /No test carries a legacy verification_receipts block alongside a proof_contract/,
+          "targeting a test without a proof contract must not migrate it",
+        );
+        assert.ok(
+          readFileSync(
+            join(sandbox.repoDir, ".kb", "tests", "TEST-PACKED-LEGACY-ONLY.md"),
+            "utf8",
+          ).includes("verification_receipts:"),
+          "a targeted test without a proof contract keeps its legacy block",
+        );
 
         const repeat = await kibi(sandbox, [
           "proof",
@@ -471,6 +489,128 @@ Legacy receipts without a proof contract must stay untouched.
         assert.match(
           missing.stdout + missing.stderr,
           /TEST-DOES-NOT-EXIST.*was not found/,
+        );
+      },
+    );
+
+    it(
+      "rejects a proof contract, proof bindings or proof run artifact that does not match its schema, naming the error",
+      { timeout: 300000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const writeTest = (contract: string, bindings: string): void => {
+          writeFileSync(
+            join(sandbox.repoDir, ".kb", "tests", "TEST-PACKED-SCHEMA.md"),
+            `---
+id: TEST-PACKED-SCHEMA
+title: Packed proof schema E2E
+status: passing
+source: tests/e2e/schema.test.ts
+verification_scope: end_to_end
+verification_perspective: consumer
+${contract}
+${bindings}
+links:
+  - type: validates
+    target: SCEN-PACKED-MAINTENANCE
+---
+
+Exercises proof protocol schema validation.
+`,
+          );
+          stageSourceFile(sandbox, ".kb/tests/TEST-PACKED-SCHEMA.md");
+        };
+        const contract = (policy: string): string => `proof_contract:
+  version: kibi.proof-contract.v1
+  integration: custom-bad
+  required_proofs:
+    - symbol_id: SYM-PACKED-SCHEMA
+      target: default
+  success_policy: ${policy}`;
+        const bindings = (nativeId: string): string => `proof_bindings:
+  - symbol_id: SYM-PACKED-SCHEMA
+    target: default
+    native_id: ${nativeId}`;
+        mkdirSync(join(sandbox.repoDir, "tests", "e2e"), { recursive: true });
+        writeFileSync(
+          join(sandbox.repoDir, "tests", "e2e", "schema.test.ts"),
+          "export const schemaBehavior = 'v1';\n",
+        );
+        stageSourceFile(sandbox, "tests/e2e/schema.test.ts");
+
+        writeTest(contract("whenever_it_passes"), bindings("suite::case"));
+        const badContract = await kibi(sandbox, ["sync"]);
+        assert.match(
+          badContract.stdout + badContract.stderr,
+          /Invalid proof_contract:.*success_policy/s,
+          "sync must name the proof_contract schema error",
+        );
+
+        writeTest(
+          contract("all_required_first_attempt"),
+          "proof_bindings:\n  - symbol_id: SYM-PACKED-SCHEMA\n    native_id: suite::case",
+        );
+        const badBindings = await kibi(sandbox, ["sync"]);
+        assert.match(
+          badBindings.stdout + badBindings.stderr,
+          /Invalid proof_bindings:.*target/s,
+          "sync must name the proof_bindings schema error",
+        );
+
+        mkdirSync(join(sandbox.repoDir, ".kb", "proof"), { recursive: true });
+        writeFileSync(
+          join(sandbox.repoDir, ".kb", "proof", "integrations.json"),
+          `${JSON.stringify(
+            {
+              version: "kibi.proof-integration.v1",
+              integrations: [
+                {
+                  id: "custom-bad",
+                  producer: "custom-bad",
+                  command: [
+                    "node",
+                    "-e",
+                    "require('fs').writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify({ version: 'kibi.proof-run.v1' }))",
+                  ],
+                  targets: ["default"],
+                },
+              ],
+            },
+            null,
+            2,
+          )}\n`,
+        );
+        stageSourceFile(sandbox, ".kb/proof/integrations.json");
+        writeTest(
+          contract("all_required_first_attempt"),
+          bindings("suite::case"),
+        );
+        const valid = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(valid.exitCode, 0, `${valid.stdout}${valid.stderr}`);
+        const prove = await kibi(sandbox, [
+          "prove",
+          "--test",
+          "TEST-PACKED-SCHEMA",
+        ]);
+        assert.notStrictEqual(
+          prove.exitCode,
+          0,
+          "a malformed proof run artifact must fail the proof run",
+        );
+        assert.match(
+          prove.stdout + prove.stderr,
+          /invalid kibi\.proof-run\.v1 artifact/,
+          `expected the artifact schema errors, got: ${prove.stdout}${prove.stderr}`,
+        );
+        const after = await queryTest(sandbox, "TEST-PACKED-SCHEMA");
+        assert.strictEqual(
+          after?.proof_receipts,
+          undefined,
+          "a malformed artifact must never append receipts",
         );
       },
     );
