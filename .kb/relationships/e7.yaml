@@ -104,20 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bdc17feabbfb
-  - type: implements
-    from: SYM-package-catalog-cli-if-main
-    to: REQ-020
-    created_at: 2026-09-21T15:29:30.426Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-122f18269c34
-  - type: covered_by
-    from: SYM-package-catalog-cli-if-main
-    to: TEST-014
-    created_at: 2026-09-21T19:20:30.212Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1366bbd3530d
   - type: covered_by
     from: SYM-cap-plugin-createcapabilityregistry-24d244b0
     to: TEST-e2e-capability-plugins

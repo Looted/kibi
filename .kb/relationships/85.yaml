@@ -328,3 +328,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e86c77eeef7
+  - type: constrains
+    from: REQ-kibi-release-versioning-on-develop
+    to: FACT-SUBJ-REQ-020
+    created_at: 2026-11-05T10:52:38.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-951534349a00
+  - type: requires_property
+    from: REQ-kibi-release-versioning-on-develop
+    to: FACT-PROP-REQ-020-C01
+    created_at: 2026-11-05T10:52:38.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25cd701aeb92
+  - type: requires_property
+    from: REQ-kibi-release-versioning-on-develop
+    to: FACT-PROP-REQ-020-C05
+    created_at: 2026-11-05T10:52:38.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91378d267540
+  - type: requires_property
+    from: REQ-kibi-release-versioning-on-develop
+    to: FACT-PROP-REQ-020-C06
+    created_at: 2026-11-05T10:52:39.020Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03bc09bc7062
+  - type: requires_property
+    from: REQ-kibi-release-versioning-on-develop
+    to: FACT-PROP-REQ-020-C10
+    created_at: 2026-11-05T10:52:39.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d4002ba4c80
+  - type: specified_by
+    from: REQ-kibi-release-versioning-on-develop
+    to: SCEN-release-automation
+    created_at: 2026-11-05T10:52:39.075Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b5a3fd3e1be
+  - type: specified_by
+    from: REQ-kibi-release-versioning-on-develop
+    to: SCEN-NEG-020-VERSION-DRIFT
+    created_at: 2026-11-05T10:52:39.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51db026cfc43
+  - type: verified_by
+    from: REQ-kibi-release-versioning-on-develop
+    to: TEST-014
+    created_at: 2026-11-05T10:52:39.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7418cc014b28
+  - type: relates_to
+    from: REQ-kibi-release-versioning-on-develop
+    to: ADR-002
+    created_at: 2026-11-05T10:52:39.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-072e03e2a415
+  - type: supersedes
+    from: REQ-kibi-release-versioning-on-develop
+    to: REQ-020
+    created_at: 2026-11-05T10:52:39.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54de41a3e632

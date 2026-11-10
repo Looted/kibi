@@ -83,13 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99ed57f24e69
-  - type: implements
-    from: SYM-quality-inventory-273ca1c87f24
-    to: REQ-020
-    created_at: 2026-09-14T20:38:56.243Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-37cc6bf4bfd7
   - type: covered_by
     from: SYM-quality-inventory-273ca1c87f24
     to: TEST-014

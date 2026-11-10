@@ -3869,10 +3869,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-release-master-publishes-only
       - type: covered_by
         target: TEST-014
-      - type: implements
-        target: REQ-020
   - id: SYM-DIAGNOSTIC_TELEMETRY_SCHEMA
     title: DIAGNOSTIC_TELEMETRY_SCHEMA
     status: active
@@ -8118,10 +8118,10 @@ symbols:
     granularity_reason: legacy-link
     symbol_role: config
     relationships:
+      - type: implements
+        target: REQ-kibi-release-master-publishes-only
       - type: covered_by
         target: TEST-014
-      - type: implements
-        target: REQ-020
   - id: SYM-queryRelationshipsViaCli
     title: queryRelationshipsViaCli
     sourceFile: packages/vscode/src/symbolIndex.ts
@@ -8461,16 +8461,6 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
-  - id: SYM-resolveNpmFixture
-    title: resolveNpmFixture
-    sourceFile: scripts/release-runner-fixture.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-014
-      - type: implements
-        target: REQ-020
   - id: SYM-resolveSkillFilePath
     title: resolveSkillFilePath
     sourceFile: packages/cli/src/public/skill-system/paths.ts
@@ -13683,10 +13673,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-release-versioning-on-develop
       - type: covered_by
         target: TEST-014
-      - type: implements
-        target: REQ-020
   - id: SYM-TaskFixtureResolutionError-name
     title: TaskFixtureResolutionError.name
     sourceFile: scripts/skillopt-eval/runtime/task-fixture.ts
@@ -20931,20 +20921,20 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-release-versioning-on-develop
       - type: covered_by
         target: TEST-014
-      - type: implements
-        target: REQ-020
   - id: SYM-quality-inventory-44a628f0ebf6
     title: runVerifyPublishMetadataIfMain
     sourceFile: scripts/verify-publish-metadata.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-release-versioning-on-develop
       - type: covered_by
         target: TEST-014
-      - type: implements
-        target: REQ-020
   - id: SYM-quality-suite-cli-check-integrity
     title: check.test.ts
     sourceFile: packages/cli/tests/commands/check.test.ts
@@ -22459,30 +22449,10 @@ symbols:
     sourceFile: scripts/pack-packages.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-release-master-publishes-only
       - type: covered_by
         target: TEST-014
-      - type: implements
-        target: REQ-020
-  - id: SYM-package-catalog-pack-all-dirs
-    title: PACK_ALL_DIRS
-    status: active
-    sourceFile: scripts/package-catalog.ts
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-014
-      - type: implements
-        target: REQ-020
-  - id: SYM-package-catalog-packed-e2e-dirs
-    title: PACKED_E2E_DIRS
-    status: active
-    sourceFile: scripts/package-catalog.ts
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-014
-      - type: implements
-        target: REQ-020
   - id: SYM-package-catalog-default-install-dirs
     title: DEFAULT_INSTALL_DIRS
     status: active
@@ -22494,49 +22464,7 @@ symbols:
       - type: covered_by
         target: TEST-kibi-distribution-parity-matrix
       - type: implements
-        target: REQ-020
-      - type: implements
         target: REQ-kibi-distribution-parity-matrix
-  - id: SYM-package-catalog-tarball-clean-dirs
-    title: TARBALL_CLEAN_DIRS
-    status: active
-    sourceFile: scripts/package-catalog.ts
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-014
-      - type: implements
-        target: REQ-020
-  - id: SYM-package-catalog-dirs-for-slice
-    title: dirsForSlice
-    status: active
-    sourceFile: scripts/package-catalog.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-014
-      - type: implements
-        target: REQ-020
-  - id: SYM-package-catalog-lookup-entry
-    title: lookupCatalogEntry
-    status: active
-    sourceFile: scripts/package-catalog.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-014
-      - type: implements
-        target: REQ-020
-  - id: SYM-package-catalog-cli-if-main
-    title: runPackageCatalogCliIfMain
-    status: active
-    sourceFile: scripts/package-catalog.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-014
-      - type: implements
-        target: REQ-020
   - id: SYM-jev-max-timeout-ms
     title: JEV_MAX_TIMEOUT_MS
     status: active
@@ -25612,12 +25540,12 @@ symbols:
     symbol_role: config
     granularity_reason: config-artifact
     relationships:
+      - type: implements
+        target: REQ-kibi-release-master-publishes-only
       - type: covered_by
         target: TEST-014
       - type: covered_by
         target: TEST-release-mcp-registry-visibility
-      - type: implements
-        target: REQ-020
   - id: SYM-proof-prepush-check
     title: proof-prepush.sh
     status: active
@@ -25636,14 +25564,14 @@ symbols:
     symbol_role: config
     granularity_reason: config-artifact
     relationships:
+      - type: implements
+        target: REQ-kibi-release-master-publishes-only
       - type: covered_by
         target: TEST-014
       - type: covered_by
         target: TEST-e2e-capability-plugins
       - type: covered_by
         target: TEST-proof-mcp-excludes-jev
-      - type: implements
-        target: REQ-020
       - type: implements
         target: REQ-capability-plugin-jev-optional-dependency
   - id: SYM-mcp-release-registry-metadata
@@ -25653,10 +25581,10 @@ symbols:
     symbol_role: config
     granularity_reason: config-artifact
     relationships:
+      - type: implements
+        target: REQ-kibi-release-master-publishes-only
       - type: covered_by
         target: TEST-014
-      - type: implements
-        target: REQ-020
   - id: SYM-sync-package-release-manifests
     title: syncPackagePluginManifests
     status: active
@@ -25664,10 +25592,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
+      - type: implements
+        target: REQ-kibi-release-versioning-on-develop
       - type: covered_by
         target: TEST-014
-      - type: implements
-        target: REQ-020
   - id: SYM-test-prolog-spike-config-validation
     title: SWI-Prolog spike configuration contract
     status: active

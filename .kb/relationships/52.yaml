@@ -195,20 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0294033f333c
-  - type: implements
-    from: SYM-package-catalog-dirs-for-slice
-    to: REQ-020
-    created_at: 2026-09-21T15:29:17.583Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1de84a60a822
-  - type: covered_by
-    from: SYM-package-catalog-dirs-for-slice
-    to: TEST-014
-    created_at: 2026-09-21T19:24:16.431Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-54dd7667ec3e
   - type: verified_by
     from: SCEN-capability-plugin-jev-inactive-v1
     to: TEST-e2e-capability-plugins

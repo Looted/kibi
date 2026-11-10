@@ -216,3 +216,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-298e463a574b
+  - type: constrains
+    from: REQ-kibi-release-master-publishes-only
+    to: FACT-SUBJ-REQ-020
+    created_at: 2026-11-05T10:53:33.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a522fe4e5ce
+  - type: requires_property
+    from: REQ-kibi-release-master-publishes-only
+    to: FACT-PROP-REQ-020-C07
+    created_at: 2026-11-05T10:53:33.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-548ee0e20540
+  - type: requires_property
+    from: REQ-kibi-release-master-publishes-only
+    to: FACT-PROP-REQ-020-C08
+    created_at: 2026-11-05T10:53:33.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26a533ecd2d2
+  - type: requires_property
+    from: REQ-kibi-release-master-publishes-only
+    to: FACT-PROP-REQ-020-C09
+    created_at: 2026-11-05T10:53:33.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-776e62b2a76b
+  - type: specified_by
+    from: REQ-kibi-release-master-publishes-only
+    to: SCEN-release-automation
+    created_at: 2026-11-05T10:53:33.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38a0cbc3b708
+  - type: specified_by
+    from: REQ-kibi-release-master-publishes-only
+    to: SCEN-NEG-kibi-release-master-publish-OFF-MASTER
+    created_at: 2026-11-05T10:53:33.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9733806e156c
+  - type: verified_by
+    from: REQ-kibi-release-master-publishes-only
+    to: TEST-014
+    created_at: 2026-11-05T10:53:33.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae7a7b6c4a44
+  - type: verified_by
+    from: REQ-kibi-release-master-publishes-only
+    to: TEST-release-mcp-registry-visibility
+    created_at: 2026-11-05T10:53:33.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14893f4ff6e6
+  - type: supersedes
+    from: REQ-kibi-release-master-publishes-only
+    to: REQ-020
+    created_at: 2026-11-05T10:53:33.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd10a92fbbe2
