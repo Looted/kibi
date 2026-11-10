@@ -9,7 +9,6 @@ priority: must
 tags:
   - cli
   - check
-  - review:context-missing
 links:
   - type: supersedes
     target: REQ-003
@@ -57,10 +56,13 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The `kibi check` command runs validation rules against the branch KB to ensure structural integrity and requirement coverage.
 It can be restricted to specific rules or focused on staged changes (used in pre-commit hooks).
 Failure results in a non-zero exit code and descriptive violation logs.
+
+## Why this changed
+REQ-003 described every CLI command in one requirement, so it could not be traced or tested per command. It was split into one requirement per command, and this one covers kibi check. Source: commit "docs(req): split app surface requirements", May 13.

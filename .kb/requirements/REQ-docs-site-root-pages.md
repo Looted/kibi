@@ -6,7 +6,6 @@ tags:
   - pages
   - site
   - ci
-  - review:context-missing
 priority: should
 semantic_text: The repository publishes the documentation site, including its landing page, at the root of project Pages on every push to the default branch. The requirement-health report is published under /kibi-report/ beside the documentation site. The documentation site is rendered from the repository's docs/ sources at build time instead of a forked copy. The documentation build fails when an internal documentation link is broken.
 logic_claims:
@@ -63,7 +62,10 @@ id: REQ-docs-site-root-pages
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The repository publishes the documentation site, including its landing page, at the root of project Pages on every push to the default branch. The requirement-health report is published under /kibi-report/ beside the documentation site. The documentation site is rendered from the repository's docs/ sources at build time instead of a forked copy. The documentation build fails when an internal documentation link is broken.
+
+## Why this changed
+The docs site moved from /docs/ to the Pages root, the report moved under /kibi-report/, and old /docs/ links redirect. Source: PR 298.

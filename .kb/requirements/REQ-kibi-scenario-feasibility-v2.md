@@ -129,6 +129,7 @@ logic_claims:
   - CLAIM-69F3C5FF37A62A1E
   - CLAIM-90669BB32C299C4E
 origin:
+  ref: 'Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   kind: agent
   approved_by: maintainer
   recorded_at: '2026-10-04T02:28:27.801Z'
@@ -140,3 +141,6 @@ The scenario-feasibility check must report a scenario that expects success and a
 ## Rationale
 
 Conditional requirements ("checkout may happen only when the cart total is positive") now take part in feasibility checks exactly like property requirements, a requirement governs only scenarios in its scope and inside the validity window of its facts, and an approved exception can waive a single clause instead of the whole requirement (changeset `conditional-requirements`). The superseded requirement said an approved exception makes the scenario feasible, which no longer holds when the exception lists `exempts_claims`; its other clauses carry over unchanged.
+
+## Why this changed
+The text had drifted from the code. The check now also reports a success scenario whose assumed property values cannot hold together. Source: commit "align Kibi's own knowledge base", Oct 4; diff of the two statements.

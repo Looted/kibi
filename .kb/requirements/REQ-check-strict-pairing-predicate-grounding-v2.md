@@ -30,6 +30,7 @@ logic_claims:
   - CLAIM-2D5163391DD7E200
   - CLAIM-B97373C4711CFEAF
 origin:
+  ref: 'Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   kind: agent
   approved_by: maintainer
   recorded_at: '2026-10-08T21:05:24.863Z'
@@ -47,3 +48,6 @@ Round 8 of the external onboarding evaluation found that kb_check only paired a 
 ## Source
 
 > Onboarding evaluation round 8, finding K16: the pairing rule and contradiction_ready accept a predicate by its argument named subject or by an explicit subject_key on the predicate fact.
+
+## Why this changed
+A predicate whose schema has no subject in the first position never satisfied strict pairing, yet kb_model still recommended that plan. Pairing now uses the argument named subject, or the fact's own subject_key. Source: PR 379.

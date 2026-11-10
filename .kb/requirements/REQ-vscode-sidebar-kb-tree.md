@@ -64,7 +64,7 @@ semantic_inventory:
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6). Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   approved_by: maintainer
   recorded_at: '2026-11-03T11:35:21.000Z'
 failure_side_waiver: "Structural tree rendering in the VS Code sidebar; nothing is refused."
@@ -80,3 +80,6 @@ rationale: "People need to browse the requirement, scenario and test chain where
 
 ## Rationale
 People need to browse the requirement, scenario and test chain where they write code, not only through the CLI.
+
+## Why this changed
+When the app-surface requirements were split so each command and surface could be traced and tested on its own, REQ-010 moved into this requirement for the VS Code sidebar KB tree. Source: commit "docs(req): split app surface requirements", May 13.

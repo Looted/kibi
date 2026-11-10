@@ -89,6 +89,7 @@ logic_claims:
   - CLAIM-F986051868A08A5A
   - CLAIM-8CE1FEA0B2FA8FFB
 origin:
+  ref: 'Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   kind: agent
   approved_by: maintainer
   recorded_at: '2026-10-04T02:20:20.404Z'
@@ -100,3 +101,6 @@ Kibi must compile a natural-language change request into a deterministic, read-o
 ## Rationale
 
 `kb_apply_plan` used to execute approved steps one by one, so a failure after the first step left a half-applied plan that needed manual repair. It now applies a compile plan all-or-nothing: if any step fails the store and the workspace are left as they were and the same plan can be applied again, and if the process dies mid-application the next mutating call completes or rolls back the plan from its journal and reports which (changeset `atomic-apply-plan`). The superseded requirement said approved mutations execute sequentially; the compile clause carries over unchanged. Applying a plan also writes each entity it commits to that entity's authored document, as `kb_upsert` does, so `kibi sync --rebuild` keeps every planned entity and relationship instead of dropping entities that lived only in the store.
+
+## Why this changed
+Applying a compile plan step by step left a half-applied plan after a failure. Applying is now all-or-nothing, and a failed plan can be applied again. Source: v2 Rationale; commit "align Kibi's own knowledge base", Oct 4.

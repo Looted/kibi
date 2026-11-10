@@ -10,7 +10,6 @@ tags:
   - language-authoring
   - scaffold
   - e2e
-  - review:context-missing
 proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
@@ -58,6 +57,10 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 3): "Agree with batch 3 as well."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+The rebase left the scaffold requirement without a production symbol or end-to-end test. This test was added to prove that the CLI never touches live language support. Source: Commit "close the proof gaps left by the multilingual rebase".

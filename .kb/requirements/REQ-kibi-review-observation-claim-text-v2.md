@@ -43,6 +43,7 @@ logic_claims:
   - CLAIM-AEAB10C0C620D768
 rationale: The search-lane round-1 A10 trace failed on a guessed claim_key; the key is derivable from claim_text, so Kibi derives it and only checks a supplied key.
 origin:
+  ref: 'Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   kind: agent
   approved_by: maintainer
   recorded_at: '2026-10-12T10:28:02.663Z'
@@ -62,3 +63,6 @@ Round 1 of the search-lane evaluation ended a modeling trace on `claim_key must 
 > Derive it.
 
 Project owner, search-lane thread, 2026-10-12, after the recommendation to derive the key when absent and keep rejecting a mismatched supplied key.
+
+## Why this changed
+Clients that didn't copy claim_key from kb_model guessed a key and were rejected. Kibi now derives the key from claim_text, and still checks a key that is sent. Source: PR 412.

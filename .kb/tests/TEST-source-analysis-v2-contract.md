@@ -7,7 +7,6 @@ tags:
   - v2
   - e2e
   - consumer
-  - review:context-missing
 text_ref: documentation/tests/e2e/packed/multilingual-source-analysis.test.ts; packages/plugin-sdk/tests/sdk.test.ts; packages/plugin-builtin/tests/builtin.test.ts; packages/cli/tests/plugins/source-analysis-v2.test.ts; packages/plugin-treesitter/tests/plugin.test.js
 verification_scope: end_to_end
 verification_perspective: consumer
@@ -60,6 +59,10 @@ proof_receipts:
           status: unavailable
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 3): "Agree with batch 3 as well."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+This test spans the SDK, the builtin adapter, the Tree-sitter plugin and a packed end-to-end run. The contract is shared by all of them, and the installed ownership workflow (reject an unowned declaration, accept the same bytes once ownership is fixed) only shows up in a real install. Source: PR 282.

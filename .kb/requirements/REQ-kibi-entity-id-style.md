@@ -6,7 +6,6 @@ tags:
   - naming
   - validation
   - vocabulary-convergence
-  - review:context-missing
 semantic_text: Kibi must report an entity whose Markdown filename stem differs from its frontmatter id as an entity-id-style warning. Kibi must report a purely numeric entity ID as an entity-id-style warning where the entity is created. Committed legacy numbered entities must not be reported by entity-id-style.
 semantic_clauses:
   - Kibi must report an entity whose Markdown filename stem differs from its frontmatter id as an entity-id-style warning.
@@ -48,9 +47,12 @@ id: REQ-kibi-entity-id-style
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 2): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Kibi must report an entity whose Markdown filename stem differs from its frontmatter id as an entity-id-style warning. Kibi must report a purely numeric entity ID as an entity-id-style warning where the entity is created. Committed legacy numbered entities must not be reported by entity-id-style.
+
+## Why
+Agents copied numbered examples and picked "the next number", and those IDs say nothing about what they govern. Slugs remove the numbers from anything an agent copies. The rule fires only where an entity is created, so the 83 legacy numbered entities are never reported. A `created_at` cutoff was rejected because sync stamps that field, so it isn't a real authorship date.

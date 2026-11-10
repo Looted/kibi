@@ -107,6 +107,7 @@ logic_claims:
   - CLAIM-69E1B1148768582D
   - CLAIM-CDB7E585D60D8A6D
 origin:
+  ref: 'Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   kind: agent
   approved_by: maintainer
   recorded_at: '2026-10-04T02:35:09.214Z'
@@ -118,3 +119,6 @@ kb_search must default to intent-v1 ranking and demote superseded, deprecated, a
 ## Rationale
 
 An agent asking `kb_search` how Kibi should behave needs to know not only which requirements govern the topic but whether the existing checks found them contradictory, infeasible or undecided, which exceptions a person approved, and which KB snapshot the answer reflects (changeset `search-answer-layer`). The verdict reports only what the checks named, so a `none` verdict is never proof of consistency; the superseded requirement's ranking, answer-layer and absence clauses carry over unchanged.
+
+## Why this changed
+The text had drifted from the code. The answer layer now also tells the agent whether checks found the governing requirements contradictory, infeasible or undecided, which exceptions were approved, and which KB snapshot it reflects. Source: v2 Rationale; Oct 4 commit.

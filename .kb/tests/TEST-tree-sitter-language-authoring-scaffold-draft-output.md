@@ -7,7 +7,6 @@ tags:
   - tree-sitter
   - language-authoring
   - scaffold
-  - review:context-missing
 verification_scope: unit
 verification_perspective: internal
 id: TEST-tree-sitter-language-authoring-scaffold-draft-output
@@ -55,6 +54,10 @@ proof_receipts:
           status: unavailable
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 3): "Agree with batch 3 as well."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+This checks that the scaffold's output is a disconnected, unqualified draft.

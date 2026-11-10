@@ -9,6 +9,7 @@ tags:
   - manifest
   - traceability
 origin:
+  ref: 'Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   kind: agent
   recorded_at: '2026-10-04T03:16:07.018Z'
 id: ADR-annotation-strategy-v2
@@ -41,3 +42,6 @@ The KB itself never compiles these comments: `kb_query`, `kb_coverage`, `kb_chec
 - The manifest and the comments can disagree. The manifest wins for every KB answer, coverage report and proof; a comment only affects the staged check of the symbols it precedes.
 - Neither `kb_check` nor the staged gate reports an annotation that names a closed, superseded or unknown requirement, so annotation drift is found by review or by scanning for `implements` comments whenever requirements are superseded.
 - `ADR-annotation-strategy` is superseded: its manifest-first decision stands, its ban on inline annotations does not.
+
+## Why this changed
+The first decision ruled out inline annotations completely. In practice, inline implements comments became useful hints, so the manifest stays authoritative and the comments are treated as hints. Source: v2 Context; commit "align Kibi's own knowledge base", Oct 4.

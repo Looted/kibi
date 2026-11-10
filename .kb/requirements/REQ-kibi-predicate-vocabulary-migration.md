@@ -6,7 +6,6 @@ tags:
   - migration
   - ontology
   - vocabulary-convergence
-  - review:context-missing
 semantic_text: Kibi migrate must plan an automatic action that moves a predicate fact to the only namespace whose schema matches its name and arity. Kibi migrate must plan an automatic action that rewrites an argument alias to its declared constant. Ambiguous namespaces and undeclared argument values must remain review actions. Applying a predicate repair must fail when the fact changed since planning.
 semantic_clauses:
   - Kibi migrate must plan an automatic action that moves a predicate fact to the only namespace whose schema matches its name and arity.
@@ -58,9 +57,12 @@ id: REQ-kibi-predicate-vocabulary-migration
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 2): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Kibi migrate must plan an automatic action that moves a predicate fact to the only namespace whose schema matches its name and arity. Kibi migrate must plan an automatic action that rewrites an argument alias to its declared constant. Ambiguous namespaces and undeclared argument values must remain review actions. Applying a predicate repair must fail when the fact changed since planning.
+
+## Why
+Converging existing facts by hand was too much work. In Kibi's own KB the migration applied 62 namespace moves and 128 alias rewrites under a hash-approved plan. Ambiguous namespaces and undeclared values stay as review actions because only a person can choose there.
