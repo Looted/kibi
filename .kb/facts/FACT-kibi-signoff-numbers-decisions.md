@@ -9,7 +9,7 @@ value_type: int
 value_int: 0
 claim_key: CLAIM-B670D0ADBB0870D2
 claim_text: Kibi signoff with a questions file must number each decision and quote the recorded requirement it changes or conflicts with
-text_ref: REQ-kibi-signoff-views
+text_ref: REQ-kibi-signoff-lists-requirements-and-decisions
 tags:
   - strict-modeling
   - lane:strict

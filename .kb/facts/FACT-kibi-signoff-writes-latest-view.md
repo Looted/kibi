@@ -9,7 +9,7 @@ value_type: bool
 value_bool: true
 claim_key: CLAIM-5E9619C61E20EAAF
 claim_text: Kibi signoff must write its latest view as JSON, Markdown and a self-contained HTML page under .kb/briefs/signoff
-text_ref: REQ-kibi-signoff-views
+text_ref: REQ-kibi-signoff-written-and-printed
 tags:
   - strict-modeling
   - lane:strict

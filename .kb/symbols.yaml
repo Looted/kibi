@@ -32183,10 +32183,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:25:44.170Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-lists-requirements-and-decisions
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-collect-questions
     title: collectSignoffQuestions
     status: active
@@ -32199,10 +32199,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:25:52.629Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-lists-requirements-and-decisions
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-parse-questions
     title: parseSignoffQuestionsInput
     status: active
@@ -32215,10 +32215,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:25:56.924Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-lists-requirements-and-decisions
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-render-html
     title: renderSignoffHtml
     status: active
@@ -32231,10 +32231,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:26:05.103Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-written-and-printed
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-render-markdown
     title: renderSignoffMarkdown
     status: active
@@ -32247,10 +32247,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:26:16.790Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-written-and-printed
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-proof-label
     title: proofLabel
     status: active
@@ -32269,24 +32269,6 @@ symbols:
         target: TEST-kibi-signoff-views
       - type: implements
         target: REQ-kibi-evidence-levels
-      - type: implements
-        target: REQ-kibi-signoff-views
-  - id: SYM-cli-signoff-question-open
-    title: questionOpen
-    status: active
-    sourceFile: packages/cli/src/signoff/model.ts
-    symbol_role: behavioral
-    tags:
-      - cli
-      - signoff
-    origin:
-      kind: agent
-      recorded_at: 2026-10-22T09:26:22.540Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-question-kind
     title: questionKind
     status: active
@@ -32299,10 +32281,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:26:25.373Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-lists-requirements-and-decisions
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-command
     title: signoffCommand
     status: active
@@ -32315,10 +32297,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:26:28.669Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-written-and-printed
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-claude-signoff-display-batch
     title: handleDisplayBatch
     status: active
@@ -32331,10 +32313,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:26:37.390Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-host-rendering-and-ask
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-opencode-signoff-toast
     title: signoffToast
     status: active
@@ -32347,10 +32329,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:26:45.395Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-host-rendering-and-ask
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-opencode-signoff-watch
     title: watchSignoff
     status: active
@@ -32363,10 +32345,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:26:49.565Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-host-rendering-and-ask
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-opencode-signoff-render-block
     title: renderSignoffBlock
     status: active
@@ -32379,10 +32361,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:26:53.705Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-host-rendering-and-ask
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-vscode-register-signoff
     title: registerSignoff
     status: active
@@ -32395,10 +32377,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-22T09:27:01.878Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-host-rendering-and-ask
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-agent-core-claim-signoff-reminder
     title: claimSignoffReminder
     status: active
@@ -32411,10 +32393,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-23T10:44:18.042Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-host-rendering-and-ask
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-agent-core-is-requirement-upsert
     title: isRequirementUpsert
     status: active
@@ -32427,10 +32409,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-23T10:44:22.627Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-host-rendering-and-ask
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-agent-core-signoff-reminder
     title: signoffReminder
     status: active
@@ -32443,10 +32425,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-23T10:44:27.477Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-host-rendering-and-ask
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-statement-sentence-diff
     title: statementSentenceDiff
     status: active
@@ -32459,10 +32441,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-23T10:44:42.460Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-lists-requirements-and-decisions
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-approval-numbers
     title: approvalNumbers
     status: active
@@ -32475,10 +32457,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-23T10:44:51.896Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-lists-requirements-and-decisions
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-cli-signoff-approval-sentence
     title: approvalSentence
     status: active
@@ -32491,10 +32473,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-23T10:44:56.232Z
     relationships:
+      - type: implements
+        target: REQ-kibi-signoff-lists-requirements-and-decisions
       - type: covered_by
         target: TEST-kibi-signoff-views
-      - type: implements
-        target: REQ-kibi-signoff-views
   - id: SYM-agent-core-confirm-firm-edits-env
     title: CONFIRM_FIRM_EDITS_ENV
     status: active
@@ -32660,8 +32642,6 @@ symbols:
       - type: covered_by
         target: TEST-proof-signoff-latest-html
       - type: implements
-        target: REQ-kibi-signoff-views
-      - type: implements
         target: REQ-signoff-latest-views
   - id: SYM-cli-signoff-model-signoff-latest-json
     title: SIGNOFF_LATEST_JSON
@@ -32680,8 +32660,6 @@ symbols:
       - type: covered_by
         target: TEST-proof-signoff-latest-json
       - type: implements
-        target: REQ-kibi-signoff-views
-      - type: implements
         target: REQ-signoff-latest-views
   - id: SYM-cli-signoff-model-signoff-latest-markdown
     title: SIGNOFF_LATEST_MARKDOWN
@@ -32699,8 +32677,6 @@ symbols:
         target: TEST-kibi-signoff-views
       - type: covered_by
         target: TEST-proof-signoff-latest-markdown
-      - type: implements
-        target: REQ-kibi-signoff-views
       - type: implements
         target: REQ-signoff-latest-views
   - id: SYM-cli-signoff-model-signoff-version

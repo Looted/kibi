@@ -174,3 +174,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f50d563131ce
+  - type: constrains
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: FACT-SUBJECT-KIBI-SIGNOFF-VIEWS
+    created_at: 2026-11-10T09:00:24.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c0737a77967
+  - type: requires_property
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: FACT-kibi-signoff-lists-changed-requirements
+    created_at: 2026-11-10T09:00:24.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43842155b5b3
+  - type: requires_property
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: FACT-kibi-signoff-numbers-decisions
+    created_at: 2026-11-10T09:00:24.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-533402b3b801
+  - type: specified_by
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-11-10T09:00:24.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3f2bf9c0f80
+  - type: specified_by
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: SCEN-NEG-kibi-signoff-views-MALFORMED-QUESTIONS
+    created_at: 2026-11-10T09:00:24.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c3e40612f48
+  - type: specified_by
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: SCEN-CASE-kibi-signoff-views-CHANGED-REQ-OMITTED
+    created_at: 2026-11-10T09:00:24.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cec3fa4d6805
+  - type: verified_by
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: TEST-kibi-signoff-views
+    created_at: 2026-11-10T09:00:24.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72f806ccc3e1
+  - type: supersedes
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: REQ-kibi-signoff-views
+    created_at: 2026-11-10T09:00:24.763Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fa4ce651d71

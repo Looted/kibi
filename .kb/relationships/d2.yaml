@@ -251,3 +251,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e98f2adca571
+  - type: constrains
+    from: REQ-kibi-signoff-host-rendering-and-ask
+    to: FACT-SUBJECT-KIBI-SIGNOFF-VIEWS
+    created_at: 2026-11-10T09:02:04.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84a722600b8d
+  - type: requires_property
+    from: REQ-kibi-signoff-host-rendering-and-ask
+    to: FACT-kibi-signoff-hosts-render-view
+    created_at: 2026-11-10T09:02:04.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-826abcae0d4b
+  - type: requires_property
+    from: REQ-kibi-signoff-host-rendering-and-ask
+    to: FACT-kibi-signoff-stop-hooks-ask-for-view
+    created_at: 2026-11-10T09:02:04.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b807880414e3
+  - type: specified_by
+    from: REQ-kibi-signoff-host-rendering-and-ask
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-11-10T09:02:04.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c74b4bd3b9c
+  - type: specified_by
+    from: REQ-kibi-signoff-host-rendering-and-ask
+    to: SCEN-CASE-kibi-signoff-views-ASKED-TWICE
+    created_at: 2026-11-10T09:02:04.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a601f5589f0b
+  - type: specified_by
+    from: REQ-kibi-signoff-host-rendering-and-ask
+    to: SCEN-CASE-kibi-signoff-views-NEVER-ASKED
+    created_at: 2026-11-10T09:02:04.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fca913991d4
+  - type: verified_by
+    from: REQ-kibi-signoff-host-rendering-and-ask
+    to: TEST-kibi-signoff-views
+    created_at: 2026-11-10T09:02:04.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a791715279f
+  - type: verified_by
+    from: REQ-kibi-signoff-host-rendering-and-ask
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-10T09:02:04.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f72a2b8b6df
+  - type: supersedes
+    from: REQ-kibi-signoff-host-rendering-and-ask
+    to: REQ-kibi-signoff-views
+    created_at: 2026-11-10T09:02:04.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d3f6e9d79e8

@@ -199,13 +199,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f213a6e240d9
-  - type: implements
-    from: SYM-cli-signoff-question-kind
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-22T09:26:26.187Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1a162838e669
   - type: covered_by
     from: SYM-cli-signoff-question-kind
     to: TEST-kibi-signoff-views

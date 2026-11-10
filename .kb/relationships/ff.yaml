@@ -314,13 +314,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eefb5d7179b9
-  - type: implements
-    from: SYM-cli-signoff-model-signoff-latest-html
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:52:34.791Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-377108d7c56f
   - type: covered_by
     from: SYM-cli-signoff-model-signoff-latest-html
     to: TEST-kibi-signoff-views
