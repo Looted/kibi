@@ -17664,70 +17664,30 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ontology-pack
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-builtinontologypack-match-b2da9f96
     title: BuiltinOntologyPack.match
     sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ontology-pack
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
-  - id: SYM-cap-plugin-builtinontologypack-id-b1f2923e
-    title: BuiltinOntologyPack.id
-    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
-  - id: SYM-cap-plugin-normalizepredicatetoken-1a36e10c
-    title: normalizePredicateToken
-    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
-  - id: SYM-cap-plugin-normalizesubjectkey-3302ec47
-    title: normalizeSubjectKey
-    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
-  - id: SYM-cap-plugin-commalist-09b1179e
-    title: commaList
-    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-detectpredicaterules-225f467f
     title: detectPredicateRules
     sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ontology-pack
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-builtin-predicate-confidence-685e50a6
     title: BUILTIN_PREDICATE_CONFIDENCE
     sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
@@ -17741,148 +17701,156 @@ symbols:
         target: TEST-proof-builtin-predicate-confidence
       - type: implements
         target: REQ-capability-builtin-predicate-confidence
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-core-predicate-rules-f2358fc4
     title: CORE_PREDICATE_RULES
     sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-core.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ontology-pack
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-exactlauncherpredicateargs-04084d31
     title: exactLauncherPredicateArgs
     sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-launcher.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ontology-pack
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-policy-predicate-rules-67c10eed
     title: POLICY_PREDICATE_RULES
     sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-policy.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ontology-pack
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-product-tail-predicate-rules-7612417b
     title: PRODUCT_TAIL_PREDICATE_RULES
     sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-product-tail.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ontology-pack
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-product-predicate-rules-ce4a04a9
     title: PRODUCT_PREDICATE_RULES
     sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-product.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ontology-pack
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-createbuiltinsemanticclassifier-31116572
     title: createBuiltinSemanticClassifier
     sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-semantic-classifier
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
-  - id: SYM-cap-plugin-builtinsemanticclassifier-id-db1373f1
-    title: BuiltinSemanticClassifier.id
+  - id: SYM-cap-plugin-builtinsemanticclassifier-classify
+    title: BuiltinSemanticClassifier.classify
     sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-semantic-classifier
       - type: covered_by
         target: TEST-e2e-capability-plugins
+  - id: SYM-cap-plugin-builtin-detectsignals
+    title: detectSignals
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
       - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
+        target: REQ-kibi-builtin-semantic-classifier
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+  - id: SYM-cap-plugin-builtin-chooselane
+    title: chooseLane
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-builtin-semantic-classifier
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
   - id: SYM-cap-plugin-enrichsymbolcoordinateswithtsmorph-c8d71d59
     title: enrichSymbolCoordinatesWithTsMorph
     sourceFile: packages/plugin-builtin/src/symbols/ts-morph-enrichment.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ts-symbols
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-createbuiltintsmorphsourceanalysisprovider-f315a9b7
     title: createBuiltinTsMorphSourceAnalysisProvider
     sourceFile: packages/plugin-builtin/src/symbols/ts-morph-extractor.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ts-symbols
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-collectgranularitycandidates-95f8e20e
     title: collectGranularityCandidates
     sourceFile: packages/plugin-builtin/src/symbols/ts-morph-granularity.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ts-symbols
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-choosescriptkind-eb8b02e2
     title: chooseScriptKind
     sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ts-symbols
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-formatmethodsymbolname-45e1d25a
     title: formatMethodSymbolName
     sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ts-symbols
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-isprivateclassmember-0e2609b7
     title: isPrivateClassMember
     sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ts-symbols
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
-  - id: SYM-cap-plugin-onlycandidate-e892cad2
-    title: onlyCandidate
-    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-supported-source-extensions-7688bba6
     title: SUPPORTED_SOURCE_EXTENSIONS
     sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
@@ -17896,8 +17864,6 @@ symbols:
         target: TEST-proof-builtin-symbol-source-extensions
       - type: implements
         target: REQ-builtin-symbol-source-extensions
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-createjevplugin-a2c5a4bf
     title: createJevPlugin
     sourceFile: packages/plugin-jev/src/index.ts
@@ -19610,10 +19576,10 @@ symbols:
     sourceFile: packages/plugin-builtin/src/symbols/ts-morph-runtime.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ts-symbols
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-claude-isVerifiedGitCommit
     title: isVerifiedGitCommit
     status: active
@@ -20746,10 +20712,10 @@ symbols:
     sourceFile: packages/plugin-builtin/src/symbols/ts-morph-extractor.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-builtin-ts-symbols
       - type: covered_by
         target: TEST-e2e-capability-plugins
-      - type: implements
-        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-impact-stage-e-runinstalledimpactpolicye2e
     title: runInstalledImpactPolicyE2E
     status: active

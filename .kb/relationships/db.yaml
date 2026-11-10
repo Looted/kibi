@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2babf67a9a0
+  - type: assumes
+    from: SCEN-NEG-kibi-builtin-semantic-classifier-NETWORK-CALL
+    to: FACT-NEG-kibi-builtin-semantic-classifier-NETWORK-CALL
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49ee6e222cce
+  - type: verified_by
+    from: SCEN-NEG-kibi-builtin-semantic-classifier-NETWORK-CALL
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8e4d368f633

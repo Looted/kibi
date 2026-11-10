@@ -384,3 +384,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6ba1a7cdc72
+  - type: constrains
+    from: REQ-kibi-builtin-ontology-pack
+    to: FACT-SUBJ-kibi-builtin-ontology-pack
+    created_at: 2026-11-10T10:41:20.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11105a755d8c
+  - type: requires_property
+    from: REQ-kibi-builtin-ontology-pack
+    to: FACT-PROP-kibi-builtin-ontology-pack-c01
+    created_at: 2026-11-10T10:41:20.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d12d2c8c1ee
+  - type: specified_by
+    from: REQ-kibi-builtin-ontology-pack
+    to: SCEN-kibi-builtin-ontology-pack
+    created_at: 2026-11-10T10:41:20.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0505ab3ee5dc
+  - type: specified_by
+    from: REQ-kibi-builtin-ontology-pack
+    to: SCEN-NEG-kibi-builtin-ontology-pack-UNMATCHED-CANDIDATE
+    created_at: 2026-11-10T10:41:20.346Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a99650d6a61a
+  - type: relates_to
+    from: REQ-kibi-builtin-ontology-pack
+    to: REQ-capability-plugin-builtin-parity-v1
+    created_at: 2026-11-10T10:41:20.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1bdd73da97d

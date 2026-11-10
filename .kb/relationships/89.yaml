@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0199c93da25a
+  - type: assumes
+    from: SCEN-NEG-kibi-builtin-ts-symbols-PRIVATE-MEMBER
+    to: FACT-NEG-kibi-builtin-ts-symbols-PRIVATE-MEMBER
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f00a4a71dad
+  - type: verified_by
+    from: SCEN-NEG-kibi-builtin-ts-symbols-PRIVATE-MEMBER
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68b4f718ce49

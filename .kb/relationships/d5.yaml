@@ -14,13 +14,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3747f6218e75
   - type: covered_by
-    from: SYM-cap-plugin-builtinontologypack-id-b1f2923e
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:42:07.590Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8ab4e5ccc3a0
-  - type: covered_by
     from: SYM-cap-plugin-pluginvalidationerror-edc38c60
     to: TEST-e2e-capability-plugins
     created_at: 2026-09-22T19:48:06.463Z

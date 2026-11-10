@@ -167,13 +167,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2f06c8095144
-  - type: covered_by
-    from: SYM-cap-plugin-normalizesubjectkey-3302ec47
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:42:25.328Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-98a47a11b0bd
   - type: specified_by
     from: REQ-kibi-subject-vocabulary
     to: SCEN-kibi-subject-vocabulary

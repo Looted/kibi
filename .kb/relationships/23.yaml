@@ -297,3 +297,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cdaa861dea33
+  - type: assumes
+    from: SCEN-kibi-builtin-ontology-pack
+    to: FACT-PROP-kibi-builtin-ontology-pack-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea694c2da11a
+  - type: verified_by
+    from: SCEN-kibi-builtin-ontology-pack
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b45c89048fa
