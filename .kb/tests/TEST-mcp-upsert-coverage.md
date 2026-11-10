@@ -60,6 +60,45 @@ proof_receipts:
           status: unavailable
     kind: e2e
     evidence_level: tested
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-b8eb16c980301e4ce838f5ea
+    test_id: TEST-mcp-upsert-coverage
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 77a05ac3f136388d07560216e6f9644997c4b9918c6920a54149f03a47779bca
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T05:33:42.441Z'
+    finished_at: '2026-11-10T05:36:08.645Z'
+    artifact_digest: fd1b51510c1b9ea655c815edebb251fa1acd7f4f40d6a7038ea08ffe86713b50
+    contract_hash: e5bb755b312aadb198ba642509064309002dfe03cf8aedda03daf1ddfb028ca2
+    binding_hash: 477d610f91b5be95c8c67296aff037e4a5ab96a6572385c93dd90436fa380b0c
+    fingerprint: 59e065822b1f1b2ae98996da6c3389dcaae5ffbce44245ab56ebe45f0e71c6d9
+    fingerprint_components:
+      contract: e5bb755b312aadb198ba642509064309002dfe03cf8aedda03daf1ddfb028ca2
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-e2e-mcp-crud
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-mcp-crud
+        target: default
+        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed'''
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6
