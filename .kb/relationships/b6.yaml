@@ -97,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5dc747d9a06a
-  - type: implements
-    from: SYM-prolog-build-smoke
-    to: REQ-prolog-build-pipeline-validation
-    created_at: 2026-09-30T17:52:42.817Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-78642b4e0553
   - type: covered_by
     from: SYM-prolog-build-smoke
     to: TEST-prolog-build-pipeline-validation
@@ -356,3 +349,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ff24c35c18bf
+  - type: constrains
+    from: REQ-prolog-build-workflow-targets
+    to: FACT-prolog-build-pipeline-subject
+    created_at: 2026-11-10T09:23:06.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fc9e79bf893
+  - type: requires_property
+    from: REQ-prolog-build-workflow-targets
+    to: FACT-prolog-build-accepts-four-launch-targets
+    created_at: 2026-11-10T09:23:06.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db733f8d678a
+  - type: requires_property
+    from: REQ-prolog-build-workflow-targets
+    to: FACT-prolog-build-declares-separate-build-and-smoke-jobs
+    created_at: 2026-11-10T09:23:06.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9e3f8ab7458
+  - type: requires_property
+    from: REQ-prolog-build-workflow-targets
+    to: FACT-prolog-build-triggers-pinned-build-updates-and-dispatch
+    created_at: 2026-11-10T09:23:06.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc8f2c7bd0ba
+  - type: requires_property
+    from: REQ-prolog-build-workflow-targets
+    to: FACT-prolog-build-refuses-native-build-outside-actions
+    created_at: 2026-11-10T09:23:06.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9be1c4d21d79
+  - type: specified_by
+    from: REQ-prolog-build-workflow-targets
+    to: SCEN-prolog-build-pipeline-validation
+    created_at: 2026-11-10T09:23:06.556Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cb6314601be
+  - type: specified_by
+    from: REQ-prolog-build-workflow-targets
+    to: SCEN-NEG-prolog-build-pipeline-validation-FOREIGN-TARGET
+    created_at: 2026-11-10T09:23:06.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b165cee63e49
+  - type: specified_by
+    from: REQ-prolog-build-workflow-targets
+    to: SCEN-CASE-prolog-build-pipeline-validation-FIVE-LAUNCH-TARGETS
+    created_at: 2026-11-10T09:23:06.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5a6c07dd121
+  - type: specified_by
+    from: REQ-prolog-build-workflow-targets
+    to: SCEN-CASE-prolog-build-pipeline-validation-THREE-LAUNCH-TARGETS
+    created_at: 2026-11-10T09:23:06.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd423e270363
+  - type: verified_by
+    from: REQ-prolog-build-workflow-targets
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-11-10T09:23:06.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c16ee929f59
+  - type: supersedes
+    from: REQ-prolog-build-workflow-targets
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-11-10T09:23:06.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-949e60812dd1

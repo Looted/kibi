@@ -76,20 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51164613983e
-  - type: implements
-    from: SYM-prolog-build-relocate
-    to: REQ-prolog-build-pipeline-validation
-    created_at: 2026-09-30T17:51:45.833Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2894412cbd2c
-  - type: covered_by
-    from: SYM-prolog-build-relocate
-    to: TEST-prolog-build-pipeline-validation
-    created_at: 2026-09-30T17:51:45.918Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30ea5cf8f249
   - type: relates_to
     from: FACT-OBS-claude-mcp-attaches-main-checkout-in-worktrees
     to: REQ-claude-mcp-follows-session-workspace

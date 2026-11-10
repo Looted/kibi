@@ -202,3 +202,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-605e726b1d77
+  - type: constrains
+    from: REQ-prolog-clean-consumer-smoke
+    to: FACT-prolog-build-pipeline-subject
+    created_at: 2026-11-10T09:24:56.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0e7ccedc713
+  - type: requires_property
+    from: REQ-prolog-clean-consumer-smoke
+    to: FACT-prolog-build-refuses-system-swipl-on-clean-runner
+    created_at: 2026-11-10T09:24:56.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79740f661c3b
+  - type: requires_property
+    from: REQ-prolog-clean-consumer-smoke
+    to: FACT-prolog-build-sets-home-and-clears-loader-overrides
+    created_at: 2026-11-10T09:24:56.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c40672f1933
+  - type: requires_property
+    from: REQ-prolog-clean-consumer-smoke
+    to: FACT-prolog-build-requests-full-library-and-arithmetic-and-mtime-smoke
+    created_at: 2026-11-10T09:24:56.862Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c8d03cd3c0c
+  - type: requires_property
+    from: REQ-prolog-clean-consumer-smoke
+    to: FACT-prolog-build-propagates-smoke-command-failure
+    created_at: 2026-11-10T09:24:56.874Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-619cf3e83730
+  - type: specified_by
+    from: REQ-prolog-clean-consumer-smoke
+    to: SCEN-prolog-build-pipeline-validation
+    created_at: 2026-11-10T09:24:56.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-333090b07001
+  - type: specified_by
+    from: REQ-prolog-clean-consumer-smoke
+    to: SCEN-CASE-prolog-build-pipeline-validation-NINETEEN-LIBRARIES
+    created_at: 2026-11-10T09:24:56.907Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f867e503e2f
+  - type: specified_by
+    from: REQ-prolog-clean-consumer-smoke
+    to: SCEN-CASE-prolog-build-pipeline-validation-SEVENTEEN-LIBRARIES
+    created_at: 2026-11-10T09:24:56.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb3fb837d728
+  - type: verified_by
+    from: REQ-prolog-clean-consumer-smoke
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-11-10T09:24:56.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e694998d9dd7
+  - type: supersedes
+    from: REQ-prolog-clean-consumer-smoke
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-11-10T09:24:56.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-442e560967eb

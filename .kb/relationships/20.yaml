@@ -510,3 +510,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76f5c344d3fb
+  - type: constrains
+    from: REQ-prolog-artifact-provenance
+    to: FACT-prolog-build-pipeline-subject
+    created_at: 2026-11-10T09:23:44.068Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f64b50cdf3b3
+  - type: requires_property
+    from: REQ-prolog-artifact-provenance
+    to: FACT-prolog-build-publishes-checksum-and-pinned-manifest
+    created_at: 2026-11-10T09:23:44.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2048805cc95d
+  - type: requires_property
+    from: REQ-prolog-artifact-provenance
+    to: FACT-prolog-build-rejects-archive-checksum-mismatch
+    created_at: 2026-11-10T09:23:44.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8636c9c6bfde
+  - type: requires_property
+    from: REQ-prolog-artifact-provenance
+    to: FACT-prolog-build-rejects-executable-checksum-mismatch
+    created_at: 2026-11-10T09:23:44.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af0b36de622d
+  - type: requires_property
+    from: REQ-prolog-artifact-provenance
+    to: FACT-prolog-build-rejects-manifest-provenance-mismatch
+    created_at: 2026-11-10T09:23:44.205Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccf40d66fa89
+  - type: requires_property
+    from: REQ-prolog-artifact-provenance
+    to: FACT-prolog-build-rejects-unsafe-archive-entries
+    created_at: 2026-11-10T09:23:44.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0949fb37e8b4
+  - type: requires_property
+    from: REQ-prolog-artifact-provenance
+    to: FACT-prolog-build-rejects-incomplete-runtime-prefix
+    created_at: 2026-11-10T09:23:44.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-050fefd1383c
+  - type: requires_property
+    from: REQ-prolog-artifact-provenance
+    to: FACT-prolog-build-rejects-native-audit-failure
+    created_at: 2026-11-10T09:23:44.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bf2de09721b
+  - type: specified_by
+    from: REQ-prolog-artifact-provenance
+    to: SCEN-prolog-build-pipeline-validation
+    created_at: 2026-11-10T09:23:44.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5486bd2ddba
+  - type: specified_by
+    from: REQ-prolog-artifact-provenance
+    to: SCEN-NEG-prolog-artifact-provenance-CORRUPT-ARCHIVE
+    created_at: 2026-11-10T09:23:44.303Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f0dd911aa46
+  - type: verified_by
+    from: REQ-prolog-artifact-provenance
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-11-10T09:23:44.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e18e07c4ae4f
+  - type: supersedes
+    from: REQ-prolog-artifact-provenance
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-11-10T09:23:44.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-046f35b0c4a8

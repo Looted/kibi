@@ -69,20 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c6dbe8e57b40
-  - type: implements
-    from: SYM-prolog-build-cmake-project
-    to: REQ-prolog-build-pipeline-validation
-    created_at: 2026-09-30T17:51:05.040Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a79b790a949c
-  - type: covered_by
-    from: SYM-prolog-build-cmake-project
-    to: TEST-prolog-build-pipeline-validation
-    created_at: 2026-09-30T17:51:05.072Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eba8cb08eb07
   - type: executable_for
     from: SYM-opencode-index-wrapper-tests
     to: TEST-opencode-v2-plugin-api
