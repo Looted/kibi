@@ -1253,6 +1253,42 @@ async function runInstalledDerivedCoordinateWorkflow(
     );
 
     const api = await loadImpactApi(sandbox);
+    // Impact review runs only release-qualified analyzers whose installed
+    // files match their approval: the packed Tree-sitter analyzer passes, a
+    // package without an approval is refused before it can run.
+    assert.ok(
+      api.maintenance.fingerprintMaintenanceSourceSet(
+        sandbox.repoDir,
+        sourceConfig,
+      ),
+      "the release-qualified Tree-sitter analyzer is approved",
+    );
+    assert.throws(
+      () =>
+        api.maintenance.fingerprintMaintenanceSourceSet(sandbox.repoDir, {
+          plugins: [
+            {
+              package: "kibi-unapproved-analyzer",
+              capabilities: {
+                "kibi.symbol-extractor.v2": { mode: "augment" },
+              },
+            },
+          ],
+        }),
+      /Source analyzer is not approved for impact review: kibi-unapproved-analyzer/,
+      "an analyzer without a release approval must be refused",
+    );
+    const analysisService = (await installedModule(
+      sandbox,
+      "plugins/source-analysis-service.js",
+    )) as Readonly<{ providerBudgetMs: (hostTimeoutMs: number) => number }>;
+    for (const hostTimeoutMs of [50, 5_000, 30_000]) {
+      const budget = analysisService.providerBudgetMs(hostTimeoutMs);
+      assert.ok(
+        budget > 0 && budget < hostTimeoutMs,
+        `the provider budget ${budget} must stay inside the host deadline ${hostTimeoutMs}`,
+      );
+    }
     const initialized = await kibi(sandbox, ["init", "--no-hooks"], {
       timeoutMs: COMMAND_TIMEOUT_MS,
     });
