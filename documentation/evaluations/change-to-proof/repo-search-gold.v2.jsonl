@@ -6,7 +6,7 @@
 {"id":"repo-merge-driver","query":"how does kibi merge-driver resolve conflicting symbols.yaml edits?","expectedIds":["REQ-cli-kb-merge-driver"]}
 {"id":"repo-doctor-prolog","query":"what does kibi doctor report about SWI-Prolog?","expectedIds":["REQ-prolog-doctor-runtime-report","REQ-cli-doctor"]}
 {"id":"repo-bundled-runtime","query":"which SWI-Prolog does Kibi use when a bundled runtime and a system install both exist?","expectedIds":["REQ-prolog-bundled-runtime"]}
-{"id":"repo-stale-receipt","query":"when is a proof receipt stale for the current code snapshot?","expectedIds":["REQ-kibi-proof-receipt-freshness"],"supersededIds":["REQ-kibi-fresh-verification-receipts-v2",REQ-kibi-verification-receipts-v2","REQ-kibi-fresh-verification-receipts"]}
+{"id":"repo-stale-receipt","query":"when is a proof receipt stale for the current code snapshot?","expectedIds":["REQ-kibi-proof-receipt-freshness"],"supersededIds":["REQ-kibi-fresh-verification-receipts-v2","REQ-kibi-verification-receipts-v2","REQ-kibi-fresh-verification-receipts"]}
 {"id":"repo-infeasible-scenario","query":"when is a scenario reported infeasible?","expectedIds":["REQ-kibi-scenario-feasibility-v2"],"supersededIds":["REQ-kibi-scenario-feasibility"]}
 {"id":"repo-unit-canonicalization","query":"are 30 minutes and 1800 seconds treated as the same property value?","expectedIds":["REQ-kibi-unit-canonicalization"]}
 {"id":"repo-entity-ids","query":"how should new entity ids be named?","expectedIds":["REQ-kibi-entity-id-style"]}
@@ -28,7 +28,7 @@
 {"id":"repo-symbol-granularity","query":"must symbol traceability always link the narrowest symbol?","expectedIds":["REQ-symbol-behavioral-anchors"],"supersededIds":["REQ-symbol-granularity"]}
 {"id":"repo-rdf-persistency","query":"how does Kibi persist the KB with rdf_persistency?","expectedIds":["REQ-kibi-engine-durable-transactions"],"supersededIds":["REQ-core-journaled-engine-persistence","REQ-core-persistence","REQ-009","REQ-core-atomic-upsert-persistence"]}
 {"id":"repo-vscode-sidebar","query":"what does the VS Code tree view sidebar show?","expectedIds":["REQ-vscode-sidebar-kb-tree"],"supersededIds":["REQ-010"]}
-{"id":"repo-receipts-v2","query":"how are proof receipts v2 validated for E2E tests?","expectedIds":["REQ-kibi-proof-receipt-freshness"],"supersededIds":["REQ-kibi-fresh-verification-receipts-v2",REQ-kibi-verification-receipts-v2","REQ-kibi-fresh-verification-receipts"]}
+{"id":"repo-receipts-v2","query":"how are proof receipts v2 validated for E2E tests?","expectedIds":["REQ-kibi-proof-receipt-freshness"],"supersededIds":["REQ-kibi-fresh-verification-receipts-v2","REQ-kibi-verification-receipts-v2","REQ-kibi-fresh-verification-receipts"]}
 {"id":"repo-branch-copy","query":"does a new branch copy the default branch KB when it is first checked out?","expectedIds":["REQ-kibi-exact-branch-identity"],"supersededIds":["REQ-012","REQ-branch-store-recovery-v2","REQ-branch-store-recovery-v3","REQ-branch-store-recovery-v4"]}
 {"id":"repo-docs-site","query":"how is the documentation site published to GitHub Pages?","expectedIds":["REQ-docs-site-root-pages"],"supersededIds":["REQ-docs-site-pages"]}
 {"id":"repo-abstain-billing","query":"how should Kibi bill customers for premium seats?","expectedIds":[],"expectAbstention":true}

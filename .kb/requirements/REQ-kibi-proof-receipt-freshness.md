@@ -1,5 +1,5 @@
 ---
-title: Only a fresh passing receipt bound to the current snapshot proves a requirement
+title: Proof receipts are validated as fresh, passing and bound to the current snapshot before they prove a requirement
 status: open
 semantic_text: Proof-bearing tests must carry kibi.proof-receipt.v1 execution history that kb_upsert and incremental sync never shorten, rewrite, or reorder. Each proof receipt must bind its test ID, typed verification scope, integration command, current code snapshot, canonical environment hash, execution fingerprint, timestamps, outcome, and artifact digest. The newest proof receipt for the current code snapshot must be passing and no older than seven days. A missing, stale, failed, malformed, mismatched, or future-dated proof receipt must not prove the requirement. Coverage and status must expose the deterministic current code snapshot through CLI and MCP. Durable test status remains structural metadata and cannot substitute for proof receipts. Receipt bindings must locate the test document and each symbol source file through a normalized repository-relative path.
 semantic_clauses:
@@ -99,7 +99,7 @@ Proof-bearing tests must carry kibi.proof-receipt.v1 execution history that kb_u
 
 ## Context
 
-A receipt names exactly what ran, against which code, and when, so proof follows the code and lapses as soon as the code moves or the receipt ages out.
+Kibi validates each proof receipt of an E2E test against exactly what ran, against which code, and when, so proof follows the code and lapses as soon as the code moves or the receipt ages out.
 
 Receipts are the only evidence that a test really passed against the current code, so a stale, rewritten or misattributed receipt would let a requirement look tested when it is not.
 
