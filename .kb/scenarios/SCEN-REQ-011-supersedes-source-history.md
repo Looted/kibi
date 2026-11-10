@@ -12,4 +12,4 @@ type: scenario
 ---
 Given two tracked requirement sources whose first Git additions are known, when a write records a supersedes link whose source entered history before its target, then kb_upsert refuses the changeset with RELATIONSHIP_VALIDATION_FAILED naming the reversed direction, and a link from the newer source to the older one is accepted.
 
-Write governance validates relationship changesets against tracked history before they are committed. packages/cli/tests/operations-mutation/mutation/relationships.test.ts "validateSupersedesSourceHistory" exercises it, inside the TEST-cli-supersedes-history-unit proof run.
+Write governance validates relationship changesets against tracked history before they are committed. packages/cli/tests/operations-mutation/mutation/relationships.test.ts "validateSupersedesSourceHistory" exercises it at unit level, inside the TEST-cli-supersedes-history-unit proof run, and documentation/tests/e2e/packed/branch-store-recovery.test.ts "enforces exact identity, bounded migration, and explicit recovery" refuses a reversed supersedes upsert through the packed CLI, inside the TEST-cli-branch-store-recovery proof run.
