@@ -412,3 +412,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ccade86be59c
+  - type: constrains
+    from: REQ-kibi-proof-receipt-freshness
+    to: FACT-SUBJECT-kibi-proof-receipts
+    created_at: 2026-11-10T08:29:20.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95e51b644bf1
+  - type: requires_predicate
+    from: REQ-kibi-proof-receipt-freshness
+    to: FACT-VERIFICATION-RECEIPT-HISTORY-AUTHOR-APPEND-ONLY
+    created_at: 2026-11-10T08:29:20.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b11e62ebfd13
+  - type: requires_property
+    from: REQ-kibi-proof-receipt-freshness
+    to: FACT-VERIFICATION-RECEIPT-BINDING
+    created_at: 2026-11-10T08:29:20.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00b13bb1fda2
+  - type: requires_predicate
+    from: REQ-kibi-proof-receipt-freshness
+    to: FACT-VERIFICATION-RECEIPT-FRESHNESS
+    created_at: 2026-11-10T08:29:20.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ab96fb0ece6
+  - type: requires_predicate
+    from: REQ-kibi-proof-receipt-freshness
+    to: FACT-VERIFICATION-RECEIPT-REJECTS-INVALID
+    created_at: 2026-11-10T08:29:20.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38ef12d12b5c
+  - type: requires_predicate
+    from: REQ-kibi-proof-receipt-freshness
+    to: FACT-VERIFICATION-RECEIPT-SNAPSHOT-SURFACES
+    created_at: 2026-11-10T08:29:20.333Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9039b56701c
+  - type: requires_predicate
+    from: REQ-kibi-proof-receipt-freshness
+    to: FACT-VERIFICATION-RECEIPT-STATUS-NONAUTHORITY
+    created_at: 2026-11-10T08:29:20.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98b7be33fe7b
+  - type: requires_property
+    from: REQ-kibi-proof-receipt-freshness
+    to: FACT-VERIFICATION-RECEIPT-REPO-RELATIVE-BINDING
+    created_at: 2026-11-10T08:29:20.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f819426ab7a9
+  - type: specified_by
+    from: REQ-kibi-proof-receipt-freshness
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-11-10T08:29:20.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7eedb5d4a5f
+  - type: specified_by
+    from: REQ-kibi-proof-receipt-freshness
+    to: SCEN-kibi-snapshot-relevance
+    created_at: 2026-11-10T08:29:20.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-496d47227892
+  - type: specified_by
+    from: REQ-kibi-proof-receipt-freshness
+    to: SCEN-NEG-kibi-fresh-verification-receipts-v2-missing-or-stale-receipt
+    created_at: 2026-11-10T08:29:20.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2aebbd01cd33
+  - type: specified_by
+    from: REQ-kibi-proof-receipt-freshness
+    to: SCEN-CASE-kibi-fresh-verification-receipts-v2-UNNORMALIZED-BINDING-PATH
+    created_at: 2026-11-10T08:29:20.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14008655bdc1
+  - type: verified_by
+    from: REQ-kibi-proof-receipt-freshness
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-11-10T08:29:20.503Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae0b204d8b0d
+  - type: verified_by
+    from: REQ-kibi-proof-receipt-freshness
+    to: TEST-e2e-snapshot-relevance
+    created_at: 2026-11-10T08:29:20.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9bf068a338a
+  - type: verified_by
+    from: REQ-kibi-proof-receipt-freshness
+    to: TEST-kibi-proof-receipt-compaction-cli
+    created_at: 2026-11-10T08:29:20.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b946fbe1a31
+  - type: supersedes
+    from: REQ-kibi-proof-receipt-freshness
+    to: REQ-kibi-fresh-verification-receipts-v2
+    created_at: 2026-11-10T08:29:20.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7746d961e32

@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce049424bd7d
+  - type: assumes
+    from: SCEN-NEG-kibi-proof-per-test-attribution-UNATTRIBUTABLE-FAILURE
+    to: FACT-NEG-kibi-proof-per-test-attribution-UNATTRIBUTABLE-FAILURE
+    created_at: 2026-11-10T17:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb39d3d34aba
+  - type: verified_by
+    from: SCEN-NEG-kibi-proof-per-test-attribution-UNATTRIBUTABLE-FAILURE
+    to: TEST-kibi-proof-receipt-compaction-cli
+    created_at: 2026-11-10T17:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0006b958a76

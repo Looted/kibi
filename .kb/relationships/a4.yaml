@@ -377,3 +377,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6aa54a308954
+  - type: constrains
+    from: REQ-kibi-proof-receipt-compaction
+    to: FACT-SUBJECT-kibi-proof-receipts
+    created_at: 2026-11-10T08:30:33.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b18b6187d77a
+  - type: requires_property
+    from: REQ-kibi-proof-receipt-compaction
+    to: FACT-VERIFICATION-RECEIPT-COMPACTION-POLICY
+    created_at: 2026-11-10T08:30:33.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c9789634de8
+  - type: requires_predicate
+    from: REQ-kibi-proof-receipt-compaction
+    to: FACT-VERIFICATION-RECEIPT-COMPACTION-SUBSEQUENCE
+    created_at: 2026-11-10T08:30:33.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dff61dcf6938
+  - type: requires_predicate
+    from: REQ-kibi-proof-receipt-compaction
+    to: FACT-VERIFICATION-RECEIPT-COMPACT-COMMAND
+    created_at: 2026-11-10T08:30:33.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ef4bd34fb7f
+  - type: specified_by
+    from: REQ-kibi-proof-receipt-compaction
+    to: SCEN-kibi-proof-receipt-compaction
+    created_at: 2026-11-10T08:30:33.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-851cda302036
+  - type: specified_by
+    from: REQ-kibi-proof-receipt-compaction
+    to: SCEN-CASE-kibi-fresh-verification-receipts-v2-SUPERSEDED-RECEIPT-KEPT
+    created_at: 2026-11-10T08:30:33.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca716556ca72
+  - type: verified_by
+    from: REQ-kibi-proof-receipt-compaction
+    to: TEST-kibi-proof-receipt-compaction
+    created_at: 2026-11-10T08:30:33.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3807af0de243
+  - type: verified_by
+    from: REQ-kibi-proof-receipt-compaction
+    to: TEST-kibi-proof-receipt-compaction-cli
+    created_at: 2026-11-10T08:30:33.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-331366e27576
+  - type: supersedes
+    from: REQ-kibi-proof-receipt-compaction
+    to: REQ-kibi-fresh-verification-receipts-v2
+    created_at: 2026-11-10T08:30:33.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c85d52cd527

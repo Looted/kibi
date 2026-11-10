@@ -8083,8 +8083,6 @@ symbols:
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-resolveManifestPath
     title: resolveManifestPath
     status: active
@@ -14526,14 +14524,14 @@ symbols:
     symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-freshness
       - type: covered_by
         target: TEST-cli-workspace-snapshot-dirtiness
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
       - type: implements
         target: REQ-kibi-verification-receipts-v2
   - id: SYM-read-workspace-snapshot
@@ -14543,10 +14541,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-freshness
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-core-verification-receipt-evidence
     title: test_receipt_evidence
     sourceFile: packages/core/src/requirement_proof.pl
@@ -14554,10 +14552,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-freshness
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-test-packed-fresh-verification-receipts
     title: receiptRow
     sourceFile: documentation/tests/e2e/packed/fresh-verification-receipts.test.ts
@@ -18640,13 +18638,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-proof-receipt-compaction-cli
+      - type: implements
+        target: REQ-kibi-proof-receipt-compaction
+      - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-proof-ingest-batch-atomicity
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
       - type: implements
         target: REQ-kibi-verification-receipts-v2
   - id: SYM-evaluate-contract-against-run
@@ -19024,12 +19024,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-freshness
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
       - type: implements
         target: REQ-kibi-verification-receipts-v2
   - id: SYM-proof-receipt-current-binding-errors
@@ -19039,12 +19039,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-freshness
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
       - type: implements
         target: REQ-kibi-verification-receipts-v2
   - id: SYM-append-only-proof-receipt-history-errors
@@ -19054,12 +19054,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-freshness
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
       - type: implements
         target: REQ-kibi-verification-receipts-v2
   - id: SYM-proof-receipt-max-age-seconds
@@ -19075,8 +19075,6 @@ symbols:
         target: TEST-kibi-verification-receipts-v2
       - type: covered_by
         target: TEST-proof-proof-receipt-max-age
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
       - type: implements
         target: REQ-kibi-proof-receipt-max-age
       - type: implements
@@ -19105,12 +19103,12 @@ symbols:
     symbol_role: unknown
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-freshness
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
       - type: implements
         target: REQ-kibi-verification-receipts-v2
   - id: SYM-max-proof-receipts
@@ -19128,8 +19126,6 @@ symbols:
         target: TEST-kibi-verification-receipts-v2
       - type: covered_by
         target: TEST-proof-max-proof-receipts
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
       - type: implements
         target: REQ-kibi-verification-receipts-v2
   - id: SYM-ingest-proof-spec
@@ -20165,18 +20161,6 @@ symbols:
         target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-e2e-skillopt-trust-boundaries
-  - id: SYM-current-proof-binding-mode
-    title: currentProofBindingMode
-    status: active
-    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
   - id: SYM-zcode-case-packed-consumer-install-launch
     title: Packed ZCode consumer installs and launches project-local MCP
     status: active
@@ -25987,12 +25971,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T03:14:46.049Z
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-compaction
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction-cli
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-proof-executeCompactReceipts
     title: executeCompactReceipts
     status: active
@@ -26002,12 +25986,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T03:14:52.225Z
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-compaction
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction-cli
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-proof-attributeCommandRun
     title: attributeCommandRun
     status: active
@@ -26017,12 +26001,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T03:14:58.803Z
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-per-test-attribution
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction-cli
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-normalizeRepoRelativePath
     title: normalizeRepoRelativePath
     status: active
@@ -26032,12 +26016,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T03:15:09.568Z
     relationships:
+      - type: implements
+        target: REQ-kibi-proof-receipt-freshness
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction-cli
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-search-answer-projectVerdict
     title: projectVerdict
     status: active
