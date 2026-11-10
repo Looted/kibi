@@ -1,6 +1,6 @@
 ---
 title: Exact branch-local KB identity, same-identity storage migration and read-only detached HEAD snapshots
-status: open
+status: closed
 required_evidence: tested
 priority: must
 tags:

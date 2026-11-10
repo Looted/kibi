@@ -1,18 +1,4 @@
 relationships:
-  - type: implements
-    from: SYM-auto-4B78DAEF6C6B
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-15T22:20:44.085Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e804725b50a4
-  - type: covered_by
-    from: SYM-auto-4B78DAEF6C6B
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-16T07:54:05.687Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-11121e4e1256
   - type: covered_by
     from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -55,13 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f0891b90bd12
-  - type: covered_by
-    from: SYM-auto-4B78DAEF6C6B
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:39:37.972Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-276f80712079
   - type: implements
     from: SYM-runIndependentFinalState
     to: REQ-skillopt-external-adoption-verdict
@@ -76,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dd35bc25c1e7
-  - type: covered_by
-    from: SYM-auto-4B78DAEF6C6B
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-05T17:17:09.680Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e6788eabe1ee
   - type: executable_for
     from: SYM-e2e-test-snapshot-relevance
     to: TEST-e2e-snapshot-relevance
@@ -104,13 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f8fdc31786e
-  - type: implements
-    from: SYM-auto-4B78DAEF6C6B
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:56:19.523Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ff2a8798f6f4
   - type: implements
     from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
     to: REQ-bootstrap-write-safety

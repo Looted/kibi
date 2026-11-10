@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-427146bb9f96
-    type: implements
-    from: SYM-auto-532D065248B0
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:21:25.995Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: implements
     from: SYM-auto-FDB3234DFBC2
     to: REQ-kibi-operation-interface-parity
@@ -13,13 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2527920aa5aa
-  - type: covered_by
-    from: SYM-auto-532D065248B0
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-16T07:54:34.342Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-41f2383403cd
   - type: covered_by
     from: SYM-auto-FDB3234DFBC2
     to: TEST-kibi-operation-interface-parity
@@ -147,13 +133,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-4f1ddd1d9858
   - type: covered_by
-    from: SYM-auto-532D065248B0
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:34:42.492Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6d5a2536619c
-  - type: covered_by
     from: SYM-auto-FDB3234DFBC2
     to: TEST-kibi-change-to-proof-plan-compiler
     created_at: 2026-08-22T20:34:47.576Z
@@ -174,13 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e60ad85ec2cd
-  - type: covered_by
-    from: SYM-auto-532D065248B0
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-05T17:17:30.925Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-608856390efd
   - type: covered_by
     from: SYM-ingest-proof-spec
     to: TEST-kibi-verification-evidence-contract
@@ -237,13 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0dcc67498205
-  - type: implements
-    from: SYM-auto-532D065248B0
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:56:32.206Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-512fd580e584
   - type: implements
     from: SYM-skillopt-user-mode
     to: REQ-skillopt-host-neutral-optimization

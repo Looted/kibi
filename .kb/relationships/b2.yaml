@@ -419,3 +419,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb87a1ba6d23
+  - type: constrains
+    from: REQ-kibi-detached-head-snapshots
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-11-10T04:44:29.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f094142b1d0
+  - type: requires_property
+    from: REQ-kibi-detached-head-snapshots
+    to: FACT-PRED-detached-head-single-branch-attach
+    created_at: 2026-11-10T04:44:29.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8543e8b63ead
+  - type: requires_predicate
+    from: REQ-kibi-detached-head-snapshots
+    to: FACT-PRED-detached-head-snapshot-reads
+    created_at: 2026-11-10T04:44:29.888Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bbfe99cfa12
+  - type: requires_property
+    from: REQ-kibi-detached-head-snapshots
+    to: FACT-PRED-detached-head-read-only-warning
+    created_at: 2026-11-10T04:44:29.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-904389dea3d3
+  - type: requires_predicate
+    from: REQ-kibi-detached-head-snapshots
+    to: FACT-PRED-detached-head-writes-refused
+    created_at: 2026-11-10T04:44:29.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41dde6ce69ff
+  - type: specified_by
+    from: REQ-kibi-detached-head-snapshots
+    to: SCEN-branch-detached-head-read-only
+    created_at: 2026-11-10T04:44:29.965Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21ba391a4ee9
+  - type: specified_by
+    from: REQ-kibi-detached-head-snapshots
+    to: SCEN-NEG-branch-store-recovery-v4-DETACHED-WRITE
+    created_at: 2026-11-10T04:44:29.996Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94b1335a7ffc
+  - type: specified_by
+    from: REQ-kibi-detached-head-snapshots
+    to: SCEN-CASE-branch-store-recovery-v4-two-branches-at-head
+    created_at: 2026-11-10T04:44:30.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9800a45f4114
+  - type: specified_by
+    from: REQ-kibi-detached-head-snapshots
+    to: SCEN-CASE-branch-store-recovery-v4-snapshot-result-without-warning
+    created_at: 2026-11-10T04:44:30.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-453f19638c28
+  - type: verified_by
+    from: REQ-kibi-detached-head-snapshots
+    to: TEST-branch-detached-head-read-only-cli
+    created_at: 2026-11-10T04:44:30.073Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd7c8377675a
+  - type: verified_by
+    from: REQ-kibi-detached-head-snapshots
+    to: TEST-branch-detached-head-read-only
+    created_at: 2026-11-10T04:44:30.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3dcb71bb7bd
+  - type: supersedes
+    from: REQ-kibi-detached-head-snapshots
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-11-10T04:44:30.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a22c30f3582a

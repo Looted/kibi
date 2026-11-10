@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a5eb4750bd27
+  - type: assumes
+    from: SCEN-NEG-kibi-exact-branch-identity-RECOVER-WITHOUT-APPLY
+    to: FACT-NEG-kibi-exact-branch-identity-RECOVER-WITHOUT-APPLY
+    created_at: 2026-11-10T06:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8881640a7254
+  - type: verified_by
+    from: SCEN-NEG-kibi-exact-branch-identity-RECOVER-WITHOUT-APPLY
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-11-10T06:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9bfa171154c

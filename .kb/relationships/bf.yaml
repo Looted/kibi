@@ -10,13 +10,6 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/flags/FLAG-004.md
-  - type: implements
-    from: SYM-auto-EE0B2692CF85
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-15T22:15:37.082Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b442bd57f001
   - type: covered_by
     from: SYM-auto-EE0B2692CF85
     to: TEST-cli-branch-store-recovery
@@ -136,13 +129,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6755d09107c
-  - type: implements
-    from: SYM-auto-EE0B2692CF85
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:57:44.380Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9436bcd99f82
   - type: implements
     from: SYM-skillopt-runtime-fixture-kb-setup-setupseededpartialkb-6a846f9e
     to: REQ-skillopt-external-adoption-verdict

@@ -202,3 +202,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-048853c91b4d
+  - type: constrains
+    from: REQ-kibi-branch-store-same-identity-migration
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-11-10T04:44:01.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e45ea6f52be9
+  - type: requires_predicate
+    from: REQ-kibi-branch-store-same-identity-migration
+    to: FACT-BRANCH-STORE-SAME-IDENTITY-MIGRATION
+    created_at: 2026-11-10T04:44:01.558Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e2a4fb564dd
+  - type: requires_property
+    from: REQ-kibi-branch-store-same-identity-migration
+    to: FACT-BRANCH-CROSS-IDENTITY-MIGRATION-REFUSED
+    created_at: 2026-11-10T04:44:01.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6232f5bdb7cd
+  - type: specified_by
+    from: REQ-kibi-branch-store-same-identity-migration
+    to: SCEN-branch-store-recovery
+    created_at: 2026-11-10T04:44:01.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-447dd16ae8a0
+  - type: specified_by
+    from: REQ-kibi-branch-store-same-identity-migration
+    to: SCEN-CASE-branch-store-recovery-v4-cross-identity-migration
+    created_at: 2026-11-10T04:44:01.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d2384bb2065
+  - type: verified_by
+    from: REQ-kibi-branch-store-same-identity-migration
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-11-10T04:44:01.620Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da157f1dc02b
+  - type: supersedes
+    from: REQ-kibi-branch-store-same-identity-migration
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-11-10T04:44:01.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67eadb68395a

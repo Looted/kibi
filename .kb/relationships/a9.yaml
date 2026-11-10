@@ -188,13 +188,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-26fa6728cc8c
-  - type: implements
-    from: SYM-branchEnsureCommand
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:58:03.463Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-37a57af6c7b9
   - type: covered_by
     from: SYM-source-paths-plannedSourcePathRepairs
     to: TEST-kibi-kb-lifecycle-integrity

@@ -5867,7 +5867,7 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: implements
-        target: REQ-branch-store-recovery-v4
+        target: REQ-kibi-exact-branch-identity
       - type: covered_by
         target: TEST-009
       - type: covered_by
@@ -13648,10 +13648,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-branch-store-same-identity-migration
       - type: covered_by
         target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-branchEnsureCommand
     title: branchEnsureCommand
     status: active
@@ -13659,10 +13659,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-exact-branch-identity
       - type: covered_by
         target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-branchRecoverCommand
     title: branchRecoverCommand
     status: active
@@ -13670,10 +13670,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-exact-branch-identity
       - type: covered_by
         target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-inspectBranchStore
     title: inspectBranchStore
     status: active
@@ -13681,20 +13681,20 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-exact-branch-identity
       - type: covered_by
         target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-branchStoreReason
     title: branchStoreReason
     sourceFile: packages/cli/src/utils/branch-store.ts
     symbol_role: behavioral
     status: active
     relationships:
+      - type: implements
+        target: REQ-kibi-exact-branch-identity
       - type: covered_by
         target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-SyncError
     title: SyncError
     sourceFile: packages/cli/src/commands/sync/errors.ts
@@ -16051,16 +16051,14 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-exact-branch-identity
       - type: covered_by
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-branch-store-recovery-v4
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-A4A826B82393
     title: gcCommand
     status: active
@@ -16413,16 +16411,14 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-exact-branch-identity
       - type: covered_by
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-branch-store-recovery-v4
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-DFC8FB7A3472
     title: isDetachedHead
     status: active
@@ -16431,66 +16427,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-cli-branch-store-recovery
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
+        target: TEST-branch-detached-head-read-only-cli
       - type: implements
-        target: REQ-branch-store-recovery-v4
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-  - id: SYM-auto-D4EC6552EDC9
-    title: copyCleanSnapshot
-    status: active
-    sourceFile: packages/cli/src/utils/branch-resolver.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
+        target: REQ-kibi-detached-head-snapshots
       - type: covered_by
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-branch-store-recovery-v4
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-  - id: SYM-auto-75AB1677E263
-    title: getVolatileArtifactPatterns
-    status: active
-    sourceFile: packages/cli/src/utils/branch-resolver.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-branch-store-recovery
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-branch-store-recovery-v4
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-  - id: SYM-auto-4B78DAEF6C6B
-    title: resolveDefaultBranch
-    status: active
-    sourceFile: packages/cli/src/utils/branch-resolver.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-branch-store-recovery
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-branch-store-recovery-v4
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-9AEF238324D1
     title: ensureBranchStoreManifest
     status: active
@@ -16498,16 +16443,14 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-exact-branch-identity
       - type: covered_by
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-branch-store-recovery-v4
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-23EC77D7D2F2
     title: legacyBranchStorePath
     status: active
@@ -16515,33 +16458,14 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-branch-store-same-identity-migration
       - type: covered_by
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-branch-store-recovery-v4
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
-  - id: SYM-auto-532D065248B0
-    title: isDirectory
-    status: active
-    sourceFile: packages/cli/src/utils/branch-store-locator.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-branch-store-recovery
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-branch-store-recovery-v4
-      - type: implements
-        target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-EB53162A3CF2
     title: BRANCH_STORE_MANIFEST_VERSION
     status: active
@@ -16926,12 +16850,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-011
       - type: covered_by
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-cli-supersedes-history-unit
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-parseCompiledRelationshipRows
     title: parseCompiledRelationshipRows
     status: active
@@ -16950,12 +16874,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-011
       - type: covered_by
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-cli-supersedes-history-unit
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-cli-mutation-RELATIONSHIP_TYPES
     title: RELATIONSHIP_TYPES
     status: active
@@ -20260,36 +20184,26 @@ symbols:
         target: TEST-core-journaled-engine-delta-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
-  - id: SYM-sync-git-text
-    title: gitText
-    status: active
-    sourceFile: packages/cli/src/commands/sync.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-sync-assert-no-unresolved-git-conflicts
     title: assertNoUnresolvedGitConflicts
     status: active
     sourceFile: packages/cli/src/commands/sync.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-cli-canonical-runtime
       - type: covered_by
         target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-sync-another-branch-store-synced
     title: anotherBranchStoreSynced
     status: active
     sourceFile: packages/cli/src/commands/sync.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-sync-relationship-key
     title: relationshipKey
     status: active
@@ -20603,16 +20517,6 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
-  - id: SYM-attachment-failure-message
-    title: attachmentFailureMessage
-    status: active
-    sourceFile: packages/cli/src/runtime/cli-runtime.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-quality-proof-runner-tests
     title: proof producer subprocess regressions
     status: active
@@ -27250,12 +27154,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T03:14:16.542Z
     relationships:
+      - type: implements
+        target: REQ-kibi-detached-head-snapshots
       - type: covered_by
         target: TEST-branch-detached-head-read-only
       - type: covered_by
         target: TEST-branch-detached-head-read-only-cli
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-plan-apply-journal-createPlanApplyJournal
     title: createPlanApplyJournal
     status: active
@@ -32712,32 +32616,6 @@ symbols:
         target: TEST-cli-migrated-kb-type-backfill-sync-totals
       - type: implements
         target: REQ-cli-sync-summary-kb-totals
-  - id: SYM-diagnostics-branchErrorToDiagnostic
-    title: branchErrorToDiagnostic
-    status: active
-    sourceFile: packages/cli/src/diagnostics.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-14T21:22:22.583Z
-    relationships:
-      - type: covered_by
-        target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
-  - id: SYM-diagnostics-createKbMissingDiagnostic
-    title: createKbMissingDiagnostic
-    status: active
-    sourceFile: packages/cli/src/diagnostics.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-14T21:22:28.895Z
-    relationships:
-      - type: covered_by
-        target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-diagnostics-createDocsNotIndexedDiagnostic
     title: createDocsNotIndexedDiagnostic
     status: active
@@ -44119,9 +43997,11 @@ symbols:
       recorded_at: 2026-11-04T10:57:16.690Z
     relationships:
       - type: covered_by
-        target: TEST-cli-branch-store-recovery
+        target: TEST-branch-detached-head-read-only-cli
       - type: implements
-        target: REQ-branch-store-recovery-v4
+        target: REQ-kibi-detached-head-snapshots
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
   - id: SYM-branch-resolver-detached-head-write-refusal
     title: detachedHeadWriteRefusal
     status: active
@@ -44132,22 +44012,11 @@ symbols:
       recorded_at: 2026-11-04T10:57:21.092Z
     relationships:
       - type: covered_by
-        target: TEST-cli-branch-store-recovery
+        target: TEST-branch-detached-head-read-only-cli
       - type: implements
-        target: REQ-branch-store-recovery-v4
-  - id: SYM-branch-resolver-detached-read-only-attachment-type
-    title: DetachedReadOnlyAttachment
-    status: active
-    sourceFile: packages/cli/src/utils/branch-resolver.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-04T10:57:25.679Z
-    relationships:
+        target: REQ-kibi-detached-head-snapshots
       - type: covered_by
         target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-branch-resolver-resolve-read-branch-attachment
     title: resolveReadBranchAttachment
     status: active
@@ -44158,9 +44027,11 @@ symbols:
       recorded_at: 2026-11-04T10:57:30.090Z
     relationships:
       - type: covered_by
-        target: TEST-cli-branch-store-recovery
+        target: TEST-branch-detached-head-read-only-cli
       - type: implements
-        target: REQ-branch-store-recovery-v4
+        target: REQ-kibi-detached-head-snapshots
+      - type: covered_by
+        target: TEST-cli-branch-store-recovery
   - id: SYM-branch-resolver-unreadable-migration-journal-error
     title: unreadableMigrationJournalError
     status: active
@@ -44170,10 +44041,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-04T10:57:34.357Z
     relationships:
+      - type: implements
+        target: REQ-kibi-branch-store-same-identity-migration
       - type: covered_by
         target: TEST-cli-branch-store-recovery
-      - type: implements
-        target: REQ-branch-store-recovery-v4
   - id: SYM-workspace-router-workspace-router-route-kb-dependency
     title: WorkspaceRouter.routeKbDependency
     status: active

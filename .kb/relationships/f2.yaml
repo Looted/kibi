@@ -70,13 +70,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3219f42b1441
   - type: implements
-    from: SYM-firstGitAdditionCommit
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T03:00:23.139Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8413ac0fdd87
-  - type: implements
     from: SYM-schema6-applyInventoryRederivation
     to: REQ-kibi-schema6-migration-v2
     created_at: 2026-10-04T03:13:19.171Z
@@ -216,13 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-089584eee6b4
-  - type: implements
-    from: SYM-branch-resolver-unreadable-migration-journal-error
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-11-04T10:57:35.617Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-082031dd56c3
   - type: covered_by
     from: SYM-branch-resolver-unreadable-migration-journal-error
     to: TEST-cli-branch-store-recovery

@@ -419,3 +419,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e60d8435dd8d
+  - type: constrains
+    from: REQ-kibi-exact-branch-identity
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-11-10T04:42:49.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6f2ecffc774
+  - type: requires_property
+    from: REQ-kibi-exact-branch-identity
+    to: FACT-EXACT-BRANCH-IDENTITY-SOURCE
+    created_at: 2026-11-10T04:42:49.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4065021c1cc5
+  - type: requires_predicate
+    from: REQ-kibi-exact-branch-identity
+    to: FACT-PRED-D62E80F439F2
+    created_at: 2026-11-10T04:42:49.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d84ec7226081
+  - type: requires_property
+    from: REQ-kibi-exact-branch-identity
+    to: FACT-EXACT-BRANCH-STORE-ENSURE-ONLY
+    created_at: 2026-11-10T04:42:49.912Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a424fa056913
+  - type: requires_predicate
+    from: REQ-kibi-exact-branch-identity
+    to: FACT-PRED-1B6C15026E81
+    created_at: 2026-11-10T04:42:49.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b536fcc02f3d
+  - type: specified_by
+    from: REQ-kibi-exact-branch-identity
+    to: SCEN-branch-store-recovery
+    created_at: 2026-11-10T04:42:49.960Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-967734c0a9a8
+  - type: specified_by
+    from: REQ-kibi-exact-branch-identity
+    to: SCEN-NEG-kibi-exact-branch-identity-RECOVER-WITHOUT-APPLY
+    created_at: 2026-11-10T04:42:49.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6eb273ac9464
+  - type: verified_by
+    from: REQ-kibi-exact-branch-identity
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-11-10T04:42:50.002Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c0e92a6b8a7
+  - type: supersedes
+    from: REQ-kibi-exact-branch-identity
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-11-10T04:42:50.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f2d62fa1ce4
