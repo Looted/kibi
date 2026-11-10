@@ -41,20 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-45b9a2f00ca6
-  - type: implements
-    from: SYM-skillopt-stop-fixture-engine
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-08-26T18:32:32.602Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-06399db95e3f
-  - type: covered_by
-    from: SYM-skillopt-stop-fixture-engine
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-28T10:09:17.678Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12b1d5e54872
   - type: covered_by
     from: SYM-core-entity-property-schema
     to: TEST-001

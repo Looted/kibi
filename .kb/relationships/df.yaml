@@ -76,13 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-821befcd1f23
-  - type: implements
-    from: SYM-skillopt-campaign-workflow-runrevisecampaign-65760487
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T12:23:33.348Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6f0d42de8cca
   - type: covered_by
     from: SYM-skillopt-campaign-workflow-runrevisecampaign-65760487
     to: TEST-skillopt-codex-optimization

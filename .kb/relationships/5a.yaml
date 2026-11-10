@@ -167,13 +167,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-788f8a938c9a
-  - type: implements
-    from: SYM-skillopt-campaign-workflow-runconfirmcampaign-aedd45f6
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T12:23:42.425Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-df5356ff6ee9
   - type: covered_by
     from: SYM-skillopt-campaign-workflow-runconfirmcampaign-aedd45f6
     to: TEST-skillopt-codex-optimization

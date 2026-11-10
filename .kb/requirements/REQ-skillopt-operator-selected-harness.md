@@ -1,6 +1,6 @@
 ---
 title: SkillOpt runs the harness and models the operator selects
-status: open
+status: closed
 required_evidence: tested
 priority: must
 tags:
@@ -61,7 +61,7 @@ semantic_source_field: semantic_text
 semantic_source_hash: afae973ad11d7ff16333bd7e0e0fc99a2cbc953ae440e12c09ef2971c6127a2f
 origin:
   kind: agent
-  ref: 'Maintainer request, 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks'
+  ref: 'Maintainer request, 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   approved_by: maintainer
   recorded_at: '2026-10-05T23:49:00.429Z'
 rationale: Codex usage can run out and operators want to compare harnesses; the Codex-only rule blocked measuring skills on other agent hosts. The maintainer asked to support different harnesses and run what the operator selects.

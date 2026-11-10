@@ -1,19 +1,5 @@
 relationships:
   - type: implements
-    from: SYM-skillopt-file-bridge
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-08-16T07:13:40.364Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-043d40970389
-  - type: covered_by
-    from: SYM-skillopt-file-bridge
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-16T07:13:40.380Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a539c4ea1b41
-  - type: implements
     from: SYM-LATEST-KB-SCHEMA-VERSION
     to: REQ-cli-schema-migration
     created_at: 2026-08-18T17:36:54.435Z

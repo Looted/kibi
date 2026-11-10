@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9cf712d9a656
+  - type: assumes
+    from: SCEN-NEG-skillopt-offline-contract-without-bundle-gate-BUNDLE-PHASE
+    to: FACT-NEG-skillopt-offline-contract-without-bundle-gate-BUNDLE-PHASE
+    created_at: 2026-11-10T10:45:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8bf604a3e17
+  - type: verified_by
+    from: SCEN-NEG-skillopt-offline-contract-without-bundle-gate-BUNDLE-PHASE
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T10:45:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b69582c859d4

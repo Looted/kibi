@@ -1,7 +1,7 @@
 ---
 id: REQ-test-journaled-engine-harness
 title: Reuse and clean up journaled engines in tests
-status: open
+status: closed
 created_at: 2026-08-12T00:00:00Z
 updated_at: 2026-08-15T08:05:00Z
 source: test/root.test.ts
@@ -86,7 +86,7 @@ links:
     target: FACT-CLI-LAZY-OPERATION-LOAD
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 type: req
 firmness: default

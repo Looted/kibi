@@ -48,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-93e4878afe01
-  - type: implements
-    from: SYM-cli-register-skills-commands
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-08-22T20:26:20.339Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0388a063ecb7
   - type: covered_by
     from: SYM-cli-register-skills-commands
     to: TEST-kibi-operation-interface-parity

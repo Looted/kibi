@@ -123,40 +123,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-ebd9492a10ae
   - type: covered_by
-    from: SYM-ArtifactPath-create
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:06:50.234Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c6340cac475e
-  - type: covered_by
     from: SYM-mcp-getActiveBranchName
     to: TEST-mcp-session-state
     created_at: 2026-09-14T19:10:18.871Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-693db1e88f04
-  - type: implements
-    from: SYM-skillopt-lock-dispatch-throw-if-directory-inode-drift
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-09-16T08:39:14.460Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-293cf932ac5d
-  - type: covered_by
-    from: SYM-skillopt-lock-dispatch-throw-if-directory-inode-drift
-    to: TEST-skillopt-automatic-adoption
-    created_at: 2026-09-16T13:11:09.479Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dac0d89ae561
-  - type: covered_by
-    from: SYM-ArtifactPath-create
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:22:20.165Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-90c2f56c939c
   - type: specified_by
     from: REQ-capability-plugin-activation-disclosure-v1
     to: SCEN-capability-plugin-host-resolution-v1

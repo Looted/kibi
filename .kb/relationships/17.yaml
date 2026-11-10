@@ -164,3 +164,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-268cce6ab6e4
+  - type: constrains
+    from: REQ-skillopt-infrastructure-failure-no-go
+    to: FACT-SUBJ-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT
+    created_at: 2026-11-10T09:56:20.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19449bc11184
+  - type: requires_property
+    from: REQ-skillopt-infrastructure-failure-no-go
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C05
+    created_at: 2026-11-10T09:56:20.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bfbd37efc28
+  - type: requires_property
+    from: REQ-skillopt-infrastructure-failure-no-go
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C04
+    created_at: 2026-11-10T09:56:20.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2274d19618cc
+  - type: specified_by
+    from: REQ-skillopt-infrastructure-failure-no-go
+    to: SCEN-skillopt-external-adoption-verdict
+    created_at: 2026-11-10T09:56:20.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d71059673c85
+  - type: specified_by
+    from: REQ-skillopt-infrastructure-failure-no-go
+    to: SCEN-NEG-skillopt-infrastructure-failure-no-go-MISSING-EXECUTABLE
+    created_at: 2026-11-10T09:56:20.749Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1de91b8853b3
+  - type: verified_by
+    from: REQ-skillopt-infrastructure-failure-no-go
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-11-10T09:56:20.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-972a8df05ae7
+  - type: verified_by
+    from: REQ-skillopt-infrastructure-failure-no-go
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:56:20.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f06ff481a5d0
+  - type: supersedes
+    from: REQ-skillopt-infrastructure-failure-no-go
+    to: REQ-skillopt-external-adoption-verdict
+    created_at: 2026-11-10T09:56:20.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d987df8f80fb

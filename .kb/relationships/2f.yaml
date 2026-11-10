@@ -62,13 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a371dee93778
-  - type: covered_by
-    from: SYM-VerificationHarnessOptionsError-name
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:11:03.530Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2c50616708da
   - type: executable_for
     from: SYM-zcode-case-manual-mcp-fallback
     to: TEST-zcode-kibi-plugin-v1
@@ -76,13 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99152face055
-  - type: covered_by
-    from: SYM-VerificationHarnessOptionsError-name
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:25:05.633Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2abc6d93b9a9
   - type: implements
     from: SYM-cap-plugin-allowsexternalsemanticclassifier-0e50b53b
     to: REQ-capability-plugin-observable-behavior-v1
@@ -188,20 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd05491c1371
-  - type: implements
-    from: SYM-skillopt-runtime-fixture-kb-setup-setupseededconsistencykb-6edad3d3
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-10-05T13:18:46.476Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-443726523fe1
-  - type: covered_by
-    from: SYM-skillopt-runtime-fixture-kb-setup-setupseededconsistencykb-6edad3d3
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T13:18:46.514Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0dde204693c2
   - type: verified_by
     from: SCEN-bootstrap-claim-kinds-and-conflicts
     to: TEST-kibi-bootstrap-knowledge-sources

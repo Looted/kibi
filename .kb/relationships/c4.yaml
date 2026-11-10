@@ -41,20 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-306833012af1
-  - type: covered_by
-    from: SYM-PreparedRootError-name
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:09:51.650Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-24223e509c1c
-  - type: covered_by
-    from: SYM-PreparedRootError-name
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:23:46.034Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1a72fd51f531
   - type: validates
     from: TEST-capability-plugin-jev-mocked-v1
     to: REQ-capability-plugin-jev-fallback-v1
@@ -104,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43b96d488a2c
-  - type: implements
-    from: SYM-skillopt-run-compose-campaign
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T12:02:46.434Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4849fdd326d9
   - type: covered_by
     from: SYM-skillopt-run-compose-campaign
     to: TEST-skillopt-codex-optimization
@@ -328,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-65c9fe78e2fa
+  - type: assumes
+    from: SCEN-NEG-skillopt-infrastructure-failure-no-go-MISSING-EXECUTABLE
+    to: FACT-NEG-skillopt-infrastructure-failure-no-go-MISSING-EXECUTABLE
+    created_at: 2026-11-10T11:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-447a208f573c
+  - type: verified_by
+    from: SCEN-NEG-skillopt-infrastructure-failure-no-go-MISSING-EXECUTABLE
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-11-10T11:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a23e30b99ceb

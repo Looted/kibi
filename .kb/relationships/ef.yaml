@@ -1,18 +1,4 @@
 relationships:
-  - type: implements
-    from: SYM-skillopt-write-bridge-result
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-08-16T07:14:22.485Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e1b72a5c2e92
-  - type: covered_by
-    from: SYM-skillopt-write-bridge-result
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-16T07:14:22.495Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-adb1a7d39185
   - type: covered_by
     from: SYM-requirement-semantic-text
     to: TEST-kibi-proposition-complete-ingestion
@@ -41,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eaa55dfd79a7
-  - type: covered_by
-    from: SYM-ArtifactPath-close
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:06:45.592Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6d647675f977
   - type: implements
     from: SYM-quality-eval-main
     to: REQ-kibi-change-to-proof-evaluation
@@ -69,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b85c7bc0a27e
-  - type: covered_by
-    from: SYM-ArtifactPath-close
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:22:13.573Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-885bb4a01b03
   - type: relates_to
     from: FACT-OBS-search-answer-layer-contents
     to: REQ-kibi-search-answer-layer
@@ -90,20 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-791d2feaf4bc
-  - type: implements
-    from: SYM-skillopt-user-profile
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T16:56:37.409Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-302a3cdb7a89
-  - type: covered_by
-    from: SYM-skillopt-user-profile
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T16:56:37.433Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-294b541d0976
   - type: executable_for
     from: SYM-e2e-skillopt-description-candidates
     to: TEST-e2e-skillopt-description-candidates
@@ -244,3 +202,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1fe0bcdde74
+  - type: constrains
+    from: REQ-skillopt-harness-shared-scoring
+    to: FACT-subject-skillopt-harness-selection
+    created_at: 2026-11-10T09:54:12.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb1787aa8e67
+  - type: requires_property
+    from: REQ-skillopt-harness-shared-scoring
+    to: FACT-prop-skillopt-harness-selection-c05
+    created_at: 2026-11-10T09:54:12.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71e1936966b1
+  - type: specified_by
+    from: REQ-skillopt-harness-shared-scoring
+    to: SCEN-skillopt-claude-code-host
+    created_at: 2026-11-10T09:54:12.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f40a13bbedec
+  - type: specified_by
+    from: REQ-skillopt-harness-shared-scoring
+    to: SCEN-CASE-skillopt-operator-selected-harness-LEAK-SCAN-BYPASS
+    created_at: 2026-11-10T09:54:12.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edc4aacb0aca
+  - type: verified_by
+    from: REQ-skillopt-harness-shared-scoring
+    to: TEST-e2e-skillopt-claude-code-host
+    created_at: 2026-11-10T09:54:12.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f1f9f470241
+  - type: supersedes
+    from: REQ-skillopt-harness-shared-scoring
+    to: REQ-skillopt-operator-selected-harness
+    created_at: 2026-11-10T09:54:12.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f3ea6a99e8d

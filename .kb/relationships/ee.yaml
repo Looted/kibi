@@ -160,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-33ad1972684a
-  - type: covered_by
-    from: SYM-VerificationHarnessError-name
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:10:48.129Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bd1d580e547d
   - type: implements
     from: SYM-receipt-binding-hash
     to: REQ-kibi-verification-evidence-contract
@@ -181,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec28ae407f26
-  - type: covered_by
-    from: SYM-VerificationHarnessError-name
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:24:42.129Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6af831b2d54c
   - type: executable_for
     from: SYM-packed-mcp-stdio-server-start
     to: TEST-e2e-mcp-freshness-external-replace

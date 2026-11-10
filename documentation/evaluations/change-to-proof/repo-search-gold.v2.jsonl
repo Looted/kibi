@@ -5,7 +5,7 @@
 {"id":"repo-gc","query":"which branch stores may kibi gc delete?","expectedIds":["REQ-cli-gc"],"supersededIds":["REQ-003"]}
 {"id":"repo-merge-driver","query":"how does kibi merge-driver resolve conflicting symbols.yaml edits?","expectedIds":["REQ-cli-kb-merge-driver"]}
 {"id":"repo-doctor-prolog","query":"what does kibi doctor report about SWI-Prolog?","expectedIds":["REQ-prolog-doctor-runtime-report","REQ-cli-doctor"]}
-{"id":"repo-bundled-runtime","query":"which SWI-Prolog does Kibi use when a bundled runtime and a system install both exist?","expectedIds":["REQ-prolog-bundled-runtime"]}
+{"id":"repo-bundled-runtime","query":"which SWI-Prolog does Kibi use when a bundled runtime and a system install both exist?","expectedIds":["REQ-prolog-swipl-resolution-order"],"supersededIds":["REQ-prolog-bundled-runtime"]}
 {"id":"repo-stale-receipt","query":"when is a proof receipt stale for the current code snapshot?","expectedIds":["REQ-kibi-proof-receipt-freshness"],"supersededIds":["REQ-kibi-fresh-verification-receipts-v2","REQ-kibi-verification-receipts-v2","REQ-kibi-fresh-verification-receipts"]}
 {"id":"repo-infeasible-scenario","query":"when is a scenario reported infeasible?","expectedIds":["REQ-kibi-scenario-feasibility-v2"],"supersededIds":["REQ-kibi-scenario-feasibility"]}
 {"id":"repo-unit-canonicalization","query":"are 30 minutes and 1800 seconds treated as the same property value?","expectedIds":["REQ-kibi-unit-canonicalization"]}

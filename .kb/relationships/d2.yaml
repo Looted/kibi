@@ -34,20 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8bb6beecec46
-  - type: implements
-    from: SYM-skillopt-read-bridge-request
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-08-16T07:14:06.693Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-52e2a45b3347
-  - type: covered_by
-    from: SYM-skillopt-read-bridge-request
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-16T07:14:06.704Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-54e03b7fbc41
   - type: covered_by
     from: SYM-auto-9047D71BA76E
     to: TEST-kibi-operation-interface-parity
@@ -104,20 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c2fc88c77396
-  - type: implements
-    from: SYM-skillopt-migration-apply-objectives
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-08-24T17:20:50.026Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5810ee744d39
-  - type: covered_by
-    from: SYM-skillopt-migration-apply-objectives
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-25T19:52:47.781Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-55a5324f213f
   - type: covered_by
     from: SYM-skillopt-runtime-stage-kibi-mcp
     to: TEST-core-journaled-engine-delta-sync

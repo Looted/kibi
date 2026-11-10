@@ -118,20 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5716dbaf6296
-  - type: covered_by
-    from: SYM-ArtifactPath-writeText
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:07:04.225Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-43b0726aaa08
-  - type: covered_by
-    from: SYM-ArtifactPath-writeText
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:22:40.209Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d3684c3f5fed
   - type: validates
     from: TEST-prolog-build-pipeline-validation
     to: SCEN-prolog-build-pipeline-validation
@@ -328,3 +314,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-291ba13ec4d7
+  - type: constrains
+    from: REQ-cli-lazy-operation-loading
+    to: FACT-SUBJECT-KIBI-CLI-STARTUP
+    created_at: 2026-11-10T10:01:41.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c18c0ca84a3
+  - type: requires_property
+    from: REQ-cli-lazy-operation-loading
+    to: FACT-CLI-LAZY-OPERATION-LOAD
+    created_at: 2026-11-10T10:01:41.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac9c9d17ad44
+  - type: specified_by
+    from: REQ-cli-lazy-operation-loading
+    to: SCEN-test-journaled-engine-harness
+    created_at: 2026-11-10T10:01:41.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b2d1d7ece59
+  - type: specified_by
+    from: REQ-cli-lazy-operation-loading
+    to: SCEN-NEG-cli-lazy-operation-loading-METADATA-DRIFT
+    created_at: 2026-11-10T10:01:41.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcd7c1bedf04
+  - type: verified_by
+    from: REQ-cli-lazy-operation-loading
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-11-10T10:01:41.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17e27803f592
+  - type: supersedes
+    from: REQ-cli-lazy-operation-loading
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-11-10T10:01:41.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b875f9ecd7f

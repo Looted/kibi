@@ -98,13 +98,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-2c1917fbfcc6
   - type: covered_by
-    from: SYM-removeAt
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:12:59.690Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b0beb75fcb62
-  - type: covered_by
     from: SYM-parseRdfRelationships
     to: TEST-vscode-traceability
     created_at: 2026-09-05T18:25:05.209Z
@@ -118,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c1b8a4cf549
-  - type: covered_by
-    from: SYM-removeAt
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:25:48.553Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-725216f49c8a
   - type: covered_by
     from: SYM-parseRdfRelationships
     to: TEST-e2e-vscode-extension-lifecycle

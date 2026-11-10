@@ -55,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0669df497706
-  - type: implements
-    from: SYM-cli-protocol-execute-operation
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-08-22T20:25:09.655Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2a230d08c075
   - type: covered_by
     from: SYM-cli-protocol-execute-operation
     to: TEST-kibi-operation-interface-parity

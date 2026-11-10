@@ -118,41 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9bcd5dfb1f19
-  - type: covered_by
-    from: SYM-test-root-cli-unit-batches
-    to: TEST-root-suite-batch-diagnostics
-    created_at: 2026-09-26T17:00:48.874Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-053ec87cb7b8
-  - type: covered_by
-    from: SYM-test-root-cli-unit-batches
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-09-26T17:00:48.886Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b2811ebf6aaf
-  - type: implements
-    from: SYM-test-root-cli-unit-batches
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-09-26T17:00:48.895Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0587269da5f2
-  - type: implements
-    from: SYM-skillopt-onboarding-review-matches
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-10-05T12:02:00.719Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c9d4a18f46f8
-  - type: covered_by
-    from: SYM-skillopt-onboarding-review-matches
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:02:00.734Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b34e88b189a3
   - type: constrains
     from: REQ-prolog-utf8-text
     to: FACT-prolog-utf8-text-subject

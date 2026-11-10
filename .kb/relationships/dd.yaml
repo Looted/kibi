@@ -118,13 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8b8b55894988
-  - type: covered_by
-    from: SYM-writeAtomicTextFile
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:16:18.721Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0f1f4d04bcfc
   - type: implements
     from: SYM-core-derived-chr
     to: REQ-prolog-library-adoption
@@ -139,13 +132,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6525da1efd73
-  - type: covered_by
-    from: SYM-writeAtomicTextFile
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:27:06.410Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9d9088240803
   - type: implements
     from: SYM-skillopt-default-train
     to: REQ-skillopt-paid-matrix-infrastructure

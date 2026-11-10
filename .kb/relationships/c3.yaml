@@ -293,3 +293,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-30e505958399
+  - type: constrains
+    from: REQ-skillopt-adoption-requires-external-verdict
+    to: FACT-SUBJ-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT
+    created_at: 2026-11-10T09:55:23.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa53f1fd53a1
+  - type: requires_property
+    from: REQ-skillopt-adoption-requires-external-verdict
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C01
+    created_at: 2026-11-10T09:55:23.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-455b0e04842c
+  - type: requires_property
+    from: REQ-skillopt-adoption-requires-external-verdict
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C02
+    created_at: 2026-11-10T09:55:23.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ece71adbcaf
+  - type: requires_property
+    from: REQ-skillopt-adoption-requires-external-verdict
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C03
+    created_at: 2026-11-10T09:55:23.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b50db61c0abc
+  - type: specified_by
+    from: REQ-skillopt-adoption-requires-external-verdict
+    to: SCEN-skillopt-external-adoption-verdict
+    created_at: 2026-11-10T09:55:23.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6215e57b80db
+  - type: specified_by
+    from: REQ-skillopt-adoption-requires-external-verdict
+    to: SCEN-NEG-skillopt-external-adoption-verdict-LIVE-ADOPT-LOCAL-EVIDENCE
+    created_at: 2026-11-10T09:55:23.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32f96f511dcf
+  - type: verified_by
+    from: REQ-skillopt-adoption-requires-external-verdict
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-11-10T09:55:23.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24fad7b88930
+  - type: supersedes
+    from: REQ-skillopt-adoption-requires-external-verdict
+    to: REQ-skillopt-external-adoption-verdict
+    created_at: 2026-11-10T09:55:23.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7da94d68a5ae

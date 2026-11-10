@@ -13,20 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3229cc28307
-  - type: covered_by
-    from: SYM-prepareArtifact
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:12:38.999Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30bed19c8186
-  - type: covered_by
-    from: SYM-prepareArtifact
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:25:39.341Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-98bc10a4ef1f
   - type: implements
     from: SYM-parseHeldOutTerminalReceipt
     to: REQ-skillopt-paid-matrix-infrastructure
@@ -223,3 +209,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-896f7c060af2
+  - type: constrains
+    from: REQ-skillopt-offline-contract-without-bundle-gate
+    to: FACT-subject-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:31:29.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e98a35120c8
+  - type: requires_property
+    from: REQ-skillopt-offline-contract-without-bundle-gate
+    to: FACT-prop-skillopt-host-neutral-optimization-c08
+    created_at: 2026-11-10T09:31:29.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7bf07ee4a91
+  - type: specified_by
+    from: REQ-skillopt-offline-contract-without-bundle-gate
+    to: SCEN-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:31:29.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d2d3275bd75
+  - type: verified_by
+    from: REQ-skillopt-offline-contract-without-bundle-gate
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:31:29.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5f2ec53f35a
+  - type: supersedes
+    from: REQ-skillopt-offline-contract-without-bundle-gate
+    to: REQ-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:31:30.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9211e9e1b4f1
+  - type: specified_by
+    from: REQ-skillopt-offline-contract-without-bundle-gate
+    to: SCEN-NEG-skillopt-offline-contract-without-bundle-gate-BUNDLE-PHASE
+    created_at: 2026-11-10T10:45:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f02217764482

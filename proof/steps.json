@@ -246,7 +246,8 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/engine.test.ts",
-        "./scripts/tests/run-owned-engine-tests.test.ts"
+        "./scripts/tests/run-owned-engine-tests.test.ts",
+        "./packages/cli/tests/cli-operation-metadata.test.ts"
       ],
       [
         "node",

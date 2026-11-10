@@ -356,3 +356,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c9158b712832
+  - type: constrains
+    from: REQ-skillopt-missing-call-feedback
+    to: FACT-subject-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:30:42.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f99ad73b831
+  - type: requires_property
+    from: REQ-skillopt-missing-call-feedback
+    to: FACT-prop-skillopt-host-neutral-optimization-c06
+    created_at: 2026-11-10T09:30:42.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b31185efc4c
+  - type: requires_property
+    from: REQ-skillopt-missing-call-feedback
+    to: FACT-prop-skillopt-host-neutral-optimization-c07
+    created_at: 2026-11-10T09:30:42.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e177f5ee80f
+  - type: specified_by
+    from: REQ-skillopt-missing-call-feedback
+    to: SCEN-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:30:42.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd92b2588a8b
+  - type: verified_by
+    from: REQ-skillopt-missing-call-feedback
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:30:42.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee0fe68553bf
+  - type: supersedes
+    from: REQ-skillopt-missing-call-feedback
+    to: REQ-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:30:42.891Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a78720a29d52
+  - type: specified_by
+    from: REQ-skillopt-missing-call-feedback
+    to: SCEN-NEG-skillopt-missing-call-feedback-PRIVATE-ARGUMENTS
+    created_at: 2026-11-10T10:45:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fd7ab0e077a

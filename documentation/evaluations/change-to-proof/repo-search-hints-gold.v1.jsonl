@@ -3,7 +3,7 @@
 {"id": "hints-gc", "query": "which on-disk copies of the database is the cleanup command allowed to remove?", "expectedIds": ["REQ-cli-gc"]}
 {"id": "hints-units", "query": "is half an hour equal to thirty minutes when values are compared?", "expectedIds": ["REQ-kibi-unit-canonicalization"]}
 {"id": "hints-ids", "query": "what naming convention do identifiers of new records follow?", "expectedIds": ["REQ-kibi-entity-id-style"]}
-{"id": "hints-bundled", "query": "if the package ships its own logic engine and the machine has one installed too, which one is used?", "expectedIds": ["REQ-prolog-bundled-runtime"]}
+{"id": "hints-bundled", "query": "if the package ships its own logic engine and the machine has one installed too, which one is used?", "expectedIds": ["REQ-prolog-swipl-resolution-order"], "supersededIds": ["REQ-prolog-bundled-runtime"]}
 {"id": "hints-stale", "query": "when does evidence from an earlier test run stop counting after the code changes?", "expectedIds": ["REQ-kibi-proof-receipt-freshness"], "supersededIds": ["REQ-kibi-fresh-verification-receipts-v2"]}
 {"id": "hints-workspace", "query": "which project folder does the agent tool server use when the editor has a different repo open?", "expectedIds": ["REQ-mcp-workspace-routing"]}
 {"id": "hints-plugins", "query": "do extensions phone home or get switched on silently?", "expectedIds": ["REQ-capability-plugin-activation-disclosure-v1"]}

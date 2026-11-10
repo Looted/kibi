@@ -1,7 +1,7 @@
 ---
 id: REQ-skillopt-external-adoption-verdict
 title: SkillOpt production adoption requires an independently verified external verdict
-status: open
+status: closed
 created_at: 2026-07-30T00:00:00.000Z
 updated_at: 2026-08-01T00:00:00.000Z
 source: docs/skillopt.md
@@ -75,7 +75,7 @@ semantic_inventory:
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6). Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   approved_by: maintainer
   recorded_at: '2026-11-03T11:38:31.000Z'
 firmness: firm

@@ -314,3 +314,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0226e5b564aa
+  - type: constrains
+    from: REQ-skillopt-candidate-adoption-gates
+    to: FACT-subject-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:29:35.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c7e2dd072ef
+  - type: requires_property
+    from: REQ-skillopt-candidate-adoption-gates
+    to: FACT-prop-skillopt-host-neutral-optimization-c04
+    created_at: 2026-11-10T09:29:35.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1dfed50c176
+  - type: requires_property
+    from: REQ-skillopt-candidate-adoption-gates
+    to: FACT-prop-skillopt-host-neutral-optimization-c05
+    created_at: 2026-11-10T09:29:35.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21842bfd8a6d
+  - type: specified_by
+    from: REQ-skillopt-candidate-adoption-gates
+    to: SCEN-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:29:35.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb1b222b6375
+  - type: specified_by
+    from: REQ-skillopt-candidate-adoption-gates
+    to: SCEN-CASE-skillopt-host-neutral-optimization-UNAPPROVED-ADOPTION
+    created_at: 2026-11-10T09:29:35.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0e3ab1962de
+  - type: verified_by
+    from: REQ-skillopt-candidate-adoption-gates
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:29:35.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9003d8585f16
+  - type: verified_by
+    from: REQ-skillopt-candidate-adoption-gates
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-11-10T09:29:35.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fae80a49aca
+  - type: supersedes
+    from: REQ-skillopt-candidate-adoption-gates
+    to: REQ-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:29:35.634Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7455a6b327d

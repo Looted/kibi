@@ -210,20 +210,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0dcc67498205
   - type: implements
-    from: SYM-skillopt-user-mode
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T16:55:48.836Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1f194d060593
-  - type: covered_by
-    from: SYM-skillopt-user-mode
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T16:55:48.868Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9547240e3479
-  - type: implements
     from: SYM-checkCommand
     to: REQ-cli-staged-consistency
     created_at: 2026-10-06T19:12:00.905Z

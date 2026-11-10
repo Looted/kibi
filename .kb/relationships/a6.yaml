@@ -154,20 +154,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-5ffc3bc27884
   - type: implements
-    from: SYM-skillopt-runtime-case-signals-casesignalobserved-d745b2c6
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-05T12:25:07.695Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0e39ccf8bf95
-  - type: covered_by
-    from: SYM-skillopt-runtime-case-signals-casesignalobserved-d745b2c6
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:07.712Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d1114d7d8f26
-  - type: implements
     from: SYM-mutation-upsert-storedClaimKey
     to: REQ-upsert-committed-claim-key
     created_at: 2026-10-12T19:24:35.867Z
@@ -328,3 +314,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd7ab73e262b
+  - type: constrains
+    from: REQ-test-bounded-suite-runners
+    to: FACT-SUBJ-REQ-ROOT-SUITE-BATCH-DIAGNOSTICS
+    created_at: 2026-11-10T10:00:32.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2821cc9664c
+  - type: requires_predicate
+    from: REQ-test-bounded-suite-runners
+    to: FACT-TEST-PACKED-SHARED-INSTALL
+    created_at: 2026-11-10T10:00:32.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f611b0801598
+  - type: requires_property
+    from: REQ-test-bounded-suite-runners
+    to: FACT-TEST-ROOT-BOUNDED-BATCHES
+    created_at: 2026-11-10T10:00:32.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6769d6e4c2a9
+  - type: specified_by
+    from: REQ-test-bounded-suite-runners
+    to: SCEN-test-journaled-engine-harness
+    created_at: 2026-11-10T10:00:32.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9235fd54c14f
+  - type: specified_by
+    from: REQ-test-bounded-suite-runners
+    to: SCEN-CASE-test-journaled-engine-harness-LEAKED-BATCH-ENGINE
+    created_at: 2026-11-10T10:00:32.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99fdb714f3b8
+  - type: verified_by
+    from: REQ-test-bounded-suite-runners
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-11-10T10:00:32.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c52411a481ef
+  - type: supersedes
+    from: REQ-test-bounded-suite-runners
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-11-10T10:00:32.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-575cb215b763
