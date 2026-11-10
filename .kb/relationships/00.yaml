@@ -22,13 +22,6 @@ relationships:
     id: rel-fc16ac7e41c5
   - type: implements
     from: SYM-semantic-advisor-predicateSuggestion
-    to: REQ-mcp-semantic-advisor-preflight
-    created_at: 2026-08-22T20:20:44.485Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e67f8d8f45ee
-  - type: implements
-    from: SYM-semantic-advisor-predicateSuggestion
     to: REQ-kibi-logical-requirement-coverage
     created_at: 2026-08-22T20:20:44.496Z
     created_by: kibi/upsert

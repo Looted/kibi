@@ -4335,8 +4335,6 @@ symbols:
       - type: implements
         target: REQ-mcp-relationship-preflight
       - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
-      - type: implements
         target: REQ-mcp-tool-upsert
   - id: SYM-handleSparql
     title: handleSparql
@@ -8030,8 +8028,6 @@ symbols:
       - type: covered_by
         target: TEST-proof-semantic-advisor-version
       - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
-      - type: implements
         target: REQ-semantic-advisor-version
   - id: SYM-semantic-advisor-buildAdvisorResult
     title: buildAdvisorResult
@@ -8056,9 +8052,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
+        target: TEST-e2e-strict-modeling-surface
       - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
+        target: REQ-kibi-advisor-predicate-rules
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-semantic-advisor-CORE_PREDICATE_RULES
     title: CORE_PREDICATE_RULES
     sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rules-core.ts
@@ -8067,9 +8065,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
+        target: TEST-e2e-strict-modeling-surface
       - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
+        target: REQ-kibi-advisor-predicate-rules
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-semantic-advisor-detectCountStrictSuggestion
     title: detectCountStrictSuggestion
     sourceFile: packages/cli/src/operations/semantic-advisor/strict-count-rules.ts
@@ -8078,9 +8078,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
+        target: TEST-e2e-strict-modeling-surface
       - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
+        target: REQ-kibi-advisor-strict-suggestions
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-semantic-advisor-detectPredicateRules
     title: detectPredicateRules
     sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rule.ts
@@ -8089,9 +8091,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
+        target: TEST-e2e-strict-modeling-surface
       - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
+        target: REQ-kibi-advisor-predicate-rules
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-semantic-advisor-detectStrictSuggestion
     title: detectStrictSuggestion
     sourceFile: packages/cli/src/operations/semantic-advisor/strict-rules.ts
@@ -8100,9 +8104,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
+        target: TEST-e2e-strict-modeling-surface
       - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
+        target: REQ-kibi-advisor-strict-suggestions
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-semantic-advisor-normalizePredicateToken
     title: normalizePredicateToken
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
@@ -8111,9 +8117,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
+        target: TEST-e2e-strict-modeling-surface
       - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
+        target: REQ-kibi-advisor-predicate-rules
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-semantic-advisor-normalizeSubjectKey
     title: normalizeSubjectKey
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
@@ -8122,9 +8130,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
+        target: TEST-e2e-strict-modeling-surface
       - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
+        target: REQ-kibi-advisor-strict-suggestions
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-semantic-advisor-observationPlan
     title: observationPlan
     sourceFile: packages/cli/src/operations/semantic-advisor/observation-plan.ts
@@ -8136,8 +8146,6 @@ symbols:
         target: TEST-mcp-semantic-advisor-preflight
       - type: covered_by
         target: TEST-model-predicates-plan-roundtrip
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
       - type: implements
         target: REQ-model-predicates-plan-roundtrip
   - id: SYM-semantic-advisor-payloadHash
@@ -8159,9 +8167,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
+        target: TEST-e2e-strict-modeling-surface
       - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
+        target: REQ-kibi-advisor-predicate-rules
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-semantic-advisor-predicateSuggestion
     title: predicateSuggestion
     status: active
@@ -8170,6 +8180,10 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-strict-modeling-surface
+      - type: implements
+        target: REQ-kibi-advisor-predicate-rules
+      - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
@@ -8177,8 +8191,6 @@ symbols:
         target: TEST-mcp-semantic-advisor-preflight
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
   - id: SYM-semantic-advisor-PRODUCT_PREDICATE_RULES
     title: PRODUCT_PREDICATE_RULES
     sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rules-product.ts
@@ -8187,9 +8199,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
+        target: TEST-e2e-strict-modeling-surface
       - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
+        target: REQ-kibi-advisor-predicate-rules
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-semantic-advisor-PRODUCT_TAIL_PREDICATE_RULES
     title: PRODUCT_TAIL_PREDICATE_RULES
     sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rules-product-tail.ts
@@ -8198,9 +8212,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-mcp-semantic-advisor-preflight
+        target: TEST-e2e-strict-modeling-surface
       - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
+        target: REQ-kibi-advisor-predicate-rules
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
   - id: SYM-semantic-advisor-strictSuggestion
     title: strictSuggestion
     status: active
@@ -8209,6 +8225,10 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-strict-modeling-surface
+      - type: implements
+        target: REQ-kibi-advisor-strict-suggestions
+      - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
@@ -8216,8 +8236,6 @@ symbols:
         target: TEST-mcp-semantic-advisor-preflight
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
-      - type: implements
-        target: REQ-mcp-semantic-advisor-preflight
   - id: SYM-SemanticLogicCoverageStatus
     title: SemanticLogicCoverageStatus
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts

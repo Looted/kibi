@@ -57,13 +57,6 @@ relationships:
     id: rel-0c74f94ef0e2
   - type: implements
     from: SYM-semantic-advisor-strictSuggestion
-    to: REQ-mcp-semantic-advisor-preflight
-    created_at: 2026-08-22T20:20:49.287Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0b90f5ca1c17
-  - type: implements
-    from: SYM-semantic-advisor-strictSuggestion
     to: REQ-kibi-logical-requirement-coverage
     created_at: 2026-08-22T20:20:49.300Z
     created_by: kibi/upsert

@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8bff294dc9c7
+  - type: assumes
+    from: SCEN-kibi-advisor-predicate-rules
+    to: FACT-PROP-kibi-advisor-predicate-rules-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e78d2930fdc
+  - type: verified_by
+    from: SCEN-kibi-advisor-predicate-rules
+    to: TEST-e2e-strict-modeling-surface
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3979936eeb9b
