@@ -3,10 +3,10 @@ title: 'A blocking impact diagnostic is reported without a suggestion that clear
 status: active
 fact_kind: property_value
 subject_key: kibi.impact.report
-property_key: lists_links_and_blocking_suggestions
+property_key: unexplained_impact_items
 operator: eq
-value_type: bool
-value_bool: false
+value_type: int
+value_int: 1
 origin:
   kind: agent
   recorded_at: '2026-11-10T13:00:00.000Z'

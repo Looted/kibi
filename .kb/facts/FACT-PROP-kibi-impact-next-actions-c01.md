@@ -1,12 +1,12 @@
 ---
-title: 'The impact check lists linked entities per changed symbol and a clearing suggestion per blocking diagnostic'
+title: 'No changed symbol is left without its linked entities and no blocking impact diagnostic without a clearing suggestion'
 status: active
 fact_kind: property_value
 subject_key: kibi.impact.report
-property_key: lists_links_and_blocking_suggestions
+property_key: unexplained_impact_items
 operator: eq
-value_type: bool
-value_bool: true
+value_type: int
+value_int: 0
 claim_key: CLAIM-2540F9D53E08E8D6
 claim_text: 'The impact check must list the entities linked to each changed symbol, and give each blocking impact diagnostic a suggestion that clears it'
 origin:
