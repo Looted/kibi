@@ -534,8 +534,12 @@ if (RUN_NODE_TEST_SUITE) {
               `${label} printed no JSON (exit ${result.exitCode}): ${result.stdout.slice(0, 200)} ${result.stderr.slice(0, 200)}`,
             );
           }
-          const plan = (parsed.data ?? parsed.structuredContent ?? parsed)
-            .migrationPlan;
+          // Reports carry the plan in a field; kibi migrate prints the plan.
+          const plan =
+            (parsed.data ?? parsed.structuredContent ?? parsed).migrationPlan ??
+            (args[0] === "migrate"
+              ? (parsed as unknown as { version: string; planHash: string })
+              : undefined);
           assert.ok(
             plan !== undefined,
             `${label} returned no migration plan: ${result.stdout.slice(0, 200)}`,
