@@ -216,3 +216,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-19a0836c8ec3
+  - type: constrains
+    from: REQ-kibi-coordinate-refresh-split
+    to: FACT-SUBJ-REQ-CORE-EXTRACTORS
+    created_at: 2026-11-10T06:53:15.634Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-781dfa2ab39c
+  - type: requires_property
+    from: REQ-kibi-coordinate-refresh-split
+    to: FACT-PROP-REQ-CORE-EXTRACTORS-C04
+    created_at: 2026-11-10T06:53:15.662Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8424178247ef
+  - type: requires_property
+    from: REQ-kibi-coordinate-refresh-split
+    to: FACT-PROP-REQ-CORE-EXTRACTORS-C05
+    created_at: 2026-11-10T06:53:15.677Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac0801dd8926
+  - type: specified_by
+    from: REQ-kibi-coordinate-refresh-split
+    to: SCEN-symbol-coordinates-derived-locally
+    created_at: 2026-11-10T06:53:15.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9b26fe5cec0
+  - type: specified_by
+    from: REQ-kibi-coordinate-refresh-split
+    to: SCEN-NEG-kibi-coordinate-refresh-split-COORDINATES-IN-MANIFEST
+    created_at: 2026-11-10T06:53:15.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec6d1edba0da
+  - type: verified_by
+    from: REQ-kibi-coordinate-refresh-split
+    to: TEST-symbol-coordinates-derived-locally
+    created_at: 2026-11-10T06:53:15.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-136347aa0868
+  - type: relates_to
+    from: REQ-kibi-coordinate-refresh-split
+    to: REQ-symbol-coordinates-derived-locally
+    created_at: 2026-11-10T06:53:15.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70d1a5a0ad7e
+  - type: supersedes
+    from: REQ-kibi-coordinate-refresh-split
+    to: REQ-core-extractors
+    created_at: 2026-11-10T06:53:15.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f95c06ca943c

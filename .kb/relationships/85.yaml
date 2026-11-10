@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-54de41a3e632
+  - type: assumes
+    from: SCEN-NEG-kibi-coordinate-refresh-split-COORDINATES-IN-MANIFEST
+    to: FACT-NEG-kibi-coordinate-refresh-split-COORDINATES-IN-MANIFEST
+    created_at: 2026-11-10T11:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc4ae20969ed
+  - type: verified_by
+    from: SCEN-NEG-kibi-coordinate-refresh-split-COORDINATES-IN-MANIFEST
+    to: TEST-symbol-coordinates-derived-locally
+    created_at: 2026-11-10T11:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50dc5539baef

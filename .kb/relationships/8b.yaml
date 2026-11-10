@@ -98,13 +98,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-d3c4846667b3
   - type: covered_by
-    from: SYM-readCoordinateArtifact
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:20:02.008Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4820ecb69c8b
-  - type: covered_by
     from: SYM-cli-impact-createSymbolQualityDiagnostics
     to: TEST-audit-quality-diagnostics-v1
     created_at: 2026-09-05T15:03:27.369Z
@@ -118,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7973d586031c
-  - type: covered_by
-    from: SYM-readCoordinateArtifact
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:27:20.799Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-974038d99aec
   - type: covered_by
     from: SYM-mcp-session-initiateGracefulShutdown
     to: TEST-mcp-search-discovery

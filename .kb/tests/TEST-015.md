@@ -2,6 +2,15 @@
 id: TEST-015
 title: Packed CLI sync preserves plain Markdown links as relates_to relationships
 status: active
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-issue-93-regression
+      target: default
+  success_policy: all_required_first_attempt
 created_at: 2026-03-20T16:20:00Z
 updated_at: 2026-03-20T16:20:00Z
 source: documentation/tests/e2e/packed/issue-93-regression.test.ts

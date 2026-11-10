@@ -7448,5 +7448,15 @@
         "./packages/cli/tests/operations-mutation/mutation/relationships.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-015",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/issue-93-regression.test.ts"
+      ]
+    ]
   }
 ]

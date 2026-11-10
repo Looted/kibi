@@ -381,3 +381,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43a33342bfdc
+  - type: constrains
+    from: REQ-kibi-symbol-manifest-import
+    to: FACT-SUBJ-REQ-CORE-EXTRACTORS
+    created_at: 2026-11-10T06:52:53.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11373d398e86
+  - type: requires_property
+    from: REQ-kibi-symbol-manifest-import
+    to: FACT-PROP-REQ-CORE-EXTRACTORS-C02
+    created_at: 2026-11-10T06:52:53.722Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e6a35944310
+  - type: specified_by
+    from: REQ-kibi-symbol-manifest-import
+    to: SCEN-kibi-symbol-manifest-import
+    created_at: 2026-11-10T06:52:53.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f73e47e6f7e1
+  - type: specified_by
+    from: REQ-kibi-symbol-manifest-import
+    to: SCEN-NEG-kibi-symbol-manifest-import-REMOVED-SYMBOL-KEPT
+    created_at: 2026-11-10T06:52:53.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25089b079b67
+  - type: verified_by
+    from: REQ-kibi-symbol-manifest-import
+    to: TEST-015
+    created_at: 2026-11-10T06:52:53.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbc810d8f0f6
+  - type: supersedes
+    from: REQ-kibi-symbol-manifest-import
+    to: REQ-core-extractors
+    created_at: 2026-11-10T06:52:53.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6460601c4d04
