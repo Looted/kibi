@@ -44843,3 +44843,12 @@ symbols:
         target: REQ-kibi-manifest-initialized-signal
       - type: covered_by
         target: TEST-mcp-workspace-routing
+  - id: SYM-unit-test-cli-supersedes-history
+    title: relationships.test
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/relationships.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-supersedes-history-unit
