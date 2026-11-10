@@ -370,3 +370,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92b319ca4fc6
+  - type: requires_rule
+    from: REQ-kibi-suggestion-relevance-gate
+    to: FACT-RULE-B4018810804C39BB
+    created_at: 2026-11-10T08:48:01.059Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7eefce807a20
+  - type: requires_rule
+    from: REQ-kibi-suggestion-relevance-gate
+    to: FACT-RULE-48AEB32CAA5D0D22
+    created_at: 2026-11-10T08:48:01.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf8a3f7ea717
+  - type: requires_rule
+    from: REQ-kibi-suggestion-relevance-gate
+    to: FACT-RULE-14136BF7761A8C21
+    created_at: 2026-11-10T08:48:01.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92c2390cb846
+  - type: requires_rule
+    from: REQ-kibi-suggestion-relevance-gate
+    to: FACT-RULE-235633360AF478BE
+    created_at: 2026-11-10T08:48:01.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc752865fe41
+  - type: requires_rule
+    from: REQ-kibi-suggestion-relevance-gate
+    to: FACT-RULE-495538D2923976DC
+    created_at: 2026-11-10T08:48:01.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-671654267d6a
+  - type: requires_rule
+    from: REQ-kibi-suggestion-relevance-gate
+    to: FACT-RULE-050759068A89B8DD
+    created_at: 2026-11-10T08:48:01.229Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a319012e4ca
+  - type: requires_rule
+    from: REQ-kibi-suggestion-relevance-gate
+    to: FACT-RULE-9F98A139BADE71B4
+    created_at: 2026-11-10T08:48:01.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3507ac89f8f3
+  - type: specified_by
+    from: REQ-kibi-suggestion-relevance-gate
+    to: SCEN-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-11-10T08:48:01.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ba8662ba54a
+  - type: specified_by
+    from: REQ-kibi-suggestion-relevance-gate
+    to: SCEN-NEG-kibi-predicate-suggestion-relevance-v1-UNRELATED-SCHEMA
+    created_at: 2026-11-10T08:48:01.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08a63b6127c6
+  - type: verified_by
+    from: REQ-kibi-suggestion-relevance-gate
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-11-10T08:48:01.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-616cb6cb418e
+  - type: supersedes
+    from: REQ-kibi-suggestion-relevance-gate
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-11-10T08:48:01.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54fc64c025d0

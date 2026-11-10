@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cce88eae0ced
+  - type: assumes
+    from: SCEN-NEG-kibi-suggestion-explainable-output-PLACEHOLDER-BINDING
+    to: FACT-NEG-kibi-suggestion-explainable-output-PLACEHOLDER-BINDING
+    created_at: 2026-11-10T18:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcae5ea4b16f
+  - type: verified_by
+    from: SCEN-NEG-kibi-suggestion-explainable-output-PLACEHOLDER-BINDING
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-11-10T18:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f9e3af56173

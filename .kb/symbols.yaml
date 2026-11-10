@@ -1110,6 +1110,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-suggestion-prose-classification
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
       - type: covered_by
@@ -4416,8 +4420,6 @@ symbols:
       - type: covered_by
         target: TEST-mcp-suggest-predicates
       - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
-      - type: implements
         target: REQ-mcp-suggest-predicates
   - id: SYM-handleKbSymbolsRefresh
     title: handleKbSymbolsRefresh
@@ -7359,6 +7361,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-suggestion-relevance-gate
       - type: covered_by
         target: TEST-kibi-ontology-convergence-witnesses
       - type: covered_by
@@ -7369,8 +7373,6 @@ symbols:
         target: TEST-model-predicates-binding-clauses
       - type: covered_by
         target: TEST-model-predicates-requirement-subject
-      - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
       - type: implements
         target: REQ-mcp-suggest-predicates
   - id: SYM-predicate-catalog-part-1
@@ -13179,8 +13181,6 @@ symbols:
       - type: covered_by
         target: TEST-model-what-if-planned-facts
       - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
-      - type: implements
         target: REQ-model-predicates-grounding-aware-v2
   - id: SYM-SYMBOL_ROLES
     title: SYMBOL_ROLES
@@ -17254,10 +17254,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-suggestion-relevance-gate
       - type: covered_by
         target: TEST-kibi-predicate-suggestion-relevance-v1
-      - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
   - id: SYM-kibi-predicate-binding-provenance
     title: predicate binding provenance
     status: active
@@ -17265,10 +17265,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
+      - type: implements
+        target: REQ-kibi-suggestion-explainable-output
       - type: covered_by
         target: TEST-kibi-predicate-suggestion-relevance-v1
-      - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
   - id: SYM-kibi-launcher-argument-inference
     title: inferLauncherArgs
     status: active
@@ -17277,9 +17277,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-predicate-suggestion-relevance-v1
+        target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
       - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
+        target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
   - id: SYM-kibi-launcher-predicate-rules
     title: LAUNCHER_PREDICATE_RULES
     status: active
@@ -17288,9 +17290,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-predicate-suggestion-relevance-v1
+        target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
       - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
+        target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
   - id: SYM-kibi-predicate-schema-draft
     title: buildPredicateSchemaDraft
     status: active
@@ -17298,10 +17302,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-suggestion-relevance-gate
       - type: covered_by
         target: TEST-kibi-predicate-suggestion-relevance-v1
-      - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
   - id: SYM-core-expression-dependency
     title: expression_dependency
     status: active
@@ -17375,10 +17379,10 @@ symbols:
     symbol_role: behavioral
     status: active
     relationships:
+      - type: implements
+        target: REQ-kibi-suggestion-explainable-output
       - type: covered_by
         target: TEST-kibi-predicate-suggestion-relevance-v1
-      - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
   - id: 86c21fecd3d7b203
     title: classifyBinding
     sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
@@ -17420,8 +17424,6 @@ symbols:
       - type: covered_by
         target: TEST-proof-strong-applicability-score
       - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
-      - type: implements
         target: REQ-predicate-applicability-threshold
   - id: 7657f944663e9895
     title: WEAK_CANDIDATE_MARGIN
@@ -17435,8 +17437,6 @@ symbols:
       - type: covered_by
         target: TEST-proof-weak-candidate-margin
       - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
-      - type: implements
         target: REQ-kibi-predicate-suggestion-thresholds
   - id: 26e0fdf782563d2c
     title: aggregateBindingProvenance
@@ -17444,22 +17444,22 @@ symbols:
     symbol_role: behavioral
     status: active
     relationships:
+      - type: implements
+        target: REQ-kibi-suggestion-explainable-output
       - type: covered_by
         target: TEST-kibi-predicate-suggestion-relevance-v1
-      - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
   - id: 76bad0a66461775e
     title: bindingCanBeApplied
     sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
     symbol_role: behavioral
     status: active
     relationships:
+      - type: implements
+        target: REQ-kibi-suggestion-relevance-gate
       - type: covered_by
         target: TEST-kibi-predicate-suggestion-relevance-v1
       - type: covered_by
         target: TEST-model-predicates-requirement-subject
-      - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
       - type: implements
         target: REQ-model-predicates-requirement-subject-v2
   - id: 20446b29996b593e
@@ -17468,10 +17468,10 @@ symbols:
     symbol_role: behavioral
     status: active
     relationships:
+      - type: implements
+        target: REQ-kibi-suggestion-relevance-gate
       - type: covered_by
         target: TEST-kibi-predicate-suggestion-relevance-v1
-      - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
   - id: 758516ddb337c842
     title: exactLauncherPredicateArgs
     sourceFile: packages/cli/src/operations/semantic-advisor/predicate-rules-launcher.ts
@@ -17479,9 +17479,11 @@ symbols:
     status: active
     relationships:
       - type: covered_by
-        target: TEST-kibi-predicate-suggestion-relevance-v1
+        target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
       - type: implements
-        target: REQ-kibi-predicate-suggestion-relevance-v1
+        target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+      - type: covered_by
+        target: TEST-kibi-predicate-suggestion-relevance-v1
   - id: SYM-kibi-delete-composed-source-writes
     title: composes two authored symbol deletions into one plan write
     sourceFile: packages/cli/tests/commands/delete.test.ts

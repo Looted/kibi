@@ -241,3 +241,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e764dd037078
+  - type: requires_rule
+    from: REQ-kibi-suggestion-prose-classification
+    to: FACT-RULE-AE090594589798D9
+    created_at: 2026-11-10T08:48:48.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c67cd8d6b4a
+  - type: requires_rule
+    from: REQ-kibi-suggestion-prose-classification
+    to: FACT-RULE-D0B5C9528E56F35E
+    created_at: 2026-11-10T08:48:48.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ff58aa1cc62
+  - type: specified_by
+    from: REQ-kibi-suggestion-prose-classification
+    to: SCEN-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-11-10T08:48:48.244Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62dd67e9c7dc
+  - type: specified_by
+    from: REQ-kibi-suggestion-prose-classification
+    to: SCEN-NEG-kibi-suggestion-prose-classification-COMPOUND-CLAUSE
+    created_at: 2026-11-10T08:48:48.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3237e2a8db9f
+  - type: verified_by
+    from: REQ-kibi-suggestion-prose-classification
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-11-10T08:48:48.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4602f0f3441
+  - type: supersedes
+    from: REQ-kibi-suggestion-prose-classification
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-11-10T08:48:48.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a9e3b463709

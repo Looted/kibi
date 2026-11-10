@@ -181,3 +181,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-436453128ce4
+  - type: requires_rule
+    from: REQ-kibi-suggestion-explainable-output
+    to: FACT-RULE-6F232D165E251652
+    created_at: 2026-11-10T08:49:00.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-785365c0de2f
+  - type: specified_by
+    from: REQ-kibi-suggestion-explainable-output
+    to: SCEN-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-11-10T08:49:00.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecb96dae2f07
+  - type: specified_by
+    from: REQ-kibi-suggestion-explainable-output
+    to: SCEN-NEG-kibi-suggestion-explainable-output-PLACEHOLDER-BINDING
+    created_at: 2026-11-10T08:49:00.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ddc42fab545
+  - type: verified_by
+    from: REQ-kibi-suggestion-explainable-output
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-11-10T08:49:00.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad84df219671
+  - type: supersedes
+    from: REQ-kibi-suggestion-explainable-output
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-11-10T08:49:00.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e799e12a6e3a
