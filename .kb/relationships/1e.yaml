@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0fa222848b51
+  - type: assumes
+    from: SCEN-NEG-kibi-bootstrap-read-only-planner-PLAN-WRITES
+    to: FACT-NEG-kibi-bootstrap-read-only-planner-PLAN-WRITES
+    created_at: 2026-11-10T05:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9da56eb1ff9
+  - type: verified_by
+    from: SCEN-NEG-kibi-bootstrap-read-only-planner-PLAN-WRITES
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-11-10T05:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d01e3f2efd9

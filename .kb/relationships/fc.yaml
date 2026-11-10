@@ -48,27 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d7df5ce60b72
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-confidenceband
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:48:31.440Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b15e98138f6b
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-confidenceband
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:48:31.449Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4ab0b6fa73b2
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-confidenceband
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:19:42.001Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c42253fa094f
   - type: covered_by
     from: SYM-auto-6B36EF51595B
     to: TEST-kibi-change-to-proof-plan-compiler

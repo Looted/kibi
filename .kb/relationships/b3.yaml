@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-16T18:51:34.270Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:32.687Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8f60caec8a60
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY

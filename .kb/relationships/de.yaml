@@ -73,13 +73,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3bed3664e040
-  - type: implements
-    from: SYM-kibi-bootstrap-mcp-adapter
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-21T19:52:25.209Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d486ace2e0fd
   - type: covered_by
     from: SYM-kibi-bootstrap-mcp-adapter
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY

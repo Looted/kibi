@@ -20,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5dc2a154c6d2
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-scanevidence
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T14:03:45.631Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6fd15b8d1d89
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-scanevidence
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY

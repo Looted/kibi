@@ -286,3 +286,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3624f8b2442a
+  - type: constrains
+    from: REQ-kibi-bootstrap-seed-and-handoff
+    to: FACT-KIBI-BOOTSTRAP-SUBJECT
+    created_at: 2026-11-10T04:25:18.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20589134f56b
+  - type: requires_property
+    from: REQ-kibi-bootstrap-seed-and-handoff
+    to: FACT-KIBI-BOOTSTRAP-PROPERTY
+    created_at: 2026-11-10T04:25:18.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de175fa89544
+  - type: requires_property
+    from: REQ-kibi-bootstrap-seed-and-handoff
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-02
+    created_at: 2026-11-10T04:25:18.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c40fcaee75d
+  - type: requires_property
+    from: REQ-kibi-bootstrap-seed-and-handoff
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-09
+    created_at: 2026-11-10T04:25:18.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9591d773f562
+  - type: specified_by
+    from: REQ-kibi-bootstrap-seed-and-handoff
+    to: SCEN-KIBI-BOOTSTRAP-PLAN-APPROVAL
+    created_at: 2026-11-10T04:25:18.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1eabc2143242
+  - type: specified_by
+    from: REQ-kibi-bootstrap-seed-and-handoff
+    to: SCEN-NEG-kibi-bootstrap-seed-and-handoff-SEEDED-REPLAN
+    created_at: 2026-11-10T04:25:18.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b02f2c1815a
+  - type: verified_by
+    from: REQ-kibi-bootstrap-seed-and-handoff
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-11-10T04:25:18.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c5131dc508c
+  - type: supersedes
+    from: REQ-kibi-bootstrap-seed-and-handoff
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-11-10T04:25:18.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e9ab7dee036

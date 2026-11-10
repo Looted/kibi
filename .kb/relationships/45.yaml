@@ -230,3 +230,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dde018d97c63
+  - type: constrains
+    from: REQ-kibi-bootstrap-approved-apply
+    to: FACT-KIBI-BOOTSTRAP-SUBJECT
+    created_at: 2026-11-10T04:27:15.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72c6bad42c0f
+  - type: requires_property
+    from: REQ-kibi-bootstrap-approved-apply
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-06
+    created_at: 2026-11-10T04:27:15.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd2f478ebd3b
+  - type: requires_property
+    from: REQ-kibi-bootstrap-approved-apply
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-07
+    created_at: 2026-11-10T04:27:15.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d555d066c3b9
+  - type: specified_by
+    from: REQ-kibi-bootstrap-approved-apply
+    to: SCEN-KIBI-BOOTSTRAP-PLAN-APPROVAL
+    created_at: 2026-11-10T04:27:15.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03173a24ed36
+  - type: specified_by
+    from: REQ-kibi-bootstrap-approved-apply
+    to: SCEN-NEG-KIBI-BOOTSTRAP-PLAN-UNAPPROVED-APPLY
+    created_at: 2026-11-10T04:27:15.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f88842d8ec9
+  - type: verified_by
+    from: REQ-kibi-bootstrap-approved-apply
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-11-10T04:27:15.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c88d79c15a4f
+  - type: supersedes
+    from: REQ-kibi-bootstrap-approved-apply
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-11-10T04:27:15.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-891671fe2f50

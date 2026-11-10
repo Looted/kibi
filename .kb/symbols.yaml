@@ -1660,7 +1660,7 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
+        target: REQ-kibi-bootstrap-approved-apply
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
   - id: SYM-assertCanonicalSourceComplete
@@ -3605,6 +3605,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-cursor-stop-job-vs-plan
       - type: implements
         target: REQ-cursor-stop-job-vs-plan
       - type: covered_by
@@ -3805,6 +3807,8 @@ symbols:
     text_ref: packages/cursor/scripts/worktree-resolver.sh#package_version
     status: active
     relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
       - type: implements
         target: REQ-cursor-consumer-local-mcp-launcher-v1
       - type: covered_by
@@ -3817,6 +3821,8 @@ symbols:
     text_ref: packages/cursor/scripts/worktree-resolver.sh#validate_candidate
     status: active
     relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
       - type: implements
         target: REQ-cursor-consumer-local-mcp-launcher-v1
       - type: covered_by
@@ -18304,6 +18310,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-read-only-planner
       - type: covered_by
         target: TEST-bootstrap-subject-fact-shared
       - type: covered_by
@@ -18312,8 +18320,6 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-bootstrap-subject-fact-shared
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-apply-tests
     title: bootstrap apply recovery scenarios
     status: active
@@ -18330,12 +18336,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-read-only-planner
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation
     title: classifyActivation
     status: active
@@ -18343,6 +18349,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-seed-and-handoff
       - type: covered_by
         target: TEST-cli-legacy-kb-first-migrate
       - type: covered_by
@@ -18350,35 +18358,7 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
-      - type: implements
         target: REQ-legacy-kb-first-step-migrate
-  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-confidenceband
-    title: confidenceBand
-    status: active
-    sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
-  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-slug
-    title: slug
-    status: active
-    sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-strictplan
     title: strictPlan
     status: active
@@ -18386,25 +18366,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-seed-and-handoff
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
-  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-upsert
-    title: upsert
-    status: active
-    sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-discoverbootstrap
     title: discoverBootstrap
     status: active
@@ -18412,12 +18379,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-read-only-planner
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-scanevidence
     title: scanEvidence
     status: active
@@ -18425,12 +18392,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-read-only-planner
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates
     title: selectBootstrapCandidates
     status: active
@@ -18453,12 +18420,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-seed-and-handoff
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-markdowncandidates
     title: markdownCandidates
     status: active
@@ -18466,12 +18433,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-seed-and-handoff
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext
     title: normalizeBootstrapContext
     status: active
@@ -18502,8 +18469,6 @@ symbols:
         target: TEST-proof-bootstrap-providers
       - type: implements
         target: REQ-kibi-bootstrap-evidence-providers
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapemptykbsnapshotid
     title: bootstrapEmptyKbSnapshotId
     status: active
@@ -18511,12 +18476,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-read-only-planner
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanhash
     title: bootstrapPlanHash
     status: active
@@ -18524,12 +18489,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-read-only-planner
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions
     title: orderBootstrapActions
     status: active
@@ -18537,12 +18502,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-approved-apply
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-init-e2e
     title: cold-start bootstrap lifecycle
     status: active
@@ -18568,12 +18533,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-shared-planner-routing
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-findsdkpackagejsonforpluginroot
     title: findSdkPackageJsonForPluginRoot
     status: active
@@ -18581,12 +18546,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-shared-planner-routing
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-name
     title: KIBI_BOOTSTRAP_COMMAND_NAME
     status: active
@@ -18594,6 +18559,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-shared-planner-routing
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
@@ -18603,8 +18570,6 @@ symbols:
       - type: covered_by
         target: TEST-proof-opencode-bootstrap-command
       - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
-      - type: implements
         target: REQ-opencode-plugin-ids
   - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-registerkibibootstrapcommand
     title: registerKibiBootstrapCommand
@@ -18613,12 +18578,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-shared-planner-routing
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-plan-presentation
     title: presentBootstrap
     status: active
@@ -18626,14 +18591,14 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-read-only-planner
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-bootstrap-intent-claim-accounting
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-guidance-actions-buildactions
     title: buildActions
     status: active
@@ -18641,12 +18606,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-read-only-planner
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-requirement-claims-claimfor
     title: claimFor
     status: active
@@ -18654,12 +18619,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-seed-and-handoff
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-tests-operations-bootstrap-workspace-fixture-bootstrapworkspacefixture
     title: BootstrapWorkspaceFixture
     status: active
@@ -18675,12 +18640,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-seed-and-handoff
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-mcp-adapter
     title: handleKbPlanBootstrap
     status: active
@@ -18688,12 +18653,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-bootstrap-shared-planner-routing
       - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-packed-create-isolated-pnpm-environment
     title: createIsolatedPnpmEnvironment
     status: active
@@ -23960,6 +23925,8 @@ symbols:
     sourceFile: packages/agent-core/src/kb-mcp-tools.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
@@ -26731,6 +26698,8 @@ symbols:
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
       - type: implements
         target: REQ-cursor-adapter-package
       - type: covered_by

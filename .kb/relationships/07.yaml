@@ -510,3 +510,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f5e85697ec38
+  - type: constrains
+    from: REQ-kibi-bootstrap-shared-planner-routing
+    to: FACT-KIBI-BOOTSTRAP-SUBJECT
+    created_at: 2026-11-10T04:31:17.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc5865e08516
+  - type: requires_property
+    from: REQ-kibi-bootstrap-shared-planner-routing
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-08
+    created_at: 2026-11-10T04:31:17.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dde97c98de4
+  - type: specified_by
+    from: REQ-kibi-bootstrap-shared-planner-routing
+    to: SCEN-KIBI-BOOTSTRAP-PLAN-APPROVAL
+    created_at: 2026-11-10T04:31:17.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6fc821712e7
+  - type: specified_by
+    from: REQ-kibi-bootstrap-shared-planner-routing
+    to: SCEN-NEG-kibi-bootstrap-shared-planner-routing-DIVERGENT-ADAPTER
+    created_at: 2026-11-10T04:31:17.625Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2bcd0ad74bc8
+  - type: verified_by
+    from: REQ-kibi-bootstrap-shared-planner-routing
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-11-10T04:31:17.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5c42d99fcbc
+  - type: verified_by
+    from: REQ-kibi-bootstrap-shared-planner-routing
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-11-10T04:31:17.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3da12dda5aa3
+  - type: supersedes
+    from: REQ-kibi-bootstrap-shared-planner-routing
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-11-10T04:31:17.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ec12d35fed3

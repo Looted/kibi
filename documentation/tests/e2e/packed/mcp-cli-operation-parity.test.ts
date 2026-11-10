@@ -226,6 +226,56 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
   );
 
   it(
+    "refuses a plan-bootstrap input the shared planner does not define with the same coded error on MCP and the CLI JSON route",
+    { timeout: 120_000 },
+    async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      // Both adapters validate against the one planner contract, so a field
+      // it does not define is refused by each, with one error.
+      const input = { maxCandidates: 1, legacyAlias: true };
+      const process = startMcpServer(sandbox);
+      let mcpError: Record<string, unknown> | undefined;
+      try {
+        await sendMcpRequest(process, 1, "initialize", {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "packed-parity", version: "1.0.0" },
+        });
+        process.stdin?.write(
+          `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`,
+        );
+        const response = await sendMcpRequest(process, 2, "tools/call", {
+          name: "kb_plan_bootstrap",
+          arguments: input,
+        });
+        assert.ifError(response.error);
+        assert.strictEqual(response.result?.isError, true);
+        const envelope = response.result?.structuredContent as
+          | { status?: string; error?: Record<string, unknown> }
+          | undefined;
+        assert.strictEqual(envelope?.status, "error");
+        mcpError = envelope?.error;
+      } finally {
+        process.kill();
+      }
+      assert.strictEqual(mcpError?.code, "VALIDATION_FAILED");
+      assert.match(String(mcpError?.message), /legacyAlias/);
+
+      const cli = await runStdinRoute(sandbox, "plan-bootstrap", input);
+      assert.notStrictEqual(cli.exitCode, 0);
+      const cliEnvelope = JSON.parse(cli.stdout) as {
+        status: string;
+        error: Record<string, unknown>;
+      };
+      assert.strictEqual(cliEnvelope.status, "error");
+      assert.deepStrictEqual(cliEnvelope.error, mcpError);
+    },
+  );
+
+  it(
     "excludes an entity that carries none of the requested tags from a tag-filtered kb_query",
     { timeout: 180_000 },
     async (testContext) => {

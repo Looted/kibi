@@ -13,13 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6fb9d941bfd9
-  - type: implements
-    from: SYM-kibi-bootstrap-plan-executor
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:15:01.127Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-79ac7d5efa70
   - type: covered_by
     from: SYM-kibi-bootstrap-plan-executor
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -335,3 +328,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01835a7c3660
+  - type: constrains
+    from: REQ-kibi-bootstrap-read-only-planner
+    to: FACT-KIBI-BOOTSTRAP-SUBJECT
+    created_at: 2026-11-10T04:26:09.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee53e1d736e1
+  - type: requires_property
+    from: REQ-kibi-bootstrap-read-only-planner
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-03
+    created_at: 2026-11-10T04:26:09.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4e7e5ed231d
+  - type: requires_property
+    from: REQ-kibi-bootstrap-read-only-planner
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-04
+    created_at: 2026-11-10T04:26:09.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0957d4d8afa2
+  - type: requires_property
+    from: REQ-kibi-bootstrap-read-only-planner
+    to: FACT-KIBI-BOOTSTRAP-CLAUSE-05
+    created_at: 2026-11-10T04:26:09.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21c7ad6e443a
+  - type: specified_by
+    from: REQ-kibi-bootstrap-read-only-planner
+    to: SCEN-KIBI-BOOTSTRAP-PLAN-APPROVAL
+    created_at: 2026-11-10T04:26:09.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1d12f0d8b2f
+  - type: specified_by
+    from: REQ-kibi-bootstrap-read-only-planner
+    to: SCEN-NEG-kibi-bootstrap-read-only-planner-PLAN-WRITES
+    created_at: 2026-11-10T04:26:09.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67751007d676
+  - type: verified_by
+    from: REQ-kibi-bootstrap-read-only-planner
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-11-10T04:26:09.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0f1b49e048f
+  - type: supersedes
+    from: REQ-kibi-bootstrap-read-only-planner
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-11-10T04:26:09.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-309a7a04e297

@@ -6,13 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-561e0ce8ece2
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-spec
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:15:11.548Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9da817af4a41
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-spec
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY

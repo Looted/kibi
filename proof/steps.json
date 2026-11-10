@@ -1161,6 +1161,13 @@
         "--timeout",
         "15000",
         "./packages/cli/tests/parity/helpers.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/agent-core/tests/agent-core.test.ts"
       ]
     ]
   },
