@@ -15363,30 +15363,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-doctor-workflows
-  - id: SYM-register-proof-command
-    title: registerProofCommand
-    sourceFile: packages/cli/src/cli-register-proof.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-prove-command
     title: proveCommand
-    sourceFile: packages/cli/src/commands/prove.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-parse-integration-selector
-    title: parseIntegrationSelector
     sourceFile: packages/cli/src/commands/prove.ts
     status: active
     symbol_role: behavioral
@@ -15434,42 +15412,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-load-proof-integrations
-    title: loadProofIntegrations
-    sourceFile: packages/cli/src/proof/integrations.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
+        target: REQ-kibi-proof-fingerprint
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-resolve-integration
-    title: resolveIntegration
-    sourceFile: packages/cli/src/proof/integrations.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-to-execution
-    title: toExecution
-    sourceFile: packages/cli/src/proof/integrations.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-integrations-path
     title: PROOF_INTEGRATIONS_PATH
     sourceFile: packages/cli/src/proof/integrations.ts
@@ -15523,9 +15470,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
+        target: REQ-kibi-proof-fingerprint
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-effective-proof-fingerprint
     title: effectiveProofFingerprint
     sourceFile: packages/cli/src/public/proof-fingerprint.ts
@@ -15534,20 +15483,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
+        target: TEST-e2e-proof-maintenance-ops
       - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-fingerprint-drift
-    title: fingerprintDrift
-    sourceFile: packages/cli/src/public/proof-fingerprint.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
+        target: REQ-kibi-proof-fingerprint
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-fingerprint-component-names
     title: FINGERPRINT_COMPONENT_NAMES
     sourceFile: packages/cli/src/public/proof-fingerprint.ts
@@ -15647,8 +15587,6 @@ symbols:
         target: TEST-proof-proof-receipt-version
       - type: implements
         target: REQ-kibi-proof-protocol-versions
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-integration-version
     title: PROOF_INTEGRATION_VERSION
     sourceFile: packages/cli/src/public/proof-protocol.ts
@@ -15724,8 +15662,6 @@ symbols:
         target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-attempts-status
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-run-failure-phases
     title: RUN_FAILURE_PHASES
     sourceFile: packages/cli/src/public/proof-protocol.ts
@@ -15906,17 +15842,6 @@ symbols:
         target: TEST-proof-max-proof-receipts
       - type: implements
         target: REQ-kibi-verification-receipts-v2
-  - id: SYM-ingest-proof-spec
-    title: ingestProofSpec
-    sourceFile: packages/cli/src/public/operations/specs/proof.ts
-    status: active
-    symbol_role: unknown
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-binding-lookup
     title: bindingLookup
     sourceFile: packages/cli/src/proof/producers/junit-adapter.ts
@@ -16041,17 +15966,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-verification-evidence-contract
-  - id: SYM-run-proof-producer
-    title: run-proof-producer
-    sourceFile: scripts/run-proof-producer.mjs
-    status: active
-    symbol_role: behavioral
-    granularity_reason: module-level-behavior
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-e2e-test-agent-guided-migration-orchestration
     title: dependency-ordered-repair-plan.test
     status: active
@@ -16388,30 +16302,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-maintenance-roundtrip
-  - id: SYM-quality-producer-main
-    title: main
-    status: active
-    sourceFile: scripts/run-proof-producer.mjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-proof-runner-integrity
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-quality-producer-runProofProducerIfEntrypoint
-    title: runProofProducerIfEntrypoint
-    status: active
-    sourceFile: scripts/run-proof-producer.mjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-proof-runner-integrity
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-quality-junit-ambiguousNativeBindings
     title: ambiguousNativeBindings
     status: active
@@ -16875,16 +16765,6 @@ symbols:
     title: receiptBindingHash
     status: active
     sourceFile: packages/cli/src/public/proof-fingerprint.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-finished-at-precedes-started-at
-    title: finishedAtPrecedesStartedAt
-    status: active
-    sourceFile: packages/cli/src/public/proof-receipt.ts
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
@@ -18605,8 +18485,6 @@ symbols:
         target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-cli-MutationSaga-add
     title: MutationSaga.add
     status: active
@@ -18619,18 +18497,6 @@ symbols:
         target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-014
-  - id: SYM-cli-loadEntitiesPaged
-    title: loadEntitiesPaged
-    status: active
-    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-e2e-proof-maintenance-ops
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-cli-perContractTestBindings
     title: perContractTestBindings
     status: active
@@ -18651,16 +18517,6 @@ symbols:
         target: TEST-audit-quality-diagnostics-v1
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
-  - id: SYM-cli-readCoveragePages
-    title: readCoveragePages
-    status: active
-    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-cli-COVERAGE_ROW_PAGE_SIZE
     title: COVERAGE_ROW_PAGE_SIZE
     status: active

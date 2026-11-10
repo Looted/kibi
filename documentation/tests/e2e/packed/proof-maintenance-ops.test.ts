@@ -800,6 +800,34 @@ Exercises the ${integration} proof producer.
         );
         const proved = await queryTest(sandbox, "TEST-PACKED-PW");
         assert.strictEqual(proved?.proof_receipts?.length, 1);
+        // The receipt records the effective fingerprint of the contract and
+        // the integration's command, bindings and producer, and next to it a
+        // separate hash of the canonical environment.
+        const receipt = proved?.proof_receipts?.[0] as
+          | Readonly<{
+              fingerprint?: string;
+              fingerprint_components?: Readonly<Record<string, string>>;
+              environment_hash?: string;
+            }>
+          | undefined;
+        assert.match(receipt?.fingerprint ?? "", /^[a-f0-9]{64}$/);
+        assert.deepStrictEqual(
+          Object.keys(receipt?.fingerprint_components ?? {}).sort(),
+          ["bindings", "command", "contract", "integration", "producer"],
+          "the fingerprint names the contract, integration, command, bindings and producer",
+        );
+        for (const [name, digest] of Object.entries(
+          receipt?.fingerprint_components ?? {},
+        )) {
+          assert.match(digest, /^[a-f0-9]{64}$/, `${name} component digest`);
+        }
+        assert.match(receipt?.environment_hash ?? "", /^[a-f0-9]{64}$/);
+        assert.ok(
+          !Object.values(receipt?.fingerprint_components ?? {}).includes(
+            receipt?.environment_hash ?? "",
+          ),
+          "the environment hash is recorded beside the fingerprint, not inside it",
+        );
 
         for (const id of ["TEST-PACKED-JUNIT-PASS", "TEST-PACKED-TAP-PASS"]) {
           const prove = await kibi(sandbox, ["prove", "--test", id]);
@@ -820,6 +848,46 @@ Exercises the ${integration} proof producer.
                 (receipt as { outcome?: string }).outcome === "passed",
             ),
             `${id}: no passing receipt without attempt history`,
+          );
+        }
+
+        // A receipt that lacks the environment hash or the fingerprint
+        // components is not a receipt Kibi accepts.
+        const validDocument = pruneTestDocument("a".repeat(64), [
+          {
+            id: "PR-packed-fingerprint-0001",
+            startedAt: "2025-01-01T00:00:00.000Z",
+            finishedAt: "2025-01-01T00:00:01.000Z",
+          },
+        ]);
+        const withoutEnvironment = validDocument.replace(
+          /\n {4}environment_hash: [a-f0-9]{64}/,
+          "",
+        );
+        const withoutComponents = validDocument.replace(
+          /\n {4}fingerprint_components:(\n {6}[a-z]+: [a-f0-9]{64}){5}/,
+          "",
+        );
+        for (const [label, document] of [
+          ["environment hash", withoutEnvironment],
+          ["fingerprint components", withoutComponents],
+        ] as const) {
+          assert.notStrictEqual(document, validDocument, `${label} removed`);
+          writeFileSync(
+            join(sandbox.repoDir, ".kb", "tests", "TEST-PACKED-PRUNE.md"),
+            document,
+          );
+          stageSourceFile(sandbox, ".kb/tests/TEST-PACKED-PRUNE.md");
+          const refused = await kibi(sandbox, ["sync", "--validate-only"]);
+          assert.notStrictEqual(
+            refused.exitCode,
+            0,
+            `a receipt without its ${label} must be refused`,
+          );
+          assert.match(
+            refused.stdout + refused.stderr,
+            /structurally valid kibi\.proof-receipt/,
+            `a receipt without its ${label} names the receipt shape: ${refused.stdout}${refused.stderr}`,
           );
         }
       },

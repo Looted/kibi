@@ -41,27 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92ea671d54cc
-  - type: implements
-    from: SYM-cli-loadEntitiesPaged
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-26T23:18:21.725Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9999e15aaf82
-  - type: covered_by
-    from: SYM-cli-loadEntitiesPaged
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-26T23:18:21.738Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-359a3ed41c7a
-  - type: covered_by
-    from: SYM-cli-loadEntitiesPaged
-    to: TEST-e2e-proof-maintenance-ops
-    created_at: 2026-09-26T23:18:21.744Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e3ecca2476cd
   - type: validates
     from: TEST-kibi-vocabulary-convergence-harness
     to: SCEN-kibi-subject-vocabulary
@@ -265,3 +244,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d87b3eec8b12
+  - type: constrains
+    from: REQ-kibi-proof-fingerprint
+    to: FACT-SUBJ-kibi-proof-fingerprint
+    created_at: 2026-11-10T14:42:33.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d586712bba85
+  - type: requires_property
+    from: REQ-kibi-proof-fingerprint
+    to: FACT-PROP-kibi-proof-fingerprint-c01
+    created_at: 2026-11-10T14:42:33.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a22dad380c59
+  - type: specified_by
+    from: REQ-kibi-proof-fingerprint
+    to: SCEN-kibi-proof-fingerprint
+    created_at: 2026-11-10T14:42:33.299Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39d97f1b3b6a
+  - type: specified_by
+    from: REQ-kibi-proof-fingerprint
+    to: SCEN-NEG-kibi-proof-fingerprint-MISSING-PARTS
+    created_at: 2026-11-10T14:42:33.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-088ed018bd07
+  - type: relates_to
+    from: REQ-kibi-proof-fingerprint
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-11-10T14:42:33.333Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c7b3ececa12
