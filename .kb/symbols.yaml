@@ -2878,18 +2878,6 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
-  - id: SYM-createConfigFile
-    title: createConfigFile
-    status: active
-    sourceFile: packages/cli/src/commands/init-helpers.ts
-    granularity_reason: extractor-miss
-    relationships:
-      - type: covered_by
-        target: TEST-001
-      - type: implements
-        target: REQ-cli-init-canonical
-      - type: covered_by
-        target: TEST-cli-canonical-init
   - id: SYM-createFileOperationState
     title: createFileOperationState
     status: active
@@ -4052,16 +4040,6 @@ symbols:
         target: TEST-mcp-upsert-symbol-behavioral-anchors
       - type: implements
         target: REQ-symbol-behavioral-anchors
-  - id: SYM-getCurrentBranch
-    title: getCurrentBranch
-    sourceFile: packages/cli/src/commands/init-helpers.ts
-    relationships:
-      - type: implements
-        target: REQ-cli-init-canonical
-      - type: covered_by
-        target: TEST-001
-      - type: covered_by
-        target: TEST-cli-canonical-init
   - id: SYM-getE2eCoverageSignal
     title: getE2eCoverageSignal
     status: active
@@ -13469,28 +13447,6 @@ symbols:
         target: TEST-cli-canonical-init
       - type: implements
         target: REQ-cli-init-canonical
-  - id: SYM-canonical-DEFAULT_CONFIG_PATHS
-    title: DEFAULT_CONFIG_PATHS
-    status: active
-    sourceFile: packages/cli/src/utils/config.ts
-    symbol_role: config
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-canonical-init
-      - type: implements
-        target: REQ-cli-init-canonical
-  - id: SYM-canonical-readKbManifestOrDefault
-    title: readKbManifestOrDefault
-    status: active
-    sourceFile: packages/cli/src/utils/kb-manifest.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-canonical-init
-      - type: implements
-        target: REQ-cli-init-canonical
   - id: SYM-canonical-writeKbManifest
     title: writeKbManifest
     status: active
@@ -13522,10 +13478,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-kb-path-classes
       - type: covered_by
         target: TEST-cli-canonical-init
-      - type: implements
-        target: REQ-cli-init-canonical
   - id: SYM-canonical-isKbKnowledgePath
     title: isKbKnowledgePath
     status: active
@@ -13533,10 +13489,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-kb-path-classes
       - type: covered_by
         target: TEST-cli-canonical-init
-      - type: implements
-        target: REQ-cli-init-canonical
   - id: SYM-canonical-isDerivedKbPath
     title: isDerivedKbPath
     status: active
@@ -13544,10 +13500,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-kb-path-classes
       - type: covered_by
         target: TEST-cli-canonical-init
-      - type: implements
-        target: REQ-cli-init-canonical
   - id: SYM-canonical-KB_ROOT
     title: KB_ROOT
     status: active
@@ -13590,8 +13546,6 @@ symbols:
       - type: covered_by
         target: TEST-proof-legacy-config-path-keys
       - type: implements
-        target: REQ-cli-init-canonical
-      - type: implements
         target: REQ-cli-kb-entity-paths
   - id: SYM-canonical-DERIVED_KB_PREFIXES
     title: DERIVED_KB_PREFIXES
@@ -13633,8 +13587,6 @@ symbols:
         target: TEST-proof-canonical-symbols-path
       - type: covered_by
         target: TEST-proof-canonical-tests-path
-      - type: implements
-        target: REQ-cli-init-canonical
       - type: implements
         target: REQ-cli-kb-entity-paths
   - id: SYM-canonical-LEGACY_DEFAULT_ENTITY_PATHS

@@ -20,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a62a8491354d
-  - type: implements
-    from: SYM-canonical-isDerivedKbPath
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:02:55.183Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-64a59118f1f8
   - type: covered_by
     from: SYM-canonical-isDerivedKbPath
     to: TEST-cli-canonical-init
@@ -412,3 +405,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0bc600cd61e
+  - type: assumes
+    from: SCEN-NEG-kibi-kb-path-classes-DERIVED-WRITE
+    to: FACT-NEG-kibi-kb-path-classes-DERIVED-WRITE
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9923fdee2ec8
+  - type: verified_by
+    from: SCEN-NEG-kibi-kb-path-classes-DERIVED-WRITE
+    to: TEST-cli-canonical-init
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-911a7d11531c
+  - type: assumes
+    from: SCEN-NEG-kibi-kb-path-classes-DERIVED-WRITE
+    to: FACT-NEG-kibi-kb-path-classes-UNCLASSIFIED
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d0d119d2e0d
