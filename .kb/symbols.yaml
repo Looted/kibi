@@ -1315,8 +1315,6 @@ symbols:
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
       - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
-      - type: implements
         target: REQ-mcp-semantic-advisor-preflight
   - id: SYM-extractSemanticClauses
     title: extractSemanticClauses
@@ -1331,8 +1329,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-semanticClaimKey
     title: semanticClaimKey
     sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
@@ -2420,8 +2416,6 @@ symbols:
         target: REQ-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-cli-persistRelationships
     title: persistRelationships
     sourceFile: packages/cli/src/commands/sync/persistence.ts
@@ -4289,8 +4283,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-executeValidateUpsert
     title: executeValidateUpsert
     status: active
@@ -5522,8 +5514,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-core-extractors
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-markdown-extractFromMarkdownString
     title: extractFromMarkdownString
     sourceFile: packages/cli/src/extractors/markdown.ts
@@ -5543,8 +5533,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-core-extractors
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-markdown-FrontmatterError-hint
     title: FrontmatterError.hint
     sourceFile: packages/cli/src/extractors/markdown.ts
@@ -6997,8 +6985,6 @@ symbols:
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-mutation-entity-types-schema
     title: ENTITY_TYPES
     status: active
@@ -8663,8 +8649,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
   - id: SYM-semantic-advisor-commaList
@@ -14746,8 +14730,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-cli-semantic-advisor-SemanticProposition
     title: SemanticProposition
     sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
@@ -14814,8 +14796,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-cli-mutation-serialization-buildRelationshipMetadata
     title: buildRelationshipMetadata
     status: active
@@ -14988,8 +14968,6 @@ symbols:
         target: REQ-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-legacy-migration-preview-v2
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-core-relationship-type
     title: relationship_type
     sourceFile: packages/core/schema/relationships.pl
@@ -15065,36 +15043,14 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-complete-proposition-ledgers
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-legacy-migration-preview-v2
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
-  - id: SYM-semantic-source-hash
-    title: semanticSourceHash
-    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
-  - id: SYM-semantic-clauses-of
-    title: semanticClausesOf
-    sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-assert-semantic-inventory-boundary
     title: assertSemanticInventoryBoundary
     sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
@@ -15102,12 +15058,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-complete-proposition-ledgers
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kb-upsert-ledger-contract-in-error
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-assert-logical-grounding-claim-keys
     title: assertLogicalGroundingClaimKeys
     sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
@@ -15115,25 +15071,14 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-complete-proposition-ledgers
       - type: covered_by
         target: TEST-cli-symbol-link-guidance
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
-      - type: implements
         target: REQ-kibi-symbol-link-guidance
-  - id: SYM-effective-requirement-relationships
-    title: effectiveRelationships
-    sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-requirement-semantic-text
     title: requirementSemanticText
     sourceFile: packages/cli/src/extractors/markdown.ts
@@ -15147,30 +15092,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-legacy-migration-preview-v2
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
-  - id: SYM-read-sync-semantic-cache
-    title: readSyncCache
-    sourceFile: packages/cli/src/commands/sync/cache.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
-  - id: SYM-write-sync-semantic-cache
-    title: writeSyncCache
-    sourceFile: packages/cli/src/commands/sync/cache.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-test-packed-proposition-ingestion
     title: packedCliEnforcesPropositionCompleteIngestion
     status: active
@@ -15666,39 +15587,6 @@ symbols:
         target: TEST-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-conservative-requirement-proof
-  - id: SYM-reqcompiler-sync-cache-key
-    title: toCacheKey
-    sourceFile: packages/cli/src/commands/sync/cache.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
-  - id: SYM-reqcompiler-sync-cache-hash-file
-    title: hashFile
-    sourceFile: packages/cli/src/commands/sync/cache.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
-  - id: SYM-reqcompiler-sync-cache-copy
-    title: copySyncCache
-    sourceFile: packages/cli/src/commands/sync/cache.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-reqcompiler-sync-cache-version
     title: SYNC_CACHE_VERSION
     sourceFile: packages/cli/src/commands/sync/cache.ts
@@ -15725,8 +15613,6 @@ symbols:
         target: TEST-proof-sync-cache-ttl
       - type: implements
         target: REQ-ingestion-inventory-settings
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-cli-report-command
     title: reportCommand
     status: active
@@ -15927,8 +15813,6 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-test-sync-semantic-boundary-shards
     title: uses canonical relationship shards for semantic boundary validation
     status: active
@@ -20166,8 +20050,10 @@ symbols:
     sourceFile: packages/cli/src/commands/sync.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
       - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
+        target: REQ-kibi-legacy-ledger-baseline
       - type: covered_by
         target: TEST-cli-branch-store-recovery
   - id: SYM-sync-relationship-key
@@ -30181,12 +30067,12 @@ symbols:
       ref: 'search lane round 3 follow-up: analyze-time claim-key drift warning'
       recorded_at: 2026-10-13T12:39:26.310Z
     relationships:
+      - type: implements
+        target: REQ-kibi-complete-proposition-ledgers
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-init-helpers-kibi-hook-begin
     title: KIBI_HOOK_BEGIN
     status: active
@@ -31008,10 +30894,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-complete-proposition-ledgers
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-staged-inventory-drift-stagedStatementDriftViolations
     title: stagedStatementDriftViolations
     status: active
@@ -31021,10 +30907,10 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T10:45:00.000Z
     relationships:
+      - type: implements
+        target: REQ-kibi-complete-proposition-ledgers
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-merge-driver-setup-manifestMergeDriverGaps
     title: manifestMergeDriverGaps
     status: active
@@ -33235,10 +33121,10 @@ symbols:
       kind: agent
       recorded_at: 2026-10-20T12:29:16.661Z
     relationships:
+      - type: implements
+        target: REQ-kibi-legacy-ledger-baseline
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
-      - type: implements
-        target: REQ-kibi-proposition-complete-ingestion
   - id: SYM-e2e-skillopt-host-neutral-optimization
     title: skillopt-host-neutral-optimization.e2e
     status: active

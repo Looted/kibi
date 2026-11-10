@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-dfe3871d3101
-    type: covered_by
-    from: SYM-effective-requirement-relationships
-    to: TEST-kibi-proposition-complete-ingestion
-    created_at: "2026-08-16T18:52:06.541Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-cli-engine-client-query
     to: TEST-core-journaled-engine-lifecycle

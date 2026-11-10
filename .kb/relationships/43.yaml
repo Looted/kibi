@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f305ea2fc416
+  - type: assumes
+    from: SCEN-NEG-kibi-legacy-ledger-baseline-CHANGED-LEGACY-BASELINED
+    to: FACT-NEG-kibi-legacy-ledger-baseline-CHANGED-LEGACY-BASELINED
+    created_at: 2026-11-10T09:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d62df1766f90
+  - type: verified_by
+    from: SCEN-NEG-kibi-legacy-ledger-baseline-CHANGED-LEGACY-BASELINED
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-11-10T09:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d901b619fe1d
