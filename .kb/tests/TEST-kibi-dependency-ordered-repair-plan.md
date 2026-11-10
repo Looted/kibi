@@ -60,6 +60,45 @@ proof_receipts:
           status: unavailable
     kind: e2e
     evidence_level: tested
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-108bb010229a80851d5c17b8
+    test_id: TEST-kibi-dependency-ordered-repair-plan
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 8dae6bc7a9ca3627ea366d4c86d263010d5310eba02d24f316141811b9c2aff0
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-10T18:04:01.031Z'
+    finished_at: '2026-11-10T18:05:33.287Z'
+    artifact_digest: 9f2c985629429ac6db38c66322dc33829daa218b0baf2a8eeabfe1f66d4630a5
+    contract_hash: 96e6ad53540d1eeb56b046e41503b337fb0ae29fe85536c0e0d0d0da91f38240
+    binding_hash: 1866a2c27826815a4a61b81fc99caf66bff0475fcbd3e1fd1864d67cd0ec4a6a
+    fingerprint: b63eb23b0af935e81ed7d751ddd81a5883a5f018024a41cf23fb76b1df569d1f
+    fingerprint_components:
+      contract: 96e6ad53540d1eeb56b046e41503b337fb0ae29fe85536c0e0d0d0da91f38240
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-test-packed-dependency-ordered-repair-plan
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-test-packed-dependency-ordered-repair-plan
+        target: default
+        reason: 'run did not pass (outcome: failed, phase: execution); this obligation''s own result outcome is ''failed'''
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6
