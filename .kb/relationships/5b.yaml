@@ -153,13 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c56e2dfeb793
-  - type: implements
-    from: SYM-impact-stage-e-snapshotfilecontent
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:48:33.698Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7635acdb7729
   - type: specified_by
     from: REQ-kibi-evidence-floors
     to: SCEN-kibi-evidence-floors

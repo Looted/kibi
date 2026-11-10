@@ -265,3 +265,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83e566379e7a
+  - type: requires_rule
+    from: REQ-kibi-impact-receipts-advisories-opt-in
+    to: FACT-RULE-9BC2A7402721618D
+    created_at: 2026-11-10T08:01:34.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b45c0e84d9cf
+  - type: requires_rule
+    from: REQ-kibi-impact-receipts-advisories-opt-in
+    to: FACT-RULE-7188911010D7BEE2
+    created_at: 2026-11-10T08:01:34.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77e3b182d6a7
+  - type: requires_rule
+    from: REQ-kibi-impact-receipts-advisories-opt-in
+    to: FACT-RULE-A818908A6FA02606
+    created_at: 2026-11-10T08:01:34.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0615889e729e
+  - type: specified_by
+    from: REQ-kibi-impact-receipts-advisories-opt-in
+    to: SCEN-impact-policy-stage-e-installed-consumer
+    created_at: 2026-11-10T08:01:34.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2d400fed226
+  - type: specified_by
+    from: REQ-kibi-impact-receipts-advisories-opt-in
+    to: SCEN-NEG-kibi-impact-receipts-advisories-opt-in-NO-POLICY
+    created_at: 2026-11-10T08:01:34.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc049e168446
+  - type: verified_by
+    from: REQ-kibi-impact-receipts-advisories-opt-in
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-10T08:01:34.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b7b21ad21de
+  - type: verified_by
+    from: REQ-kibi-impact-receipts-advisories-opt-in
+    to: TEST-cli-impact-policy-opt-in-unit
+    created_at: 2026-11-10T08:01:34.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc5a1c091f26
+  - type: supersedes
+    from: REQ-kibi-impact-receipts-advisories-opt-in
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-11-10T08:01:34.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8284c5ceab7f

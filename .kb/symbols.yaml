@@ -23470,20 +23470,6 @@ symbols:
         target: TEST-impact-public-preparation-parity
       - type: implements
         target: REQ-impact-review-public-preparation
-  - id: SYM-impact-stage-e-assertsha256
-    title: assertSha256
-    status: active
-    tags:
-      - multilingual
-      - impact-policy
-      - stage-e
-    sourceFile: packages/cli/src/traceability/impact-review.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-asserttrustedpullrequestbaseline
     title: assertTrustedPullRequestBaseline
     tags:
@@ -23494,10 +23480,10 @@ symbols:
     sourceFile: packages/cli/src/traceability/impact-pr-diff.ts
     status: active
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-aggregate-pr-gate
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-checkdiffcommand
     title: checkDiffCommand
     status: active
@@ -23508,10 +23494,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check-diff.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-aggregate-pr-gate
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-createimpactreviewpreparationworkspace
     title: createImpactReviewPreparationWorkspace
     tags:
@@ -23534,10 +23520,10 @@ symbols:
     sourceFile: packages/cli/src/traceability/impact-evaluator.ts
     status: active
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-review-content-bound
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-evaluateimpactreview
     title: evaluateImpactReview
     status: active
@@ -23548,24 +23534,10 @@ symbols:
     sourceFile: packages/cli/src/traceability/impact-evaluator.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-review-content-bound
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-fingerprintbytes
-    tags:
-      - multilingual
-      - impact-policy
-      - stage-e
-    symbol_role: behavioral
-    title: fingerprintBytes
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-review.ts
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-hasvalidbaseimpactpolicy
     title: hasValidBaseImpactPolicy
     tags:
@@ -23576,10 +23548,10 @@ symbols:
     sourceFile: packages/cli/src/traceability/impact-policy.ts
     status: active
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-receipts-advisories-opt-in
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-impact-evaluator-version
     tags:
       - multilingual
@@ -23644,20 +23616,6 @@ symbols:
         target: TEST-proof-impact-review-version
       - type: implements
         target: REQ-impact-review-identifiers
-  - id: SYM-impact-stage-e-impactpolicyfingerprint
-    symbol_role: behavioral
-    tags:
-      - multilingual
-      - impact-policy
-      - stage-e
-    title: impactPolicyFingerprint
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-policy.ts
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-impactreviewinventory
     title: impactReviewInventory
     status: active
@@ -23672,20 +23630,6 @@ symbols:
         target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
         target: REQ-impact-review-public-preparation
-  - id: SYM-impact-stage-e-parseimpactpolicy
-    title: parseImpactPolicy
-    tags:
-      - multilingual
-      - impact-policy
-      - stage-e
-    symbol_role: behavioral
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-review.ts
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-prepareimpactreview
     title: prepareImpactReview
     status: active
@@ -23722,10 +23666,10 @@ symbols:
     title: resolveTrustedPullRequestSnapshot
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-aggregate-pr-gate
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-snapshotfilecontent
     title: snapshotFileContent
     tags:
@@ -23736,10 +23680,10 @@ symbols:
     sourceFile: packages/cli/src/public/operations/proof-receipt-projection.ts
     status: active
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-receipts-advisories-opt-in
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-parser-unit-worker-coverage
     title: runParserUnitCoverage
     status: active
@@ -24047,26 +23991,6 @@ symbols:
         target: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
       - type: implements
         target: REQ-tree-sitter-language-authoring-scaffold
-  - id: SYM-impact-stage-e-createmaintenancesourceanalysisservice
-    title: createMaintenanceSourceAnalysisService
-    status: active
-    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-fingerprintmaintenancesourceset
-    title: fingerprintMaintenanceSourceSet
-    status: active
-    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-source-analysis-v2-providerbudgetms
     title: providerBudgetMs
     status: active
@@ -24133,180 +24057,80 @@ symbols:
     sourceFile: packages/cli/src/traceability/impact-evaluator.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-review-content-bound
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-blobbytes
-    title: blobBytes
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-git-tree.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-entriesfortree
     title: entriesForTree
     status: active
     sourceFile: packages/cli/src/traceability/impact-git-tree.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-aggregate-pr-gate
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-treeentry
-    title: treeEntry
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-git-tree.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-entityrowswithrelationships
-    title: entityRowsWithRelationships
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-rawknowledgefingerprint
-    title: rawKnowledgeFingerprint
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-requirementscope
-    title: requirementScope
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-semanticknowledgefingerprint
     title: semanticKnowledgeFingerprint
     status: active
     sourceFile: packages/cli/src/traceability/impact-knowledge.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-review-content-bound
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-approvedpartialclass
     title: approvedPartialClass
     status: active
     sourceFile: packages/cli/src/traceability/impact-policy.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-review-content-bound
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-recordfromcapturedtree
-    title: recordFromCapturedTree
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-record-validation.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-same
-    title: same
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-record-validation.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-validateanalysisreviews
     title: validateAnalysisReviews
     status: active
     sourceFile: packages/cli/src/traceability/impact-record-validation.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-review-content-bound
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-validatedecisionagainstsnapshot
     title: validateDecisionAgainstSnapshot
     status: active
     sourceFile: packages/cli/src/traceability/impact-record-validation.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-review-content-bound
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-assertanalysisinput
-    title: assertAnalysisInput
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-exactpathprojection
-    title: exactPathProjection
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-isreceiptonlychange
     title: isReceiptOnlyChange
     status: active
     sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-receipts-advisories-opt-in
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-projectedpathevidence
-    title: projectedPathEvidence
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-sideevidence
     title: sideEvidence
     status: active
     sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-impact-review-content-bound
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-source-analysis-v2-createtreesittersymbolextractor
     title: createTreeSitterSymbolExtractor
     status: active
@@ -44030,3 +43854,21 @@ symbols:
         target: REQ-kibi-engine-guarded-migration
       - type: covered_by
         target: TEST-core-journaled-engine-persistence
+  - id: SYM-unit-test-cli-impact-aggregate-gate
+    title: impact-pr-diff.test
+    status: active
+    sourceFile: packages/cli/tests/traceability/impact-pr-diff.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-impact-aggregate-gate-unit
+  - id: SYM-unit-test-cli-impact-policy-opt-in
+    title: impact-policy.test
+    status: active
+    sourceFile: packages/cli/tests/traceability/impact-policy.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-impact-policy-opt-in-unit

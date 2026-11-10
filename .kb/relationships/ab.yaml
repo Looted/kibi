@@ -409,3 +409,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8fd5e9d784d8
+  - type: assumes
+    from: SCEN-NEG-kibi-impact-aggregate-pr-gate-POLICY-WEAKENING
+    to: FACT-NEG-kibi-impact-aggregate-pr-gate-POLICY-WEAKENING
+    created_at: 2026-11-10T14:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a42be458c466
+  - type: verified_by
+    from: SCEN-NEG-kibi-impact-aggregate-pr-gate-POLICY-WEAKENING
+    to: TEST-cli-impact-aggregate-gate-unit
+    created_at: 2026-11-10T14:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a99af8a5a0cf

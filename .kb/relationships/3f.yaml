@@ -160,20 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af4ae37ba8b3
-  - type: implements
-    from: SYM-impact-stage-e-assertanalysisinput
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-30T15:23:39.435Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9ed641f2c8af
-  - type: covered_by
-    from: SYM-impact-stage-e-assertanalysisinput
-    to: TEST-impact-policy-stage-e-installed-e2e
-    created_at: 2026-09-30T15:23:39.454Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-269f4828a1c1
   - type: executable_for
     from: SYM-test-sync-agent-skills
     to: TEST-skillopt-external-adoption-verdict

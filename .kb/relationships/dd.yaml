@@ -175,13 +175,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-97c0af666633
   - type: implements
-    from: SYM-impact-stage-e-resolvetrustedpullrequestsnapshot
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:47:26.582Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cc40297a19bf
-  - type: implements
     from: SYM-cli-require-operation-metadata
     to: REQ-kibi-operation-interface-parity
     created_at: 2026-09-28T08:28:50.135Z

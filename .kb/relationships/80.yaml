@@ -175,13 +175,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0c3da50408fa
   - type: implements
-    from: SYM-impact-stage-e-checkdiffcommand
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:35:59.537Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-75d31af14fcf
-  - type: implements
     from: SYM-source-analysis-v2-analysisobligation
     to: REQ-source-analysis-v2
     created_at: 2026-09-30T15:22:15.094Z
