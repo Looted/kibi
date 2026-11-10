@@ -472,3 +472,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5580a58452b6
+  - type: requires_predicate
+    from: REQ-kb-dependency-lock-command
+    to: FACT-PRED-kb-dependencies-lock-command
+    created_at: 2026-11-10T14:59:38.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87445d676ce3
+  - type: specified_by
+    from: REQ-kb-dependency-lock-command
+    to: SCEN-kb-dependencies-git
+    created_at: 2026-11-10T14:59:38.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20fa7ae25655
+  - type: specified_by
+    from: REQ-kb-dependency-lock-command
+    to: SCEN-NEG-kb-dependencies-git-refused
+    created_at: 2026-11-10T14:59:38.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09922ad3f0c3
+  - type: verified_by
+    from: REQ-kb-dependency-lock-command
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-10T14:59:38.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f20f3f4acf67
+  - type: supersedes
+    from: REQ-kb-dependency-lock-command
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-10T15:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e2958117fb3

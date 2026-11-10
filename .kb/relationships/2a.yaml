@@ -111,17 +111,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8102d81a0a73
-  - type: implements
-    from: SYM-kb-dependency-scope-kb-dependency-env
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:56:56.180Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-08afc04c53b8
-  - type: covered_by
-    from: SYM-kb-dependency-scope-kb-dependency-env
-    to: TEST-kb-dependencies-git
-    created_at: 2026-11-04T10:56:56.196Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8cf1fd48eb7f

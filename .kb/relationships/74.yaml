@@ -314,13 +314,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dc2d78ca6fc0
-  - type: implements
-    from: SYM-deps-deps-lock-command
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:53:26.616Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8310fbcd0b84
   - type: covered_by
     from: SYM-deps-deps-lock-command
     to: TEST-kb-dependencies-git
@@ -328,13 +321,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5916bdce8de3
-  - type: implements
-    from: SYM-kb-dependency-scope-kb-dependency-argument
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:57:02.374Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ac9d5a7c5152
   - type: covered_by
     from: SYM-kb-dependency-scope-kb-dependency-argument
     to: TEST-kb-dependencies-git

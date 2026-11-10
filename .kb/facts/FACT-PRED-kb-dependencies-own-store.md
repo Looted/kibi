@@ -14,7 +14,7 @@ canonical_key: kb_dependency_policy(kb_dependency_read,answer_source,dependency_
 polarity: assert
 claim_key: CLAIM-7B6800923B7B00A8
 claim_text: Kibi must answer a read scoped to a KB dependency from that dependency's own read-only branch store, never from or into the project's KB
-text_ref: .kb/requirements/REQ-kb-dependencies-git.md
+text_ref: .kb/requirements/REQ-kb-dependency-read-scope.md
 origin:
   kind: agent
   recorded_at: '2026-11-04T10:41:13.774Z'

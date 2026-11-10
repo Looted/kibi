@@ -209,13 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5ac9c3f13b44
-  - type: implements
-    from: SYM-deps-deps-fetch-command
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:53:22.013Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5d6b7853d4da
   - type: covered_by
     from: SYM-deps-deps-fetch-command
     to: TEST-kb-dependencies-git
@@ -286,3 +279,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d3f6e9d79e8
+  - type: requires_predicate
+    from: REQ-kb-dependency-pinned-commit
+    to: FACT-PRED-kb-dependencies-pinned-commit
+    created_at: 2026-11-10T14:58:02.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69a7bbd869d4
+  - type: specified_by
+    from: REQ-kb-dependency-pinned-commit
+    to: SCEN-kb-dependencies-git
+    created_at: 2026-11-10T14:58:02.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae5f5c4ee126
+  - type: specified_by
+    from: REQ-kb-dependency-pinned-commit
+    to: SCEN-NEG-kb-dependencies-git-refused
+    created_at: 2026-11-10T14:58:02.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69cc752644f8
+  - type: verified_by
+    from: REQ-kb-dependency-pinned-commit
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-10T14:58:02.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b570e919d14c
+  - type: supersedes
+    from: REQ-kb-dependency-pinned-commit
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-10T15:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f572bcb27913

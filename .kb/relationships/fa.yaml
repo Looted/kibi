@@ -174,17 +174,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-60cce5194010
-  - type: implements
-    from: SYM-cli-update-check-update-cache-path
-    to: REQ-kibi-update-notice
-    created_at: 2026-11-04T13:24:01.662Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-afbfdcfcd711
-  - type: covered_by
-    from: SYM-cli-update-check-update-cache-path
-    to: TEST-kibi-update-notice
-    created_at: 2026-11-04T13:24:01.696Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c57e4d38883c

@@ -328,34 +328,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ed7bbec8026
-  - type: implements
-    from: SYM-kb-dependencies-kb-dependency-status
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:55:41.171Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cb7280f94e92
-  - type: covered_by
-    from: SYM-kb-dependencies-kb-dependency-status
-    to: TEST-kb-dependencies-git
-    created_at: 2026-11-04T10:55:41.198Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3086298e9049
-  - type: implements
-    from: SYM-workspace-router-workspace-router-route-kb-dependency
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:57:40.054Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3e4e07f9e491
-  - type: covered_by
-    from: SYM-workspace-router-workspace-router-route-kb-dependency
-    to: TEST-kb-dependencies-git
-    created_at: 2026-11-04T10:57:40.080Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eff185f853f3
   - type: assumes
     from: SCEN-docs-site-terminal-demo
     to: FACT-docs-site-terminal-demo-shared

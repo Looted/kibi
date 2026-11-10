@@ -14,7 +14,7 @@ canonical_key: kb_dependency_policy(kb_dependency_read,declared_dependency,pinne
 polarity: assert
 claim_key: CLAIM-369DC965CC50460A
 claim_text: Kibi must read a KB dependency declared in .kb/dependencies.json only at the commit pinned for it in .kb/dependencies.lock.json
-text_ref: .kb/requirements/REQ-kb-dependencies-git.md
+text_ref: .kb/requirements/REQ-kb-dependency-pinned-commit.md
 origin:
   kind: agent
   recorded_at: '2026-11-04T10:41:11.901Z'
