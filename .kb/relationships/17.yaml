@@ -18,26 +18,12 @@ relationships:
     created_by: migration/adr-017
     source: documentation/tests/TEST-005.md
   - type: covered_by
-    from: SYM-cli-discovery-attached-branch
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.163Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f98c5fa4d171
-  - type: covered_by
     from: SYM-setPrologFactory
     to: TEST-cli-staged-impact-enforcement
     created_at: 2026-09-05T15:18:43.346Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f52a38737077
-  - type: covered_by
-    from: SYM-cli-discovery-attached-branch
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:28:07.559Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-393580f06999
   - type: covered_by
     from: SYM-register-proof-command
     to: TEST-kibi-verification-evidence-contract

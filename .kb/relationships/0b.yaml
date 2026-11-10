@@ -104,20 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eee187209e62
-  - type: implements
-    from: SYM-run-janitor
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:39:39.117Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7155f405a525
-  - type: covered_by
-    from: SYM-run-janitor
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:39:39.126Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4a9e6385450a
   - type: executable_for
     from: SYM-test-bootstrap-apply-long-running
     to: TEST-bootstrap-apply-long-running

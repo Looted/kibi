@@ -34,13 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-612e1884d289
-  - type: implements
-    from: SYM-mcp-discovery-context
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-08-22T20:28:13.317Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f00897e06b8b
   - type: covered_by
     from: SYM-mcp-discovery-context
     to: TEST-kibi-operation-interface-parity

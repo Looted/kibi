@@ -1,7 +1,7 @@
 ---
 id: REQ-core-journaled-engine-persistence
 title: Journaled single-writer engine persistence
-status: open
+status: closed
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
 source: packages/core/src/kb.pl
@@ -91,7 +91,7 @@ links:
     target: FACT-JOURNALED-ENGINE-DELTA-SYNC
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 type: req
 ---

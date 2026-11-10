@@ -125,20 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-680029655fe5
-  - type: implements
-    from: SYM-source-authoring-restore-file-times
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-10-14T10:13:38.771Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5c80083e8fb4
-  - type: covered_by
-    from: SYM-source-authoring-restore-file-times
-    to: TEST-core-atomic-upsert-persistence
-    created_at: 2026-10-14T10:13:38.792Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6a01425f5117
   - type: requires_property
     from: REQ-bootstrap-claim-restatement-threshold
     to: FACT-bootstrap-claim-restatement-near-jaccard

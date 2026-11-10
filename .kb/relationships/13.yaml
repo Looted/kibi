@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5f0b97ecbca6
+  - type: assumes
+    from: SCEN-NEG-kibi-engine-durable-transactions-PARTIAL-COMMIT
+    to: FACT-NEG-kibi-engine-durable-transactions-PARTIAL-COMMIT
+    created_at: 2026-11-10T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5988345fd2a
+  - type: verified_by
+    from: SCEN-NEG-kibi-engine-durable-transactions-PARTIAL-COMMIT
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-11-10T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26fbbfabd8df

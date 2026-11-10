@@ -17,13 +17,6 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/flags/FLAG-001.md
-  - type: covered_by
-    from: SYM-core-journaled-search-index
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-08-16T19:47:07.421Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-67c90b0e8deb
   - type: implements
     from: SYM-operation-model-requirement-spec
     to: REQ-kibi-operation-interface-parity
@@ -52,13 +45,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73dd369316a5
-  - type: covered_by
-    from: SYM-core-journaled-search-index
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:32:55.760Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-20d1148ac6a3
   - type: covered_by
     from: SYM-mcp-startup-resolution-compareMcpResolution
     to: TEST-cursor-agent-plugin-v1
@@ -346,3 +332,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aaed12bb67c1
+  - type: constrains
+    from: REQ-kibi-engine-single-writer-protocol
+    to: FACT-kibi-engine-journal-component
+    created_at: 2026-11-10T07:25:49.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c13890283937
+  - type: requires_property
+    from: REQ-kibi-engine-single-writer-protocol
+    to: FACT-JOURNALED-ENGINE-SINGLE-WRITER
+    created_at: 2026-11-10T07:25:49.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d6b0edb0cc9
+  - type: requires_predicate
+    from: REQ-kibi-engine-single-writer-protocol
+    to: FACT-JOURNALED-ENGINE-PROTOCOL
+    created_at: 2026-11-10T07:25:49.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca3b24635f5b
+  - type: specified_by
+    from: REQ-kibi-engine-single-writer-protocol
+    to: SCEN-core-journaled-engine-lifecycle
+    created_at: 2026-11-10T07:25:49.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-440aa7c5f40c
+  - type: specified_by
+    from: REQ-kibi-engine-single-writer-protocol
+    to: SCEN-CASE-core-journaled-engine-persistence-NO-WRITER
+    created_at: 2026-11-10T07:25:49.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1aaba1523cfc
+  - type: specified_by
+    from: REQ-kibi-engine-single-writer-protocol
+    to: SCEN-CASE-core-journaled-engine-persistence-SECOND-WRITER
+    created_at: 2026-11-10T07:25:50.011Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bfd21b59539
+  - type: verified_by
+    from: REQ-kibi-engine-single-writer-protocol
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-11-10T07:25:50.028Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-923a55c435d7
+  - type: supersedes
+    from: REQ-kibi-engine-single-writer-protocol
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-11-10T07:25:50.045Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8197f8f4e1ab

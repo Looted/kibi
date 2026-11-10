@@ -25,20 +25,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-4d0ec55034fa
   - type: implements
-    from: SYM-cli-engine-publication-lease-acquire
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-08-16T21:08:52.543Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5eba913ec94a
-  - type: covered_by
-    from: SYM-cli-engine-publication-lease-acquire
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T21:08:52.553Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ad00cfa510d3
-  - type: implements
     from: SYM-canonical-loadEntityPaths
     to: REQ-cli-init-canonical
     created_at: 2026-08-18T17:01:33.863Z
@@ -87,13 +73,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-79f76122a3ea
-  - type: covered_by
-    from: SYM-cli-engine-publication-lease-acquire
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:30:41.898Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e1b0cc5106f2
   - type: covered_by
     from: SYM-modeling-predicate-inference-3-inferEnforcementLocationRuleArgs
     to: TEST-mcp-suggest-predicates

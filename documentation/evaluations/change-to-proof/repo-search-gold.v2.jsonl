@@ -26,7 +26,7 @@
 {"id":"repo-subject-keys","query":"how should subject keys be chosen for semantic facts?","expectedIds":["REQ-kibi-subject-vocabulary"]}
 {"id":"repo-sync-import","query":"how does kibi sync discover and import entities from source files?","expectedIds":["REQ-kibi-sync-canonical-discovery"],"supersededIds":["REQ-cli-sync","REQ-003","REQ-cli-canonical-runtime"]}
 {"id":"repo-symbol-granularity","query":"must symbol traceability always link the narrowest symbol?","expectedIds":["REQ-symbol-behavioral-anchors"],"supersededIds":["REQ-symbol-granularity"]}
-{"id":"repo-rdf-persistency","query":"how does Kibi persist the KB with rdf_persistency?","expectedIds":["REQ-core-journaled-engine-persistence"],"supersededIds":["REQ-core-persistence","REQ-009","REQ-core-atomic-upsert-persistence"]}
+{"id":"repo-rdf-persistency","query":"how does Kibi persist the KB with rdf_persistency?","expectedIds":["REQ-kibi-engine-durable-transactions"],"supersededIds":["REQ-core-journaled-engine-persistence","REQ-core-persistence","REQ-009","REQ-core-atomic-upsert-persistence"]}
 {"id":"repo-vscode-sidebar","query":"what does the VS Code tree view sidebar show?","expectedIds":["REQ-vscode-sidebar-kb-tree"],"supersededIds":["REQ-010"]}
 {"id":"repo-receipts-v2","query":"how are proof receipts v2 validated for E2E tests?","expectedIds":["REQ-kibi-fresh-verification-receipts-v2"],"supersededIds":["REQ-kibi-verification-receipts-v2","REQ-kibi-fresh-verification-receipts"]}
 {"id":"repo-branch-copy","query":"does a new branch copy the default branch KB when it is first checked out?","expectedIds":["REQ-kibi-exact-branch-identity"],"supersededIds":["REQ-012","REQ-branch-store-recovery-v2","REQ-branch-store-recovery-v3","REQ-branch-store-recovery-v4"]}

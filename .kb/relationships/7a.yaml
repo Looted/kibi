@@ -13,13 +13,6 @@ relationships:
     created_at: "2026-08-15T12:41:40.306Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-cli-storage-export-command
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-08-16T19:47:07.435Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d22bd1745cea
   - type: specified_by
     from: REQ-020
     to: SCEN-release-automation
@@ -83,13 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c04de1570b51
-  - type: covered_by
-    from: SYM-cli-storage-export-command
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:32:01.005Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-664b17aaa804
   - type: covered_by
     from: SYM-skillopt-with-exclusive-adoption-lock
     to: TEST-skillopt-automatic-adoption

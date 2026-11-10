@@ -1,11 +1,4 @@
 relationships:
-  - type: covered_by
-    from: SYM-core-journaled-indexes
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-08-16T19:47:07.410Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b8498e717d73
   - type: specified_by
     from: REQ-mcp-tag-filtering-server-side
     to: SCEN-mcp-tag-filtering-server-side
@@ -97,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a6e825200312
-  - type: covered_by
-    from: SYM-core-journaled-indexes
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:32:46.626Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eb4b2b15dff9
   - type: covered_by
     from: SYM-semantic-advisor-detectCountStrictSuggestion
     to: TEST-mcp-semantic-advisor-preflight
