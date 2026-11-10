@@ -87,20 +87,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fe98bc2a629
-  - type: implements
-    from: SYM-skillopt-cursor-sha256-text
-    to: REQ-skillopt-cursor-compat
-    created_at: 2026-08-24T17:25:49.524Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6f31dc2471cd
-  - type: covered_by
-    from: SYM-skillopt-cursor-sha256-text
-    to: TEST-skillopt-cursor-compat
-    created_at: 2026-08-25T19:52:18.526Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-71da851053ea
   - type: constrains
     from: REQ-cli-usage-metrics-v1
     to: FACT-SUBJ-REQ-CLI-USAGE-METRICS-V1

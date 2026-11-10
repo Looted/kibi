@@ -83,20 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8f75f62e9b3e
-  - type: implements
-    from: SYM-skillopt-cursor-qualification-error-name
-    to: REQ-skillopt-cursor-compat
-    created_at: 2026-08-24T17:25:40.269Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-219c3550f2d2
-  - type: covered_by
-    from: SYM-skillopt-cursor-qualification-error-name
-    to: TEST-skillopt-cursor-compat
-    created_at: 2026-08-25T19:51:54.582Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-36eab386a881
   - type: constrains
     from: REQ-cursor-stop-job-vs-plan
     to: FACT-SUBJ-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1

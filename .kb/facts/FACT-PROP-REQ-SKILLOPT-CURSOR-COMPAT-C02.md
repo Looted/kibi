@@ -1,5 +1,5 @@
 ---
-title: compat commands strictly and must run the cursor compatibility lane before any p
+title: The SkillOpt cursor operator must run the cursor compatibility lane before any paid evaluation cells are spent
 status: active
 tags:
   - strict-lane
@@ -11,8 +11,8 @@ value_type: bool
 value_bool: true
 polarity: require
 canonical_key: req.req_skillopt_cursor_compat.compat_lane_runs_before_paid_cells.eq.true
-claim_key: CLAIM-D19905F495ABB7C3
-claim_text: compat commands strictly and must run the cursor compatibility lane before any paid evaluation cells are spent
+claim_key: CLAIM-D8634B4704091AEA
+claim_text: must run the cursor compatibility lane before any paid evaluation cells are spent
 id: FACT-PROP-REQ-SKILLOPT-CURSOR-COMPAT-C02
 type: fact
 origin:

@@ -55,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-11eac07d7922
-  - type: implements
-    from: SYM-skillopt-cursor-main
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-24T17:28:35.869Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9c591541b506
   - type: covered_by
     from: SYM-skillopt-cursor-main
     to: TEST-skillopt-cursor-compat

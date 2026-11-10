@@ -111,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e242d1aa83f8
-  - type: implements
-    from: SYM-migration-entity-origin-backfill-action-id
-    to: REQ-cli-schema-migration
-    created_at: 2026-10-04T17:28:46.733Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-df802a567cd0
   - type: covered_by
     from: SYM-migration-entity-origin-backfill-action-id
     to: TEST-cli-migrate

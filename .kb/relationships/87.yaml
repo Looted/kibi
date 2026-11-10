@@ -1,11 +1,4 @@
 relationships:
-  - type: implements
-    from: SYM-LATEST-KB-SCHEMA-VERSION
-    to: REQ-cli-schema-migration
-    created_at: 2026-08-18T17:36:54.435Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8b47a95a8943
   - type: covered_by
     from: SYM-LATEST-KB-SCHEMA-VERSION
     to: TEST-cli-config-schema
@@ -118,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b89f24bbe273
-  - type: implements
-    from: SYM-migrate-polarity-values-apply
-    to: REQ-cli-schema-migration
-    created_at: 2026-10-04T16:22:30.589Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-105f76a21302
   - type: constrains
     from: REQ-bootstrap-discovered-candidate-budget
     to: FACT-bootstrap-intent-claim-accounting-subject
