@@ -988,25 +988,6 @@ symbols:
         target: TEST-core-journaled-engine-delta-sync
       - type: covered_by
         target: TEST-core-journaled-engine-persistence
-  - id: SYM-001
-    title: PrologProcess
-    sourceFile: packages/cli/src/prolog.ts
-    granularity_reason: legacy-link
-    links:
-      - REQ-001
-      - REQ-core-persistence
-    status: active
-    relationships:
-      - type: covered_by
-        target: TEST-core-journaled-engine-delta-sync
-      - type: covered_by
-        target: TEST-core-journaled-engine-persistence
-      - type: covered_by
-        target: TEST-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-001
-      - type: implements
-        target: REQ-core-persistence
   - id: SYM-003
     title: handleKbQuery
     sourceFile: packages/mcp/src/tools/query.ts
@@ -10032,21 +10013,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-runtime-stage-kibi-mcp
-    title: stageKibiMcpRuntime
-    sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
-    symbol_role: behavioral
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-core-journaled-engine-delta-sync
-      - type: covered_by
-        target: TEST-core-journaled-engine-lifecycle
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-scoring-cell
     title: scoreCell
     sourceFile: scripts/skillopt-eval/scoring/cell.ts

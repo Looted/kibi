@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-4f0e9f3312d0
-    type: covered_by
-    from: SYM-001
-    to: TEST-core-journaled-engine-persistence
-    created_at: "2026-08-16T19:47:07.434Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-cli-engine-client-start
     to: TEST-core-journaled-engine-lifecycle
@@ -76,13 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-092a20dededa
-  - type: covered_by
-    from: SYM-001
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:27:52.136Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7a642932cb41
   - type: covered_by
     from: SYM-cli-engine-client-start
     to: TEST-core-journaled-engine-delta-sync

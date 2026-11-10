@@ -49,13 +49,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-e219c74eedfa
   - type: covered_by
-    from: SYM-skillopt-runtime-stage-kibi-mcp
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.171Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0697eed4276b
-  - type: covered_by
     from: SYM-node-workspace-snapshot
     to: TEST-cli-workspace-snapshot-dirtiness
     created_at: 2026-08-17T11:55:22.244Z
@@ -90,13 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c2fc88c77396
-  - type: covered_by
-    from: SYM-skillopt-runtime-stage-kibi-mcp
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:33:37.040Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5b5873cc7bf4
   - type: covered_by
     from: SYM-cli-report-command
     to: TEST-kibi-branded-health-report
