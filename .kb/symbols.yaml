@@ -1812,6 +1812,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-check-diagnostics-and-audit
       - type: covered_by
         target: TEST-audit-quality-diagnostics-v1
       - type: covered_by
@@ -1824,8 +1826,6 @@ symbols:
         target: TEST-mcp-quality-diagnostics-contract
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
   - id: SYM-cli-impact-collectLinkedEntities
     title: collectLinkedEntities
     sourceFile: packages/cli/src/public/impact/summaries.ts
@@ -2482,8 +2482,6 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
   - id: SYM-cli-register-reporting-commands
     title: registerReportingCommands
     status: active
@@ -3573,6 +3571,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: implements
+        target: REQ-kibi-telemetry-check-diagnostics-and-audit
+      - type: implements
         target: REQ-kibi-diagnostic-usage-records
       - type: covered_by
         target: TEST-005
@@ -3582,8 +3582,6 @@ symbols:
         target: TEST-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
   - id: SYM-deriveFileOperationReminder
     title: deriveFileOperationReminder
     status: active
@@ -6781,8 +6779,6 @@ symbols:
         target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-kibi-operation-interface-parity
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
   - id: SYM-operation-find-gaps-spec
     title: findGapsSpec
     status: active
@@ -13497,14 +13493,14 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-report-verdict
       - type: covered_by
         target: TEST-cli-usage-metrics-v1
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-cli-usage-metrics-v1
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
     links:
       - REQ-cli-usage-metrics-v1
   - id: SYM-ValidatedUpsertArgs
@@ -14743,13 +14739,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: implements
+        target: REQ-kibi-telemetry-correlation-and-lookup-metrics
+      - type: implements
         target: REQ-kibi-telemetry-evidence-correlation
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
   - id: SYM-telemetry-acceptance-diagnostics
     title: createTelemetryAcceptanceDiagnostics
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
@@ -14757,10 +14753,10 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-check-diagnostics-and-audit
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
   - id: SYM-telemetry-acceptance-parse-log
     title: parseTelemetryUsageLog
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
@@ -14768,12 +14764,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-report-verdict
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-claude-hook-usage-telemetry-v2
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
   - id: SYM-test-packed-telemetry-acceptance
     title: assertAcceptanceStatus
     sourceFile: documentation/tests/e2e/packed/telemetry-acceptance-gate.test.ts
@@ -14972,8 +14968,6 @@ symbols:
         target: TEST-proof-telemetry-preflight-age
       - type: covered_by
         target: TEST-proof-telemetry-retry-threshold
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
       - type: implements
         target: REQ-kibi-telemetry-acceptance-thresholds
   - id: SYM-reqcompiler-remediation-version
@@ -21763,13 +21757,13 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: implements
+        target: REQ-kibi-telemetry-check-diagnostics-and-audit
+      - type: implements
         target: REQ-kibi-diagnostic-usage-records
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
   - id: SYM-diagnosticModeRequested
     title: diagnosticModeRequested
     status: active
@@ -25307,10 +25301,10 @@ symbols:
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
     symbol_role: behavioral
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-report-verdict
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
   - id: SYM-claude-case-usage-telemetry
     title: Opted-in hooks record session-ordered reads, edits, and Kibi calls
     status: active
@@ -26078,14 +26072,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T03:15:32.931Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-correlation-and-lookup-metrics
       - type: covered_by
         target: TEST-host-hook-usage-telemetry
       - type: covered_by
         target: TEST-opencode-tool-telemetry-acceptance
       - type: implements
         target: REQ-claude-hook-usage-telemetry-v2
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
   - id: SYM-telemetry-acceptance-firstLinkedEdits
     title: firstLinkedEdits
     status: active
@@ -26095,12 +26089,12 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T03:15:39.199Z
     relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-correlation-and-lookup-metrics
       - type: covered_by
         target: TEST-kibi-telemetry-lookup-before-first-edit
       - type: covered_by
         target: TEST-kibi-telemetry-lookup-before-first-edit-cli
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate-v2
   - id: SYM-test-kibi-entity-origin-cli
     title: Entity origin consumer suite
     status: active

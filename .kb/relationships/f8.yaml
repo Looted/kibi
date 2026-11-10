@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0cd3b5cb0728
+  - type: assumes
+    from: SCEN-NEG-kibi-telemetry-check-diagnostics-BLOCKING
+    to: FACT-NEG-kibi-telemetry-check-diagnostics-BLOCKING
+    created_at: 2026-11-10T19:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b258fa2fee5
+  - type: verified_by
+    from: SCEN-NEG-kibi-telemetry-check-diagnostics-BLOCKING
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-11-10T19:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5dc76d47169

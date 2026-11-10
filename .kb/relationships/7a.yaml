@@ -272,3 +272,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dfc369204fac
+  - type: constrains
+    from: REQ-kibi-telemetry-check-diagnostics-and-audit
+    to: FACT-SUBJECT-kibi-telemetry-acceptance
+    created_at: 2026-11-10T09:08:41.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19e0022ab328
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-check-diagnostics-and-audit
+    to: FACT-PRED-2F0C934215A2
+    created_at: 2026-11-10T09:08:41.883Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3085c11f1e20
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-check-diagnostics-and-audit
+    to: FACT-PRED-4307CB603922
+    created_at: 2026-11-10T09:08:41.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ace929a307f
+  - type: specified_by
+    from: REQ-kibi-telemetry-check-diagnostics-and-audit
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-11-10T09:08:41.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1500c2aa9a75
+  - type: specified_by
+    from: REQ-kibi-telemetry-check-diagnostics-and-audit
+    to: SCEN-NEG-kibi-telemetry-check-diagnostics-BLOCKING
+    created_at: 2026-11-10T09:08:41.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-000670ac2292
+  - type: verified_by
+    from: REQ-kibi-telemetry-check-diagnostics-and-audit
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-11-10T09:08:41.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0825e9d048c
+  - type: supersedes
+    from: REQ-kibi-telemetry-check-diagnostics-and-audit
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-11-10T09:08:41.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-972656e1cc9c

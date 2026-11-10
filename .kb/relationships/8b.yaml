@@ -182,13 +182,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b63644cf2a80
   - type: implements
-    from: SYM-telemetry-acceptance-threshold-status
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T03:07:26.848Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8ff2f781860b
-  - type: implements
     from: SYM-docs-site-terminal-demo-TERMINAL_HOLD_MS
     to: REQ-docs-site-terminal-demo
     created_at: 2026-10-06T21:26:54.113Z

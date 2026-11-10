@@ -7,7 +7,7 @@ tags:
   - acceptance
 claim_key: CLAIM-531270A744471224
 claim_text: The report must measure telemetry completeness, semantic-advisor use before requirement writes, exact validation before upserts, lookup before the first edit of requirement-linked code, source-linked zero-result rate, proof-gap recovery, E2E receipt freshness, and repeated mutation failures
-text_ref: .kb/requirements/REQ-kibi-telemetry-acceptance-gate-v2.md
+text_ref: .kb/requirements/REQ-kibi-telemetry-acceptance-report-verdict.md
 fact_kind: predicate
 predicate_name: logical_requirement_rule
 predicate_args:

@@ -1,6 +1,6 @@
 ---
 title: Usage telemetry is a conservative workflow acceptance gate that includes lookup before first edit
-status: open
+status: closed
 required_evidence: tested
 priority: must
 tags:

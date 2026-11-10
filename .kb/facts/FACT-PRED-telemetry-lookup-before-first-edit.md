@@ -8,7 +8,7 @@ tags:
   - hooks
 claim_key: CLAIM-DB97AA4726C06D6A
 claim_text: The lookup_before_first_edit metric must report, for each host session, whether kb_search or kb_query ran before the session's first edit of a requirement-linked file
-text_ref: .kb/requirements/REQ-kibi-telemetry-acceptance-gate-v2.md
+text_ref: .kb/requirements/REQ-kibi-telemetry-correlation-and-lookup-metrics.md
 fact_kind: property_value
 subject_key: kibi.telemetry.acceptance
 property_key: host_sessions_without_lookup_before_first_edit_result

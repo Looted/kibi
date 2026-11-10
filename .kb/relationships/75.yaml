@@ -223,3 +223,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-22c070f495d3
+  - type: constrains
+    from: REQ-kibi-telemetry-acceptance-report-verdict
+    to: FACT-SUBJECT-kibi-telemetry-acceptance
+    created_at: 2026-11-10T09:07:41.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66edded08695
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-report-verdict
+    to: FACT-PRED-E8FA9DDC5BEA
+    created_at: 2026-11-10T09:07:41.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ae7bf85bf8b
+  - type: requires_property
+    from: REQ-kibi-telemetry-acceptance-report-verdict
+    to: FACT-PRED-56D7C9AC1D9E
+    created_at: 2026-11-10T09:07:41.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fdf5fab5239
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-report-verdict
+    to: FACT-PRED-A4FBBF88EA6B
+    created_at: 2026-11-10T09:07:41.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b25bdc5b4ad5
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-report-verdict
+    to: FACT-PRED-telemetry-acceptance-eight-metrics
+    created_at: 2026-11-10T09:07:41.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c44c321456bf
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-report-verdict
+    to: FACT-PRED-2FD5F64B095E
+    created_at: 2026-11-10T09:07:41.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4ac6164ed38
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-report-verdict
+    to: FACT-PRED-AD0C672ED7B9
+    created_at: 2026-11-10T09:07:41.803Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-082ff8d6d890
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-report-verdict
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-11-10T09:07:41.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5377456692a
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-report-verdict
+    to: SCEN-CASE-kibi-telemetry-acceptance-gate-v2-eight-day-old-evidence
+    created_at: 2026-11-10T09:07:41.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a86255f31b79
+  - type: verified_by
+    from: REQ-kibi-telemetry-acceptance-report-verdict
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-11-10T09:07:41.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd89bfe065be
+  - type: supersedes
+    from: REQ-kibi-telemetry-acceptance-report-verdict
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-11-10T09:07:41.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59ed1bf7c42c
