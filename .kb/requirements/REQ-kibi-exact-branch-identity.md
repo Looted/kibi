@@ -69,7 +69,7 @@ Kibi must use the exact active Git branch name as the branch-local KB identity. 
 
 ## Context
 
-A branch's knowledge never silently becomes another branch's, and a broken store is never overwritten before a person sees the recovery.
+A branch's knowledge never silently becomes another branch's, and a broken store is never overwritten before a person sees the recovery. A new branch does not copy the default branch's KB when it is first checked out: kibi branch ensure creates an empty store for the exact branch, and sync compiles it from that checkout's tracked sources.
 
 
 

@@ -1,5 +1,5 @@
 ---
-title: Kibi packages are versioned through Changesets on develop
+title: Kibi npm package releases are versioned through Changesets on develop
 status: open
 semantic_text: All Kibi npm packages must share consistent semantic versioning. All release steps must be automated via Changesets. Version bumps and changelog updates must happen on develop or feature branches using bun run version-packages. If KB query is unstable, agents must consult documentation/requirements/REQ-020.md and ADRs for release policy.
 semantic_clauses:

@@ -1,5 +1,5 @@
 ---
-title: Master CI only builds and publishes the bumped Kibi versions
+title: Master CI only builds and publishes the bumped npm package versions
 status: open
 semantic_text: Master CI must build and publish newly bumped versions to npm. No commits may be made on master. Manual npm publish and manual version bumps on master are prohibited.
 semantic_clauses:
