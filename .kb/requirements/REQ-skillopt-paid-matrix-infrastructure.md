@@ -17,12 +17,12 @@ semantic_inventory:
   - claim_key: CLAIM-D74430F76F1C3BB9
     claim_text: The held-out evaluation matrix, fake-provider gateway ledger, paid-launch receipt chain, and mirror-adoption transaction machinery execute only under external supervisor launches with an installed external trust plane
     role: descriptive
-    status: missing
+    status: ontology_gap
     span:
       start: 0
       end: 217
     payload_hash: 66aede6c175e1c8b3d3e98c0242b4de594cb60a7a9412dcc50bd316bb036afeb
-    reason: No accepted typed interpretation grounds this assertive proposition.
+    reason: Where these paths execute (external supervisor launches, an installed trust plane) has no domain terms in the ontology, and the requirement is proof-exempt because repository runs cannot reach them.
   - claim_key: CLAIM-9711EF1B29ADAC33
     claim_text: Repository proof runs execute these paths only through fixture-level integration contracts with deterministic-test-fixture signatures (signatureProvenance deterministic-test-fixture and externallySigned false), because the full paths require paid model launches, root-installed verifier infrastructure, and supervisor parent processes
     role: normative
@@ -35,12 +35,12 @@ semantic_inventory:
   - claim_key: CLAIM-20BD89FCEC241DEC
     claim_text: The repository-provable fail-closed boundaries are owned by REQ-skillopt-external-adoption-verdict and REQ-skillopt-paid-launch-accounting
     role: descriptive
-    status: missing
+    status: ontology_gap
     span:
       start: 555
       end: 693
     payload_hash: 66aede6c175e1c8b3d3e98c0242b4de594cb60a7a9412dcc50bd316bb036afeb
-    reason: No accepted typed interpretation grounds this assertive proposition.
+    reason: Which requirement owns a boundary has no domain terms in the ontology; the two named requirements carry the provable boundaries and their own grounding.
 logic_claims:
   - CLAIM-D74430F76F1C3BB9
   - CLAIM-9711EF1B29ADAC33
