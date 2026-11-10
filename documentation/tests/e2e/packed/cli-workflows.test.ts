@@ -848,6 +848,22 @@ if (RUN_NODE_TEST_SUITE) {
         stdout,
       );
       assert.match(debt[0]?.message ?? "", /no atomic logic_claims manifest/);
+      // REQ-001 has no linked test, so its coverage depth is reported as a
+      // non-blocking review rather than accepted or turned into a violation.
+      const depth = (parsed.structuredContent?.qualityDiagnostics ?? []).filter(
+        (diagnostic) =>
+          diagnostic.id === "coverage_depth_review" &&
+          diagnostic.entityId === "REQ-001",
+      );
+      assert.deepStrictEqual(
+        depth.map((diagnostic) => [
+          diagnostic.blocking,
+          (diagnostic as { evidence?: { coverageDepth?: string } }).evidence
+            ?.coverageDepth,
+        ]),
+        [[false, "no_test_evidence"]],
+        stdout,
+      );
     });
 
     it("should run kibi check with a registry-selected migration rule", async (testContext) => {

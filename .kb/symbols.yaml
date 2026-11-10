@@ -1753,12 +1753,12 @@ symbols:
     symbol_role: behavioral
     status: active
     relationships:
+      - type: implements
+        target: REQ-kibi-coverage-depth-quality
       - type: covered_by
         target: TEST-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-coverage-depth-labels
-      - type: implements
-        target: REQ-audit-quality-diagnostics-v1
   - id: SYM-cli-impact-createImpactManifestLookup
     title: createImpactManifestLookup
     sourceFile: packages/cli/src/public/impact/manifest.ts
@@ -2808,12 +2808,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-coverage-depth-quality
       - type: covered_by
         target: TEST-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-coverage-depth-labels
-      - type: implements
-        target: REQ-audit-quality-diagnostics-v1
   - id: SYM-core-discovery-requirementCoverageDepth
     title: requirement_coverage_depth
     sourceFile: packages/core/src/discovery.pl
@@ -2821,12 +2821,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-coverage-depth-quality
       - type: covered_by
         target: TEST-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-coverage-depth-labels
-      - type: implements
-        target: REQ-audit-quality-diagnostics-v1
   - id: SYM-core-sparql-client
     title: kibi_sparql_client Prolog module runs validated remote SELECT queries
     sourceFile: packages/core/src/sparql_client.pl

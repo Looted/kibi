@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a00a1d904cc0
+  - type: assumes
+    from: SCEN-kibi-coverage-depth-quality
+    to: FACT-PROP-kibi-coverage-depth-quality-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-084b59ca6c1d
+  - type: verified_by
+    from: SCEN-kibi-coverage-depth-quality
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2b9e7cb3ab5

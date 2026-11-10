@@ -349,3 +349,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-49ec6dfaabdd
+  - type: constrains
+    from: REQ-kibi-coverage-depth-quality
+    to: FACT-SUBJ-kibi-coverage-depth-quality
+    created_at: 2026-11-10T10:27:39.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0337dc7fca26
+  - type: requires_property
+    from: REQ-kibi-coverage-depth-quality
+    to: FACT-PROP-kibi-coverage-depth-quality-c01
+    created_at: 2026-11-10T10:27:39.353Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9831e7bf1c2
+  - type: specified_by
+    from: REQ-kibi-coverage-depth-quality
+    to: SCEN-kibi-coverage-depth-quality
+    created_at: 2026-11-10T10:27:39.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92c9d69c6772
+  - type: specified_by
+    from: REQ-kibi-coverage-depth-quality
+    to: SCEN-NEG-kibi-coverage-depth-quality-UNREPORTED-SHALLOW
+    created_at: 2026-11-10T10:27:39.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ab2c63658db
+  - type: relates_to
+    from: REQ-kibi-coverage-depth-quality
+    to: REQ-audit-quality-diagnostics-v1
+    created_at: 2026-11-10T10:27:39.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f30db70beae8
