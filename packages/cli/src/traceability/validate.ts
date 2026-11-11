@@ -52,7 +52,6 @@ function parsePrologListOfLists(value: string): string[][] {
   return out;
 }
 
-// implements REQ-014
 export async function validateStagedSymbols(
   options: ValidationOptions,
 ): Promise<Violation[]> {
@@ -108,7 +107,6 @@ export async function validateStagedSymbols(
  * manifest entry changed). The Prolog rule is the one `kibi check` runs, so a
  * commit cannot pass the staged gate with coverage the full check rejects.
  */
-// implements REQ-014
 export async function validateStagedSymbolCoverage(options: {
   prolog: PrologProcess;
   extraSymbolIds?: readonly string[];
@@ -132,7 +130,6 @@ export async function validateStagedSymbolCoverage(options: {
 }
 
 /** Text lines for staged symbol-coverage violations, in `kibi check` form. */
-// implements REQ-014
 export function formatCoverageViolations(
   violations: readonly ParsedViolation[],
 ): string {
@@ -151,7 +148,6 @@ export function formatCoverageViolations(
 }
 
 export function formatViolations(violations: Violation[]): string {
-  // implements REQ-014
   if (violations.length === 0) return "";
   const total = violations.length;
   const [first] = violations as [Violation, ...Violation[]];

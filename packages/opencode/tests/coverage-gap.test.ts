@@ -25,7 +25,6 @@ describe("opencode coverage gaps", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  // implements REQ-opencode-comment-routing
   test("analyzeCodeFile ignores Python assignment docstrings at module and class scope", () => {
     const pyFile = path.join(tmpDir, "assignment-docstrings.py");
     fs.writeFileSync(
@@ -51,7 +50,6 @@ class Example:
     assert.equal(analyzeCodeFile(pyFile, { minLines: 3 }), null);
   });
 
-  // implements REQ-opencode-comment-routing
   test("analyzeCodeFile skips standalone Python triple quotes after a real statement", () => {
     const pyFile = path.join(tmpDir, "post-statement-triple-quotes.py");
     fs.writeFileSync(
@@ -68,7 +66,6 @@ It should be ignored.
     assert.equal(analyzeCodeFile(pyFile, { minLines: 3 }), null);
   });
 
-  // implements REQ-opencode-comment-routing
   test("analyzeCodeFile ignores empty Python class docstrings", () => {
     const pyFile = path.join(tmpDir, "empty-class-docstring.py");
     fs.writeFileSync(
@@ -85,7 +82,6 @@ It should be ignored.
     assert.equal(analyzeCodeFile(pyFile, { minLines: 1 }), null);
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   test("loadKbSyncPaths falls back to defaults when config JSON is invalid", () => {
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, ".kb", "manifest.json"), "{not-json");
@@ -96,7 +92,6 @@ It should be ignored.
     assert.equal(paths.symbols, ".kb/symbols.yaml");
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   test("getKbExistenceTargets always reports canonical .kb/ lanes", () => {
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     fs.writeFileSync(
@@ -125,7 +120,6 @@ It should be ignored.
     );
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   test("detectPosture treats AGENTS guidance as root Kibi intent", () => {
     fs.writeFileSync(
       path.join(tmpDir, "AGENTS.md"),
@@ -139,7 +133,6 @@ It should be ignored.
     assert.match(posture.reason, /intent detected at root/);
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   test("requirement-doc parses numeric and quoted frontmatter values conservatively", () => {
     const numericFile = path.join(tmpDir, "REQ-NUMERIC.md");
     fs.writeFileSync(
@@ -156,7 +149,6 @@ priority: 1
     assert.equal(getRequirementPriority(numericFile), null);
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   test("checkWorkspaceHealth uses defaults when config exists but is unreadable", () => {
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, ".kb", "manifest.json"), "{not-json");
@@ -170,7 +162,6 @@ priority: 1
     assert.ok(result.missingDocDirs.includes(".kb/scenarios"));
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   test("checkWorkspaceHealth keeps partial roots advisory when only two targets are missing", () => {
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     fs.writeFileSync(
@@ -197,7 +188,6 @@ priority: 1
     assert.equal(result.needsBootstrap, false);
   });
 
-  // implements REQ-opencode-smart-enforcement-v1
   test("buildPrompt appends completion reminder for risky active-root guidance", () => {
     const prompt = buildPrompt({
       recentEdits: [{ path: "src/feature.ts", kind: "code" }],
@@ -213,7 +203,6 @@ priority: 1
     );
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   test("plugin setup accepts minimal typed input without optional fields", async () => {
     const hooks = await kibiOpencodePlugin({
       directory: tmpDir,

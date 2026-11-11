@@ -31,7 +31,6 @@ function stripGitSuffix(value: string): string {
   return value.replace(/\.git$/i, "").replace(/\/+$/, "");
 }
 
-// implements REQ-kibi-html-health-report
 export function parseGitRemote(url: string):
   | Readonly<{
       identity: string;
@@ -133,7 +132,6 @@ export function resolveReportRepository(input: {
   };
 }
 
-// implements REQ-kibi-html-health-report
 export function shortCommitSha(sha: string | undefined): string | undefined {
   const value = sha?.trim();
   if (!value) return undefined;
@@ -160,7 +158,6 @@ function lineFragment(coordinate: SourceCoordinate): string {
   return isLine(end, start) ? `#L${start}-L${end}` : `#L${start}`;
 }
 
-// implements REQ-kibi-html-health-report
 export function commitWebUrl(
   repository: ReportRepository | undefined,
 ): string | undefined {
@@ -175,7 +172,6 @@ export function commitWebUrl(
   return undefined;
 }
 
-// implements REQ-kibi-html-health-report
 export function sourceWebUrl(
   repository: ReportRepository | undefined,
   coordinate: SourceCoordinate | undefined,
@@ -198,7 +194,6 @@ export function sourceWebUrl(
   return undefined;
 }
 
-// implements REQ-kibi-html-health-report
 export function formatSourceCoordinate(
   coordinate: SourceCoordinate | undefined,
 ): string | undefined {

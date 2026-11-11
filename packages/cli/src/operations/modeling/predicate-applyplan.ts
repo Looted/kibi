@@ -26,7 +26,6 @@ import {
   predicateArgumentConformance,
 } from "./predicate-vocabulary.js";
 
-// implements REQ-mcp-suggest-predicates, REQ-model-predicates-requirement-subject-v2, REQ-model-predicates-binding-clauses, REQ-model-predicates-participant-not-subject
 export function buildSuggestion(
   schema: PredicateSchemaCandidate,
   text: string,
@@ -246,7 +245,6 @@ export function buildSuggestion(
   };
 }
 
-// implements REQ-mcp-suggest-predicates, REQ-model-predicates-requirement-subject-v2
 export function buildPredicateApplyPlan(
   suggestion: PredicateSuggestion,
   args: SuggestPredicatesArgs,
@@ -315,7 +313,6 @@ function claimFields(
   };
 }
 
-// implements REQ-mcp-suggest-predicates
 export function buildRelationshipPlan(
   factId: string | undefined,
   requirementId: string | undefined,
@@ -353,7 +350,6 @@ function gapObservationBody(text: string, args: SuggestPredicatesArgs): string {
   ].join("\n\n");
 }
 
-// implements REQ-mcp-suggest-predicates, REQ-model-predicates-plan-roundtrip
 /**
  * The ontology-gap observation plan. It is a review note, not a semantic
  * claim: it quotes the claim in claim_text without a claim_key, carries the

@@ -73,7 +73,6 @@ type McpOperationResult = {
   readonly error?: unknown;
 };
 
-// implements REQ-kibi-operation-interface-parity
 export async function runMcpOperation(
   workspaceRoot: string,
   opName: string,

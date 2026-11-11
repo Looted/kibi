@@ -535,7 +535,6 @@ describe("plugin system transform", () => {
     expect(run.of("smart-enforcement.guidance")).toHaveLength(0);
   });
 
-  // implements REQ-kibi-fresh-clone-setup
   test("a checkout without Kibi's git hooks is told how to install them", async () => {
     const dir = workspace();
     fs.rmSync(path.join(dir, ".git/hooks/pre-commit"));
@@ -544,7 +543,6 @@ describe("plugin system transform", () => {
     expect(system.at(-1)).toContain("kibi hooks install");
   });
 
-  // implements REQ-kibi-fresh-clone-setup
   test("the missing-hooks check is cached for 30 seconds per worktree", async () => {
     const dir = workspace();
     const hook = path.join(dir, ".git/hooks/pre-commit");

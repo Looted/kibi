@@ -10,7 +10,6 @@ import type {
 import { buildCodexConfig, buildCodexExecArgv } from "./permissions";
 
 /** The historical Codex target host: auth lease, private CODEX_HOME, exec. */
-// implements REQ-skillopt-codex-optimization
 export function codexTargetHost(
   dependencies: Pick<CodexCellDependencies, "prepareLogin">,
 ): TargetHost {

@@ -1,4 +1,3 @@
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 import { afterEach, describe, expect, test } from "bun:test";
 
 import { presentBootstrap } from "../../src/operations/bootstrap/presentation.js";

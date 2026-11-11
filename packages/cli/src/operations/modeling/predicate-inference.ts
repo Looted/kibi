@@ -68,7 +68,6 @@ import {
   slug,
 } from "./predicate-utils.js";
 
-// implements REQ-mcp-suggest-predicates
 export function inferArgs(
   schema: PredicateSchemaCandidate,
   text: string,
@@ -222,5 +221,4 @@ export function inferArgs(
   }
 }
 
-// implements REQ-mcp-suggest-predicates
 export { inferSubject };

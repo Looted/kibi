@@ -241,7 +241,6 @@ function manifestEntryIdentity(
  * enrichment: the AST extractor missed and the symbol lacks a coarse
  * granularity_reason, so the whole-file fallback is gated off.
  */
-// implements REQ-generated-coordinate-persistence
 function coarseAnchorFailureReason(entry: ManifestSymbolEntry): string {
   // The enricher names the cause when the title is a declaration the symbol
   // extractor never produces (a private class member): no refresh can bind
@@ -254,9 +253,7 @@ function coarseAnchorFailureReason(entry: ManifestSymbolEntry): string {
   return `no unique declaration titled '${String(entry.title ?? "")}' was found in ${String(entry.sourceFile ?? "its source file")}; use the name the extractor gives the declaration`;
 }
 
-// implements REQ-symbol-coordinates-derived-locally
 export async function refreshManifestCoordinates(
-  // implements REQ-003
   manifestPath: string,
   workspaceRoot: string,
   deps?: Partial<ManifestDeps> & {
@@ -586,7 +583,6 @@ export async function refreshManifestCoordinates(
  * so plain `kibi sync` normalises it once. Returns the number of symbols
  * when the file was rewritten, otherwise null.
  */
-// implements REQ-kibi-hooks-flow-manifest
 export function normalizeManifestLayout(
   manifestPath: string,
   deps?: Partial<ManifestDeps>,
@@ -608,7 +604,6 @@ export function normalizeManifestLayout(
 }
 
 export function hasAllGeneratedCoordinates(
-  // implements REQ-003
   entry: ManifestSymbolEntry,
 ): boolean {
   return (
@@ -620,7 +615,6 @@ export function hasAllGeneratedCoordinates(
 }
 
 export function isEligibleForCoordinateRefresh(
-  // implements REQ-003
   sourceFile: string | undefined,
   workspaceRoot: string,
   deps?: Partial<ManifestDeps>,

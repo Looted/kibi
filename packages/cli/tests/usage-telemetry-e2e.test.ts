@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import { afterEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";

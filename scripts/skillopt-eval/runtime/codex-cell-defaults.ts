@@ -93,7 +93,6 @@ function currentGitBranch(workspaceRoot: string): string | null {
  * attachment from Git so `exact` remains observable; any other checkout keeps
  * the pin and its override classification.
  */
-// implements REQ-skillopt-codex-optimization
 export function verifierEnvironment(
   env: NodeJS.ProcessEnv,
   workspaceRoot: string,
@@ -748,7 +747,6 @@ function referenceTargets(value: unknown): readonly string[] {
 
 const SAFE_MUTATION_TASK = "-safe-mutation-direction-";
 
-// implements REQ-skillopt-logical-evidence-fidelity
 /**
  * Whether the verifier's final entity read holds the fixture production
  * symbol on src/fixture.ts with the two requested links: implements to the
@@ -777,7 +775,6 @@ function safeMutationLinksApplied(
   );
 }
 
-// implements REQ-skillopt-logical-evidence-fidelity
 function safeMutationComplete(
   receipt: FinalStateReceipt,
   taskId: string,
@@ -1156,7 +1153,6 @@ function sealedDiagnostic(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function sealDefaultCellEvidence(
   options: Pick<CodexCellOptions, "evaluatorManifest" | "finalStateRequests">,
   evidence: Readonly<{
@@ -1187,7 +1183,6 @@ export function sealDefaultCellEvidence(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function defaultCodexCellDependencies(
   options: CodexCellOptions,
 ): CodexCellDependencies {

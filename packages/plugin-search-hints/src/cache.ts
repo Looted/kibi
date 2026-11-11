@@ -21,7 +21,6 @@ type Header = {
  * entity, a different model or a damaged file means that vector (or the
  * whole file) is rebuilt; nothing stale is ever returned.
  */
-// implements REQ-kibi-plugin-search-hints
 export class VectorCache {
   private readonly vectors = new Map<string, CachedVector>();
   private dirty = false;

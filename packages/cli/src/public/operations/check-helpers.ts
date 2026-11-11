@@ -49,7 +49,6 @@ export { RULE_NAMES, getEffectiveRules };
  * always become non-blocking quality diagnostics. Migration findings are
  * also non-blocking and only appear when that rule was selected to run.
  */
-// implements REQ-cli-check, REQ-mcp-tool-check
 export function partitionCheckFindings(findings: readonly Violation[]): {
   violations: Violation[];
   qualityDiagnostics: QualityDiagnostic[];
@@ -93,7 +92,6 @@ const OMITTED_RULES_SHOWN = 5;
  * so a check after a small edit answers about that edit; kb_check without
  * sourceFiles still lists every finding.
  */
-// implements REQ-cli-check
 export function scopeQualityDiagnosticsToImpact(
   diagnostics: readonly QualityDiagnostic[],
   impactResult: ChangedFileImpactResult,
@@ -154,7 +152,6 @@ function resolveChecksPlPath(): string {
   return path.join(path.dirname(resolveKbPlPath()), "checks.pl");
 }
 
-// implements REQ-mcp-tool-check
 export function collectQueryPlanSafetyViolations(): Violation[] {
   const checksPlPath = resolveChecksPlPath();
   const source = readFileSync(checksPlPath, "utf8");
@@ -174,7 +171,6 @@ export function collectQueryPlanSafetyViolations(): Violation[] {
  * checks. `args.rules` is an invocation-time diagnostic selector that never
  * persists and never redefines project health.
  */
-// implements REQ-mcp-tool-check
 export function resolveCheckRules(
   args: Pick<CheckInput, "rules">,
 ): Set<string> {
@@ -187,7 +183,6 @@ export function resolveCheckRules(
  * Retained only so check summaries can point operators at migration; the
  * document never alters rule selection.
  */
-// implements REQ-mcp-tool-check
 export async function readLegacyChecksHint(
   workspaceRoot: string,
 ): Promise<string | null> {
@@ -200,7 +195,6 @@ export async function readLegacyChecksHint(
   return `Legacy ${path.join(".kb", "config.json")} is present. Kibi no longer reads project check or path configuration; run 'kibi migrate' to adopt the canonical .kb/ layout and retire this file.`;
 }
 
-// implements REQ-mcp-tool-check
 export function hasImpactOptions(args: CheckInput): boolean {
   return Boolean(
     args.includeImpactDiagnostics ||
@@ -210,7 +204,6 @@ export function hasImpactOptions(args: CheckInput): boolean {
   );
 }
 
-// implements REQ-mcp-tool-check
 export async function analyzeKbCheckImpact(
   workspaceRoot: string,
   args: CheckInput,
@@ -234,7 +227,6 @@ export async function analyzeKbCheckImpact(
  * for `staged: true`, the creation boundary where a purely numeric ID can
  * still be renamed cheaply; committed legacy entities are never evaluated.
  */
-// implements REQ-kibi-entity-id-style
 export function stagedEntityIdStyleDiagnostics(
   workspaceRoot: string,
   args: Pick<CheckInput, "staged">,
@@ -252,7 +244,6 @@ export function stagedEntityIdStyleDiagnostics(
   }
 }
 
-// implements REQ-mcp-tool-check
 export function qualityDiagnosticsFromImpact(
   impactResult: ChangedFileImpactResult | undefined,
 ): readonly QualityDiagnostic[] {

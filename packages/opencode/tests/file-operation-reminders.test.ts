@@ -1,4 +1,3 @@
-// implements REQ-opencode-file-context-guidance-v1
 import { describe, expect, test } from "bun:test";
 import { deriveFileOperationReminder } from "../src/file-operation-reminders.js";
 import type { PathKind } from "../src/path-kind.js";

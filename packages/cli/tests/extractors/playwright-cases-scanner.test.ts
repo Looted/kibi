@@ -1,4 +1,3 @@
-// implements REQ-kibi-verification-evidence-contract
 import { describe, expect, test } from "bun:test";
 import { extractPlaywrightCases } from "../../src/extractors/playwright-cases.js";
 import { playwrightCaseId } from "../../src/proof/producers/playwright-case-id.js";

@@ -128,7 +128,6 @@ export async function browseLinkedEntities(
   _symbolSourceFile?: string,
   _symbolSourceLine?: number,
 ): Promise<void> {
-  // implements REQ-vscode-traceability
   const allIds = relationships
     .filter((r) => r.from === symbolId || r.to === symbolId)
     .map((r) => (r.from === symbolId ? r.to : r.from));

@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
@@ -45,13 +44,10 @@ export { telemetryRootError } from "./telemetry-signals.js";
  * filtered out of real usage.
  */
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Public, write-only PostHog project key: it can send events, not read them. */
 export const DEFAULT_TELEMETRY_KEY =
   "phc_A5z8jRhD528abGJiTtPfgu4d4hpbEbfiJr9iUGn9TMsY";
-// implements REQ-kibi-anonymous-usage-telemetry
 export const DEFAULT_TELEMETRY_HOST = "https://eu.i.posthog.com";
-// implements REQ-kibi-anonymous-usage-telemetry
 export const TELEMETRY_DOCS_URL =
   "https://looted.github.io/kibi/guide/telemetry.html";
 
@@ -76,17 +72,14 @@ const DEFAULT_FLUSH_TIMEOUT_MS = 1500;
 
 type Env = NodeJS.ProcessEnv;
 
-// implements REQ-kibi-anonymous-usage-telemetry
 export type TelemetryPreference = "enabled" | "disabled";
 
-// implements REQ-kibi-anonymous-usage-telemetry
 export type TelemetryConfig = {
   installId?: string;
   preference?: TelemetryPreference;
   noticeShownAt?: string;
 };
 
-// implements REQ-kibi-anonymous-usage-telemetry
 export type TelemetryStatus = {
   enabled: boolean;
   /** Why telemetry is on or off, e.g. `KIBI_TELEMETRY=0` or `default`. */
@@ -98,7 +91,6 @@ export type TelemetryStatus = {
   channelSource: TelemetryChannelSource;
 };
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * `KIBI_TELEMETRY_CHANNEL` (a harness set it), `checkout` (Kibi runs from a
  * checkout of its own repository) or `installed` (an installed package).
@@ -108,7 +100,6 @@ export type TelemetryChannelSource =
   | "checkout"
   | "installed";
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Summary of one Kibi operation run through MCP or the CLI. */
 export type OperationTelemetry = {
   interface: "mcp" | "cli";
@@ -128,7 +119,6 @@ export type OperationTelemetry = {
   signals?: OperationSignals | undefined;
 };
 
-// implements REQ-kibi-telemetry-expected-outcomes
 /**
  * How an operation ended as sent: `success`; `rejected` when Kibi worked and
  * its answer was no (a check found violations, a payload failed validation,
@@ -136,7 +126,6 @@ export type OperationTelemetry = {
  */
 export type TelemetryOutcome = "success" | "rejected" | "error";
 
-// implements REQ-kibi-telemetry-expected-outcomes
 /**
  * Version of the event fields. 2 split expected outcomes (`rejected`) from
  * failures (`error`) and added `error_class`.
@@ -186,7 +175,6 @@ const REJECTED_CATEGORY_PREFIXES = [
   "pending_source_",
 ] as const;
 
-// implements REQ-kibi-telemetry-expected-outcomes
 /**
  * The outcome an operation's status and category amount to. Only a failure
  * whose category names an expected answer becomes `rejected`; a failure with
@@ -206,7 +194,6 @@ export function telemetryOutcome(
     : "error";
 }
 
-// implements REQ-kibi-telemetry-expected-outcomes
 /**
  * The class name of a thrown value as sent: an identifier such as
  * `TypeError`, or null for a plain `Error`, a non-error or a name that is not
@@ -224,7 +211,6 @@ export function telemetryErrorClass(thrown: unknown): string | null {
   return /^[A-Za-z_$][A-Za-z0-9_$]{0,79}$/.test(name) ? name : null;
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Summary of one host hook decision. */
 export type HookTelemetry = {
   hookEvent: string;
@@ -237,7 +223,6 @@ export type HookTelemetry = {
   skill?: string | undefined;
 };
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Who is sending: the package, its version and the host agent. */
 export type TelemetrySource = {
   /** npm package name, e.g. `kibi-cli`, `kibi-mcp`, `kibi-claude`. */
@@ -267,7 +252,6 @@ function flagValue(value: string | undefined): boolean | undefined {
   return undefined;
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Variables CI providers set; any non-false value marks a CI run. */
 export const CI_ENV_KEYS = [
   "CI",
@@ -290,7 +274,6 @@ export const CI_ENV_KEYS = [
   "HEROKU_TEST_RUN_ID",
 ] as const;
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Variables test runners set for the code under test (`NAME=value` must match). */
 export const TEST_ENV_KEYS = [
   "NODE_ENV=test",
@@ -314,7 +297,6 @@ function automationName(env: Env, keys: readonly string[]): string | undefined {
   return undefined;
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Variables an agent host sets for the processes it starts, in priority order. */
 export const HOST_ENV_KEYS = [
   ["CLAUDECODE=1", "claude-code"],
@@ -325,7 +307,6 @@ export const HOST_ENV_KEYS = [
   ["OPENCODE=1", "opencode"],
 ] as const;
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Variables that carry the host agent's session id; only its hash is sent. */
 export const SESSION_ENV_KEYS = [
   "KIBI_SESSION_ID",
@@ -342,7 +323,6 @@ function hostKey(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * The agent host running Kibi, from an explicit `KIBI_HOST`/`KIBI_MCP_HOST`,
  * the variables hosts set for their children, or the `AI_AGENT` convention
@@ -360,7 +340,6 @@ export function detectTelemetryHost(
   return agent ? hostKey(agent) || undefined : undefined;
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** The host agent's session id from the environment, when it exposes one. */
 export function detectTelemetrySession(
   env: Env = process.env,
@@ -459,7 +438,6 @@ function insideKibiCheckout(file: string): boolean {
 
 const checkoutCache = new Map<string, boolean>();
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * Where a run comes from: the `KIBI_TELEMETRY_CHANNEL` a harness sets (for
  * example `agent-test`), `source` when Kibi runs from a checkout of its own
@@ -473,7 +451,6 @@ export function detectTelemetryChannel(
   return telemetryChannel(env, moduleFile).channel;
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** The channel in effect and where it comes from. */
 export function telemetryChannel(
   env: Env = process.env,
@@ -497,7 +474,6 @@ export function telemetryChannel(
     : { channel: "release", source: "installed" };
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Per-user directory holding the telemetry config and queue. */
 export function telemetryDirectory(env: Env = process.env): string {
   const explicit = env.KIBI_TELEMETRY_DIR?.trim();
@@ -512,7 +488,6 @@ export function telemetryDirectory(env: Env = process.env): string {
   );
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 export function readTelemetryConfig(env: Env = process.env): TelemetryConfig {
   try {
     const parsed: unknown = JSON.parse(
@@ -535,7 +510,6 @@ function writeTelemetryConfig(config: TelemetryConfig, env: Env): void {
   );
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * Persist the user's choice. Disabling also deletes anything still queued,
  * so nothing recorded before the choice is sent afterwards.
@@ -548,7 +522,6 @@ export function setTelemetryPreference(
   if (preference === "disabled") clearTelemetryQueue(env);
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * Whether events are recorded and sent, and why. Explicit opt-outs win over
  * everything. CI and test runs are off even after `kibi telemetry enable`;
@@ -595,7 +568,6 @@ export function telemetryStatus(env: Env = process.env): TelemetryStatus {
   return status(true, "on by default; anonymous, opt-out");
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 export function telemetryEnabled(env: Env = process.env): boolean {
   return telemetryStatus(env).enabled;
 }
@@ -626,7 +598,6 @@ function installId(env: Env): string {
   return created;
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Stable one-way hash, so a session can be grouped without revealing its id. */
 export function hashTelemetryId(value: string): string {
   return createHash("sha256")
@@ -636,7 +607,6 @@ export function hashTelemetryId(value: string): string {
     .slice(0, 16);
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * The notice users see before the first event is sent, or null once it was
  * shown. Callers that can reach the user (CLI and MCP stderr) print it.
@@ -695,7 +665,6 @@ function workspaceKey(workspaceRoot: string): string {
   return hashTelemetryId(`workspace\0${path.resolve(workspaceRoot)}`);
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * Remember which host session last ran a hook in a workspace. Every host
  * hands its hooks the session id, but only some expose it to the CLI and MCP
@@ -733,7 +702,6 @@ export function rememberHookSession(
   }
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * Hashed session a host hook recently reported for this directory or the
  * nearest ancestor that has one, or undefined.
@@ -815,7 +783,6 @@ function appendEvent(event: QueuedEvent, env: Env): void {
   }
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * An error category as sent: fixed identifiers such as `tool_timeout` or
  * `UPSERT_DRY_RUN_INVALID` pass, lower-cased; anything that looks like free
@@ -836,7 +803,6 @@ function telemetryClassName(value: string | undefined): string | null {
     : null;
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 export function recordOperationTelemetry(
   source: TelemetrySource,
   operation: OperationTelemetry,
@@ -885,7 +851,6 @@ function workspaceHashes(workspaceRoot: string | undefined): string[] {
   }
 }
 
-// implements REQ-kibi-telemetry-agent-signals
 /**
  * The struggle signals of one operation event, sanitized: fixed rule ids,
  * Kibi schema field paths, bucketed counts and booleans. Retries, repeated
@@ -943,7 +908,6 @@ function signalProperties(
   };
 }
 
-// implements REQ-kibi-telemetry-agent-signals
 /**
  * Remember that a host hook saw a Kibi skill load in a workspace, so later
  * CLI and MCP events there carry `skill_loaded_before`. Only the workspace
@@ -957,7 +921,6 @@ export function rememberTelemetrySkillLoad(
   rememberSkillLoad(telemetryDirectory(env), workspaceKey(workspaceRoot));
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 export function recordHookTelemetry(
   source: TelemetrySource,
   hook: HookTelemetry,
@@ -983,7 +946,6 @@ export function recordHookTelemetry(
   );
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 export function clearTelemetryQueue(env: Env = process.env): void {
   const directory = telemetryDirectory(env);
   let names: string[];
@@ -1077,7 +1039,6 @@ function claimBatches(directory: string, now: number): string[] {
   return claimed;
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 export type FlushOptions = {
   /** Send even when the queue is small and recent (process exit, Stop hook). */
   force?: boolean;
@@ -1085,7 +1046,6 @@ export type FlushOptions = {
   fetchImpl?: typeof fetch;
 };
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * Send queued events in one batch when a flush is due (or forced). Returns
  * the number of events sent. A failed send puts the events back for the next

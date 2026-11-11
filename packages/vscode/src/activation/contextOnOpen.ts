@@ -8,14 +8,12 @@ import * as vscode from "vscode";
 let contextOnOpenExistsSync: typeof fs.existsSync = fs.existsSync;
 
 export function _setContextOnOpenFsDepsForTests(
-  // implements REQ-vscode-traceability
   overrides: { existsSync?: typeof fs.existsSync },
 ): void {
   contextOnOpenExistsSync = overrides.existsSync ?? fs.existsSync;
 }
 
 export function _resetContextOnOpenFsDepsForTests(): void {
-  // implements REQ-vscode-traceability
   contextOnOpenExistsSync = fs.existsSync;
 }
 
@@ -23,7 +21,6 @@ export function _resetContextOnOpenFsDepsForTests(): void {
  * Registers a listener that shows KB entities linked to files when they are opened.
  */
 export function registerContextOnOpen(
-  // implements REQ-vscode-traceability
   context: vscode.ExtensionContext,
   output: vscode.OutputChannel,
   workspaceRoot: string,

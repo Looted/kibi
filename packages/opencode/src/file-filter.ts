@@ -1,4 +1,3 @@
-// implements REQ-opencode-kibi-plugin-v1
 import * as path from "node:path";
 
 // Canonical Kibi knowledge paths — must stay in sync with
@@ -18,14 +17,12 @@ export function loadKbSyncPaths(_cwd = process.cwd()) {
   return CANONICAL_KB_PATHS;
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export interface KbExistenceTarget {
   key: string;
   relativePath: string;
   kind: "dir" | "file";
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export function getKbExistenceTargets(
   cwd = process.cwd(),
 ): KbExistenceTarget[] {
@@ -38,7 +35,6 @@ export function getKbExistenceTargets(
   });
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 /** Strip the first path segment containing a glob character and everything
  *  after it, returning the directory root to check with existsSync.
  */
@@ -53,7 +49,6 @@ export function stripToRoot(p: string): string {
   return result || ".";
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 /** Whether a path is a Kibi knowledge document: a markdown file under one of
  *  the canonical lanes, or the symbols manifest. */
 export function shouldHandleFile(

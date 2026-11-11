@@ -4,7 +4,6 @@ import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.j
 import { assertSemanticInventoryBoundary } from "../semantic-advisor/ingestion-boundary.js";
 
 /** Validate the original payload without dropping malformed relationships. */
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function validateBootstrapPayload(
   payload: Readonly<Record<string, unknown>>,
   now: Date,

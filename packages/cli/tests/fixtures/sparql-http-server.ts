@@ -1,9 +1,7 @@
-// implements REQ-kibi-operation-interface-parity
 export const SPARQL_FIXTURE_ROWS = [
   { subject: "https://example.test/resource/1", label: "Fixture label" },
 ] as const;
 
-// implements REQ-kibi-operation-interface-parity
 export type SparqlFixtureRequest = {
   readonly method: string;
   readonly accept: string | null;
@@ -11,7 +9,6 @@ export type SparqlFixtureRequest = {
   readonly body: string;
 };
 
-// implements REQ-kibi-operation-interface-parity
 export function startSparqlHttpFixture(options?: {
   readonly delayMs?: number;
   readonly status?: number;

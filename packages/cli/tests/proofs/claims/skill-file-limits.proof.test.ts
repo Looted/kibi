@@ -8,8 +8,6 @@ import {
 import { SKILL_FILE_NAME } from "../../../src/public/skill-system/paths.js";
 import { RESOURCE_MAX_BYTES } from "../../../src/public/skill-system/validation.js";
 
-// implements REQ-skill-file-limits
-
 /**
  * The file a skill folder must hold and the size bound of a skill resource. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

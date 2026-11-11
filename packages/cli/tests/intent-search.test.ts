@@ -142,7 +142,6 @@ describe("intent-v1 search ranking", () => {
     expect(result.analysis.ambiguous).toBe(true);
   });
 
-  // implements REQ-search-answer-hygiene
   test("a requirement tying with its own scenario is not ambiguous; a tie with another requirement is", async () => {
     const requirement = entity("REQ-A", "Invoice retention period");
     const scenario = {
@@ -177,7 +176,6 @@ describe("intent-v1 search ranking", () => {
     expect(rival.analysis.ambiguous).toBe(true);
   });
 
-  // implements REQ-search-answer-hygiene
   test("a requirement implemented by a source-located symbol surfaces without lexical overlap", async () => {
     const symbol = {
       id: "SYM-CAN-EXPORT",

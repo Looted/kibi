@@ -132,7 +132,6 @@ async function materializeRoots(
     throw new VerificationHarnessError("artifact-root-directory");
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function runVerificationHarness(
   options: VerificationHarnessOptions,
 ): Promise<VerificationReview> {
@@ -216,7 +215,6 @@ export async function runVerificationHarness(
   return review;
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function verifyHarnessMain(
   argv: readonly string[],
   sourceRoot = process.cwd(),

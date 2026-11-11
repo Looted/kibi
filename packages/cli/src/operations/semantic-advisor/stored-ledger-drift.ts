@@ -66,7 +66,6 @@ async function groundingFactsOf(
  * Returns null when the requirement is not stored, carries no recorded
  * ledger, or every stored modeled clause is still among the analyzed ones.
  */
-// implements REQ-kibi-proposition-complete-ingestion
 export async function storedLedgerDriftWarning(
   prolog: Pick<PrologPort, "query">,
   id: string,

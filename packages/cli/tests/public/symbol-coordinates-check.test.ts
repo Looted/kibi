@@ -7,8 +7,6 @@ import {
   collectSymbolCoordinatesMissingViolations,
 } from "../../src/public/operations/symbol-coordinates-check.js";
 
-// implements REQ-cli-check
-
 const roots: string[] = [];
 afterEach(() => {
   for (const root of roots.splice(0))

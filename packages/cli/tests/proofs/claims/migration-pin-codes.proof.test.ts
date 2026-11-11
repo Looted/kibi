@@ -24,8 +24,6 @@ import {
 import { CLOSED_REQUIREMENT_STATUS } from "../../../src/operations/migration/superseded-closure.js";
 import { DERIVED_COORDINATES_SCHEMA_VERSION } from "../../../src/operations/migration/untrack-symbol-coordinates.js";
 
-// implements REQ-cli-migration-pin-codes
-
 /**
  * The codes kibi migrate reports for the steps that pin, acknowledge or mark existing entities. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

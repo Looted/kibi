@@ -1,5 +1,4 @@
 /// <reference types="bun-types" />
-// implements REQ-opencode-file-context-guidance-v1
 import { afterEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";

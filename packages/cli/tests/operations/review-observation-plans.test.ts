@@ -1,4 +1,3 @@
-// implements REQ-model-predicates-plan-roundtrip
 import { describe, expect, test } from "bun:test";
 import { buildGapApplyPlan } from "../../src/operations/modeling/predicate-applyplan.js";
 import { validateUpsertInput } from "../../src/operations/mutation/validation.js";

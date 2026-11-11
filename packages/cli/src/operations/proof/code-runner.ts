@@ -82,7 +82,6 @@ export function workspaceBin(workspaceRoot: string, name: string): string | null
  * and python on PATH. The system interpreter usually cannot import the
  * project's dependencies, so a project environment comes before it.
  */
-// implements REQ-kibi-code-proof-kinds
 export function pythonDomainInterpreters(
   workspaceRoot: string,
   sourceFile: string,
@@ -191,7 +190,6 @@ type Runner = Readonly<{ command: string; argv: string[]; env?: NodeJS.ProcessEn
  * start) yields to the next. A file in a language the caller has no script
  * for refuses.
  */
-// implements REQ-kibi-non-numeric-proof-kinds, REQ-kibi-multilingual-code-proofs
 export function runCodeEvaluator(
   workspaceRoot: string,
   sourceFile: string,

@@ -6,8 +6,6 @@ import {
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
 
-// implements REQ-prolog-ci-system-swipl-job
-
 /**
  * The CI job that keeps testing a system SWI-Prolog. Kibi reads the workflow
  * file itself at ingest, so the claim stays proved only while the job still

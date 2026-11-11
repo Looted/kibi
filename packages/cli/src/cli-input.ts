@@ -2,7 +2,6 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { InputError } from "./cli-errors.js";
 
-// implements REQ-kibi-operation-interface-parity
 export type LoadInputOptions = {
   readonly input?: string;
   readonly cwd: string;
@@ -48,7 +47,6 @@ async function readInputText(options: LoadInputOptions): Promise<string> {
   }
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function loadInput(options: LoadInputOptions): Promise<unknown> {
   const text = await readInputText(options);
   if (text.trim().length === 0) {

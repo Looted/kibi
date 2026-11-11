@@ -1,4 +1,3 @@
-// implements REQ-mcp-suggest-predicates, REQ-mcp-semantic-advisor-preflight
 import { describe, expect, test } from "bun:test";
 import { singularize as modelingSingularize } from "../../src/operations/modeling/predicate-utils.js";
 import { handleKbSuggestPredicates } from "../../src/operations/modeling/suggest-predicates.js";

@@ -37,11 +37,9 @@
  */
 
 /** Which engine's syntax and semantics a pattern follows. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export type RegexFlavor = "js" | "python";
 
 /** How a pattern is applied to a string. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export type MatchMode =
   /** RegExp.prototype.test and Python re.search: a match anywhere counts. */
   | "search"
@@ -49,7 +47,6 @@ export type MatchMode =
   | "full";
 
 /** A pattern as a language: its source, flags, flavor and how it is applied. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export type PatternSpec = Readonly<{
   source: string;
   flags?: string;
@@ -58,7 +55,6 @@ export type PatternSpec = Readonly<{
 }>;
 
 /** A language Kibi can compare: a pattern, or exactly one string. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export type LanguageSpec =
   | (PatternSpec & { type: "pattern" })
   | Readonly<{ type: "literal"; value: string }>;
@@ -778,7 +774,6 @@ type Compiled = Readonly<{
 }>;
 
 /** Compile a language to an NFA over UTF-16 code units, or refuse it. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export function compileLanguage(spec: LanguageSpec): Compiled {
   const nfa = new Nfa();
   const start = nfa.state();
@@ -1009,7 +1004,6 @@ function wellFormedStep(state: number, unit: number): number | null {
 }
 
 /** What Kibi decided about two languages. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export type LanguageDecision =
   | Readonly<{ holds: true }>
   | Readonly<{ holds: false; witness: string; reason: string }>;
@@ -1063,19 +1057,16 @@ function decide(
 }
 
 /** Whether two languages hold exactly the same strings. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export function languagesEqual(left: LanguageSpec, right: LanguageSpec): LanguageDecision {
   return decide(left, right, "equal");
 }
 
 /** Whether no string is in both languages. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export function languagesDisjoint(left: LanguageSpec, right: LanguageSpec): LanguageDecision {
   return decide(left, right, "disjoint");
 }
 
 /** Whether a language holds `text` (a well-formed string). */
-// implements REQ-kibi-non-numeric-proof-kinds
 export function languageAccepts(spec: LanguageSpec, text: string): boolean {
   const automaton = new Determinizer(compileLanguage(spec));
   let state = automaton.initial();

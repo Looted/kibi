@@ -56,7 +56,6 @@ function serializeValue(key: string, value: unknown): string {
   return toPrologString(String(value));
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function buildPropertyList(
   entity: Readonly<Record<string, unknown>>,
 ): string {
@@ -67,7 +66,6 @@ export function buildPropertyList(
   return `[${pairs.join(", ")}]`;
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function buildRelationshipMetadata(rel: RelationshipInput): string {
   const pairs = Object.entries(rel).flatMap(([key, value]) => {
     if (key === "type" || key === "from" || key === "to") return [];
@@ -77,7 +75,6 @@ export function buildRelationshipMetadata(rel: RelationshipInput): string {
   return `[${pairs.join(", ")}]`;
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function parsePrologList(list: string): string[] {
   const match = list.trim().match(/^\[(.*)\]$/s);
   if (match === null) return [];

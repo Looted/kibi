@@ -11,8 +11,6 @@ export type {
   ReservedPredicateMatrix,
 } from "../held-out-evidence";
 
-// implements REQ-skillopt-predicate-first-requirements
-
 export function reservePredicateMatrix(options: {
   readonly corpus: PredicateMaterialization;
   readonly candidateHashes: FrozenCandidateHashes;

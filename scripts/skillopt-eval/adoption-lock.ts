@@ -43,7 +43,6 @@ function lockFlag(mode: LockMode): number {
   return mode === "-s" ? LOCK_FLAGS.shared : LOCK_FLAGS.exclusive;
 }
 
-// implements REQ-skillopt-automatic-adoption
 export function throwIfDirectoryInodeDrift(
   current: { readonly dev: number | bigint; readonly ino: number | bigint },
   identity: { readonly dev: number | bigint; readonly ino: number | bigint },
@@ -143,7 +142,6 @@ async function holdLock<T>(
   }
 }
 
-// implements REQ-skillopt-automatic-adoption
 export function withExclusiveAdoptionLock<T>(
   repoRoot: string,
   operation: () => Promise<T>,
@@ -157,7 +155,6 @@ export function withExclusiveAdoptionLock<T>(
   );
 }
 
-// implements REQ-skillopt-automatic-adoption
 export function withSharedAdoptionLock<T>(
   repoRoot: string,
   operation: () => Promise<T>,
@@ -171,7 +168,6 @@ export function withSharedAdoptionLock<T>(
   );
 }
 
-// implements REQ-skillopt-automatic-adoption
 export function withExclusiveMirrorWriterLock<T>(
   repoRoot: string,
   operation: () => Promise<T>,

@@ -1,5 +1,3 @@
-// implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
-
 import type { PathKind } from "./path-kind.js";
 
 /**

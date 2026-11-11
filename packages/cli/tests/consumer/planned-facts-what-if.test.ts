@@ -1,4 +1,3 @@
-// implements REQ-model-what-if-planned-facts
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

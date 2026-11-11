@@ -1,4 +1,3 @@
-// implements REQ-mcp-suggest-predicates
 import { describe, expect, test } from "bun:test";
 import { inferArgs } from "../../src/operations/modeling/predicate-inference.js";
 import type { PredicateSchemaCandidate } from "../../src/operations/modeling/predicate-types.js";

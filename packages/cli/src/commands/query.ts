@@ -31,7 +31,6 @@ export async function queryCommand(
   type: string | undefined,
   options: QueryOptions,
 ): Promise<{ exitCode: number }> {
-  // implements REQ-003, REQ-kibi-operation-interface-parity
   if (!type && !options.source && !options.relationships) {
     console.error(
       "Error: Must specify entity type, --source, or --relationships option",

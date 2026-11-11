@@ -24,7 +24,6 @@ import { basename } from "node:path";
 const MAX_ANCESTORS = 8;
 
 /** The process and command access the amend check needs; tests replace it. */
-// implements REQ-kibi-proposition-complete-ingestion
 export type AmendProbe = Readonly<{
   platform: NodeJS.Platform;
   parentPid: number;
@@ -38,7 +37,6 @@ export type AmendProbe = Readonly<{
 }>;
 
 /** The real process table and commands. */
-// implements REQ-kibi-proposition-complete-ingestion
 export const SYSTEM_AMEND_PROBE: AmendProbe = {
   platform: process.platform,
   parentPid: process.ppid,
@@ -102,7 +100,6 @@ function runsUnderCommitAmend(probe: AmendProbe): boolean {
  * on a branch with one commit). Such a commit has no parent either, so the
  * staged gate treats it as a first commit.
  */
-// implements REQ-kibi-proposition-complete-ingestion
 export function amendsRootCommit(
   workspaceRoot: string,
   headCommit: string | null,

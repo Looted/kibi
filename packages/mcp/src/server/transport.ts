@@ -34,7 +34,6 @@ function debugLog(...args: Parameters<typeof console.error>): void {
  * so route the console methods that write to stdout to stderr before the
  * transport connects; the transport itself writes to process.stdout directly.
  */
-// implements REQ-002
 export function keepStdoutForProtocol(): void {
   for (const method of ["log", "info", "debug"] as const) {
     console[method] = (...args: unknown[]) => console.error(...args);
@@ -101,7 +100,6 @@ export function setupTransportHandlers(
   }
 }
 
-// implements REQ-002
 // covered_by TEST-mcp-kb-freshness
 export async function connectTransport(
   server: McpServer,

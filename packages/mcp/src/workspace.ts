@@ -23,12 +23,10 @@ const KB_PATH_ENV_KEYS = ["KIBI_KB_PATH", "KB_PATH"] as const;
 /**
  * Canonical workspace root — delegates to shared resolveKibiWorkspaceRoot.
  */
-// implements REQ-002, REQ-012, REQ-kibi-env-bootstrap
 export function resolveWorkspaceRoot(startDir: string = process.cwd()): string {
   return resolveKibiWorkspaceRoot(startDir);
 }
 
-// implements REQ-002, REQ-012
 export function resolveKbPath(workspaceRoot: string, branch: string): string {
   const envPath = readFirstEnv(KB_PATH_ENV_KEYS);
   if (envPath) {
@@ -42,7 +40,6 @@ export function resolveKbPath(workspaceRoot: string, branch: string): string {
   return branchStorePath(workspaceRoot, branch);
 }
 
-// implements REQ-002
 export function resolveEnvFilePath(
   envFileName: string,
   workspaceRoot: string,

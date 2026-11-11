@@ -62,7 +62,6 @@ function canonicalManifest(data: Record<string, unknown>) {
   };
 }
 
-// implements REQ-skillopt-automatic-adoption
 export function validatePredicateEligibility(input: AutoAdoptionInput): void {
   const { candidate, eligibility } = input;
   if (

@@ -55,7 +55,6 @@ export interface ManifestLookupEntry {
 export type ManifestLookup = Map<string, ManifestLookupEntry>;
 
 export function createManifestLookupSentinelKey(manifestPath: string): string {
-  // implements REQ-cli-staged-impact-enforcement
   return `${MANIFEST_SENTINEL_PREFIX}${manifestPath}`;
 }
 
@@ -224,7 +223,6 @@ function computeContentSha(content: string): string {
   return h.digest("hex");
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type ExtractSymbolsOptions = Readonly<{
   /**
    * Host-owned analysis. Prefer SourceAnalysisService / capability registry.
@@ -246,7 +244,6 @@ function analyzeWithBuiltinFallback(
 }
 
 export function extractSymbolsFromStagedFile(
-  // implements REQ-cli-staged-impact-enforcement
   stagedFile: StagedFile,
   manifestLookup?: ManifestLookup,
   options?: ExtractSymbolsOptions,
@@ -291,7 +288,6 @@ export function extractSymbolsFromStagedFile(
  * Async extraction from supplied snapshot bytes. Maintenance callers inject the
  * shared, host-approved v2 analysis; legacy direct callers retain v1 behavior.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export async function extractSymbolsFromStagedFileAsync(
   stagedFile: StagedFile,
   manifestLookup: ManifestLookup | undefined,
@@ -335,7 +331,6 @@ type HunkLineRange = { startLine: number; endLine: number };
  * Whether a partial result still places its declarations: every gap is local
  * (no parser, timeout or integrity finding) and no output cap hid symbols.
  */
-// implements REQ-cli-staged-impact-enforcement
 export function partialAnalysisSymbolsUsable(analysis: {
   status?: string;
   diagnostics?: readonly { code: string }[];
@@ -455,7 +450,6 @@ function ownedHunks(
   });
 }
 
-// implements REQ-cli-staged-impact-enforcement
 function sourceSymbolLocator(
   symbol: SdkSourceAnalysisResult["symbols"][number] & {
     qualifiedName?: string;

@@ -35,7 +35,6 @@
  * outside the files read. `terms` mode lists one argument of every fact with
  * a given functor, in file order.
  */
-// implements REQ-kibi-prolog-source-readers
 export const PROLOG_SOURCE_READER = String.raw`
 :- module(kibi_source_reader, []).
 :- use_module(library(http/json)).

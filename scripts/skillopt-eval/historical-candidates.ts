@@ -22,13 +22,11 @@ const IGNORED = new Set([
   "transcripts",
 ]);
 
-// implements REQ-skillopt-codex-optimization
 export type HistoricalCandidateValidation =
   | "complete"
   | "incomplete"
   | "unsafe";
 
-// implements REQ-skillopt-codex-optimization
 export type HistoricalCandidateOrigin = Readonly<{
   runId: string;
   path: string;
@@ -38,7 +36,6 @@ export type HistoricalCandidateOrigin = Readonly<{
   seedHash?: string;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export type HistoricalCandidate = Readonly<{
   hash: string;
   bodyBytes: number;
@@ -50,7 +47,6 @@ export type HistoricalCandidate = Readonly<{
   reasons: readonly string[];
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export type HistoricalDiagnostic = Readonly<{
   code: string;
   path: string;
@@ -58,7 +54,6 @@ export type HistoricalDiagnostic = Readonly<{
   detail?: string;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export type HistoricalCandidatesReport = Readonly<{
   schemaVersion: "1.0.0";
   artifactType: "skillopt-historical-inventory";
@@ -72,7 +67,6 @@ export type HistoricalCandidatesReport = Readonly<{
   diagnostics: readonly HistoricalDiagnostic[];
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export type InspectHistoricalCandidatesInput = Readonly<{
   artifactRoot: string;
   baselineBodies?: Partial<Record<CanonicalSkill, string>>;
@@ -758,7 +752,6 @@ function buildReport(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function inspectHistoricalCandidates(
   input: InspectHistoricalCandidatesInput,
 ): Promise<HistoricalCandidatesReport> {

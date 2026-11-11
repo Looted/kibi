@@ -129,7 +129,6 @@ function classifyFile(
  * A Prolog file's `:- module(Name, Exports)` declaration. The export list is
  * a claim the source makes about its public predicates.
  */
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 function prologModuleEvidence(
   relativePath: string,
   content: string,
@@ -274,7 +273,6 @@ function layoutEvidence(
   }));
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export async function scanEvidence(
   context: OperationContext,
 ): Promise<EvidenceScan> {

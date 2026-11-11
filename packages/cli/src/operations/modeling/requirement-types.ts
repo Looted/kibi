@@ -5,7 +5,6 @@ import type {
 } from "../../public/check-types.js";
 import type { VocabularyAlignmentOutcome } from "./vocabulary-alignment.js";
 
-// implements REQ-002
 export type ModelRequirementArgs = Readonly<Record<string, unknown>> & {
   readonly text: string;
   readonly source?: string;
@@ -25,14 +24,12 @@ export type ModelRequirementArgs = Readonly<Record<string, unknown>> & {
   readonly requirementId?: string;
 };
 
-// implements REQ-002
 export interface ExtractedRequirementClaim {
   claim: SemanticClaim;
   extractionMode: "provided" | "heuristic" | "fallback";
   extractionWarnings: string[];
 }
 
-// implements REQ-002
 export interface ModelRequirementResult {
   content: Array<{ type: "text"; text: string }>;
   structuredContent: {

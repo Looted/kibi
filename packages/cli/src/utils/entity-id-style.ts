@@ -32,17 +32,14 @@
 import * as path from "node:path";
 
 /** Purely numeric entity ID such as `REQ-001` or `ADR-12`. */
-// implements REQ-kibi-entity-id-style
 export const NUMERIC_ENTITY_ID_PATTERN = /^[A-Z]+-\d+$/;
 
-// implements REQ-kibi-entity-id-style
 export type EntityIdStyleIssue = Readonly<{
   code: "numeric_id" | "stem_mismatch";
   message: string;
   suggestion: string;
 }>;
 
-// implements REQ-kibi-entity-id-style
 export function isNumericEntityId(id: string): boolean {
   return NUMERIC_ENTITY_ID_PATTERN.test(id.trim());
 }
@@ -51,7 +48,6 @@ export function isNumericEntityId(id: string): boolean {
  * Filename stem for an authored Markdown source, or undefined for non-Markdown
  * sources (symbol manifests, code files, runtime `mcp://` provenance).
  */
-// implements REQ-kibi-entity-id-style
 export function markdownSourceStem(
   sourcePath: string | undefined,
 ): string | undefined {
@@ -67,7 +63,6 @@ export function markdownSourceStem(
  * Style issues for one newly created entity. Callers decide whether the entity
  * is new; this function never inspects the KB.
  */
-// implements REQ-kibi-entity-id-style
 export function entityIdStyleIssues(input: {
   readonly id: string;
   readonly sourcePath?: string | undefined;
@@ -94,7 +89,6 @@ export function entityIdStyleIssues(input: {
 }
 
 /** Plain-text warnings for mutation receipts. */
-// implements REQ-kibi-entity-id-style
 export function entityIdStyleWarnings(input: {
   readonly id: string;
   readonly sourcePath?: string | undefined;

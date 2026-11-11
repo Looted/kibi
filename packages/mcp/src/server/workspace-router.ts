@@ -15,7 +15,6 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-// implements REQ-mcp-workspace-routing
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import { createRequire } from "node:module";
@@ -449,7 +448,6 @@ export class WorkspaceRouter {
    * store and lifetime stay apart from this workspace's KB. Routing switches
    * and pins do not apply: the caller named the dependency explicitly.
    */
-  // implements REQ-kb-dependencies-git
   async routeKbDependency(
     toolName: string,
     name: string,

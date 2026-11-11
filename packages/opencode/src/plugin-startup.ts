@@ -107,7 +107,6 @@ function readConfigFingerprint(cwd: string): string | undefined {
   return undefined;
 }
 
-// implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
 export async function runPluginStartup(
   input: PluginInput,
 ): Promise<PluginStartupContext | null> {

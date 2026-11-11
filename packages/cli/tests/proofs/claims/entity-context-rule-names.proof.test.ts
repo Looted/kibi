@@ -9,8 +9,6 @@ import {
   ENTITY_CONTEXT_MISSING_RULE,
 } from "../../../../cli/src/public/operations/entity-context.js";
 
-// implements REQ-kb-entity-context-rule-names
-
 /**
  * The names kibi check reports missing and acknowledged entity context under. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

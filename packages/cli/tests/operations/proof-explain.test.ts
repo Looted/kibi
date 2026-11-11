@@ -86,7 +86,6 @@ describe("proof explain projection", () => {
     ).toThrow(/not both/);
   });
 
-  // implements REQ-kibi-verification-evidence-contract
   test("refuses ids it cannot explain with coded errors", () => {
     for (const [id, message] of [
       ["TEST-1", /TEST-1 is not a REQ-\* or SYM-\* id/],
@@ -102,7 +101,6 @@ describe("proof explain projection", () => {
     }
   });
 
-  // implements REQ-kibi-verification-evidence-contract
   test("names an unknown or mistyped id instead of a bare query failure", async () => {
     const stored = new Map([
       ["REQ-known", "req"],
@@ -270,7 +268,6 @@ describe("proof explain projection", () => {
     expect(text).toContain("required_proofs");
     expect(text).toContain("covered_by");
   });
-  // implements REQ-kibi-claim-bound-proofs
   test("a derived claim whose requirement is not tested end to end says why it is not proved", () => {
     const claim = (notProved?: unknown) => ({
       claimKey: "CLAIM-A",
@@ -340,7 +337,6 @@ describe("proof explain projection", () => {
     }
   });
 
-  // implements REQ-kibi-claim-bound-proofs
   test("a refuted claim names the test, what it read and why the case gaps follow", () => {
     const reason =
       "the members Kibi read from the source include console.log, which the fact excludes";

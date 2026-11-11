@@ -11,8 +11,6 @@ import type { CertificateVerdict } from "../../src/operations/proof/code-certifi
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
 import type { ProofContract } from "../../src/public/proof-protocol.js";
 
-// implements REQ-kibi-source-proof-kinds
-
 const root = mkdtempSync(path.join(tmpdir(), "kibi-claim-source-scope-"));
 afterAll(() => rmSync(root, { recursive: true, force: true }));
 mkdirSync(path.join(root, "src"), { recursive: true });

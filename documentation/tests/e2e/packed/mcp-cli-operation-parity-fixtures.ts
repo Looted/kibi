@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 export type JsonRecord = Record<string, unknown>;
 
 export type OperationCase = {

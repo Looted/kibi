@@ -380,7 +380,6 @@ async function resolveReference(
  * Run one evaluation plan (table, machine or pattern mode) against the code
  * files it names, in the language of those files.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export function evaluateCodeModel<T>(
   workspaceRoot: string,
   files: readonly Resolved[],
@@ -416,7 +415,6 @@ export function evaluateCodeModel<T>(
  * Evaluate every predicate a rule contract names over every combination of
  * its argument domains, with the argument types the certificate declares.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function evaluateRuleModel(
   context: OperationContext,
   contract: ProofContract,
@@ -455,7 +453,6 @@ export async function evaluateRuleModel(
 }
 
 /** Read a state machine's states, transitions and initial states. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function evaluateMachine(
   context: OperationContext,
   contract: ProofContract,
@@ -488,7 +485,6 @@ export async function evaluateMachine(
 }
 
 /** Read the pattern or string a regex contract's pattern_source exports. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function evaluatePattern(
   context: OperationContext,
   contract: ProofContract,
@@ -553,7 +549,6 @@ const rowKey = (args: readonly string[]) => JSON.stringify(args);
  * table are what Kibi reads from the code: the same values, and the same
  * decision for every combination of arguments.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function ruleCertificateProblem(
   context: OperationContext,
   contract: ProofContract,
@@ -599,7 +594,6 @@ export async function ruleCertificateProblem(
 }
 
 /** A state_machine certificate re-checks only when it is the code's machine. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function machineCertificateProblem(
   context: OperationContext,
   contract: ProofContract,
@@ -624,7 +618,6 @@ export async function machineCertificateProblem(
 }
 
 /** A regex certificate re-checks only when it holds the code's own pattern. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function patternCertificateProblem(
   context: OperationContext,
   contract: ProofContract,
@@ -665,7 +658,6 @@ export function factPattern(source: string): Extract<LanguageSpec, { type: "patt
  * describes. Polarity forbid negates the constraint; for a pattern, a
  * forbidden match means no string matches both.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export function stringConstraintProblem(
   certificate: Record<string, unknown>,
   obligation: Readonly<Record<string, unknown>>,

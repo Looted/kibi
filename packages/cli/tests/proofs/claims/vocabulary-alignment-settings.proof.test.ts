@@ -8,8 +8,6 @@ import {
 import { EXTERNAL_VOCABULARY_ALIGNMENT_OPERATIONS } from "../../../src/plugins/external-allowlist.js";
 import { BUILTIN_CLAIM_SIMILARITY_THRESHOLD } from "kibi-plugin-builtin";
 
-// implements REQ-kibi-vocabulary-alignment-settings
-
 /**
  * The claim similarity threshold and operation scope of vocabulary alignment.
  * Kibi reads each constant itself at ingest, so the certificate is checked against the code.

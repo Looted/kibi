@@ -33,8 +33,6 @@ import { validateCandidateDescription } from "./variants";
  *   [--body-file candidate.md [--description-file description.txt]] \
  *   [--timeout-ms 600000] [--host codex|claude-code] --allow-paid
  */
-// implements REQ-skillopt-claude-code-host
-// implements REQ-skillopt-description-candidates
 export async function hostCellSmokeMain(
   argv: readonly string[],
 ): Promise<number> {

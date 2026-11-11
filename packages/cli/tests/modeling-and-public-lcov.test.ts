@@ -1,6 +1,3 @@
-// implements REQ-002
-// implements REQ-013
-// implements REQ-mcp-suggest-predicates
 import { describe, expect, test } from "bun:test";
 import { withExitCode } from "../src/cli-command.js";
 import type { ExtractionResult } from "../src/extractors/markdown.js";

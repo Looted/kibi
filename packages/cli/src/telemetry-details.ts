@@ -1,4 +1,3 @@
-// implements REQ-kibi-telemetry-agent-signals
 import type { ErrorObject } from "ajv";
 import type {
   OperationSignals,
@@ -54,13 +53,11 @@ const SCHEMA_FIELD_NAMES: ReadonlySet<string> = (() => {
   return names;
 })();
 
-// implements REQ-kibi-telemetry-agent-signals
 /** Every field name the entity and relationship schemas define. */
 export function kibiSchemaFieldNames(): ReadonlySet<string> {
   return SCHEMA_FIELD_NAMES;
 }
 
-// implements REQ-kibi-telemetry-agent-signals
 /**
  * A JSON pointer as a schema field path: list positions become `*`, and a
  * segment that is not a Kibi schema field name turns the whole path into
@@ -86,7 +83,6 @@ function pointerSegments(pointer: string): string[] {
   return pointer.split("/").slice(1);
 }
 
-// implements REQ-kibi-telemetry-agent-signals
 /**
  * Ajv errors as rejection issues: the keyword as the rule and the field the
  * error is about (the missing or extra property for `required` and
@@ -146,7 +142,6 @@ function issuesOf(value: unknown): RejectionIssue[] {
 
 const UPSERT_OPERATIONS = new Set(["kb_upsert", "kb_validate_upsert"]);
 
-// implements REQ-kibi-telemetry-agent-signals
 /**
  * The struggle signals of one operation call, from its input, its result
  * envelope and the error it threw. agent-core sanitizes and buckets them.

@@ -35,7 +35,6 @@ const cleanedTempDirs = new Set<string>();
  * This is necessary because module-level Maps/Sets persist across tests.
  */
 export function resetModuleState(): void {
-  // implements REQ-014
   // Terminate all tracked prolog processes
   for (const prolog of prologByTempDir.values()) {
     void prolog.terminate().catch(() => {});
@@ -58,7 +57,6 @@ let _createProlog = defaultPrologFactory;
  * argument it restores the default.
  */
 export function _setPrologFactory(
-  // implements REQ-014
   factory: (opts: {
     timeout: number;
     oneShot: false;
@@ -263,7 +261,6 @@ function buildEntityAssertionGoal(
       `exempts_claims=[${entity.exempts_claims.map(toPrologAtom).join(",")}]`,
     );
   }
-  // implements REQ-cli-staged-consistency
   // Scenario feasibility reads the intended outcome.
   if (entity.type === "scenario" && entity.expects !== undefined) {
     props.push(`expects=${toPrologAtom(entity.expects)}`);
@@ -379,7 +376,6 @@ export { consultOverlay };
 
 const PROJECTION_BATCH_SIZE = 128;
 
-// implements REQ-014
 function contextualProjectionGoal(goal: string, context: string): string {
   const label = toPrologString(context);
   // A failed goal must abort the transaction just like an exception. Keep the
@@ -389,7 +385,6 @@ function contextualProjectionGoal(goal: string, context: string): string {
   return `catch((${goal} -> true ; throw(staged_goal_failed)), ProjectionError, (message_to_string(ProjectionError, ProjectionDetail), format(atom(ProjectionMessage), '~s: ~s', [${label}, ProjectionDetail]), throw(error(validation_error(ProjectionMessage), context(projectStagedEntities, ${label})))))`;
 }
 
-// implements REQ-014
 export async function projectStagedEntities(
   prolog: PrologProcess,
   results: ExtractionResult[],
@@ -425,7 +420,6 @@ export async function projectStagedEntities(
   // in later batches. Keep only one bounded batch of relationship goals.
   let relationshipGoals: string[] = [];
   let relationshipLabels: string[] = [];
-  // implements REQ-014
   const flushRelationships = async (): Promise<void> => {
     if (relationshipGoals.length === 0) return;
     const result = await prolog.query(relationshipGoals);
@@ -458,7 +452,6 @@ export async function projectStagedEntities(
 export async function createTempKb(
   baseKbPath?: string,
 ): Promise<TempKbContext> {
-  // implements REQ-014
   if (baseKbPath !== undefined && !existsSync(baseKbPath)) {
     throw new Error(`Base KB path does not exist: ${baseKbPath}`);
   }
@@ -506,7 +499,6 @@ export async function createTempKb(
   return ctx;
 }
 
-// implements REQ-014
 export function createOverlayFacts(symbols: ExtractedSymbol[]): string {
   const lines: string[] = [];
 

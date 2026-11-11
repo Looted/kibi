@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 // Subprocess integration coverage for the MCP launcher: the shipped launcher
 // file runs under native Node (the production runtime), the probe spawns the
 // fixture server for real, and a functioning MCP handshake is proxied through

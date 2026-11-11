@@ -3,8 +3,6 @@ import type { StagedFile } from "../../src/traceability/git-staged.js";
 import { stagedCommitCarriesMigration } from "../../src/traceability/staged-migration.js";
 import { collectStagedAuthoredSymbolsManifestEvidence } from "../../src/traceability/staged-symbols-manifest.js";
 
-// implements REQ-cli-migration-first-commit
-
 const BASE = `symbols:
   - id: SYM-greeter
     title: Greeter

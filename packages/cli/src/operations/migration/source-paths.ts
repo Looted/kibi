@@ -52,11 +52,9 @@ import {
  */
 
 /** The authored frontmatter fields that name workspace files. */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourceField = "source" | "text_ref";
 
 /** One authored `source` or `text_ref` value and the entity file that carries it. */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type AuthoredSourceRef = Readonly<{
   entityId: string;
   field: SourceField;
@@ -67,14 +65,12 @@ export type AuthoredSourceRef = Readonly<{
   value: unknown;
 }>;
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type AuthoredSourceScan = Readonly<{
   refs: readonly AuthoredSourceRef[];
   /** Ids of every authored entity, symbols included. */
   entityIds: ReadonlySet<string>;
 }>;
 
-// implements REQ-core-validation-rules, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourceResolution =
   | Readonly<{ kind: "missing" | "path" | "entity" | "url" }>
   /** Names the entity's own file; `resolves` is false when that spelling names no existing path. */
@@ -82,17 +78,14 @@ export type SourceResolution =
   | Readonly<{ kind: "dangling"; rewrite?: string }>;
 
 /** Why `kibi migrate` removes an authored `source` value. */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourceRemovalReason = "self" | "dangling";
 
 /** The edit `kibi migrate` makes to one authored `source` value. */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourceFix =
   | Readonly<{ kind: "rewrite"; to: string }>
   | Readonly<{ kind: "remove"; reason: SourceRemovalReason }>;
 
 /** One authored `source` value that is redundant or resolves to nothing. */
-// implements REQ-core-validation-rules, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourceRepair = AuthoredSourceRef &
   Readonly<{
     /** Names no existing path, entity id or URL: `source-path-dangling` blocks it. */
@@ -125,7 +118,6 @@ function editRefusedReason(field: SourceField): string {
  * Whether a `text_ref` value reads as one workspace file path. A URL never
  * does: the path shape allows no colon before its first slash.
  */
-// implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function isPathShapedTextRef(value: unknown): boolean {
   return typeof value === "string" && FILE_PATH_SHAPE.test(value.trim());
 }
@@ -141,7 +133,6 @@ function unquote(value: string): string {
 }
 
 /** An authored value as plain text, the form plans record and compare. */
-// implements REQ-core-validation-rules, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function shownSourceValue(value: unknown): string {
   return typeof value === "string" ? value : (JSON.stringify(value) ?? "");
 }
@@ -151,7 +142,6 @@ export function shownSourceValue(value: unknown): string {
  * canonical lanes, plus the symbol ids of the symbols manifest. Only the id
  * and source lines are parsed. Read-only.
  */
-// implements REQ-core-validation-rules, REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export function scanAuthoredSources(workspaceRoot: string): AuthoredSourceScan {
   const refs: AuthoredSourceRef[] = [];
   const entityIds = new Set<string>();
@@ -218,7 +208,6 @@ const LEGACY_LANE_ROOTS = new Set<string>([...ENTITY_LANES, "symbols.yaml"]);
  * `documentation/<lane>/...` or `<lane>/...` value carries the
  * `.kb/<lane>/...` rewrite when that file exists.
  */
-// implements REQ-core-validation-rules, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function resolveAuthoredSource(
   value: unknown,
   context: Readonly<{
@@ -266,7 +255,6 @@ export function resolveAuthoredSource(
 }
 
 /** A memoized existence test confined to the workspace. */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function workspacePathExists(
   workspaceRoot: string,
 ): (relativePath: string) => boolean {
@@ -398,7 +386,6 @@ function withEditability(
  * id, with the fix `kibi migrate` makes and, when the edit is not safe, why.
  * Each path is checked once per call. Read-only.
  */
-// implements REQ-core-validation-rules, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function findDanglingSources(workspaceRoot: string): SourceRepair[] {
   return withEditability(
     workspaceRoot,
@@ -411,12 +398,10 @@ export function findDanglingSources(workspaceRoot: string): SourceRepair[] {
  * dangling ones plus existing values that name the entity's own file.
  * Read-only.
  */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function findSourceRepairs(workspaceRoot: string): SourceRepair[] {
   return withEditability(workspaceRoot, classifySources(workspaceRoot));
 }
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourcePathRewrite = Readonly<{
   entityId: string;
   file: string;
@@ -426,7 +411,6 @@ export type SourcePathRewrite = Readonly<{
   to: string;
 }>;
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourcePathRemoval = Readonly<{
   entityId: string;
   file: string;
@@ -434,13 +418,11 @@ export type SourcePathRemoval = Readonly<{
   reason: SourceRemovalReason;
 }>;
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type PlannedSourcePathRepairs = Readonly<{
   rewrites: readonly SourcePathRewrite[];
   removals: readonly SourcePathRemoval[];
 }>;
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourcePathRepairResult = Readonly<{
   rewritten: readonly SourcePathRewrite[];
   removed: readonly SourcePathRemoval[];
@@ -465,7 +447,6 @@ function plannedRepair(repair: SourceRepair): PlannedRepair {
  * The rewrite and removal records a migration plan lists for these repairs.
  * Repairs Kibi cannot edit safely are left out; they need a person.
  */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function plannedSourcePathRepairs(
   repairs: readonly SourceRepair[],
 ): PlannedSourcePathRepairs {
@@ -509,7 +490,6 @@ function samePlannedRepair(left: PlannedRepair, right: PlannedRepair): boolean {
  * planned. A value that cannot be edited safely is skipped with a reason.
  * Idempotent: a repaired value is not found again.
  */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function applySourcePathRepairs(
   workspaceRoot: string,
   planned?: PlannedSourcePathRepairs,

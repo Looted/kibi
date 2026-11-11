@@ -1,4 +1,3 @@
-// implements REQ-branch-store-recovery-v4
 import { afterEach, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import path from "node:path";

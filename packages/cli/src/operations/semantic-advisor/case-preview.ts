@@ -1,6 +1,5 @@
 import type { SemanticStrictPropertyClaim } from "./types.js";
 
-// implements REQ-kibi-case-coverage
 /**
  * The edge cases the proof ladder will derive from a typed property claim
  * once it is written (packages/core/src/cases.pl), so the author sees the

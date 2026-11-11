@@ -13,7 +13,6 @@
  * example `PENDING_SOURCE_HASH_DRIFT`), so callers and usage telemetry can
  * tell expected refusals apart without reading the message.
  */
-// implements REQ-kibi-anonymous-usage-telemetry
 export class SyncError extends Error {
   readonly code: string | undefined;
 
@@ -24,7 +23,6 @@ export class SyncError extends Error {
   }
 }
 
-// implements REQ-core-atomic-upsert-persistence
 /** A pending-source receipt names a path outside the workspace. */
 export function pendingSourceEscapesError(relative: string): SyncError {
   return new SyncError(
@@ -33,7 +31,6 @@ export function pendingSourceEscapesError(relative: string): SyncError {
   );
 }
 
-// implements REQ-core-atomic-upsert-persistence
 /** An untracked file Kibi wrote is gone before Git tracked it. */
 export function pendingSourceMissingError(relative: string): SyncError {
   return new SyncError(
@@ -42,7 +39,6 @@ export function pendingSourceMissingError(relative: string): SyncError {
   );
 }
 
-// implements REQ-core-atomic-upsert-persistence
 /**
  * An untracked file Kibi wrote was changed by something other than Kibi.
  * Sync never guesses which bytes are meant, so the message names each way

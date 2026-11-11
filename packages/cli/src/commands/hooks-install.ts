@@ -36,14 +36,12 @@ import { serializeJson } from "./setup-choices.js";
  * binary, and a bare command would fail that install. `|| true` is not an
  * option either, because Windows runs npm scripts through cmd.exe.
  */
-// implements REQ-kibi-fresh-clone-setup
 export const KIBI_PREPARE_COMMAND =
   "node -e \"let b;try{b=require.resolve('kibi-cli/bin/kibi')}catch{process.exit(0)}require('child_process').spawnSync(process.execPath,[b,'hooks','install','--quiet'],{stdio:'inherit'})\"";
 
 /** Recognizes Kibi's prepare step in any form a user may have written. */
 const KIBI_PREPARE_PATTERN = /\bkibi\s+hooks\s+install\b|'hooks',\s*'install'/;
 
-// implements REQ-kibi-fresh-clone-setup
 export type PrepareScriptResult =
   | "added"
   | "appended"
@@ -65,7 +63,6 @@ function splitSteps(script: string): string[] {
  * `prepare` script. A repository without a root package.json is left alone:
  * Kibi never creates one, and its hooks then come from `kibi init`.
  */
-// implements REQ-kibi-fresh-clone-setup
 export function syncPrepareScript(
   worktreeRoot: string,
   enabled: boolean,
@@ -118,7 +115,6 @@ export function syncPrepareScript(
 }
 
 /** Whether the root package.json `prepare` script runs Kibi's hook install. */
-// implements REQ-kibi-fresh-clone-setup
 export function hasKibiPrepareScript(worktreeRoot: string): boolean {
   try {
     const manifest = JSON.parse(
@@ -132,7 +128,6 @@ export function hasKibiPrepareScript(worktreeRoot: string): boolean {
   }
 }
 
-// implements REQ-kibi-fresh-clone-setup
 export type HooksInstallOutcome =
   | "installed"
   | "not-a-repository"
@@ -154,7 +149,6 @@ function isCi(env: NodeJS.ProcessEnv): boolean {
  * and prints only when it installed something: outside a Git work tree, in CI,
  * before `kibi init`, or where a hook manager owns the hooks, it does nothing.
  */
-// implements REQ-kibi-fresh-clone-setup, REQ-git-hook-effective-install
 export async function hooksInstallCommand(
   options: { quiet?: boolean } = {},
   env: NodeJS.ProcessEnv = process.env,

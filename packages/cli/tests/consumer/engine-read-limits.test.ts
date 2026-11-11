@@ -1,4 +1,3 @@
-// implements REQ-core-engine-read-limits
 import { afterEach, describe, expect, test } from "bun:test";
 import { spawn } from "node:child_process";
 import { isolatedCliSandboxEnv } from "../helpers/isolated-env.js";

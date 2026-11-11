@@ -16,6 +16,5 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// implements REQ-kb-dependencies-git
 export * from "./kb-dependencies.js";
 export * from "./kb-dependency-scope.js";

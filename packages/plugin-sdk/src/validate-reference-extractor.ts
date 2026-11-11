@@ -17,7 +17,6 @@ function failResult(message: string): never {
 }
 
 /** A referenceExtractor capability exposes an id, supports() and extract(). */
-// implements REQ-kibi-tree-sitter-references
 export function validateReferenceExtractor(
   value: unknown,
 ): ReferenceExtractorV1 {
@@ -51,7 +50,6 @@ export function validateReferenceExtractor(
  * positive line and their text, and a refusal names a code and a message, so
  * the host can always say why a read was refused.
  */
-// implements REQ-kibi-tree-sitter-references
 export function validateReferenceExtractionResult(
   value: unknown,
 ): ReferenceExtractionResultV1 {

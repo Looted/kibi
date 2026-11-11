@@ -48,10 +48,8 @@ import {
   reviewNextAction,
 } from "./conflict-review.js";
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export const COMPILE_PLAN_VERSION = "kibi.compile-plan.v1" as const;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type CompileIntentArgs = Readonly<{
   intent: string;
   mode: "create" | "update";
@@ -80,14 +78,12 @@ export type CompileIntentArgs = Readonly<{
   conflictReviews?: readonly ConflictReviewDecision[];
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type ScenarioDraft = Readonly<{
   id?: string;
   title: string;
   body: string;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type TestDraft = Readonly<{
   id?: string;
   title: string;
@@ -98,13 +94,11 @@ export type TestDraft = Readonly<{
   verificationPerspective?: "internal" | "consumer";
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type ProposalDecision = Readonly<{
   proposalId: string;
   decision: "accept" | "reject";
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 /**
  * One witness from the staged what-if analysis. The engine's full evidence
  * (sides, facts, scenario, comparison) is kept alongside these normalized
@@ -121,7 +115,6 @@ export type {
 } from "./conflict-review.js";
 export { isBlockingWitness, parseWhatIfAnalysis } from "../mutation/what-if.js";
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type TraceabilityProposal = Readonly<{
   proposalId: string;
   candidateId: string;
@@ -132,10 +125,8 @@ export type TraceabilityProposal = Readonly<{
   decision: "pending" | "accept" | "reject";
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type PlanStep = Readonly<Record<string, unknown>>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export function compilePlanHash(
   plan: Readonly<Record<string, unknown>>,
 ): string {
@@ -143,7 +134,6 @@ export function compilePlanHash(
   return hash(body);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type CompilePlanV1 = Readonly<{
   version: typeof COMPILE_PLAN_VERSION;
   planHash: string;
@@ -390,7 +380,6 @@ function relationshipRows(step: PlanStep): Record<string, unknown>[] {
     : [];
 }
 
-// implements REQ-kibi-truthful-consistency
 // Each advisor suggestion carries an inventory in which only its own clause is
 // modeled, so merging suggestion steps left the requirement with whichever
 // inventory came last (or none). The compiled plan already knows every
@@ -526,7 +515,6 @@ function requirementDocumentPath(
   return explicit;
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 /**
  * Name the authored document every entity step writes, as `kb_upsert` would
  * choose it: the entity's existing authored document, else its canonical
@@ -621,7 +609,6 @@ function generatedRequirementId(intent: string): string {
   return `REQ-${slug(intent)}-${shortHash(intent).toUpperCase()}`;
 }
 
-// implements REQ-kibi-truthful-consistency
 /** Rolled-back staging goal for a plan's steps (see what_if_analysis/2). */
 export function planWhatIfGoal(steps: readonly PlanStep[], now: Date): string {
   return buildWhatIfAnalysisGoal(
@@ -658,7 +645,6 @@ export function planWhatIfGoal(steps: readonly PlanStep[], now: Date): string {
   );
 }
 
-// implements REQ-kibi-truthful-consistency
 // Check the KB as it would be after this plan, not the KB as it is: stage every
 // planned step in a rolled-back transaction and compare its contradiction and
 // scenario-feasibility witnesses with the current KB's. Any witness the plan
@@ -710,7 +696,6 @@ async function contradictionAnalysis(
   };
 }
 
-// implements REQ-kibi-contradiction-review-candidates
 // No witness is not the same as no conflict: the checker compares only what
 // has a logical model. When a target proposition is unmodeled, or a related
 // current requirement from discovery has no logic of its own, the outcome
@@ -896,7 +881,6 @@ function draftId(prefix: string, title: string, index: number): string {
   return `${prefix}-${slug(title)}-${shortHash(`${title}\0${index}`).toUpperCase()}`;
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 function draftSteps(
   requirementId: string,
   scenarios: readonly ScenarioDraft[],
@@ -1026,7 +1010,6 @@ function draftSteps(
   };
 }
 
-// implements REQ-model-what-if-planned-facts
 export type GroundingPlanInput = Readonly<{
   requirementId: string;
   claimKey: string;
@@ -1035,7 +1018,6 @@ export type GroundingPlanInput = Readonly<{
   steps: readonly PlanStep[];
 }>;
 
-// implements REQ-model-what-if-planned-facts
 /**
  * A hash-bound compile plan for a grounding kb_model planned: the predicate
  * fact and the requirement upsert that links it, validated and applied
@@ -1117,7 +1099,6 @@ export async function compileGroundingPlan(
   return { ...planBody, planHash: compilePlanHash(planBody) };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export async function executeCompileIntent(
   args: CompileIntentArgs,
   context: OperationContext,

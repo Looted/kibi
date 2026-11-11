@@ -1,4 +1,3 @@
-// implements REQ-kibi-logical-requirement-coverage
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import {

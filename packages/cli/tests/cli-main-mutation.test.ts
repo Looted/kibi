@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";

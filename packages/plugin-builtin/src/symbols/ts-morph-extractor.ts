@@ -89,7 +89,6 @@ function v2ScriptKind(
  * Built-in ts-morph symbol extractor. Behavior matches the historical CLI
  * `createTsMorphSourceAnalysisProvider` analysis path.
  */
-// implements REQ-capability-plugin-builtin-parity-v1
 export function createBuiltinTsMorphSymbolExtractor(): SymbolExtractorV1 {
   // Plugin registration creates the extractor on every CLI start; the project
   // (and the TypeScript compiler behind it) is built on the first analysis.
@@ -138,7 +137,6 @@ export function createBuiltinTsMorphSymbolExtractor(): SymbolExtractorV1 {
 }
 
 /** Built-in asynchronous ts-morph extractor for the source-bound v2 contract. */
-// implements REQ-capability-plugin-builtin-parity-v1
 export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
   // Like the v1 extractor, build the project (and load the TypeScript
   // compiler) on the first analysis rather than at plugin registration.
@@ -272,7 +270,6 @@ function sourceRangeAtOffsets(
   };
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function createBuiltinTsMorphSourceAnalysisProvider(): SourceAnalysisProvider {
   return toSourceAnalysisProvider(createBuiltinTsMorphSymbolExtractor());
 }

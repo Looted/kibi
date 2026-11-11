@@ -1,6 +1,5 @@
 import { playwrightCaseId } from "../proof/producers/playwright-case-id.js";
 
-// implements REQ-kibi-verification-evidence-contract
 export type PlaywrightCaseSymbol = Readonly<{
   id: string;
   title: string;
@@ -13,7 +12,6 @@ export type PlaywrightCaseSymbol = Readonly<{
   tags: readonly ["test-case", "playwright"];
 }>;
 
-// implements REQ-kibi-verification-evidence-contract
 export type PlaywrightCaseDiagnostic = Readonly<{
   code: "dynamic_test_case_unresolved";
   sourceFile: string;
@@ -21,7 +19,6 @@ export type PlaywrightCaseDiagnostic = Readonly<{
   detail: string;
 }>;
 
-// implements REQ-kibi-verification-evidence-contract
 export type PlaywrightCaseExtraction = Readonly<{
   symbols: readonly PlaywrightCaseSymbol[];
   diagnostics: readonly PlaywrightCaseDiagnostic[];
@@ -137,7 +134,6 @@ function qualifiedTitle(
 }
 
 /** Extract statically named Playwright tests from a TS/JS source module. */
-// implements REQ-kibi-verification-evidence-contract
 export function extractPlaywrightCases(
   sourceFile: string,
   source: string,

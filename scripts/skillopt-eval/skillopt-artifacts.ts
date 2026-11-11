@@ -10,7 +10,6 @@ export type SkillOptArtifactInput = Readonly<{
   runtimeState: Readonly<Record<string, unknown>>;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export async function persistSkillOptArtifacts(
   root: string,
   input: SkillOptArtifactInput,

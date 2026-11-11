@@ -11,8 +11,6 @@ import {
 import { SOURCE_READERS } from "../../../../cli/src/public/proof-sources.js";
 import { CLAIM_BINDING_VERDICTS } from "../../../../cli/src/public/proof-receipt.js";
 
-// implements REQ-kibi-proof-vocabulary
-
 /**
  * The proof kinds a contract may declare, the kinds Kibi re-checks with a certificate, the readers a source proof may use and the verdicts a claim binding can get. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

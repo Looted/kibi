@@ -36,7 +36,6 @@ function runtimeContext(): OperationContext {
   };
 }
 
-// implements REQ-001
 export async function handleKbSkillsList(
   _args: SkillsListArgs,
 ): Promise<SkillsListResult> {
@@ -48,7 +47,6 @@ export async function handleKbSkillsList(
   }
 }
 
-// implements REQ-001
 export async function handleKbSkillsLoad(
   args: SkillsLoadArgs,
 ): Promise<SkillsLoadResult> {
@@ -60,7 +58,6 @@ export async function handleKbSkillsLoad(
   }
 }
 
-// implements REQ-001
 export async function handleKbSkillsRead(
   args: SkillsReadArgs,
 ): Promise<SkillsReadResult> {

@@ -28,19 +28,15 @@ import type {
   SourceAnalysisResult,
 } from "./symbols-coordinator.js";
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export type SymbolCoordinates = BuiltinSymbolCoordinates;
-// implements REQ-capability-plugin-builtin-parity-v1
 export type ManifestSymbolEntry = BuiltinManifestSymbolEntry;
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export const isPrivateClassMember = isBuiltinPrivateClassMember;
 
 /**
  * Thin host adapter over kibi-plugin-builtin's ts-morph extractor.
  * Preserves the historical `ts-morph` provider id for sync callers and tests.
  */
-// implements REQ-001
 export function createTsMorphSourceAnalysisProvider(): SourceAnalysisProvider {
   const provider = createBuiltinTsMorphSourceAnalysisProvider();
   return {
@@ -74,16 +70,13 @@ export function createTsMorphSourceAnalysisProvider(): SourceAnalysisProvider {
   };
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export async function enrichSymbolCoordinatesWithTsMorph(
   entries: ManifestSymbolEntry[],
   workspaceRoot: string,
 ): Promise<ManifestSymbolEntry[]> {
-  // implements REQ-vscode-traceability
   return enrichBuiltinSymbolCoordinates(entries, workspaceRoot);
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function onlyCandidate<T>(candidates: readonly T[]): T | undefined {
   return onlyBuiltinCandidate(candidates);
 }

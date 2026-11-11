@@ -151,7 +151,6 @@ export const SIGNOFF_GATE_LABELS: Readonly<Record<string, string>> = {
 };
 
 /** A short proof label for one requirement. */
-// implements REQ-kibi-evidence-levels
 export function proofLabel(proof: SignoffProof | undefined): string {
   if (proof === undefined) return "not checked";
   if (proof.status === "not_applicable") return "not applicable";
@@ -171,7 +170,6 @@ export function proofLabel(proof: SignoffProof | undefined): string {
  * required_evidence says so, since lowering it is a decision the person
  * approving the requirement is also accepting.
  */
-// implements REQ-kibi-evidence-floors
 export function floorLabel(
   floor: SignoffEvidenceFloor | undefined,
 ): string | undefined {
@@ -198,7 +196,6 @@ export function questionKind(question: SignoffQuestion): string {
   return "New rule";
 }
 
-// implements REQ-kibi-signoff-views
 /** One sentence of a rewritten statement and how the rewrite changed it. */
 export type StatementSentence = Readonly<{
   text: string;
@@ -213,7 +210,6 @@ function sentences(statement: string): string[] {
     .filter((sentence) => sentence.length > 0);
 }
 
-// implements REQ-kibi-signoff-views
 /**
  * A rewrite of a statement as its sentences in reading order, each kept,
  * added or removed (a longest-common-subsequence diff), so the person reads
@@ -265,7 +261,6 @@ export function statementSentenceDiff(
   return result;
 }
 
-// implements REQ-kibi-signoff-views
 /**
  * Whether the change asks the person to approve a requirement: the agent
  * wrote or rewrote it and nobody has approved it.
@@ -278,7 +273,6 @@ export function awaitsApproval(requirement: SignoffRequirement): boolean {
   );
 }
 
-// implements REQ-kibi-signoff-views
 /** The numbers (in view order) of the requirements awaiting approval. */
 export function approvalNumbers(
   ordered: readonly SignoffRequirement[],
@@ -288,7 +282,6 @@ export function approvalNumbers(
   );
 }
 
-// implements REQ-kibi-signoff-views
 /** One sentence naming the requirements that wait for the person. */
 export function approvalSentence(numbers: readonly number[]): string {
   if (numbers.length === 0) return "";

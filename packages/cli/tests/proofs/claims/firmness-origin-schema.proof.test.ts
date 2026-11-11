@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION } from "../../../src/public/operations/decision-firmness.js";
 
-// implements REQ-kb-firmness-origin-schema
-
 /**
  * The KB schema version from which firmness is read from a decision's origin. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

@@ -7,7 +7,6 @@
  */
 
 /** UI and workflow events that start a commit, discard or transition. */
-// implements REQ-model-predicates-closed-vocabularies
 export const TRIGGER_VOCABULARY = {
   constants: ["escape", "cancel", "submit", "navigation", "click", "timeout"],
   aliases: {
@@ -26,7 +25,6 @@ export const TRIGGER_VOCABULARY = {
 } as const;
 
 /** An authorization outcome. */
-// implements REQ-model-predicates-closed-vocabularies
 export const DECISION_VOCABULARY = {
   constants: ["allow", "deny"],
   aliases: {
@@ -42,7 +40,6 @@ export const DECISION_VOCABULARY = {
 } as const;
 
 /** How a target is refreshed. */
-// implements REQ-model-predicates-closed-vocabularies
 export const REFRESH_POLICY_VOCABULARY = {
   constants: ["automatic", "manual", "on_demand"],
   aliases: {
@@ -54,7 +51,6 @@ export const REFRESH_POLICY_VOCABULARY = {
 } as const;
 
 /** What an environment safety rule decides for an action. */
-// implements REQ-model-predicates-closed-vocabularies
 export const ENVIRONMENT_DECISION_VOCABULARY = {
   constants: ["allowed", "forbidden", "read-only"],
   aliases: {
@@ -67,28 +63,24 @@ export const ENVIRONMENT_DECISION_VOCABULARY = {
 } as const;
 
 /** Comparison operators, as property_value facts spell them. */
-// implements REQ-model-predicates-closed-vocabularies
 export const OPERATOR_VOCABULARY = {
   constants: ["lt", "lte", "eq", "neq", "gte", "gt"],
   aliases: { le: "lte", ge: "gte", ne: "neq" },
 } as const;
 
 /** Calendar units a retention period is stated in. */
-// implements REQ-model-predicates-closed-vocabularies
 export const RETENTION_UNIT_VOCABULARY = {
   constants: ["days", "months", "years"],
   aliases: { day: "days", month: "months", year: "years" },
 } as const;
 
 /** The two directions of a coding standard. */
-// implements REQ-model-predicates-closed-vocabularies
 export const CODING_STANDARD_ACTION_VOCABULARY = {
   constants: ["use", "avoid"],
   aliases: {},
 } as const;
 
 /** What happens to a subject at the end of its lifecycle. */
-// implements REQ-model-predicates-closed-vocabularies
 export const LIFECYCLE_ACTION_VOCABULARY = {
   constants: ["archived", "deleted", "expired"],
   aliases: { archive: "archived", delete: "deleted", expire: "expired" },
@@ -103,7 +95,6 @@ type Vocabulary = Readonly<{
  * The `argument_constants` and `argument_aliases` fields for a schema whose
  * listed arguments use the given vocabularies.
  */
-// implements REQ-model-predicates-closed-vocabularies
 export function closedArguments(
   byArgument: Readonly<Record<string, Vocabulary>>,
 ): {

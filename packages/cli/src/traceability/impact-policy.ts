@@ -10,7 +10,6 @@ import {
 } from "./impact-review.js";
 
 /** Trusted base impact policy loading and partial-analysis allowances. */
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function approvedPartialClass(
   policy: ImpactPolicy,
   analysis: NonNullable<SideEvidence["analysis"]>,

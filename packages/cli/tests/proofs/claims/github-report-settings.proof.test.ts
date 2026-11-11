@@ -12,8 +12,6 @@ import {
   PLACEHOLDER_REPO,
 } from "../../../src/commands/github-init.js";
 
-// implements REQ-kibi-github-report-settings
-
 /**
  * Where kibi init --github writes the badge workflow, the Pages folder the report is published under, the badge alt text and the placeholders used before the repository is known. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

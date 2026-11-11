@@ -19,7 +19,6 @@ type LoadFormat = "json" | "markdown";
 type ReadFormat = "text" | "json";
 type ValidateFormat = "json" | "table";
 
-// implements REQ-003
 export async function skillsListCommand(
   options: FormatOptions<ListFormat>,
 ): Promise<CommandResult | undefined> {

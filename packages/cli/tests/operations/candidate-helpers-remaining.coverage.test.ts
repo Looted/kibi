@@ -1,4 +1,3 @@
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 import { afterEach, describe, expect, test } from "bun:test";
 import { strictPlan } from "../../src/operations/bootstrap/candidate-helpers.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";

@@ -1,6 +1,5 @@
 import { normalizeEntityId } from "../../prolog/codec.js";
 
-// implements REQ-kibi-truthful-consistency
 /** A contradiction or scenario-infeasibility witness the checker reports. */
 export type ContradictionWitness = Readonly<
   {
@@ -12,7 +11,6 @@ export type ContradictionWitness = Readonly<
   } & Record<string, unknown>
 >;
 
-// implements REQ-kibi-truthful-consistency
 export type WhatIfAnalysis = Readonly<{
   after: readonly ContradictionWitness[];
   introduced: readonly ContradictionWitness[];
@@ -57,7 +55,6 @@ function decodeJson(raw: string): unknown {
   return undefined;
 }
 
-// implements REQ-kibi-truthful-consistency
 /**
  * Parse checks:what_if_analysis_json/2 output. The binding is a quoted Prolog
  * string, so the JSON may arrive encoded once more as a JSON string. A bare
@@ -82,7 +79,6 @@ export function parseWhatIfAnalysis(raw: unknown): WhatIfAnalysis | null {
   };
 }
 
-// implements REQ-kibi-truthful-consistency
 /** Blocking: a proven contradiction or an infeasible success scenario. */
 export function isBlockingWitness(witness: ContradictionWitness): boolean {
   return witness.status === "contradiction" || witness.status === "infeasible";

@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { type ChildProcess, spawn } from "node:child_process";
 import { type Server, createServer } from "node:http";
 import type { TestSandbox } from "./helpers.js";

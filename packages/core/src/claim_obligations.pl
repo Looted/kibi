@@ -1,5 +1,4 @@
 % Module: claim_obligations
-% implements REQ-kibi-claim-bound-proofs, REQ-kibi-non-numeric-proof-kinds
 %
 % What a certificate has to establish for it to prove one requirement claim.
 % A claim is grounded by exactly one typed fact; the obligation is derived
@@ -158,7 +157,6 @@ includes_obligation(FactId, _Members, ProofKind, incompatible(Reason)) :-
            "~w is an includes set fact (every member has the property), which a ~w certificate cannot derive: it compares the whole set (use rule, or an eq set fact for exactly these members)",
            [FactId, ProofKind]).
 
-% implements REQ-kibi-source-proof-kinds
 % A state machine set fact: the projection its property names stands in the
 % fact operator's relation to the members.  eq on a plain projection keeps
 % the machine_set obligation earlier receipts recorded.
@@ -211,7 +209,6 @@ waypoint_member(Member, Spelled) :-
     ;   Spelled = Member
     ).
 
-% implements REQ-kibi-source-proof-kinds
 % A set fact under the source kind.  The property decides what the members
 % are about: fields every selected table or object has as required or
 % nullable, middleware every selected route runs, or (any other property)

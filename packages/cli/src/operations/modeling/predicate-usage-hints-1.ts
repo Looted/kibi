@@ -1,6 +1,5 @@
 import type { PredicateUsageHints } from "./predicate-types.js";
 
-// implements REQ-mcp-suggest-predicates
 export const PREDICATE_USAGE_HINTS_1: Record<string, PredicateUsageHints> = {
   state: {
     use_when: [

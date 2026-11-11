@@ -19,7 +19,6 @@
  * Prolog syntax.
  */
 export function escapeAtom(value: string): string {
-  // implements REQ-009
   return value
     .replaceAll("\\", "\\\\")
     .replaceAll("\u0007", "\\a")
@@ -37,7 +36,6 @@ export function escapeAtom(value: string): string {
  * Simple atoms (lowercase start, alphanumeric + underscore) pass through.
  */
 export function toPrologAtom(value: string): string {
-  // implements REQ-009
   const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
   return simplePrologAtom.test(value) ? value : `'${escapeAtom(value)}'`;
 }
@@ -48,7 +46,6 @@ export function toPrologAtom(value: string): string {
  * Returns the full quoted literal including surrounding double-quotes.
  */
 export function toPrologString(value: string): string {
-  // implements REQ-009
   const escaped = value
     .replace(/\\/g, "\\\\")
     .replace(/"/g, '\\"')
@@ -63,7 +60,6 @@ export function toPrologString(value: string): string {
  * Alias for escapeAtom for semantic clarity.
  */
 export function escapeAtomContent(value: string): string {
-  // implements REQ-009
   return escapeAtom(value);
 }
 
@@ -73,7 +69,6 @@ export function escapeAtomContent(value: string): string {
  * projection.
  */
 export function parseListOfLists(listStr: string): string[][] {
-  // implements REQ-009
   return parseListRows(listStr).flatMap((row) => {
     const scanned = scanTopLevelGeneral(row, ",");
     if (!scanned.balanced) return [];
@@ -102,7 +97,6 @@ export function fallbackWhenPairMissing<T>(
   return pair === undefined ? fallback : null;
 }
 
-// implements REQ-core-persistence
 // covered_by TEST-cli-prolog-codec
 export function typedLiteralFromParts(
   parts: readonly (string | undefined)[],
@@ -163,7 +157,6 @@ export function entityFromBindingParts(
 }
 
 export function parseEntityFromBinding(
-  // implements REQ-009
   bindingStr: string,
 ): Record<string, unknown> {
   const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
@@ -171,7 +164,6 @@ export function parseEntityFromBinding(
 }
 
 export function parseEntityFromList(data: string[]): Record<string, unknown> {
-  // implements REQ-009
   // A short or sparse row leaves a part undefined.
   const [idPart, typePart, propsPart] = data;
   if (
@@ -188,7 +180,6 @@ export function parseEntityFromList(data: string[]): Record<string, unknown> {
 }
 
 export function parsePropertyList(propsStr: string): Record<string, unknown> {
-  // implements REQ-009, REQ-skillopt-logical-evidence-fidelity
   const props: Record<string, unknown> = {};
 
   let cleaned = propsStr.trim();
@@ -245,7 +236,6 @@ export function parsePropertyList(propsStr: string): Record<string, unknown> {
 }
 
 export function parsePrologValue(valueInput: string): unknown {
-  // implements REQ-009
   const value = valueInput.trim();
 
   // Handle typed literal: ^^("value", type)
@@ -292,7 +282,6 @@ export function parsePrologValue(valueInput: string): unknown {
 }
 
 export function splitTopLevelGeneral(str: string, delimiter: string): string[] {
-  // implements REQ-009
   return scanTopLevelGeneral(str, delimiter).parts;
 }
 
@@ -365,7 +354,6 @@ function scanTopLevelGeneral(str: string, delimiter: string): TopLevelScan {
 }
 
 export function splitTopLevel(str: string, delimiter: string): string[] {
-  // implements REQ-009
   return splitTopLevelGeneral(str, delimiter);
 }
 
@@ -381,7 +369,6 @@ export function normalizeEntityId(value: string): string {
 }
 
 export function parseAtomList(raw: string): string[] {
-  // implements REQ-009
   // An empty list or input unwraps to nothing, which has no tokens.
   return splitTopLevelGeneral(unwrapList(raw.trim()), ",")
     .map((token) => stripQuotes(token.trim()))
@@ -389,7 +376,6 @@ export function parseAtomList(raw: string): string[] {
 }
 
 export function parsePairList(raw: string): Array<[string, string]> {
-  // implements REQ-009
   const rows = parseListRows(raw);
   const pairs: Array<[string, string]> = [];
 
@@ -404,7 +390,6 @@ export function parsePairList(raw: string): Array<[string, string]> {
 }
 
 export function parseTriples(raw: string): Array<[string, string, string]> {
-  // implements REQ-009
   const rows = parseListRows(raw);
   const triples: Array<[string, string, string]> = [];
 
@@ -462,7 +447,6 @@ export interface ParsedViolation {
 }
 
 export function parseViolationRows(raw: string): ParsedViolation[] {
-  // implements REQ-006
   const trimmed = raw.trim();
   const violations: ParsedViolation[] = [];
 

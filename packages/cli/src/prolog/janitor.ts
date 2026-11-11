@@ -44,7 +44,6 @@ import {
  * crashed engines leave journals behind. The janitor classifies each piece
  * of evidence and cleans only what is provably stale.
  */
-// implements REQ-core-journaled-engine-persistence
 
 export interface StoreLockFinding {
   readonly kind: "store-lock";
@@ -98,7 +97,6 @@ export interface JanitorOptions {
 }
 
 /** Scan one branch store's ownership journal and clean stale artifacts. */
-// implements REQ-core-journaled-engine-persistence
 export function sweepStoreLock(
   storePath: string,
   apply: boolean,
@@ -153,7 +151,6 @@ export function sweepStoreLock(
 }
 
 /** Scan all branch stores under <workspaceRoot>/.kb/branches. */
-// implements REQ-core-journaled-engine-persistence
 export function sweepWorkspaceStoreLocks(
   options: JanitorOptions,
 ): StoreLockFinding[] {
@@ -174,7 +171,6 @@ export function sweepWorkspaceStoreLocks(
  * <workspaceRoot>/.kb/branches that are older than the window kb_status
  * shows them for. Fresh records are kept and not reported.
  */
-// implements REQ-core-journaled-engine-persistence
 export function sweepStoreLockTakeoverRecords(
   options: JanitorOptions,
 ): TakeoverRecordFinding[] {
@@ -219,7 +215,6 @@ export function sweepStoreLockTakeoverRecords(
  * Sweep runtime-directory daemon sockets. A socket is stale when its pid
  * file records a dead process or a connect attempt is refused.
  */
-// implements REQ-core-journaled-engine-persistence
 export function sweepRuntimeSockets(options: JanitorOptions): SocketFinding[] {
   if (!options.all) return [];
   if (!existsSync(options.runtimeDirectory)) return [];
@@ -260,7 +255,6 @@ export function sweepRuntimeSockets(options: JanitorOptions): SocketFinding[] {
  * Full janitor sweep across branch stores, expired takeover records and
  * (optionally) runtime sockets.
  */
-// implements REQ-core-journaled-engine-persistence
 export function runJanitor(options: JanitorOptions): JanitorFinding[] {
   return [
     ...sweepWorkspaceStoreLocks(options),

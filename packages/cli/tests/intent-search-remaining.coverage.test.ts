@@ -1,4 +1,3 @@
-// implements REQ-kibi-intent-aware-source-discovery
 import { afterEach, describe, expect, test } from "bun:test";
 import { executeIntentSearch, graphGoal } from "../src/intent-search.js";
 import { isolateKibiEnv } from "./helpers/in-process-workspace.js";

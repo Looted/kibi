@@ -65,14 +65,12 @@ type SchemaRef = Readonly<{
  * to the only namespace whose schema matches, and/or replace alias spellings
  * with their declared constants. Present only when nothing is left for review.
  */
-// implements REQ-kibi-predicate-vocabulary-migration
 export type PredicateFactRepair = Readonly<{
   type: "fact";
   id: string;
   properties: Readonly<Record<string, unknown>>;
 }>;
 
-// implements REQ-kibi-predicate-vocabulary-migration
 export type PredicateConformanceEvidence = Readonly<{
   factId: string;
   predicateName: string;
@@ -189,7 +187,6 @@ function repairFor(
  * in the default namespace) with the same namespace, name, and arity, and
  * must use declared constants where the schema closes an argument.
  */
-// implements REQ-kibi-predicate-schema-conformance
 export function evaluatePredicateSchemaConformance(
   facts: readonly Entity[],
 ): Violation[] {
@@ -351,7 +348,6 @@ function conformanceSuggestion(evidence: PredicateConformanceEvidence): string {
 }
 
 /** Load every fact once and evaluate predicate conformance. */
-// implements REQ-kibi-predicate-schema-conformance
 export async function collectPredicateSchemaConformanceViolations(
   prolog: Pick<PrologPort, "query">,
 ): Promise<Violation[]> {

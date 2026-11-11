@@ -9,8 +9,6 @@ import {
 import { DERIVED_KB_PREFIXES, KB_ROOT } from "../../../src/utils/kb-paths.js";
 import { KB_MANIFEST_VERSION } from "../../../src/utils/kb-manifest.js";
 
-// implements REQ-cli-kb-layout-paths
-
 /**
  * The KB folder, its derived subfolders and its manifest version. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

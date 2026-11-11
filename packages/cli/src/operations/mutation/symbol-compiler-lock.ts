@@ -23,7 +23,6 @@ const DEFAULT_TIMEOUT_MS = 15_000;
 const RETRY_INTERVAL_MS = 25;
 const MAX_RELEASE_FILESYSTEM_ATTEMPTS = 3;
 
-// implements REQ-generated-coordinate-persistence
 export interface SymbolCompilerLockFileSystem {
   readonly mkdirSync: (
     target: string,
@@ -51,7 +50,6 @@ const NODE_FILE_SYSTEM: SymbolCompilerLockFileSystem = {
   rmdirSync: (target) => rmdirSync(target),
 };
 
-// implements REQ-generated-coordinate-persistence
 export interface SymbolCompilerLockOptions {
   readonly timeoutMs?: number;
   readonly now?: () => number;
@@ -60,7 +58,6 @@ export interface SymbolCompilerLockOptions {
   readonly isProcessAlive?: (pid: number) => boolean;
 }
 
-// implements REQ-generated-coordinate-persistence
 export class SymbolCompilerLockError extends Error {
   override readonly name = "SymbolCompilerLockError";
 }
@@ -252,7 +249,6 @@ async function defaultSleep(ms: number): Promise<void> {
   await new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
 }
 
-// implements REQ-generated-coordinate-persistence
 export interface SymbolCompilerLockHandle {
   /**
    * Remove this handle's validated owner metadata and then its empty lock
@@ -264,7 +260,6 @@ export interface SymbolCompilerLockHandle {
   readonly release: () => void;
 }
 
-// implements REQ-generated-coordinate-persistence
 export function releaseSymbolCompilerLock(
   handle: SymbolCompilerLockHandle | undefined,
   operationFailure?: { readonly error: unknown },
@@ -296,7 +291,6 @@ export function releaseSymbolCompilerLock(
  * operations whose lock must span several awaits (source publication,
  * coordinate refresh, canonical re-extraction, and the RDF commit).
  */
-// implements REQ-generated-coordinate-persistence
 export async function acquireSymbolCompilerLock(
   workspaceRoot: string,
   options: SymbolCompilerLockOptions = {},
@@ -452,7 +446,6 @@ export async function acquireSymbolCompilerLock(
  * corrupt metadata and live holders stay fail-closed.
  * Release failures propagate so successful work is never reported unlocked.
  */
-// implements REQ-generated-coordinate-persistence
 export async function withSymbolCompilerLock<T>(
   workspaceRoot: string,
   operation: () => Promise<T>,

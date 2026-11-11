@@ -1,5 +1,3 @@
-// implements REQ-opencode-kibi-plugin-v1
-// implements REQ-opencode-file-context-guidance-v1
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { execSync } from "node:child_process";
 import fs from "node:fs";

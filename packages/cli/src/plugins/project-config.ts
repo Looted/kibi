@@ -24,7 +24,6 @@ import {
   validateProjectKibiConfig,
 } from "kibi-plugin-sdk";
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type ProjectPackageManifest = Readonly<{
   name?: string;
   dependencies?: Readonly<Record<string, string>>;
@@ -34,7 +33,6 @@ export type ProjectPackageManifest = Readonly<{
   kibi?: unknown;
 }>;
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function readProjectPackageJson(
   workspaceRoot: string,
 ): ProjectPackageManifest {
@@ -70,7 +68,6 @@ export function readProjectPackageJson(
  * Missing package.json, `kibi`, or `kibi.plugins` yields empty config
  * (builtin-only), matching historical workspaces without a package manifest.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export function readProjectKibiConfig(
   workspaceRoot: string,
 ): ProjectKibiConfig {
@@ -90,7 +87,6 @@ export type ConfiguredCapabilityPluginDiagnostic = Readonly<{
   declared: boolean;
 }>;
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 function dependencyDeclared(
   manifest: ProjectPackageManifest,
   packageName: string,
@@ -109,7 +105,6 @@ function dependencyDeclared(
 /**
  * Parsed `package.json#kibi.plugins` rows. Does not import plugin modules.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 // covered_by TEST-e2e-capability-plugins
 export function describeConfiguredCapabilityPlugins(
   workspaceRoot: string,

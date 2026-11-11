@@ -10,7 +10,6 @@ import type { ManifestSymbolRecord } from "./manifest.js";
  * record to the extraction identity that produced it so stale coordinates can
  * never silently overlay a changed symbol.
  */
-// implements REQ-generated-coordinate-persistence
 export const SYMBOL_COORDINATES_FORMAT_VERSION = 2;
 
 export interface SymbolCoordinatesRecord {
@@ -22,13 +21,11 @@ export interface SymbolCoordinatesRecord {
 }
 
 /** A generated record bound to the extraction identity that produced it. */
-// implements REQ-generated-coordinate-persistence
 export interface BoundSymbolCoordinatesRecord extends SymbolCoordinatesRecord {
   readonly identityHash: string;
   readonly sourceHash: string;
 }
 
-// implements REQ-generated-coordinate-persistence
 export type CoordinateArtifactRecord =
   | SymbolCoordinatesRecord
   | BoundSymbolCoordinatesRecord;
@@ -37,7 +34,6 @@ export interface SymbolCoordinatesArtifact {
   coordinates: Record<string, CoordinateArtifactRecord>;
 }
 
-// implements REQ-generated-coordinate-persistence
 export interface CoordinateExtractionIdentity {
   readonly id: string;
   readonly title?: string | undefined;
@@ -45,13 +41,11 @@ export interface CoordinateExtractionIdentity {
   readonly granularity_reason?: string | undefined;
 }
 
-// implements REQ-generated-coordinate-persistence
 export interface SymbolCoordinateWriteEntry extends SymbolCoordinatesRecord {
   readonly identityHash?: string;
   readonly sourceHash?: string;
 }
 
-// implements REQ-generated-coordinate-persistence
 export type ParsedCoordinateArtifact =
   | {
       readonly status: "parsed";
@@ -66,7 +60,6 @@ export type ParsedCoordinateArtifact =
     }
   | { readonly status: "invalid"; readonly reason: string };
 
-// implements REQ-generated-coordinate-persistence
 export class CoordinateArtifactError extends Error {
   override readonly name = "CoordinateArtifactError";
 }
@@ -85,7 +78,6 @@ function canonicalIdentityValue(value: unknown): string {
 }
 
 /** Deterministic canonical identity string for a symbol extraction state. */
-// implements REQ-generated-coordinate-persistence
 export function coordinateIdentityKey(
   identity: CoordinateExtractionIdentity,
 ): string {
@@ -98,7 +90,6 @@ export function coordinateIdentityKey(
 }
 
 /** Stable hash binding a generated coordinate record to its extraction identity. */
-// implements REQ-generated-coordinate-persistence
 export function coordinateIdentityHash(
   identity: CoordinateExtractionIdentity,
 ): string {
@@ -108,13 +99,11 @@ export function coordinateIdentityHash(
 }
 
 /** Stable hash of the exact source text used to generate a coordinate span. */
-// implements REQ-generated-coordinate-persistence
 export function coordinateSourceHash(sourceText: string): string {
   return createHash("sha256").update(sourceText).digest("hex");
 }
 
 /** Select a stable coarse anchor, preferring a title match over the whole file. */
-// implements REQ-generated-coordinate-persistence
 export function coarseCoordinateSpan(
   sourceFile: string,
   title: string,
@@ -154,7 +143,6 @@ function isSha256Hash(value: unknown): value is string {
  * Validate a coordinate span against the same rules requirement proof enforces:
  * nonempty source file, sourceLine >= 1, columns >= 0, endLine >= sourceLine.
  */
-// implements REQ-generated-coordinate-persistence
 export function isValidCoordinateSpan(
   value: unknown,
 ): value is SymbolCoordinatesRecord {
@@ -217,7 +205,6 @@ function normalizeRawEntry(value: unknown): RawCoordinateEntry | null {
  * validation make the whole artifact invalid; consumers must fail closed
  * instead of silently dropping evidence.
  */
-// implements REQ-generated-coordinate-persistence
 export function parseCoordinateArtifact(
   content: string,
 ): ParsedCoordinateArtifact {
@@ -290,7 +277,6 @@ export function parseCoordinateArtifact(
  * Key order is deterministic without relying on YAML sortKeys so the
  * human-readable header stays first.
  */
-// implements REQ-generated-coordinate-persistence
 export function writeCoordinateArtifact(
   entries: Record<string, SymbolCoordinateWriteEntry>,
 ): string {
@@ -330,7 +316,6 @@ export function writeCoordinateArtifact(
 }
 
 /** Serialize a legacy artifact without introducing v2 bindings or metadata. */
-// implements REQ-generated-coordinate-persistence
 export function writeLegacyCoordinateArtifact(
   entries: Record<string, SymbolCoordinatesRecord>,
 ): string {
@@ -362,7 +347,6 @@ export function writeLegacyCoordinateArtifact(
  * Reader kept for diff/traceability surfaces. Legacy records remain available
  * as spans while v2 records retain their bindings.
  */
-// implements REQ-generated-coordinate-persistence
 export function readCoordinateArtifact(
   content: string,
 ): SymbolCoordinatesArtifact {

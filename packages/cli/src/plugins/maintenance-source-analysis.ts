@@ -78,7 +78,6 @@ function dependencyRoot(importer: string, packageName: string): string {
  * manager's job; hashing the installed tree made the fingerprint differ
  * between a workspace checkout, an npm install and a bundled runtime.
  */
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function builtinRuntimeIdentity(
   manifest: { name?: unknown; version?: unknown } = createRequire(
     import.meta.url,
@@ -93,7 +92,6 @@ export function builtinRuntimeIdentity(
 }
 
 /** Hash the exact trusted source-extractor activation and its host-pinned closure. */
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function fingerprintMaintenanceSourceSet(
   workspaceRoot: string,
   projectConfig: ProjectKibiConfig,
@@ -139,7 +137,6 @@ export function fingerprintMaintenanceSourceSet(
 }
 
 /** Verify the exact host-approved closure before any plugin entrypoint executes. */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function verifyApprovedSourceAnalyzer(
   root: string,
   approval: ApprovedSourceAnalyzer,
@@ -175,7 +172,6 @@ export function verifyApprovedSourceAnalyzer(
  * file needs the pack, so the staged gate keeps blocking until it is
  * installed.
  */
-// implements REQ-kibi-tree-sitter-language-packs
 export function languagePackWaiver(
   workspaceRoot: string,
   config: ProjectKibiConfig,
@@ -194,7 +190,6 @@ export function languagePackWaiver(
 }
 
 /** Maintenance resolves source capabilities only; unrelated plugin code is never imported. */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function createMaintenanceSourceAnalysisService(
   workspaceRoot: string,
   projectConfig?: ProjectKibiConfig,
@@ -251,7 +246,6 @@ export function createMaintenanceSourceAnalysisService(
 }
 
 /** Capture activation with the same source snapshot and retain baseline analyzers for code changes. */
-// implements REQ-source-analysis-v2
 export function readSnapshotSourceConfig(
   snapshot: GitChangeSnapshot,
   trustedTree?: string,

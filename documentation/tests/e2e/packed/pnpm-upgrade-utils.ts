@@ -20,7 +20,6 @@ export interface PnpmCommand {
   argsPrefix: string[];
 }
 
-// implements REQ-test-journaled-engine-harness
 export interface Tarballs {
   core: string;
   "agent-core": string;

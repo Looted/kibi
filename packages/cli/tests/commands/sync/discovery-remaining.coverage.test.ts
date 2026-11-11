@@ -1,4 +1,3 @@
-// implements REQ-014
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";

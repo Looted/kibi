@@ -8,8 +8,6 @@ import { LEGACY_MIGRATION_PLAN_VERSION } from "../../../src/public/operations/le
 import { MIGRATION_PLAN_DIGEST_VERSION } from "../../../src/public/operations/migration-plan.js";
 import { MIGRATION_PLAN_REFUSED } from "../../../src/operations/planning/migration-refusal.js";
 
-// implements REQ-agent-migration-plan-versions
-
 /**
  * The versions of the legacy migration plan and the plan digest, and the code of a refused plan. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

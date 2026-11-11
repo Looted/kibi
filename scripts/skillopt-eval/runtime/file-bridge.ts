@@ -39,7 +39,6 @@ const RowSchema = z
   })
   .strict();
 
-// implements REQ-skillopt-codex-optimization
 export const BridgeRequestSchema = z
   .object({
     schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
@@ -65,7 +64,6 @@ export const BridgeRequestSchema = z
   })
   .strict();
 
-// implements REQ-skillopt-codex-optimization
 export const BridgeResultSchema = z
   .object({
     schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
@@ -84,13 +82,10 @@ export const BridgeResultSchema = z
   })
   .strict();
 
-// implements REQ-skillopt-codex-optimization
 export type BridgeRequest = Readonly<z.infer<typeof BridgeRequestSchema>>;
 export type PublicTaskClaim = Readonly<z.infer<typeof PublicTaskClaimSchema>>;
-// implements REQ-skillopt-codex-optimization
 export type BridgeResult = Readonly<z.infer<typeof BridgeResultSchema>>;
 
-// implements REQ-skillopt-codex-optimization
 export class BridgeVisibilityError extends Error {
   readonly name = "BridgeVisibilityError";
 }
@@ -127,7 +122,6 @@ export function bindBridgeResult(
   return parsed;
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function writeBridgeRequest(
   path: string,
   request: BridgeRequest,
@@ -138,12 +132,10 @@ export async function writeBridgeRequest(
   return contractHash(JsonValueSchema.parse(parsed));
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function readBridgeRequest(path: string): Promise<BridgeRequest> {
   return BridgeRequestSchema.parse(JSON.parse(await readFile(path, "utf8")));
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function writeBridgeResult(
   path: string,
   result: BridgeResult,
@@ -154,7 +146,6 @@ export async function writeBridgeResult(
   return parsed.requestHash;
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function readBridgeResult(
   path: string,
   request: BridgeRequest,
@@ -175,7 +166,6 @@ export async function readBridgeResult(
   return parsed;
 }
 
-// implements REQ-skillopt-codex-optimization
 export const FileBridge = class FileBridge {
   readonly #publicRoot: string;
   readonly #privateRoot: string;
@@ -185,7 +175,6 @@ export const FileBridge = class FileBridge {
     this.#privateRoot = privateRoot;
   }
 
-  // implements REQ-skillopt-codex-optimization
   resolve(name: string, visibility: "public" | "private"): string {
     if (isAbsolute(name))
       throw new BridgeVisibilityError("absolute_bridge_path");
@@ -198,22 +187,18 @@ export const FileBridge = class FileBridge {
     return path;
   }
 
-  // implements REQ-skillopt-codex-optimization
   async writePublic(name: string, content: string): Promise<void> {
     await atomicWrite(this.resolve(name, "public"), content);
   }
 
-  // implements REQ-skillopt-codex-optimization
   async writePrivate(name: string, content: string): Promise<void> {
     await atomicWrite(this.resolve(name, "private"), content);
   }
 
-  // implements REQ-skillopt-codex-optimization
   async readPublic(name: string): Promise<string> {
     return readFile(this.resolve(name, "public"), "utf8");
   }
 
-  // implements REQ-skillopt-codex-optimization
   async readPrivate(name: string): Promise<string> {
     return readFile(this.resolve(name, "private"), "utf8");
   }

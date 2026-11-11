@@ -1,6 +1,5 @@
 import type { PredicateSchemaCandidate } from "./predicate-types.js";
 
-// implements REQ-mcp-suggest-predicates
 export function scoreExactPredicates1(
   schema: PredicateSchemaCandidate,
   text: string,

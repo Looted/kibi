@@ -257,7 +257,6 @@ export type ArtifactPath = {
   close(): Promise<void>;
 };
 
-// implements REQ-skillopt-codex-optimization
 export function prepareArtifactPath(
   options: PrepareArtifactPathOptions,
 ): Promise<ArtifactPath> {

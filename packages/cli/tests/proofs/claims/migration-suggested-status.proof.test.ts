@@ -7,8 +7,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { SUGGESTED_REQUIREMENT_STATUS } from "../../../src/operations/migration/requirement-status.js";
 
-// implements REQ-cli-migration-suggested-status
-
 /**
  * The status a migration suggests for each legacy lifecycle word found on a requirement. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

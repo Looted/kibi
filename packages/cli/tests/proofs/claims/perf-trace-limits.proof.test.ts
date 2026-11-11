@@ -12,8 +12,6 @@ import {
   KIBI_PERF_TRACE_MAX_EVENTS,
 } from "../../../src/performance-trace.js";
 
-// implements REQ-kibi-perf-trace-limits
-
 /**
  * The environment variables that turn on Kibi performance traces and the bounds
  * of a trace. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

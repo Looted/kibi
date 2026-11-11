@@ -36,19 +36,16 @@ import {
 } from "./command-test-report.js";
 
 /** Where `kibi proof run-steps` reads steps when no file is given. */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export const DEFAULT_PROOF_STEPS_PATH = "proof/steps.json";
 
 const DEFAULT_STEP_TIMEOUT_MS = 15 * 60_000;
 const TERM_GRACE_MS = 2_000;
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ProofStepEntry = Readonly<{
   test_id: string;
   steps: readonly (readonly string[])[];
 }>;
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ProofStepAttempt = Readonly<{
   outcome: "passed" | "failed" | "timed_out";
   exit_code: number | null;
@@ -59,7 +56,6 @@ function fail(message: string): never {
 }
 
 /** Validate a steps file: unique test ids, each with non-empty argv steps. */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function validateProofSteps(value: unknown): ProofStepEntry[] {
   if (!Array.isArray(value) || value.length === 0)
     fail("the steps file must be a non-empty JSON array of {test_id, steps}");
@@ -91,7 +87,6 @@ export function validateProofSteps(value: unknown): ProofStepEntry[] {
 }
 
 /** The selected tests' entries, in request order; a missing id is an error. */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function selectProofSteps(
   entries: readonly ProofStepEntry[],
   testIds: readonly string[],
@@ -103,7 +98,6 @@ export function selectProofSteps(
 }
 
 /** Build the per-test report from each step's attempt (keyed by argv). */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function buildStepReport(
   selected: readonly ProofStepEntry[],
   attempts: ReadonlyMap<string, ProofStepAttempt>,
@@ -212,7 +206,6 @@ function runStep(
  * the report this run writes. SIGINT and SIGTERM stop the running step's
  * whole process group before the runner exits.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export async function runProofSteps(options: {
   workspaceRoot: string;
   stepsPath?: string;

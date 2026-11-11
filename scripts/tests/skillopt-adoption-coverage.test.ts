@@ -1,4 +1,3 @@
-// implements REQ-skillopt-automatic-adoption
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   chmodSync,

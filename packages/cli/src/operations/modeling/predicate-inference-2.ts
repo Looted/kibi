@@ -1,6 +1,5 @@
 import { captures, normalizePredicateToken, slug } from "./predicate-utils.js";
 
-// implements REQ-mcp-suggest-predicates
 export function inferConflictResolutionRuleArgs(text: string): string[] {
   const conflict = captures(
     text,
@@ -12,7 +11,6 @@ export function inferConflictResolutionRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferFallbackRuleArgs(text: string): string[] {
   const fallback = captures(
     text,
@@ -25,7 +23,6 @@ export function inferFallbackRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferBatchOperationRuleArgs(text: string): string[] {
   const batch = captures(
     text,
@@ -38,7 +35,6 @@ export function inferBatchOperationRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferConsistencyRuleArgs(text: string): string[] {
   const consistency = captures(
     text,
@@ -50,7 +46,6 @@ export function inferConsistencyRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferBuildConstraintArgs(text: string): string[] {
   const build = captures(
     text,
@@ -63,7 +58,6 @@ export function inferBuildConstraintArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferEnvironmentSafetyRuleArgs(text: string): string[] {
   const safety = captures(
     text,
@@ -76,7 +70,6 @@ export function inferEnvironmentSafetyRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferSchemaInvariantRuleArgs(text: string): string[] {
   const invariant = captures(
     text,
@@ -91,7 +84,6 @@ export function inferSchemaInvariantRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferCodingStandardRuleArgs(text: string): string[] {
   const standard = captures(
     text,
@@ -104,7 +96,6 @@ export function inferCodingStandardRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferMigrationBoundaryRuleArgs(text: string): string[] {
   const migration = captures(
     text,
@@ -117,7 +108,6 @@ export function inferMigrationBoundaryRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferAbsenceRequirementArgs(text: string): string[] {
   const absence = captures(
     text,
@@ -132,7 +122,6 @@ export function inferAbsenceRequirementArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferOfflineBehaviorRuleArgs(text: string): string[] {
   const offline = captures(
     text,
@@ -145,7 +134,6 @@ export function inferOfflineBehaviorRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferReleaseGateRuleArgs(text: string): string[] {
   const release = captures(
     text,
@@ -158,7 +146,6 @@ export function inferReleaseGateRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferPlatformConsistencyRuleArgs(text: string): string[] {
   const platform = captures(
     text,
@@ -173,7 +160,6 @@ export function inferPlatformConsistencyRuleArgs(text: string): string[] {
   return [slug(platform.subject ?? "subject"), platforms];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferPreservationRuleArgs(text: string): string[] {
   const preservation = captures(
     text,
@@ -186,7 +172,6 @@ export function inferPreservationRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferAbstractionBoundaryRuleArgs(text: string): string[] {
   const boundary = captures(
     text,
@@ -199,7 +184,6 @@ export function inferAbstractionBoundaryRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferSecurityConfigurationRuleArgs(text: string): string[] {
   const config = captures(
     text,
@@ -212,7 +196,6 @@ export function inferSecurityConfigurationRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferOrderedStrategyRuleArgs(text: string): string[] {
   const ordered = captures(
     text,
@@ -230,7 +213,6 @@ export function inferOrderedStrategyRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferRefreshPolicyRuleArgs(text: string): string[] {
   const refresh = captures(
     text,

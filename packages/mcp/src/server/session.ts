@@ -112,35 +112,29 @@ function initialState(): McpSessionState {
 
 const state: McpSessionState = initialState();
 
-// implements REQ-core-prolog-process-management
 export function getPrologProcess(): PrologProcess | null {
   return state.prologProcess;
 }
 
-// implements REQ-mcp-kb-freshness
 export function getActiveBranchName(): string {
   return state.activeBranchName;
 }
 
-// implements REQ-mcp-kb-freshness
 export function getAttachedBranchKbPath(): string | null {
   return state.attachedBranchKbPath;
 }
 
-// implements REQ-core-prolog-process-management
 export function getIsShuttingDown(): boolean {
   return state.isShuttingDown;
 }
 
 export const inFlightRequests = new Map<string, Promise<unknown>>();
 
-// implements REQ-mcp-kb-freshness
 // covered_by TEST-mcp-kb-freshness
 export function updateAttachedBranchStamp(stamp: BranchKbStamp): void {
   state.attachedBranchStamp = stamp;
 }
 
-// implements REQ-core-prolog-process-management
 export function resetSessionStateForTests(): void {
   // Clearing no timer (null) is harmless.
   clearTimeout(state.shutdownTimeout as NodeJS.Timeout);
@@ -149,18 +143,15 @@ export function resetSessionStateForTests(): void {
 }
 
 export function _setSessionDepsForTests(
-  // implements REQ-core-prolog-process-management
   overrides: Partial<SessionDeps>,
 ): void {
   sessionDeps = { ...sessionDeps, ...overrides };
 }
 
 export function _resetSessionDepsForTests(): void {
-  // implements REQ-core-prolog-process-management
   sessionDeps = defaultSessionDeps;
 }
 
-// implements REQ-core-prolog-process-management
 export function _setPrologProcessForTests(process: PrologProcess | null): void {
   state.prologProcess = process;
 }
@@ -175,7 +166,6 @@ export function ensureBranchKbExists(
   workspaceRoot: string,
   branch: string,
 ): boolean {
-  // implements REQ-branch-store-recovery-v4
   if (!sessionDeps.isValidBranchName(branch)) {
     throw new Error(`Invalid branch name: ${branch}`);
   }
@@ -253,7 +243,6 @@ export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
   process.exit(exitCode);
 }
 
-// implements REQ-core-prolog-process-management
 export async function resetProlog(reason: string): Promise<void> {
   debugLog(`[KIBI-MCP] Resetting Prolog worker: ${reason}`);
   state.prologResetGeneration = {};
@@ -335,7 +324,6 @@ function usesBranchKbPath(kbPath: string): boolean {
   );
 }
 
-// implements REQ-core-prolog-process-management
 async function ensurePrologUnsafe(): Promise<PrologProcess> {
   const generationAtStart = state.prologResetGeneration;
   const workspaceRoot = sessionDeps.resolveWorkspaceRoot();

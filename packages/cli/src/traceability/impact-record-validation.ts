@@ -15,12 +15,10 @@ import {
 } from "./impact-review.js";
 
 /** Validate an authored impact review record against the prepared snapshot. */
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function same(a: unknown, b: unknown): boolean {
   return canonicalJson(a) === canonicalJson(b);
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function recordFromCapturedTree(
   snapshot: GitChangeSnapshot,
 ): ImpactReviewRecord {
@@ -41,7 +39,6 @@ export function recordFromCapturedTree(
   );
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function validateDecisionAgainstSnapshot(
   path: string,
   decision: ImpactDecision,
@@ -132,7 +129,6 @@ export function validateDecisionAgainstSnapshot(
     );
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function validateAnalysisReviews(
   record: ImpactFileRecord,
   policy: ImpactPolicy,

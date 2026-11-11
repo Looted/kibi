@@ -1,4 +1,3 @@
-// implements REQ-002
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as runtime from "kibi-runtime";
 import { __test__ } from "../src/tools/upsert.js";

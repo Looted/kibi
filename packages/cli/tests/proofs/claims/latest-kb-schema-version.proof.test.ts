@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../../../src/utils/schema-version.js";
 
-// implements REQ-kibi-latest-kb-schema-version
-
 /**
  * The knowledge base schema version this Kibi writes and migrates to. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

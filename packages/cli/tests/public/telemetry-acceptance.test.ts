@@ -523,7 +523,6 @@ describe("telemetry acceptance", () => {
   });
 
   test("covers DEFAULT policy, inferred telemetry, advisor/target fallbacks, and remaining metric branches", () => {
-    // implements REQ-kibi-telemetry-acceptance-gate-v2
     expect(
       parseTelemetryUsageLog(
         `${JSON.stringify({ tool: "kb_status" })}\r\n  \r\n${JSON.stringify({
@@ -780,7 +779,6 @@ describe("telemetry acceptance", () => {
   });
 });
 
-// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
 describe("lookup before first edit", () => {
   let hookSequence = 0;
 

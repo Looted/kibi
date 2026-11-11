@@ -8,7 +8,6 @@
  * receipts. Keep this mapping identical to `routedOperationName` in
  * `packages/mcp/src/diagnostics.ts`.
  */
-// implements REQ-skillopt-codex-optimization
 export const MODEL_MODE_OPERATIONS: Readonly<Record<string, string>> = {
   analyze: "kb_semantic_advisor",
   requirement: "kb_model_requirement",
@@ -19,7 +18,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-// implements REQ-skillopt-codex-optimization
 export function routedOperationName(
   toolName: string,
   args: Readonly<Record<string, unknown>>,
@@ -39,7 +37,6 @@ export function routedOperationName(
 }
 
 /** Arguments of a JSON-RPC `tools/call` request payload, or `{}`. */
-// implements REQ-skillopt-codex-optimization
 export function toolCallArguments(payload: unknown): Record<string, unknown> {
   if (!isRecord(payload) || !isRecord(payload.params)) return {};
   return isRecord(payload.params.arguments) ? payload.params.arguments : {};
@@ -56,7 +53,6 @@ const OPERATION_MCP_TOOLS: Readonly<Record<string, string>> = {
 };
 
 /** The default MCP tool that reaches a catalog operation. */
-// implements REQ-skillopt-codex-optimization
 export function mcpToolForOperation(operation: string): string {
   return OPERATION_MCP_TOOLS[operation] ?? operation;
 }

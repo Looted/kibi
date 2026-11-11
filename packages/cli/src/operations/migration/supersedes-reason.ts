@@ -25,12 +25,10 @@ import {
 import { readKbManifest, writeKbManifest } from "../../utils/kb-manifest.js";
 
 /** Migration action code for the schema 9 acknowledgement. */
-// implements REQ-kb-decision-firmness, REQ-cli-schema-migration
 export const SUPERSEDES_REASON_ACKNOWLEDGE_CODE =
   "supersedes_reason_acknowledge";
 
 /** One superseding decision the migration acknowledges. */
-// implements REQ-kb-decision-firmness
 export type SupersedesReasonTarget = Readonly<{
   id: string;
   type: string;
@@ -45,7 +43,6 @@ export type SupersedesReasonTarget = Readonly<{
  * included. Nothing in the sources changes: no reason is written, the
  * manifest only records that these edges predate the rule. Read-only.
  */
-// implements REQ-kb-decision-firmness, REQ-cli-schema-migration
 export function planSupersedesReasonAcknowledgement(
   workspaceRoot: string,
 ): SupersedesReasonTarget[] {
@@ -67,7 +64,6 @@ export function planSupersedesReasonAcknowledgement(
 }
 
 /** The manifest list with the targets' edges added, sorted and unique. */
-// implements REQ-kb-decision-firmness
 export function mergeSupersedesAcknowledgements(
   existing: readonly string[] | undefined,
   targets: readonly SupersedesReasonTarget[],
@@ -82,7 +78,6 @@ export function mergeSupersedesAcknowledgements(
  * were acknowledged. Without a manifest there is no schema to upgrade from,
  * so it refuses rather than report an acknowledgement it did not write.
  */
-// implements REQ-kb-decision-firmness, REQ-cli-schema-migration
 export function applySupersedesReasonAcknowledgement(
   workspaceRoot: string,
 ): number {

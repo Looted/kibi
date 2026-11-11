@@ -44,7 +44,6 @@ const OptimizerModelSourceSchema = z.enum([
   "runClaudeSkillOptStep",
 ]);
 
-// implements REQ-skillopt-claude-code-host
 export type CampaignOptimizerModelSource = z.infer<
   typeof OptimizerModelSourceSchema
 >;
@@ -317,7 +316,6 @@ export function validateCampaignManifestAgainstSurface(
 }
 
 /** Freeze a reviewed full-body revision without claiming optimizer provenance. */
-// implements REQ-skillopt-codex-optimization
 export function replaceCampaignBody(
   input: Readonly<{
     skill: CanonicalSkill;
@@ -348,7 +346,6 @@ export function replaceCampaignBody(
  * other frontmatter field stays bound to the baseline the candidate was
  * composed against.
  */
-// implements REQ-skillopt-description-candidates
 export function candidateFrontmatterHash(
   baseline: Readonly<SkillManifest>,
   description: string,
@@ -408,7 +405,6 @@ function validateDescribedRevision(
  * Agents decide whether to load a skill from its description, so this is the
  * only frontmatter field a candidate may change; resources stay frozen.
  */
-// implements REQ-skillopt-description-candidates
 export function replaceCampaignBodyAndDescription(
   input: Readonly<{
     skill: CanonicalSkill;
@@ -448,7 +444,6 @@ export function replaceCampaignBodyAndDescription(
  * binds its frontmatter, so equal bodies with different descriptions (or a
  * description-only change) never collide with each other or with baseline.
  */
-// implements REQ-skillopt-description-candidates
 export function campaignCandidateHash(manifest: CampaignManifest): string {
   if (manifest.candidateFrontmatterHash === undefined)
     return manifest.frozenBodyHash;
@@ -461,7 +456,6 @@ export function campaignCandidateHash(manifest: CampaignManifest): string {
 }
 
 /** The assembly override a manifest requests: its body and, for 1.2.0, its description. */
-// implements REQ-skillopt-description-candidates
 export function campaignCandidateSurface(
   manifest: CampaignManifest,
 ): Readonly<{ body: string; description?: string }> {

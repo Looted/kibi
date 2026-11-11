@@ -47,13 +47,10 @@ import { writeFileAtomically } from "./kb-sources.js";
  */
 
 /** Automatic migration action code of the legacy-link pass. */
-// implements REQ-cli-schema-migration
 export const SYMBOL_LEGACY_LINK_MARK_CODE = "symbol_legacy_link_mark";
-// implements REQ-cli-schema-migration
 export const SYMBOL_LEGACY_LINK_MARK_ACTION_ID = "symbol-legacy-link-mark";
 
 /** One coarse link the pass marks. */
-// implements REQ-cli-schema-migration
 export type LegacyLinkTarget = Readonly<{
   id: string;
   title: string;
@@ -62,7 +59,6 @@ export type LegacyLinkTarget = Readonly<{
   granularSymbols: readonly string[];
 }>;
 
-// implements REQ-cli-schema-migration
 export type LegacyLinkPlan = Readonly<{
   /** Workspace-relative manifest path. */
   manifestPath: string;
@@ -189,7 +185,6 @@ function digest(bytes: Buffer): string {
  * The coarse links of `manifestPath` (default `.kb/symbols.yaml`) that carry
  * no granularity_reason yet. Read-only.
  */
-// implements REQ-cli-schema-migration, REQ-symbol-behavioral-anchors
 export function planSymbolLegacyLinks(
   workspaceRoot: string,
   manifestPath: string = KB_PATHS.symbolsManifest,
@@ -308,7 +303,6 @@ function withLegacyReasons(content: string, symbolIds: Set<string>): string {
  * marked, and the planned ones that could not be marked in place (an entry
  * whose `id` is not its first key, for example).
  */
-// implements REQ-cli-schema-migration, REQ-symbol-behavioral-anchors
 export function applySymbolLegacyLinks(
   workspaceRoot: string,
   options: {

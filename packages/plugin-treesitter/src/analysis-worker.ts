@@ -1259,7 +1259,6 @@ interface PrologGroup {
  * from its first to its last clause. Inside a plunit unit, `test(Name)`
  * clauses become test symbols and the unit becomes a container symbol.
  */
-// implements REQ-multilingual-language-catalog
 function collectPrologCandidates(
   content: string,
   root: Node,

@@ -1,4 +1,3 @@
-// implements REQ-011, REQ-014
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import * as fs from "node:fs";
 import {
@@ -156,7 +155,6 @@ describe("executeDelete relationship remaining branches", () => {
   });
 
   test("rejects non-selector relationship values including null and arrays", async () => {
-    // implements REQ-011
     const root = makeTempDir();
     await expect(
       executeDelete(
@@ -179,7 +177,6 @@ describe("executeDelete relationship remaining branches", () => {
   });
 
   test("wraps readAllShards failures for Error and non-Error throws", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     track(
       spyOn(shardsModule, "readAllShards").mockImplementation(() => {
@@ -208,7 +205,6 @@ describe("executeDelete relationship remaining branches", () => {
   });
 
   test("rethrows authored YAML relationship deletion failures", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const relative = ".kb/symbols.yaml";
     await expect(
@@ -245,7 +241,6 @@ describe("executeDelete relationship remaining branches", () => {
   });
 
   test("fails closed when an authored Markdown relationship source is unreadable", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const relative = ".kb/requirements/REQ-MD-UNREADABLE.md";
     await expect(
@@ -286,7 +281,6 @@ describe("executeDelete relationship remaining branches", () => {
   });
 
   test("fails closed when an authored Markdown source resolves outside the workspace", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const relative = path.resolve(
       root,
@@ -331,7 +325,6 @@ describe("executeDelete relationship remaining branches", () => {
   });
 
   test("patches markdown with live edge and shard so reload cannot resurrect the edge", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const relative = writeMarkdown(
       root,
@@ -410,7 +403,6 @@ describe("executeDelete relationship remaining branches", () => {
   });
 
   test("restores authored Markdown and shard bytes when compiled retraction fails", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const relative = writeMarkdown(
       root,
@@ -471,7 +463,6 @@ describe("executeDelete relationship remaining branches", () => {
   });
 
   test("patches authored sources without rename and rolls a failed after-image back", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const relative = ".kb/symbols.yaml";
     writeFileSync(
@@ -552,7 +543,6 @@ describe("executeDelete relationship remaining branches", () => {
   });
 
   test("restores shards when publication fails and reports a double-failure", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     shardsModule.appendRelationship(path.join(root, ".kb"), {
       type: "relates_to",
@@ -626,7 +616,6 @@ describe("executeDelete relationship remaining branches", () => {
   });
 
   test("restores shards after a compiled retract failure and reports rollback collapse", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     shardsModule.appendRelationship(path.join(root, ".kb"), {
       type: "relates_to",
@@ -702,7 +691,6 @@ describe("executeDelete relationship remaining branches", () => {
   });
 
   test("omits unchanged shard writes and records a missing after hash", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     shardsModule.appendRelationship(path.join(root, ".kb"), {
       type: "relates_to",
@@ -786,7 +774,6 @@ describe("executeDelete relationship remaining branches", () => {
   });
 
   test("wraps non-Error relationship failures", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     await expect(
       executeDelete(
@@ -801,7 +788,6 @@ describe("executeDelete relationship remaining branches", () => {
 
 describe("executeDelete entity remaining branches", () => {
   test("returns a plan with a null hash when a shared markdown path is exhausted", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const relative = writeMarkdown(
       root,
@@ -839,7 +825,6 @@ describe("executeDelete entity remaining branches", () => {
   });
 
   test("records a null source hash when authored bytes cannot be planned", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const relative = writeMarkdown(
       root,
@@ -870,7 +855,6 @@ describe("executeDelete entity remaining branches", () => {
   });
 
   test("plans mdx and yaml authored entities and treats protocol or missing sources as compiled-only", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const mdx = ".kb/requirements/REQ-MDX.mdx";
     writeMarkdown(root, mdx, "REQ-MDX");
@@ -977,7 +961,6 @@ describe("executeDelete entity remaining branches", () => {
   });
 
   test("applies a shared yaml plan and rolls authored bytes back when save fails", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const yaml = ".kb/symbols.yaml";
     const original =
@@ -1015,7 +998,6 @@ describe("executeDelete entity remaining branches", () => {
   });
 
   test("reports skipped-entity errors and saveMutation failures", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const skipped = await executeDelete(
       { ids: ["REQ-MISS"] },
@@ -1057,7 +1039,6 @@ describe("executeDelete entity remaining branches", () => {
   });
 
   test("escapes apostrophes in entity ids and wraps non-Error compiled failures", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const result = await executeDelete(
       { ids: ["REQ-O'NEILL"] },

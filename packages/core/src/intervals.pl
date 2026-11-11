@@ -1,4 +1,3 @@
-% implements REQ-kibi-truthful-consistency
 %
 % Exact satisfiability for one-variable numeric comparisons.
 %

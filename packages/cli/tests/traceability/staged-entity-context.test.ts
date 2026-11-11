@@ -2,8 +2,6 @@ import { describe, expect, test } from "bun:test";
 import type { ExtractionResult } from "../../src/extractors/markdown.js";
 import { collectIntroducedEntityContextViolations } from "../../src/traceability/staged-entity-context.js";
 
-// implements REQ-cli-staged-entity-context
-
 type Tree = Record<string, string>;
 
 function reader(base: Tree, head: Tree) {

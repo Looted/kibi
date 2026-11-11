@@ -54,12 +54,10 @@ const NON_SHIPPED = [
   /(^|\/)(stryker|vitest|jest|bunfig|tsconfig)[^/]*$/,
 ];
 
-// implements REQ-020
 export function isShippedPath(relativePath: string): boolean {
   return !NON_SHIPPED.some((pattern) => pattern.test(relativePath));
 }
 
-// implements REQ-020
 export function findMissingBumps(inputs: BumpInputs): MissingBump[] {
   const missing: MissingBump[] = [];
   for (const pkg of inputs.packages) {
@@ -78,7 +76,6 @@ export function findMissingBumps(inputs: BumpInputs): MissingBump[] {
   return missing;
 }
 
-// implements REQ-020
 export function parseChangesetPackages(markdown: string): string[] {
   const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(markdown);
   if (!match) return [];

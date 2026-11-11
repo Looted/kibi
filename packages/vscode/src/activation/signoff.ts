@@ -18,7 +18,6 @@ export type SignoffAnnouncement = Readonly<{
   openLabel: string;
 }>;
 
-// implements REQ-kibi-signoff-views
 /** The notification for a new signoff view, or undefined when unreadable. */
 export function signoffAnnouncement(
   latestJson: string,
@@ -64,7 +63,6 @@ function readLatest(workspaceRoot: string, file: string): string | undefined {
 
 const EMPTY_PAGE = `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"></head><body style="font-family:sans-serif;padding:16px"><p>No signoff view yet. The agent writes one with <code>kibi signoff</code>.</p></body></html>`;
 
-// implements REQ-kibi-signoff-views
 /**
  * Register `Kibi: Show Requirements Signoff` and the watcher that announces
  * new signoff views.

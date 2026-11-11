@@ -1,4 +1,3 @@
-// implements REQ-cli-status-pre-first-sync
 import { afterAll, describe, expect, spyOn, test } from "bun:test";
 import {
   mkdirSync,

@@ -31,7 +31,6 @@ type SignoffLatest = Readonly<{
   markdown: string;
 }>;
 
-// implements REQ-kibi-signoff-views
 /** Read the latest signoff view `kibi signoff` wrote for this workspace. */
 export function readLatestSignoff(root: string): SignoffLatest | undefined {
   const directory = path.join(root, SIGNOFF_DIR);
@@ -73,7 +72,6 @@ export function readLatestSignoff(root: string): SignoffLatest | undefined {
   return undefined;
 }
 
-// implements REQ-kibi-signoff-views
 /** The toast that announces a new signoff view. */
 export function signoffToast(latest: SignoffLatest): {
   title: string;
@@ -105,7 +103,6 @@ function signoffMtime(root: string): number {
   }
 }
 
-// implements REQ-kibi-signoff-views
 /**
  * Call `onChange` whenever `kibi signoff` writes a new view. Polls the file's
  * mtime (the directory may not exist yet, so fs.watch cannot be armed).
@@ -133,7 +130,6 @@ type NodeContext = Readonly<{
   conceal: boolean;
 }>;
 
-// implements REQ-kibi-signoff-views
 /**
  * Render a signoff fence as a framed Markdown card: the fence body is
  * Markdown, so it shows as headings, quotes and lists rather than code.
@@ -201,7 +197,6 @@ type V2TuiContext = Readonly<{
   };
 }>;
 
-// implements REQ-kibi-signoff-views
 export const tui: TuiPlugin = async (api, _options, _meta) => {
   const root = process.cwd();
   const stop = watchSignoff(root, (latest) => {
@@ -211,7 +206,6 @@ export const tui: TuiPlugin = async (api, _options, _meta) => {
 };
 
 /** OpenCode v2 TUI setup: signoff fence renderers, /kibi-signoff and toasts. */
-// implements REQ-opencode-v2-plugin-api, REQ-kibi-signoff-views
 export const setup = (context: unknown): (() => void) => {
   const ctx = context as V2TuiContext;
   const root = process.cwd();

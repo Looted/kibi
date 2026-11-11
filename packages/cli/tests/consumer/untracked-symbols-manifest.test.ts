@@ -1,4 +1,3 @@
-// implements REQ-core-persistence, REQ-kibi-source-relationship-parity
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { existsSync, writeFileSync } from "node:fs";

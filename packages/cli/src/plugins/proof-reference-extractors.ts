@@ -47,7 +47,6 @@ export type ProofReferenceExtractors = Readonly<{
  * closure. A proof is evidence, so an unqualified or modified provider is
  * never imported; the read is refused instead and names the reason.
  */
-// implements REQ-kibi-tree-sitter-references
 export async function loadProofReferenceExtractors(
   workspaceRoot: string,
   /** The release-qualified closures; replaceable so tests can qualify a stub. */
@@ -110,7 +109,6 @@ function mtimeOf(path: string): number | undefined {
   return mtime;
 }
 
-// implements REQ-kibi-tree-sitter-references
 export type ProofReferenceExtractorLoader = {
   /** The release-qualified closures the default load checks against. */
   approvals: readonly ApprovedSourceAnalyzer[];
@@ -121,7 +119,6 @@ export type ProofReferenceExtractorLoader = {
  * The real loader. The shared loader starts as one, and a test restores it
  * from a new one, so both read the same definition.
  */
-// implements REQ-kibi-tree-sitter-references
 export function realProofReferenceExtractorLoader(): ProofReferenceExtractorLoader {
   return {
     approvals: APPROVED_SOURCE_ANALYZERS,

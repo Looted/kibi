@@ -1,4 +1,3 @@
-// implements REQ-claude-firm-edit-confirmation, REQ-claude-decision-capture-nudges, REQ-agent-hosts-decision-guard
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -23,14 +22,12 @@ import {
 /** Set to `0`, `false` or `off` to stop asking before edits of firm requirements. */
 export const CONFIRM_FIRM_EDITS_ENV = "KIBI_CONFIRM_FIRM_EDITS";
 
-// implements REQ-claude-firm-edit-confirmation, REQ-agent-hosts-decision-guard
 /** False when the operator turned the firm-edit confirmation off. */
 export function confirmFirmEdits(env: NodeJS.ProcessEnv): boolean {
   const value = env[CONFIRM_FIRM_EDITS_ENV]?.trim().toLowerCase();
   return !(value === "0" || value === "false" || value === "off");
 }
 
-// implements REQ-claude-firm-edit-confirmation, REQ-agent-hosts-decision-guard
 /**
  * The current firm requirements an edit changes that are not in `confirmed`:
  * those implemented by the symbols the edit lands in, or by every symbol of
@@ -55,7 +52,6 @@ export function firmRequirementsTouched(input: {
   return { ids, symbol: input.wholeFile ? undefined : touched[0] };
 }
 
-// implements REQ-claude-firm-edit-confirmation
 /**
  * The permission-prompt text for an edit of a firm requirement's code: what
  * the edit changes, the requirements, and what allowing it means. The person
@@ -82,7 +78,6 @@ export function firmEditConfirmation(
   return `Kibi: this edit changes ${where}, which implements ${noun} recorded in the knowledge base: ${named}. Allow it if the change keeps ${requirements.length === 1 ? "that requirement" : "them"}, or if you mean to change ${requirements.length === 1 ? "the requirement" : "them"} too.`;
 }
 
-// implements REQ-claude-firm-edit-confirmation
 /** What the agent is told when its edit was put to the person. */
 export function firmEditContext(ids: readonly string[]): string {
   const named = ids.slice(0, 2).join(", ");
@@ -100,14 +95,12 @@ export function firmEditContext(ids: readonly string[]): string {
 const RULE_PHRASES =
   /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|never|always|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
 
-// implements REQ-claude-decision-capture-nudges, REQ-agent-hosts-decision-guard
 /** The phrase that makes `prompt` read as a rule, or undefined. */
 export function statedRule(prompt: string): string | undefined {
   const match = RULE_PHRASES.exec(prompt);
   return match ? match[0].toLowerCase() : undefined;
 }
 
-// implements REQ-claude-decision-capture-nudges, REQ-agent-hosts-decision-guard
 /** Prompt-time note for a request that reads as a rule or decision. */
 export function rulePromptNote(phrase: string): string {
   return [
@@ -116,7 +109,6 @@ export function rulePromptNote(phrase: string): string {
   ].join("\n");
 }
 
-// implements REQ-claude-decision-capture-nudges, REQ-agent-hosts-decision-guard
 /**
  * Stop-time note for a session that changed source files and wrote nothing
  * to the knowledge base.
@@ -130,7 +122,6 @@ export function captureReminder(rulePrompt: boolean): string {
   ].join("\n");
 }
 
-// implements REQ-agent-hosts-decision-guard
 /**
  * Pre-edit context for hosts whose pre-tool hook cannot put a call to the
  * person: the edit is named as a change to the person's rule, and the agent
@@ -162,7 +153,6 @@ export type DecisionSession = {
   sessionId: string | undefined;
 };
 
-// implements REQ-agent-hosts-decision-guard, REQ-kibi-signoff-views
 /** Session markers the decision guard keeps. */
 export type DecisionFlag =
   | "source-edited"
@@ -206,7 +196,6 @@ function stringList(value: unknown): string[] {
     : [];
 }
 
-// implements REQ-agent-hosts-decision-guard
 /** Set a session marker; best effort. */
 export function markDecisionFlag(
   session: DecisionSession,
@@ -219,7 +208,6 @@ export function markDecisionFlag(
   }
 }
 
-// implements REQ-agent-hosts-decision-guard
 export function hasDecisionFlag(
   session: DecisionSession,
   flag: DecisionFlag,
@@ -231,7 +219,6 @@ export function hasDecisionFlag(
   }
 }
 
-// implements REQ-agent-hosts-decision-guard
 /**
  * True the first time `flag` is claimed in the session. Without a state
  * directory nothing can be remembered, so nothing is claimed.
@@ -248,7 +235,6 @@ export function claimDecisionFlag(
   }
 }
 
-// implements REQ-agent-hosts-decision-guard
 /**
  * Remember a submitted prompt's topic words (for unlinked-file candidates)
  * and whether it read as a rule. Returns the rule phrase, if any.
@@ -270,7 +256,6 @@ export function recordRequest(
   return rule;
 }
 
-// implements REQ-agent-hosts-decision-guard
 /** Topic words of the session's latest prompt, or none. */
 export function requestWords(session: DecisionSession): string[] {
   try {
@@ -280,7 +265,6 @@ export function requestWords(session: DecisionSession): string[] {
   }
 }
 
-// implements REQ-agent-hosts-decision-guard
 /**
  * Whether the stop should ask for the session's decision to be recorded:
  * source changed, nothing was written with kb_upsert, and the session has
@@ -294,7 +278,6 @@ export function claimCaptureReminder(session: DecisionSession): boolean {
   );
 }
 
-// implements REQ-kibi-signoff-views
 /** Where `kibi signoff` keeps the latest view, relative to the workspace. */
 export const SIGNOFF_LATEST_JSON = path.join(
   ".kb",
@@ -310,7 +293,6 @@ function record(value: unknown): Record<string, unknown> | null | undefined {
     : undefined;
 }
 
-// implements REQ-kibi-signoff-views
 /**
  * Whether a kb_upsert call's input writes a requirement (not a dry run).
  * Hosts pass the MCP arguments, sometimes wrapped in `arguments`.
@@ -332,7 +314,6 @@ function mtimeMs(file: () => string): number {
   return time;
 }
 
-// implements REQ-kibi-signoff-views
 /**
  * Whether the stop should ask for a signoff view: the session wrote a
  * requirement, `kibi signoff` has not written a view since, and the session
@@ -349,7 +330,6 @@ export function claimSignoffReminder(
   return claimDecisionFlag(session, "signoff-asked");
 }
 
-// implements REQ-kibi-signoff-views
 /** Stop-time note for a session that recorded requirements without a signoff view. */
 export function signoffReminder(): string {
   return [
@@ -366,13 +346,11 @@ function readSettled(session: DecisionSession): string[] {
   }
 }
 
-// implements REQ-agent-hosts-decision-guard
 /** Firm requirements the agent was already told about this session. */
 export function settledFirmRequirements(session: DecisionSession): Set<string> {
   return new Set(readSettled(session));
 }
 
-// implements REQ-agent-hosts-decision-guard
 /** Remember that the agent was told about these firm requirements. */
 export function settleFirmRequirements(
   session: DecisionSession,
@@ -388,7 +366,6 @@ export function settleFirmRequirements(
   }
 }
 
-// implements REQ-agent-hosts-decision-guard
 /**
  * Keep a prompt's rule note for a host whose prompt hook cannot add context,
  * so the next hook that can speak to the agent delivers it.
@@ -401,7 +378,6 @@ export function holdRuleNote(session: DecisionSession, phrase: string): void {
   }
 }
 
-// implements REQ-agent-hosts-decision-guard
 /** The held rule note, removed so it is delivered once; or undefined. */
 export function takeRuleNote(session: DecisionSession): string | undefined {
   let note = "";

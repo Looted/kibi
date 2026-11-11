@@ -48,7 +48,6 @@ type CappedGroups = Readonly<{
   value: string;
 }>;
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function detectCountStrictSuggestion(
   payload: Payload,
   statement: string,

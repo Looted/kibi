@@ -1,5 +1,4 @@
 /** Fictional public evidence only; no project data or private task answers. */
-// implements REQ-skillopt-codex-optimization
 export function onboardingReviewEvidence(taskId: string) {
   const trackerOnly = taskId.includes("-train-1");
   const documentOnly = taskId.includes("-train-2");

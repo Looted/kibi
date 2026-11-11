@@ -10,8 +10,6 @@ import {
   isCertificateProofKind,
 } from "../../src/public/proof-protocol.js";
 
-// implements REQ-kibi-non-numeric-proof-kinds
-
 /**
  * Rule, state_machine and regex are certificate proof kinds: the rule
  * certificate records isCertificateProofKind decided for every proof kind,

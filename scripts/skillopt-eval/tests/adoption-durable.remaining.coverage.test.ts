@@ -1,4 +1,3 @@
-// implements REQ-skillopt-automatic-adoption
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { constants } from "node:fs";
 import * as fsPromises from "node:fs/promises";

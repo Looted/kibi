@@ -8,7 +8,6 @@ import { inspectHistoricalCandidates } from "./historical-candidates";
 const HELP =
   "Usage: inspect-history.ts [--artifact-root PATH] [--baseline-root PATH]\nOffline inventory and screening only. No model calls or adoption.\n";
 
-// implements REQ-skillopt-codex-optimization
 export async function main(
   args: readonly string[],
   output: { stdout: (text: string) => void; stderr: (text: string) => void } = {

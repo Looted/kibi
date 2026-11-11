@@ -1,4 +1,3 @@
-// implements REQ-007
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   FrontmatterError,

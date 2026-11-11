@@ -7,8 +7,6 @@ import {
   classifyRisk,
 } from "../src/risk-classifier";
 
-// implements REQ-opencode-kibi-plugin-v1
-
 /** Helper to build params with sensible defaults. */
 function makeParams(
   overrides: Partial<ClassifyRiskParams> & Pick<ClassifyRiskParams, "pathKind">,
@@ -349,10 +347,12 @@ describe("risk-classifier classifyRisk", () => {
     });
 
     it("an implements comment is not traceability", () => {
-      const content = `
-// implements REQ-042
-export function myFunc() {}
-`;
+      // Built from parts so this fixture is not itself a comment in the file.
+      const content = [
+        "// implements",
+        "REQ-042",
+        "\nexport function myFunc() {}",
+      ].join(" ");
       const result = classifyRisk(
         makeParams({ pathKind: "code", fileContent: content }),
       );
@@ -360,10 +360,11 @@ export function myFunc() {}
     });
 
     it("an implements block comment is not traceability", () => {
-      const content = `
-/* implements REQ-099 */
-export function myFunc() {}
-`;
+      const content = [
+        "/* implements",
+        "REQ-099 */",
+        "\nexport function myFunc() {}",
+      ].join(" ");
       const result = classifyRisk(
         makeParams({ pathKind: "code", fileContent: content }),
       );

@@ -53,7 +53,6 @@ function words(text: string): string[] {
     );
 }
 
-// implements REQ-kb-unowned-file-candidates
 /**
  * The topic words of a workspace path, without layout, language and role
  * words (`src/app/pages/coach-dashboard/coach-dashboard.html` -> `coach`,
@@ -68,14 +67,12 @@ export function pathTopicWords(relativePath: string): string[] {
   return [...new Set(found)];
 }
 
-// implements REQ-kb-unowned-file-candidates
 export type RequirementCandidate = {
   readonly id: string;
   readonly title: string;
   readonly status?: string;
 };
 
-// implements REQ-kb-unowned-file-candidates
 /**
  * Current requirements ranked by how many of the path's topic words their
  * title shares, then by how often the title uses them, then by id; only
@@ -170,7 +167,6 @@ function isKnowledgeOrProse(file: string): boolean {
   return file.startsWith(".kb/") || /\.mdx?$/i.test(file);
 }
 
-// implements REQ-kb-unowned-file-candidates
 export type UnownedFileDiagnosticsOptions = {
   readonly workspaceRoot: string;
   /** Workspace-relative files the check was asked about. */
@@ -179,7 +175,6 @@ export type UnownedFileDiagnosticsOptions = {
   readonly linkedSourceFiles: ReadonlySet<string>;
 };
 
-// implements REQ-kb-unowned-file-candidates
 /**
  * One `source_file_unowned` note per requested file without a linked symbol,
  * naming the current requirements whose titles share its path words.

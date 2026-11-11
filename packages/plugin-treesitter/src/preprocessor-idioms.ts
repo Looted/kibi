@@ -137,7 +137,6 @@ function isBlank(line: string): boolean {
   return line.trim().length === 0;
 }
 
-// implements REQ-kibi-tree-sitter-language-packs
 export function blankHeaderIdioms(content: string): string {
   // A trigraph (`??/` splices lines in strict modes) means the build mode
   // decides how the file lexes: nothing is blanked.

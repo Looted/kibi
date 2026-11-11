@@ -36,7 +36,6 @@ import {
 import { republishPendingSourceReceipt } from "../mutation/source-authoring.js";
 
 /** One authored Markdown entity file under a canonical `.kb/<lane>/`. */
-// implements REQ-cli-schema-migration
 export type LaneMarkdownFile = Readonly<{
   lane: EntityLane;
   absolutePath: string;
@@ -76,7 +75,6 @@ function walkMarkdown(
 }
 
 /** Every authored Markdown entity file in the canonical lanes, sorted. */
-// implements REQ-cli-schema-migration
 export function listLaneMarkdownFiles(
   workspaceRoot: string,
   lanes: readonly EntityLane[] = ENTITY_LANES,
@@ -97,7 +95,6 @@ export function listLaneMarkdownFiles(
 }
 
 /** A lane Markdown file with its text. */
-// implements REQ-cli-schema-migration
 export type LaneMarkdownSource = LaneMarkdownFile &
   Readonly<{ content: string }>;
 
@@ -105,7 +102,6 @@ export type LaneMarkdownSource = LaneMarkdownFile &
  * Every authored Markdown entity file in the canonical lanes with its text,
  * sorted. A file that can no longer be read is skipped.
  */
-// implements REQ-cli-schema-migration
 export function listLaneMarkdownSources(
   workspaceRoot: string,
   lanes: readonly EntityLane[] = ENTITY_LANES,
@@ -120,7 +116,6 @@ export function listLaneMarkdownSources(
 }
 
 /** A Markdown document split around its YAML frontmatter. */
-// implements REQ-cli-schema-migration
 export type FrontmatterSlice = Readonly<{
   /** Everything up to and including the opening `---` line. */
   prefix: string;
@@ -138,7 +133,6 @@ export type FrontmatterSlice = Readonly<{
  * in a quoted scalar, never ends the frontmatter. Returns null when there is
  * no such opening and closing pair.
  */
-// implements REQ-cli-schema-migration
 export function sliceFrontmatter(content: string): FrontmatterSlice | null {
   const leading = content.length - content.trimStart().length;
   const open = /^---[ \t]*\r?\n/.exec(content.slice(leading));
@@ -167,7 +161,6 @@ function topLevelFieldPattern(key: string): RegExp {
  * lines, or a block sequence written at the key's own indentation. Returns
  * `undefined` when the key is absent or the frontmatter does not parse.
  */
-// implements REQ-cli-schema-migration
 export function readTopLevelField(frontmatter: string, key: string): unknown {
   const match = topLevelFieldPattern(key).exec(frontmatter);
   if (match === null) return undefined;
@@ -223,7 +216,6 @@ function scalarLine(key: string, value: string, raw?: string): string {
  * back as exactly that change (for example when the value spans several
  * lines, or the frontmatter is not a mapping).
  */
-// implements REQ-cli-schema-migration
 export function withTopLevelField(
   content: string,
   key: string,
@@ -261,7 +253,6 @@ export function withTopLevelField(
  * would not read back as exactly that change (the key gone, every other key
  * parsing identically), or the frontmatter is not a mapping.
  */
-// implements REQ-kibi-schema6-migration
 export function withoutTopLevelField(
   content: string,
   key: string,
@@ -297,7 +288,6 @@ const KB_ROOT_DIRNAME = ".kb";
  * `.kb/` source also rebinds its pending-source receipt, so the next sync
  * reads the rewritten file instead of refusing it as hash drift.
  */
-// implements REQ-cli-schema-migration
 export function writeFileAtomically(filePath: string, content: string): void {
   mkdirSync(path.dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.kibi-migrate-${process.pid}-${Date.now()}`;
@@ -333,7 +323,6 @@ function kbSourceLocation(
   };
 }
 
-// implements REQ-cli-schema-migration
 export function readText(filePath: string): string | null {
   try {
     return readFileSync(filePath, "utf8");

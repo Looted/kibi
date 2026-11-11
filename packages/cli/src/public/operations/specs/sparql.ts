@@ -1,14 +1,12 @@
 import type { OperationContext } from "../runtime-types.js";
 import type { OperationResult, OperationSpec } from "../types.js";
 
-// implements REQ-kibi-operation-interface-parity
 export type SparqlRemoteInput = {
   readonly endpoint: string;
   readonly query: string;
   readonly timeoutMs?: number;
 };
 
-// implements REQ-kibi-operation-interface-parity
 export type SparqlRemoteOutput = {
   readonly rows: readonly Readonly<Record<string, unknown>>[];
 };
@@ -69,7 +67,6 @@ function decodeRows(payload: unknown): SparqlRemoteOutput {
   return { rows };
 }
 
-// implements REQ-kibi-operation-interface-parity, REQ-002, REQ-013
 async function executeSparqlRemote(
   input: SparqlRemoteInput,
   context: OperationContext,

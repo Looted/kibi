@@ -74,12 +74,14 @@ const SOURCE = "export function a() {\n  return 1;\n}\n";
 describe("checkCommand --staged symbol extraction", () => {
   test("rejects a symbol linked to a requirement missing from the snapshot", async () => {
     const root = repo({
-      "src/a.ts": `// implements REQ-MISSING\n${SOURCE}`,
+      "src/a.ts": SOURCE,
+      ".kb/symbols.yaml":
+        "symbols:\n  - id: SYM-a\n    title: a\n    sourceFile: src/a.ts\n    relationships:\n      - type: implements\n        target: REQ-MISSING\n",
     });
     const { result, io } = await staged(root);
     expect(result).toStrictEqual({ exitCode: 1 });
     expect(io.errorText()).toContain(
-      "Error running staged validation: Error extracting symbols from staged file src/a.ts: Symbol a references a requirement absent from the captured knowledge snapshot: REQ-MISSING",
+      "Error running staged validation: Snapshot relationship has a missing endpoint: SYM-a -> REQ-MISSING",
     );
   });
 

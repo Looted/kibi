@@ -38,7 +38,6 @@ import type {
 } from "./registry.js";
 import { classifySource, extensionLanguage } from "./source-classification.js";
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type HostSourceAnalysisShadowComparison = Readonly<{
   pluginId: string;
   stamp: PluginProviderStamp;
@@ -48,7 +47,6 @@ export type HostSourceAnalysisShadowComparison = Readonly<{
   error?: string;
 }>;
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type HostSourceAnalysisResult = SourceAnalysisResult &
   Readonly<{
     providerId: string | null;
@@ -59,7 +57,6 @@ export type HostSourceAnalysisResult = SourceAnalysisResult &
     shadowComparisons: readonly HostSourceAnalysisShadowComparison[];
   }>;
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type SourceAnalysisServiceOptions = Readonly<{
   registry: CapabilityRegistry;
   /** Explicit v2 resolution; maintenance callers supply only approved providers. */
@@ -169,7 +166,6 @@ function hostDeadlineMs(requested: number | undefined): number {
  * so a cooperative provider reports its own timeout diagnostic before the host
  * abandons the call.
  */
-// implements REQ-source-analysis-v2
 export function providerBudgetMs(hostTimeoutMs: number): number {
   const grace = Math.min(1000, Math.floor(hostTimeoutMs / 10));
   return Math.max(1, hostTimeoutMs - grace);
@@ -180,7 +176,6 @@ function inferModuleTitle(filePath: string): string {
   return path.basename(filePath, path.extname(filePath));
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function createConservativeFallbackAnalysis(
   filePath: string,
   fallbackReason: string,
@@ -233,7 +228,6 @@ function dedupeSymbols(
  *   unsupported files in activation order
  * - shadow: always run when configured/applicable; never canonical
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export class SourceAnalysisService {
   private readonly registry: CapabilityRegistry;
   private readonly options: SourceAnalysisServiceOptions;
@@ -257,7 +251,6 @@ export class SourceAnalysisService {
    * Classify, bound the input, resolve providers, take the first claiming
    * provider's result as canonical, then record shadow comparisons.
    */
-  // implements REQ-capability-plugin-activation-disclosure-v1
   async analyzeTextV2(
     filePath: string,
     content: string,
@@ -348,7 +341,6 @@ export class SourceAnalysisService {
   }
 
   /** The waiver reason for a result refused only for its missing pack. */
-  // implements REQ-kibi-tree-sitter-language-packs
   private waivedLanguagePack(
     result: CanonicalResultV2,
     filePath: string,
@@ -561,7 +553,6 @@ export class SourceAnalysisService {
 /**
  * Analyze using a pre-resolved extractor mode set (useful for tests).
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export async function analyzeWithResolution(
   resolution: CapabilityModeResolution<SymbolExtractorV1>,
   filePath: string,
@@ -576,7 +567,6 @@ export async function analyzeWithResolution(
   return service.analyzeText(filePath, content);
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function createSourceAnalysisService(
   options: SourceAnalysisServiceOptions,
 ): SourceAnalysisService {
@@ -591,7 +581,6 @@ type CanonicalResult = Omit<
 type CanonicalResultV2 = Omit<HostSourceAnalysisResultV2, "shadowComparisons">;
 
 /** V2 results preserve failure/completeness; provenance is always assigned by the host. */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type HostSourceAnalysisResultV2 = SourceAnalysisResultV2 &
   Readonly<{
     providerId: string | null;

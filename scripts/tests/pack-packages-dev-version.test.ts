@@ -1,4 +1,3 @@
-// implements REQ-020
 import { describe, expect, test } from "bun:test";
 import { stampDevVersion } from "../pack-packages";
 

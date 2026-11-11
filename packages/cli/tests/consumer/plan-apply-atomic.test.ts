@@ -1,4 +1,3 @@
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import {

@@ -109,8 +109,6 @@ function sourcePaths(symbols: Buffer): {
  * it is in the canonical layout sync writes, and the derived coordinate
  * artifact is not tracked.
  */
-// implements REQ-cli-check
-// implements REQ-symbol-coordinates-derived-locally
 export async function checkGeneratedManifests(
   options: {
     changedOnly?: boolean;

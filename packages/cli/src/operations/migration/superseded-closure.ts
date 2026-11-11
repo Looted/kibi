@@ -38,11 +38,9 @@ import {
  */
 
 /** The terminal requirement status. */
-// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export const CLOSED_REQUIREMENT_STATUS = "closed";
 
 /** A superseded requirement whose status is not closed. */
-// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersededClosure = Readonly<{
   id: string;
   /** Workspace-relative path of the requirement's file. */
@@ -52,14 +50,12 @@ export type SupersededClosure = Readonly<{
 }>;
 
 /** Requirements that supersede each other, directly or through a chain. */
-// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersessionCycle = Readonly<{
   members: readonly string[];
   edges: readonly (readonly [string, string])[];
   files: readonly string[];
 }>;
 
-// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersessionPlan = Readonly<{
   closures: readonly SupersededClosure[];
   cycles: readonly SupersessionCycle[];
@@ -87,7 +83,6 @@ function reachable(
  * strongly connected component that contains a cycle), as sorted member
  * lists sorted by first member.
  */
-// implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function supersessionCycles(
   edges: readonly (readonly [string, string])[],
 ): string[][] {
@@ -160,7 +155,6 @@ function readRequirementsAndEdges(workspaceRoot: string): {
  * read from authored Markdown and relationship shards. Cycle members are
  * listed only under their cycle. Read-only.
  */
-// implements REQ-core-validation-rules, REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export function planSupersededClosures(
   workspaceRoot: string,
 ): SupersessionPlan {
@@ -206,7 +200,6 @@ export function planSupersededClosures(
   };
 }
 
-// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersededClosureResult = Readonly<{
   closed: readonly SupersededClosure[];
   skipped: readonly Readonly<{ path: string; reason: string }>[];
@@ -218,7 +211,6 @@ export type SupersededClosureResult = Readonly<{
  * supersession cycle are never touched. With `planned`, only those ids are
  * closed. Idempotent: a closed requirement is not planned again.
  */
-// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export function applySupersededClosures(
   workspaceRoot: string,
   planned?: ReadonlySet<string>,

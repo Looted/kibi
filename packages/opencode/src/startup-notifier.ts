@@ -23,7 +23,6 @@ export type StartupNotifierConfig = {
 const VERSION_ORDER = ["opencode", "mcp", "cli", "core"] as const;
 
 /** The known package versions, or no versions entry when none is known. */
-// implements REQ-opencode-kibi-plugin-v1
 export function knownVersions(
   meta: Record<(typeof VERSION_ORDER)[number], string>,
 ): Pick<StartupNotifierConfig, "versions"> {
@@ -34,7 +33,6 @@ export function knownVersions(
   return Object.keys(versions).length > 0 ? { versions } : {};
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export function notifyStartup(
   client: StartupNotifierClient,
   cfg: StartupNotifierConfig,

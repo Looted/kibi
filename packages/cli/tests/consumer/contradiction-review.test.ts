@@ -1,4 +1,3 @@
-// implements REQ-kibi-contradiction-review-candidates
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

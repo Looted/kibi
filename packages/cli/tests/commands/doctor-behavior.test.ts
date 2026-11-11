@@ -1,4 +1,3 @@
-// implements REQ-cli-doctor
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { execFileSync } from "node:child_process";
 import * as childProcess from "node:child_process";
@@ -1086,7 +1085,6 @@ describe("doctorCommand capability plugins", () => {
   }
 
   test("warns when an augment-mode Jev secret is missing", async () => {
-    // implements REQ-cli-doctor
     const cwd = preparedWorkspace();
     writeOkManifest(cwd);
     writeJevActivation(cwd, true);
@@ -1327,7 +1325,6 @@ function writeAuthoredRequirement(cwd: string): void {
   );
 }
 
-// implements REQ-cli-doctor
 describe("doctorCommand branch store", () => {
   test("fails with kibi sync when authored sources exist and the branch has no store", async () => {
     const cwd = preparedWorkspace();

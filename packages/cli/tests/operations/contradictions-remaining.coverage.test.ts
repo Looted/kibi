@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { afterEach, describe, expect, test } from "bun:test";
 
 import { formatUpsertError } from "../../src/operations/mutation/contradictions.js";

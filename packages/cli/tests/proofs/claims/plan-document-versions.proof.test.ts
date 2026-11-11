@@ -9,8 +9,6 @@ import { PLAN_APPLY_RESULT_VERSION } from "../../../src/operations/planning/appl
 import { REPAIR_PLAN_VERSION } from "../../../src/public/operations/repair-plan.js";
 import { SYMBOL_REPAIR_PLAN_VERSION } from "../../../src/public/operations/symbol-repair-plan.js";
 
-// implements REQ-kibi-plan-document-versions
-
 /**
  * The version strings of the plan documents Kibi writes and applies. Kibi reads
  * every constant itself at ingest, so the certificate is checked against the code.

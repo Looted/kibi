@@ -8,7 +8,6 @@ export type CliOperationMetadata = {
 
 // Keep CLI registration lightweight. The parity test compares this projection
 // against the authoritative operation catalog so schema metadata cannot drift.
-// implements REQ-test-journaled-engine-harness
 export const CLI_OPERATION_METADATA = [
   {
     name: "kb_skills_list",

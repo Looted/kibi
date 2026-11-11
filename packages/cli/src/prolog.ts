@@ -79,7 +79,6 @@ function runtimeIdentity(): { name: string; version: string } {
 }
 
 export function resolveKbPlPath(): string {
-  // implements REQ-009
   const overrideKbPath = getKbPlPathOverride();
   if (overrideKbPath) {
     return overrideKbPath;
@@ -166,7 +165,6 @@ export interface QueryResult {
   errorRecord?: PrologErrorRecord;
 }
 
-// implements REQ-core-prolog-process-management
 export function registerProcessExitOnce(
   current: (() => void) | null,
   handler: () => void,
@@ -178,7 +176,6 @@ export function registerProcessExitOnce(
   return handler;
 }
 
-// implements REQ-core-prolog-process-management
 export function bindProcessExitHandler(
   current: (() => void) | null,
   terminate: () => void | Promise<void>,
@@ -242,7 +239,6 @@ export class PrologProcess {
         typeof (globalThis as { Bun?: unknown }).Bun !== "undefined");
   }
 
-  // implements REQ-core-prolog-process-management
   attachProcessExitHandler(
     on: (event: "exit", listener: () => void) => void = (event, listener) =>
       process.on(event, listener),
@@ -394,7 +390,6 @@ export class PrologProcess {
     }
   }
 
-  // implements REQ-core-prolog-process-management
   async query(goal: string | string[]): Promise<QueryResult> {
     // A lost interactive session must fail before any cached answer is served.
     if (!this.useOneShotMode && this.needsRestart()) {
@@ -691,14 +686,12 @@ export class PrologProcess {
     );
   }
 
-  // implements REQ-009
   private isMutatingGoal(goal: string): boolean {
     return /(?:kb_(?:assert|delete|retract|commit|save|log)_|\bkb_save\b|\brdf_(?:assert|retract))/u.test(
       goal,
     );
   }
 
-  // implements REQ-009
   /** `goal` is already normalized, so it has no surrounding space. */
   private isExplicitSaveGoal(goal: string): boolean {
     return goal.startsWith("kb_save");
@@ -739,7 +732,6 @@ export class PrologProcess {
     return this.execOneShot(trimmedGoal, this.attachedKbPath);
   }
 
-  // implements REQ-009
   private execOneShot(
     goal: string,
     kbPath: string | null,
@@ -1091,7 +1083,6 @@ export class PrologProcess {
       child.once("error", markExited);
     });
     if (graceMs > 0 && child.exitCode === null && child.signalCode === null) {
-      // implements REQ-core-journaled-engine-persistence
       let graceTimer: NodeJS.Timeout | undefined;
       await Promise.race([
         exited,
@@ -1119,7 +1110,6 @@ export class PrologProcess {
     }
   }
 
-  // implements REQ-009
   private isProcessUsable(): boolean {
     return this.isRunning() && (this.process as ChildProcess).stdin !== null;
   }
@@ -1155,7 +1145,6 @@ export class PrologProcess {
     return { message: this.translateError(errorText) };
   }
 
-  // implements REQ-core-prolog-process-management
   private translateError(errorText: string): string {
     // Diagnostic markers intentionally contain words such as `lock` and the
     // audit path. Remove them before classifying the actual Prolog error so a

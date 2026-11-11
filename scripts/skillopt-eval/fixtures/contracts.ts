@@ -127,31 +127,26 @@ type FixtureTaskSpec = Readonly<z.infer<typeof TaskSpecSchema>>;
 type PublicTaskManifest = Readonly<z.infer<typeof PublicTaskManifestSchema>>;
 type HeldOutTaskManifest = Readonly<z.infer<typeof HeldOutTaskManifestSchema>>;
 
-// implements REQ-skillopt-codex-optimization
 export function parseTaskSpec(value: unknown): FixtureTaskSpec {
   return TaskSpecSchema.parse(value);
 }
 
-// implements REQ-skillopt-codex-optimization
 export function parsePublicTaskSpec(value: unknown): FixtureTaskSpec {
   return TaskSpecSchema.refine((task) => task.split !== "held-out", {
     message: "public APIs reject held-out task descriptors",
   }).parse(value);
 }
 
-// implements REQ-skillopt-codex-optimization
 export function parseHeldOutTaskSpec(value: unknown): FixtureTaskSpec {
   return TaskSpecSchema.refine((task) => task.split === "held-out", {
     message: "held-out APIs require held-out task descriptors",
   }).parse(value);
 }
 
-// implements REQ-skillopt-codex-optimization
 export function parsePublicTaskManifest(text: string): PublicTaskManifest {
   return PublicTaskManifestSchema.parse(JSON.parse(text));
 }
 
-// implements REQ-skillopt-codex-optimization
 export function parseHeldOutTaskManifest(text: string): HeldOutTaskManifest {
   return HeldOutTaskManifestSchema.parse(JSON.parse(text));
 }

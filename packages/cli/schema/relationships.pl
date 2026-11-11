@@ -3,7 +3,6 @@
 :- module(kibi_relationships, [relationship_type/1, valid_relationship/3, relationship_metadata/1]).
 
 % Relationship types
-% implements REQ-005
 relationship_type(depends_on).
 relationship_type(executable_for).
 relationship_type(specified_by).
@@ -51,7 +50,6 @@ valid_relationship(requires_rule, req, fact).
 %% The scenario's outcome depends on the property_value fact holding (for
 %% example "the order total is 0"). Checked against current requirements by
 %% the scenario-feasibility rule.
-% implements REQ-kibi-scenario-feasibility-v2
 valid_relationship(assumes, scenario, fact).
 
 %% exempts(+ExceptionReqId, +BaseReqId)
@@ -69,7 +67,6 @@ valid_relationship(supersedes, req, req).
 %% ReqId intentionally restates OtherReqId (for example a product requirement
 %% echoed in a platform requirement). Both stay current; the pair is exempt
 %% from domain-redundancy. Use supersedes when one replaces the other.
-% implements REQ-kibi-restates-relationship
 valid_relationship(restates, req, req).
 % escape hatch - allow any to any
 valid_relationship(relates_to, _, _).

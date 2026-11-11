@@ -1,4 +1,3 @@
-// implements REQ-cli-staged-consistency
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

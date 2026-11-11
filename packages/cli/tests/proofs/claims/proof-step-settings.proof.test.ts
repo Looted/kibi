@@ -12,8 +12,6 @@ import {
 } from "../../../src/proof/command-test-report.js";
 import { DEFAULT_PROOF_STEPS_PATH } from "../../../src/proof/step-runner.js";
 
-// implements REQ-kibi-proof-step-settings
-
 /**
  * Where proof steps live and how a command integration reports per-test results.
  * Kibi reads each constant itself at ingest, so the certificate is checked against the code.

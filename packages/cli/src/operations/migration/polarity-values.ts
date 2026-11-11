@@ -7,11 +7,9 @@ import {
   writeFileAtomically,
 } from "./kb-sources.js";
 
-// implements REQ-cli-schema-migration, REQ-kibi-truthful-consistency
 export const POLARITY_VALUE_BACKFILL_CODE = "polarity_value_backfill";
 
 /** Only polarity-only legacy claims have an unambiguous boolean encoding. */
-// implements REQ-cli-schema-migration, REQ-kibi-truthful-consistency
 export function planPolarityValueBackfill(
   workspaceRoot: string,
 ): readonly { id: string; path: string; before: string; after: string }[] {
@@ -85,7 +83,6 @@ export function planPolarityValueBackfill(
   return targets;
 }
 
-// implements REQ-cli-schema-migration, REQ-kibi-truthful-consistency
 export function applyPolarityValueBackfill(workspaceRoot: string): number {
   const targets = planPolarityValueBackfill(workspaceRoot);
   for (const target of targets)

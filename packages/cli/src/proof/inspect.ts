@@ -201,7 +201,6 @@ function globExists(root: string, pattern: string): boolean {
   return directoryEntriesMatch(root, new RegExp(`${extension}$`));
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export function inspectProofEnvironment(
   root: string,
   options: ProofInspectionOptions = {},
@@ -257,7 +256,6 @@ export function inspectProofEnvironment(
   const currentIntegration = integrations.available
     ? integrations.integrations.integrations.map((entry) => entry.id).join(", ")
     : null;
-  // implements REQ-kibi-verification-evidence-contract
   // The id alone does not say what `kibi prove` will run; expose the command.
   const currentIntegrations = integrations.available
     ? integrations.integrations.integrations.map((entry) => ({
@@ -273,7 +271,6 @@ export function inspectProofEnvironment(
   const updateId = options.update?.trim() || undefined;
   let recommendation: string;
   if (planned.plan !== null && updateId !== undefined) {
-    // implements REQ-kibi-verification-evidence-contract
     // The plan adds an id the file does not have yet; only an existing one is
     // replaced.
     const verb = currentIntegrations.some((entry) => entry.id === updateId)

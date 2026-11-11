@@ -46,7 +46,6 @@ export interface KibiReleaseMismatch {
 const require = createRequire(import.meta.url);
 const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
 
-// implements REQ-kibi-release-version
 export function parseKibiReleaseManifest(
   value: unknown,
 ): KibiReleaseManifest | undefined {
@@ -81,7 +80,6 @@ function readManifestFile(file: string): KibiReleaseManifest | undefined {
   }
 }
 
-// implements REQ-kibi-release-version
 /**
  * The release manifest of the installed kibi-core, falling back to the
  * monorepo layout (src/ and dist/ sit directly under packages/cli).
@@ -105,7 +103,6 @@ export function readKibiRelease(
   );
 }
 
-// implements REQ-kibi-release-version
 /**
  * Whether an installed version is the one a release lists. A local pack
  * stamped `<version>-dev.<suffix>` (`scripts/pack-packages.ts --dev-version`)
@@ -118,7 +115,6 @@ export function matchesListedVersion(
   return installed === listed || installed.startsWith(`${listed}-dev.`);
 }
 
-// implements REQ-kibi-release-version
 /**
  * Installed Kibi packages whose version differs from the one the release
  * lists. Packages that are not installed (optional plugins, language packs,
@@ -138,7 +134,6 @@ export function releaseMismatches(
   return mismatches;
 }
 
-// implements REQ-kibi-release-version
 /**
  * `kibi --version`: `Kibi 2026.11.0 (kibi-cli 2.41.0)` when the release lists
  * this CLI; otherwise the CLI version alone with a pointer to `kibi doctor`.

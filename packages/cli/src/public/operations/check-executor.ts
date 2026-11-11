@@ -66,7 +66,6 @@ import { collectSymbolGranularityViolations } from "./symbol-granularity-check.j
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
 
-// implements REQ-kibi-operation-interface-parity, REQ-002
 export type CheckInput = {
   readonly rules?: readonly string[];
   readonly workspaceRoot?: string;
@@ -100,7 +99,6 @@ export type CheckExecutionOptions = {
   readonly branchStoreAttached?: boolean;
 };
 
-// implements REQ-search-answer-hygiene
 /**
  * What this run evaluated: the rules that ran, in registry order, and for
  * `domain-contradictions` the number of requirement fact pairs the rule
@@ -188,7 +186,6 @@ async function readStatusMigrationPlan(
  * (source-relationship-parity alone reports each authored relationship as
  * missing), so kb_check reports this instead of any of them.
  */
-// implements REQ-cli-status-pre-first-sync
 export function uncompiledBranchStoreViolation(
   context: OperationContext,
   workspaceRoot: string,
@@ -231,7 +228,6 @@ export function uncompiledBranchStoreViolation(
  * the place to keep parsed source analyses. A read-only detached snapshot
  * and an unknown store (an explicit --kb-path) get no cache.
  */
-// implements REQ-cli-check
 export function analysisCacheDir(
   context: OperationContext,
   workspaceRoot: string,
@@ -255,7 +251,6 @@ export function analysisCacheDir(
   return undefined;
 }
 
-// implements REQ-kibi-operation-interface-parity, REQ-002
 export async function executeCheck(
   args: CheckInput,
   context: OperationContext,

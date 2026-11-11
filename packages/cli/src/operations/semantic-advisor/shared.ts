@@ -13,17 +13,14 @@ export type MatchGroups = Readonly<Record<string, string | undefined>>;
 export const SEMANTIC_INVENTORY_VERSION = "kibi.semantic-inventory.v1";
 export type SemanticSourceField = "semantic_text" | "text_ref" | "title";
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function stringValue(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function canonicalize(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalize).join(",")}]`;
   if (isRecord(value)) {
@@ -35,7 +32,6 @@ export function canonicalize(value: unknown): string {
   return JSON.stringify(value);
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function payloadHash(payload: Payload): string {
   const stable = Object.fromEntries(
     Object.entries(payload).filter(([key]) => !key.startsWith("_")),
@@ -43,7 +39,6 @@ export function payloadHash(payload: Payload): string {
   return createHash("sha256").update(canonicalize(stable)).digest("hex");
 }
 
-// implements REQ-kibi-legacy-migration-preview-v2
 export function semanticSourceOf(payload: Payload): {
   readonly field: SemanticSourceField;
   readonly text: string;
@@ -83,29 +78,24 @@ export function semanticClausesOf(
   );
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function shortHash(value: string): string {
   return createHash("sha256").update(value).digest("hex").slice(0, 12);
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function propertiesOf(payload: Payload): Record<string, unknown> {
   return isRecord(payload.properties) ? payload.properties : {};
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function statementOf(payload: Payload): string {
   return semanticSourceOf(payload).text;
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function sourceOf(payload: Payload): string {
   return (
     stringValue(propertiesOf(payload).source) || "mcp://kibi/semantic-advisor"
   );
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function normalizeKey(value: string): string {
   // Runs of anything else, spaces at either end too, collapse to one "_".
   return value
@@ -115,7 +105,6 @@ export function normalizeKey(value: string): string {
     .replace(/^_|_$/g, "");
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function normalizePredicateToken(value: string): string {
   // Spaces at either end become a "_" and are stripped with it.
   return value
@@ -134,7 +123,6 @@ const ES_PLURAL_SUFFIXES = ["ches", "shes", "sses", "xes"] as const;
  * token ends in "ss", "us" or "is" ("access", "status", "analysis"). Tokens of
  * three letters or fewer and the `keep` exceptions are returned unchanged.
  */
-// implements REQ-mcp-semantic-advisor-preflight
 export function singularizeToken(
   value: string,
   keep: readonly string[],
@@ -150,13 +138,11 @@ export function singularizeToken(
   return value.slice(0, -1);
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function singularize(value: string): string {
   // "status" already keeps its "us" ending.
   return singularizeToken(value, ["results"]);
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function normalizeSubjectKey(value: string): string {
   return normalizeKey(value).split("_").map(singularize).join(".");
 }
@@ -169,7 +155,6 @@ export function relationship(
   return { type, from, to };
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function strictSuggestion(
   payload: Payload,
   evidence: string,
@@ -274,7 +259,6 @@ export function strictSuggestion(
   };
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function predicateSuggestion(
   payload: Payload,
   evidence: string,

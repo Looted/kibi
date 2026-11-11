@@ -71,7 +71,6 @@ export function proofContractHash(contract: ProofContract): string {
  * workspace state changes, and goes stale the moment the test's own contract
  * or document does. Callers pass the receipt-stripped document content.
  */
-// implements REQ-kibi-verification-evidence-contract
 export interface ReceiptCodeScopeEntry {
   readonly symbolId: string;
   readonly sourceHash: string;

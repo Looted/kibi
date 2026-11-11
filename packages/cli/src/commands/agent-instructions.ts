@@ -32,20 +32,15 @@ import * as path from "node:path";
  * it through an `@AGENTS.md` import in CLAUDE.md. A plugin or MCP server is
  * per-user and per-machine; this is the one channel every fresh clone has.
  */
-// implements REQ-kibi-fresh-clone-setup
 export const AGENTS_FILE = "AGENTS.md";
-// implements REQ-kibi-fresh-clone-setup
 export const CLAUDE_FILE = "CLAUDE.md";
 
-// implements REQ-kibi-fresh-clone-setup
 export const KIBI_INSTRUCTIONS_BEGIN =
   "<!-- BEGIN kibi-managed: written by `kibi init`; edit outside these markers -->";
-// implements REQ-kibi-fresh-clone-setup
 export const KIBI_INSTRUCTIONS_END = "<!-- END kibi-managed -->";
 
 // The OpenCode plugin reads kb_search/kb_query in AGENTS.md as the project's
 // Kibi posture, so both names stay in the section.
-// implements REQ-kibi-fresh-clone-setup
 export const KIBI_AGENT_INSTRUCTIONS = `## Kibi
 
 This repository records its requirements, decisions, tests and code ownership in a Kibi knowledge base (\`.kb/\`).
@@ -56,12 +51,10 @@ This repository records its requirements, decisions, tests and code ownership in
 - Commits must pass \`kibi check --staged\`, which the pre-commit hook runs. A fresh clone has no git hooks until the project's dependencies are installed or \`kibi hooks install\` runs.
 - Workflow guidance: the \`kibi-usage\` skill (\`kb_skills\` with \`action: "load"\`, or \`kibi skills load kibi-usage\`).`;
 
-// implements REQ-kibi-fresh-clone-setup
 export const CLAUDE_IMPORT_SECTION = `## Kibi
 
 @AGENTS.md`;
 
-// implements REQ-kibi-fresh-clone-setup
 export type InstructionFileResult =
   | "created"
   | "updated"
@@ -69,7 +62,6 @@ export type InstructionFileResult =
   | "skipped-symlink"
   | "skipped-unsupported";
 
-// implements REQ-kibi-fresh-clone-setup
 export type AgentInstructionsResult = Readonly<{
   agents: InstructionFileResult;
   claude: InstructionFileResult | "same-file";
@@ -98,7 +90,6 @@ function stats(file: string): Stats | null {
  * outside them. A symlink is never written through, so a link that leaves
  * the repository cannot redirect the write.
  */
-// implements REQ-kibi-fresh-clone-setup
 export function upsertManagedSection(
   file: string,
   body: string,
@@ -121,7 +112,6 @@ export function upsertManagedSection(
 }
 
 /** Whether a file already holds the current managed section. */
-// implements REQ-kibi-fresh-clone-setup
 export function managedSectionState(
   file: string,
   body: string,
@@ -170,7 +160,6 @@ function importsAgents(file: string): boolean {
   );
 }
 
-// implements REQ-kibi-fresh-clone-setup
 export function writeAgentInstructions(
   worktreeRoot: string,
 ): AgentInstructionsResult {
@@ -195,7 +184,6 @@ export function writeAgentInstructions(
   return { agents, claude };
 }
 
-// implements REQ-kibi-fresh-clone-setup
 export function reportAgentInstructions(result: AgentInstructionsResult): void {
   const line = (file: string, outcome: InstructionFileResult | "same-file") => {
     const what =

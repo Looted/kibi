@@ -34,7 +34,6 @@ interface EntityCacheEntry {
   timestamp: number;
 }
 
-// implements REQ-vscode-traceability
 interface HoverProviderDeps {
   execCli(
     command: string,
@@ -52,9 +51,7 @@ const defaultDeps: HoverProviderDeps = {
   buildMarkdown: (sym, ents) => buildHoverMarkdown(sym, ents),
 };
 
-// implements REQ-vscode-traceability
 export class KibiHoverProvider implements vscode.HoverProvider {
-  // implements REQ-vscode-traceability
   private entityDetailsCache = new Map<string, EntityCacheEntry>();
   private entityInflight = new Map<string, Promise<EntityDetails | null>>();
   private readonly CACHE_TTL = 30_000; // 30 seconds

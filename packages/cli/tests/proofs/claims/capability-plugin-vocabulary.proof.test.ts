@@ -12,8 +12,6 @@ import {
 } from "../../../../plugin-sdk/src/capabilities/semantic-classifier.js";
 import { EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS } from "../../../src/plugins/external-allowlist.js";
 
-// implements REQ-capability-plugin-vocabulary
-
 /**
  * The modes a capability plugin may run in, the polarities of an ontology pack rule, the semantic lanes and signal kinds a classifier may report, and the operations that may load an external classifier. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

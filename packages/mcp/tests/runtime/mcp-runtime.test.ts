@@ -184,7 +184,6 @@ async function storeState(root: string): Promise<string> {
 }
 
 describe("MCP operation runtime on a never-compiled branch store", () => {
-  // implements REQ-kibi-fresh-clone-setup
   test("compiles the store before a Prolog-backed operation", async () => {
     const root = freshBranchWorkspace();
     expect(await storeState(root)).toBe("disabled");

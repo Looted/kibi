@@ -13,8 +13,6 @@ import { renderHtmlReport } from "../../src/report/html-report.js";
 import { proofLabel } from "../../src/signoff/model.js";
 import { prologCases } from "./prolog-cases.js";
 
-// implements REQ-kibi-evidence-levels
-
 /**
  * Every input the evidence level depends on, crossed: the proof status, a
  * re-checked certificate test or none, who wrote the requirement (and whether

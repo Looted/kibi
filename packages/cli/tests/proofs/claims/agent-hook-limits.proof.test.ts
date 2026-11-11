@@ -13,8 +13,6 @@ import {
 import { MAX_REQUIREMENT_CANDIDATES } from "../../../../agent-core/src/requirement-candidates.js";
 import { CONFIRM_FIRM_EDITS_ENV } from "../../../../agent-core/src/decision-guard.js";
 
-// implements REQ-agent-core-hook-limits
-
 /**
  * How long an edit snippet may be, how many requirement candidates a hook offers, which links ground a requirement in a snippet, and the variable that turns on firm-edit confirmation. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

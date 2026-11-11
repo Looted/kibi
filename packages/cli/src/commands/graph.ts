@@ -15,7 +15,6 @@ interface GraphOptions {
   format?: "json" | "table";
 }
 
-// implements REQ-002, REQ-003
 export async function graphCommand(options: GraphOptions): Promise<void> {
   if (!options.from?.trim()) {
     console.error("Error: --from is required");

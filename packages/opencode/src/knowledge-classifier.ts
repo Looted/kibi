@@ -1,5 +1,3 @@
-// implements REQ-opencode-kibi-plugin-v1
-
 /**
  * Heuristic classifier for routing durable knowledge prose to appropriate Kibi entity types.
  * This is guidance-only and does not auto-create entities.
@@ -90,7 +88,6 @@ const TEST_CUES = [
  * Analyze a comment or prose block and suggest most appropriate entity type.
  */
 export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
-  // implements REQ-opencode-kibi-plugin-v1
   if (text.trim().length < 50) {
     return null;
   }

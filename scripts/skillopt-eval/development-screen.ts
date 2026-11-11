@@ -20,7 +20,6 @@ export type ScreenCell = ScreenSample &
     replicate: number;
   }>;
 
-// implements REQ-skillopt-codex-optimization
 export function summarizeScreen(
   cells: readonly ScreenCell[],
   variants: readonly FrozenVariant[],
@@ -81,7 +80,6 @@ export function summarizeScreen(
   }));
 }
 
-// implements REQ-skillopt-codex-optimization
 export function validateScreenPlan(options: {
   variants: readonly FrozenVariant[];
   tasks: readonly PublicTaskDescriptor[];
@@ -130,7 +128,6 @@ export function validateScreenPlan(options: {
     throw new Error("screen_budget_invalid");
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function runDevelopmentScreen(
   options: Parameters<typeof validateScreenPlan>[0] & {
     evaluate: (

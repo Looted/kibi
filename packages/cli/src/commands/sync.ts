@@ -194,7 +194,6 @@ export function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
  * commit (or outside Git) there is no history to tell apart, and the set is
  * empty.
  */
-// implements REQ-kibi-proposition-complete-ingestion
 export function stagedNewSourceKeys(workspaceRoot: string): Set<string> {
   // Git prints forward-slash paths on every platform.
   return new Set(
@@ -356,7 +355,6 @@ export function normalizedEntityHash(result: ExtractionResult): string {
   });
 }
 
-// implements REQ-kibi-proposition-complete-ingestion
 export function semanticBoundaryRelationships(
   result: ExtractionResult,
   shardRelationships: readonly ExtractedRelationship[],
@@ -392,7 +390,6 @@ export async function checkpointNoopSync(
 }
 
 /** Whether the branch's compiled store already holds any of `ids`. */
-// implements REQ-cli-status-pre-first-sync
 export async function storeHoldsAnyEntity(
   workspaceRoot: string,
   branch: string,
@@ -419,7 +416,6 @@ export async function storeHoldsAnyEntity(
   }
 }
 
-// implements REQ-003, REQ-007
 export interface SyncResult extends SyncSummary {
   exitCode?: number;
 }
@@ -452,7 +448,6 @@ export function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
  * endpoint is declared in a source sync cannot see (untracked by Git and
  * without a pending-source receipt): staging that file is the fix.
  */
-// implements REQ-core-persistence
 export function reportDanglingRelationships(
   workspaceRoot: string,
   validationErrors: ReturnType<typeof validateRelationships>,
@@ -537,7 +532,6 @@ export function warnFailedSourceHash(file: string, error: unknown): void {
   console.warn(`Warning: Failed to hash ${file}: ${message}`);
 }
 
-// implements REQ-003, REQ-007
 export function rememberChangedSourceOrWarn(
   file: string,
   apply: () => void,
@@ -656,7 +650,6 @@ export function compiledSyncCache(
   };
 }
 
-// implements REQ-003, REQ-007
 export async function syncCommand(
   options: {
     validateOnly?: boolean;
@@ -772,7 +765,6 @@ export async function syncCommand(
       ensureBranchStoreManifest(workspaceRoot, currentBranch);
       await ensureJournaledBranchStoreAsync(livePathForEngine);
     }
-    // implements REQ-cli-status-pre-first-sync
     // An untracked symbol manifest that only kb_upsert ever wrote (older Kibi
     // left it without a pending-source receipt) gets the receipt here, so
     // this sync compiles it and records its content hash. Without it the
@@ -954,7 +946,6 @@ export async function syncCommand(
       // A declared source analyzer that is missing or not the qualified
       // build would drop every coordinate it places; refuse the refresh and
       // keep the stored coordinates instead of reporting success.
-      // implements REQ-symbol-coordinates-derived-locally
       const installProblems = sourceAnalyzerInstallProblems(workspaceRoot);
       if (installProblems.length > 0)
         throw new SyncError(
@@ -1142,7 +1133,6 @@ export async function syncCommand(
       workspaceRoot,
     );
     const { failedCacheKeys, errors } = extraction;
-    // implements REQ-kibi-uncompiled-source-visibility
     // Sources sync could not extract stay out of the store; record them so
     // kb_status can say so. A source that failed in the store's first
     // compilation (and in every sync since) is legacy content that missed the
@@ -1251,7 +1241,6 @@ export async function syncCommand(
       ? extractedResults.filter(({ entity }) => changedEntityIds.has(entity.id))
       : extractedResults;
 
-    // implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
     // Every drifted inventory is reported in one run, not one per sync attempt.
     const inventoryFailures: string[] = [];
     // Requirements with no inventory at all: kibi migrate re-derives only an
@@ -1389,7 +1378,6 @@ export async function syncCommand(
       livePath,
     );
 
-    // implements REQ-core-journaled-engine-persistence
     // Normal syncs are compiled directly into the long-lived single-writer
     // engine. Rebuilds retain generation replacement semantics, and injected
     // Prolog runtimes keep the staging path used by the contract fixtures.

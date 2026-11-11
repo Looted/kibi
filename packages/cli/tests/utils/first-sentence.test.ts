@@ -2,8 +2,6 @@ import { describe, expect, test } from "bun:test";
 import { executeSemanticAdvisor } from "../../src/public/operations/specs/semantic.js";
 import { firstSentence } from "../../src/utils/first-sentence.js";
 
-// implements REQ-mcp-semantic-advisor-preflight
-
 describe("firstSentence", () => {
   test("a dot inside a path, dotted name or version does not end the sentence", () => {
     expect(

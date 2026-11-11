@@ -5,8 +5,6 @@ import type { StagedPath } from "../../src/traceability/git-staged.js";
 import { assertTrustedPullRequestBaseline } from "../../src/traceability/impact-pr-diff.js";
 import type { TrustedPullRequestSnapshot } from "../../src/traceability/trusted-pr-event.js";
 
-// implements REQ-impact-policy-stage-e-content-bound-review
-
 type Files = Record<
   string,
   | string

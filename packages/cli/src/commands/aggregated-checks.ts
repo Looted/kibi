@@ -27,7 +27,6 @@ function ontologyQualitySetting(raw: string | undefined): string {
  * would otherwise decide. Prolog validates the values and falls back to its
  * defaults for anything out of range.
  */
-// implements REQ-kibi-ontology-quality
 export function ontologyQualityOverridesGoal(
   env: NodeJS.ProcessEnv = process.env,
 ): string {
@@ -51,7 +50,6 @@ export function ontologyQualityOverridesGoal(
  * A temp folder that cannot be written gives no file, and the engine answers
  * the JSON instead.
  */
-// implements REQ-003
 function checkResultFile(): { path: string | undefined; dispose: () => void } {
   let dir: string;
   try {
@@ -123,7 +121,6 @@ export async function runAggregatedChecks(
   prolog: Pick<PrologProcess, "query">,
   rulesAllowlist: Set<string> | null,
 ): Promise<Violation[]> {
-  // implements REQ-003
   const violations: Violation[] = [];
 
   const checksPlPath = path.join(path.dirname(resolveKbPlPath()), "checks.pl");

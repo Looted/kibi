@@ -13,7 +13,6 @@ export async function handleKbStatus(
   args: StatusArgs,
   context?: OperationContext,
 ): Promise<StatusResult> {
-  // implements REQ-kibi-operation-interface-parity
   // Freshness is read-after-write sensitive: invalidate the PrologProcess query
   // cache so kb_status always reflects the current workspace state rather than
   // a stale earlier-in-session result.

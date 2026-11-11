@@ -1,4 +1,3 @@
-// implements REQ-search-answer-hygiene
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

@@ -17,7 +17,6 @@ import { readManifestWithCoordinateOverlay } from "../../extractors/manifest.js"
 import { extractManifestSymbolRecords } from "../../extractors/manifest.js";
 import { escapeAtom } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
-// implements REQ-kibi-operation-interface-parity
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
 import { appendOnlyProofReceiptHistoryErrors } from "../../public/proof-receipt.js";
@@ -130,7 +129,6 @@ function parseChangeKind(
  * validation when the payload did not supply it, echoed so the writer
  * knows the grounding key without a kb_query.
  */
-// implements REQ-upsert-committed-claim-key
 export function storedClaimKey(
   entity: Readonly<Record<string, unknown>>,
 ): { claimKey: string } | Record<string, never> {
@@ -139,7 +137,6 @@ export function storedClaimKey(
     : {};
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 /** The written result's semantic advisor receipt, omitted for a non-requirement. */
 function advisorReceipt(
   receipt: SemanticAdvisorReceipt | null,
@@ -161,7 +158,6 @@ function textHash(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
-// implements REQ-core-atomic-upsert-persistence
 export function assertRelationshipShardContained(
   workspaceRoot: string,
   shardPath: string,
@@ -218,7 +214,6 @@ function restoreRelationshipShard(
     return;
   }
   writeFileSync(shardPath, before);
-  // implements REQ-core-atomic-upsert-persistence
   // Freshness compares file times with the compiled snapshot; a restored
   // shard with a new time would read as a newer source after a refusal.
   restoreFileTimes(shardPath, beforeTimes);
@@ -238,7 +233,6 @@ const RECEIPT_BOUND_FIELDS = [
  * perspective they were recorded against. Undefined when there is nothing to
  * carry.
  */
-// implements REQ-kb-upsert-keeps-omitted-proof-receipts
 export async function validateAppendOnlyProofReceipts(
   entity: Readonly<Record<string, unknown>>,
   context: OperationContext,
@@ -358,7 +352,6 @@ function reextractCanonicalSymbolEntity(
   };
 }
 
-// implements REQ-kibi-truthful-consistency
 export type UpsertValidationOptions = Readonly<{
   /** Skip the append-only receipt check (kibi proof prune only). */
   readonly allowReceiptsPrune?: boolean;
@@ -369,14 +362,12 @@ export type UpsertValidationOptions = Readonly<{
   readonly staged?: StagedUpsertState;
 }>;
 
-// implements REQ-mcp-semantic-advisor-preflight
 /** The semantic advisor result an upsert reports; no receipt for a non-requirement. */
 export type UpsertSemanticAnalysis = Readonly<{
   readonly receipt: SemanticAdvisorReceipt | null;
   readonly warnings: readonly string[];
 }>;
 
-// implements REQ-mcp-semantic-advisor-preflight
 /**
  * The semantic advisor analyses requirement prose: its propositions, claim
  * keys and inventory contract describe a requirement. Any other entity has no
@@ -399,7 +390,6 @@ export function analyzeUpsertSemantics(
   return semantic;
 }
 
-// implements REQ-kibi-truthful-consistency
 export type UpsertValidation = Readonly<{
   readonly validated: ValidatedUpsert;
   /**
@@ -412,7 +402,6 @@ export type UpsertValidation = Readonly<{
   readonly semantic: UpsertSemanticAnalysis;
 }>;
 
-// implements REQ-kibi-truthful-consistency
 /**
  * The complete validation an upsert passes before its first write: schema,
  * append-only proof receipts, relationship sources, symbol granularity,
@@ -442,7 +431,6 @@ export async function validateUpsertForCommit(
   // One read of the entity this upsert replaces, shared by the ledger merge
   // and the stored origin below.
   let lookup = storedEntityLookup(prolog, payload.id, payload.type);
-  // implements REQ-kibi-uncompiled-source-visibility
   // An entity missing from the store whose authored file exists (one sync
   // could not extract, or one written since the last sync) is an update of
   // that file, not a create: the writer merges into it. Judge the write
@@ -453,7 +441,6 @@ export async function validateUpsertForCommit(
       : await readUncompiledAuthoredSource(context, payload);
   if (uncompiledSource !== null)
     lookup = authoredEntityLookup(uncompiledSource);
-  // implements REQ-kibi-symbol-link-guidance
   // An update that only adds links keeps the stored sourceFile: judge the
   // symbol as it will be stored, so a coarse link is refused here rather
   // than later by the staged gate.
@@ -570,7 +557,6 @@ export async function validateUpsertForCommit(
  * `approval_ref` when the write omits one. kb_check enforces the same rule on
  * authored sources.
  */
-// implements REQ-kb-decision-firmness
 async function resolveUpsertFirmness(
   input: UpsertInput,
   staged: StagedUpsertState | undefined,
@@ -607,7 +593,6 @@ async function resolveUpsertFirmness(
       } as UpsertInput);
 }
 
-// implements REQ-kibi-operation-interface-parity
 export type UpsertExecutionOptions = Readonly<{
   /**
    * Internal escape hatch for proof-receipt ingest: when provided, the
@@ -616,7 +601,6 @@ export type UpsertExecutionOptions = Readonly<{
    * frontmatter — a mid-campaign reformat would change the workspace
    * snapshot hash and make every later `kibi prove` integration refuse.
    */
-  // implements REQ-kibi-operation-interface-parity
   readonly sourceDocumentOverride?: string;
   /**
    * Internal escape hatch for `kibi proof prune`: the prune maintenance
@@ -632,7 +616,6 @@ export type UpsertExecutionOptions = Readonly<{
   readonly deferCompiledCommit?: boolean;
 }>;
 
-// implements REQ-kibi-operation-interface-parity
 /**
  * Whether a source-first upsert publishes an authored document, and the
  * stored entity it updates (undefined for a create). Null when the write
@@ -670,7 +653,6 @@ export async function sourceWriteScope(
   return null;
 }
 
-// implements REQ-kibi-operation-interface-parity
 /**
  * A dry run is the former kb_validate_upsert preflight on the kb_upsert
  * surface: the same validation and semantic advisor receipt, no KB or
@@ -699,7 +681,6 @@ export async function executeUpsert(
   options: UpsertExecutionOptions = {},
 ): Promise<OperationResult<UpsertPayload>> {
   if (input.dryRun === true) return dryRunUpsert(input, context);
-  // implements REQ-model-what-if-planned-facts
   if (input.plannedFacts !== undefined)
     throw new KbRejection(
       "VALIDATION_FAILED",
@@ -753,7 +734,6 @@ export async function executeUpsert(
       sourceMutationLock = await acquireWorkspaceMutationLock(
         context.workspaceRoot,
       );
-      // implements REQ-core-atomic-upsert-persistence
       // An interrupted kb_apply_plan left a journal: complete or roll it back
       // before this write reads or changes the files the journal guards.
       planRecoveryWarnings = planRecoveryNotes(
@@ -863,7 +843,6 @@ export async function executeUpsert(
     // surfaces consistent; stale coordinates are never reused as a fallback.
     // A symbol Kibi cannot place in its source file is linked to no code:
     // say so at write time, not only in a later sync's output.
-    // implements REQ-generated-coordinate-persistence
     const coordinateWarnings: string[] = [];
     if (
       input.type === "symbol" &&
@@ -1058,7 +1037,6 @@ export async function executeUpsert(
       relationships_created: validated.relationships.length,
       warnings: [
         ...planRecoveryWarnings,
-        // implements REQ-kibi-uncompiled-source-visibility
         ...(uncompiledSource !== undefined
           ? [
               `${input.id} was not in the compiled KB; this write updated its authored file ${uncompiledSource.path}${uncompiledSource.extractionError === null ? "" : `, which kibi sync could not compile before (${uncompiledSource.extractionError})`}. Run kibi sync to recompile it.`,

@@ -11,8 +11,6 @@ import { compileWitness } from "../../src/operations/proof/code-certificates.js"
 import { proofContractClaimViolations } from "../../src/public/operations/proof-contract-claims.js";
 import { proofContractErrors } from "../../src/public/proof-protocol.js";
 
-// implements REQ-kibi-claim-bound-proofs
-
 const repoRoot = path.resolve(import.meta.dir, "../../../..");
 const scratch = mkdtempSync(path.join(import.meta.dir, ".claim-witness-"));
 afterAll(() => rmSync(scratch, { recursive: true, force: true }));

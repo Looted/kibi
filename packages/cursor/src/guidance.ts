@@ -1,6 +1,5 @@
 import type { McpState } from "./kb-mcp-tools.js";
 import { interfaceAdvisory } from "./messages.js";
-// implements REQ-cursor-kibi-plugin-v1, REQ-agent-kibi-interface-selection
 import {
   isDocumentationTrackedPath,
   isMeaningfulTrackedPath,
@@ -24,7 +23,6 @@ export type GuidanceContext = {
   readonly knowledge?: string | undefined;
 };
 
-// implements REQ-cursor-kibi-plugin-v1
 /** Cursor's own ask once the shared snippet has named the requirements. */
 export const PRE_EDIT_FOLLOWUP =
   "Kibi pre-edit guidance: read those requirements with kb_query before changing behavior here; if the change contradicts one, resolve that in Kibi before writing the edit.";

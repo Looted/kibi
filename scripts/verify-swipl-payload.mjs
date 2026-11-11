@@ -71,7 +71,6 @@ export function verifySwiplPayload(root) {
 }
 
 /** The prepack check: reports problems on stderr and returns the exit code. */
-// implements REQ-prolog-bundled-release
 export function prepack(root = packageRoot) {
   const problems = verifySwiplPayload(root);
   if (problems.length > 0) {

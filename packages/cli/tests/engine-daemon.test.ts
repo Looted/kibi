@@ -1,4 +1,3 @@
-// implements REQ-core-journaled-engine-persistence
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import {

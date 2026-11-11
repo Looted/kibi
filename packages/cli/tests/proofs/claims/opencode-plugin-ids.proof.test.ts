@@ -7,8 +7,6 @@ import {
 import { KIBI_OPENCODE_PLUGIN_ID } from "../../../../opencode/src/opencode-v2.js";
 import { KIBI_BOOTSTRAP_COMMAND_NAME } from "../../../../opencode/src/kibi-bootstrap-capability.js";
 
-// implements REQ-opencode-plugin-ids
-
 /**
  * The id the OpenCode plugin registers under and the name of its bootstrap command. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

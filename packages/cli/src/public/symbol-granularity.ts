@@ -110,7 +110,6 @@ export function isBehavioralSymbol(
  * functions, methods and accessors first, then properties (behavioral in the
  * schema, but usually plain fields), each group sorted by name.
  */
-// implements REQ-kibi-symbol-link-guidance
 export function getBehavioralSymbolNames(
   candidates: GranularSymbolCandidate[],
 ): string[] {
@@ -128,7 +127,6 @@ export function getBehavioralSymbolNames(
  * (`Title.member`), or, when the source declares no symbol named like it,
  * every other declaration in the file.
  */
-// implements REQ-symbol-behavioral-anchors, REQ-cli-schema-migration
 export function narrowerSymbols<T extends { name: string }>(
   manifestSymbolName: string,
   candidates: readonly T[],
@@ -150,7 +148,6 @@ export function narrowerSymbols<T extends { name: string }>(
  * link unless it carries a granularity_reason, and `kibi migrate` marks
  * exactly these links legacy-link. Empty when the link is narrow enough.
  */
-// implements REQ-symbol-behavioral-anchors, REQ-cli-schema-migration
 export function coarseLinkBehavioralNames(
   manifestSymbolName: string,
   sourceSymbols: readonly GranularSymbolCandidate[],

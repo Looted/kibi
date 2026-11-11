@@ -302,7 +302,6 @@ describe("findUntrackedDocumentMatches and symbol manifests", () => {
   });
 });
 
-// implements REQ-cli-status-pre-first-sync
 describe("adoptUpsertOnlySymbolManifest", () => {
   const MANIFEST =
     "symbols:\n  - id: SYM-export-report\n    title: exportReport\n  - id: SYM-export-csv\n    title: exportCsv\n";

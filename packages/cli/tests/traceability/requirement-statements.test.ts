@@ -1,4 +1,3 @@
-// implements REQ-kb-check-unverified-requirement-statements
 import { afterEach, describe, expect, it } from "bun:test";
 import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";

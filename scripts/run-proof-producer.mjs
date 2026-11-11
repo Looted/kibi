@@ -245,7 +245,6 @@ export function runProofStep(commandArgv, options = {}) {
 }
 
 /** Positive pool size. Unset, zero, and junk stay sequential. */
-// implements REQ-kibi-verification-evidence-contract
 export function proofStepConcurrency(env = process.env) {
   const parsed = Number(env.KIBI_PROOF_STEP_CONCURRENCY);
   if (!Number.isFinite(parsed) || parsed < 1) return 1;
@@ -256,7 +255,6 @@ export function proofStepConcurrency(env = process.env) {
  * Identical argv is one execution. Contracts that declare it share that
  * attempt; a different flag is a different command.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function groupProofSteps(selected) {
   const pending = [];
   const groups = [];
@@ -317,7 +315,6 @@ const PROOF_TEST_FILE_PATTERN = /\.proof\.test\.[cm]?[jt]sx?$/;
  * evidence than the step itself would produce, never less. A step that runs
  * a `*.proof.test.*` file is never reusable: it must leave its certificate.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function reusableBunTestFiles(argv, workspaceRoot = process.cwd()) {
   if (argv[0] !== "bun" || argv[1] !== "test") return null;
   const files = new Set();
@@ -355,7 +352,6 @@ function gitOutput(workspaceRoot, args) {
  * Accept a unit test results ledger only for the exact commit being proven on
  * a clean tracked tree. Returns the clean files, or a reason it was rejected.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function acceptUnitResultsLedger(ledger, identity) {
   if (ledger === null || typeof ledger !== "object" || Array.isArray(ledger))
     return { files: null, reason: "unit results are malformed" };
@@ -425,7 +421,6 @@ function nonNegativeMs(value, fallback) {
  * step of this run already ran it and passed. The ledger is read once, after
  * waiting (bounded) for it to appear when KIBI_PROOF_UNIT_RESULTS names a path.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function createTestFileReuse(options = {}) {
   const env = options.env ?? process.env;
   const workspaceRoot = options.workspaceRoot ?? process.cwd();
@@ -613,7 +608,6 @@ export async function runProofProducer(options = {}) {
  * selected test with the outcome of its own declared steps. kibi prove then
  * fails only the tests whose steps failed instead of every test in the run.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function buildProofTestReport(selected, attempts) {
   return {
     version: "kibi.proof-test-report.v1",
@@ -642,7 +636,6 @@ export function buildProofTestReport(selected, attempts) {
 }
 
 /** Write the report atomically so kibi prove never reads a partial file. */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function writeProofTestReport(reportPath, report) {
   mkdirSync(path.dirname(reportPath), { recursive: true });
   const temporary = `${reportPath}.${process.pid}.tmp`;

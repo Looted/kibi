@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, test } from "bun:test";
-// implements REQ-kibi-fresh-verification-receipts-v2
 import { join } from "node:path";
 import {
   type CliRun,

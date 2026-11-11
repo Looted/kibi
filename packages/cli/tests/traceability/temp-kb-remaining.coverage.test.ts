@@ -1,4 +1,3 @@
-// implements REQ-014
 import { afterEach, describe, expect, test } from "bun:test";
 
 import type { ExtractionResult } from "../../src/extractors/markdown.js";

@@ -6,7 +6,6 @@
  * granularity validator, the staged manifest gate, the coordinate refresher,
  * and proof production. Regenerate with: bun run symbols:generate
  */
-// implements REQ-core-extractors
 
 export const ALLOWED_GRANULARITY_REASONS = [
   "config-artifact",

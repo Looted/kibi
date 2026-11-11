@@ -1,5 +1,4 @@
 /// <reference types="bun-types" />
-// implements REQ-opencode-kibi-plugin-v1
 import { afterEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
 import fs from "node:fs";

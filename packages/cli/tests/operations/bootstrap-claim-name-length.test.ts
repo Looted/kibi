@@ -1,4 +1,3 @@
-// implements REQ-bootstrap-claim-name-length
 import { describe, expect, test } from "bun:test";
 import { buildIntentClaimCandidates } from "../../src/operations/bootstrap/intent-claims.js";
 import { markdownCandidates } from "../../src/operations/bootstrap/markdown-candidates.js";

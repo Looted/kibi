@@ -80,7 +80,6 @@ export { PUBLISHABLE_DIRS };
  * ✅ ALREADY_PUBLISHED_NOOP: changesets present but all on npm already
  */
 export function determineReleaseAction(ctx: ReleaseContext): ReleaseDecision {
-  // implements REQ-020
   // Only act on master
   if (ctx.branch !== "master") {
     return {

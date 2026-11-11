@@ -18,7 +18,6 @@
 
 /** Copied from CLI semantic-advisor shared helpers — do not import from kibi-cli. */
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function normalizeKey(value: string): string {
   // Whitespace runs, like every other non-alphanumeric run, collapse into a
   // single "_", so trimming the input first and stripping more than one
@@ -30,7 +29,6 @@ export function normalizeKey(value: string): string {
     .replace(/^_|_$/g, "");
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function normalizePredicateToken(value: string): string {
   // Edge whitespace becomes edge underscores, which the last step strips, so
   // the input needs no separate trim.
@@ -42,18 +40,15 @@ export function normalizePredicateToken(value: string): string {
     .replace(/^_+|_+$/g, "");
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function singularize(value: string): string {
   if (["status", "results"].includes(value)) return value;
   return value.endsWith("s") && value.length > 3 ? value.slice(0, -1) : value;
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function normalizeSubjectKey(value: string): string {
   return normalizeKey(value).split("_").map(singularize).join(".");
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function commaList(
   value: string,
   separator: RegExp = /,|\band\b/i,

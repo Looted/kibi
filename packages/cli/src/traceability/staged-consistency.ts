@@ -16,7 +16,6 @@ import {
  * forbids, and exceptions that name claims they cannot waive. They read only
  * authored knowledge, so the staged tree alone decides them.
  */
-// implements REQ-cli-staged-consistency
 const STAGED_CONSISTENCY_RULES: readonly string[] = [
   "domain-contradictions",
   "scenario-feasibility",
@@ -36,7 +35,6 @@ type SnapshotReader = Readonly<{
  * shards, the only knowledge these rules read. A symbols manifest change
  * alone cannot change their outcome.
  */
-// implements REQ-cli-staged-consistency
 export function stagesKnowledge(paths: readonly string[]): boolean {
   return paths.some(
     (file) =>
@@ -45,7 +43,6 @@ export function stagesKnowledge(paths: readonly string[]): boolean {
   );
 }
 
-// implements REQ-cli-staged-consistency
 function violationKey(violation: Violation): string {
   return JSON.stringify([
     violation.rule,
@@ -59,7 +56,6 @@ function violationKey(violation: Violation): string {
  * relationships between them. Symbols and their edges are most of a large
  * KB and would dominate the projection time of a pre-commit hook.
  */
-// implements REQ-cli-staged-consistency
 function withoutSymbols(knowledge: ExtractionResult[]): ExtractionResult[] {
   const ids = new Set(
     knowledge
@@ -77,7 +73,6 @@ function withoutSymbols(knowledge: ExtractionResult[]): ExtractionResult[] {
     }));
 }
 
-// implements REQ-cli-staged-consistency
 async function consistencyViolations(
   knowledge: ExtractionResult[],
 ): Promise<Violation[]> {
@@ -99,7 +94,6 @@ async function consistencyViolations(
  * unrelated commit; full `kibi check` still reports it. The base tree is
  * only analyzed when the staged tree has violations.
  */
-// implements REQ-cli-staged-consistency
 export async function collectIntroducedConsistencyViolations(
   snapshot: SnapshotReader,
   headKnowledge: ExtractionResult[],
@@ -118,7 +112,6 @@ export async function collectIntroducedConsistencyViolations(
 }
 
 /** Text lines for introduced consistency violations, in `kibi check` form. */
-// implements REQ-cli-staged-consistency
 export function formatConsistencyViolations(
   violations: readonly Violation[],
   kind = "consistency",

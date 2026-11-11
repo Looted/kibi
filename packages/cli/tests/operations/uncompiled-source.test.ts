@@ -23,8 +23,6 @@ import {
 } from "../../src/operations/mutation/uncompiled-source.js";
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
 
-// implements REQ-kibi-uncompiled-source-visibility
-
 function context(root: string): OperationContext {
   return {
     workspaceRoot: root,

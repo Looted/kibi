@@ -6,8 +6,6 @@ import {
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
 
-// implements REQ-kibi-bundled-skill-catalog
-
 /**
  * The canonical Kibi skills the CLI bundles, proved against the skill folders
  * it ships. Kibi reads the folders itself at ingest; the test checks the same

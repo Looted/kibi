@@ -1,5 +1,3 @@
-// implements REQ-opencode-kibi-plugin-v1
-
 export interface PluginClient {
   app: {
     log: (payload: Record<string, unknown>) => Promise<void>;
@@ -14,17 +12,14 @@ let client: PluginClient | null = null;
 // in parallel test runs. Defaults to null (uses real console.error in production).
 let _consoleError: typeof console.error | null = null;
 
-// implements REQ-opencode-kibi-plugin-v1
 export function _setConsoleError(fn: typeof console.error | null): void {
   _consoleError = fn;
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export function setClient(c: PluginClient): void {
   client = c;
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export function resetClient(): void {
   client = null;
 }
@@ -42,7 +37,6 @@ function buildBody(
   };
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export function info(msg: string, metadata?: LogMetadata): void {
   if (client) {
     void client.app
@@ -57,7 +51,6 @@ export function info(msg: string, metadata?: LogMetadata): void {
   // Fallback when no client is available (e.g. during tests or early init)
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export function warn(msg: string, metadata?: LogMetadata): void {
   if (client) {
     void client.app
@@ -71,8 +64,6 @@ export function warn(msg: string, metadata?: LogMetadata): void {
   }
   // Fallback when no client is available
 }
-
-// implements REQ-opencode-kibi-plugin-v1
 
 /**
  * Failure classification contract for kibi-opencode logging.
@@ -106,7 +97,6 @@ export type FailureClassification =
   | "operational_plugin"
   | "authoritative_external";
 
-// implements REQ-opencode-kibi-plugin-v1
 export function errorStructuredOnly(msg: string, metadata?: LogMetadata): void {
   if (client) {
     void client.app
@@ -123,7 +113,6 @@ export function errorStructuredOnly(msg: string, metadata?: LogMetadata): void {
   // (no console.error fallback — advisory noise must not pollute TUI)
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export function error(msg: string, metadata?: LogMetadata): void {
   // Always emit to console for user visibility (operational failures)
   (_consoleError ?? console.error)("[kibi-opencode]", msg);

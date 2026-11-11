@@ -22,7 +22,6 @@ const ABBREVIATION = /(?:^|[\s(])(?:e\.g|i\.e|etc|vs|cf|approx)\.$/i;
 /** After a sentence end: whitespace, then an uppercase letter (maybe quoted). */
 const NEXT_SENTENCE = /^\s+["'(“]?\p{Lu}/u;
 
-// implements REQ-mcp-semantic-advisor-preflight
 /**
  * The first sentence of prose, used to title a requirement. A sentence ends
  * at `.`, `!` or `?` followed by whitespace and an uppercase letter, or at

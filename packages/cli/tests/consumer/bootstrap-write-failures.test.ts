@@ -1,5 +1,4 @@
 // executable_for TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-// implements REQ-bootstrap-subject-fact-shared
 import { afterEach, describe, expect, test } from "bun:test";
 import { dump as dumpYaml } from "js-yaml";
 import { bootstrapPlanHash } from "../../src/operations/bootstrap/types.js";

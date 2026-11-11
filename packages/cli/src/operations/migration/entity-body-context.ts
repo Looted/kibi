@@ -41,14 +41,11 @@ import {
 } from "./kb-sources.js";
 
 /** Schema 8: pin the checked meaning of requirements that never stated one. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export const SEMANTIC_TEXT_PIN_CODE = "semantic_text_pin";
 /** Schema 8: acknowledge current entities that lack body context. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export const CONTEXT_MISSING_TAG_CODE = "context_missing_tag";
 
 /** One authored file the schema 8 migration rewrites (front matter only). */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export type BodyContextTarget = Readonly<{
   id: string;
   type: string;
@@ -57,7 +54,6 @@ export type BodyContextTarget = Readonly<{
   after: string;
 }>;
 
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export type BodyContextPlan = Readonly<{
   targets: readonly BodyContextTarget[];
   /** Files Kibi cannot edit safely, with the reason. */
@@ -71,7 +67,6 @@ export type BodyContextPlan = Readonly<{
  * plus those that already carried the tag. Recorded in the manifest, which is
  * the only thing that makes the tag honored by `entity-context-missing`.
  */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function acknowledgedContextIds(plan: BodyContextPlan): string[] {
   return [
     ...new Set([
@@ -87,7 +82,6 @@ export function acknowledgedContextIds(plan: BodyContextPlan): string[] {
  * included), so claim spans and hashes do not move when the extractor stops
  * reading context sections. Read-only.
  */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function planSemanticTextPins(workspaceRoot: string): BodyContextPlan {
   const targets: BodyContextTarget[] = [];
   const skipped: { id: string; path: string; reason: string }[] = [];
@@ -125,7 +119,6 @@ export function planSemanticTextPins(workspaceRoot: string): BodyContextPlan {
  * plain items; returns null for anything else or when the edit would not read
  * back as exactly that one added tag.
  */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function withAddedTag(content: string, tag: string): string | null {
   const slice = sliceFrontmatter(content);
   if (slice === null) return null;
@@ -187,7 +180,6 @@ export function withAddedTag(content: string, tag: string): string | null {
  * `review:context-missing`. No prose is written: the tag only acknowledges the
  * gap. Read-only.
  */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function planContextMissingTags(workspaceRoot: string): BodyContextPlan {
   const entities = listContextAuthoredEntities(workspaceRoot);
   const superseded = authoredSupersededIds(workspaceRoot, entities);
@@ -225,7 +217,6 @@ export function planContextMissingTags(workspaceRoot: string): BodyContextPlan {
 }
 
 /** Count targets by entity type, sorted by type. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function countByType(
   targets: readonly Pick<BodyContextTarget, "type">[],
 ): Record<string, number> {
@@ -246,13 +237,11 @@ function applyPlan(workspaceRoot: string, plan: BodyContextPlan): number {
 }
 
 /** Pin semantic_text, then return how many requirements were rewritten. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function applySemanticTextPins(workspaceRoot: string): number {
   return applyPlan(workspaceRoot, planSemanticTextPins(workspaceRoot));
 }
 
 /** Tag entities that lack context, then return how many were rewritten. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function applyContextMissingTags(workspaceRoot: string): number {
   const plan = planContextMissingTags(workspaceRoot);
   const count = applyPlan(workspaceRoot, plan);

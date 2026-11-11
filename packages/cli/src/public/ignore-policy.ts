@@ -46,7 +46,6 @@ function patternGlobs(prefix: string, patterns: readonly string[]): string[] {
     .map((pattern) => `**/${prefix}${pattern.replace(/^\//, "")}`);
 }
 
-// implements REQ-cli-canonical-runtime
 export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
   const root = path.resolve(workspaceRoot);
 

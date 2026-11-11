@@ -1,4 +1,3 @@
-// implements REQ-kb-unowned-file-candidates
 import { afterEach, describe, expect, it } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";

@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -202,7 +201,6 @@ function* writtenNames(command: string): Generator<string> {
  * (what must stay true) instead of reads. Quoted text (a sed script, an
  * echoed string) is never read as a separator or a redirection.
  */
-// implements REQ-claude-code-kibi-plugin-v1
 export function commandEditPaths(command: string, cwd: string): string[] {
   const scanned = command.slice(0, MAX_COMMAND_CHARS);
   const bases = [cwd, ...cdTargets(scanned, cwd)];

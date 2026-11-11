@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { SIGNOFF_VERSION } from "../../../src/signoff/model.js";
 
-// implements REQ-kibi-signoff-version
-
 /**
  * The version string of a Kibi signoff document. Kibi reads the constant itself
  * at ingest, so the certificate is checked against the code.

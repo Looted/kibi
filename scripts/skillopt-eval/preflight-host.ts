@@ -30,7 +30,6 @@ export {
   tryVerifyBundleSignature,
 } from "./bundle-signature";
 
-// implements REQ-skillopt-codex-optimization
 export async function qualifySkillOptHost(
   options: HostPreflightOptions,
 ): Promise<PreflightReceipt> {

@@ -8,8 +8,6 @@ import {
   resolveTrustedPullRequestSnapshot,
 } from "../../src/traceability/trusted-pr-event.js";
 
-// implements REQ-impact-policy-stage-e-content-bound-review
-
 const roots: string[] = [];
 afterEach(() => {
   for (const root of roots.splice(0))

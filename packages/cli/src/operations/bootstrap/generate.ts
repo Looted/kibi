@@ -66,7 +66,6 @@ function sha256(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
-// implements REQ-bootstrap-write-safety, REQ-bootstrap-intent-claim-accounting, REQ-bootstrap-discovered-candidate-budget, REQ-bootstrap-provenance-stubs
 export function selectBootstrapCandidates(
   input: readonly Candidate[],
   existingIds: ReadonlySet<string>,
@@ -253,7 +252,6 @@ function stagedEntity(
  * earlier writes, so a mismatch is a suppressed candidate at plan time rather
  * than a terminal partial apply. Targets outside the plan are left to apply.
  */
-// implements REQ-bootstrap-intent-claim-accounting
 function stagedGroundingError(
   candidate: Candidate,
   planned: ReadonlyMap<string, Readonly<Record<string, unknown>>>,
@@ -275,7 +273,6 @@ function stagedGroundingError(
  * One suppressedCandidates row per declared claim the activation mode does
  * not plan, so the per-source accounting names the real reason.
  */
-// implements REQ-bootstrap-intent-claim-accounting
 function activationSuppressedClaims(
   declared: BootstrapDeclaredContext,
   activation: ActivationPolicy,
@@ -315,7 +312,6 @@ const NO_EXISTING_KNOWLEDGE: ExistingKnowledge = {
  * none (the CLI does so for status anyway); an unattached root never starts
  * one.
  */
-// implements REQ-bootstrap-intent-claim-accounting, REQ-bootstrap-claim-restatement, REQ-kibi-contradiction-review-candidates
 async function existingKnowledge(
   context: OperationContext,
   attached: boolean,
@@ -447,8 +443,6 @@ async function expectedSnapshots(
   }
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-operation-interface-parity, REQ-bootstrap-discovered-candidate-budget, REQ-kibi-contradiction-review-candidates
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export async function executePlanBootstrap(
   args: PlanBootstrapArgs,
   context: OperationContext,

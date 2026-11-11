@@ -24,7 +24,6 @@ import {
 import { readKbManifest, writeKbManifest } from "../../utils/kb-manifest.js";
 
 /** Migration action code for the schema 10 acknowledgement. */
-// implements REQ-kb-decision-firmness-from-origin, REQ-cli-schema-migration
 export const FIRM_SUPERSEDE_ACKNOWLEDGE_CODE = "firm_supersede_acknowledge";
 
 /**
@@ -34,7 +33,6 @@ export const FIRM_SUPERSEDE_ACKNOWLEDGE_CODE = "firm_supersede_acknowledge";
  * changes: the manifest only records that these supersedes predate the
  * rule. Read-only.
  */
-// implements REQ-kb-decision-firmness-from-origin, REQ-cli-schema-migration
 export function planFirmSupersedeAcknowledgement(
   workspaceRoot: string,
 ): string[] {
@@ -49,7 +47,6 @@ export function planFirmSupersedeAcknowledgement(
 }
 
 /** The manifest list with the edges added, sorted and unique. */
-// implements REQ-kb-decision-firmness-from-origin
 export function mergeFirmSupersedeAcknowledgements(
   existing: readonly string[] | undefined,
   edges: readonly string[],
@@ -62,7 +59,6 @@ export function mergeFirmSupersedeAcknowledgements(
  * were acknowledged. Without a manifest there is no schema to upgrade from,
  * so it refuses rather than report an acknowledgement it did not write.
  */
-// implements REQ-kb-decision-firmness-from-origin, REQ-cli-schema-migration
 export function applyFirmSupersedeAcknowledgement(
   workspaceRoot: string,
 ): number {

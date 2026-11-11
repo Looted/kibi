@@ -126,42 +126,31 @@ import {
 } from "./symbol-legacy-links.js";
 
 /** The KB schema generation that introduced entity `origin`. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ORIGIN_SCHEMA_VERSION = 6;
 
 /** The KB schema generation that requires body context on current entities. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export const BODY_CONTEXT_SCHEMA_VERSION = 8;
 
 /** The KB schema generation that adds decision firmness. */
-// implements REQ-kb-decision-firmness, REQ-cli-schema-migration
 export const DECISION_FIRMNESS_SCHEMA_VERSION = 9;
 
 /** Automatic: re-derive a drifted inventory with the current advisor. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REDERIVE_CODE = "semantic_inventory_rederive";
 /** Review: a drifted inventory Kibi cannot re-derive safely. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REVIEW_CODE = "semantic_inventory_review";
 /**
  * Review, applied only when approved by id: re-derive a drifted inventory and
  * drop the grounding links that no longer ground a modeled claim.
  */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE =
   "semantic_inventory_rederive_drop_grounding";
 /** Review, applied only when approved by id: map a legacy requirement status. */
-// implements REQ-cli-schema-migration
 export const REQ_STATUS_VOCABULARY_MAP_CODE = "req_status_vocabulary_map";
 /** Automatic: map delivery statuses to `closed` plus the tag `implemented`. */
-// implements REQ-cli-schema-migration
 export const REQ_STATUS_DELIVERED_MAP_CODE = "req_status_delivered_map";
-// implements REQ-cli-schema-migration
 export const REQ_STATUS_DELIVERED_MAP_ACTION_ID = "req-status-delivered-map";
 /** Automatic: stamp `origin: {kind: migration}` on authored entities. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ENTITY_ORIGIN_BACKFILL_CODE = "entity_origin_backfill";
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ENTITY_ORIGIN_BACKFILL_ACTION_ID = "entity-origin-backfill";
 export {
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
@@ -391,7 +380,6 @@ function deliveredStatusAction(
  * mapped. With a suggestion it is executable when approved by id; the
  * re-derivation of the latent drift depends on it.
  */
-// implements REQ-cli-schema-migration, REQ-kibi-proposition-complete-ingestion
 export function requirementStatusActions(
   workspaceRoot: string,
 ): MigrationAction[] {
@@ -505,7 +493,6 @@ type SourceRequirement = {
  * Exceptions without approved_by, read from authored sources so the list is
  * available before the KB compiles.
  */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export function unapprovedExceptionsFromSources(
   workspaceRoot: string,
 ): Array<{ exceptionId: string; exempts: string[]; source: string }> {
@@ -566,7 +553,6 @@ export function unapprovedExceptionsFromSources(
     .sort((left, right) => left.exceptionId.localeCompare(right.exceptionId));
 }
 
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export type Schema6MigrationFragment = Readonly<{
   actions: readonly MigrationAction[];
   /** Automatic actions that rewrite authored sources. */
@@ -581,7 +567,6 @@ export type Schema6MigrationFragment = Readonly<{
  * version, and, for a KB older than schema 6, the origin backfill plus the
  * exceptions that stop exempting anything. Read-only.
  */
-// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration, REQ-kibi-proposition-complete-ingestion
 export function buildSchema6MigrationFragment(input: {
   workspaceRoot: string;
   currentSchemaVersion: number | null;
@@ -961,7 +946,6 @@ export function buildSchema6MigrationFragment(input: {
  * review per supersession cycle and per source value Kibi cannot edit
  * safely. Read-only.
  */
-// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-schema6-migration
 export function buildLifecycleRepairActions(workspaceRoot: string): {
   actions: MigrationAction[];
   sourceRewriteActionIds: string[];
@@ -1013,7 +997,6 @@ export function buildLifecycleRepairActions(workspaceRoot: string): {
  * The automatic legacy-link pass over `.kb/symbols.yaml`, bound to the
  * manifest bytes it was planned from; null when no link needs a mark.
  */
-// implements REQ-cli-schema-migration, REQ-symbol-behavioral-anchors
 export function symbolLegacyLinkAction(
   workspaceRoot: string,
 ): MigrationAction | null {
@@ -1042,7 +1025,6 @@ export function symbolLegacyLinkAction(
 }
 
 /** The sync that recompiles sources rewritten by earlier actions. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export function migrationSyncAction(
   dependsOn: readonly string[],
 ): MigrationAction {
@@ -1061,7 +1043,6 @@ function plannedRecords(value: unknown): Record<string, unknown>[] {
 }
 
 /** The rewrites and removals an approved source_path_rewrite action lists. */
-// implements REQ-kibi-schema6-migration
 function plannedRepairs(action: MigrationAction): PlannedSourcePathRepairs {
   const rewrites: SourcePathRewrite[] = [];
   for (const { entityId, file, field, from, to } of plannedRecords(
@@ -1104,7 +1085,6 @@ type ApplyContext = Readonly<{
 }>;
 
 /** Execute one automatic action produced by this module. */
-// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration
 export async function applySchema6MigrationAction(
   action: MigrationAction,
   context: ApplyContext,
@@ -1268,7 +1248,6 @@ export async function applySchema6MigrationAction(
  * Review actions Kibi can execute, but only when a person approves them by
  * id (`--approved-action`): `--apply-safe` selects automatic actions alone.
  */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration
 export const SCHEMA6_APPROVABLE_REVIEW_CODES: ReadonlySet<string> = new Set([
   SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE,
   REQ_STATUS_VOCABULARY_MAP_CODE,
@@ -1276,7 +1255,6 @@ export const SCHEMA6_APPROVABLE_REVIEW_CODES: ReadonlySet<string> = new Set([
   SEMANTIC_INVENTORY_REDERIVE_CODE,
 ]);
 
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   POLARITY_VALUE_BACKFILL_CODE,
   ENTITY_TYPE_BACKFILL_CODE,

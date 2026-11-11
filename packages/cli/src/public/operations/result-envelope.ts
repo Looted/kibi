@@ -30,7 +30,6 @@ const STORE_READ_OPERATIONS = new Set(["kb_search", "kb_query"]);
  * also raises it as a warning, so a caller that reads only `status` and
  * `diagnostics` does not take the empty answer as "nothing governs this".
  */
-// implements REQ-cli-status-pre-first-sync, REQ-mcp-search-discovery
 function uncompiledStoreDiagnostics(
   operation: string,
   row: Record<string, unknown> | undefined,
@@ -213,7 +212,6 @@ export function toKibiResult<T>(
   const migrationRefused =
     row?.version === "kibi.migration-apply-result.v1" &&
     row.outcome === "refused";
-  // implements REQ-kibi-symbol-link-guidance
   // A kb_upsert dry run that finds the payload invalid reports what the
   // write would do: refuse it. Its data still carries the errors.
   const dryRunInvalid = row?.dryRun === true && row.valid === false;
@@ -280,7 +278,6 @@ export function operationData(value: unknown): unknown {
   return value;
 }
 
-// implements REQ-kibi-telemetry-remediation-evidence
 export interface NormalizedResultPayload {
   /** The versioned KibiResult envelope, when the result carries one. */
   readonly envelope?: Record<string, unknown>;

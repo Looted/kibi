@@ -112,7 +112,6 @@ export function analyzeSourceText(
   content: string,
   options?: AnalyzeSourceTextOptions,
 ): SourceAnalysisResult;
-// implements REQ-001
 export function analyzeSourceText(
   filePathOrEntries: string | ManifestSymbolEntry[],
   contentOrWorkspaceRoot: string,
@@ -176,7 +175,6 @@ function toCoordinatorResult(
  * Prefer the capability registry / SourceAnalysisService when available.
  * Falls back to the sync builtin ts-morph provider path on registry failure.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export async function analyzeSourceTextWithRegistry(
   filePath: string,
   content: string,
@@ -197,7 +195,6 @@ export async function analyzeSourceTextWithRegistry(
  * named no ranges. A symbol declared outside every local range was parsed in
  * full, so its span stays trustworthy.
  */
-// implements REQ-source-analysis-v2
 function localPartialRanges(
   analysis: Awaited<ReturnType<SourceAnalysisService["analyzeTextV2"]>>,
 ): readonly { startLine: number; endLine: number }[] | null {
@@ -301,7 +298,6 @@ export async function enrichSymbolCoordinates(
   workspaceRoot: string,
   deps?: Partial<EnrichSymbolCoordinatesDeps>,
 ): Promise<ManifestSymbolEntry[]> {
-  // implements REQ-vscode-traceability
   const enrichTsCoordinates =
     deps?.enrichTsCoordinates ?? enrichSymbolCoordinatesWithTsMorph;
   const output = entries.map((entry) => withoutGeneratedCoordinates(entry));

@@ -1,4 +1,3 @@
-// implements REQ-bootstrap-provenance-stubs
 import { describe, expect, test } from "bun:test";
 
 import {

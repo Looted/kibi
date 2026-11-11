@@ -8,8 +8,6 @@ import {
   allowsExternalVocabularyAlignment,
 } from "../../src/plugins/external-allowlist.js";
 
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-kibi-vocabulary-alignment-capability, REQ-kibi-search-hints-host
-
 describe("external capability allowlists", () => {
   test("list exactly the operation boundaries that may import plugins", () => {
     expect([...EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS]).toStrictEqual([

@@ -7,7 +7,6 @@ import {
 } from "./enforcement-policy.js";
 import type { ReminderKind } from "./file-operation-state.js";
 import type { PathKind } from "./path-kind.js";
-// implements REQ-opencode-file-context-guidance-v1
 import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
 import type { EffectiveMode } from "./smart-enforcement.js";
@@ -55,7 +54,6 @@ function addUniqueReminderKind(
 
 // ── Main exported function ────────────────────────────────────
 
-// implements REQ-opencode-file-context-guidance-v1
 export function deriveFileOperationReminder(
   params: DeriveFileOperationReminderParams,
 ): DeriveFileOperationReminderResult {

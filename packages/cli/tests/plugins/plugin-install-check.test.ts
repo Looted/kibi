@@ -8,8 +8,6 @@ import {
   sourceAnalyzerInstallProblems,
 } from "../../src/plugins/plugin-install-check.js";
 
-// implements REQ-symbol-coordinates-derived-locally, REQ-cli-doctor
-
 const roots: string[] = [];
 afterEach(() => {
   for (const root of roots.splice(0))

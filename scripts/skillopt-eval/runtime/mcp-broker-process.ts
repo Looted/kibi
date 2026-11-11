@@ -67,7 +67,6 @@ type BrokerIo = Readonly<{
   error: Writable;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export async function runMcpBroker(
   options: BrokerOptions,
   io: BrokerIo = {

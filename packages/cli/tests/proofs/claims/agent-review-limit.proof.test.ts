@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { AGENT_REQUIREMENT_REVIEW_LIMIT } from "../../../src/public/operations/origin-review.js";
 
-// implements REQ-kibi-agent-requirement-review-limit
-
 /**
  * How many agent-authored requirements kb_check lists before summarising the rest.
  * Kibi reads AGENT_REQUIREMENT_REVIEW_LIMIT itself at ingest, so the certificate is

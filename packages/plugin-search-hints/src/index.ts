@@ -43,7 +43,6 @@ function dot(left: Float32Array, right: Float32Array): number {
  * cosine clamped to [0, 1]; ties are ordered by id, so the same input always
  * gives the same hints.
  */
-// implements REQ-kibi-plugin-search-hints
 export function rankByMeaning(
   staticModel: StaticModel,
   cache: VectorCache,
@@ -76,7 +75,6 @@ export function rankByMeaning(
     .slice(0, limit);
 }
 
-// implements REQ-kibi-plugin-search-hints
 export function createSearchHints(): SearchHintsV1 {
   return {
     id: "kibi-plugin-search-hints.potion-base-8M",
@@ -103,7 +101,6 @@ export function createSearchHints(): SearchHintsV1 {
  * Offline meaning-based hints for weak kb_search answers, from the bundled
  * potion-base-8M static embedding. No network, no native code.
  */
-// implements REQ-kibi-plugin-search-hints
 export const kibiPlugin = defineKibiPlugin({
   apiVersion: KIBI_PLUGIN_API_VERSION,
   id: "kibi-plugin-search-hints",

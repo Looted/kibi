@@ -11,8 +11,6 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "../helpers/isolated-env.js";
 
-// implements REQ-core-validation-rules
-
 const kibiCliEntry = path.resolve(__dirname, "../../src/cli.ts");
 const TIMEOUT_MS = 180_000;
 

@@ -20,7 +20,6 @@ import type { SourceSymbolKind } from "kibi-plugin-sdk";
 import { tsMorph } from "./ts-morph-runtime.js";
 import { chooseScriptKind, isPrivateClassMember } from "./ts-morph-shared.js";
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export interface GranularitySymbolCandidate {
   readonly name: string;
   readonly kind: SourceSymbolKind;
@@ -30,7 +29,6 @@ export interface GranularitySymbolCandidate {
  * Collect exported (and unique bare method) symbol candidates used by
  * coarse-vs-granular symbol validation.
  */
-// implements REQ-capability-plugin-builtin-parity-v1
 export function collectGranularityCandidates(
   filePath: string,
   content: string,

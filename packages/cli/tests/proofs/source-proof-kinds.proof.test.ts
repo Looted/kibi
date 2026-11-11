@@ -6,8 +6,6 @@ import {
 } from "../../src/public/proof-certificates.js";
 import { SOURCE_READERS } from "../../src/public/proof-sources.js";
 
-// implements REQ-kibi-source-proof-kinds
-
 /**
  * The source readers Kibi accepts are exactly the reader enum the entity
  * schema publishes. The source certificate leaves the read to Kibi, which

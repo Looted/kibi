@@ -127,7 +127,6 @@ const CORE_FAMILIES_PER_SKILL = 4;
 const MAX_FAMILIES_PER_SKILL = 6;
 
 /** Core families followed by the skill's supplemental families, if any. */
-// implements REQ-skillopt-codex-optimization
 export function skillFamilies(skill: CanonicalSkill): readonly string[] {
   return [
     ...FAMILY_BY_SKILL[skill],
@@ -135,7 +134,6 @@ export function skillFamilies(skill: CanonicalSkill): readonly string[] {
   ];
 }
 
-// implements REQ-skillopt-codex-optimization
 export function isSupplementalFamily(
   skill: CanonicalSkill,
   family: string,
@@ -163,7 +161,6 @@ const SPLIT_COUNT_OVERRIDES: Readonly<
  * Tasks per split for one family: 2/1/4 (seven tasks) unless overridden.
  * Predicate families follow the predicate case registry's allocation.
  */
-// implements REQ-skillopt-codex-optimization
 export function familySplitCounts(
   family: string,
 ): Readonly<Record<TaskSplit, number>> {
@@ -196,7 +193,6 @@ function taskSpec(input: {
 }
 
 /** Every family of one skill, supplemental family included. */
-// implements REQ-skillopt-codex-optimization
 export function buildSkillCatalog(skill: CanonicalSkill): readonly TaskSpec[] {
   const tasks: TaskSpec[] = [];
   for (const family of skillFamilies(skill)) {
@@ -226,7 +222,6 @@ export function buildSkillCatalog(skill: CanonicalSkill): readonly TaskSpec[] {
  * The four core families only: the cohort the legacy optimize trainer and the
  * 16-task held-out gate matrix are contracted to.
  */
-// implements REQ-skillopt-codex-optimization
 export function buildCoreSkillCatalog(
   skill: CanonicalSkill,
 ): readonly TaskSpec[] {
@@ -235,21 +230,18 @@ export function buildCoreSkillCatalog(
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export function buildPublicCatalog(): readonly TaskSpec[] {
   return CANONICAL_SKILLS.flatMap((skill) =>
     buildSkillCatalog(skill).filter((task) => task.split !== "held-out"),
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export function buildHeldOutCatalog(): readonly TaskSpec[] {
   return CANONICAL_SKILLS.flatMap((skill) =>
     buildSkillCatalog(skill).filter((task) => task.split === "held-out"),
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export function validateSkillCatalog(
   tasks: readonly TaskSpec[],
   expectedSkill: CanonicalSkill,

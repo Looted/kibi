@@ -94,7 +94,6 @@ export async function withCwd<T>(
 const isolatedEnvKeys = (key: string): boolean =>
   key.startsWith("KIBI_") || key === "KB_PATH" || key === "XDG_CONFIG_HOME";
 
-// implements REQ-test-journaled-engine-harness
 export function isolateKibiEnv(): () => void {
   const previous = Object.fromEntries(
     Object.entries(process.env).filter(([key]) => isolatedEnvKeys(key)),
@@ -131,7 +130,6 @@ function restoreEnv(name: string, value: string | undefined): void {
 }
 
 // executable_for TEST-cli-quality-diagnostics-contract
-// implements REQ-test-journaled-engine-harness
 export function captureIo(options: { stdio?: boolean } = {}): {
   logs: string[];
   errors: string[];

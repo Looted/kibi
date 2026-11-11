@@ -1,4 +1,3 @@
-// implements REQ-mcp-semantic-advisor-preflight
 import { afterEach, describe, expect, test } from "bun:test";
 import { evaluateProseCoverageCorpus } from "../../src/operations/semantic-advisor/prose-coverage-evaluator.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";

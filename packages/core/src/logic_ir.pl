@@ -467,7 +467,6 @@ duration_milliseconds(Value, w, Normalized) :- Normalized is Value * 604800000, 
 duration_milliseconds(Value, _Unit, Value).
 
 %% logic_rule_conflict(+RuleA, +RuleB, -Status)
-% implements REQ-kibi-truthful-consistency
 % Three-valued comparison of two opposing rules.
 %
 %   contradiction  neither rule carries an exception, and either the rules
@@ -521,7 +520,6 @@ functional_predicate_declarations(Functional) :-
     sort(Functional0, Functional).
 
 %% logic_rule_missing_keys(+RuleA, +RuleB, +Functional, -Missing)
-% implements REQ-kibi-truthful-consistency
 % For an opposing pair that is unresolved under the Functional declarations,
 % the plain-conjunction body predicates without a key_arguments declaration
 % whose declaration would decide the pair.  Missing is a sorted list of
@@ -629,7 +627,6 @@ rule_pair_status(RuleA00, RuleB00, Functional, Status) :-
     ).
 
 %% variant_body_status(+Parts, +Functional, +Declared, -Status)
-% implements REQ-kibi-truthful-consistency
 % The two rules apply to exactly the same instances, so they collide exactly
 % when the shared body has an instance.  contradiction needs that instance to
 % be proven: the functional closure holds, every comparison was translated,
@@ -694,7 +691,6 @@ declared_type(Environment, variable(Name, Type, _), Variable-Type) :-
     memberchk(Name-Variable, Environment).
 
 %% integer_variables(+Declared, -Loose, -Strict)
-% implements REQ-kibi-truthful-consistency
 % Variables declared int or integer range over the integers, so x > 0 and
 % x < 1 cannot both hold for them.  A variable shared by both rules may be
 % declared int by one and number by the other; the fragment does not decide
@@ -971,7 +967,6 @@ flipped_operator(gte, lte).
 
 
 %% logic_rule_fold_exceptions(+Rule, -Folded)
-% implements REQ-kibi-truthful-consistency
 % "forbid H :- B unless E1, ..., En" fires exactly when B holds and no Ei
 % does.  When every exception is a single comparison, its negation is again
 % a comparison (lt and gte, eq and neq, ...), so the rule is equivalent to
@@ -1007,7 +1002,6 @@ fold_body(all(Items0), Extra, all(Items)) :- !, append(Items0, Extra, Items).
 fold_body(Body, Extra, all([Body|Extra])).
 
 %% logic_rule_property_form(+Rule, -Form)
-% implements REQ-kibi-scenario-feasibility-v2
 % Read a rule as a restriction over subject properties: the form scenario
 % feasibility shares with the property lane.  A body atom reads a property
 % when its namespace is the property's subject_key and its name the

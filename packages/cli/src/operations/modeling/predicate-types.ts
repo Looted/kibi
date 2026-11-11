@@ -1,13 +1,10 @@
-// implements REQ-mcp-suggest-predicates
 export type PredicatePolarity = "assert" | "deny";
 
-// implements REQ-mcp-suggest-predicates
 export interface PredicateUsageHints {
   use_when: string[];
   do_not_use_when: string[];
 }
 
-// implements REQ-mcp-suggest-predicates
 export interface PredicateSchemaCandidate {
   id: string;
   predicate_name: string;
@@ -37,7 +34,6 @@ export interface PredicateSchemaCandidate {
   usage_hints?: PredicateUsageHints;
 }
 
-// implements REQ-mcp-suggest-predicates
 export type SuggestPredicatesArgs = Readonly<Record<string, unknown>> & {
   readonly text: string;
   readonly requirementId?: string;
@@ -56,7 +52,6 @@ export type SuggestPredicatesArgs = Readonly<Record<string, unknown>> & {
   readonly existingLogicClaims?: readonly string[];
 };
 
-// implements REQ-mcp-suggest-predicates
 export interface PredicateSuggestion {
   id: string;
   predicate_name: string;
@@ -128,7 +123,6 @@ export interface RecommendedPredicateSchema {
  * declared constants of a closed vocabulary, schema example values and why
  * the current value was not accepted.
  */
-// implements REQ-model-predicates-binding-placeholders
 export interface BindingHint {
   argument: string;
   position: number;
@@ -142,7 +136,6 @@ export interface BindingHint {
 }
 
 /** A logical grounding relationship an existing requirement has for a claim. */
-// implements REQ-model-predicates-grounding-aware-v2
 export interface ExistingClaimGrounding {
   relationship: { type: string; from: string; to: string };
   factId: string;
@@ -164,7 +157,6 @@ export interface ExistingClaimGrounding {
  * the recommended candidate on every key argument and decides the opposite,
  * found when no hash-bound plan carried the contradiction analysis.
  */
-// implements REQ-model-predicates-grounding-guards
 export interface CandidateDecisionConflict {
   requirementId: string;
   factId: string;
@@ -175,7 +167,6 @@ export interface CandidateDecisionConflict {
   canonicalKey: string;
 }
 
-// implements REQ-mcp-suggest-predicates
 export interface SuggestPredicatesResult {
   content: Array<{ type: "text"; text: string }>;
   structuredContent: {

@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 // The plugin stays silent in workspaces that never opted into Kibi, so there
 // is deliberately no bootstrap reminder: initialization happens only when the
 // user explicitly runs the kibi-bootstrap skill or `kibi init`.

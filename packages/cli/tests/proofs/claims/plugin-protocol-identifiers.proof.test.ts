@@ -10,8 +10,6 @@ import {
   ONTOLOGY_PACK_CAPABILITY_ID,
 } from "kibi-plugin-sdk";
 
-// implements REQ-capability-plugin-protocol-identifiers
-
 /**
  * The protocol version and capability ids of the plugin SDK.
  * Kibi reads each constant itself at ingest, so the certificate is checked against the code.

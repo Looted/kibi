@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { HOOK_SNIPPET_FORMATS } from "../../../src/commands/hook-managers.js";
 
-// implements REQ-git-hook-print-formats
-
 /**
  * The formats kibi init --print-hook prints Kibi's hook commands in. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

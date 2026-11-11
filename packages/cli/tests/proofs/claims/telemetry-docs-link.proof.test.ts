@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { TELEMETRY_DOCS_URL } from "../../../../agent-core/src/usage-telemetry.js";
 
-// implements REQ-telemetry-docs-link
-
 /**
  * The page the telemetry notice and kibi telemetry link to. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

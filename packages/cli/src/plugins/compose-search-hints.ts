@@ -35,10 +35,8 @@ import type {
   CapabilityProviderBinding,
 } from "./registry.js";
 
-// implements REQ-kibi-search-hints-host
 export type SearchHintsDiagnostic = SemanticClassifierDiagnostic;
 
-// implements REQ-kibi-search-hints-host
 export type ComposedSearchHints = Readonly<{
   /** Hints of the replace provider; empty without one or when it failed. */
   hints: readonly SearchHint[];
@@ -104,7 +102,6 @@ async function ask(
  * Shadow providers are recorded for comparison only. External providers run
  * only for allowlisted operations.
  */
-// implements REQ-kibi-search-hints-host
 export async function composeSearchHints(
   resolution: CapabilityModeResolution<SearchHintsV1>,
   input: SearchHintsInput,

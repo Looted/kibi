@@ -41,7 +41,6 @@ export type SignoffOptions = Readonly<{
   proof?: boolean;
 }>;
 
-// implements REQ-kibi-signoff-views
 export type SignoffCommandDeps = SignoffCollectDeps &
   Readonly<{
     cwd?: () => string;
@@ -54,11 +53,9 @@ export type SignoffCommandDeps = SignoffCollectDeps &
 
 const FORMATS = new Set(["chat", "md", "html", "json"]);
 
-// implements REQ-kibi-signoff-views
 /** Sets the default signoff format for a host (`chat`, `md`, `html`, `json`). */
 export const SIGNOFF_FORMAT_ENV = "KIBI_SIGNOFF_FORMAT";
 
-// implements REQ-kibi-signoff-views
 /**
  * The format `kibi signoff` prints when `--format` is not given. A fenced
  * block only helps where a host renderer draws it (the OpenCode TUI, which
@@ -87,7 +84,6 @@ async function writeAtomically(filePath: string, contents: string) {
   }
 }
 
-// implements REQ-kibi-evidence-floors
 function signoffFloor(
   value: unknown,
 ): { evidenceFloor: SignoffEvidenceFloor } | Record<string, never> {
@@ -178,7 +174,6 @@ function readQuestionsSource(
     : readFileSync(path.resolve(cwd, source), "utf8");
 }
 
-// implements REQ-kibi-signoff-views
 /**
  * `kibi signoff`: print the requirements signoff view for the current change
  * (or, with `--questions`, the decisions the agent asks the person to

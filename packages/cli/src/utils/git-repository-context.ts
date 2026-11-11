@@ -178,7 +178,6 @@ function resolveAgainstCwd(candidate: string, cwd: string): string {
  * last must never be mistaken for "no repository", because that would send
  * callers into standalone workspace writes.
  *
- * implements REQ-git-hook-effective-install
  */
 export function resolveGitRepository(
   cwd: string = process.cwd(),

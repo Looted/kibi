@@ -43,15 +43,12 @@ import { loadEntitiesPaged } from "./discovery-entities.js";
 import type { PrologPort } from "./runtime-types.js";
 
 /** Symbols in a policy's file set must implement a qualifying requirement. */
-// implements REQ-capability-check-policy
 export const POLICY_OWNERSHIP_RULE = "policy-ownership";
 /** Files implementing a pattern must keep the pattern's declared markers. */
-// implements REQ-capability-check-policy
 export const POLICY_MARKERS_RULE = "policy-markers";
 
 const POLICY_RULES = [POLICY_OWNERSHIP_RULE, POLICY_MARKERS_RULE] as const;
 
-// implements REQ-capability-check-policy
 export type PolicySymbol = Readonly<{
   id: string;
   title: string;
@@ -59,7 +56,6 @@ export type PolicySymbol = Readonly<{
   tags: readonly string[];
 }>;
 
-// implements REQ-capability-check-policy
 export type PolicyPredicateFact = Readonly<{
   id: string;
   name: string;
@@ -67,7 +63,6 @@ export type PolicyPredicateFact = Readonly<{
   polarity: string;
 }>;
 
-// implements REQ-capability-check-policy
 export type CheckPolicyEvaluationInput = Readonly<{
   policies: readonly ActiveCheckPolicy[];
   loadErrors: readonly CheckPolicyLoadError[];
@@ -102,7 +97,6 @@ function insideWorkspace(path: string): boolean {
  * Workspace-relative POSIX path of a symbol sourceFile, or undefined when it
  * points outside the workspace. Policies only govern workspace files.
  */
-// implements REQ-capability-check-policy
 export function workspaceSourcePath(
   workspaceRoot: string,
   sourceFile: string,
@@ -302,7 +296,6 @@ function loadErrorViolations(
  * Evaluate active check policies against the KB. Pure: all KB data and file
  * reads come in through `input`.
  */
-// implements REQ-capability-check-policy
 export function evaluateCheckPolicies(
   input: CheckPolicyEvaluationInput,
   rules: ReadonlySet<string>,
@@ -392,7 +385,6 @@ function fileReader(
  * Collect policy findings for the selected rules. With no activated check
  * policy this returns at once, so projects without one pay nothing.
  */
-// implements REQ-capability-check-policy
 export async function collectCheckPolicyViolations(
   prolog: Pick<PrologPort, "query">,
   rules: ReadonlySet<string>,

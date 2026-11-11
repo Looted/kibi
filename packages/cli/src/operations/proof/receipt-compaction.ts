@@ -18,7 +18,6 @@
 
 import { canonicalJson } from "../../public/proof-fingerprint.js";
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export const PROOF_RECEIPT_COMPACTION_POLICY =
   "kibi.proof-receipt-compaction.v1" as const;
 
@@ -27,7 +26,6 @@ export const PROOF_RECEIPT_COMPACTION_POLICY =
  * snapshot and the test's current per-contract binding hash. Coverage selects
  * a test's deciding receipts with exactly these two keys.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ReceiptCompactionAnchor = Readonly<{
   codeSnapshot?: string;
   bindingHash?: string;
@@ -35,7 +33,6 @@ export type ReceiptCompactionAnchor = Readonly<{
   legacyBindingHashes?: readonly string[];
 }>;
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ReceiptCompaction = Readonly<{
   kept: readonly Readonly<Record<string, unknown>>[];
   removed: number;
@@ -88,7 +85,6 @@ function newest(receipts: readonly Receipt[], indices: readonly number[]) {
  * history decides `invalid`, and dropping the offending entry would change
  * that decision.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function compactProofReceipts(
   receipts: readonly Receipt[],
   anchor: ReceiptCompactionAnchor,
@@ -140,7 +136,6 @@ export function compactProofReceipts(
  * reordered. Compaction may only drop receipts; this guard keeps every other
  * rewrite of a receipt history fail-closed.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function isOrderedReceiptSubsequence(
   subset: readonly Receipt[],
   superset: readonly Receipt[],

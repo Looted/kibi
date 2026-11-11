@@ -1,4 +1,3 @@
-// implements REQ-mcp-semantic-advisor-preflight
 import { afterEach, describe, expect, test } from "bun:test";
 import { extractSemanticClauses } from "../../src/operations/semantic-advisor/clauses.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";

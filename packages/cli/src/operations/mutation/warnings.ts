@@ -8,7 +8,6 @@ export function scenarioCoverageWarning(entityId: string): readonly string[] {
   ];
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function scenarioCoverageWarnings(
   prolog: PrologPort,
   relationships: readonly RelationshipInput[],
@@ -26,14 +25,12 @@ export async function scenarioCoverageWarnings(
   return [];
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function symbolCoverageWarning(entityId: string): readonly string[] {
   return [
     `Production symbol ${entityId} has implements but no covered_by: kb_check will report symbol-coverage. Add covered_by: TEST-<area>-<behavior> to a test that validates the requirement's scenario (or verified_by(req,test) when the requirement has no scenario).`,
   ];
 }
 
-// implements REQ-kibi-operation-interface-parity
 /**
  * A production symbol (one that implements a requirement) needs a covered_by
  * edge to a test that covers that requirement, or kb_check reports

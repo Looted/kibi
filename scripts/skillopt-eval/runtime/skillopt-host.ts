@@ -11,24 +11,18 @@
  * `skillopt-host-registry.ts`.
  */
 
-// implements REQ-skillopt-operator-selected-harness
 export const SKILLOPT_HOST_ENV = "KIBI_SKILLOPT_HOST" as const;
 
-// implements REQ-skillopt-operator-selected-harness
 export const SKILLOPT_HOSTS = ["codex", "claude-code"] as const;
 
-// implements REQ-skillopt-operator-selected-harness
 export type SkillOptHost = (typeof SKILLOPT_HOSTS)[number];
 
-// implements REQ-skillopt-operator-selected-harness
 export const DEFAULT_SKILLOPT_HOST: SkillOptHost = "codex";
 
-// implements REQ-skillopt-operator-selected-harness
 export class SkillOptHostSelectionError extends Error {
   readonly name = "SkillOptHostSelectionError";
 }
 
-// implements REQ-skillopt-operator-selected-harness
 export function isSkillOptHost(value: unknown): value is SkillOptHost {
   return (
     typeof value === "string" &&
@@ -44,7 +38,6 @@ function parseHost(value: string, source: string): SkillOptHost {
 }
 
 /** The host named by `KIBI_SKILLOPT_HOST`, or Codex when it is unset. */
-// implements REQ-skillopt-operator-selected-harness
 export function selectedSkillOptHost(
   env: NodeJS.ProcessEnv = process.env,
 ): SkillOptHost {
@@ -58,7 +51,6 @@ export function selectedSkillOptHost(
  * environment, which wins over the Codex default. Unknown names are refused
  * before any work.
  */
-// implements REQ-skillopt-operator-selected-harness
 export function resolveSkillOptHost(
   input: Readonly<{ requested?: string; env?: NodeJS.ProcessEnv }>,
 ): SkillOptHost {
@@ -68,7 +60,6 @@ export function resolveSkillOptHost(
 }
 
 /** `env` with the run's host pinned, for this process and its children. */
-// implements REQ-skillopt-operator-selected-harness
 export function envWithSkillOptHost(
   env: NodeJS.ProcessEnv,
   host: SkillOptHost,
@@ -81,7 +72,6 @@ export function envWithSkillOptHost(
  * before the host was recorded carry only the CLI version string, which the
  * Claude Code preflight prefixes with `claude-code `.
  */
-// implements REQ-skillopt-operator-selected-harness
 export function hostFromPreflightVersion(
   version: unknown,
 ): SkillOptHost | undefined {

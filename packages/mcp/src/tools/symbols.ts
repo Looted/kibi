@@ -124,7 +124,6 @@ async function handleKbSymbolsRefreshUnlocked(
   args: SymbolsRefreshArgs,
   workspaceRoot: string,
 ): Promise<SymbolsRefreshResult> {
-  // implements REQ-vscode-traceability
   const dryRun = args.dryRun === true;
   const { coordinatesPath, manifestPath } =
     await resolveManifestPaths(workspaceRoot);
@@ -227,7 +226,6 @@ async function refreshCoordinatesForSymbolIdUnlocked(
   symbolId: string,
   workspaceRoot: string,
 ): Promise<{ refreshed: boolean; found: boolean }> {
-  // implements REQ-vscode-traceability
   const { coordinatesPath, manifestPath } =
     await resolveManifestPaths(workspaceRoot);
   const rawContent = (await readFile(manifestPath)).toString();
@@ -361,7 +359,6 @@ async function resolveManifestPaths(
 export async function resolveManifestPath(
   workspaceRoot: string,
 ): Promise<string> {
-  // implements REQ-cli-canonical-runtime, REQ-vscode-traceability
   return path.join(workspaceRoot, ".kb", "symbols.yaml");
 }
 

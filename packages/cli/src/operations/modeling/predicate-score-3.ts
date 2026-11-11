@@ -31,7 +31,6 @@ const DECIDING_PATTERNS: ReadonlyMap<string, RegExp> = new Map([
   ["permission_rule", PERMISSION],
 ]);
 
-// implements REQ-mcp-suggest-predicates
 export function scoreExactPredicates3(
   schema: PredicateSchemaCandidate,
   text: string,

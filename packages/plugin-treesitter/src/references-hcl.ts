@@ -431,7 +431,6 @@ function variableType(attribute: Node): boolean {
 }
 
 /** Read `property` values of `key` from a parsed Terraform or HCL file. */
-// implements REQ-kibi-tree-sitter-script-references
 export function hclProperty(
   root: Node,
   key: string,

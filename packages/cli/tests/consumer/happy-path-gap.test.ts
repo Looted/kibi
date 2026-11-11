@@ -1,4 +1,3 @@
-// implements REQ-kibi-happy-path-gap
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

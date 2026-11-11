@@ -1,4 +1,3 @@
-// implements REQ-cli-schema-migration
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";

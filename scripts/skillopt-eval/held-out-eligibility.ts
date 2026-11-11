@@ -14,7 +14,6 @@ import type { ReservedPredicateMatrix } from "./held-out-evidence";
 import type { CodexEpisodeReceipt } from "./runtime/codex-episode";
 import type { PredicateCaseEvidence } from "./scoring/cell";
 
-// implements REQ-skillopt-predicate-first-requirements
 type PhysicalCellKind = "predicate" | "skill";
 
 export type HeldOutPhysicalCell = Readonly<{

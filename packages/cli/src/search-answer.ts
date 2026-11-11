@@ -17,7 +17,6 @@ import type {
 } from "./public/operations/runtime-types.js";
 import { loadMarkdownBody } from "./search-ranking.js";
 
-// implements REQ-kibi-search-answer-layer-v2
 /**
  * The answer layer turns ranked matches into what an agent asking "what
  * governs this?" needs: the current requirements that apply, why (ADRs, with
@@ -49,16 +48,13 @@ export type SearchAnswerEntity = Readonly<{
  * A test verifying a governing requirement. `via` is `"direct"` for a test
  * linked to the requirement itself, or the id of the scenario it verifies.
  */
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerTest = SearchAnswerEntity & Readonly<{ via: string }>;
 
 /** An ADR with the opening of its decision (or rationale) section. */
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerRationale = SearchAnswerEntity &
   Readonly<{ source?: string; excerpt?: string }>;
 
 /** A blocking finding of an existing check that names the requirement. */
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerWitness = Readonly<{
   check: "domain-contradictions" | "scenario-feasibility";
   status: "contradiction" | "infeasible";
@@ -75,7 +71,6 @@ export type SearchAnswerWitness = Readonly<{
  * still ambiguous or ontology gaps, a missing clause ledger, or a verdict
  * that could not be computed.
  */
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerUnknown = Readonly<{
   kind:
     | "contradiction_unresolved"
@@ -87,7 +82,6 @@ export type SearchAnswerUnknown = Readonly<{
   entities: readonly string[];
 }>;
 
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerVerdict = Readonly<{
   /**
    * The worst finding: `contradiction` or `infeasible` when a blocking
@@ -99,7 +93,6 @@ export type SearchAnswerVerdict = Readonly<{
 }>;
 
 /** A requirement that `exempts` the governing one. */
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerException = SearchAnswerEntity &
   Readonly<{ approvedBy?: string }>;
 
@@ -114,11 +107,9 @@ export type SearchAnswerException = SearchAnswerEntity &
  * else the first), otherwise its full positional `args`. Pasted, it returns
  * the fact and only facts sharing those key arguments.
  */
-// implements REQ-kibi-query-fact-filters
 export type SearchAnswerFact = SearchAnswerEntity &
   Readonly<{ factKind?: string; claim?: string; ask?: string }>;
 
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerRequirement = SearchAnswerEntity &
   Readonly<{
     score: number;
@@ -138,7 +129,6 @@ export type SearchAnswerRequirement = SearchAnswerEntity &
   }>;
 
 /** The KB the answer was computed from. */
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerScope = Readonly<{
   branch: string | null;
   snapshotId: string;
@@ -152,7 +142,6 @@ export type SearchAnswerScope = Readonly<{
  * the answer says so instead of presenting those requirements as the top
  * match's.
  */
-// implements REQ-search-answer-hygiene
 export type SearchAnswerUngoverned = SearchAnswerFact &
   Readonly<{
     type: string;
@@ -168,7 +157,6 @@ export type SearchAnswerUngoverned = SearchAnswerFact &
     }>;
   }>;
 
-// implements REQ-kibi-search-answer-layer-v2, REQ-search-answer-hygiene
 export type SearchAnswer = Readonly<{
   version: "kibi.search-answer.v1";
   governing: readonly SearchAnswerRequirement[];
@@ -181,7 +169,6 @@ export type SearchAnswer = Readonly<{
   note: string;
 }>;
 
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerOptions = Readonly<{
   /** Root that ADR sources resolve against; without it no excerpts. */
   workspaceRoot?: string;
@@ -248,7 +235,6 @@ const ROW_KEYS = [
   "unit",
 ] as const;
 
-// implements REQ-kibi-search-answer-layer-v2
 export const SEARCH_ANSWER_LIMITS = {
   seeds: 10,
   governing: 5,
@@ -309,7 +295,6 @@ export function queryCall(args: Record<string, unknown>): string {
  * `predicate_schema` or the built-in signature kb_query resolves `where`
  * names against. `keyArguments` is empty when the schema declares none.
  */
-// implements REQ-kibi-query-fact-filters
 export type PredicateFactSchema = Readonly<{
   argumentNames: readonly string[];
   keyArguments: readonly string[];
@@ -322,7 +307,6 @@ export type PredicateFactSchema = Readonly<{
  * (arity) or no key argument has a value, so the caller falls back to
  * positional args.
  */
-// implements REQ-kibi-query-fact-filters
 export function predicateKeyFilter(
   args: readonly string[],
   schema: PredicateFactSchema,
@@ -347,7 +331,6 @@ export function predicateKeyFilter(
  * arguments with other values or polarity. Without declared key arguments
  * two tuples may both hold (alice has two roles), so no pair is claimed.
  */
-// implements REQ-search-answer-hygiene
 export function disagreeingPredicateFacts(
   left: Row,
   right: Row,
@@ -384,7 +367,6 @@ export function disagreeingPredicateFacts(
 }
 
 /** Typed statement and follow-up query of a linked fact, by fact kind. */
-// implements REQ-kibi-query-fact-filters
 export function factDetail(
   fact: Row,
   schema?: PredicateFactSchema,
@@ -439,7 +421,6 @@ export function edgesGoal(ids: readonly string[]): string {
  * `predicate_schema` of its namespace and name, else the built-in signature.
  * Facts of other kinds, and predicates without a schema, yield no row.
  */
-// implements REQ-kibi-query-fact-filters
 export function factSchemasGoal(ids: readonly string[]): string {
   const idList = ids.map((id) => `'${escapeAtom(id)}'`).join(",");
   return `findall([FactId,Names,Keys], (member(FactId, [${idList}]), kb:predicate_fact(FactId, Ns, Name, _, _), ((kb:predicate_schema(SchemaId, Ns, Name, _, Names, _) -> ((kb_entity(SchemaId, fact, Props), memberchk(key_arguments=KeysRaw, Props), kb:normalize_term_atom_list(KeysRaw, Keys)) -> true ; Keys = [])) ; (kb:builtin_decision_predicate(Ns, Name, _, KeyPositions, _), kb:builtin_predicate_signature(Name, _, Names), findall(Key, (member(P, KeyPositions), nth1(P, Names, Key)), Keys)))), Schemas)`;
@@ -612,7 +593,6 @@ export function clip(value: string, maxChars: number): string {
  * Rationale, then to the first prose paragraph), as plain text of at most
  * `maxChars` characters.
  */
-// implements REQ-kibi-search-answer-layer-v2
 export function adrExcerpt(
   body: string,
   maxChars: number = SEARCH_ANSWER_LIMITS.excerptChars,
@@ -738,7 +718,6 @@ const FEASIBILITY_UNKNOWN_TEXT: Readonly<Record<string, string>> = {
 };
 
 /** Project the Prolog verdict of one requirement onto the answer fields. */
-// implements REQ-kibi-search-answer-layer-v2
 export function projectVerdict(
   raw: RawVerdict | undefined,
   perRequirement: number = SEARCH_ANSWER_LIMITS.perRequirement,
@@ -902,7 +881,6 @@ export async function fetchVerdicts(
  * among `factIds`, in one round trip. A schema lookup the engine cannot run
  * leaves the rows loaded and every ask positional.
  */
-// implements REQ-kibi-query-fact-filters
 export async function fetchFactSchemas(
   graph: AnswerGraph,
   factIds: readonly string[],
@@ -924,7 +902,6 @@ export async function fetchFactSchemas(
   }
 }
 
-// implements REQ-bootstrap-provenance-stubs
 export async function buildSearchAnswer(
   prolog: Pick<PrologPort, "query">,
   matches: readonly IntentSearchMatch[],
@@ -1321,7 +1298,6 @@ export async function buildSearchAnswer(
   return fitSearchAnswer(answer, limits.maxBytes);
 }
 
-// implements REQ-search-answer-hygiene
 /**
  * How to read the layer. When the top-ranked match is owned by no
  * requirement, the note says so first: the governing list, if any, came from

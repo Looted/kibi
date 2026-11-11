@@ -69,7 +69,6 @@ export function exitCodeFromCliFailure(error: unknown): number {
   return 1;
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function buildProgram(): Command {
   const program = new Command()
     .name("kibi")
@@ -89,7 +88,6 @@ export function buildProgram(): Command {
   return program;
 }
 
-// implements REQ-kibi-operation-interface-parity
 /**
  * Whether an error only says the reader of stdout went away (`kibi … | head`).
  * The command already did its work, so this is not a command failure.
@@ -100,7 +98,6 @@ export function isClosedOutputError(error: unknown): boolean {
   return code === "EPIPE" || code === "ERR_STREAM_DESTROYED";
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function main(): Promise<never> {
   const workspace = resolveWorkspaceCwd(
     process.argv,

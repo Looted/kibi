@@ -250,7 +250,6 @@ describe("search answer layer", () => {
     ]);
   });
 
-  // implements REQ-search-answer-hygiene
   test("a top-ranked fact no requirement owns is named instead of passing lower hits off as its requirement", async () => {
     const entities: Record<string, Row> = {
       ...ENTITIES,
@@ -330,7 +329,6 @@ describe("search answer layer", () => {
     ]);
   });
 
-  // implements REQ-search-answer-hygiene
   test("an unlinked fact that disagrees with a governing fact names the fact that holds", async () => {
     const rule = (actor: string, resource: string, decision: string) => ({
       type: "fact",
@@ -442,7 +440,6 @@ describe("search answer layer", () => {
     expect(answer.note).toContain("not evidence");
   });
 
-  // implements REQ-kibi-query-fact-filters
   test("linked typed facts state their claim and the kb_query that asks about them", async () => {
     const entities: Record<string, Row> = {
       "REQ-ROLES": {
@@ -526,7 +523,6 @@ describe("search answer layer", () => {
     expect(answer.truncated).toBe(false);
   });
 
-  // implements REQ-kibi-query-fact-filters
   test("grounding facts come before the constrained subject, and facts over the limit are counted with the ask that lists them", async () => {
     const entities: Record<string, Row> = {
       "REQ-ADMIN": {
@@ -698,7 +694,6 @@ describe("search answer layer", () => {
     ).toHaveLength(1);
   });
 
-  // implements REQ-kibi-query-fact-filters
   test("a schema lookup the engine cannot run leaves the asks positional", async () => {
     const entities: Record<string, Row> = {
       "REQ-ROLES": {
@@ -1070,7 +1065,6 @@ describe("search answer rationale excerpts", () => {
     ]);
   });
 
-  // implements REQ-kb-decision-firmness
   test("requirements and ADRs say how firmly they were decided; other rows do not", async () => {
     const answer = await buildSearchAnswer(
       fakeKb(
@@ -1094,7 +1088,6 @@ describe("search answer rationale excerpts", () => {
     expect(current?.tests[0]?.firmness).toBeUndefined();
   });
 
-  // implements REQ-kb-decision-firmness-from-origin
   test("a decision without firmness is default only when an agent wrote it", async () => {
     const answer = await buildSearchAnswer(
       fakeKb(

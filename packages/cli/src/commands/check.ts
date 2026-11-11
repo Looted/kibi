@@ -480,7 +480,6 @@ export function noValidatedSymbolsMessage(
 }
 
 /** The Baseline-style line naming records changed only by a migration. */
-// implements REQ-cli-migration-first-commit
 export function migrationOnlyNote(entityIds: readonly string[]): string {
   const shown = entityIds.slice(0, 5).join(", ");
   const more = entityIds.length > 5 ? ` and ${entityIds.length - 5} more` : "";
@@ -671,14 +670,12 @@ async function attachReadBranch(workspaceRoot: string): Promise<string> {
     );
   }
   // A fresh clone's first commit must not fail on a store nothing compiled.
-  // implements REQ-kibi-fresh-clone-setup
   await ensureBranchStoreCompiled(workspaceRoot, attachment, {
     name: "kb_check",
   });
   return attachment.kbBranch;
 }
 
-// implements REQ-006
 export async function checkCommand(
   options: CheckOptions,
 ): Promise<{ exitCode: number }> {
@@ -917,7 +914,6 @@ export async function checkCommand(
             return { exitCode: options.dryRun ? 0 : 1 };
           }
         }
-        // implements REQ-cli-staged-entity-context
         // An entity document the commit adds or edits must carry the body
         // context full `kibi check` requires; debt already at the base, or
         // acknowledged by the migration, does not block.
@@ -955,7 +951,6 @@ export async function checkCommand(
           });
           return { exitCode: options.dryRun ? 0 : 1 };
         }
-        // implements REQ-kibi-proposition-complete-ingestion
         // A body edit to a requirement that pins semantic_text must restate
         // it; otherwise its claims and proofs keep the old wording.
         const statementDrift = stagedStatementDriftViolations({
@@ -1534,7 +1529,6 @@ function boundPairs(
   );
 }
 
-// implements REQ-cli-check
 // covered_by TEST-004
 export async function findMustPriorityReqs(
   prolog: PrologProcess,
@@ -1551,7 +1545,6 @@ export async function getAllEntityIds(
   const query = `findall(Id, (kb_entity(Id, Type, _)${typeFilter}), Ids)`;
   return boundAtoms(await prolog.query(query), "Ids");
 }
-// implements REQ-cli-check
 export async function checkNoDanglingRefs(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
@@ -1599,7 +1592,6 @@ export async function checkNoDanglingRefs(
   return violations;
 }
 
-// implements REQ-cli-check
 // covered_by TEST-cli-check-integrity
 export async function checkNoCycles(
   prolog: PrologProcess,

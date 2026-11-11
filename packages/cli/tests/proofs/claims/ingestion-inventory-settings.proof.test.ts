@@ -12,8 +12,6 @@ import {
   SYNC_CACHE_VERSION,
 } from "../../../src/commands/sync/cache.js";
 
-// implements REQ-ingestion-inventory-settings
-
 /**
  * The semantic inventory version, its drift rule and the sync cache bounds. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

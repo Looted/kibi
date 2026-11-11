@@ -9,8 +9,6 @@ import {
   KIBI_PROJECT_ENV_FILE,
 } from "../../../src/env/bootstrap.js";
 
-// implements REQ-kibi-env-bootstrap-files
-
 /**
  * The environment files Kibi reads at startup. Kibi reads each constant itself at
  * ingest, so the certificate is checked against the code.

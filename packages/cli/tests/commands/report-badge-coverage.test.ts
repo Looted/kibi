@@ -1,5 +1,3 @@
-// implements REQ-kibi-html-health-report
-
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { EventEmitter } from "node:events";
 import {
@@ -71,7 +69,6 @@ describe("report badge bands and openReport", () => {
     );
   });
 
-  // implements REQ-kibi-evidence-floors
   test("a requirement below its evidence floor turns the badge red", async () => {
     const below = coverage(20, 20);
     const rows = below.requirements.rows.map((row, index) =>
@@ -108,7 +105,6 @@ describe("report badge bands and openReport", () => {
     ).not.toContain(KIBI_BRAND.danger);
   });
 
-  // implements REQ-kibi-kb-certificates
   test("--certificates publishes the KB certificate bundle next to the page", async () => {
     const bundle = path.join(root, "certs.json");
     writeFileSync(

@@ -1,5 +1,3 @@
-// implements REQ-opencode-comment-routing
-
 import * as fs from "node:fs";
 import { classifyKnowledge } from "./knowledge-classifier.js";
 
@@ -212,7 +210,6 @@ function countContentLines(text: string): number {
  * Returns the best suggestion or null if none found.
  */
 export function analyzeCodeFile(
-  // implements REQ-opencode-comment-routing
   filePath: string,
   options: CommentAnalyzerOptions,
 ): CommentAnalysisResult | null {

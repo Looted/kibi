@@ -11,8 +11,6 @@ import {
 } from "../../../src/public/telemetry-acceptance.js";
 import { TELEMETRY_REMEDIATION_VERSION } from "../../../src/public/telemetry-remediation.js";
 
-// implements REQ-kibi-telemetry-versions
-
 /**
  * The versions of the telemetry acceptance and remediation reports and the operations that count as a lookup before an edit. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

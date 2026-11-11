@@ -3893,7 +3893,6 @@ export function isReferenceLanguage(value: string): value is ReferenceLanguage {
 }
 
 /** Read one extract from a parsed file. */
-// implements REQ-kibi-tree-sitter-references
 export function extractReferences(
   language: ReferenceLanguage,
   root: Node,

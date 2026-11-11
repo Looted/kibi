@@ -37,14 +37,12 @@ type CoordinateRecord = {
 
 type ArtifactFormat = "legacy" | "v2";
 
-// implements REQ-generated-coordinate-persistence
 export type TargetedRefreshOutcome =
   | "updated"
   | "unchanged"
   | "removed"
   | "not_found";
 
-// implements REQ-generated-coordinate-persistence
 export type RefreshResult = {
   readonly refreshed: boolean;
   readonly found: boolean;
@@ -54,7 +52,6 @@ export type RefreshResult = {
   readonly unplaced?: string;
 };
 
-// implements REQ-generated-coordinate-persistence
 export type ArtifactPublicationReceipt = {
   readonly path: string;
   readonly beforeHash: string | null;
@@ -375,7 +372,6 @@ export async function refreshSymbolCoordinates(
 }
 
 /** Run one refresh step without acquiring the lock (caller holds it). */
-// implements REQ-generated-coordinate-persistence
 export async function refreshSymbolCoordinatesUnlocked(
   symbolId: string,
   context: OperationContext,
@@ -388,7 +384,6 @@ export async function refreshSymbolCoordinatesUnlocked(
  * Refresh against an explicitly authored manifest path (the source-first
  * write target), not just the canonical lane. Callers hold the compiler lock.
  */
-// implements REQ-generated-coordinate-persistence
 export async function refreshSymbolCoordinatesForManifest(
   symbolId: string,
   manifestAbsolutePath: string,
@@ -402,7 +397,6 @@ export async function refreshSymbolCoordinatesForManifest(
   });
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function setSymbolRefreshForTests(
   refresh: RefreshImplementation | undefined,
 ): void {

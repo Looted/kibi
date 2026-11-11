@@ -10,7 +10,6 @@ const PROPERTY_VALUE_FIELDS = [
   "value_set",
 ] as const;
 
-// implements REQ-kibi-operation-interface-parity
 export function valueFieldHint(value: unknown): string {
   if (typeof value === "boolean") {
     return `Use value_type: "bool" plus value_bool: ${String(value)}.`;
@@ -29,7 +28,6 @@ export function valueFieldHint(value: unknown): string {
   return "Use value_type plus exactly one of value_string, value_int, value_number, value_bool, or value_set.";
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function factKindShapeHints(
   entity: Readonly<Record<string, unknown>>,
 ): string[] {
@@ -130,7 +128,6 @@ export function assertRuleSchemaArity(
   }
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function validateFactModelingShape(
   entity: Readonly<Record<string, unknown>>,
 ): void {

@@ -103,7 +103,6 @@ export function buildActions(
       description:
         "No declared intent claim could be planned. Claims already in the KB need nothing; compile each remaining claim with kb_compile_intent, citing its source and reference (see the Knowledge source diagnostics).",
     });
-  // implements REQ-bootstrap-authoring-claim-review
   const toReview = signals.filter(needsConflictReview).length;
   if (signals.length > 0)
     result.push({

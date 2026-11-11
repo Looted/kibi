@@ -1,4 +1,3 @@
-// implements REQ-skillopt-codex-optimization
 import { afterEach, describe, expect, test } from "bun:test";
 import { replayCodexEpisode } from "../runtime/codex-episode";
 import type { CellReceipt } from "../scoring/cell";

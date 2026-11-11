@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { Command } from "commander";
 import { loadOperationSpec } from "../src/cli-operation-loader.js";

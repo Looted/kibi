@@ -7,7 +7,6 @@ import {
   normalizePath,
   updateHookState,
 } from "./hook-state-storage.js";
-// implements REQ-cursor-kibi-plugin-v1, REQ-cursor-stop-job-vs-plan
 import type { McpState } from "./kb-mcp-tools.js";
 
 export {
@@ -17,7 +16,6 @@ export {
   updateHookState,
 } from "./hook-state-storage.js";
 
-// implements REQ-cursor-kibi-plugin-v1
 export type GuidedPathKind = "read" | "pre-edit" | "write";
 
 export type HookState = {

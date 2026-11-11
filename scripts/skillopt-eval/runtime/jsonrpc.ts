@@ -96,7 +96,6 @@ function parseTraceReceipt(value: unknown): TraceReceipt {
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function redactJsonRpcValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(redactJsonRpcValue);
   if (!isRecord(value)) return value;
@@ -135,7 +134,6 @@ export function parseTraceReceipts(text: string): readonly TraceReceipt[] {
   return parsedLines(text);
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function appendTraceReceipt(
   tracePath: string,
   input: TraceInput,
@@ -175,7 +173,6 @@ export type TraceVerification = Readonly<{
   failureSequence?: number;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export function verifyTraceChain(text: string): TraceVerification {
   try {
     const receipts = parsedLines(text);

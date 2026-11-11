@@ -1,4 +1,3 @@
-// implements REQ-kibi-distribution-parity-matrix
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   defaultVerifyPublishExit,
