@@ -46,33 +46,33 @@ export const qualifiedSourceAnalyzers = [
       "catalog.json":
         "39ac4836211464916ab33d76905167c98b47e2d700f26969f28cbbf3431292dd",
       "dist/analysis-worker.js":
-        "e05022b3a689b0b17b616bc5df6a03fc06f658f4581d598e9888b4ae7be4119a",
+        "bbc1d6eecc5a041848b51f4f18585c659c2f1489509b758eb9d476d4543a06df",
       "dist/catalog.js":
-        "c485cd1bf81098c3e2e86d37f78bf9f55af122f5d6b9587c0c57b494d68e4968",
+        "e7b481820c63a0b38831dcf730a1e3f481d2984dcdc7ac3c69f027b60f80aa15",
       "dist/extractor.js":
-        "baebe75cf0f786d48611d030a2bd8f58f763027848b1fe8e75ec78a4b0dc99c6",
+        "53c3d0366035c930f01143903350ebf1cf84714b253625027507aea5fcb316d1",
       "dist/index.js":
-        "a7dcc81f40848a17a4b7adf4fe573a57a50c18425fab40fbb098489dfd092f3f",
+        "9dafd4a775602550be5022edbad10451a23ceb209568891f52bec9c9d9a5855e",
       "dist/language-packs.js":
-        "4fd7f0e787f12e75d9b8bab9fa49463c782bdf2e9a85c922636154970a4530de",
+        "61c3b1d1f096ea91c4b25addead9204175d7c7e2b3a74e2fcd51fab5c085cec7",
       "dist/performance-timing.js":
         "28f589c29e8759b566ee3fb741a91e30347efe1dfbad0f5b1c5b7d4f785369ff",
       "dist/preprocessor-idioms.js":
-        "6d9e4892ae5a24495635558a844276dc5d828a9473495c3743da8b97700cd2ea",
+        "de8fd7562f67351d91207e2e9e5e1ad758cb87263db3d14b8b953e6e77891885",
       "dist/reference-nodes.js":
         "faaf1d994b25d306de616d6d2d6b116c21a70f56be2925da1355e52b3e8836d4",
       "dist/references-bash.js":
-        "a489fb9edaef7fae75341744114754fcf1ce855bba86c205aa741a29f44cf6cf",
+        "92ea44e241a60e717faa63627a7e29964c2d367b44505a89dc08eab7f2060684",
       "dist/references-c.js":
-        "cb8feb16769a464c21ec85bdfacbf123a6f3645f96cf041057ca8d2288364346",
+        "4eb56a3bf311b5b4cc114a0c520ba9163e00bcb08e9366ffc74757908abcc07b",
       "dist/references-hcl.js":
-        "66a8e4ca74424ac780e0741d03d9a5919ce8c8777e6c1e304878cdd9a910f266",
+        "cf4b5b0343682fffcc60c650fe49ec0943a860458bfd499264238b6dbb0fba05",
       "dist/references-php.js":
-        "ae4cf157c6dbb328045508c287936b9884043e94d00d7276db99d0d1d13f5a66",
+        "751f40a62309042acf5e7f98db6a11e10098c819713b05e9fa99a98d6609b630",
       "dist/references.js":
-        "cf763fd23496eb572fcd12439049af3c4fc39494943b31d31b459f3d7d75b7d5",
+        "776bd6a506d325eaa1243acd8f16eeeef600d85260ffe62e6fb328698d9ea6d9",
       "integrity.json":
-        "75e98b1b4cb71acede96511d11c8dbf37948bada8994dc18f8fac6904ad866b6",
+        "da1c434629f1cd5f3184111fe27230d032aad2ddf005da5ce70681db40ff791a",
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":
