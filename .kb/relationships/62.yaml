@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a41895eb73b8
+  - type: implements
+    from: SYM-extractSymbolsFromStagedFile
+    to: REQ-traceability-manifest-only-links
+    created_at: 2026-11-11T05:47:46.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5e9dfb71dbe
+  - type: covered_by
+    from: SYM-extractSymbolsFromStagedFile
+    to: TEST-traceability-manifest-only-links
+    created_at: 2026-11-11T05:47:46.615Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4ddcd4728ca

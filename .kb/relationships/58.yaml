@@ -241,3 +241,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b4c948db298
+  - type: specified_by
+    from: REQ-traceability-manifest-only-links
+    to: SCEN-traceability-manifest-only-links
+    created_at: 2026-11-11T05:47:33.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31236b0ce76c
+  - type: verified_by
+    from: REQ-traceability-manifest-only-links
+    to: TEST-traceability-manifest-only-links
+    created_at: 2026-11-11T05:47:33.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b45cdd342bc

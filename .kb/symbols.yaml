@@ -3818,10 +3818,14 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-symbol-extract-methods
+      - type: covered_by
+        target: TEST-traceability-manifest-only-links
       - type: implements
         target: REQ-cli-staged-impact-enforcement
       - type: implements
         target: REQ-symbol-granularity
+      - type: implements
+        target: REQ-traceability-manifest-only-links
   - id: SYM-FixtureClaimError-name
     title: FixtureClaimError.name
     sourceFile: scripts/skillopt-eval/fixtures/fixture-claim.ts
@@ -39037,3 +39041,42 @@ symbols:
         target: REQ-kb-dependency-read-scope
       - type: covered_by
         target: TEST-kb-dependencies-git
+  - id: SYM-cli-inline-implements-parse
+    title: parseInlineImplementsComment
+    sourceFile: packages/cli/src/operations/migration/inline-implements-comments.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T05:47:50.075Z
+    relationships:
+      - type: covered_by
+        target: TEST-migrate-inline-implements-review
+      - type: implements
+        target: REQ-migrate-inline-implements-review
+  - id: SYM-cli-inline-implements-find
+    title: findInlineImplementsComments
+    sourceFile: packages/cli/src/operations/migration/inline-implements-comments.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T05:47:55.051Z
+    relationships:
+      - type: covered_by
+        target: TEST-migrate-inline-implements-review
+      - type: implements
+        target: REQ-migrate-inline-implements-review
+  - id: SYM-cli-inline-implements-review-action
+    title: inlineImplementsReviewAction
+    sourceFile: packages/cli/src/operations/migration/inline-implements-comments.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T05:47:59.705Z
+    relationships:
+      - type: covered_by
+        target: TEST-migrate-inline-implements-review
+      - type: implements
+        target: REQ-migrate-inline-implements-review

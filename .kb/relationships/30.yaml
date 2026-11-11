@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2712cb2e8c29
+  - type: specified_by
+    from: REQ-migrate-inline-implements-review
+    to: SCEN-migrate-inline-implements-review
+    created_at: 2026-11-11T05:47:34.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3613df7673af
+  - type: verified_by
+    from: REQ-migrate-inline-implements-review
+    to: TEST-migrate-inline-implements-review
+    created_at: 2026-11-11T05:47:34.966Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40add67c72d2
