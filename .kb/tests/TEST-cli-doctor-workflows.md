@@ -5,7 +5,6 @@ tags:
   - cli
   - doctor
   - e2e
-  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -55,6 +54,10 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving entity context that was inferred (not recorded in history) in the KB gold-standard review (context batch 9, inferred): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+Doctor is what users run when an install misbehaves, so it's tested through a packed install, the way users actually get it. Inferred from: its proof step in proof/steps.json and the packed doctor tests.

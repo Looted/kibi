@@ -66,4 +66,4 @@ origin:
 
 
 ## Context
-This checks the install-guidance contract and the README walkthrough controls.
+This checks the install-guidance contract and the README walkthrough controls. The README quick start is run literally on runners with no `swipl`, on all four platforms.
