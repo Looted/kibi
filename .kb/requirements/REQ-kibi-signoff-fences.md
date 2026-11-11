@@ -43,7 +43,7 @@ The signoff summary fence shall be kibi-signoff. The signoff questions fence sha
 
 ## Context
 
-packages/cli/src/signoff/model.ts names the code fences REQ-kibi-signoff-views wraps the summary and the open questions in. Both are stated here so they are proved against the fence table.
+packages/cli/src/signoff/model.ts names the code fences REQ-kibi-signoff-host-rendering-and-ask wraps the summary and the open questions in. Both are stated here so they are proved against the fence table.
 
 ## Source
 

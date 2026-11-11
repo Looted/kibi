@@ -2,7 +2,7 @@
 id: TEST-opencode-python-comment-routing
 title: OpenCode plugin verifies Python durable-comment routing
 type: test
-status: pending
+status: passing
 created_at: 2026-03-21T13:00:00.000Z
 updated_at: 2026-03-21T13:00:00.000Z
 priority: should
@@ -24,18 +24,18 @@ proof_contract:
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-b0d528b66d5fa501196f353f
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-bf178096f29d975f6c24e5c8
     test_id: TEST-opencode-python-comment-routing
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 7ed5ab55b3c5d386434b8837b93f63ec6797d0dd5bf2b248a10008d63b41039a
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-04T13:31:48.093Z'
+    finished_at: '2026-11-04T13:31:58.263Z'
+    artifact_digest: 73cd8c208cc1682a3e25a8f67f29df830ce536b6f73ecad14de58db630cb1944
     contract_hash: f21784288e6b020585f7342139b692762381133940133de8a0400287ba15cb33
-    binding_hash: 6941bf9aec11cc953090f824f9c391ce03db6076f55429c3acba90abbeea3461
+    binding_hash: 3ec755c58d0fe3e2acd355b38f795fb38bfe7c683e2b54807dfe029479b152ab
     fingerprint: bdb3eb23e9149835c47b0283f71b9ef31fd1076f79f7166fbcf86320bd2f42bb
     fingerprint_components:
       contract: f21784288e6b020585f7342139b692762381133940133de8a0400287ba15cb33
@@ -57,6 +57,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

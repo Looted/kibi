@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_01_the_opencode_plugin_must_report_sync_progress_and_completion
+property_key: reports_sync_progress
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_sync_feedback.clause_01_the_opencode_plugin_must_report_sync_progress_and_completion.eq.true
+canonical_key: req.req_opencode_sync_feedback.reports_sync_progress.eq.true
 claim_key: CLAIM-8E14860125CCF6A2
 claim_text: The OpenCode plugin must report sync progress and completion through structured logs and non-intrusive toasts
 origin:

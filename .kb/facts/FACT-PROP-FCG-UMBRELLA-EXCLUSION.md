@@ -1,6 +1,6 @@
 ---
 title: 'Property: package_umbrella_evidence(opencode.kibi_plugin.e2e_reminder) = insufficient_for_exact_file_or_symbol_evidence'
-status: active
+status: archived
 tags:
   - lane:strict
   - property-value

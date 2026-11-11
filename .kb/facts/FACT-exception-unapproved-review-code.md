@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.lifecycle.check_codes
 claim_key: CLAIM-21E64A855F1EB4A6
 claim_text: The unapproved exception review code shall be review_exception_unapproved
-text_ref: REQ-kibi-lifecycle-check-codes
+text_ref: REQ-kibi-lifecycle-review-codes
 property_key: exception_unapproved_code
 operator: eq
 value_type: string

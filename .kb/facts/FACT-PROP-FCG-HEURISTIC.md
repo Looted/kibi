@@ -1,6 +1,6 @@
 ---
 title: 'Property: heuristic_cue_policy(opencode.kibi_plugin.e2e_reminder) = advisory_soft_worded_clearly_labeled'
-status: active
+status: archived
 tags:
   - lane:strict
   - property-value

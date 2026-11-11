@@ -6,7 +6,6 @@ tags:
   - plugins
   - modeling
   - vocabulary-convergence
-  - review:context-missing
 semantic_text: The builtin vocabulary-alignment provider must produce complete subject rankings and claim comparisons without network access. An activated vocabulary-alignment provider may run from kb_model_requirement. kb_check must never call a vocabulary-alignment provider. A failed replace-mode vocabulary-alignment provider must fall back to the builtin provider with fallbackUsed stamped.
 semantic_clauses:
   - The builtin vocabulary-alignment provider must produce complete subject rankings and claim comparisons without network access.
@@ -58,9 +57,12 @@ id: REQ-kibi-vocabulary-alignment-capability
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 2): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 The builtin vocabulary-alignment provider must produce complete subject rankings and claim comparisons without network access. An activated vocabulary-alignment provider may run from kb_model_requirement. kb_check must never call a vocabulary-alignment provider. A failed replace-mode vocabulary-alignment provider must fall back to the builtin provider with fallbackUsed stamped.
+
+## Why
+The built-in ranking misses paraphrases with no shared words: on the convergence corpus it scored 0.571, against 1.0 for an injected model provider. A provider can help at modeling time. The built-in runs first and works offline, and `kb_check` never calls a provider, so checks stay deterministic.

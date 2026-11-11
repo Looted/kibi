@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.binary.help
-property_key: clause_02_it_must_not_start_the_mcp_stdio_server_or_wait_f
+property_key: help_skips_stdio_server
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_cli_help.clause_02_it_must_not_start_the_mcp_stdio_server_or_wait_f.eq.true
+canonical_key: req.req_mcp_cli_help.help_skips_stdio_server.eq.true
 claim_key: CLAIM-6448FEFEA50A7DCD
 claim_text: It must NOT start the MCP stdio server or wait for input when help is requested
 id: FACT-PROP-REQ-MCP-CLI-HELP-C02

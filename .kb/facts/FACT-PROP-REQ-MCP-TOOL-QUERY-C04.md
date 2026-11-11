@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.kb_query
-property_key: clause_04_the_kb_query_mcp_tool_must_return_an_empty_result_not_an_err
+property_key: empty_result_on_no_match
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_tool_query.clause_04_the_kb_query_mcp_tool_must_return_an_empty_result_not_an_err.eq.true
+canonical_key: req.req_mcp_tool_query.empty_result_on_no_match.eq.true
 claim_key: CLAIM-E0AD013FC8777CE8
 claim_text: The kb_query MCP tool must return an empty result, not an error, when no entity matches
 origin:

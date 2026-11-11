@@ -1,6 +1,6 @@
 ---
 title: Packed authored-to-compiled relationship parity contract
-status: active
+status: passing
 priority: must
 tags:
   - e2e

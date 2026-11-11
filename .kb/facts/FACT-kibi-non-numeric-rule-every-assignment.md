@@ -10,7 +10,7 @@ value_int: 0
 canonical_key: kibi.non_numeric_proof:rule_assignments_violated:eq:0
 claim_key: CLAIM-E1C279058CF5FCC5
 claim_text: A rule proof must hold for every assignment of the rule's variables over the finite domains Kibi reads from the code
-text_ref: REQ-kibi-non-numeric-proof-kinds
+text_ref: REQ-kibi-rule-proofs
 tags:
   - strict-modeling
   - lane:strict

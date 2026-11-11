@@ -9,7 +9,7 @@ value_type: bool
 value_bool: true
 claim_key: CLAIM-AA4A30B17E7F85FF
 claim_text: Kibi bootstrap must record a requirement planned from a cited intent claim or a normative documentation line as an import that is firm and cites the passage
-text_ref: REQ-kb-decision-firmness-from-origin
+text_ref: REQ-kb-decision-bootstrap-imports-firm
 tags:
   - strict-modeling
   - lane:strict

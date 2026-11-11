@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.skillopt.paid_launch
-property_key: clause_02_an_accepted_launch_must_produce_strict_typed_debit_subentry_
+property_key: accepted_launch_writes_receipts
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_skillopt_paid_launch_accounting.clause_02_an_accepted_launch_must_produce_strict_typed_debit_subentry_.eq.true
+canonical_key: req.req_skillopt_paid_launch_accounting.accepted_launch_writes_receipts.eq.true
 claim_key: CLAIM-6B11DE77E97F0868
 claim_text: An accepted launch must produce strict typed debit-subentry, final debit/reconciliation, and final-verdict receipts
 origin:

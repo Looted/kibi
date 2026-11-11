@@ -33,6 +33,7 @@ semantic_inventory:
       end: 221
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T15:34:46.920Z'
 id: REQ-model-predicates-requirement-subject
 type: req

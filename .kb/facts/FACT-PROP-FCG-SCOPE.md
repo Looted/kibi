@@ -1,6 +1,6 @@
 ---
 title: 'Property: reminder_scope_postures(opencode.kibi_plugin) = root_active_and_hybrid_root_plus_vendored'
-status: active
+status: archived
 tags:
   - lane:strict
   - property-value

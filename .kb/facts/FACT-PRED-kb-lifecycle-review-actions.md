@@ -1,6 +1,6 @@
 ---
-title: Cycles and unsafe source edits stay review actions
-status: active
+title: Supersession cycles stay review actions
+status: archived
 tags:
   - lane:ontology
   - lifecycle
@@ -13,10 +13,10 @@ fact_kind: predicate
 predicate_name: logical_requirement_rule
 predicate_args:
   - kibi.kb.lifecycle
-  - supersession_cycle_or_unsafe_source_edit
+  - supersession_cycle
   - review_action
 polarity: assert
-canonical_key: logical_requirement_rule(kibi.kb.lifecycle,supersession_cycle_or_unsafe_source_edit,review_action)
+canonical_key: logical_requirement_rule(kibi.kb.lifecycle,supersession_cycle,review_action)
 predicate_namespace: kibi.requirements
 origin:
   kind: agent

@@ -1,6 +1,6 @@
 ---
 title: Codex, Cursor and ZCode hooks guard firm rules and capture stated decisions
-status: open
+status: closed
 required_evidence: tested
 priority: should
 tags:
@@ -41,6 +41,7 @@ logic_claims:
   - CLAIM-0B8E0F35E08185E6
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T17:46:17.070Z'
 id: REQ-agent-hosts-decision-guard
 type: req

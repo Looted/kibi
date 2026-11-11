@@ -1,6 +1,6 @@
 ---
 title: Entity body context check, migration and authoring tests
-status: active
+status: passing
 priority: must
 tags:
   - kb

@@ -3,7 +3,7 @@ title: kibi init would write a user-configurable .kb/config.json or path and che
 status: active
 fact_kind: property_value
 subject_key: kibi.kb.canonical_layout
-property_key: clause_02_it_must_not_write_user_configurable_kb_config_js
+property_key: init_avoids_config_overrides
 operator: eq
 value_type: bool
 value_bool: false

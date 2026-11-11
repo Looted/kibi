@@ -3,7 +3,7 @@ title: Navigation to source is requested for an entity the KB has no source file
 status: active
 fact_kind: property_value
 operator: eq
-property_key: clause_01_clicking_a_symbol_entity_in_the_kibi_tree_sidebar_must_open_
+property_key: tree_opens_symbol_source
 subject_key: vscode.kibi_extension
 value_type: bool
 value_bool: false

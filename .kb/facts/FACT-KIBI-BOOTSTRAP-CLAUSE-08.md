@@ -3,7 +3,7 @@ title: Bootstrap contract clause 08
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap.plan
-property_key: contract_clause_8
+property_key: adapters_route_to_shared_planner
 operator: eq
 value_type: string
 value_string: MCP, Cursor, OpenCode, Codex, and CLI adapters must route to the shared planner and canonical skills rather than duplicate workflows

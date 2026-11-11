@@ -51,6 +51,7 @@ semantic_inventory:
     reason: Grounded by the ledgerless_or_superseded_reported property set to false on the check subject.
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-07T13:24:03.858Z'
 id: REQ-check-related-requirement-unmodeled
 type: req

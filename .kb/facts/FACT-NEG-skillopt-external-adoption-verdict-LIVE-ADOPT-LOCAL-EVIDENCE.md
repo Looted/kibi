@@ -3,7 +3,7 @@ title: Local SkillOpt evidence is used to adopt a skill without the offline revi
 status: active
 fact_kind: property_value
 operator: eq
-property_key: clause_01_local_or_fake_skillopt_evidence_stays_review_onl
+property_key: local_evidence_review_only
 subject_key: kibi.skillopt.adoption
 value_type: bool
 value_bool: false

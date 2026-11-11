@@ -6,7 +6,6 @@ tags:
   - ontology
   - validation
   - vocabulary-convergence
-  - review:context-missing
 semantic_text: Kibi check must report a predicate fact with no schema for its namespace, name, and arity as a predicate-schema-conformance warning. Kibi check must report a predicate fact that uses an undeclared argument constant as a predicate-schema-conformance warning. Predicate facts in the default namespace that match the built-in predicate catalog must not be reported by predicate-schema-conformance.
 semantic_clauses:
   - Kibi check must report a predicate fact with no schema for its namespace, name, and arity as a predicate-schema-conformance warning.
@@ -48,9 +47,12 @@ id: REQ-kibi-predicate-schema-conformance
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 2): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Kibi check must report a predicate fact with no schema for its namespace, name, and arity as a predicate-schema-conformance warning. Kibi check must report a predicate fact that uses an undeclared argument constant as a predicate-schema-conformance warning. Predicate facts in the default namespace that match the built-in predicate catalog must not be reported by predicate-schema-conformance.
+
+## Why
+Facts written before argument vocabularies were closed still need finding. The check is advisory so existing KBs keep working while they converge, and default-namespace facts that match the built-in catalog aren't reported.

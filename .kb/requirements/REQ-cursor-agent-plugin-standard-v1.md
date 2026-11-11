@@ -13,7 +13,6 @@ tags:
   - plugin
   - agent-plugins
   - portable
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-cursor-agent-plugin-v1

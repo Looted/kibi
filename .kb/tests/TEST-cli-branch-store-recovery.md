@@ -1,7 +1,7 @@
 ---
 id: TEST-cli-branch-store-recovery
 title: CLI exact branch-store recovery contract
-status: active
+status: passing
 tags:
   - cli
   - branching

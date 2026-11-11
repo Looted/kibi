@@ -5,14 +5,14 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.release.versioning
-property_key: clause_09_no_direct_publish_manual_npm_publish_and_manual_
+property_key: manual_publish_prohibited
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_020.clause_09_no_direct_publish_manual_npm_publish_and_manual_.eq.true
-claim_key: CLAIM-046FFE16817A0B33
-claim_text: '**No Direct Publish**: Manual `npm publish` and manual version bumps on `master` are prohibited'
+canonical_key: req.req_020.manual_publish_prohibited.eq.true
+claim_key: CLAIM-2FEAB3BA5BD8E311
+claim_text: 'Manual npm publish and manual version bumps on master are prohibited'
 id: FACT-PROP-REQ-020-C09
 type: fact
 origin:

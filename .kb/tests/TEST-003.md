@@ -1,7 +1,7 @@
 ---
 id: TEST-003
 title: kibi query returns correct entities and outgoing relationships
-status: active
+status: passing
 created_at: 2026-02-18T13:12:25.000Z
 updated_at: 2026-03-20T17:45:00.000Z
 priority: must
@@ -20,7 +20,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-003
+    - symbol_id: SYM-e2e-cli-workflows
       target: default
   success_policy: all_required_first_attempt
 type: test

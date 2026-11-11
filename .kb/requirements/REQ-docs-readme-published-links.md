@@ -5,7 +5,6 @@ tags:
   - docs
   - readme
   - site
-  - review:context-missing
 priority: should
 semantic_text: The repository README must link a documentation source that the documentation site publishes to that page's published URL, not to the GitHub rendering of the source. The published documentation site must include an llms.txt index whose page links are exactly the documentation catalog. The documentation landing page must link to that index so a language model can continue from the main page into the deeper documentation.
 logic_claims:
@@ -51,9 +50,12 @@ id: REQ-docs-readme-published-links
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 The repository README must link a documentation source that the documentation site publishes to that page's published URL, not to the GitHub rendering of the source. The published documentation site must include an llms.txt index whose page links are exactly the documentation catalog. The documentation landing page must link to that index so a language model can continue from the main page into the deeper documentation.
+
+## Why
+The README linked to GitHub's rendering of the docs instead of the published site. A language model reading the landing page also had no index to follow into the deeper docs, which `llms.txt` now provides. Source: PR 297.

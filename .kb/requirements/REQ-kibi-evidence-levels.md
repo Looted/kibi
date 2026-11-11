@@ -56,6 +56,7 @@ logic_claims:
   - CLAIM-22E34F860C144AB0
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-23T12:06:50.626Z'
 id: REQ-kibi-evidence-levels
 type: req

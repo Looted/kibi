@@ -1,6 +1,6 @@
 ---
 title: Kibi audit log
-status: active
+status: archived
 tags:
   - lane:strict
   - fact:subject

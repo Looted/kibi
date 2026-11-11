@@ -3,7 +3,7 @@ title: An agent asks the MCP skill handler for a resource path the skill manifes
 status: active
 fact_kind: property_value
 subject_key: kibi.skills.bundled
-property_key: clause_01_mcp_skill_resource_handlers_must_expose_declared
+property_key: rejects_undeclared_resources
 operator: eq
 value_type: bool
 value_bool: false

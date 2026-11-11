@@ -47,6 +47,7 @@ type ToolRegistrar<TProlog> = (
   spec?: RuntimeOperationSpec<Record<string, unknown>, unknown>,
   annotations?: ToolAnnotations,
   outputSchema?: object,
+  businessInputSchema?: object,
 ) => void;
 
 type ToolRegistration = {
@@ -114,6 +115,7 @@ export function registerConfiguredTools<TProlog>(
       spec,
       definition.annotations,
       definition.outputSchema,
+      publicSpec.businessInputSchema,
     );
   };
 

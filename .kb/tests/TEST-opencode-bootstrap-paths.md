@@ -1,6 +1,6 @@
 ---
 title: OpenCode bootstrap path behavior for canonical .kb/ layout
-status: active
+status: passing
 tags:
   - opencode
   - kibi

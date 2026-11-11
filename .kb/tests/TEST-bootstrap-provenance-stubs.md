@@ -1,6 +1,6 @@
 ---
 title: Bootstrap provenance stub tests
-status: active
+status: passing
 tags:
   - bootstrap
   - provenance-stubs

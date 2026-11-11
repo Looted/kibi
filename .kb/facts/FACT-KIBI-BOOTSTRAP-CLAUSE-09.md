@@ -3,7 +3,7 @@ title: Bootstrap contract clause 09
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap.plan
-property_key: contract_clause_9
+property_key: onboarding_uses_typed_status_and_skills
 operator: eq
 value_type: string
 value_string: Generic onboarding must direct agents through typed status and canonical kibi-usage, kibi-freshness, kibi-traceability, and kibi-bootstrap skills without manual .kb edits

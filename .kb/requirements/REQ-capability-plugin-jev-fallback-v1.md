@@ -3,7 +3,6 @@ title: Jev classifier optional fallback
 status: open
 tags:
   - plugins
-  - review:context-missing
 semantic_text: A TypeSafe client or network call must be absent when kibi-plugin-jev is imported or the registry is inactive. When the Jev semantic classifier is unavailable, classification must fall back to builtin analysis. Plugin diagnostics must not expose credentials.
 logic_claims:
   - CLAIM-303792FABB5EDCA6
@@ -49,7 +48,7 @@ semantic_clauses:
   - Plugin diagnostics must not expose credentials.
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -57,3 +56,6 @@ required_evidence: tested
 # REQ-capability-plugin-jev-fallback-v1
 
 A TypeSafe client or network call must be absent when kibi-plugin-jev is imported or the registry is inactive. When the Jev semantic classifier is unavailable, classification must fall back to builtin analysis. Plugin diagnostics must not expose credentials.
+
+## Why
+Jev is an optional metered classifier. Installing it alone must make no calls, and a failure must fall back to the builtin so a provider outage never breaks classification. Source: ADR-capability-plugins-v1, "External / network disclosure"; docs/plugin-development.md, "Optional Jev classifier".

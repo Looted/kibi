@@ -1,7 +1,7 @@
 ---
 id: TEST-core-journaled-engine-lifecycle
 title: Engine daemon serialization, recovery, and protocol fencing
-status: active
+status: passing
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
 priority: must
@@ -13,7 +13,9 @@ links:
   - type: validates
     target: SCEN-core-journaled-engine-lifecycle
   - type: validates
-    target: REQ-core-journaled-engine-persistence
+    target: REQ-kibi-engine-durable-transactions
+  - type: validates
+    target: REQ-kibi-engine-single-writer-protocol
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -26,17 +28,17 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-75b23f42826f857312f017fd
+    receipt_id: PR-43040587d759e2c582860a44
     test_id: TEST-core-journaled-engine-lifecycle
     scope: end_to_end
     outcome: passed
-    code_snapshot: 472ab5fec1aec3e1a51b0737292ab57b9f9942730f32135112f3d58b2f27ee34
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T20:46:49.446Z'
-    finished_at: '2026-10-28T20:47:15.986Z'
-    artifact_digest: 6ba273d746bcb8cfe1f43f4932b8991b812f8ae162b592bd71c045928529669c
+    code_snapshot: edc0588eed59351e216a3466342eacd255130ecbca12d0f17c5c6c51dd2fd1cf
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T16:15:30.108Z'
+    finished_at: '2026-11-10T16:15:54.970Z'
+    artifact_digest: ae4096fe6b6d215c4f97f93ab6687962d86d1d0ad85418fa02babcdf9e4cc930
     contract_hash: b7dc5d32f96051a86b60601e00ae710889d1f7a44003510d9ca41e3180a98a93
-    binding_hash: d6dae6603b3e11d07ba7eef78055f37ec6a760a2d5b80aa39565676101dbef8a
+    binding_hash: 8470b39284e835770ef462163620727c4d2aa50e75c14d390037085e12255263
     fingerprint: 568603ba5a195f54e2722d72447cf95b16e55a89a8d146c35138b36a876f5dfd
     fingerprint_components:
       contract: b7dc5d32f96051a86b60601e00ae710889d1f7a44003510d9ca41e3180a98a93

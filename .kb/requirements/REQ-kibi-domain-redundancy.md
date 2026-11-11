@@ -6,7 +6,6 @@ tags:
   - validation
   - redundancy
   - vocabulary-convergence
-  - review:context-missing
 semantic_text: Kibi check must report two distinct current requirements that ground the identical logical term as a domain-redundancy warning with exact witnesses. Requirement pairs linked by supersedes must be exempt from domain-redundancy. Requirement pairs linked by restates must be exempt from domain-redundancy. Kibi check must report a numeric bound that strictly implies another bound on the same subject and property as informational domain-implication.
 semantic_clauses:
   - Kibi check must report two distinct current requirements that ground the identical logical term as a domain-redundancy warning with exact witnesses.
@@ -58,9 +57,12 @@ id: REQ-kibi-domain-redundancy
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 2): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Kibi check must report two distinct current requirements that ground the identical logical term as a domain-redundancy warning with exact witnesses. Requirement pairs linked by supersedes must be exempt from domain-redundancy. Requirement pairs linked by restates must be exempt from domain-redundancy. Kibi check must report a numeric bound that strictly implies another bound on the same subject and property as informational domain-implication.
+
+## Why
+Kibi compares requirement meaning in Prolog, but nothing reported two current requirements that ground the same term, so duplicated requirements stayed invisible. The rule is advisory so `kibi check` stays deterministic and offline. Pairs linked by supersedes or restates are exempt because their overlap is intended.

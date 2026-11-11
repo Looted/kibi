@@ -8,11 +8,11 @@ relationships:
     source: mcp://kibi/upsert
   - type: validates
     from: TEST-core-journaled-engine-delta-sync
-    to: REQ-core-journaled-engine-persistence
+    to: REQ-kibi-sync-delta-compilation
     created_at: 2026-08-16T19:42:20.946Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-658202c314a7
+    id: rel-031810dda81a
   - type: specified_by
     from: REQ-cli-check
     to: SCEN-005
@@ -35,20 +35,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-77cf863615c1
   - type: implements
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-getkibibootstrapcommandcapability
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:40.094Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d67549efdcea
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-getkibibootstrapcommandcapability
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:40.101Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-991a970d2fa6
-  - type: implements
     from: SYM-010
     to: REQ-002
     created_at: 2026-08-22T20:04:18.041Z
@@ -69,34 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-13670554b754
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-getkibibootstrapcommandcapability
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:19:35.811Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ea86b2fa8845
-  - type: covered_by
-    from: SYM-runtime-RuntimeOperationSpec
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:40:46.417Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6ff65e555be8
-  - type: implements
-    from: SYM-runtime-RuntimeOperationSpec
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:09:16.107Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0c9fb65523e8
-  - type: covered_by
-    from: SYM-runtime-RuntimeOperationSpec
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:09:16.135Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0170141c1b29
   - type: constrains
     from: REQ-cli-check
     to: FACT-SUBJECT-KIBI-CHECK
@@ -147,20 +105,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-5309aee1929a
   - type: covered_by
-    from: SYM-AuditedNoImpactOverrideInput
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:12:21.817Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f69fbbec97e0
-  - type: covered_by
-    from: SYM-cursor-extractKbMcpToolCall
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-05T15:38:21.674Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dd728ff18531
-  - type: covered_by
     from: SYM-modeling-predicate-inference-1-inferLifecycleRuleArgs
     to: TEST-mcp-suggest-predicates
     created_at: 2026-09-05T17:42:05.893Z
@@ -195,27 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d325eac922be
-  - type: implements
-    from: SYM-migration-entity-type-backfill-skip
-    to: REQ-cli-migrate-entity-type-backfill
-    created_at: 2026-10-14T21:21:06.177Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-80e26c60476a
-  - type: covered_by
-    from: SYM-migration-entity-type-backfill-skip
-    to: TEST-cli-legacy-kb-first-migrate
-    created_at: 2026-10-14T21:21:06.199Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-966fba5b40c1
-  - type: covered_by
-    from: SYM-migration-entity-type-backfill-skip
-    to: TEST-cli-migrated-kb-type-backfill-sync-totals
-    created_at: 2026-10-14T21:21:06.217Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-46ced05c762e
   - type: validates
     from: TEST-kibi-non-numeric-proof-kinds-rule
     to: SCEN-kibi-non-numeric-proof-kinds
@@ -384,27 +307,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09a7af91ee52
-  - type: implements
-    from: SYM-cli-kibi-release-kibi-release-manifest
-    to: REQ-kibi-release-version
-    created_at: 2026-11-04T05:30:08.753Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e837146fc08a
-  - type: covered_by
-    from: SYM-cli-kibi-release-kibi-release-manifest
-    to: TEST-kibi-release-version
-    created_at: 2026-11-04T05:30:08.783Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a62054ace17e
-  - type: implements
-    from: SYM-010
-    to: REQ-kibi-release-version
-    created_at: 2026-11-04T05:31:23.352Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2ad8ccb3f1dd
   - type: covered_by
     from: SYM-010
     to: TEST-kibi-release-version
@@ -412,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9681b6e2c57
+  - type: assumes
+    from: SCEN-NEG-kibi-bootstrap-shared-planner-routing-DIVERGENT-ADAPTER
+    to: FACT-NEG-kibi-bootstrap-shared-planner-routing-DIVERGENT-ADAPTER
+    created_at: 2026-11-10T05:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7928348306d7
+  - type: verified_by
+    from: SCEN-NEG-kibi-bootstrap-shared-planner-routing-DIVERGENT-ADAPTER
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-11-10T05:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-391b89ae8300

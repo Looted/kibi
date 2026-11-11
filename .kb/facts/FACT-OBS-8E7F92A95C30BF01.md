@@ -1,12 +1,11 @@
 ---
 title: 'Ontology gap: preserving authored symbol identity'
-status: active
+status: archived
 tags:
   - semantic-advisor-suggestion
   - review:ontology-gap
   - needs_schema_extension
   - lane:observation
-  - review:context-missing
 text_ref: .kb/requirements/REQ-source-analysis-v2.md
 claim_key: CLAIM-2AC9D8566EC69A11
 claim_text: Source analysis v2 must preserve authored symbol identity when declaration locators are unambiguous
@@ -17,6 +16,6 @@ id: FACT-OBS-8E7F92A95C30BF01
 type: fact
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, retiring this ontology-gap observation because its claim is now modeled (context batch 3): "Agree with batch 3 as well."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---

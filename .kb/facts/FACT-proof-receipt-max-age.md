@@ -16,4 +16,4 @@ origin:
 id: FACT-proof-receipt-max-age
 type: fact
 ---
-PROOF_RECEIPT_MAX_AGE_SECONDS in packages/cli/src/public/proof-receipt.ts is the age after which a passing receipt no longer proves its requirement. REQ-kibi-fresh-verification-receipts-v2 says a receipt must be no older than seven days; this requirement states the limit as a number so it is proved against the constant.
+PROOF_RECEIPT_MAX_AGE_SECONDS in packages/cli/src/public/proof-receipt.ts is the age after which a passing receipt no longer proves its requirement. REQ-kibi-proof-receipt-freshness says a receipt must be no older than seven days; this requirement states the limit as a number so it is proved against the constant.

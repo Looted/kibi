@@ -5,7 +5,7 @@ status: open
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
 priority: must
-tags: [requirements, proof, repair, migration, planning, parity, review:context-missing]
+tags: [requirements, proof, repair, migration, planning, parity]
 logic_claims:
   - CLAIM-64B7C0764B97AD46
   - CLAIM-98FD5384CF7480CE
@@ -70,9 +70,9 @@ semantic_inventory:
     span: {start: 932, end: 996}
 links:
   - type: depends_on
-    target: REQ-kibi-conservative-requirement-proof
+    target: REQ-kibi-proof-outcome-and-repair-guidance
   - type: depends_on
-    target: REQ-kibi-proposition-complete-ingestion
+    target: REQ-kibi-complete-proposition-ledgers
   - type: specified_by
     target: SCEN-kibi-dependency-ordered-repair-plan
   - type: requires_property
@@ -93,7 +93,7 @@ links:
     target: FACT-REPAIR-PLAN-REQ-ONLY
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 8): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 semantic_text: Requirement coverage must emit a deterministic read-only repair plan for every returned requirement with proof gaps. The planner must group same-phase gaps into one small batch per requirement and order batches from source and semantic inventory through logical endpoints, manifests, contradiction resolution, scenarios, tests, receipts, symbols, and coordinates. Only the earliest unresolved batch for each requirement may be ready, and every downstream batch must name its dependencies. Every batch must remain non-auto-applicable and require query-before-mutation, endpoint-before-relationship creation, validation before writes, sequential upserts, and coverage rechecking. The plan identifier must remain stable for the same code snapshot, filters, proof evidence, and gaps while ignoring volatile check times and receipt ages. Pagination that omits actionable requirements must produce a partial plan with the excluded count. Non-requirement coverage must not emit a requirement repair plan.
 type: req
@@ -102,3 +102,6 @@ required_evidence: tested
 ---
 
 Requirement coverage must emit a deterministic read-only repair plan for every returned requirement with proof gaps. The planner must group same-phase gaps into one small batch per requirement and order batches from source and semantic inventory through logical endpoints, manifests, contradiction resolution, scenarios, tests, receipts, symbols, and coordinates. Only the earliest unresolved batch for each requirement may be ready, and every downstream batch must name its dependencies. Every batch must remain non-auto-applicable and require query-before-mutation, endpoint-before-relationship creation, validation before writes, sequential upserts, and coverage rechecking. The plan identifier must remain stable for the same code snapshot, filters, proof evidence, and gaps while ignoring volatile check times and receipt ages. Pagination that omits actionable requirements must produce a partial plan with the excluded count. Non-requirement coverage must not emit a requirement repair plan.
+
+## Why
+The audit showed how large migration was: one project had 85 actionable requirements and 505 repair batches. Ordering batches by dependency, with only the earliest one ready, makes that work incremental and safe. Source: docs/requirement-compiler-roadmap.md, vector 5 and "Repair-plan field readout".

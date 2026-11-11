@@ -22,4 +22,4 @@ origin:
 id: FACT-PRED-telemetry-refusal-names-rule-and-field
 type: fact
 ---
-A telemetry event for a refused payload shall name the rule it broke and the Kibi schema field it concerns. Grounds one clause of REQ-kibi-telemetry-agent-signals as a conditional behavior of telemetry events.
+A telemetry event for a refused payload shall name the rule it broke and the Kibi schema field it concerns. Grounds one clause of REQ-kibi-telemetry-event-contents as a conditional behavior of telemetry events.

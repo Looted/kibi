@@ -29,7 +29,7 @@ relationships:
     id: rel-94700b2aa551
   - type: constrains
     from: REQ-opencode-smart-enforcement-v1
-    to: FACT-SUBJ-REQ-OPENCODE-SMART-ENFORCEMENT-V1
+    to: FACT-SUBJ-OPENCODE-PLUGIN
     created_at: 2026-09-05T14:14:17.227Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -41,41 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-306833012af1
-  - type: executable_for
-    from: SYM-e2e-test-skillopt-external-adoption-verdict
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T15:55:40.580Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4477ce6a4540
-  - type: covered_by
-    from: SYM-PreparedRootError-name
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:09:51.650Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-24223e509c1c
-  - type: implements
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-_resetkibibootstrapcapabilitycachefortests
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-09-05T20:43:10.741Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f13bed2c5274
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-_resetkibibootstrapcapabilitycachefortests
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-09-05T20:43:10.746Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-78ba4139c79e
-  - type: covered_by
-    from: SYM-PreparedRootError-name
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:23:46.034Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1a72fd51f531
   - type: validates
     from: TEST-capability-plugin-jev-mocked-v1
     to: REQ-capability-plugin-jev-fallback-v1
@@ -83,20 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df4b2d45c443
-  - type: implements
-    from: SYM-claude-LineRange
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:26:44.085Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-891ad069336a
-  - type: covered_by
-    from: SYM-claude-LineRange
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:26:44.098Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ba8a8c3a6569
   - type: covered_by
     from: SYM-treesitter-language-for-path
     to: TEST-source-analysis-v2-contract
@@ -104,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-047cbfc4c9d2
-  - type: implements
-    from: SYM-treesitter-language-for-path
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T17:01:22.322Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7376b1308ada
   - type: covered_by
     from: SYM-treesitter-language-for-path
     to: TEST-multilingual-language-catalog
@@ -125,41 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dd0afef6734e
-  - type: implements
-    from: SYM-source-analysis-timing-event
-    to: REQ-installed-staged-impact-timing-integrity
-    created_at: 2026-09-28T09:40:01.090Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9f6ffc84928e
-  - type: covered_by
-    from: SYM-source-analysis-timing-event
-    to: TEST-installed-staged-impact-timing-integrity
-    created_at: 2026-09-28T09:40:01.125Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-862691ce8320
-  - type: implements
-    from: SYM-source-analysis-timing-limits
-    to: REQ-installed-staged-impact-timing-integrity
-    created_at: 2026-09-28T09:40:06.516Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c3b7c89ed4db
-  - type: covered_by
-    from: SYM-source-analysis-timing-limits
-    to: TEST-installed-staged-impact-timing-integrity
-    created_at: 2026-09-28T09:40:06.539Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b7b2ee1a1a46
-  - type: implements
-    from: SYM-source-analysis-v2-assertsourceanalysisgate
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-30T15:21:49.022Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bbf6409f2f27
   - type: covered_by
     from: SYM-source-analysis-v2-assertsourceanalysisgate
     to: TEST-source-analysis-v2-contract
@@ -167,13 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43b96d488a2c
-  - type: implements
-    from: SYM-skillopt-run-compose-campaign
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:02:46.434Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4849fdd326d9
   - type: covered_by
     from: SYM-skillopt-run-compose-campaign
     to: TEST-skillopt-codex-optimization
@@ -181,20 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8151eee0e9c4
-  - type: implements
-    from: SYM-skillopt-campaign-artifacts-publicfeedbackschema-31665c30
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:23:09.418Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a8292777be4e
-  - type: covered_by
-    from: SYM-skillopt-campaign-artifacts-publicfeedbackschema-31665c30
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:23:09.434Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d8a59be2292d
   - type: constrains
     from: REQ-upsert-unknown-field-guidance
     to: FACT-SUBJECT-KIBI-UPSERT-FIELD-GUIDANCE
@@ -370,13 +258,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e503fe8b311d
-  - type: covered_by
-    from: SYM-discovery-query-body-max-chars
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-10-28T17:23:43.264Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8b4550968f50
   - type: executable_for
     from: SYM-proof-rule-supersedes-reason-missing
     to: TEST-proof-rule-supersedes-reason-missing
@@ -412,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-65c9fe78e2fa
+  - type: assumes
+    from: SCEN-NEG-skillopt-infrastructure-failure-no-go-MISSING-EXECUTABLE
+    to: FACT-NEG-skillopt-infrastructure-failure-no-go-MISSING-EXECUTABLE
+    created_at: 2026-11-10T11:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-447a208f573c
+  - type: verified_by
+    from: SCEN-NEG-skillopt-infrastructure-failure-no-go-MISSING-EXECUTABLE
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-11-10T11:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a23e30b99ceb

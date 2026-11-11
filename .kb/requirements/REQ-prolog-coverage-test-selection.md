@@ -7,7 +7,6 @@ tags:
   - prolog
   - coverage
   - testing
-  - review:context-missing
 semantic_text: The Prolog coverage runner must load every test file supplied by repeated --test options. The Prolog coverage runner must fail when any selected test file contains a failing test. The Prolog coverage runner must include each selected test file in annotated coverage artifacts.
 semantic_clauses:
   - The Prolog coverage runner must load every test file supplied by repeated --test options
@@ -46,9 +45,12 @@ id: REQ-prolog-coverage-test-selection
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 4): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 The Prolog coverage runner must load every test file supplied by repeated --test options. The Prolog coverage runner must fail when any selected test file contains a failing test. The Prolog coverage runner must include each selected test file in annotated coverage artifacts.
+
+## Why
+Preparing the three-file native run exposed a bug: repeated `--test` options loaded only the first file, so later files were never tested or covered. Source: docs/swipl-bundle-spike.md.

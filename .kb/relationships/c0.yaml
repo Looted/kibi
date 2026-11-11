@@ -1,46 +1,11 @@
 relationships:
   - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-16T19:45:30.458Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-95223f8a36ec
-  - type: covered_by
     from: SYM-kibi-cli-src-intent-search-ts-validateintentsearchinput
     to: TEST-kibi-intent-aware-source-discovery
     created_at: 2026-08-16T19:46:36.847Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-748d03c52b46
-  - type: implements
-    from: 7580de62d3ca1d60
-    to: REQ-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T10:54:07.097Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-10c3c2135481
-  - type: covered_by
-    from: 7580de62d3ca1d60
-    to: TEST-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T12:52:44.188Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a627c0e08954
-  - type: implements
-    from: SYM-shared-npm-cache-declaration
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-08-21T20:52:12.843Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8241b04b5cd7
-  - type: covered_by
-    from: SYM-shared-npm-cache-declaration
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-21T20:52:12.860Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-506d47373aeb
   - type: implements
     from: SYM-requirement-extract-heuristic-claim
     to: REQ-002
@@ -62,97 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dd59d3f1f906
-  - type: implements
-    from: SYM-BRIDGE-FIXTURE-RUN-ROOT-ENV
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-23T23:30:26.307Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a13252bf8e69
-  - type: covered_by
-    from: SYM-BRIDGE-FIXTURE-RUN-ROOT-ENV
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-23T23:30:26.321Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b80f9dcd82e4
-  - type: covered_by
-    from: SYM-cli-PrologQueryPlanSafetyViolation
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-26T07:16:23.869Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c397466561ae
-  - type: covered_by
-    from: SYM-cli-PrologQueryPlanSafetyViolation
-    to: TEST-001
-    created_at: 2026-09-05T15:34:53.880Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e60c04a2e1e8
-  - type: covered_by
-    from: SYM-semantic-advisor-isRecord
-    to: TEST-mcp-semantic-advisor-preflight
-    created_at: 2026-09-05T17:39:22.185Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c1102ac804aa
-  - type: covered_by
-    from: SYM-mcp-CheckResult
-    to: TEST-mcp-tool-check-coverage
-    created_at: 2026-09-06T09:06:08.652Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b41dac32b593
-  - type: implements
-    from: SYM-cli-PrologErrorConflict
-    to: REQ-core-prolog-process-management
-    created_at: 2026-09-07T11:46:17.015Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-09f932945e99
-  - type: covered_by
-    from: SYM-cli-PrologErrorConflict
-    to: TEST-mcp-upsert-coverage
-    created_at: 2026-09-09T03:36:11.617Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d9483ee1369c
-  - type: implements
-    from: SYM-quality-merge-lcov-diagnostics
-    to: REQ-014
-    created_at: 2026-09-14T19:08:20.109Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a88869ad8e43
-  - type: covered_by
-    from: SYM-quality-merge-lcov-diagnostics
-    to: TEST-scripts-unit-coverage-runner
-    created_at: 2026-09-14T19:08:20.120Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e23bf17faa42
-  - type: implements
-    from: SYM-quality-inventory-51362d277599
-    to: REQ-cursor-kibi-plugin-v1
-    created_at: 2026-09-14T20:34:10.402Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-365a024898b0
-  - type: covered_by
-    from: SYM-quality-inventory-51362d277599
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-14T20:34:10.427Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-790d57529766
-  - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
-    to: TEST-e2e-plan-compiler-hash
-    created_at: 2026-09-18T07:13:14.024Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2087a7084850
   - type: covered_by
     from: SYM-requirement-extract-heuristic-claim
     to: TEST-e2e-mcp-model-requirement
@@ -161,40 +35,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3be63e11be24
   - type: covered_by
-    from: SYM-quality-merge-lcov-diagnostics
-    to: TEST-e2e-coverage-pipeline
-    created_at: 2026-09-19T18:18:47.539Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7e1d322d6154
-  - type: covered_by
-    from: SYM-cap-plugin-jevsystemonerequest-0dceb449
-    to: TEST-capability-plugin-jev-mocked-v1
-    created_at: 2026-09-22T19:44:55.784Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cf5af4ef575b
-  - type: implements
-    from: SYM-agent-core-scanSymbolCoordinates
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:48:50.490Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-13aeef0ed6ee
-  - type: covered_by
     from: SYM-agent-core-scanSymbolCoordinates
     to: TEST-claude-code-kibi-plugin-v1
     created_at: 2026-09-27T16:48:50.569Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9f75804ad0c6
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
-    to: REQ-kibi-change-to-proof-plan-compiler-v2
-    created_at: 2026-10-04T03:01:08.223Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1e7b5a5b4f45
   - type: validates
     from: TEST-mcp-apply-plan-async-preflight
     to: REQ-mcp-apply-plan-async-preflight
@@ -286,34 +132,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-748b92af5f93
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapclaimreference
-    to: REQ-bootstrap-claim-kinds-and-conflicts
-    created_at: 2026-10-14T21:23:05.645Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6abdb5fc9af1
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapclaimreference
-    to: TEST-kibi-bootstrap-knowledge-sources
-    created_at: 2026-10-14T21:23:05.675Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-baf398b669b8
-  - type: implements
-    from: SYM-cli-signoff-load-affected
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-22T09:25:49.342Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-07f44f45b04d
-  - type: covered_by
-    from: SYM-cli-signoff-load-affected
-    to: TEST-kibi-signoff-views
-    created_at: 2026-10-22T09:25:49.360Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2c8a0628b4d7
   - type: validates
     from: TEST-proof-contract-claims-review-code
     to: SCEN-cli-migrate

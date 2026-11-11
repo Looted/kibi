@@ -1,7 +1,9 @@
 import assert from "node:assert";
+import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
+import { pathToFileURL } from "node:url";
 
 import {
   type Tarballs,
@@ -349,6 +351,24 @@ Legacy receipts without a proof contract must stay untouched.
           untouchedDoc.includes("verification_receipts:"),
           "tests without a proof contract must not be migrated",
         );
+        const legacyOnly = await kibi(sandbox, [
+          "proof",
+          "migrate-legacy",
+          "--test",
+          "TEST-PACKED-LEGACY-ONLY",
+        ]);
+        assert.match(
+          legacyOnly.stdout + legacyOnly.stderr,
+          /No test carries a legacy verification_receipts block alongside a proof_contract/,
+          "targeting a test without a proof contract must not migrate it",
+        );
+        assert.ok(
+          readFileSync(
+            join(sandbox.repoDir, ".kb", "tests", "TEST-PACKED-LEGACY-ONLY.md"),
+            "utf8",
+          ).includes("verification_receipts:"),
+          "a targeted test without a proof contract keeps its legacy block",
+        );
 
         const repeat = await kibi(sandbox, [
           "proof",
@@ -472,6 +492,404 @@ Legacy receipts without a proof contract must stay untouched.
           missing.stdout + missing.stderr,
           /TEST-DOES-NOT-EXIST.*was not found/,
         );
+      },
+    );
+
+    it(
+      "rejects a proof contract, proof bindings or proof run artifact that does not match its schema, naming the error",
+      { timeout: 300000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const writeTest = (contract: string, bindings: string): void => {
+          writeFileSync(
+            join(sandbox.repoDir, ".kb", "tests", "TEST-PACKED-SCHEMA.md"),
+            `---
+id: TEST-PACKED-SCHEMA
+title: Packed proof schema E2E
+status: passing
+source: tests/e2e/schema.test.ts
+verification_scope: end_to_end
+verification_perspective: consumer
+${contract}
+${bindings}
+links:
+  - type: validates
+    target: SCEN-PACKED-MAINTENANCE
+---
+
+Exercises proof protocol schema validation.
+`,
+          );
+          stageSourceFile(sandbox, ".kb/tests/TEST-PACKED-SCHEMA.md");
+        };
+        const contract = (policy: string): string => `proof_contract:
+  version: kibi.proof-contract.v1
+  integration: custom-bad
+  required_proofs:
+    - symbol_id: SYM-PACKED-SCHEMA
+      target: default
+  success_policy: ${policy}`;
+        const bindings = (nativeId: string): string => `proof_bindings:
+  - symbol_id: SYM-PACKED-SCHEMA
+    target: default
+    native_id: ${nativeId}`;
+        mkdirSync(join(sandbox.repoDir, "tests", "e2e"), { recursive: true });
+        writeFileSync(
+          join(sandbox.repoDir, "tests", "e2e", "schema.test.ts"),
+          "export const schemaBehavior = 'v1';\n",
+        );
+        stageSourceFile(sandbox, "tests/e2e/schema.test.ts");
+
+        writeTest(contract("whenever_it_passes"), bindings("suite::case"));
+        const badContract = await kibi(sandbox, ["sync"]);
+        assert.match(
+          badContract.stdout + badContract.stderr,
+          /Invalid proof_contract:.*success_policy/s,
+          "sync must name the proof_contract schema error",
+        );
+
+        writeTest(
+          contract("all_required_first_attempt"),
+          "proof_bindings:\n  - symbol_id: SYM-PACKED-SCHEMA\n    native_id: suite::case",
+        );
+        const badBindings = await kibi(sandbox, ["sync"]);
+        assert.match(
+          badBindings.stdout + badBindings.stderr,
+          /Invalid proof_bindings:.*target/s,
+          "sync must name the proof_bindings schema error",
+        );
+
+        mkdirSync(join(sandbox.repoDir, ".kb", "proof"), { recursive: true });
+        writeFileSync(
+          join(sandbox.repoDir, ".kb", "proof", "integrations.json"),
+          `${JSON.stringify(
+            {
+              version: "kibi.proof-integration.v1",
+              integrations: [
+                {
+                  id: "custom-bad",
+                  producer: "custom-bad",
+                  command: [
+                    "node",
+                    "-e",
+                    "require('fs').writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify({ version: 'kibi.proof-run.v1' }))",
+                  ],
+                  targets: ["default"],
+                },
+              ],
+            },
+            null,
+            2,
+          )}\n`,
+        );
+        stageSourceFile(sandbox, ".kb/proof/integrations.json");
+        writeTest(
+          contract("all_required_first_attempt"),
+          bindings("suite::case"),
+        );
+        const valid = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(valid.exitCode, 0, `${valid.stdout}${valid.stderr}`);
+        const prove = await kibi(sandbox, [
+          "prove",
+          "--test",
+          "TEST-PACKED-SCHEMA",
+        ]);
+        assert.notStrictEqual(
+          prove.exitCode,
+          0,
+          "a malformed proof run artifact must fail the proof run",
+        );
+        assert.match(
+          prove.stdout + prove.stderr,
+          /invalid kibi\.proof-run\.v1 artifact/,
+          `expected the artifact schema errors, got: ${prove.stdout}${prove.stderr}`,
+        );
+        const after = await queryTest(sandbox, "TEST-PACKED-SCHEMA");
+        assert.strictEqual(
+          after?.proof_receipts,
+          undefined,
+          "a malformed artifact must never append receipts",
+        );
+      },
+    );
+
+    it(
+      "producers report what ran and Kibi evaluates it: a Playwright first-attempt pass proves, plain JUnit and TAP passes do not",
+      { timeout: 300000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const runsDir = join(sandbox.repoDir, ".kb", "proof", "runs");
+        const e2eDir = join(sandbox.repoDir, "tests", "e2e");
+        mkdirSync(runsDir, { recursive: true });
+        mkdirSync(e2eDir, { recursive: true });
+        const reporterUrl = pathToFileURL(
+          join(
+            sandbox.npmPrefix,
+            "node_modules",
+            "kibi-cli",
+            "dist",
+            "proof",
+            "producers",
+            "playwright-reporter.js",
+          ),
+        ).href;
+        // A stand-in for Playwright: drives the installed reporter through
+        // the callbacks Playwright calls, for one passing case.
+        writeFileSync(
+          join(e2eDir, "pw-run.mjs"),
+          `const { KibiPlaywrightProducer } = await import(process.argv[2]);
+const producer = new KibiPlaywrightProducer({ workspaceRoot: process.env.KIBI_PROOF_WORKSPACE });
+producer.onBegin();
+producer.onTestEnd(
+  {
+    titlePath: () => ["suite", "greets"],
+    location: { file: process.env.KIBI_PROOF_WORKSPACE + "/tests/e2e/pw.spec.ts", line: 1 },
+    project: () => ({ name: "default" }),
+  },
+  { status: "passed", duration: 5 },
+);
+await producer.onEnd({ status: "passed" });
+`,
+        );
+        writeFileSync(
+          join(e2eDir, "junit-pass.xml"),
+          `<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="suite" tests="1" failures="0">
+  <testcase name="greets" classname="suite" time="0.01"/>
+</testsuite>
+`,
+        );
+        writeFileSync(
+          join(e2eDir, "tap-pass.tap"),
+          "TAP version 13\n1..1\nok 1 - greets\n",
+        );
+        writeFileSync(
+          join(e2eDir, "producers.test.ts"),
+          "export const producerBehavior = 'v1';\n",
+        );
+        writeFileSync(
+          join(sandbox.repoDir, ".kb", "proof", "integrations.json"),
+          `${JSON.stringify(
+            {
+              version: "kibi.proof-integration.v1",
+              integrations: [
+                {
+                  id: "pw-fixture",
+                  producer: "playwright",
+                  command: ["node", "tests/e2e/pw-run.mjs", reporterUrl],
+                  targets: ["default"],
+                },
+                {
+                  id: "junit-pass",
+                  producer: "junit",
+                  command: [
+                    "cp",
+                    "tests/e2e/junit-pass.xml",
+                    ".kb/proof/runs/junit-pass.xml",
+                  ],
+                  artifact: ".kb/proof/runs/junit-pass.xml",
+                  targets: ["default"],
+                },
+                {
+                  id: "tap-pass",
+                  producer: "tap",
+                  command: [
+                    "cp",
+                    "tests/e2e/tap-pass.tap",
+                    ".kb/proof/runs/tap-pass.tap",
+                  ],
+                  artifact: ".kb/proof/runs/tap-pass.tap",
+                  targets: ["default"],
+                },
+              ],
+            },
+            null,
+            2,
+          )}\n`,
+        );
+        const playwrightSymbol = `SYM-PW-${createHash("sha256")
+          .update("tests/e2e/pw.spec.ts\0suite > greets")
+          .digest("hex")
+          .slice(0, 16)
+          .toUpperCase()}`;
+        const producerTest = (
+          id: string,
+          integration: string,
+          symbolId: string,
+          nativeId: string | null,
+        ): string => `---
+id: ${id}
+title: Packed ${integration} producer E2E
+status: passing
+source: tests/e2e/producers.test.ts
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: ${integration}
+  required_proofs:
+    - symbol_id: ${symbolId}
+      target: default
+  success_policy: all_required_first_attempt
+${
+  nativeId
+    ? `proof_bindings:
+  - symbol_id: ${symbolId}
+    target: default
+    native_id: ${nativeId}
+`
+    : ""
+}links:
+  - type: validates
+    target: SCEN-PACKED-MAINTENANCE
+---
+
+Exercises the ${integration} proof producer.
+`;
+        const tests = [
+          [
+            "TEST-PACKED-PW",
+            "pw-fixture",
+            playwrightSymbol,
+            "tests/e2e/pw.spec.ts:1:1 › suite › greets",
+          ],
+          [
+            "TEST-PACKED-JUNIT-PASS",
+            "junit-pass",
+            "SYM-PACKED-JUNIT-PASS",
+            "suite::greets",
+          ],
+          ["TEST-PACKED-TAP-PASS", "tap-pass", "SYM-PACKED-TAP-PASS", "greets"],
+        ] as const;
+        for (const [id, integration, symbolId, nativeId] of tests) {
+          writeFileSync(
+            join(sandbox.repoDir, ".kb", "tests", `${id}.md`),
+            producerTest(id, integration, symbolId, nativeId),
+          );
+          stageSourceFile(sandbox, `.kb/tests/${id}.md`);
+        }
+        for (const sourcePath of [
+          ".kb/proof/integrations.json",
+          "tests/e2e/pw-run.mjs",
+          "tests/e2e/junit-pass.xml",
+          "tests/e2e/tap-pass.tap",
+          "tests/e2e/producers.test.ts",
+        ]) {
+          stageSourceFile(sandbox, sourcePath);
+        }
+        const sync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
+
+        const playwright = await kibi(sandbox, [
+          "prove",
+          "--test",
+          "TEST-PACKED-PW",
+        ]);
+        assert.strictEqual(
+          playwright.exitCode,
+          0,
+          `a first-attempt Playwright pass must prove: ${playwright.stdout}${playwright.stderr}`,
+        );
+        const proved = await queryTest(sandbox, "TEST-PACKED-PW");
+        assert.strictEqual(proved?.proof_receipts?.length, 1);
+        // The receipt records the effective fingerprint of the contract and
+        // the integration's command, bindings and producer, and next to it a
+        // separate hash of the canonical environment.
+        const receipt = proved?.proof_receipts?.[0] as
+          | Readonly<{
+              fingerprint?: string;
+              fingerprint_components?: Readonly<Record<string, string>>;
+              environment_hash?: string;
+            }>
+          | undefined;
+        assert.match(receipt?.fingerprint ?? "", /^[a-f0-9]{64}$/);
+        assert.deepStrictEqual(
+          Object.keys(receipt?.fingerprint_components ?? {}).sort(),
+          ["bindings", "command", "contract", "integration", "producer"],
+          "the fingerprint names the contract, integration, command, bindings and producer",
+        );
+        for (const [name, digest] of Object.entries(
+          receipt?.fingerprint_components ?? {},
+        )) {
+          assert.match(digest, /^[a-f0-9]{64}$/, `${name} component digest`);
+        }
+        assert.match(receipt?.environment_hash ?? "", /^[a-f0-9]{64}$/);
+        assert.ok(
+          !Object.values(receipt?.fingerprint_components ?? {}).includes(
+            receipt?.environment_hash ?? "",
+          ),
+          "the environment hash is recorded beside the fingerprint, not inside it",
+        );
+
+        for (const id of ["TEST-PACKED-JUNIT-PASS", "TEST-PACKED-TAP-PASS"]) {
+          const prove = await kibi(sandbox, ["prove", "--test", id]);
+          assert.notStrictEqual(
+            prove.exitCode,
+            0,
+            `${id}: a plain native pass carries no attempt history`,
+          );
+          assert.match(
+            prove.stdout + prove.stderr,
+            /attempt history unavailable/,
+            `${id}: Kibi must refuse the pass for missing attempt history, got: ${prove.stdout}${prove.stderr}`,
+          );
+          const after = await queryTest(sandbox, id);
+          assert.ok(
+            !after?.proof_receipts?.some(
+              (receipt) =>
+                (receipt as { outcome?: string }).outcome === "passed",
+            ),
+            `${id}: no passing receipt without attempt history`,
+          );
+        }
+
+        // A receipt that lacks the environment hash or the fingerprint
+        // components is not a receipt Kibi accepts.
+        const validDocument = pruneTestDocument("a".repeat(64), [
+          {
+            id: "PR-packed-fingerprint-0001",
+            startedAt: "2025-01-01T00:00:00.000Z",
+            finishedAt: "2025-01-01T00:00:01.000Z",
+          },
+        ]);
+        const withoutEnvironment = validDocument.replace(
+          /\n {4}environment_hash: [a-f0-9]{64}/,
+          "",
+        );
+        const withoutComponents = validDocument.replace(
+          /\n {4}fingerprint_components:(\n {6}[a-z]+: [a-f0-9]{64}){5}/,
+          "",
+        );
+        for (const [label, document] of [
+          ["environment hash", withoutEnvironment],
+          ["fingerprint components", withoutComponents],
+        ] as const) {
+          assert.notStrictEqual(document, validDocument, `${label} removed`);
+          writeFileSync(
+            join(sandbox.repoDir, ".kb", "tests", "TEST-PACKED-PRUNE.md"),
+            document,
+          );
+          stageSourceFile(sandbox, ".kb/tests/TEST-PACKED-PRUNE.md");
+          const refused = await kibi(sandbox, ["sync", "--validate-only"]);
+          assert.notStrictEqual(
+            refused.exitCode,
+            0,
+            `a receipt without its ${label} must be refused`,
+          );
+          assert.match(
+            refused.stdout + refused.stderr,
+            /structurally valid kibi\.proof-receipt/,
+            `a receipt without its ${label} names the receipt shape: ${refused.stdout}${refused.stderr}`,
+          );
+        }
       },
     );
 

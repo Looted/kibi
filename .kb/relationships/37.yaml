@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-15T22:21:32.763Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-canonical-LEGACY_DEFAULT_ENTITY_PATHS
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:03:31.606Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b674bcd2367e
   - type: covered_by
     from: SYM-canonical-LEGACY_DEFAULT_ENTITY_PATHS
     to: TEST-cli-canonical-init
@@ -41,13 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ea630e670339
-  - type: covered_by
-    from: SYM-cli-impact-uniqueSorted
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:16:59.871Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-995a2a6fe689
   - type: constrains
     from: REQ-zcode-kibi-plugin-v1
     to: FACT-SUBJECT-6F1948BE213B3014
@@ -125,27 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7412cc1f98f5
-  - type: covered_by
-    from: SYM-cap-plugin-symbolextractorsupportsinput-8d674ec8
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:46:12.176Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6539de2261e9
-  - type: implements
-    from: SYM-claude-parseHookInput
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:17:28.956Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1eb909350416
-  - type: covered_by
-    from: SYM-claude-parseHookInput
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:17:28.975Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ee564cfabfae
   - type: requires_rule
     from: REQ-source-analysis-v2
     to: FACT-RULE-5685EBEB57411C24
@@ -181,20 +146,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f72ffef4568a
-  - type: covered_by
-    from: SYM-impact-stage-e-assertsha256
-    to: TEST-impact-policy-stage-e-installed-e2e
-    created_at: 2026-09-27T17:34:34.486Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b55bdeddc052
-  - type: implements
-    from: SYM-impact-stage-e-assertsha256
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:34:34.551Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-64d630a4f78e
   - type: implements
     from: SYM-docs-site-catalog-pageForSource
     to: REQ-docs-readme-published-links
@@ -223,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0240743be205
-  - type: implements
-    from: SYM-migration-build-lifecycle-repair-actions
-    to: REQ-cli-schema-migration
-    created_at: 2026-10-04T17:24:55.833Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-79dcb8d6b731
   - type: covered_by
     from: SYM-migration-build-lifecycle-repair-actions
     to: TEST-kibi-schema6-migration-cli
@@ -237,20 +181,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c4d81aebafe
-  - type: implements
-    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-close-998268d4
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:20:56.244Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-54a6da88319a
-  - type: covered_by
-    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-close-998268d4
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:20:56.265Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8ec263cccfa6
   - type: implements
     from: SYM-core-symbol-coverage-message
     to: REQ-kibi-symbol-link-guidance
@@ -440,27 +370,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-810a32384d2e
-  - type: implements
-    from: SYM-checkout-hooks-missing-hooks-note-text
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:51:32.502Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-67fa9f6e1fb1
-  - type: covered_by
-    from: SYM-checkout-hooks-missing-hooks-note-text
-    to: TEST-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:51:32.540Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-852891cb2e05
-  - type: implements
-    from: SYM-checkout-hooks-missing-hooks-note
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:51:37.912Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d703fb8c8e72
   - type: covered_by
     from: SYM-checkout-hooks-missing-hooks-note
     to: TEST-kibi-fresh-clone-setup
@@ -468,3 +377,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-533123205dfa
+  - type: constrains
+    from: REQ-prolog-bundle-verification
+    to: FACT-prolog-bundled-subject
+    created_at: 2026-11-10T09:18:13.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-186203524993
+  - type: requires_property
+    from: REQ-prolog-bundle-verification
+    to: FACT-prolog-bundled-refuses-corrupt-bundle
+    created_at: 2026-11-10T09:18:13.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23e454a73df8
+  - type: requires_property
+    from: REQ-prolog-bundle-verification
+    to: FACT-prolog-bundled-sets-swi-home-dir-for-bundled-child
+    created_at: 2026-11-10T09:18:13.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c520ad180060
+  - type: specified_by
+    from: REQ-prolog-bundle-verification
+    to: SCEN-prolog-bundled-runtime
+    created_at: 2026-11-10T09:18:13.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12583cc58ab3
+  - type: specified_by
+    from: REQ-prolog-bundle-verification
+    to: SCEN-NEG-prolog-bundle-verification-CORRUPT-BUNDLE
+    created_at: 2026-11-10T09:18:13.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e4422fd5d43
+  - type: verified_by
+    from: REQ-prolog-bundle-verification
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-11-10T09:18:13.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa635f53bb03
+  - type: supersedes
+    from: REQ-prolog-bundle-verification
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-11-10T09:18:13.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c352b185b14

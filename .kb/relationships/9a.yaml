@@ -1,11 +1,4 @@
 relationships:
-  - type: covered_by
-    from: SYM-auto-09D119AE523D
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-16T07:54:08.116Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d89c105748b4
   - type: verified_by
     from: REQ-core-journaled-engine-persistence
     to: TEST-core-journaled-engine-persistence
@@ -20,41 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2f228156820
-  - type: implements
-    from: SYM-DiagnosticErrorFields
-    to: REQ-002
-    created_at: 2026-08-22T20:05:49.248Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6aa96f757b39
-  - type: covered_by
-    from: SYM-DiagnosticErrorFields
-    to: TEST-005
-    created_at: 2026-08-22T20:05:49.261Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-48201c3f55da
-  - type: covered_by
-    from: SYM-DiagnosticErrorFields
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:05:49.269Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dfaa3b956726
-  - type: implements
-    from: SYM-auto-09D119AE523D
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:50:41.433Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9ad525deb6ca
-  - type: covered_by
-    from: SYM-auto-09D119AE523D
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:50:41.442Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1af69f77c8e5
   - type: relates_to
     from: FACT-cli-query-FAFD65
     to: REQ-cli-query
@@ -63,33 +21,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-e834d2b125d5
   - type: covered_by
-    from: SYM-skillopt-fixture-symbol-id
-    to: TEST-generated-coordinate-repair
-    created_at: 2026-09-05T16:57:58.529Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d8c0745c2869
-  - type: covered_by
-    from: SYM-modeling-predicate-loader-stringArray
-    to: TEST-mcp-suggest-predicates
-    created_at: 2026-09-05T17:44:54.465Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b2ed6fc15ebd
-  - type: covered_by
     from: SYM-isTraceabilityRelationshipType
     to: TEST-cli-symbol-behavioral-anchors
     created_at: 2026-09-05T18:22:57.801Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38ba474a5e08
-  - type: implements
-    from: SYM-checkMustPriorityCoverage
-    to: REQ-cli-check
-    created_at: 2026-09-14T14:58:39.532Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7218a9ec229b
   - type: covered_by
     from: SYM-checkMustPriorityCoverage
     to: TEST-004
@@ -97,20 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-63490dea0db7
-  - type: covered_by
-    from: SYM-auto-09D119AE523D
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-18T06:53:16.253Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f30f33bee8ab
-  - type: covered_by
-    from: SYM-DiagnosticErrorFields
-    to: TEST-kibi-telemetry-acceptance-gate
-    created_at: 2026-09-18T14:52:55.966Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-548101a2ac3e
   - type: specified_by
     from: REQ-impact-policy-stage-e-content-bound-review
     to: SCEN-impact-policy-stage-e-installed-consumer
@@ -265,34 +188,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c9ae4e52155
-  - type: implements
-    from: SYM-cursor-dts-isProjectScopedPackage
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:15.741Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e8feff76867c
-  - type: covered_by
-    from: SYM-cursor-dts-isProjectScopedPackage
-    to: TEST-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:15.756Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-115f1a07a451
-  - type: implements
-    from: SYM-auto-09D119AE523D
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:55:54.517Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f15f7548a903
-  - type: implements
-    from: SYM-bootstrap-near-restatement-jaccard
-    to: REQ-bootstrap-claim-restatement
-    created_at: 2026-10-14T09:06:12.603Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f1f5f86e114e
   - type: covered_by
     from: SYM-bootstrap-near-restatement-jaccard
     to: TEST-kibi-bootstrap-knowledge-sources
@@ -440,3 +335,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7905b6b3be55
+  - type: covered_by
+    from: SYM-checkMustPriorityCoverage
+    to: TEST-cli-check-integrity
+    created_at: 2026-09-14T20:23:09.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fa774acd7a1
+  - type: assumes
+    from: SCEN-NEG-kibi-canonical-source-authoring-DERIVED-TREE-WRITE
+    to: FACT-NEG-kibi-canonical-source-authoring-DERIVED-TREE-WRITE
+    created_at: 2026-11-10T09:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65e4a087cd50
+  - type: verified_by
+    from: SCEN-NEG-kibi-canonical-source-authoring-DERIVED-TREE-WRITE
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-11-10T09:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cf712d9a656
+  - type: assumes
+    from: SCEN-NEG-skillopt-offline-contract-without-bundle-gate-BUNDLE-PHASE
+    to: FACT-NEG-skillopt-offline-contract-without-bundle-gate-BUNDLE-PHASE
+    created_at: 2026-11-10T10:45:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8bf604a3e17
+  - type: verified_by
+    from: SCEN-NEG-skillopt-offline-contract-without-bundle-gate-BUNDLE-PHASE
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T10:45:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b69582c859d4

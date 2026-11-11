@@ -11,7 +11,6 @@ tags:
   - vscode
   - kibi
   - traceability
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-vscode-traceability-coverage
@@ -37,10 +36,13 @@ semantic_inventory:
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6). Maintainer decision, 2026-11-11, approving entity context that was inferred (not recorded in history) in the KB gold-standard review (context batch 9, inferred): "Ok"'
   approved_by: maintainer
   recorded_at: '2026-11-03T11:35:21.000Z'
 firmness: default
 required_evidence: tested
 ---
 - The Kibi VS Code extension must provide traceability in both directions between the knowledge base and source code.
+
+## Why
+Developers work in the editor, so the links between code and the KB should be navigable there in both directions, not only through an agent or the CLI. Inferred from: ADR-007 and ADR-annotation-strategy on the VS Code tree view and code actions.

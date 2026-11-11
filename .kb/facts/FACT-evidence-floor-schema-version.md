@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.check.rule_names
 claim_key: CLAIM-75CDA06E155F91E2
 claim_text: Evidence floors shall start at KB schema version 11
-text_ref: REQ-kibi-check-rule-names
+text_ref: REQ-kibi-evidence-floor-rule-name
 property_key: evidence_floor_schema
 operator: eq
 value_type: int

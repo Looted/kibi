@@ -22,4 +22,4 @@ origin:
 id: FACT-PRED-telemetry-recall-markers-local
 type: fact
 ---
-Retry, repeated search and skill load markers shall stay on the user's machine as one-way hashes. Grounds one clause of REQ-kibi-telemetry-agent-signals as a conditional behavior of telemetry events.
+Retry, repeated search and skill load markers shall stay on the user's machine as one-way hashes. Grounds one clause of REQ-kibi-telemetry-session-signals as a conditional behavior of telemetry events.

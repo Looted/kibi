@@ -21,6 +21,8 @@ describe("Kibi MCP tool names", () => {
     expect(canonicalKbOperation("mcp__x__kibi_kb_upsert")).toBe("kb_upsert");
     // Only a leading kibi_ is an alias prefix.
     expect(canonicalKbOperation("kb_kibi_x")).toBe("kb_kibi_x");
+    // The shared kibi-agent-core rule also reads Cursor's MCP: prefix.
+    expect(canonicalKbOperation("MCP:kb_status")).toBe("kb_status");
   });
 
   test("anything else is not a Kibi operation", () => {
@@ -31,6 +33,8 @@ describe("Kibi MCP tool names", () => {
       "kb_",
       "kb_Check",
       "kb_check2",
+      // A kb_ name whose tail looks like an operation is still not one.
+      "kb_X.kb_check",
       "xkb_check",
       "kb_check__Read",
       "mcp__kibi__",

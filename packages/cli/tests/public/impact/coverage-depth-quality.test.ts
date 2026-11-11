@@ -365,6 +365,28 @@ describe("createCoverageDepthQualityDiagnostics", () => {
   });
 });
 
+describe("createCoverageDepthQualityDiagnostics proof exemption", () => {
+  it("skips a proof-exempt requirement with a reason", () => {
+    const exempt = (id: string, reason: string) => {
+      const base = result({ id, type: "req" });
+      return {
+        ...base,
+        entity: {
+          ...base.entity,
+          proof_exempt: true,
+          proof_exempt_reason: reason,
+        },
+      };
+    };
+    expect(
+      createCoverageDepthQualityDiagnostics([
+        exempt("REQ-EXEMPT", "Verified by the CI proof workflow."),
+        exempt("REQ-NO-REASON", "  "),
+      ]).map((diagnostic) => diagnostic.entityId),
+    ).toEqual(["REQ-NO-REASON"]);
+  });
+});
+
 describe("createCoarseAnchorQualityDiagnostics", () => {
   const symbol = (
     id: string,
@@ -402,6 +424,37 @@ describe("createCoarseAnchorQualityDiagnostics", () => {
             { id: "SYM-file", granularityReason: "module-level-behavior" },
           ],
         }),
+      }),
+    ]);
+  });
+
+  it("does not count a whole-file anchor on a file no extractor covers", () => {
+    const anchored = (id: string, sourceFile: string) => {
+      const base = symbol(id, "config-artifact", [
+        { type: "implements", from: id, to: "REQ-CONFIG" },
+      ]);
+      return { ...base, sourceFile };
+    };
+    expect(
+      createCoarseAnchorQualityDiagnostics([
+        result({ id: "REQ-CONFIG", type: "req" }),
+        anchored("SYM-json", "packages/a/package.json"),
+        anchored("SYM-yaml", ".github/workflows/ci.yml"),
+        anchored("SYM-bin", "packages/mcp/bin/kibi-mcp"),
+      ]),
+    ).toEqual([]);
+
+    // A whole-file anchor on a TypeScript file could be narrowed, so it is
+    // still reviewed; the JSON anchor beside it is left out.
+    expect(
+      createCoarseAnchorQualityDiagnostics([
+        result({ id: "REQ-CONFIG", type: "req" }),
+        anchored("SYM-json", "packages/a/package.json"),
+        anchored("SYM-ts", "packages/a/src/index.ts"),
+      ]).map((diagnostic) => diagnostic.evidence),
+    ).toEqual([
+      expect.objectContaining({
+        symbols: [{ id: "SYM-ts", granularityReason: "config-artifact" }],
       }),
     ]);
   });

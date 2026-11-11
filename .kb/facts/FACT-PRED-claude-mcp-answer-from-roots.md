@@ -1,6 +1,6 @@
 ---
 title: 'Predicate: conditional_behavior(kibi_claude_mcp_launcher,client_roots_name_other_kibi_workspace,answer_tool_call_from_that_workspace)'
-status: active
+status: archived
 fact_kind: predicate
 predicate_name: conditional_behavior
 predicate_args:

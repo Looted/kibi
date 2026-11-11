@@ -3,7 +3,7 @@ title: A Cursor turn delivers a plan and also edits a source file, and the plan 
 status: active
 fact_kind: property_value
 subject_key: cursor.kibi_plugin
-property_key: clause_04_if_the_same_turn_both_delivered_a_plan_and_actua
+property_key: followup_kept_when_plan_has_edits
 operator: eq
 value_type: bool
 value_bool: false

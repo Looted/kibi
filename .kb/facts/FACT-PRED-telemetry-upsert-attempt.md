@@ -22,4 +22,4 @@ origin:
 id: FACT-PRED-telemetry-upsert-attempt
 type: fact
 ---
-A telemetry event for an upsert shall report its attempt number on the same entity. Grounds one clause of REQ-kibi-telemetry-agent-signals as a conditional behavior of telemetry events.
+A telemetry event for an upsert shall report its attempt number on the same entity. Grounds one clause of REQ-kibi-telemetry-session-signals as a conditional behavior of telemetry events.

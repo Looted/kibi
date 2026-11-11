@@ -28,4 +28,4 @@ origin:
 id: FACT-SCHEMA-KB-DEPENDENCY-POLICY
 type: fact
 ---
-Predicate schema for the claims of REQ-kb-dependencies-git: which commit a dependency is read at, where its answers come from, which KB schemas are accepted, what kibi deps lock records, and which operations take the kb argument.
+Predicate schema for the claims of the KB dependency requirements: which commit a dependency is read at, where its answers come from, which KB schemas are accepted, what kibi deps lock records, and which operations take the kb argument.

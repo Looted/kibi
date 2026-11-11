@@ -117,7 +117,9 @@ logic_claims:
   - CLAIM-EEDE76A4E1CA9FBD
   - CLAIM-C533C51637295AA8
 origin:
+  ref: 'Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:13:09.581Z'
 id: REQ-claude-hook-usage-telemetry-v2
 type: req
@@ -127,3 +129,6 @@ kibi-claude hooks must append hook usage records to .kb/usage.log only when KIBI
 ## Rationale
 
 MCP and CLI usage rows show which Kibi operations ran, but not what the agent was doing around them. Hook rows fill that gap: joined on the host session id they show whether agents look requirements up before they change requirement-linked code, which the telemetry acceptance report turns into the `lookup_before_first_edit` metric (changeset `lookup-before-first-edit`). The superseded requirement said acceptance excludes hook rows entirely, which stopped being true when that metric started reading them. Rows are written only when the operator opts in with `KIBI_DIAGNOSTIC_MODE`, and every host plugin now writes them through the shared `kibi-agent-core` hook usage log.
+
+## Why this changed
+The requirement text had drifted from the code. Hook records now also name the host agent that wrote them. Source: commit "align Kibi's own knowledge base", Oct 4, which superseded requirements whose text drifted from the code.

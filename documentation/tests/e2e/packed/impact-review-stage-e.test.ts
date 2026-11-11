@@ -1253,6 +1253,88 @@ async function runInstalledDerivedCoordinateWorkflow(
     );
 
     const api = await loadImpactApi(sandbox);
+    // Impact review runs only release-qualified analyzers whose installed
+    // files match their approval: the packed Tree-sitter analyzer passes, a
+    // package without an approval is refused before it can run.
+    assert.ok(
+      api.maintenance.fingerprintMaintenanceSourceSet(
+        sandbox.repoDir,
+        sourceConfig,
+      ),
+      "the release-qualified Tree-sitter analyzer is approved",
+    );
+    assert.throws(
+      () =>
+        api.maintenance.fingerprintMaintenanceSourceSet(sandbox.repoDir, {
+          plugins: [
+            {
+              package: "kibi-unapproved-analyzer",
+              capabilities: {
+                "kibi.symbol-extractor.v2": { mode: "augment" },
+              },
+            },
+          ],
+        }),
+      /Source analyzer is not approved for impact review: kibi-unapproved-analyzer/,
+      "an analyzer without a release approval must be refused",
+    );
+    const approvals = (await installedModule(
+      sandbox,
+      "plugins/approved-source-analyzers.js",
+    )) as Readonly<{
+      APPROVED_SOURCE_ANALYZERS: readonly Readonly<{
+        packageName: string;
+        files: Readonly<Record<string, string>>;
+      }>[];
+    }>;
+    const treeSitterApproval = approvals.APPROVED_SOURCE_ANALYZERS.find(
+      (approval) => approval.packageName === "kibi-plugin-treesitter",
+    );
+    assert.ok(treeSitterApproval, "Tree-sitter has a release approval");
+    const verifier = (await installedModule(
+      sandbox,
+      "plugins/maintenance-source-analysis.js",
+    )) as Readonly<{
+      verifyApprovedSourceAnalyzer: (root: string, approval: unknown) => string;
+    }>;
+    const treeSitterRoot = join(
+      sandbox.repoDir,
+      "node_modules",
+      "kibi-plugin-treesitter",
+    );
+    const [pinnedFile] = Object.keys(treeSitterApproval.files);
+    assert.ok(pinnedFile, "the approval pins at least one installed file");
+    const pinnedPath = join(treeSitterRoot, pinnedFile);
+    const pinnedBytes = readFileSync(pinnedPath);
+    writeFileSync(pinnedPath, Buffer.concat([pinnedBytes, Buffer.from("\n")]));
+    try {
+      assert.throws(
+        () =>
+          verifier.verifyApprovedSourceAnalyzer(
+            treeSitterRoot,
+            treeSitterApproval,
+          ),
+        /Source analyzer integrity mismatch/,
+        "an installed analyzer file that differs from its approval must be refused",
+      );
+    } finally {
+      writeFileSync(pinnedPath, pinnedBytes);
+    }
+    assert.ok(
+      verifier.verifyApprovedSourceAnalyzer(treeSitterRoot, treeSitterApproval),
+      "the restored analyzer matches its approval again",
+    );
+    const analysisService = (await installedModule(
+      sandbox,
+      "plugins/source-analysis-service.js",
+    )) as Readonly<{ providerBudgetMs: (hostTimeoutMs: number) => number }>;
+    for (const hostTimeoutMs of [50, 5_000, 30_000]) {
+      const budget = analysisService.providerBudgetMs(hostTimeoutMs);
+      assert.ok(
+        budget > 0 && budget < hostTimeoutMs,
+        `the provider budget ${budget} must stay inside the host deadline ${hostTimeoutMs}`,
+      );
+    }
     const initialized = await kibi(sandbox, ["init", "--no-hooks"], {
       timeoutMs: COMMAND_TIMEOUT_MS,
     });
@@ -1373,6 +1455,20 @@ async function runInstalledDerivedCoordinateWorkflow(
       generatedPass,
       0,
       "generated gate needs no review for derived decorator coordinates",
+    );
+
+    // This fixture never enabled an impact policy, so a staged change to an
+    // owned declaration keeps the existing staged check behavior.
+    const noPolicyCheck = await kibi(
+      sandbox,
+      ["check", "--staged", "--format", "json"],
+      { timeoutMs: COMMAND_TIMEOUT_MS },
+    );
+    parseJsonObject(noPolicyCheck.stdout, "staged check without impact policy");
+    assert.doesNotMatch(
+      outputOf(noPolicyCheck),
+      /Staged impact review failed|impact review record missing/i,
+      "a project without an impact policy must not be held to impact review",
     );
 
     const coordinateSync = await kibi(
@@ -1935,6 +2031,92 @@ async function runInstalledImpactPolicyWorkflow(
     );
     assert.notEqual(reviewedHead, receiptHead);
 
+    // A pull request that edits the impact policy is refused by the trusted
+    // gate instead of being judged by its own candidate policy.
+    await assertGit(
+      sandbox,
+      ["switch", "-c", "feature/impact-policy-change", receiptHead],
+      "branch a candidate policy change from the reviewed head",
+    );
+    const policyPath = join(sandbox.repoDir, ".kibi/impact-policy.json");
+    const candidatePolicy = parseJsonObject(
+      readFileSync(policyPath, "utf8"),
+      "trusted impact policy",
+    );
+    writeFileSync(
+      policyPath,
+      `${JSON.stringify({ ...candidatePolicy, notApplicablePaths: ["src"] }, null, 2)}\n`,
+      "utf8",
+    );
+    assertExit(
+      await stage(sandbox, [".kibi/impact-policy.json"]),
+      0,
+      "stage the candidate policy change",
+    );
+    await assertGit(
+      sandbox,
+      ["commit", "-m", "loosen the impact policy in the candidate"],
+      "commit the candidate policy change",
+    );
+    const policyHead = await assertGit(
+      sandbox,
+      ["rev-parse", "HEAD"],
+      "read the candidate policy head",
+    );
+    const policyEventPath = join(
+      sandbox.baseDir,
+      "policy-change-pull-request-event.json",
+    );
+    writeFileSync(
+      policyEventPath,
+      `${JSON.stringify(
+        {
+          repository: { full_name: repository },
+          pull_request: {
+            base: {
+              ref: "main",
+              sha: targetCommit,
+              repo: { full_name: repository },
+            },
+            head: { sha: policyHead },
+          },
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+    await assertGit(
+      sandbox,
+      ["switch", "main"],
+      "return to the protected target for the policy-change gate",
+    );
+    const policyChangeGate = await run(
+      "node",
+      [sandbox.kibiBin, "check-diff"],
+      {
+        cwd: sandbox.repoDir,
+        env: {
+          ...sandbox.env,
+          GITHUB_EVENT_NAME: "pull_request_target",
+          GITHUB_EVENT_PATH: policyEventPath,
+          GITHUB_REPOSITORY: repository,
+          KIBI_IMPACT_TRUSTED_TARGET_REF: "refs/heads/main",
+          GITHUB_SHA: targetCommit,
+        },
+        timeoutMs: COMMAND_TIMEOUT_MS,
+      },
+    );
+    assertExit(
+      policyChangeGate,
+      1,
+      "trusted gate refuses a candidate that edits the impact policy",
+    );
+    assert.match(
+      outputOf(policyChangeGate),
+      /Impact policy changes must be merged to the protected target separately before reviewed changes/,
+    );
+
     writeFileSync(
       join(sandbox.repoDir, "src/malformed.ts"),
       "export function broken( {\r\n",
@@ -1982,9 +2164,140 @@ async function runInstalledImpactPolicyWorkflow(
       "syntax-derived partial output must remain non-waivable under the explicit unsupported-review policy",
     );
 
+    await assertSnapshotAndAnalysisGateContracts(sandbox);
+
     assertExplicitMigrationDocumentation();
   } finally {
     await sandbox.cleanup();
+  }
+}
+
+type GateRange = Readonly<{ startLine: number; endLine: number }>;
+type GateInput = Readonly<{
+  status: "ok" | "partial" | "unsupported" | "failed";
+  diagnosticCodes: readonly string[];
+  uncoveredRanges: readonly (GateRange & Readonly<{ reason: string }>)[];
+}>;
+type InstalledSnapshot = Readonly<{
+  headTree: string;
+  inventory: readonly Readonly<{ path: string; content?: string }>[];
+  assertUnchanged: () => void;
+}>;
+
+/**
+ * Change snapshots and the analysis gate, through the installed modules: a
+ * staged snapshot is one tree written from the index, so a working-tree edit
+ * never enters it and a later index change is detected; a revision diff
+ * resolves the explicit base and head; failed analysis and non-local gaps
+ * block only on the after side.
+ */
+async function assertSnapshotAndAnalysisGateContracts(
+  sandbox: TestSandbox,
+): Promise<void> {
+  const snapshots = (await installedModule(
+    sandbox,
+    "traceability/git-change-snapshot.js",
+  )) as Readonly<{
+    captureStagedSnapshot: (repoDir: string) => InstalledSnapshot;
+    captureDiffSnapshot: (
+      repoDir: string,
+      base: string,
+      head: string,
+    ) => InstalledSnapshot;
+  }>;
+  const indexSnapshot = snapshots.captureStagedSnapshot(sandbox.repoDir);
+  writeFileSync(
+    join(sandbox.repoDir, "src/malformed.ts"),
+    "export function unstagedWorkingTreeEdit(): void {}\n",
+    "utf8",
+  );
+  const afterWorkingTreeEdit = snapshots.captureStagedSnapshot(sandbox.repoDir);
+  assert.equal(
+    afterWorkingTreeEdit.headTree,
+    indexSnapshot.headTree,
+    "an unstaged working-tree edit must not change the staged snapshot tree",
+  );
+  assert.doesNotMatch(
+    afterWorkingTreeEdit.inventory.find(
+      (entry) => entry.path === "src/malformed.ts",
+    )?.content ?? "",
+    /unstagedWorkingTreeEdit/,
+    "the staged snapshot must inventory index objects, not working-tree bytes",
+  );
+  indexSnapshot.assertUnchanged();
+  const restage = await stage(sandbox, ["src/malformed.ts"]);
+  assertExit(restage, 0, "stage the working-tree edit");
+  assert.throws(
+    () => indexSnapshot.assertUnchanged(),
+    /Git index or HEAD changed during staged analysis/,
+    "a staged snapshot must detect an index change made after capture",
+  );
+  const sameRevision = snapshots.captureDiffSnapshot(
+    sandbox.repoDir,
+    "HEAD",
+    "HEAD",
+  );
+  assert.equal(
+    sameRevision.inventory.length,
+    0,
+    "a revision diff between identical explicit revisions has no changes",
+  );
+  assert.throws(
+    () =>
+      snapshots.captureDiffSnapshot(
+        sandbox.repoDir,
+        "HEAD",
+        "no-such-revision-for-kibi",
+      ),
+    "a revision diff must refuse a head revision that does not resolve",
+  );
+
+  const gate = (await installedModule(
+    sandbox,
+    "traceability/analysis-gate.js",
+  )) as Readonly<{
+    analysisObligation: (
+      side: "before" | "after",
+      analysis: GateInput,
+      hunks: readonly Readonly<{ start: number; end: number }>[],
+    ) => Readonly<{ kind: string; reason?: string }>;
+  }>;
+  const failed: GateInput = {
+    status: "failed",
+    diagnosticCodes: ["PROVIDER_CRASHED"],
+    uncoveredRanges: [],
+  };
+  const syntaxGap: GateInput = {
+    status: "partial",
+    diagnosticCodes: ["SYNTAX_ERROR"],
+    uncoveredRanges: [{ startLine: 1, endLine: 1, reason: "syntax error" }],
+  };
+  const localGap: GateInput = {
+    status: "partial",
+    diagnosticCodes: [],
+    uncoveredRanges: [{ startLine: 10, endLine: 12, reason: "decorator" }],
+  };
+  assert.equal(
+    gate.analysisObligation("after", failed, []).kind,
+    "blocked",
+    "failed after-side analysis must block",
+  );
+  assert.equal(
+    gate.analysisObligation("after", syntaxGap, [{ start: 40, end: 41 }]).kind,
+    "blocked",
+    "a non-local after-side gap must block even away from the changed lines",
+  );
+  assert.equal(
+    gate.analysisObligation("after", localGap, [{ start: 1, end: 2 }]).kind,
+    "none",
+    "a local after-side gap away from the changed lines does not block",
+  );
+  for (const analysis of [failed, syntaxGap, localGap]) {
+    assert.deepEqual(
+      gate.analysisObligation("before", analysis, [{ start: 1, end: 12 }]),
+      { kind: "none" },
+      `a before-side ${analysis.status} analysis must stay informational`,
+    );
   }
 }
 

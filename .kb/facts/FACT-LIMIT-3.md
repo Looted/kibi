@@ -1,7 +1,7 @@
 ---
 id: FACT-LIMIT-3
 title: Maximum of Three
-status: active
+status: archived
 created_at: 2026-02-20T13:00:00.000Z
 updated_at: 2026-04-21T10:00:00.000Z
 tags:

@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_04_the_opencode_plugin_must_classify_the_workspace_as_vendored_
+property_key: posture_vendored_only
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_posture_detection.clause_04_the_opencode_plugin_must_classify_the_workspace_as_vendored_.eq.true
+canonical_key: req.req_opencode_posture_detection.posture_vendored_only.eq.true
 claim_key: CLAIM-CCAADD688C493D49
 claim_text: The OpenCode plugin must classify the workspace as vendored_only when Kibi is present only in vendored dependencies
 origin:

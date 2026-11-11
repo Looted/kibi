@@ -516,6 +516,42 @@ This requirement is intentionally not must-priority.
     );
 
     it(
+      "keeps kb_query exact: a partial id matches nothing",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const queryById = async (
+          id: string,
+        ): Promise<Array<{ id: string }>> => {
+          const result = await kibi(sandbox, [
+            "query",
+            "req",
+            "--id",
+            id,
+            "--format",
+            "json",
+          ]);
+          assert.strictEqual(result.exitCode, 0, result.stderr);
+          return JSON.parse(result.stdout) as Array<{ id: string }>;
+        };
+
+        // Exact lookup finds the entity; a prefix of its id is not a fuzzy
+        // match and returns nothing.
+        const exact = await queryById("REQ-DISC-001");
+        assert.deepStrictEqual(
+          exact.map((entity) => entity.id),
+          ["REQ-DISC-001"],
+        );
+        assert.deepStrictEqual(await queryById("REQ-DISC-00"), []);
+        assert.deepStrictEqual(await queryById("req-disc-001"), []);
+      },
+    );
+
+    it(
       "writes derived diagnostic fields in MCP diagnostic mode",
       { timeout: 120000 },
       async (testContext) => {

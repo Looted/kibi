@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.check.rule_names
 claim_key: CLAIM-B7F45C2F4CC9E21A
 claim_text: The policy markers rule shall be policy-markers
-text_ref: REQ-kibi-check-rule-names
+text_ref: REQ-kibi-policy-rule-names
 property_key: policy_markers_rule
 operator: eq
 value_type: string

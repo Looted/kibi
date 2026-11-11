@@ -6,13 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-561e0ce8ece2
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-spec
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:15:11.548Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9da817af4a41
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-spec
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -20,20 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6460f9726f88
-  - type: implements
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-detectkibibootstrapcommandcapability
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:37.814Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3a836632b947
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-detectkibibootstrapcommandcapability
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:37.819Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-01e3c9392cec
   - type: implements
     from: SYM-handleKbSkillsLoad
     to: REQ-002
@@ -76,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77027647ee37
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-detectkibibootstrapcommandcapability
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:17:43.563Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5e6c6336443b
   - type: implements
     from: SYM-mutation-relationships-schema
     to: REQ-kibi-operation-interface-parity
@@ -104,13 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4dd818963ed4
-  - type: implements
-    from: SYM-SYMBOL_COORDINATES_FORMAT_VERSION
-    to: REQ-generated-coordinate-persistence
-    created_at: 2026-08-23T20:36:45.229Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-366ad89bf1e8
   - type: covered_by
     from: SYM-SYMBOL_COORDINATES_FORMAT_VERSION
     to: TEST-generated-coordinate-repair
@@ -118,34 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55400ca4c3a3
-  - type: implements
-    from: SYM-migrationApplyContractViolations
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-23T23:20:26.335Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2c38aa12d706
-  - type: covered_by
-    from: SYM-migrationApplyContractViolations
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-23T23:20:26.350Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5f0f3ae0f074
-  - type: implements
-    from: SYM-quality-inventory-02098b3620d2
-    to: REQ-cursor-kibi-plugin-v1
-    created_at: 2026-09-14T20:33:45.675Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12f6c73dd8a4
-  - type: covered_by
-    from: SYM-quality-inventory-02098b3620d2
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-14T20:33:45.688Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f0a66be095a
   - type: executable_for
     from: SYM-e2e-test-briefs-retired
     to: TEST-e2e-briefs-retired
@@ -160,27 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-807282fd0ec3
-  - type: covered_by
-    from: SYM-cap-plugin-iscapabilityid-2e16a4ad
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:47:25.657Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e8dc488fff9c
-  - type: implements
-    from: SYM-claude-KnowledgeIndex
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:22:19.458Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-78adc7500cf0
-  - type: covered_by
-    from: SYM-claude-KnowledgeIndex
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:22:19.475Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b22329a5bb54
   - type: implements
     from: SYM-resetProlog
     to: REQ-core-prolog-process-management
@@ -412,3 +328,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c790e171bb01
+  - type: constrains
+    from: REQ-kibi-search-hints-advisory
+    to: FACT-search-hints-host-subject
+    created_at: 2026-11-04T14:55:31.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4cc4633e4d3
+  - type: requires_property
+    from: REQ-kibi-search-hints-advisory
+    to: FACT-search-hints-host-answer-unchanged
+    created_at: 2026-11-04T14:55:31.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f117a6f79d80
+  - type: requires_property
+    from: REQ-kibi-search-hints-advisory
+    to: FACT-search-hints-host-failure-safe
+    created_at: 2026-11-04T14:55:31.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf749950cae9
+  - type: requires_property
+    from: REQ-kibi-search-hints-advisory
+    to: FACT-search-hints-host-shadow-compare
+    created_at: 2026-11-04T14:55:31.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fdb1572f081
+  - type: specified_by
+    from: REQ-kibi-search-hints-advisory
+    to: SCEN-kibi-search-hints-host
+    created_at: 2026-11-04T14:55:31.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7024ec7302dc
+  - type: specified_by
+    from: REQ-kibi-search-hints-advisory
+    to: SCEN-NEG-kibi-search-hints-host-FAILING-PROVIDER
+    created_at: 2026-11-04T14:55:31.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01228924e3a8
+  - type: supersedes
+    from: REQ-kibi-search-hints-advisory
+    to: REQ-kibi-search-hints-host
+    created_at: 2026-11-04T14:55:31.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb978df4d842
+  - type: assumes
+    from: SCEN-NEG-kibi-proof-fingerprint-MISSING-PARTS
+    to: FACT-NEG-kibi-proof-fingerprint-MISSING-PARTS
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ca8b0a2fe52
+  - type: verified_by
+    from: SCEN-NEG-kibi-proof-fingerprint-MISSING-PARTS
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b0d1cc9b4d7
+  - type: assumes
+    from: SCEN-NEG-kibi-coverage-depth-proof-exempt
+    to: FACT-NEG-kibi-coverage-depth-quality-PROOF-EXEMPT-REPORTED
+    created_at: 2026-11-11T18:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-820dc519943b
+  - type: verified_by
+    from: SCEN-NEG-kibi-coverage-depth-proof-exempt
+    to: TEST-e2e-check-review-rules
+    created_at: 2026-11-11T18:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25fb4a0a5faa

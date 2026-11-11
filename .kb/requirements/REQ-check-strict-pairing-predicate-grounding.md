@@ -24,6 +24,7 @@ semantic_inventory:
       end: 149
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T15:34:23.505Z'
 id: REQ-check-strict-pairing-predicate-grounding
 type: req

@@ -246,7 +246,8 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/engine.test.ts",
-        "./scripts/tests/run-owned-engine-tests.test.ts"
+        "./scripts/tests/run-owned-engine-tests.test.ts",
+        "./packages/cli/tests/cli-operation-metadata.test.ts"
       ],
       [
         "node",
@@ -1161,6 +1162,13 @@
         "--timeout",
         "15000",
         "./packages/cli/tests/parity/helpers.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/agent-core/tests/agent-core.test.ts"
       ]
     ]
   },
@@ -7397,6 +7405,93 @@
         "240000",
         "./packages/cli/tests/commands/doctor-merge-driver-hint.test.ts",
         "./packages/cli/tests/utils/merge-driver-setup.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-opencode-v2-plugin-load",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/opencode-plugin.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-skillopt-optimizer-toolchain",
+    "steps": [
+      [
+        "bun",
+        "run",
+        "documentation/tests/e2e/skillopt-optimizer-toolchain.e2e.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-agent-core-shared-hook-inputs",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/agent-core/tests/shared-hook-inputs.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-supersedes-history-unit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations-mutation/mutation/relationships.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-015",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/issue-93-regression.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-impact-aggregate-gate-unit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/traceability/impact-pr-diff.test.ts",
+        "./packages/cli/tests/traceability/trusted-pr-event.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-impact-policy-opt-in-unit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/traceability/impact-policy.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-check-review-rules",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/check-review-rules.test.ts"
       ]
     ]
   }

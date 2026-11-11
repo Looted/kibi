@@ -1,6 +1,6 @@
 ---
 title: Packed Codex Plugin Resolves Consumer-Local MCP
-status: active
+status: passing
 priority: must
 text_ref: documentation/tests/e2e/packed/codex-plugin.test.ts
 tags:
@@ -11,7 +11,6 @@ tags:
   - plugin
   - mcp
   - consumer-local
-  - review:context-missing
 id: TEST-codex-consumer-local-mcp-registration-v1
 type: test
 verification_scope: end_to_end
@@ -59,6 +58,9 @@ proof_receipts:
           status: unavailable
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+## Context
+This proves through a packed plugin that the server resolves from the consumer project.

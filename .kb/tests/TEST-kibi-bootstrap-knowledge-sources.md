@@ -1,6 +1,6 @@
 ---
 title: Bootstrap planner consolidates cited intent claims from declared knowledge sources
-status: active
+status: passing
 tags:
   - bootstrap
   - knowledge-sources
