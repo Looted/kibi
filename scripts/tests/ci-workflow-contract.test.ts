@@ -367,10 +367,21 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
     expect(block).not.toContain(ACTION_REF);
     // The job must run Kibi on that install, not just provision it.
     expect(block).toContain('grep -q "SWI-Prolog: .* from PATH"');
-    expect(block).toContain("bun packages/cli/bin/kibi check");
+    expect(block).toContain("sh scripts/kb-zero-findings.sh");
     expect(
       ci.split("run: bash scripts/ci-install-swi-prolog.sh").length - 1,
     ).toBe(1);
+  });
+
+  test("Kibi's own KB check fails on any finding, info level included", () => {
+    const gate = read("scripts", "kb-zero-findings.sh");
+    expect(gate).toContain("check --format json");
+    for (const group of ["violations", "diagnostics", "qualityDiagnostics"]) {
+      expect(gate).toContain(`"${group}"`);
+    }
+    expect(read("scripts", "proof-prepush.sh")).toContain(
+      "sh scripts/kb-zero-findings.sh",
+    );
   });
 
   test("the proof run uses the same bundle", () => {
