@@ -126,6 +126,51 @@ describe("kibi CLI anonymous usage telemetry (end to end)", () => {
     }
   });
 
+  test("an engine that fails to start is sent with its fixed reason, never its message", async () => {
+    const workspace = temporaryDirectory("kibi-telem-engine-");
+    const state = temporaryDirectory("kibi-telem-engine-state-");
+    const collector = startCollector();
+    try {
+      Bun.spawnSync(["git", "init", "-q"], { cwd: workspace });
+      const quiet = { KIBI_TELEMETRY: "0" };
+      const init = await runKibi(["init"], workspace, quiet);
+      expect(init.exitCode).toBe(0);
+      fs.mkdirSync(path.join(workspace, ".kb", "requirements"), {
+        recursive: true,
+      });
+      fs.writeFileSync(
+        path.join(workspace, ".kb", "requirements", "REQ-demo-add.md"),
+        "---\nid: REQ-demo-add\ntitle: Add numbers\nstatus: open\n---\nThe app adds two numbers.\n",
+      );
+      const missing = path.join(workspace, "no-such-swipl");
+      seedDueQueue(state);
+      const sync = await runKibi(["sync"], workspace, {
+        KIBI_TELEMETRY: "1",
+        KIBI_TELEMETRY_DIR: state,
+        KIBI_TELEMETRY_HOST: collector.url,
+        KIBI_SWIPL: missing,
+      });
+      expect(sync.exitCode).not.toBe(0);
+      expect(sync.stderr).toContain("Kibi engine failed to start");
+      await runKibi(["engine", "stop"], workspace, quiet);
+
+      const events = collector.batches.flatMap((batch) =>
+        batch.batch.map((event) => event.properties),
+      );
+      const failed = events.find((event) => event.operation === "sync");
+      expect(failed).toMatchObject({
+        error_category: "engine_start_failed",
+        rejection_code: "swipl_env_invalid",
+        crash_frame: "kibi-cli/dist/engine#connectWithRetry",
+      });
+      const payload = JSON.stringify(collector.batches);
+      expect(payload).not.toContain(missing);
+      expect(payload).not.toContain("not an executable file");
+    } finally {
+      collector.stop();
+    }
+  });
+
   test("kibi telemetry disable, KIBI_TELEMETRY=0 and a harness home stop recording and sending", async () => {
     const workspace = temporaryDirectory("kibi-telem-off-");
     const collector = startCollector();

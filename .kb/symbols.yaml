@@ -69163,6 +69163,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-anonymous-usage-telemetry
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
       - type: implements
         target: REQ-kibi-anonymous-usage-telemetry
   - id: SYM-cli-engine-start-diagnostic
@@ -69176,6 +69178,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-anonymous-usage-telemetry
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
       - type: implements
         target: REQ-kibi-anonymous-usage-telemetry
   - id: SYM-cli-parse-engine-start-diagnostic
@@ -69189,5 +69193,7 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-anonymous-usage-telemetry
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
       - type: implements
         target: REQ-kibi-anonymous-usage-telemetry

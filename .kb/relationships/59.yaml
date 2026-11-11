@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6279f4dd7fb5
+  - type: covered_by
+    from: SYM-cli-parse-engine-start-diagnostic
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-11-11T18:21:17.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a9f5351cae8
