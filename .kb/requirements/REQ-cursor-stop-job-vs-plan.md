@@ -11,7 +11,6 @@ tags:
   - cursor
   - plugin
   - hooks
-  - review:context-missing
 links:
   - type: relates_to
     target: REQ-cursor-kibi-plugin-v1
@@ -73,7 +72,7 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -84,3 +83,6 @@ The Cursor Kibi `stop` hook must treat plan delivery as distinct from job comple
 Cursor does not expose a plan-versus-agent field on `stop`. The plugin observes tools used in that agent loop: `CreatePlan` is plan delivery, and only known editable tools (`Write`, `StrReplace`, `Edit`, and related names) record dirty paths. Reads, search, and `SwitchMode` do not count as edits.
 
 After a turn that observed `CreatePlan` and did not edit source or mutate the knowledge base, `stop` must not emit `followup_message`. If that same turn also edited source or ran `kb_upsert` / `kb_delete`, the existing freshness or KB-mutation follow-up still applies.
+
+## Why
+After a turn that only delivered a plan, the stop hook started an unwanted impact-check follow-up, because reads and searches looked like edits. Source: changeset "cursor-stop-plan-vs-job".

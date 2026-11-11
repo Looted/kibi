@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.proof.run_vocabulary
 claim_key: CLAIM-159D396F3EE48E0B
 claim_text: Kibi shall read coverage rows in pages of at most 10 rows
-text_ref: REQ-kibi-proof-run-vocabulary
+text_ref: REQ-kibi-proof-retention-limits
 property_key: coverage_page_size
 operator: eq
 value_type: int

@@ -1,32 +1,4 @@
 relationships:
-  - id: rel-d4cb3463d283
-    type: implements
-    from: SYM-auto-7D6473217301
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:21:08.699Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-auto-7D6473217301
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-16T07:54:22.373Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8a9f7ef2a73d
-  - type: implements
-    from: SYM-cli-report-repository-provider
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T20:42:32.034Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eef88b8074fb
-  - type: covered_by
-    from: SYM-cli-report-repository-provider
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-18T20:42:32.044Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eac7e5221258
   - type: covered_by
     from: SYM-cli-github-badge-alt
     to: TEST-kibi-github-report-e2e
@@ -34,20 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dad483985fa2
-  - type: covered_by
-    from: SYM-auto-7D6473217301
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:40:51.816Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-72044fa1db16
-  - type: covered_by
-    from: SYM-auto-7D6473217301
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-05T17:18:29.400Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c9ff77842e91
   - type: covered_by
     from: SYM-modeling-predicate-inference-2-inferConsistencyRuleArgs
     to: TEST-mcp-suggest-predicates
@@ -77,62 +35,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3b25cfef3b49
   - type: implements
-    from: SYM-zcode-proof-ZCODE_BUN_TEST_ARGS
-    to: REQ-kibi-verification-receipts-v2
-    created_at: 2026-09-17T08:55:15.120Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5d5d48296140
-  - type: covered_by
-    from: SYM-zcode-proof-ZCODE_BUN_TEST_ARGS
-    to: TEST-zcode-kibi-plugin-v1
-    created_at: 2026-09-17T08:55:15.128Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-42cdc06acf09
-  - type: covered_by
-    from: SYM-cap-plugin-kibipluginv1-23855ffb
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:46:44.900Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-49200acc6919
-  - type: implements
-    from: SYM-claude-SessionState
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:25:20.977Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a3d6e38ee58e
-  - type: covered_by
-    from: SYM-claude-SessionState
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:25:20.990Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8c73e1db2fe2
-  - type: implements
-    from: SYM-operation-require-known-spec
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-09-28T08:28:56.937Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-de64c6fa14a9
-  - type: covered_by
-    from: SYM-operation-require-known-spec
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-28T08:28:56.958Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-65978ffbf65f
-  - type: implements
-    from: SYM-prolog-swipl-inspect-bundle
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T22:55:31.133Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-df21f7510cbe
-  - type: implements
     from: SYM-prolog-swipl-inspect-bundle
     to: REQ-prolog-doctor-runtime-report
     created_at: 2026-09-30T22:55:31.152Z
@@ -153,27 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9377f2f8cdaa
-  - type: implements
-    from: SYM-auto-7D6473217301
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:56:44.861Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-448b5c045673
-  - type: implements
-    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-root-93504e43
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:20:59.060Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-957f506c7616
-  - type: covered_by
-    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-root-93504e43
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:20:59.071Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ee74aa34d348
   - type: executable_for
     from: SYM-proof-perf-trace-max-bytes
     to: TEST-proof-perf-trace-max-bytes
@@ -244,3 +125,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5efc6e7224bb
+  - type: constrains
+    from: REQ-prolog-swipl-resolution-order
+    to: FACT-prolog-bundled-subject
+    created_at: 2026-11-10T09:17:02.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dff059f86e2
+  - type: requires_property
+    from: REQ-prolog-swipl-resolution-order
+    to: FACT-prolog-bundled-resolves-env-then-bundled-then-path
+    created_at: 2026-11-10T09:17:02.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e57d316fe937
+  - type: requires_property
+    from: REQ-prolog-swipl-resolution-order
+    to: FACT-prolog-bundled-skips-bundle-when-env-is-system
+    created_at: 2026-11-10T09:17:02.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-414d786726fb
+  - type: requires_property
+    from: REQ-prolog-swipl-resolution-order
+    to: FACT-prolog-bundled-rejects-path-swipl-older-than-9
+    created_at: 2026-11-10T09:17:02.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2192ef0422e
+  - type: requires_property
+    from: REQ-prolog-swipl-resolution-order
+    to: FACT-prolog-bundled-names-platform-package-and-install-command-when-missing
+    created_at: 2026-11-10T09:17:02.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5a2f0317e34
+  - type: specified_by
+    from: REQ-prolog-swipl-resolution-order
+    to: SCEN-prolog-bundled-runtime
+    created_at: 2026-11-10T09:17:02.346Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-552c38b79548
+  - type: specified_by
+    from: REQ-prolog-swipl-resolution-order
+    to: SCEN-NEG-prolog-bundled-runtime-OLD-PATH-SWIPL
+    created_at: 2026-11-10T09:17:02.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-185f6373d7e7
+  - type: verified_by
+    from: REQ-prolog-swipl-resolution-order
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-11-10T09:17:02.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-579bfd7305fd
+  - type: supersedes
+    from: REQ-prolog-swipl-resolution-order
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-11-10T09:17:02.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0586506674d4

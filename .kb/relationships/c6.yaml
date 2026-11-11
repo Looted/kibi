@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-16T18:52:06.513Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-markdowncandidates
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T14:03:48.038Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1ed7fffde510
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-markdowncandidates
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -56,47 +49,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-74dad03e133a
   - type: covered_by
-    from: SYM-modeling-predicate-loader-predicateSchemaFromEntity
-    to: TEST-mcp-suggest-predicates
-    created_at: 2026-09-05T17:44:49.898Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4ee65f21359a
-  - type: covered_by
     from: SYM-listBundledSkills
     to: TEST-skill-cli-load-validate
     created_at: 2026-09-05T18:04:17.946Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b85c5c2425d
-  - type: implements
-    from: SYM-docs-site-catalog-DocPage
-    to: REQ-docs-readme-published-links
-    created_at: 2026-09-29T13:40:27.780Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c317536bc743
-  - type: covered_by
-    from: SYM-docs-site-catalog-DocPage
-    to: TEST-docs-readme-published-links
-    created_at: 2026-09-29T13:40:27.782Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ef431c893c27
-  - type: implements
-    from: SYM-cli-kb-merge-result
-    to: REQ-cli-kb-merge-driver
-    created_at: 2026-10-02T07:34:31.655Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-04ab3e7a5727
-  - type: covered_by
-    from: SYM-cli-kb-merge-result
-    to: TEST-cli-kb-merge-driver
-    created_at: 2026-10-02T07:34:31.671Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-915804848b80
   - type: validates
     from: TEST-kibi-truthful-consistency
     to: SCEN-kibi-truthful-consistency
@@ -146,27 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e327cba4336
-  - type: implements
-    from: SYM-decision-firmness-list-decision-entities
-    to: REQ-kb-decision-firmness
-    created_at: 2026-10-13T12:58:17.709Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-26655410abf2
-  - type: covered_by
-    from: SYM-decision-firmness-list-decision-entities
-    to: TEST-kb-decision-firmness
-    created_at: 2026-10-13T12:58:17.724Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-889258b5b9b8
-  - type: implements
-    from: SYM-migration-plan-untracked-knowledge-sources-code
-    to: REQ-agent-guided-migration-orchestration
-    created_at: 2026-10-13T12:58:58.831Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-73bc7df96d2e
   - type: covered_by
     from: SYM-migration-plan-untracked-knowledge-sources-code
     to: TEST-agent-guided-migration-orchestration
@@ -174,34 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-574d62d3152b
-  - type: implements
-    from: SYM-x-oc-kibiToolName
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-10-20T08:01:15.263Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3ccd7a5e83e3
-  - type: covered_by
-    from: SYM-x-oc-kibiToolName
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-10-20T08:01:15.277Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4d746e35d3e0
-  - type: covered_by
-    from: SYM-x-oc-kibiToolName
-    to: TEST-opencode-kibi-plugin-v1-coverage
-    created_at: 2026-10-20T08:03:42.289Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-409093322e15
-  - type: covered_by
-    from: SYM-x-oc-kibiToolName
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-10-20T08:05:41.401Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-05619ef35f3b
   - type: executable_for
     from: SYM-proof-context-restatement-jaccard
     to: TEST-proof-context-restatement-jaccard
@@ -258,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba52f0e12f8d
+  - type: assumes
+    from: SCEN-NEG-kibi-impact-next-actions-NO-SUGGESTION
+    to: FACT-NEG-kibi-impact-next-actions-NO-SUGGESTION
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-566a1ce6548a
+  - type: verified_by
+    from: SCEN-NEG-kibi-impact-next-actions-NO-SUGGESTION
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce160bb55d07

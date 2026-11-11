@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_05_the_opencode_plugin_must_classify_new_requirements_that_may_
+property_key: risk_req_policy_candidate
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_risk_classification.clause_05_the_opencode_plugin_must_classify_new_requirements_that_may_.eq.true
+canonical_key: req.req_opencode_risk_classification.risk_req_policy_candidate.eq.true
 claim_key: CLAIM-1375777FC8CAAAF4
 claim_text: The OpenCode plugin must classify new requirements that may need policy alignment as req_policy_candidate
 origin:

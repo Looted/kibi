@@ -34,6 +34,7 @@ semantic_inventory:
       end: 326
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T09:45:42.451Z'
 id: REQ-kb-unowned-file-candidates
 type: req

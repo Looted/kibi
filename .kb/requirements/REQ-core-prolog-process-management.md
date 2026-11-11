@@ -10,7 +10,6 @@ tags:
   - core
   - prolog
   - lifecycle
-  - review:context-missing
 links:
   - type: supersedes
     target: REQ-001
@@ -92,7 +91,7 @@ logic_claims:
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
@@ -102,3 +101,6 @@ Communication with the Prolog engine is conducted via a JSON-RPC bridge, ensurin
 MCP must refresh the attached branch KB when the same branch snapshot is replaced externally (for example, by `kibi sync --rebuild`) while remaining attached to the branch.
 
 Read-after-write consistency is preserved across one-shot (bun) queries: compound goals such as the status query must not be served from the PrologProcess query cache, so a same-session `kb_status` observes file and KB writes made after a previous call instead of returning a stale freshness result.
+
+## Why this changed
+REQ-001 was a placeholder titled "Critical Feature" with no statement. The Prolog process lifecycle it stood for got its own requirement in the app-surface split. Source: REQ-001 body; commit "docs(req): split app surface requirements", May 13.

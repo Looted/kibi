@@ -112,13 +112,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-82ea8f029606
   - type: covered_by
-    from: SYM-mcp-setupTransportHandlers
-    to: TEST-mcp-search-discovery
-    created_at: 2026-09-05T17:37:22.342Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d0c5b361c09d
-  - type: covered_by
     from: SYM-modeling-predicate-inference-1-inferConsentRuleArgs
     to: TEST-mcp-suggest-predicates
     created_at: 2026-09-05T17:41:34.479Z
@@ -146,20 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b661b6e96ebc
-  - type: implements
-    from: SYM-prolog-swipl-manifest-schema-js
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:31.806Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-62d294845279
-  - type: covered_by
-    from: SYM-prolog-swipl-manifest-schema-js
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:31.819Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a3a82e236145
   - type: executable_for
     from: SYM-test-bundled-swipl-docs
     to: TEST-prolog-bundled-quickstart
@@ -167,13 +146,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69a066616499
-  - type: implements
-    from: SYM-mcp-WORKSPACE_ROOT_ARGUMENT
-    to: REQ-mcp-workspace-routing
-    created_at: 2026-10-02T14:45:34.531Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-230f08f2b741
   - type: covered_by
     from: SYM-mcp-WORKSPACE_ROOT_ARGUMENT
     to: TEST-mcp-workspace-routing
@@ -223,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1b66be3dd8a5
-  - type: implements
-    from: SYM-const-agent-requirement-unapproved-rule
-    to: REQ-kibi-check-rule-names
-    created_at: 2026-10-28T20:20:35.786Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e2983f158351
   - type: covered_by
     from: SYM-const-agent-requirement-unapproved-rule
     to: TEST-proof-agent-requirement-unapproved-rule

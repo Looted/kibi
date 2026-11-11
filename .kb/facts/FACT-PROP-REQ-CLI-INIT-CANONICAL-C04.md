@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.kb.canonical_layout
-property_key: clause_04_gitignore_must_track_authored_kb_knowledge_lanes
+property_key: gitignore_tracks_authored_ignores_derived
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_cli_init_canonical.clause_04_gitignore_must_track_authored_kb_knowledge_lanes.eq.true
+canonical_key: req.req_cli_init_canonical.gitignore_tracks_authored_ignores_derived.eq.true
 claim_key: CLAIM-AF0E9350F5CB0FFF
 claim_text: Gitignore must track authored .kb/ knowledge lanes and ignore derived .kb/branches, .kb/recovery, .kb/verification, and .kb/briefs trees
 id: FACT-PROP-REQ-CLI-INIT-CANONICAL-C04

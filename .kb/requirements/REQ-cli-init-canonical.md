@@ -6,7 +6,6 @@ tags:
   - cli
   - init
   - canonical-layout
-  - review:context-missing
 semantic_text: 'kibi init must create the canonical .kb/ knowledge namespace: entity lanes under .kb/requirements, .kb/scenarios, .kb/tests, .kb/facts, .kb/adr, .kb/flags, and .kb/events, plus .kb/symbols.yaml, .kb/symbol-coordinates.yaml, and Kibi-owned .kb/manifest.json lifecycle metadata. It must not write user-configurable .kb/config.json, entity path overrides, or persistent check-disabling policy. Git hooks may be installed. Gitignore must track authored .kb/ knowledge lanes and ignore derived .kb/branches, .kb/recovery, .kb/verification, and .kb/briefs trees.'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
@@ -54,7 +53,10 @@ id: REQ-cli-init-canonical
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 kibi init must create the canonical .kb/ knowledge namespace: entity lanes under .kb/requirements, .kb/scenarios, .kb/tests, .kb/facts, .kb/adr, .kb/flags, and .kb/events, plus .kb/symbols.yaml, .kb/symbol-coordinates.yaml, and Kibi-owned .kb/manifest.json lifecycle metadata. It must not write user-configurable .kb/config.json, entity path overrides, or persistent check-disabling policy. Git hooks may be installed. Gitignore must track authored .kb/ knowledge lanes and ignore derived .kb/branches, .kb/recovery, .kb/verification, and .kb/briefs trees.
+
+## Why this changed
+Knowledge moved to the canonical .kb/ layout with Kibi-owned check enforcement, so init no longer writes config.json, and projects can no longer relocate entity paths or disable rules. Source: PR 215 "adopt a canonical .kb/ project contract".

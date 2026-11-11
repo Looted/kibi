@@ -1,6 +1,6 @@
 ---
 title: Strict pairing checks must accept a requirement that constrains a subject fact and requires a predicate fact whose first argument is that subject key
-status: active
+status: archived
 fact_kind: property_value
 subject_key: kibi.check
 property_key: strict_pairing_accepts_subject_predicate

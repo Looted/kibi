@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.kb_upsert
-property_key: clause_03_the_kb_upsert_mcp_tool_must_validate_relationship_types_agai
+property_key: validates_relationship_types
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_tool_upsert.clause_03_the_kb_upsert_mcp_tool_must_validate_relationship_types_agai.eq.true
+canonical_key: req.req_mcp_tool_upsert.validates_relationship_types.eq.true
 claim_key: CLAIM-D92C6CE289BC614A
 claim_text: The kb_upsert MCP tool must validate relationship types against the supported canonical list
 origin:

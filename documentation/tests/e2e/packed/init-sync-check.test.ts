@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
@@ -82,6 +82,332 @@ if (RUN_NODE_TEST_SUITE) {
       assert.ok(manifest.schemaVersion);
       assert.ok(!Object.hasOwn(manifest, "paths"));
     });
+
+    it("uses a legacy .kb/config.json only to detect and plan the storage migration, and blocks on malformed JSON", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+
+      mkdirSync(join(sandbox.repoDir, ".kb"), { recursive: true });
+      mkdirSync(join(sandbox.repoDir, "documentation", "requirements"), {
+        recursive: true,
+      });
+      writeFileSync(
+        join(sandbox.repoDir, ".kb", "config.json"),
+        JSON.stringify({
+          paths: { requirements: "documentation/requirements" },
+        }),
+      );
+      writeFileSync(
+        join(sandbox.repoDir, "documentation", "requirements", "REQ-LEGACY.md"),
+        "---\nid: REQ-LEGACY\ntitle: Legacy requirement\nstatus: open\n---\n\nA requirement kept under the legacy documentation layout.\n",
+      );
+
+      const init = await kibi(sandbox, ["init", "--no-hooks"]);
+      assert.match(
+        init.stdout + init.stderr,
+        /Legacy \.kb\/config\.json found; left \.kb\/manifest\.json/,
+        "init must leave a legacy workspace to kibi migrate",
+      );
+      assert.ok(
+        !existsSync(join(sandbox.repoDir, ".kb", "manifest.json")),
+        "init must not claim a legacy workspace with a fresh manifest",
+      );
+
+      const plan = await kibi(sandbox, ["migrate", "--dry-run"]);
+      assert.strictEqual(plan.exitCode, 0, plan.stdout + plan.stderr);
+      assert.match(
+        plan.stdout + plan.stderr,
+        /documentation\/requirements/,
+        "the migration plan reads the configured legacy path",
+      );
+
+      writeFileSync(join(sandbox.repoDir, ".kb", "config.json"), "{ not json");
+      const blocked = await kibi(sandbox, ["migrate", "--dry-run"]);
+      assert.notStrictEqual(blocked.exitCode, 0);
+      assert.match(
+        blocked.stdout + blocked.stderr,
+        /Blocked: Legacy \.kb\/config\.json is malformed[\s\S]*will not infer default legacy paths/,
+        "malformed legacy JSON must block the plan instead of guessing paths",
+      );
+      assert.ok(
+        existsSync(
+          join(
+            sandbox.repoDir,
+            "documentation",
+            "requirements",
+            "REQ-LEGACY.md",
+          ),
+        ),
+        "nothing moves while the legacy config is malformed",
+      );
+    });
+
+    it(
+      "runs canonical and advisory rules but not migration rules, ignores repository attempts to disable a canonical rule, and fails only on canonical findings",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const init = await kibi(sandbox, ["init", "--no-hooks"]);
+        assert.strictEqual(init.exitCode, 0, `${init.stdout}${init.stderr}`);
+        createMarkdownFile(
+          sandbox,
+          ".kb/adr/ADR-PROPOSED.md",
+          { id: "ADR-PROPOSED", title: "Proposed decision", status: "proposed" },
+          "We may adopt a thing.\n\n## Context\n\nFixture decision left proposed so an advisory rule reports it and nothing blocks.",
+        );
+        const firstSync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(
+          firstSync.exitCode,
+          0,
+          `${firstSync.stdout}${firstSync.stderr}`,
+        );
+
+        writeFileSync(join(sandbox.repoDir, "default-rules.json"), "{}");
+        const plain = await kibi(sandbox, [
+          "check",
+          "--input",
+          "default-rules.json",
+        ]);
+        const evaluated = (
+          JSON.parse(plain.stdout) as {
+            data?: { evaluated?: { rules?: string[] } };
+          }
+        ).data?.evaluated?.rules;
+        assert.ok(Array.isArray(evaluated), plain.stdout);
+        assert.ok(
+          evaluated.includes("entity-context-missing"),
+          "a plain check runs canonical rules",
+        );
+        assert.ok(
+          evaluated.includes("adr-proposed"),
+          "a plain check runs advisory rules",
+        );
+        for (const migrationRule of ["strict-readiness", "semantic-completeness"]) {
+          assert.ok(
+            !evaluated.includes(migrationRule),
+            `a plain check skips the migration rule ${migrationRule}`,
+          );
+        }
+        writeFileSync(
+          join(sandbox.repoDir, "migration-rule.json"),
+          JSON.stringify({ rules: ["strict-readiness"] }),
+        );
+        const selected = await kibi(sandbox, [
+          "check",
+          "--input",
+          "migration-rule.json",
+        ]);
+        assert.deepStrictEqual(
+          (
+            JSON.parse(selected.stdout) as {
+              data?: { evaluated?: { rules?: string[] } };
+            }
+          ).data?.evaluated?.rules,
+          ["strict-readiness"],
+          "a migration rule runs only when selected by name",
+        );
+
+        const advisoryOnly = await kibi(sandbox, ["check", "--format", "json"]);
+        assert.strictEqual(
+          advisoryOnly.exitCode,
+          0,
+          `an advisory finding alone must not fail the check: ${advisoryOnly.stdout}${advisoryOnly.stderr}`,
+        );
+        const advisoryResult = (
+          JSON.parse(advisoryOnly.stdout) as {
+            structuredContent: {
+              violations: unknown[];
+              qualityDiagnostics: { id: string; blocking: boolean }[];
+            };
+          }
+        ).structuredContent;
+        assert.deepStrictEqual(advisoryResult.violations, []);
+        assert.ok(
+          advisoryResult.qualityDiagnostics.some(
+            (diagnostic) =>
+              diagnostic.id === "rule.adr-proposed" && !diagnostic.blocking,
+          ),
+          "the advisory finding is a non-blocking quality diagnostic",
+        );
+
+        // A repository file that tries to switch the canonical context rule
+        // off changes nothing: Kibi owns each rule's enforcement class.
+        writeFileSync(
+          join(sandbox.repoDir, ".kb", "config.json"),
+          `${JSON.stringify({
+            checks: {
+              "entity-context-missing": false,
+              rules: { "entity-context-missing": false },
+            },
+          })}\n`,
+        );
+        createMarkdownFile(
+          sandbox,
+          ".kb/adr/ADR-NO-CONTEXT.md",
+          { id: "ADR-NO-CONTEXT", title: "Decision without context", status: "accepted" },
+          "Use the thing.",
+        );
+        const secondSync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(
+          secondSync.exitCode,
+          0,
+          `${secondSync.stdout}${secondSync.stderr}`,
+        );
+        const canonical = await kibi(sandbox, ["check", "--format", "json"]);
+        assert.notStrictEqual(
+          canonical.exitCode,
+          0,
+          "a canonical finding fails the check even when repository config tries to disable its rule",
+        );
+        const canonicalResult = (
+          JSON.parse(canonical.stdout) as {
+            structuredContent: {
+              violations: { rule: string; entityId?: string }[];
+              qualityDiagnostics: { id: string; blocking: boolean }[];
+            };
+          }
+        ).structuredContent;
+        assert.ok(
+          canonicalResult.violations.some(
+            (violation) =>
+              violation.rule === "entity-context-missing" &&
+              violation.entityId === "ADR-NO-CONTEXT",
+          ),
+          `the canonical rule still reports ADR-NO-CONTEXT: ${canonical.stdout}`,
+        );
+        assert.ok(
+          canonicalResult.qualityDiagnostics.every(
+            (diagnostic) => !diagnostic.blocking,
+          ),
+          "advisory findings stay non-blocking next to a canonical one",
+        );
+      },
+    );
+
+    it(
+      "reports a coarse aggregate symbol that spans unrelated requirement tag clusters next to narrower symbols as a non-blocking quality diagnostic",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const init = await kibi(sandbox, ["init", "--no-hooks"]);
+        assert.strictEqual(init.exitCode, 0, `${init.stdout}${init.stderr}`);
+        mkdirSync(join(sandbox.repoDir, "src"), { recursive: true });
+        writeFileSync(
+          join(sandbox.repoDir, "src", "widget.js"),
+          'export class WidgetService {\n  render() {\n    return "<p>";\n  }\n  save() {\n    return true;\n  }\n}\n',
+        );
+        writeFileSync(
+          join(sandbox.repoDir, ".kb", "symbols.yaml"),
+          [
+            "symbols:",
+            "  - id: SYM-WIDGET-SERVICE",
+            "    title: WidgetService",
+            "    sourceFile: src/widget.js",
+            "    status: active",
+            "    relationships:",
+            "      - type: implements",
+            "        target: REQ-WIDGET-UI",
+            "      - type: implements",
+            "        target: REQ-WIDGET-STORE",
+            "      - type: implements",
+            "        target: REQ-WIDGET-BILL",
+            "  - id: SYM-WIDGET-RENDER",
+            "    title: WidgetService.render",
+            "    sourceFile: src/widget.js",
+            "    status: active",
+            "    symbol_role: behavioral",
+            "",
+          ].join("\n"),
+        );
+        const writeRequirements = (sharedTag: string | null): void => {
+          for (const [suffix, tag] of [
+            ["UI", "ui"],
+            ["STORE", "storage"],
+            ["BILL", "billing"],
+          ] as const) {
+            createMarkdownFile(
+              sandbox,
+              `.kb/requirements/REQ-WIDGET-${suffix}.md`,
+              {
+                id: `REQ-WIDGET-${suffix}`,
+                title: `Widget ${tag} requirement`,
+                status: "open",
+                tags: sharedTag ? [tag, sharedTag] : [tag],
+              },
+              `# Widget ${tag}\n\n## Context\n\nFixture requirement in the ${tag} cluster for the packed mixed-purpose symbol check; it only exercises the CLI.`,
+            );
+          }
+        };
+        const mixedPurpose = async () => {
+          const sync = await kibi(sandbox, ["sync"]);
+          assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
+          const check = await kibi(sandbox, ["check", "--format", "json"]);
+          const result = (
+            JSON.parse(check.stdout) as {
+              structuredContent: {
+                violations: { rule: string }[];
+                qualityDiagnostics: {
+                  id: string;
+                  entityId?: string;
+                  blocking: boolean;
+                  evidence?: { narrowerSymbolIds?: string[] };
+                }[];
+              };
+            }
+          ).structuredContent;
+          return {
+            result,
+            diagnostics: result.qualityDiagnostics.filter(
+              (diagnostic) => diagnostic.id === "component_mixed_purpose_review",
+            ),
+          };
+        };
+
+        await run("git", ["add", "--", "src/widget.js", ".kb/symbols.yaml"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+
+        writeRequirements("widget");
+        const cohesive = await mixedPurpose();
+        assert.deepStrictEqual(
+          cohesive.diagnostics,
+          [],
+          "requirements that share a tag are one cluster, so nothing is reported",
+        );
+
+        writeRequirements(null);
+        const unrelated = await mixedPurpose();
+        assert.strictEqual(
+          unrelated.diagnostics.length,
+          1,
+          `one mixed-purpose diagnostic for the coarse service: ${JSON.stringify(unrelated.result.qualityDiagnostics)}`,
+        );
+        const [diagnostic] = unrelated.diagnostics;
+        assert.strictEqual(diagnostic?.entityId, "SYM-WIDGET-SERVICE");
+        assert.strictEqual(diagnostic?.blocking, false);
+        assert.ok(
+          diagnostic?.evidence?.narrowerSymbolIds?.includes("SYM-WIDGET-RENDER"),
+          "the diagnostic names the narrower same-file symbol",
+        );
+        assert.ok(
+          !unrelated.result.violations.some((violation) =>
+            violation.rule.includes("mixed-purpose"),
+          ),
+          "the mixed-purpose finding is never a blocking violation",
+        );
+      },
+    );
 
     it("should init write no .kb/config.json, path overrides or check-disabling policy", async (testContext) => {
       if (!hasProlog) {
@@ -212,6 +538,60 @@ if (RUN_NODE_TEST_SUITE) {
 
         assert.ok(stdout.includes("Authentication Required"));
         assert.ok(stdout.includes("security"));
+      },
+    );
+
+    it(
+      "should refuse a document.path inside a derived .kb tree and write nothing there",
+      { timeout: 60000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        await kibi(sandbox, ["init"]);
+        const upsert = (path: string) => {
+          const inputPath = join(sandbox.repoDir, "derived-target.json");
+          writeFileSync(
+            inputPath,
+            JSON.stringify({
+              type: "scenario",
+              id: "SCEN-DERIVED-TARGET",
+              properties: { title: "Derived target", status: "active" },
+              document: {
+                path,
+                body: "Given a scenario aimed at a derived tree, when it is upserted, then Kibi refuses the write and leaves the tree untouched.",
+              },
+            }),
+            "utf8",
+          );
+          return kibi(sandbox, ["upsert", "--input", inputPath]);
+        };
+
+        for (const derived of [
+          ".kb/branches/main/SCEN-DERIVED-TARGET.md",
+          ".kb/migrations/SCEN-DERIVED-TARGET.md",
+        ]) {
+          const refused = await upsert(derived);
+          assert.notStrictEqual(refused.exitCode, 0, refused.stdout);
+          assert.match(
+            refused.stdout + refused.stderr,
+            /SOURCE_PATH_INVALID[\s\S]*derived state/,
+          );
+          assert.ok(
+            !existsSync(join(sandbox.repoDir, derived)),
+            `${derived} must not be written`,
+          );
+        }
+
+        const authored = await upsert(".kb/scenarios/SCEN-DERIVED-TARGET.md");
+        assert.strictEqual(authored.exitCode, 0, authored.stderr);
+        assert.ok(
+          existsSync(
+            join(sandbox.repoDir, ".kb/scenarios/SCEN-DERIVED-TARGET.md"),
+          ),
+        );
       },
     );
 

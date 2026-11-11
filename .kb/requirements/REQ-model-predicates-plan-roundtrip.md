@@ -34,6 +34,7 @@ semantic_inventory:
       end: 224
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T08:34:10.426Z'
 id: REQ-model-predicates-plan-roundtrip
 type: req

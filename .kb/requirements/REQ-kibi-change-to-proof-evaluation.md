@@ -6,7 +6,7 @@ created_at: 2026-08-13T00:00:00Z
 updated_at: 2026-08-13T00:00:00Z
 priority: should
 owner: platform-team
-tags: [evaluation, search, planning, dogfood, review:context-missing]
+tags: [evaluation, search, planning, dogfood]
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: ed3c6c2ee05785273f1379355d2f61048fba541068e532c35469a5a08c2ec4dd
@@ -23,7 +23,7 @@ links:
     target: TEST-kibi-change-to-proof-evaluation
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 8): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 semantic_text: Kibi must ship deterministic, reviewable evaluation fixtures for intent search and change-to-proof planning so dogfood projects can compare source-linked retrieval, clause disposition, abstention, and plan quality before and after a KB migration.
 type: req
@@ -32,3 +32,6 @@ required_evidence: tested
 ---
 
 Kibi must ship deterministic, reviewable evaluation fixtures for intent search and change-to-proof planning so dogfood projects can compare source-linked retrieval, clause disposition, abstention, and plan quality before and after a KB migration.
+
+## Why
+Projects need a fixed, reviewable fixture set to compare search and planning quality before and after a KB migration, so changes to retrieval or planning can be measured. Source: changeset "compile-intent", same commit; docs/requirement-compiler-roadmap.md "Next execution sequence".

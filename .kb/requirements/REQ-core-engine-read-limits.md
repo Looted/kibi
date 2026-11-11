@@ -78,6 +78,7 @@ logic_claims:
   - CLAIM-E198F8E45755DEFA
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:19:03.302Z'
 id: REQ-core-engine-read-limits
 type: req

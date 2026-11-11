@@ -7,7 +7,6 @@ tags:
   - tree-sitter
   - language-authoring
   - lane:strict
-  - review:context-missing
 semantic_text: The Tree-sitter language authoring scaffold must create an unqualified disconnected draft without modifying live language support.
 logic_claims:
   - CLAIM-D79EE778B5393174
@@ -28,9 +27,12 @@ id: REQ-tree-sitter-language-authoring-scaffold
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 3): "Agree with batch 3 as well."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 The Tree-sitter language authoring scaffold must create an unqualified disconnected draft without modifying live language support.
+
+## Why
+Adding a language is the riskiest change to the catalog, because a language is only supported once its assets, licenses and behavior are qualified. The scaffold therefore gives an author a draft that is disconnected and unqualified, and live language support can't change until qualification is done. Source: docs/architecture/multilingual-source-analysis.md: "Grammar availability alone does not mean qualified symbol support"; PR 284.

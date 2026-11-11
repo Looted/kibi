@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-4a52e20c365e
-    type: covered_by
-    from: SYM-reqcompiler-parity-capability-state
-    to: TEST-kibi-distribution-parity-matrix
-    created_at: "2026-08-16T18:51:45.129Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-usage-metrics-command
     to: TEST-kibi-telemetry-acceptance-gate
@@ -13,13 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c6aa46b6aa1
-  - type: covered_by
-    from: SYM-cli-prolog-entity-query-input
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.130Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bfb9ea0ab360
   - type: implements
     from: SYM-strictWriteSetToApplyPlan
     to: REQ-002
@@ -42,48 +28,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8325f6c48039
   - type: covered_by
-    from: SYM-operation-check-input
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:37:57.007Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b4ccf866054c
-  - type: covered_by
-    from: SYM-runtime-GitPort
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:40:02.477Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7a92a37c8f46
-  - type: implements
-    from: SYM-operation-check-input
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:02:18.693Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0effe33750be
-  - type: covered_by
-    from: SYM-operation-check-input
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:02:18.696Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f8377783eab4
-  - type: implements
-    from: SYM-runtime-GitPort
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:07:35.781Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-98b0d171d9f3
-  - type: covered_by
-    from: SYM-runtime-GitPort
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:07:35.809Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-35d0b2c89ad0
-  - type: covered_by
     from: SYM-usage-metrics-command
     to: TEST-cli-usage-metrics-v1
     created_at: 2026-09-05T15:19:30.936Z
@@ -104,27 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4121b2c74931
-  - type: implements
-    from: SYM-cli-extract-symbols-options
-    to: REQ-capability-plugin-activation-disclosure-v1
-    created_at: 2026-09-20T19:51:56.097Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1e16496a506a
-  - type: covered_by
-    from: SYM-cli-extract-symbols-options
-    to: TEST-capability-plugin-host-resolution-v1
-    created_at: 2026-09-22T19:48:33.289Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7fd2d25cbf29
-  - type: implements
-    from: SYM-release-mcp-registry-verification
-    to: REQ-020
-    created_at: 2026-09-30T11:41:46.855Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-04fd4130f9a1
   - type: covered_by
     from: SYM-release-mcp-registry-verification
     to: TEST-release-mcp-registry-visibility
@@ -139,27 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c2448656fca
-  - type: implements
-    from: SYM-cursor-hasConsumerNodeModulesLink
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:20:22.073Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3c69db2c735d
-  - type: covered_by
-    from: SYM-cursor-hasConsumerNodeModulesLink
-    to: TEST-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:20:22.085Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-89c78636c9c5
-  - type: implements
-    from: SYM-usage-metrics-command
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T03:07:31.815Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-632a4333c7af
   - type: implements
     from: SYM-kb-entity-body-context-applycontextmissingtags
     to: REQ-kb-entity-body-context
@@ -321,17 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8143f36528ca
-  - type: covered_by
-    from: SYM-cli-usage-telemetry-noteclioperationcall
-    to: TEST-kibi-telemetry-expected-outcomes-cli
-    created_at: 2026-11-03T14:24:50.583Z
+  - type: assumes
+    from: SCEN-kibi-coverage-depth-proof-exempt
+    to: FACT-PROP-kibi-coverage-depth-quality-c02
+    created_at: 2026-11-11T18:00:00.000Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-e0b85c316e39
-  - type: implements
-    from: SYM-cli-usage-telemetry-noteclioperationcall
-    to: REQ-kibi-telemetry-agent-signals
-    created_at: 2026-11-03T14:24:50.657Z
+    id: rel-0e3c8d6153ea
+  - type: verified_by
+    from: SCEN-kibi-coverage-depth-proof-exempt
+    to: TEST-e2e-check-review-rules
+    created_at: 2026-11-11T18:00:00.000Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-3b875871ab70
+    id: rel-b0927b82b367

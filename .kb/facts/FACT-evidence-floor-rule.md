@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.check.rule_names
 claim_key: CLAIM-C97BCBA32B6056FD
 claim_text: The evidence floor check rule shall be evidence-floor
-text_ref: REQ-kibi-check-rule-names
+text_ref: REQ-kibi-evidence-floor-rule-name
 property_key: evidence_floor_rule
 operator: eq
 value_type: string

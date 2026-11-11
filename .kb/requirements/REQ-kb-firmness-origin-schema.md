@@ -34,7 +34,7 @@ Firmness shall be read from origin starting with KB schema version 10.
 
 ## Context
 
-REQ-kb-decision-firmness-from-origin reads a decision as firm from its origin starting with one KB schema version. That version is stated here so it is proved against the constant.
+REQ-kb-decision-firmness-default-from-origin reads a decision as firm from its origin starting with one KB schema version. That version is stated here so it is proved against the constant.
 
 ## Source
 

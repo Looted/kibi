@@ -67,4 +67,4 @@ The kibi-codex package must publish its .codex-plugin manifest directory, its .m
 
 ## Context
 
-Codex reads a plugin from .codex-plugin/plugin.json, which points at the skills directory, the hooks configuration and the MCP configuration. These claims pin what the published kibi-codex package contains, so each one is proved by reading the package files. The adapter's runtime behaviour is stated in REQ-codex-kibi-plugin-v1.
+Codex reads a plugin from .codex-plugin/plugin.json, which points at the skills directory, the hooks configuration and the MCP configuration. These claims pin what the published kibi-codex package contains, so each one is proved by reading the package files. The adapter's runtime behaviour is stated in REQ-codex-hook-limits.

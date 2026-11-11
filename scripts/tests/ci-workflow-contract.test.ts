@@ -1,6 +1,8 @@
 // executable_for TEST-prolog-bundled-ci
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 // Dependabot bumps the checkout SHA; assert the pinning shape (full 40-hex commit SHA), not one value.
@@ -367,10 +369,67 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
     expect(block).not.toContain(ACTION_REF);
     // The job must run Kibi on that install, not just provision it.
     expect(block).toContain('grep -q "SWI-Prolog: .* from PATH"');
-    expect(block).toContain("bun packages/cli/bin/kibi check");
+    expect(block).toContain("sh scripts/kb-zero-findings.sh");
     expect(
       ci.split("run: bash scripts/ci-install-swi-prolog.sh").length - 1,
     ).toBe(1);
+  });
+
+  test("Kibi's own KB check fails on any finding, info level included", () => {
+    const gate = read("scripts", "kb-zero-findings.sh");
+    expect(gate).toContain("check --format json");
+    expect(gate).toContain(
+      'const required = ["violations", "qualityDiagnostics"]',
+    );
+    expect(gate).toContain("!Array.isArray(p[g])");
+    expect(read("scripts", "proof-prepush.sh")).toContain(
+      "sh scripts/kb-zero-findings.sh",
+    );
+  });
+
+  test("the zero-findings gate passes a clean check and fails a finding or a missing result group", () => {
+    const repoRoot = join(import.meta.dir, "..", "..");
+    const stubDir = mkdtempSync(join(tmpdir(), "kb-zero-findings-"));
+    const runGate = (output: unknown) => {
+      const stub = join(stubDir, "kibi.js");
+      writeFileSync(
+        stub,
+        `process.stdout.write(${JSON.stringify(JSON.stringify(output))});\n`,
+      );
+      return spawnSync("sh", ["scripts/kb-zero-findings.sh"], {
+        cwd: repoRoot,
+        env: { ...process.env, KIBI_CLI: stub },
+        encoding: "utf8",
+      });
+    };
+    try {
+      const clean = runGate({
+        structuredContent: { violations: [], qualityDiagnostics: [] },
+      });
+      expect(clean.status).toBe(0);
+      expect(clean.stdout).toContain("Kibi KB: zero findings.");
+
+      const info = runGate({
+        structuredContent: {
+          violations: [],
+          qualityDiagnostics: [
+            {
+              id: "coverage_depth_review",
+              entityId: "REQ-x",
+              severity: "info",
+            },
+          ],
+        },
+      });
+      expect(info.status).toBe(1);
+      expect(info.stderr).toContain("1 finding(s)");
+
+      const missing = runGate({ structuredContent: { violations: [] } });
+      expect(missing.status).toBe(1);
+      expect(missing.stderr).toContain("has no qualityDiagnostics array");
+    } finally {
+      rmSync(stubDir, { recursive: true, force: true });
+    }
   });
 
   test("the proof run uses the same bundle", () => {

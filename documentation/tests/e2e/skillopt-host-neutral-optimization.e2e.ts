@@ -26,7 +26,8 @@
  *      evaluation_host_unrecorded before writing anything.
  *   5. An unknown `--host` exits 2 on campaign.ts; `cli.ts` and `operator.ts`
  *      refuse the Codex-only workflow on another host with exit 2.
- *   6. The offline workflow contracts are at 1.1.0 and carry no bundle.
+ *   6. The offline workflow contracts are at 1.1.0 and carry no bundle, and a
+ *      run state from the removed assembled-bundle phase is refused.
  *
  * Run via `bun run documentation/tests/e2e/skillopt-host-neutral-optimization.e2e.ts`.
  */
@@ -50,6 +51,7 @@ import {
   OFFLINE_CONTRACT_SCHEMA_VERSION,
   contractHash,
 } from "../../../scripts/skillopt-eval/contracts/common";
+import { RunStateSchema } from "../../../scripts/skillopt-eval/contracts/workflow";
 import { firstMissingRequiredCall } from "../../../scripts/skillopt-eval/scoring/cell";
 import {
   candidateManifest,
@@ -345,6 +347,31 @@ try {
     );
     assert(!/bundle/i.test(schema), `${name} schema still names a bundle`);
   }
+  // A run state from the removed assembled-bundle phase is refused, both as a
+  // 1.0.0 copy and as a 1.1.0 state naming that phase.
+  const bundleState = (schemaVersion: string) => ({
+    schemaVersion,
+    artifactType: "run-state",
+    runId: "6f1c2a4e-8b3d-4c5e-9a7f-1b2c3d4e5f60",
+    runLockHash: "0".repeat(64),
+    phase: "assembled-bundle",
+    completedEpisodeIds: [],
+    ledgerHeadHash: null,
+    updatedAt: "2026-10-21T00:00:00.000Z",
+    interrupted: false,
+  });
+  for (const version of ["1.0.0", OFFLINE_CONTRACT_SCHEMA_VERSION])
+    assert(
+      !RunStateSchema.safeParse(bundleState(version)).success,
+      `run state ${version} with an assembled-bundle phase was accepted`,
+    );
+  assert(
+    RunStateSchema.safeParse({
+      ...bundleState(OFFLINE_CONTRACT_SCHEMA_VERSION),
+      phase: "review",
+    }).success,
+    "a current run state was refused",
+  );
 
   console.log("skillopt host-neutral optimization e2e: all assertions passed");
 } finally {

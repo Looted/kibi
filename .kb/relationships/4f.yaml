@@ -40,11 +40,11 @@ relationships:
     id: rel-3a60a0238991
   - type: depends_on
     from: REQ-015
-    to: REQ-003
+    to: REQ-cli-query
     created_at: 2026-08-16T22:57:00.928Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-d2416db1448b
+    id: rel-539214994adb
   - type: specified_by
     from: REQ-015
     to: SCEN-001
@@ -152,18 +152,11 @@ relationships:
     id: rel-ddbd2958e5ce
   - type: implements
     from: SYM-skillopt-cursor-summarize-cells
-    to: REQ-skillopt-codex-optimization
+    to: REQ-skillopt-cursor-compat
     created_at: 2026-08-24T17:25:58.142Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ef3d45838ba
-  - type: implements
-    from: SYM-extractManifestSymbolRecords
-    to: REQ-generated-coordinate-persistence
-    created_at: 2026-08-23T20:41:15.757Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-330b1fe16a99
   - type: covered_by
     from: SYM-extractManifestSymbolRecords
     to: TEST-generated-coordinate-repair
@@ -186,13 +179,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-2e75ce7acdff
   - type: covered_by
-    from: SYM-codex-isSourceImpactRelevantPath
-    to: TEST-codex-kibi-plugin-v1
-    created_at: 2026-09-05T15:21:24.520Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e1eda62586d7
-  - type: covered_by
     from: SYM-atomicPublishGeneration
     to: TEST-core-journaled-engine-delta-sync
     created_at: 2026-09-05T15:28:02.391Z
@@ -213,20 +199,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fe01d2fea44
-  - type: implements
-    from: SYM-checkDomainContradictions
-    to: REQ-cli-check
-    created_at: 2026-09-14T15:01:06.135Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ee6d7ea080be
-  - type: covered_by
-    from: SYM-checkDomainContradictions
-    to: TEST-004
-    created_at: 2026-09-14T15:01:06.147Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7d2d0e32b91c
   - type: executable_for
     from: SYM-e2e-coverage-pipeline
     to: TEST-e2e-coverage-pipeline
@@ -234,34 +206,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b03755ccf8e9
-  - type: implements
-    from: SYM-skillopt-fake-provider-debit-receipt
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:41:07.030Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a8f5cf4a6325
-  - type: implements
-    from: SYM-cli-EngineSession-needsRecycle
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-26T22:32:39.374Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-188ccc6b7199
-  - type: covered_by
-    from: SYM-cli-EngineSession-needsRecycle
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-09-26T22:32:39.407Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-70086d18882c
-  - type: implements
-    from: SYM-claude-mcp-launcher
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-10-02T11:38:29.432Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7ae4663755c9
   - type: covered_by
     from: SYM-claude-mcp-launcher
     to: TEST-claude-code-kibi-plugin-v1
@@ -269,20 +213,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e5cd8be573b4
-  - type: implements
-    from: SYM-skillopt-campaign-artifacts-feedbacktrajectories-f37a1639
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:20:29.514Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cf8b4d55446a
-  - type: covered_by
-    from: SYM-skillopt-campaign-artifacts-feedbacktrajectories-f37a1639
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:20:29.529Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4b599b112884
   - type: validates
     from: TEST-ui-plugin-design-policy
     to: SCEN-ui-plugin-design-policy
@@ -290,13 +220,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f54fc481e8d2
-  - type: implements
-    from: SYM-kb-decision-firmness-planfirmsupersedeacknowledgement
-    to: REQ-kb-decision-firmness-from-origin
-    created_at: 2026-10-13T20:12:55.222Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8d4322ddc286
   - type: covered_by
     from: SYM-kb-decision-firmness-planfirmsupersedeacknowledgement
     to: TEST-kb-decision-firmness
@@ -304,13 +227,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-47c9ec5d6d97
-  - type: implements
-    from: SYM-cli-signoff-model-signoff-brief-dir
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:52:15.331Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4e96da8f698f
   - type: covered_by
     from: SYM-cli-signoff-model-signoff-brief-dir
     to: TEST-kibi-signoff-views
@@ -360,13 +276,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ebb0df801c15
-  - type: implements
-    from: SYM-schema6-SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE
-    to: REQ-cli-migration-pin-codes
-    created_at: 2026-10-28T20:32:05.275Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ee5590cbef6b
   - type: covered_by
     from: SYM-schema6-SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE
     to: TEST-proof-rederive-drop-grounding-code
@@ -409,3 +318,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-57ac939d2a51
+  - type: implements
+    from: SYM-checkDomainContradictions
+    to: REQ-cli-check
+    created_at: 2026-09-14T20:25:59.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-735e363e1be4
+  - type: covered_by
+    from: SYM-checkDomainContradictions
+    to: TEST-cli-check-integrity
+    created_at: 2026-09-14T20:25:59.353Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80efc29ecc25
+  - type: covered_by
+    from: SYM-checkDomainContradictions
+    to: TEST-004
+    created_at: 2026-09-18T07:39:09.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccccf6ab4630

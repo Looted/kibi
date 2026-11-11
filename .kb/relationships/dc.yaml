@@ -1,25 +1,4 @@
 relationships:
-  - id: rel-2343bb654c28
-    type: implements
-    from: SYM-RealOptimizationResult
-    to: REQ-skillopt-codex-optimization
-    created_at: "2026-08-15T23:12:06.288Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-RealOptimizationResult
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-15T23:12:06.289Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d69b6f5daff7
-  - type: covered_by
-    from: SYM-reqcompiler-sync-cache-key
-    to: TEST-kibi-proposition-complete-ingestion
-    created_at: 2026-08-16T18:52:06.550Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8aee8910c0a3
   - type: covered_by
     from: SYM-skillopt-evaluate-held-out-gate-outcomes
     to: TEST-skillopt-external-adoption-verdict
@@ -41,34 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18df2381d7f4
-  - type: implements
-    from: SYM-skillopt-fake-provider-outcome-schema
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:41:24.372Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f3342295d150
-  - type: implements
-    from: SYM-claude-HookEnvironment
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:19:49.599Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-19796f9ddfd5
-  - type: covered_by
-    from: SYM-claude-HookEnvironment
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:19:49.619Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9fa33aa38d03
-  - type: implements
-    from: SYM-agent-core-toWorkspacePath
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:53:06.357Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6bd6b67df9ab
   - type: covered_by
     from: SYM-agent-core-toWorkspacePath
     to: TEST-claude-code-kibi-plugin-v1
@@ -83,34 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6c8f4bee9ca4
-  - type: implements
-    from: SYM-migrate-command-format-schema-version
-    to: REQ-cli-schema-migration
-    created_at: 2026-10-04T17:29:37.210Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a7e1259432ee
-  - type: covered_by
-    from: SYM-migrate-command-format-schema-version
-    to: TEST-kibi-schema6-migration-cli
-    created_at: 2026-10-04T17:29:37.319Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1d76d1499b7a
-  - type: implements
-    from: SYM-skillopt-campaign-artifacts-publicfeedback-27f8da4c
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:21:26.208Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1edc2d843cc0
-  - type: covered_by
-    from: SYM-skillopt-campaign-artifacts-publicfeedback-27f8da4c
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:21:26.217Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4867b0d4c1c8
   - type: executable_for
     from: SYM-test-unowned-files
     to: TEST-search-answer-hygiene
@@ -244,17 +167,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c03969aca4e1
-  - type: implements
-    from: SYM-kb-dependencies-kb-dependency-status-type
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:55:45.669Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e662d1601a26
-  - type: covered_by
-    from: SYM-kb-dependencies-kb-dependency-status-type
-    to: TEST-kb-dependencies-git
-    created_at: 2026-11-04T10:55:45.688Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a3ebd777e415

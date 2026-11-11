@@ -941,10 +941,16 @@ describe.serial("server tools coverage", () => {
     registerAllTools(server, runtime);
     const tool = getRegisteredTool(registered, "kb_upsert");
 
-    // The adapter now executes the catalog operation directly. A malformed
-    // synthetic payload is rejected before the post-write hook, which keeps
-    // the hook fail-closed rather than pretending a mutation committed.
-    await expect(invokeTool(tool, { marker: "write" })).rejects.toThrow();
+    // The adapter executes the catalog operation directly. A malformed
+    // synthetic payload is refused by the canonical input contract before the
+    // post-write hook, which keeps the hook fail-closed rather than pretending
+    // a mutation committed.
+    const result = (await invokeTool(tool, { marker: "write" })) as {
+      isError?: boolean;
+      structuredContent?: { error?: { code?: string } };
+    };
+    expect(result.isError).toBe(true);
+    expect(result.structuredContent?.error?.code).toBe("VALIDATION_FAILED");
     expect(spies.refreshAttachedBranchStamp).not.toHaveBeenCalled();
   });
 

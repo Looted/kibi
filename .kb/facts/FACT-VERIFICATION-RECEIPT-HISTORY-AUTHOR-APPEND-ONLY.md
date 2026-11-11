@@ -8,7 +8,7 @@ tags:
   - receipts
 claim_key: CLAIM-F0E4D725D82887B3
 claim_text: Proof-bearing tests must carry kibi.proof-receipt.v1 execution history that kb_upsert and incremental sync never shorten, rewrite, or reorder
-text_ref: .kb/requirements/REQ-kibi-fresh-verification-receipts-v2.md
+text_ref: .kb/requirements/REQ-kibi-proof-receipt-freshness.md
 fact_kind: predicate
 predicate_name: verification_receipt_rule
 predicate_args:

@@ -7,7 +7,7 @@ property_key: refuse_irregular_patterns
 operator: eq
 claim_key: CLAIM-AE11D0AF415B97E7
 claim_text: Kibi must refuse a pattern outside the regular subset of JavaScript and Python with the reason
-text_ref: REQ-kibi-non-numeric-proof-kinds
+text_ref: REQ-kibi-regex-proofs
 tags:
   - strict-modeling
   - lane:strict

@@ -117,6 +117,7 @@ logic_claims:
   - CLAIM-F143C7424AC5DBAF
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:25:19.881Z'
 id: REQ-kibi-schema6-migration
 type: req

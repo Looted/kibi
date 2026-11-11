@@ -41,4 +41,4 @@ The applicability threshold shall be 0.62. The weak-candidate margin shall be 0.
 
 ## Context
 
-The predicate suggester recommends a candidate only above the applicability threshold, and abstains when the two leading candidates are closer than the weak-candidate margin (REQ-kibi-predicate-suggestion-relevance-v1). Both numbers are exported constants of the applicability scorer, so each claim is proved against the value the code holds.
+The predicate suggester recommends a candidate only above the applicability threshold, and abstains when the two leading candidates are closer than the weak-candidate margin (REQ-kibi-suggestion-relevance-gate). Both numbers are exported constants of the applicability scorer, so each claim is proved against the value the code holds.

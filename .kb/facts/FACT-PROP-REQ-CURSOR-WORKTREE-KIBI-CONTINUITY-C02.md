@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: cursor.kibi_plugin
-property_key: clause_02_guidance_for_the_active_cursor_worktree_must_remain_consiste
+property_key: worktree_guidance_matches_operation_model
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_cursor_worktree_kibi_continuity.clause_02_guidance_for_the_active_cursor_worktree_must_remain_consiste.eq.true
+canonical_key: req.req_cursor_worktree_kibi_continuity.worktree_guidance_matches_operation_model.eq.true
 claim_key: CLAIM-61CDE81F638F30A0
 claim_text: Guidance for the active Cursor worktree must remain consistent with the same public operation model
 origin:

@@ -1,18 +1,4 @@
 relationships:
-  - id: rel-217213b2b064
-    type: implements
-    from: SYM-skillopt-bridge-result
-    to: REQ-skillopt-codex-optimization
-    created_at: "2026-08-15T23:12:32.510Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-skillopt-bridge-result
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-15T23:12:32.511Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-992cb9d46a66
   - type: covered_by
     from: SYM-mcp-handle-repair-plan-coverage
     to: TEST-kibi-dependency-ordered-repair-plan
@@ -27,41 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-867bd056673a
-  - type: implements
-    from: SYM-cli-prolog-json-operation-decode-error
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-16T20:59:45.654Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a0fb2a3ca22f
-  - type: implements
-    from: SYM-cli-prolog-json-operation-decode-error
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-08-16T20:59:45.665Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6eab41fea565
-  - type: covered_by
-    from: SYM-cli-prolog-json-operation-decode-error
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T20:59:45.669Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1b887112026e
-  - type: covered_by
-    from: SYM-cli-prolog-json-operation-decode-error
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-22T20:41:53.345Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e7faa5b4470d
-  - type: covered_by
-    from: SYM-cli-prolog-json-operation-decode-error
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:41:53.353Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-081906d98b1c
   - type: covered_by
     from: SYM-core-discovery-requirementCoverageDepth
     to: TEST-audit-quality-diagnostics-v1
@@ -69,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bc0d2d1dfe4b
-  - type: covered_by
-    from: SYM-cli-prolog-json-operation-decode-error
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:31:31.349Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3987e6972ee1
   - type: covered_by
     from: SYM-cursor-buildAgentPluginUnlocked
     to: TEST-cursor-agent-plugin-v1
@@ -97,20 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b5799f15493d
-  - type: implements
-    from: SYM-proof-fingerprint-receipt-code-scope-entry
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-16T14:11:09.080Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-857e549987f1
-  - type: covered_by
-    from: SYM-proof-fingerprint-receipt-code-scope-entry
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-16T15:42:11.186Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0a8047473ff7
   - type: covered_by
     from: SYM-mcp-handle-repair-plan-coverage
     to: TEST-kibi-legacy-migration-preview
@@ -139,13 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0c33cf0808b
-  - type: covered_by
-    from: SYM-summarizeBranchCoverage
-    to: TEST-e2e-coverage-pipeline
-    created_at: 2026-09-19T19:14:26.779Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-573f1db6e610
   - type: verified_by
     from: SCEN-capability-plugin-host-resolution-v1
     to: TEST-capability-plugin-host-resolution-v1
@@ -174,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe75b9425ead
-  - type: implements
-    from: SYM-normalizeRepoRelativePath
-    to: REQ-kibi-fresh-verification-receipts-v2
-    created_at: 2026-10-04T03:15:10.403Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0014137bf4a9
   - type: covered_by
     from: SYM-normalizeRepoRelativePath
     to: TEST-kibi-proof-receipt-compaction
@@ -237,20 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1de04c951eec
-  - type: implements
-    from: SYM-cli-delete-outcome-type
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-10-21T20:14:52.252Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0604fd83f1ee
-  - type: covered_by
-    from: SYM-cli-delete-outcome-type
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-10-21T20:14:52.276Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30aee636984f
   - type: validates
     from: TEST-proof-proof-receipt-max-age
     to: SCEN-kibi-fresh-verification-receipts

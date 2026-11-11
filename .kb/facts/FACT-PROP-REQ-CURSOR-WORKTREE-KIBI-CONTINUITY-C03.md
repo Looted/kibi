@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: cursor.kibi_plugin
-property_key: clause_03_kibi_continuity_must_survive_branch_and_worktree_movement_wi
+property_key: continuity_survives_worktree_movement
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_cursor_worktree_kibi_continuity.clause_03_kibi_continuity_must_survive_branch_and_worktree_movement_wi.eq.true
+canonical_key: req.req_cursor_worktree_kibi_continuity.continuity_survives_worktree_movement.eq.true
 claim_key: CLAIM-2E63BD0D258B13EB
 claim_text: Kibi continuity must survive branch and worktree movement without rewriting history
 origin:

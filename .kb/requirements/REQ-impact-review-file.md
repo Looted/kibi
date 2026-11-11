@@ -34,7 +34,7 @@ The impact review file shall be .kibi/impact-review.json.
 
 ## Context
 
-REQ-impact-policy-stage-e-content-bound-review records an impact review bound to staged content in a fixed file beside the policy. Its path is stated here so it is proved against the constant.
+REQ-kibi-impact-review-content-bound records an impact review bound to staged content in a fixed file beside the policy. Its path is stated here so it is proved against the constant.
 
 ## Source
 

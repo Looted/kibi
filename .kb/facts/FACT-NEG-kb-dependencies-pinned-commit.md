@@ -15,4 +15,4 @@ origin:
 id: FACT-NEG-kb-dependencies-pinned-commit
 type: fact
 ---
-A KB dependency read at a commit other than the one its lock file pins. The failure-side scenario of REQ-kb-dependencies-git assumes this state and expects Kibi to refuse it with a coded error instead of answering.
+A KB dependency read at a commit other than the one its lock file pins. The failure-side scenario of REQ-kb-dependency-pinned-commit assumes this state and expects Kibi to refuse it with a coded error instead of answering.

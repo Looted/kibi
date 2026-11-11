@@ -1,88 +1,4 @@
 relationships:
-  - id: rel-a72a10ec0446
-    type: covered_by
-    from: SYM-reqcompiler-sync-cache-copy
-    to: TEST-kibi-proposition-complete-ingestion
-    created_at: "2026-08-16T18:52:06.554Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-loadConfig
-    to: REQ-011
-    created_at: 2026-08-22T20:12:57.224Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-96aebb24e0f7
-  - type: covered_by
-    from: SYM-loadConfig
-    to: TEST-cli-config-schema
-    created_at: 2026-08-22T20:12:57.232Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f36afc28ccc3
-  - type: covered_by
-    from: SYM-loadConfig
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:12:57.236Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-46431d05c651
-  - type: implements
-    from: SYM-SessionEditEntry
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:55:19.708Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1038cd72a0fc
-  - type: covered_by
-    from: SYM-SessionEditEntry
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:55:19.719Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-af9ba13fa4b4
-  - type: covered_by
-    from: SYM-SessionEditEntry
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:55:19.724Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-571a6ec7ef2d
-  - type: covered_by
-    from: SYM-discovery-search-input
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:37:13.625Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-de1959fc1dbe
-  - type: implements
-    from: SYM-discovery-search-input
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:00:48.691Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-412909020b49
-  - type: covered_by
-    from: SYM-discovery-search-input
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:00:48.694Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f378102a8b73
-  - type: covered_by
-    from: SYM-markdown-ExtractionResult
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:18:50.155Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-03d19769031e
-  - type: covered_by
-    from: SYM-loadConfig
-    to: TEST-001
-    created_at: 2026-09-05T14:51:11.764Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ab6321273e78
   - type: covered_by
     from: SYM-modeling-predicate-inference-2-inferPlatformConsistencyRuleArgs
     to: TEST-mcp-suggest-predicates
@@ -97,41 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3229cc28307
-  - type: covered_by
-    from: SYM-prepareArtifact
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:12:38.999Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30bed19c8186
-  - type: covered_by
-    from: SYM-markdown-ExtractionResult
-    to: TEST-007
-    created_at: 2026-09-18T07:26:44.853Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9240d0f6ac54
-  - type: implements
-    from: SYM-markdown-ExtractionResult
-    to: REQ-core-extractors
-    created_at: 2026-09-18T07:26:44.865Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9edb48a8b607
-  - type: covered_by
-    from: SYM-markdown-ExtractionResult
-    to: TEST-coordinate-repair-capability
-    created_at: 2026-09-18T07:26:44.875Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-93b90e154328
-  - type: covered_by
-    from: SYM-prepareArtifact
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:25:39.341Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-98bc10a4ef1f
   - type: implements
     from: SYM-parseHeldOutTerminalReceipt
     to: REQ-skillopt-paid-matrix-infrastructure
@@ -139,27 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0772e79b0e35
-  - type: implements
-    from: SYM-claude-DIRECT_KB_ACCESS_NOTE
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:27:15.438Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f2ebb5665fa7
-  - type: covered_by
-    from: SYM-claude-DIRECT_KB_ACCESS_NOTE
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:27:15.452Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-265e85e0ee12
-  - type: implements
-    from: SYM-prolog-build-archive-pipeline
-    to: REQ-prolog-build-pipeline-validation
-    created_at: 2026-09-30T17:53:38.460Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8004d1a4065d
   - type: covered_by
     from: SYM-prolog-build-archive-pipeline
     to: TEST-prolog-build-pipeline-validation
@@ -195,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6ef09c216de1
-  - type: implements
-    from: SYM-cli-signoff-model-signoff-latest-markdown
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:52:44.329Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30d3c3147bc7
   - type: covered_by
     from: SYM-cli-signoff-model-signoff-latest-markdown
     to: TEST-kibi-signoff-views
@@ -356,3 +209,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-896f7c060af2
+  - type: constrains
+    from: REQ-skillopt-offline-contract-without-bundle-gate
+    to: FACT-subject-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:31:29.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e98a35120c8
+  - type: requires_property
+    from: REQ-skillopt-offline-contract-without-bundle-gate
+    to: FACT-prop-skillopt-host-neutral-optimization-c08
+    created_at: 2026-11-10T09:31:29.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7bf07ee4a91
+  - type: specified_by
+    from: REQ-skillopt-offline-contract-without-bundle-gate
+    to: SCEN-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:31:29.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d2d3275bd75
+  - type: verified_by
+    from: REQ-skillopt-offline-contract-without-bundle-gate
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:31:29.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5f2ec53f35a
+  - type: supersedes
+    from: REQ-skillopt-offline-contract-without-bundle-gate
+    to: REQ-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:31:30.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9211e9e1b4f1
+  - type: specified_by
+    from: REQ-skillopt-offline-contract-without-bundle-gate
+    to: SCEN-NEG-skillopt-offline-contract-without-bundle-gate-BUNDLE-PHASE
+    created_at: 2026-11-10T10:45:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f02217764482

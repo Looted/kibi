@@ -5,12 +5,15 @@ tags:
   - multilingual
   - source-analysis
   - v2
-  - review:context-missing
 text_ref: packages/plugin-sdk/tests/sdk.test.ts; packages/plugin-builtin/tests/builtin.test.ts; packages/cli/tests/plugins/source-analysis-v2.test.ts; packages/plugin-treesitter/tests/plugin.test.mjs
 id: SCEN-source-analysis-v2-contract
 type: scenario
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 3): "Agree with batch 3 as well."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+This shows the two promises v2 adds over v1: an explicit completeness status, and authored symbol identity that survives only when the declaration locator is unambiguous.

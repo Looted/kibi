@@ -2,7 +2,7 @@
 title: A full check judges coverage depth for a requirement whose end-to-end test has no current passing receipt
 status: active
 subject_key: kibi.checks.quality_diagnostics
-property_key: clause_01_full_checks_must_use_the_same_live_snapshot_boun
+property_key: depth_uses_live_receipts
 operator: eq
 value_type: bool
 value_bool: false

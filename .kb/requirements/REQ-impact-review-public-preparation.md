@@ -5,7 +5,6 @@ tags:
   - multilingual
   - impact-policy
   - public-preparation
-  - review:context-missing
 text_ref: documentation/impact-review-stage-e.md
 semantic_text: Kibi must expose strict public impact review preparation through the installed CLI and MCP for the complete staged scope or two explicitly selected immutable commits. Kibi must return the captured inventory, snapshot, trusted base policy, provider and evaluator bindings, per-file analysis, requirement scopes and residual review obligations. Kibi must return an initially invalid review template with no reviewer identity, review time, decisions, generated rationale, signature or proof. Kibi must preserve authored source and knowledge-document contents and the Git index while preparing a review without approving a review or creating proof. Kibi must return deterministic equivalent preparation data through the installed CLI and MCP for the same captured scope. Kibi must reject snapshot or trusted provider and evaluator closure drift after completing context projection and before returning preparation data. Kibi must reject review preparation when trusted base policy is missing or malformed or trusted provider and evaluator closures are unavailable or changed. Kibi must retain failed and partial source-analysis evidence and its review obligations without generating an acceptance decision. Kibi must prevent caller filters, file caps or configuration overrides from narrowing the captured review inventory.
 logic_claims:
@@ -108,9 +107,12 @@ id: REQ-impact-review-public-preparation
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 3): "Agree with batch 3 as well."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Kibi must expose strict public impact review preparation through the installed CLI and MCP for the complete staged scope or two explicitly selected immutable commits. Kibi must return the captured inventory, snapshot, trusted base policy, provider and evaluator bindings, per-file analysis, requirement scopes and residual review obligations. Kibi must return an initially invalid review template with no reviewer identity, review time, decisions, generated rationale, signature or proof. Kibi must preserve authored source and knowledge-document contents and the Git index while preparing a review without approving a review or creating proof. Kibi must return deterministic equivalent preparation data through the installed CLI and MCP for the same captured scope. Kibi must reject snapshot or trusted provider and evaluator closure drift after completing context projection and before returning preparation data. Kibi must reject review preparation when trusted base policy is missing or malformed or trusted provider and evaluator closures are unavailable or changed. Kibi must retain failed and partial source-analysis evidence and its review obligations without generating an acceptance decision. Kibi must prevent caller filters, file caps or configuration overrides from narrowing the captured review inventory.
+
+## Why
+Before this, agents had to assemble an impact review by hand. The template comes back invalid, with no decisions, reviewer, time or signature, because there's no safe generic way to decide automatically: every decision has to be authored. Source: documentation/impact-review-stage-e.md, "Policy and migration"; PR 284.

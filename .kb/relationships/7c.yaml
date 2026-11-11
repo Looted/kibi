@@ -21,41 +21,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-5d69a53c90bb
   - type: covered_by
-    from: SYM-cli-prolog-json-binding-decode-stage
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T22:22:31.940Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7a12bcf09ba6
-  - type: implements
-    from: SYM-canonical-LegacyKbConfig
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:01:54.292Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b4a1ac5353cd
-  - type: covered_by
-    from: SYM-canonical-LegacyKbConfig
-    to: TEST-cli-canonical-init
-    created_at: 2026-08-18T17:01:54.301Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8537d64e7f8d
-  - type: implements
-    from: SYM-canonical-EntityLane
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:02:59.253Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9f7e58e0deef
-  - type: covered_by
-    from: SYM-canonical-EntityLane
-    to: TEST-cli-canonical-init
-    created_at: 2026-08-18T17:02:59.263Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-85c705afcba5
-  - type: covered_by
     from: SYM-auto-D290A037F617
     to: TEST-kibi-change-to-proof-plan-compiler
     created_at: 2026-08-22T20:38:22.626Z
@@ -83,27 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6c6ac3a321ab
-  - type: implements
-    from: SYM-cli-prolog-json-binding-decode-stage
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:59:41.955Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2dd341f25648
-  - type: covered_by
-    from: SYM-cli-prolog-json-binding-decode-stage
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:59:41.959Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c9fd740d5e66
-  - type: covered_by
-    from: SYM-cli-github-workflow-write-status
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-28T10:10:47.265Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b081f49273d3
   - type: covered_by
     from: SYM-auto-D290A037F617
     to: TEST-kibi-operation-interface-parity
@@ -118,34 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-71938ce47c49
-  - type: implements
-    from: SYM-store-lock-journal-reason
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:39:54.494Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-604444e83505
-  - type: covered_by
-    from: SYM-store-lock-journal-reason
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:39:54.505Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b87bd17c1e6a
-  - type: implements
-    from: SYM-engine-janitor-command
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:41:55.114Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-87612536f085
-  - type: covered_by
-    from: SYM-engine-janitor-command
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:41:55.123Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a1780718788f
   - type: executable_for
     from: SYM-git-hook-effective-install-installer-verifier
     to: TEST-git-hook-effective-install

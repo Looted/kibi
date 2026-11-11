@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.migration.pin_codes
 claim_key: CLAIM-9D285E495E7AAEE0
 claim_text: The supersedes reason acknowledgement code shall be supersedes_reason_acknowledge
-text_ref: REQ-cli-migration-pin-codes
+text_ref: REQ-cli-migration-supersession-codes
 property_key: supersedes_ack_code
 operator: eq
 value_type: string

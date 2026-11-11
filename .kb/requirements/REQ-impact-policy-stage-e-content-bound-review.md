@@ -1,12 +1,11 @@
 ---
 title: Content-bound impact review and trusted aggregate pull request validation
-status: open
+status: closed
 tags:
   - multilingual
   - impact-policy
   - content-bound-review
   - stage-e
-  - review:context-missing
 text_ref: documentation/impact-review-stage-e.md
 semantic_text: Kibi must bind impact review evidence to the complete immutable Git change inventory, exact before and after source bytes, authored knowledge fingerprints, source analyzer provenance and trusted target policy. Kibi must require an updated or still-current knowledge decision with a written explanation for every affected requirement. Kibi must accept no-impact decisions only for permitted reasons covering the complete file and residual ranges. Kibi must require explicit review of every permitted after-side partial-analysis limitation range that overlaps a changed line. Kibi must accept unsupported source analysis only with explicit whole-file review permitted by trusted policy. Kibi must reject impact review for after-side syntax errors and failed after-side source analyzers. Kibi must invalidate review evidence when source bytes, Git index, HEAD, policy, provider or evaluator changes. Kibi must preserve source bytes, the Git index and HEAD when rejecting invalid review evidence. Kibi must resolve a unique trusted repository, target ref, base and head for aggregate pull request validation. Kibi must validate the complete merge-base-to-head Git inventory in the aggregate pull request gate. Kibi must reject candidate policy weakening against the trusted target policy. Kibi must run aggregate validation without executing candidate workspace code. Kibi must preserve projected review scope and authored requirement semantics when canonically appending proof receipts. Kibi must resolve legacy staged impact advisories after a complete valid review while retaining unrelated ownership and incomplete analysis diagnostics. Kibi must label impact review author identity as self-claimed unless a separate authenticated authority is provided. Kibi must preserve existing project behavior until impact policy is explicitly enabled.
 logic_claims:
@@ -179,7 +178,7 @@ id: REQ-impact-policy-stage-e-content-bound-review
 type: req
 origin:
   kind: human
-  ref: 'Maintainer decision, 2026-10-27: symbol coordinates are derived locally, so drop the reviewed Python decorator coordinate refresh rules'
+  ref: 'Maintainer decision, 2026-10-27: symbol coordinates are derived locally, so drop the reviewed Python decorator coordinate refresh rules Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   recorded_at: '2026-10-27T00:00:00.000Z'
 ---
 Kibi must bind impact review evidence to the complete immutable Git change inventory, exact before and after source bytes, authored knowledge fingerprints, source analyzer provenance and trusted target policy. Kibi must require an updated or still-current knowledge decision with a written explanation for every affected requirement. Kibi must accept no-impact decisions only for permitted reasons covering the complete file and residual ranges. Kibi must require explicit review of every permitted after-side partial-analysis limitation range that overlaps a changed line. Kibi must accept unsupported source analysis only with explicit whole-file review permitted by trusted policy. Kibi must reject impact review for after-side syntax errors and failed after-side source analyzers. Kibi must invalidate review evidence when source bytes, Git index, HEAD, policy, provider or evaluator changes. Kibi must preserve source bytes, the Git index and HEAD when rejecting invalid review evidence. Kibi must resolve a unique trusted repository, target ref, base and head for aggregate pull request validation. Kibi must validate the complete merge-base-to-head Git inventory in the aggregate pull request gate. Kibi must reject candidate policy weakening against the trusted target policy. Kibi must run aggregate validation without executing candidate workspace code. Kibi must preserve projected review scope and authored requirement semantics when canonically appending proof receipts. Kibi must resolve legacy staged impact advisories after a complete valid review while retaining unrelated ownership and incomplete analysis diagnostics. Kibi must label impact review author identity as self-claimed unless a separate authenticated authority is provided. Kibi must preserve existing project behavior until impact policy is explicitly enabled.

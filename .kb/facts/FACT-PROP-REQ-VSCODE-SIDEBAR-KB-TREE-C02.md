@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: vscode.kibi_extension
-property_key: clause_02_the_kibi_tree_must_group_entities_by_type
+property_key: tree_groups_by_type
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_vscode_sidebar_kb_tree.clause_02_the_kibi_tree_must_group_entities_by_type.eq.true
+canonical_key: req.req_vscode_sidebar_kb_tree.tree_groups_by_type.eq.true
 claim_key: CLAIM-7E97A0DEB87515FD
 claim_text: The Kibi tree must group entities by type
 origin:

@@ -1,4 +1,6 @@
 import assert from "node:assert";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
   type Tarballs,
@@ -7,7 +9,37 @@ import {
   createSandbox,
   kibi,
   packAll,
+  run,
 } from "./helpers.js";
+
+async function relationshipsOf(sandbox: TestSandbox, id: string) {
+  const result = await kibi(sandbox, [
+    "query",
+    "--relationships",
+    id,
+    "--format",
+    "json",
+  ]);
+  assert.strictEqual(result.exitCode, 0, result.stderr);
+  return JSON.parse(result.stdout) as Array<{
+    type?: string;
+    from?: string;
+    to?: string;
+  }>;
+}
+
+async function stage(
+  sandbox: TestSandbox,
+  relativePath: string,
+  content: string,
+) {
+  writeFileSync(join(sandbox.repoDir, relativePath), content, "utf8");
+  const added = await run("git", ["add", "--", relativePath], {
+    cwd: sandbox.repoDir,
+    env: sandbox.env,
+  });
+  assert.strictEqual(added.exitCode, 0, added.stderr);
+}
 
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
@@ -157,6 +189,112 @@ if (RUN_NODE_TEST_SUITE) {
               to: "SCEN-ISSUE93-001",
             },
           ]);
+        },
+      );
+
+      it(
+        "sync imports a typed front matter relationship with its type and refuses an unknown type",
+        { timeout: 60000 },
+        async () => {
+          createMarkdownFile(
+            sandbox,
+            ".kb/tests/TEST-ISSUE93-TYPED.md",
+            {
+              id: "TEST-ISSUE93-TYPED",
+              title: "Typed link test",
+              type: "test",
+              status: "active",
+            },
+            "Reference material.",
+          );
+          const typed = `---
+id: TEST-ISSUE93-TYPED
+title: Typed link test
+type: test
+status: active
+links:
+  - type: validates
+    target: SCEN-ISSUE93-001
+---
+
+Reference material.
+`;
+          await stage(sandbox, ".kb/tests/TEST-ISSUE93-TYPED.md", typed);
+          const synced = await kibi(sandbox, ["sync"]);
+          assert.strictEqual(synced.exitCode, 0, synced.stderr);
+          assert.deepStrictEqual(
+            await relationshipsOf(sandbox, "TEST-ISSUE93-TYPED"),
+            [
+              {
+                type: "validates",
+                from: "TEST-ISSUE93-TYPED",
+                to: "SCEN-ISSUE93-001",
+              },
+            ],
+          );
+
+          await stage(
+            sandbox,
+            ".kb/tests/TEST-ISSUE93-TYPED.md",
+            typed.replace("type: validates", "type: blesses"),
+          );
+          const refused = await kibi(sandbox, ["sync"]);
+          assert.match(
+            `${refused.stdout}${refused.stderr}`,
+            /TEST-ISSUE93-TYPED\.md: Invalid relationship type "blesses"/,
+          );
+          const kept = await relationshipsOf(sandbox, "TEST-ISSUE93-TYPED");
+          assert.ok(
+            kept.every((relationship) => relationship.type !== "blesses"),
+            JSON.stringify(kept),
+          );
+        },
+      );
+
+      it(
+        "sync imports symbols.yaml entries and retracts a symbol removed from it",
+        { timeout: 60000 },
+        async () => {
+          const manifest = (ids: string[]) =>
+            `symbols:\n${ids
+              .map(
+                (id) =>
+                  `  - id: ${id}\n    title: ${id}\n    sourceFile: README.md\n    symbol_role: behavioral\n    granularity_reason: config-artifact\n`,
+              )
+              .join("")}`;
+          await stage(
+            sandbox,
+            ".kb/symbols.yaml",
+            manifest(["SYM-ISSUE93-KEEP", "SYM-ISSUE93-GONE"]),
+          );
+          const synced = await kibi(sandbox, ["sync"]);
+          assert.strictEqual(synced.exitCode, 0, synced.stderr);
+          const ids = async () => {
+            const listed = await kibi(sandbox, [
+              "query",
+              "symbol",
+              "--format",
+              "json",
+            ]);
+            assert.strictEqual(listed.exitCode, 0, listed.stderr);
+            return (JSON.parse(listed.stdout) as Array<{ id: string }>)
+              .map((symbol) => symbol.id)
+              .filter((id) => id.startsWith("SYM-ISSUE93-"))
+              .sort();
+          };
+          assert.deepStrictEqual(await ids(), [
+            "SYM-ISSUE93-GONE",
+            "SYM-ISSUE93-KEEP",
+          ]);
+
+          await stage(
+            sandbox,
+            ".kb/symbols.yaml",
+            manifest(["SYM-ISSUE93-KEEP"]),
+          );
+          const resynced = await kibi(sandbox, ["sync"]);
+          assert.strictEqual(resynced.exitCode, 0, resynced.stderr);
+          assert.deepStrictEqual(await ids(), ["SYM-ISSUE93-KEEP"]);
         },
       );
     },

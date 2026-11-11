@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.proof.run_vocabulary
 claim_key: CLAIM-60D2AD30E0E5B204
 claim_text: A proof success policy shall be all_required_first_attempt or own_results_first_attempt
-text_ref: REQ-kibi-proof-run-vocabulary
+text_ref: REQ-kibi-proof-contract-vocabulary
 property_key: success_policies
 operator: eq
 value_type: set

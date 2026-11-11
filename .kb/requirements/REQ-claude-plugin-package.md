@@ -58,4 +58,4 @@ The kibi-claude package must publish its .claude-plugin manifest directory, its 
 
 ## Context
 
-Claude Code finds a plugin's parts by convention: the manifest in .claude-plugin/plugin.json, skills under skills/, hooks in hooks/hooks.json and MCP servers in .mcp.json. These claims pin what the published kibi-claude package contains, so each one is proved by reading the package files. The launcher resolves the project-local kibi-mcp and serves no tools in a workspace without .kb/manifest.json; that behaviour is stated in REQ-claude-code-kibi-plugin-v1.
+Claude Code finds a plugin's parts by convention: the manifest in .claude-plugin/plugin.json, skills under skills/, hooks in hooks/hooks.json and MCP servers in .mcp.json. These claims pin what the published kibi-claude package contains, so each one is proved by reading the package files. The launcher resolves the project-local kibi-mcp and serves no tools in a workspace without .kb/manifest.json; that behaviour is stated in REQ-claude-unowned-project-silence.

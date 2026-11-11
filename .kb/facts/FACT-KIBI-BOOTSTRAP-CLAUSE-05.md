@@ -3,7 +3,7 @@ title: Bootstrap contract clause 05
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap.plan
-property_key: contract_clause_5
+property_key: status_classifies_bootstrap_states
 operator: eq
 value_type: string
 value_string: Status and next actions must classify thin, seeded, degraded, and repair-required states consistently

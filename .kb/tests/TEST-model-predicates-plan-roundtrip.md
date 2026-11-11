@@ -1,6 +1,6 @@
 ---
 title: Predicate plan round-trip tests
-status: active
+status: passing
 priority: must
 tags:
   - modeling

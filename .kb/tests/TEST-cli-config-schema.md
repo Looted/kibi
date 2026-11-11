@@ -1,7 +1,7 @@
 ---
 id: TEST-cli-config-schema
 title: CLI config and schema version unit tests
-status: active
+status: passing
 created_at: 2026-05-29T00:00:00.000Z
 updated_at: 2026-05-29T00:00:00.000Z
 source: packages/cli/tests/utils/config.test.ts
@@ -28,17 +28,17 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-cc7c664e2fec6de20387cba0
+    receipt_id: PR-9961ca37e81bcbff64db8d06
     test_id: TEST-cli-config-schema
     scope: unit
     outcome: passed
-    code_snapshot: 99b74fbb853915a94a3847b658aa2539e9ea318503497023aaac4795ca3db22f
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T19:37:15.405Z'
-    finished_at: '2026-10-28T19:37:15.470Z'
-    artifact_digest: bc2ce305402b0aa9def2cb329a66c898d5b092ef9957bc6c5cbbd212b6a92ae4
+    code_snapshot: 77a05ac3f136388d07560216e6f9644997c4b9918c6920a54149f03a47779bca
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T05:33:42.441Z'
+    finished_at: '2026-11-10T05:36:08.645Z'
+    artifact_digest: dc8736db249dfdd88751ad8485abe81283e5b9591ca84f894b18a7ce3504ead7
     contract_hash: 8bfdfc65125ec9b5af200c3716dc2cdf280825f40e4fb06c264ba064b35f0825
-    binding_hash: d3dfdf588fcb4f917101cb32df3e92be84f7848710b53983be54c8b1b4783853
+    binding_hash: 3c5b8f589e6e8fe3a6c5bc77961e30dd385d8e3b89da0a25f871380bdab342cd
     fingerprint: f498fcb347445a91a7cac197e68d1e24f643cec0ea59e266b41ea03954eaa2e4
     fingerprint_components:
       contract: 8bfdfc65125ec9b5af200c3716dc2cdf280825f40e4fb06c264ba064b35f0825

@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.migration.pin_codes
 claim_key: CLAIM-8265F23C3E6C3DC2
 claim_text: The legacy symbol link mark code shall be symbol_legacy_link_mark
-text_ref: REQ-cli-migration-pin-codes
+text_ref: REQ-cli-migration-symbol-codes
 property_key: legacy_mark_code
 operator: eq
 value_type: string

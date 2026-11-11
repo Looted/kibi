@@ -10,6 +10,7 @@ semantic_text: A kibi.search-hints.v1 result must name only entity ids the host 
 required_evidence: tested
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-29T19:17:28.627Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

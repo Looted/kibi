@@ -1,6 +1,6 @@
 ---
 title: Four launch-platform SWI-Prolog artifacts accepted on native build and clean-consumer runners
-status: active
+status: archived
 fact_kind: observation
 tags:
   - prolog

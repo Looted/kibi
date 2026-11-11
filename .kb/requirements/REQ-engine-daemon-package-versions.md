@@ -46,6 +46,7 @@ logic_claims:
   - CLAIM-E4168DAB01A0EB66
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T21:05:34.278Z'
 id: REQ-engine-daemon-package-versions
 type: req

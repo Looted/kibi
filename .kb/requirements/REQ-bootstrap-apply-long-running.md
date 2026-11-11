@@ -70,6 +70,7 @@ logic_claims:
   - CLAIM-20ABD642DC96A8D6
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-07T12:27:55.013Z'
 id: REQ-bootstrap-apply-long-running
 type: req

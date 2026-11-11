@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-15T12:41:40.305Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-canonical-needsLegacyStorageMigration
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:01:13.857Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c945a1711371
   - type: covered_by
     from: SYM-canonical-needsLegacyStorageMigration
     to: TEST-cli-migrate
@@ -20,13 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a62a8491354d
-  - type: implements
-    from: SYM-canonical-isDerivedKbPath
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:02:55.183Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-64a59118f1f8
   - type: covered_by
     from: SYM-canonical-isDerivedKbPath
     to: TEST-cli-canonical-init
@@ -34,20 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bdb848ecf2b9
-  - type: implements
-    from: SYM-canonical-KibiTreeDataProvider-getFallbackSymbolEntity
-    to: REQ-vscode-traceability
-    created_at: 2026-08-18T17:37:47.613Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-141a930dd1c1
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-getFallbackSymbolEntity
-    to: TEST-vscode-traceability
-    created_at: 2026-08-18T17:37:47.622Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8764bbc2bf6f
   - type: verified_by
     from: SCEN-kibi-logical-requirement-coverage
     to: TEST-kibi-logical-requirement-coverage
@@ -62,20 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-02b5d8a852ec
-  - type: implements
-    from: SYM-discovery-execute-search
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:33:19.013Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0422d0963efc
-  - type: implements
-    from: SYM-discovery-execute-search
-    to: REQ-mcp-search-discovery
-    created_at: 2026-08-22T20:33:19.041Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a1d47f378b39
   - type: covered_by
     from: SYM-discovery-execute-search
     to: TEST-kibi-operation-interface-parity
@@ -97,20 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c3ec4eeb3124
-  - type: implements
-    from: SYM-skillopt-receipt-ingest-objectives
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-24T17:20:59.012Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ae5f71661a61
-  - type: covered_by
-    from: SYM-skillopt-receipt-ingest-objectives
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-25T19:53:01.415Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-32b034382f95
   - type: covered_by
     from: SYM-004
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -153,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09aaa776738e
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-getFallbackSymbolEntity
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:27:20.127Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b7e79b00be19
   - type: implements
     from: SYM-core-sparql-client
     to: REQ-prolog-library-adoption
@@ -181,69 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-45481f23e4e4
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-getFallbackSymbolEntity
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:31:37.719Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b982a0c323c9
-  - type: implements
-    from: SYM-package-catalog-lookup-entry
-    to: REQ-020
-    created_at: 2026-09-21T15:29:23.851Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7c6ae662a973
-  - type: covered_by
-    from: SYM-package-catalog-lookup-entry
-    to: TEST-014
-    created_at: 2026-09-21T19:28:05.115Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4e62de0956c1
-  - type: implements
-    from: SYM-cap-plugin-isbarepackagename-4d0b74df
-    to: REQ-capability-plugin-observable-behavior-v1
-    created_at: 2026-09-22T19:40:39.015Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d1853043015c
-  - type: covered_by
-    from: SYM-cap-plugin-isbarepackagename-4d0b74df
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:40:39.021Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-42b4edd3fef5
-  - type: implements
-    from: SYM-appendPayloadCountField
-    to: REQ-kibi-telemetry-remediation-evidence
-    created_at: 2026-09-25T16:14:45.791Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fdae7614a9f3
-  - type: implements
-    from: SYM-codex-canonicalKbToolName
-    to: REQ-codex-kibi-plugin-v1
-    created_at: 2026-09-27T09:30:28.285Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-53043d591711
-  - type: covered_by
-    from: SYM-codex-canonicalKbToolName
-    to: TEST-codex-kibi-plugin-v1
-    created_at: 2026-09-27T09:30:28.313Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-45a5574a8ad3
-  - type: implements
-    from: SYM-agent-core-isDocumentationTrackedPath
-    to: REQ-cursor-kibi-plugin-v1
-    created_at: 2026-09-27T16:57:55.099Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e5b71616e610
   - type: covered_by
     from: SYM-agent-core-isDocumentationTrackedPath
     to: TEST-cursor-kibi-plugin-v1
@@ -286,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-617b247de72c
-  - type: implements
-    from: SYM-prolog-build-write-archive
-    to: REQ-prolog-build-pipeline-validation
-    created_at: 2026-09-30T17:53:12.118Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ad0929e5cb37
   - type: covered_by
     from: SYM-prolog-build-write-archive
     to: TEST-prolog-build-pipeline-validation
@@ -307,20 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-862dc4db4a0d
-  - type: implements
-    from: SYM-appendPayloadCountField
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T02:55:29.541Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-64e80930bf51
-  - type: implements
-    from: SYM-discovery-execute-search
-    to: REQ-kibi-fresh-verification-receipts-v2
-    created_at: 2026-10-04T02:59:56.070Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bdd140fbbec4
   - type: implements
     from: SYM-discovery-execute-search
     to: REQ-kibi-search-answer-layer-v2
@@ -351,7 +204,7 @@ relationships:
     id: rel-0232731da467
   - type: constrains
     from: REQ-upsert-committed-claim-key
-    to: FACT-SUBJ-REQ-MCP-TOOL-UPSERT
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
     created_at: 2026-10-12T18:54:49.643Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -370,13 +223,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-710bc49e6e5a
-  - type: implements
-    from: SYM-migration-suggested-requirement-status
-    to: REQ-cli-schema-migration
-    created_at: 2026-10-14T10:13:01.315Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bd3bc24f0912
   - type: covered_by
     from: SYM-migration-suggested-requirement-status
     to: TEST-cli-migrate
@@ -496,17 +342,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e2207f49db7
-  - type: implements
-    from: SYM-kb-dependencies-kb-dependency-options-type
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:55:32.071Z
+  - type: constrains
+    from: REQ-kibi-proof-result-vocabulary
+    to: FACT-kibi-proof-run-vocabulary-component
+    created_at: 2026-11-04T14:49:25.727Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-5b61a4c446a6
-  - type: covered_by
-    from: SYM-kb-dependencies-kb-dependency-options-type
-    to: TEST-kb-dependencies-git
-    created_at: 2026-11-04T10:55:32.109Z
+    id: rel-a9fa66854348
+  - type: requires_property
+    from: REQ-kibi-proof-result-vocabulary
+    to: FACT-proof-result-outcomes
+    created_at: 2026-11-04T14:49:25.788Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-7d9ee1c63450
+    id: rel-6a80c81c9400
+  - type: requires_property
+    from: REQ-kibi-proof-result-vocabulary
+    to: FACT-run-failure-phases
+    created_at: 2026-11-04T14:49:25.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44327f0ab551
+  - type: requires_property
+    from: REQ-kibi-proof-result-vocabulary
+    to: FACT-attempts-status
+    created_at: 2026-11-04T14:49:25.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4045298653d5
+  - type: specified_by
+    from: REQ-kibi-proof-result-vocabulary
+    to: SCEN-kibi-fresh-verification-receipts
+    created_at: 2026-11-04T14:49:25.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ead168fc22ee
+  - type: supersedes
+    from: REQ-kibi-proof-result-vocabulary
+    to: REQ-kibi-proof-run-vocabulary
+    created_at: 2026-11-04T14:49:25.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0bc600cd61e
+  - type: assumes
+    from: SCEN-NEG-kibi-kb-path-classes-DERIVED-WRITE
+    to: FACT-NEG-kibi-kb-path-classes-DERIVED-WRITE
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9923fdee2ec8
+  - type: verified_by
+    from: SCEN-NEG-kibi-kb-path-classes-DERIVED-WRITE
+    to: TEST-cli-canonical-init
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-911a7d11531c
+  - type: assumes
+    from: SCEN-NEG-kibi-kb-path-classes-DERIVED-WRITE
+    to: FACT-NEG-kibi-kb-path-classes-UNCLASSIFIED
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d0d119d2e0d

@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.engine.prolog_libraries
-property_key: clause_02_kibi_must_keep_sparql_support_remote_only_and_opt_in
+property_key: sparql_remote_only_opt_in
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_prolog_library_adoption.clause_02_kibi_must_keep_sparql_support_remote_only_and_opt_in.eq.true
+canonical_key: req.req_prolog_library_adoption.sparql_remote_only_opt_in.eq.true
 claim_key: CLAIM-1077A10EE27B517A
 claim_text: Kibi must keep SPARQL support remote-only and opt-in
 origin:

@@ -23,25 +23,25 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-kibi-operation-interface-parity
+    - symbol_id: SYM-e2e-mcp-cli-operation-parity
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-45a59c02c90488e610cb5097
+    receipt_id: PR-4f77aab8fe714bf597ccdda9
     test_id: TEST-kibi-operation-interface-parity
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1619578ae16102858195e7fd455f112bc688d764b648588834ddbf2c07ed739b
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T22:38:52.279Z'
-    finished_at: '2026-10-28T22:39:59.727Z'
-    artifact_digest: 0ca4752c980838958e058d378cb61964b6f2fc8e722a1185a6e73b9fc0883dff
-    contract_hash: bff0265c5e889c137654a7135eab9874e3e32ff9d773556fb00d8ea28f09a706
-    binding_hash: ca5942f71436e1e1c8c28653e6e5224cee4856affe646e698494d600cafccf29
-    fingerprint: fa64829072a9fe9899f19dcb1c262d911cb2699bd8c6d6c672dc4a9680051440
+    code_snapshot: 539fb569be4a44fd659f03a9bd587e9993aa23a7cb9e650762e983be73028d10
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T05:05:00.127Z'
+    finished_at: '2026-11-10T05:06:37.524Z'
+    artifact_digest: 4e8634db3efcf11539302302261541080e0d6fb7c3e4e60b49245bf6936491dd
+    contract_hash: 16c8ca5924f1d2e8c40217057c8cd8ac04745dfafde4772670d5c2a2437b938a
+    binding_hash: fb09cb8ed5fe83f03d9c1fd084042279f50238d2490c849c302c6c26d6c32527
+    fingerprint: 10eff81d0bc3303e3c216878cb7d8d04f482e9e8c5fedb54c67b66ea0199712f
     fingerprint_components:
-      contract: bff0265c5e889c137654a7135eab9874e3e32ff9d773556fb00d8ea28f09a706
+      contract: 16c8ca5924f1d2e8c40217057c8cd8ac04745dfafde4772670d5c2a2437b938a
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -54,7 +54,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-kibi-operation-interface-parity
+      - symbol_id: SYM-e2e-mcp-cli-operation-parity
         target: default
         outcome: passed
         binding: aggregate_run

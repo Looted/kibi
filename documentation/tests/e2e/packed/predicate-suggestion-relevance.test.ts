@@ -21,6 +21,9 @@ type PredicateCandidate = {
   readonly eligibility: "eligible" | "rejected";
   readonly binding_status: "complete" | "incomplete";
   readonly rejection_reasons: readonly string[];
+  readonly binding_provenance?: string;
+  readonly applicability_score?: number;
+  readonly score_components?: Readonly<Record<string, number>>;
 };
 
 type SuggestionResult = {
@@ -77,6 +80,23 @@ export async function assertPackedPredicateSuggestionRelevance(
   );
   assert.equal(unrelated.recommendedAction, "record_ontology_gap");
   assert.equal(unrelated.applyPlan[0]?.properties?.fact_kind, "observation");
+
+  // A generic value supplied as a binding is shown as a placeholder, not a
+  // reviewed binding, so the relevant candidate still asks for arguments.
+  const generic = await suggest(sandbox, {
+    text: "The checkout service must publish an OrderPlaced event after payment succeeds.",
+    schemaId: "FACT-SCHEMA-EVENT-PUBLISH",
+    argumentBindings: { subject: "subject", event: "OrderPlaced" },
+    maxCandidates: 1,
+  });
+  const genericCandidate = generic.candidates[0];
+  assert.equal(genericCandidate?.predicate_name, "publishes_event");
+  assert.equal(genericCandidate?.eligibility, "eligible");
+  assert.equal(genericCandidate?.binding_status, "incomplete");
+  assert.equal(genericCandidate?.binding_provenance, "placeholder");
+  assert.equal(typeof genericCandidate?.applicability_score, "number");
+  assert.ok(genericCandidate?.score_components);
+  assert.equal(generic.recommendedAction, "provide_argument_bindings");
 
   const descriptive = await suggest(sandbox, {
     text: "The launcher uses cwd.",

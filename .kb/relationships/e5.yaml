@@ -14,40 +14,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-d6dfd51debaf
   - type: implements
-    from: SYM-cli-discovery-build-entity-goal
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:24:17.440Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8156cef737d7
-  - type: covered_by
-    from: SYM-cli-discovery-build-entity-goal
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:24:17.450Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9369b885a35d
-  - type: covered_by
-    from: SYM-cli-discovery-build-entity-goal
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:24:17.454Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2d425dd815f0
-  - type: implements
     from: SYM-operation-search-spec
     to: REQ-kibi-operation-interface-parity
     created_at: 2026-08-22T20:30:26.877Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-85b10577a50d
-  - type: implements
-    from: SYM-operation-search-spec
-    to: REQ-mcp-search-discovery
-    created_at: 2026-08-22T20:30:26.888Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-666c0d301043
   - type: covered_by
     from: SYM-operation-search-spec
     to: TEST-kibi-operation-interface-parity
@@ -90,41 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b71ce01bc148
-  - type: implements
-    from: SYM-PendingTrigger
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:53:00.027Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-abadda33cd20
-  - type: covered_by
-    from: SYM-PendingTrigger
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:53:00.049Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8688be8b35dd
-  - type: covered_by
-    from: SYM-PendingTrigger
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:53:00.060Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2798a177b658
-  - type: implements
-    from: SYM-ParsedCoordinateArtifact
-    to: REQ-generated-coordinate-persistence
-    created_at: 2026-08-23T20:27:52.003Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8175b807f39b
-  - type: covered_by
-    from: SYM-ParsedCoordinateArtifact
-    to: TEST-generated-coordinate-repair
-    created_at: 2026-08-23T20:27:52.029Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b239dcd0b49a
   - type: covered_by
     from: SYM-core-discovery-classifyCoverageDepth
     to: TEST-audit-quality-diagnostics-v1
@@ -132,20 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2f024d3a1ad9
-  - type: implements
-    from: SYM-staged-file-coverage-diagnostic
-    to: REQ-AUTO-941B0CE68BAF3331
-    created_at: 2026-09-14T14:44:47.104Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-79e0de981afb
-  - type: covered_by
-    from: SYM-staged-file-coverage-diagnostic
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-14T14:44:47.114Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7af5d20cff4e
   - type: executable_for
     from: SYM-zcode-case-canonicalize-workspace-path
     to: TEST-zcode-kibi-plugin-v1
@@ -167,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b6a75e8218a4
-  - type: covered_by
-    from: SYM-cli-discovery-build-entity-goal
-    to: TEST-kibi-proof-contract-projection-pagination
-    created_at: 2026-09-26T10:10:51.830Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7dd85a66ac2b
   - type: specified_by
     from: REQ-kibi-predicate-schema-conformance
     to: SCEN-kibi-predicate-schema-conformance
@@ -202,34 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df34315f5aae
-  - type: implements
-    from: SYM-claude-EntitySummary
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:22:47.150Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-08abcc93615b
-  - type: covered_by
-    from: SYM-claude-EntitySummary
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:22:47.182Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cd5e68700207
-  - type: implements
-    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-writejson-c2c8ffd9
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:20:49.672Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a2edb55e6c1d
-  - type: covered_by
-    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-writejson-c2c8ffd9
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:20:49.689Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f4db9fadadab
   - type: covered_by
     from: SYM-model-predicates-suggest-buildgroundingreplacementplan
     to: TEST-model-predicates-replacement-diagnostics
@@ -244,20 +132,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-375b6ac825b8
-  - type: implements
-    from: SYM-sync-source-extraction-remediation
-    to: REQ-kibi-uncompiled-source-visibility
-    created_at: 2026-10-14T09:03:30.436Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-68a2284c5789
-  - type: covered_by
-    from: SYM-sync-source-extraction-remediation
-    to: TEST-kibi-uncompiled-source-visibility
-    created_at: 2026-10-14T09:03:30.497Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bd245053c0c8
   - type: constrains
     from: REQ-kb-firm-decision-edit
     to: FACT-SUBJECT-KIBI-DECISION-FIRMNESS
@@ -482,3 +356,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bcfb011b626e
+  - type: constrains
+    from: REQ-kibi-behavior-edit-detection
+    to: FACT-SUBJ-kibi-behavior-edit-detection
+    created_at: 2026-11-10T14:32:37.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-469db9db7e55
+  - type: requires_property
+    from: REQ-kibi-behavior-edit-detection
+    to: FACT-PROP-kibi-behavior-edit-detection-c01
+    created_at: 2026-11-10T14:32:37.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39873575ce7c
+  - type: specified_by
+    from: REQ-kibi-behavior-edit-detection
+    to: SCEN-kibi-behavior-edit-detection
+    created_at: 2026-11-10T14:32:37.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-497003cbfd7b
+  - type: specified_by
+    from: REQ-kibi-behavior-edit-detection
+    to: SCEN-NEG-kibi-behavior-edit-detection-COMMENT-COUNTS
+    created_at: 2026-11-10T14:32:37.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f7918199ec1
+  - type: relates_to
+    from: REQ-kibi-behavior-edit-detection
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-11-10T14:32:37.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30ed9b5382be

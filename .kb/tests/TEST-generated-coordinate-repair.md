@@ -9,25 +9,25 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-generated-coordinate-repair
+    - symbol_id: SYM-e2e-source-relationship-parity
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-76edc4b2573219eebefe0b0d
+    receipt_id: PR-2e461fd9cbb592b686737d23
     test_id: TEST-generated-coordinate-repair
     scope: end_to_end
     outcome: passed
-    code_snapshot: ac909ff52412d46a423958b88002491f7617fe6f316b2554d008e1895ca6059b
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T11:14:05.537Z'
-    finished_at: '2026-10-28T11:15:14.470Z'
-    artifact_digest: cc059faaaf4ec0c67a0384353768de80d8ad789cda4ba4049cf32494d95c1ea3
-    contract_hash: abd02f8d5742c4080d1251cd0065576fa7c5e4fe98a8083465dc491cf22eccc2
-    binding_hash: d5b5ae09fc403a310cf9262013ff0bba2ebe06592f3272410fcf0e76002b4156
-    fingerprint: a9aa7489e5a5bd3b6d157848393c3d60eec3d80584f0d585ea7b8050d0b73c6e
+    code_snapshot: e25a1f0385dac8dcff3382f76f7940204d134ea7aa298c9b083cb2fcd11015b2
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-04T18:25:31.248Z'
+    finished_at: '2026-11-04T18:26:56.107Z'
+    artifact_digest: 93b9c85fd0ab554fdf2d9cd0f487ea5b2e01d89a67bc10a3acbae302fec85c81
+    contract_hash: 30efd2e8b483afc8b190ec3627b46645c2b760e58a48372c15e853ca18b4cf23
+    binding_hash: 73125906dc6a6d901c344d67e1ae6c08bec040d8a94d07f2950559545012b528
+    fingerprint: 21d469418c2a2c6e33dc4553ae7dcafe22d6a9f67c4c3f22bf083a97bbf51068
     fingerprint_components:
-      contract: abd02f8d5742c4080d1251cd0065576fa7c5e4fe98a8083465dc491cf22eccc2
+      contract: 30efd2e8b483afc8b190ec3627b46645c2b760e58a48372c15e853ca18b4cf23
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -40,7 +40,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-generated-coordinate-repair
+      - symbol_id: SYM-e2e-source-relationship-parity
         target: default
         outcome: passed
         binding: aggregate_run

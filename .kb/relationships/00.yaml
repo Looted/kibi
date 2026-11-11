@@ -1,18 +1,4 @@
 relationships:
-  - id: rel-8ffa83cca448
-    type: implements
-    from: SYM-cli-prolog-json-operation-decode-error-raw-length
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-16T21:04:44.071Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-cli-prolog-json-operation-decode-error-raw-length
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T21:04:44.072Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ce7d1df845ec
   - type: implements
     from: SYM-yaml-relationship-deletion
     to: REQ-kibi-operation-interface-parity
@@ -34,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc16ac7e41c5
-  - type: implements
-    from: SYM-semantic-advisor-predicateSuggestion
-    to: REQ-mcp-semantic-advisor-preflight
-    created_at: 2026-08-22T20:20:44.485Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e67f8d8f45ee
   - type: implements
     from: SYM-semantic-advisor-predicateSuggestion
     to: REQ-kibi-logical-requirement-coverage
@@ -69,34 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-026a7771f263
-  - type: implements
-    from: SYM-cli-prepare-operation-input
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:25:35.484Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-57cb41e62ba5
-  - type: covered_by
-    from: SYM-cli-prepare-operation-input
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:25:35.497Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-463fba71b4e1
-  - type: covered_by
-    from: SYM-cli-prepare-operation-input
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:25:35.502Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-37784f3ab8ac
-  - type: covered_by
-    from: SYM-cli-prolog-json-operation-decode-error-raw-length
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:33:48.383Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-82f342cb54e0
   - type: covered_by
     from: SYM-yaml-relationship-deletion
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -104,48 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9df10a133de9
-  - type: implements
-    from: SYM-SyncRunMetadata
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:56:14.459Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-72a7fb3308e1
-  - type: covered_by
-    from: SYM-SyncRunMetadata
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:56:14.478Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0222d1bed6cd
-  - type: covered_by
-    from: SYM-SyncRunMetadata
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:56:14.489Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f1ba7dfa0bc7
-  - type: covered_by
-    from: SYM-discovery-search-payload
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:37:24.171Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3bf5a995fa28
-  - type: implements
-    from: SYM-discovery-search-payload
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:01:02.447Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-25c75bfab4da
-  - type: covered_by
-    from: SYM-discovery-search-payload
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:01:02.452Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-93683fa8dfa7
   - type: covered_by
     from: SYM-cursor-writeGuidance
     to: TEST-agent-kibi-interface-selection
@@ -154,13 +63,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-062827d7289b
   - type: covered_by
-    from: SYM-KIBI-IMPACT-DIAGNOSTICS
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:12:47.271Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8d44df1c03d0
-  - type: covered_by
     from: SYM-cursor-isKbFreshnessRelevantPath
     to: TEST-cursor-kibi-plugin-v1
     created_at: 2026-09-05T15:39:01.061Z
@@ -168,26 +70,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-6aa8ae60947d
   - type: covered_by
-    from: SYM-cursor-readStdin
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-05T15:39:42.094Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4a150de89e2e
-  - type: covered_by
     from: SYM-cursor-writeGuidance
     to: TEST-cursor-kibi-plugin-v1
     created_at: 2026-09-05T15:40:41.414Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-47f3077daceb
-  - type: covered_by
-    from: SYM-cap-plugin-normalizepredicatetoken-1a36e10c
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:42:18.594Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7fca79ee0f35
   - type: implements
     from: SYM-prolog-coverage-load-tests
     to: REQ-prolog-coverage-test-selection
@@ -202,34 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f17e52b760f
-  - type: implements
-    from: SYM-migration-requirement-status-finding
-    to: REQ-cli-schema-migration
-    created_at: 2026-10-14T10:12:55.600Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6072e22e1dc8
-  - type: covered_by
-    from: SYM-migration-requirement-status-finding
-    to: TEST-cli-migrate
-    created_at: 2026-10-14T10:12:55.624Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-72f586f39538
-  - type: implements
-    from: SYM-migration-requirement-status-finding
-    to: REQ-cli-migrate-legacy-requirement-status
-    created_at: 2026-10-14T10:12:55.643Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eddb701a9124
-  - type: covered_by
-    from: SYM-migration-requirement-status-finding
-    to: TEST-cli-migrate-legacy-requirement-status
-    created_at: 2026-10-14T10:12:55.657Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-175e6e8279eb
   - type: implements
     from: SYM-engine-limits-read-inference-limit-env
     to: REQ-core-engine-read-limit-settings
@@ -293,3 +153,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f50d563131ce
+  - type: constrains
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: FACT-SUBJECT-KIBI-SIGNOFF-VIEWS
+    created_at: 2026-11-10T09:00:24.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c0737a77967
+  - type: requires_property
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: FACT-kibi-signoff-lists-changed-requirements
+    created_at: 2026-11-10T09:00:24.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43842155b5b3
+  - type: requires_property
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: FACT-kibi-signoff-numbers-decisions
+    created_at: 2026-11-10T09:00:24.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-533402b3b801
+  - type: specified_by
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: SCEN-kibi-signoff-views
+    created_at: 2026-11-10T09:00:24.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3f2bf9c0f80
+  - type: specified_by
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: SCEN-NEG-kibi-signoff-views-MALFORMED-QUESTIONS
+    created_at: 2026-11-10T09:00:24.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c3e40612f48
+  - type: specified_by
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: SCEN-CASE-kibi-signoff-views-CHANGED-REQ-OMITTED
+    created_at: 2026-11-10T09:00:24.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cec3fa4d6805
+  - type: verified_by
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: TEST-kibi-signoff-views
+    created_at: 2026-11-10T09:00:24.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72f806ccc3e1
+  - type: supersedes
+    from: REQ-kibi-signoff-lists-requirements-and-decisions
+    to: REQ-kibi-signoff-views
+    created_at: 2026-11-10T09:00:24.763Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fa4ce651d71

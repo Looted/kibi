@@ -1,7 +1,7 @@
 ---
 id: FACT-AUDIT-APPEND-CLOSE
 title: Audit appends release the journal write lock
-status: active
+status: archived
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
 tags: [lane:ontology, audit, persistence, locking]

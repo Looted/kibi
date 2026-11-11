@@ -1,6 +1,6 @@
 ---
 title: Documentation site publishes at /docs/ on project Pages
-status: active
+status: archived
 fact_kind: property_value
 subject_key: docs.site
 property_key: publish.path

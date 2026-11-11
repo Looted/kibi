@@ -34,7 +34,7 @@ A bootstrap evidence provider shall be typed_kibi_docs, generic_repo_docs, repo_
 
 ## Context
 
-packages/cli/src/operations/bootstrap/types.ts names the providers REQ-KIBI-BOOTSTRAP-PLAN gathers evidence from. The provider set is stated here so it is proved against the provider order.
+packages/cli/src/operations/bootstrap/types.ts names the providers REQ-kibi-bootstrap-read-only-planner gathers evidence from. The provider set is stated here so it is proved against the provider order.
 
 ## Source
 

@@ -43,6 +43,7 @@ semantic_clauses:
   - The Prolog mutation runner must pass its command-line arguments to Mutalog unchanged
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-29T16:12:13.562Z'
 id: REQ-prolog-mutation-lane
 type: req

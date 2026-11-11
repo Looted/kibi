@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.lifecycle.check_codes
 claim_key: CLAIM-AC4230B73B003ADA
 claim_text: The migration sync action id shall be migration-sync
-text_ref: REQ-kibi-lifecycle-check-codes
+text_ref: REQ-kibi-migration-sync-codes
 property_key: migration_sync_action
 operator: eq
 value_type: string

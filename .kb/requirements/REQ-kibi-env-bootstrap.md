@@ -1,13 +1,12 @@
 ---
 title: Harness-independent Kibi environment bootstrap
-status: open
+status: closed
 tags:
   - env
   - bootstrap
   - doctor
   - cli
   - mcp
-  - review:context-missing
 semantic_text: Kibi CLI and MCP must share one harness-independent environment bootstrap. Non-empty process environment values win over project `.env.kibi` or `KIBI_ENV_FILE`, which win over user `~/.config/kibi/env`, which win over legacy `.env` gap-fill. Blank values are unset and must not overwrite. Workspace resolution for env files and doctor plugin configuration must use resolveKibiWorkspaceRoot, and MCP resolveWorkspaceRoot must delegate to it. Bootstrap source labels are process, project_env, user_env, legacy_env, or missing, and must never include secret values. Doctor secret attribution must use the actual bootstrap sources with remembered pre-bootstrap process keys. Doctor must report capability plugin package, capability, mode, and declared dependency without importing plugin packages; first-party Jev secret and model diagnostics may be static. Legacy env sources must be labeled legacy_env with a migration hint.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
@@ -108,7 +107,7 @@ id: REQ-kibi-env-bootstrap
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-04, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 1): "Agree to all." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -125,3 +124,6 @@ See semantic_text / inventory.
 
 
 Kibi CLI and MCP must share one harness-independent environment bootstrap. Non-empty process environment values win over project `.env.kibi` or `KIBI_ENV_FILE`, which win over user `~/.config/kibi/env`, which win over legacy `.env` gap-fill. Blank values are unset and must not overwrite. Workspace resolution for env files and doctor plugin configuration must use resolveKibiWorkspaceRoot, and MCP resolveWorkspaceRoot must delegate to it. Bootstrap source labels are process, project_env, user_env, legacy_env, or missing, and must never include secret values. Doctor secret attribution must use the actual bootstrap sources with remembered pre-bootstrap process keys. Doctor must report capability plugin package, capability, mode, and declared dependency without importing plugin packages; first-party Jev secret and model diagnostics may be static. Legacy env sources must be labeled legacy_env with a migration hint.
+
+## Why
+Provider secrets resolved differently depending on the harness. One shared bootstrap with a fixed precedence makes every host resolve them the same way, and doctor never runs plugin code. Source: changeset "harness-independent-env-bootstrap".

@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.skillopt.paid_launch
-property_key: clause_01_paid_skillopt_model_launches_must_fail_closed_unless_the_ext
+property_key: paid_launch_fails_closed
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_skillopt_paid_launch_accounting.clause_01_paid_skillopt_model_launches_must_fail_closed_unless_the_ext.eq.true
+canonical_key: req.req_skillopt_paid_launch_accounting.paid_launch_fails_closed.eq.true
 claim_key: CLAIM-4645F4BEC193D483
 claim_text: Paid SkillOpt model launches must fail closed unless the external trust boundary validates immutable authority and supervisor-parent bindings; binds the one-use capability to the exact request ID, request hash, approved pricing, model, and lease; enforces pinned TLS, CA, SNI, IP, egress, request, invoice, and authorization ceilings; and preserves same-request idempotency without cross-request attribution
 id: FACT-PROP-REQ-SKILLOPT-PAID-LAUNCH-ACCOUNTING-C01

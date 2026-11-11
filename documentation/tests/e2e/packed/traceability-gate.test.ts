@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawn } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
@@ -455,6 +462,27 @@ function testMarkdown(id: string, title: string): string {
     "Test fixture that gives the staged symbol relationships of the traceability gate production coverage.",
     "",
   ].join("\n");
+}
+
+/** Digest of every file under a directory, so a test can prove it is untouched. */
+function treeDigest(root: string): string {
+  const hash = createHash("sha256");
+  if (!existsSync(root)) return "absent";
+  const files = (
+    readdirSync(root, { recursive: true, withFileTypes: true }) as {
+      isFile(): boolean;
+      name: string;
+      parentPath: string;
+    }[]
+  )
+    .filter((entry) => entry.isFile())
+    .map((entry) => join(entry.parentPath, entry.name))
+    .sort();
+  for (const file of files) {
+    hash.update(file.slice(root.length));
+    hash.update(readFileSync(file));
+  }
+  return hash.digest("hex");
 }
 
 function writeSandboxFile(
@@ -1234,6 +1262,219 @@ if (RUN_NODE_TEST_SUITE) {
       const output = commandText(result);
       assert.match(output, /kibi_impact_evidence_missing/);
       assert.doesNotMatch(output, /kibi_impact_override_missing_rationale/);
+    });
+
+    it("treats a comment-only staged edit as non-behavioral and checks staged knowledge in an overlay without touching the branch store", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      assertCommandExit(
+        await run(
+          "git",
+          ["reset", "-q", "--hard", "HEAD"],
+          gitOptions(sandbox),
+        ),
+        0,
+        "discarding the previous case's staged fixture",
+      );
+      assertCommandExit(
+        await run("git", ["clean", "-q", "-fd"], gitOptions(sandbox)),
+        0,
+        "removing the previous case's untracked fixture",
+      );
+      assertCommandExit(
+        await kibi(sandbox, ["sync"], { timeoutMs: CHECK_TIMEOUT_MS }),
+        0,
+        "syncing the committed baseline",
+      );
+
+      writeSandboxFile(
+        sandbox,
+        "src/sample.js",
+        "export function hello() { return 'ok'; }\n// Greets the caller.\n",
+      );
+      assertCommandExit(
+        await run("git", ["add", "--", "src/sample.js"], gitOptions(sandbox)),
+        0,
+        "staging a comment-only source edit",
+      );
+      const commentOnly = await kibi(sandbox, ["check", "--staged"], {
+        timeoutMs: CHECK_TIMEOUT_MS,
+      });
+      assert.doesNotMatch(
+        commandText(commentOnly),
+        /kibi_impact_evidence_missing/,
+        "a comment-only edit is not a behavior-changing edit",
+      );
+      assertCommandExit(
+        commentOnly,
+        0,
+        "staged check for a comment-only source edit",
+      );
+
+      const branchStore = join(sandbox.repoDir, ".kb", "branches");
+      const storeBefore = treeDigest(branchStore);
+      assert.notStrictEqual(storeBefore, "absent", "sync wrote a branch store");
+      writeSandboxFile(
+        sandbox,
+        ".kb/requirements/REQ-STAGED-ONLY.md",
+        [
+          "---",
+          "id: REQ-STAGED-ONLY",
+          "title: Staged-only requirement",
+          "status: open",
+          "priority: must",
+          `created_at: ${FIXTURE_TIME}`,
+          `updated_at: ${FIXTURE_TIME}`,
+          "---",
+          "",
+          "A staged requirement that was never synced.",
+          "",
+          "## Context",
+          "",
+          "Fixture requirement that exists only in the Git index.",
+          "",
+        ].join("\n"),
+      );
+      assertCommandExit(
+        await run(
+          "git",
+          ["add", "--", ".kb/requirements/REQ-STAGED-ONLY.md"],
+          gitOptions(sandbox),
+        ),
+        0,
+        "staging a requirement without syncing it",
+      );
+      const stagedKnowledge = await kibi(sandbox, ["check", "--staged"], {
+        timeoutMs: CHECK_TIMEOUT_MS,
+      });
+      assert.match(
+        commandText(stagedKnowledge),
+        /REQ-STAGED-ONLY/,
+        "the staged check evaluates the staged requirement",
+      );
+      assert.strictEqual(
+        treeDigest(branchStore),
+        storeBefore,
+        "the staged check must not change the branch store",
+      );
+      const query = await kibi(sandbox, ["query", "req"], {
+        timeoutMs: CHECK_TIMEOUT_MS,
+      });
+      assert.doesNotMatch(
+        query.stdout,
+        /REQ-STAGED-ONLY/,
+        "the staged requirement stays out of the branch store",
+      );
+    });
+
+    it("lists the entities linked to each changed symbol and gives each blocking impact diagnostic a suggestion that clears it", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      assertCommandExit(
+        await run(
+          "git",
+          ["reset", "-q", "--hard", "HEAD"],
+          gitOptions(sandbox),
+        ),
+        0,
+        "discarding the previous case's staged fixture",
+      );
+      assertCommandExit(
+        await run("git", ["clean", "-q", "-fd"], gitOptions(sandbox)),
+        0,
+        "removing the previous case's untracked fixture",
+      );
+      // A coarse whole-file symbol next to the narrow `hello` declaration is
+      // the blocking granularity case the impact check must explain.
+      writeSandboxFile(
+        sandbox,
+        ".kb/symbols.yaml",
+        symbolsManifest([
+          OWNED_HELLO_SYMBOL,
+          {
+            id: "SYM-SAMPLE-MODULE",
+            title: "sample module",
+            sourceFile: "src/sample.js",
+            relations: [{ type: "implements", target: "REQ-001" }],
+          },
+        ]),
+      );
+      assertCommandExit(
+        await kibi(sandbox, ["sync", "--refresh-symbol-coordinates"], {
+          timeoutMs: CHECK_TIMEOUT_MS,
+        }),
+        0,
+        "syncing the coarse module symbol",
+      );
+      writeSandboxFile(
+        sandbox,
+        "impact-input.json",
+        JSON.stringify({
+          sourceFiles: ["src/sample.js"],
+          includeImpactDiagnostics: true,
+        }),
+      );
+      const result = await kibi(
+        sandbox,
+        ["check", "--input", "impact-input.json"],
+        { timeoutMs: CHECK_TIMEOUT_MS },
+      );
+      const parsed = JSON.parse(result.stdout) as {
+        data?: {
+          linkedEntities?: Array<{
+            id: string;
+            relationshipType: string;
+            sourceSymbolId: string;
+          }>;
+          impactDiagnostics?: Array<{
+            id: string;
+            blocking: boolean;
+            suggestion?: string;
+          }>;
+        };
+      };
+      const linked = parsed.data?.linkedEntities ?? [];
+      assert.ok(
+        linked.some(
+          (entity) =>
+            entity.id === "REQ-001" &&
+            entity.relationshipType === "implements" &&
+            entity.sourceSymbolId === "SYM-HELLO-001",
+        ),
+        `the changed hello symbol lists REQ-001: ${JSON.stringify(linked)}`,
+      );
+      assert.ok(
+        linked.some(
+          (entity) =>
+            entity.id === BASELINE_TEST_ID &&
+            entity.sourceSymbolId === "SYM-HELLO-001",
+        ),
+        "the changed hello symbol lists its covering test",
+      );
+      const blocking = (parsed.data?.impactDiagnostics ?? []).filter(
+        (diagnostic) => diagnostic.blocking,
+      );
+      assert.ok(
+        blocking.some(
+          (diagnostic) => diagnostic.id === "symbol_granularity_violation",
+        ),
+        "the coarse module symbol is a blocking granularity diagnostic",
+      );
+      for (const diagnostic of blocking) {
+        assert.ok(
+          (diagnostic.suggestion ?? "").trim().length > 0,
+          `blocking diagnostic ${diagnostic.id} carries a suggestion`,
+        );
+      }
+      assert.match(
+        blocking.find((d) => d.id === "symbol_granularity_violation")
+          ?.suggestion ?? "",
+        /hello|granularity_reason/,
+      );
     });
   });
 }

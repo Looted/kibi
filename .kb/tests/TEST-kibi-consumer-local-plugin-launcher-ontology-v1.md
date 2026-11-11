@@ -1,6 +1,6 @@
 ---
 title: Reusable Consumer-Local Plugin Launcher End-to-End Contract
-status: active
+status: passing
 priority: must
 text_ref: documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts
 tags:
@@ -10,7 +10,6 @@ tags:
   - launcher
   - consumer-local
   - ontology
-  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -23,18 +22,18 @@ proof_contract:
 id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-3ce4d806a8e277bb7e3cea47
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-4f3e93fcfc8ae7a6ef04ab30
     test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 35a491d9823c7a05484c300945b0578ad590fb32222b0602563f88dcd5e2e0df
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T08:52:21.470Z'
+    finished_at: '2026-11-10T08:53:42.486Z'
+    artifact_digest: 380f5807b87ef0f66c6ec2a6a0bade361f9ecd4d6795e0cb6804101dbb909a3a
     contract_hash: 6299bf4fe2ac5eed1cd93ce7bd7be2c7df3ccb39d29ec90b6f3a57b480f74a8d
-    binding_hash: 896c56f0800ec8410059886907a8811bca214d6299ef2dee16c99363d1ad062d
+    binding_hash: 6da0a38c5b6393d1b8767136eb1f6bad33e9dbb18f9a1dc03abb125b02df165a
     fingerprint: 920c82a38d2737326a9835f6b6314f8788890cdc4e6b2d6ec23ed31d03c81426
     fingerprint_components:
       contract: 6299bf4fe2ac5eed1cd93ce7bd7be2c7df3ccb39d29ec90b6f3a57b480f74a8d
@@ -56,8 +55,13 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+## Context
+This is the Cursor launcher coverage that the same commit added for the new schemas.

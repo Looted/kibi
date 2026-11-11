@@ -13,7 +13,6 @@ tags:
   - ontology
   - traceability
   - umbrella
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-skillopt-predicate-first-requirements
@@ -74,7 +73,7 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving entity context that was inferred (not recorded in history) in the KB gold-standard review (context batch 9, inferred): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "The claims govern how agents model requirements; there is no Kibi input to refuse, and the evaluation scores agent behaviour."
 failure_side_waiver_approved_by: Piotr Franczyk
@@ -103,3 +102,6 @@ Held-out predicate evaluation must reserve the complete four-case, three-variant
 Public corpus metadata must describe project-local schemas with stable IDs, names, argument roles, and argument types. It must not mislabel graph relationship types as built-in ontology predicates or claim a project-local schema exists without giving the agent enough public information to create or select its endpoint.
 
 The public training corpus includes a compound relational-plus-scalar requirement. Private scoring requires all ground fact kinds, every expected relationship, distinct claim provenance on ground facts, and the complete requirement manifest. `logic-claim-manifest`, `logic-claim-grounding`, and logical-lane failures are ordinary behavioral feedback for refinement.
+
+## Why
+Prose alone can't be checked for contradictions, but prose turned into raw rules loses its readability. Routing relational claims through the advisor and suggested predicates keeps both. Inferred from: the requirement's own text; README "Prolog guards against drift".
