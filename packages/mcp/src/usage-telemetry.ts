@@ -8,7 +8,7 @@ import {
   telemetryErrorClass,
   telemetryRootError,
 } from "kibi-agent-core/usage-telemetry";
-import { operationTelemetrySignals } from "kibi-cli/telemetry-details";
+import { operationTelemetrySignals } from "kibi-runtime";
 
 import { classifyDiagnosticError } from "./diagnostics-helpers.js";
 import { readMcpPackageVersion } from "./diagnostics.js";
