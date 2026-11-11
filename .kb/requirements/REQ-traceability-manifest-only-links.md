@@ -3,11 +3,11 @@ title: The staged traceability gate takes requirement links only from the symbol
 status: open
 priority: must
 firmness: firm
-approval_ref: Piotr Franczyk approved this wording in the project thread on 2026-11-11 ("Ok")
+approval_ref: Maintainer approved this wording as a firm rule on 2026-11-11
 origin:
   kind: agent
-  approved_by: Piotr Franczyk
-  ref: 'Project thread, 2026-11-11: hard-drop inline implements comments'
+  approved_by: maintainer
+  ref: 'Maintainer decision, 2026-11-11, to hard-drop inline implements comments; wording approved: "Ok"'
   recorded_at: '2026-11-11T05:45:01.592Z'
 tags:
   - traceability
@@ -21,14 +21,14 @@ semantic_inventory:
   - claim_key: CLAIM-84AC70D32820F0EC
     claim_text: The staged traceability gate takes a changed symbol's requirement links only from the symbol manifest
     role: descriptive
-    status: missing
+    status: modeled
     span:
       start: 0
       end: 101
   - claim_key: CLAIM-39FC9C19886820FB
     claim_text: an `implements` comment in source code never satisfies or changes them
     role: descriptive
-    status: missing
+    status: modeled
     span:
       start: 103
       end: 173
@@ -48,4 +48,4 @@ Inline comments drifted from the manifest: in Kibi's own repository only 605 of 
 
 > We already decided at some point comments should be fallbacks, and the symbols cooridnates should take their role. I still see the comments in the code - should we just hard drop/migrate them?
 
-Piotr Franczyk, project thread, 2026-11-11.
+Maintainer, 2026-11-11.

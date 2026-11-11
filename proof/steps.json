@@ -7494,5 +7494,25 @@
         "documentation/tests/e2e/packed/check-review-rules.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-traceability-manifest-only-links",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/inline-implements-comments.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-migrate-inline-implements-review",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/inline-implements-comments.test.ts"
+      ]
+    ]
   }
 ]

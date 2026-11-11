@@ -39080,3 +39080,39 @@ symbols:
         target: TEST-migrate-inline-implements-review
       - type: implements
         target: REQ-migrate-inline-implements-review
+  - id: SYM-e2e-staged-gate-rejects-comment-only-link
+    title: assertStagedGateRejectsCommentOnlyLink
+    status: active
+    sourceFile: documentation/tests/e2e/packed/inline-implements-comments.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T05:57:27.745Z
+    relationships:
+      - type: executable_for
+        target: TEST-traceability-manifest-only-links
+  - id: SYM-e2e-migrate-lists-inline-implements-comment
+    title: assertMigrateListsCommentWithoutEditing
+    status: active
+    sourceFile: documentation/tests/e2e/packed/inline-implements-comments.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T05:57:31.234Z
+    relationships:
+      - type: executable_for
+        target: TEST-migrate-inline-implements-review
+  - id: SYM-e2e-inline-implements-comments
+    title: inline-implements-comments.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/inline-implements-comments.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T05:57:33.867Z
+    relationships:
+      - type: executable_for
+        target: TEST-migrate-inline-implements-review
+      - type: executable_for
+        target: TEST-traceability-manifest-only-links

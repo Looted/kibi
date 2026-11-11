@@ -38,9 +38,6 @@ export const INLINE_IMPLEMENTS_REVIEW_CODE = "review_inline_implements_comment";
 export const INLINE_IMPLEMENTS_REVIEW_ACTION_ID =
   "review-inline-implements-comments";
 
-/** Comments listed in the action's evidence; the total counts all of them. */
-export const INLINE_IMPLEMENTS_EVIDENCE_LIMIT = 200;
-
 /** Files larger than this are not read: no hand-written source is. */
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 
@@ -188,7 +185,7 @@ export function findInlineImplementsComments(
 
 /**
  * One review action for the comments, or null when there are none. The
- * evidence lists the first comments; the instruction gives the total.
+ * evidence lists every comment, so nothing is left for a later run to find.
  */
 export function inlineImplementsReviewAction(
   comments: readonly InlineImplementsComment[],
@@ -201,7 +198,6 @@ export function inlineImplementsReviewAction(
   const alreadyLinked = comments.filter(
     (comment) => comment.manifestLinked.length === comment.requirements.length,
   ).length;
-  const listed = comments.slice(0, INLINE_IMPLEMENTS_EVIDENCE_LIMIT);
   return {
     id: INLINE_IMPLEMENTS_REVIEW_ACTION_ID,
     code: INLINE_IMPLEMENTS_REVIEW_CODE,
@@ -209,11 +205,11 @@ export function inlineImplementsReviewAction(
     safety: "review",
     invocation: {
       kind: "review",
-      instruction: `${comments.length} inline implements comment(s) in ${files.length} source file(s) name requirements, and Kibi no longer reads them: only .kb/symbols.yaml links a symbol to a requirement, so kibi check --staged now blocks a changed symbol whose only link was a comment. ${alreadyLinked} of them name only requirements a manifest symbol of the same file already implements. For each comment, when the code under it still implements a requirement that manifestLinked does not list, kb_upsert that symbol (title, sourceFile, implements -> the requirement); then delete the comment. Kibi does not edit source code, so the comments stay until you remove them.${comments.length > listed.length ? ` Evidence lists the first ${listed.length}; rerun kibi migrate for the rest.` : ""}`,
+      instruction: `${comments.length} inline implements comment(s) in ${files.length} source file(s) name requirements, and Kibi no longer reads them: only .kb/symbols.yaml links a symbol to a requirement, so kibi check --staged now blocks a changed symbol whose only link was a comment. ${alreadyLinked} of them name only requirements a manifest symbol of the same file already implements. For each comment, when the code under it still implements a requirement that manifestLinked does not list, kb_upsert that symbol (title, sourceFile, implements -> the requirement); then delete the comment. Kibi does not edit source code, so the comments stay until you remove them.`,
     },
     affectedEntityIds: requirements,
     affectedFiles: files,
     dispositionRequired: true,
-    evidence: { comments: listed, total: comments.length },
+    evidence: { comments, total: comments.length },
   };
 }

@@ -496,3 +496,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-40add67c72d2
+  - type: specified_by
+    from: REQ-migrate-inline-implements-review
+    to: SCEN-NEG-migrate-inline-implements-edits-source
+    created_at: 2026-11-11T06:03:15.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8c11d39ee5f
+  - type: requires_rule
+    from: REQ-migrate-inline-implements-review
+    to: FACT-RULE-DC97337E06441E81
+    created_at: 2026-11-11T06:03:15.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d3ccf3dcacb

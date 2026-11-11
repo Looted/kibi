@@ -7,8 +7,8 @@ tags:
   - staged-check
 origin:
   kind: agent
-  approved_by: Piotr Franczyk
-  ref: 'Project thread, 2026-11-11: hard-drop inline implements comments'
+  approved_by: maintainer
+  ref: 'Maintainer decision, 2026-11-11, to hard-drop inline implements comments; wording approved: "Ok"'
   recorded_at: '2026-11-11T05:47:29.610Z'
 id: SCEN-traceability-manifest-only-links
 type: scenario

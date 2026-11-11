@@ -4,7 +4,6 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import {
-  INLINE_IMPLEMENTS_EVIDENCE_LIMIT,
   INLINE_IMPLEMENTS_REVIEW_ACTION_ID,
   INLINE_IMPLEMENTS_REVIEW_CODE,
   findInlineImplementsComments,
@@ -200,30 +199,21 @@ describe("inlineImplementsReviewAction", () => {
       "1 of them name only requirements a manifest symbol of the same file already implements.",
     );
     expect(instruction).toContain("Kibi does not edit source code");
-    expect(instruction).not.toContain("Evidence lists the first");
   });
 
-  test("lists a bounded page of comments and says how many there are", () => {
-    const comments = Array.from(
-      { length: INLINE_IMPLEMENTS_EVIDENCE_LIMIT + 1 },
-      (_, index) => ({
-        file: "src/a.ts",
-        line: index + 1,
-        requirements: ["REQ-a"],
-        manifestLinked: [],
-      }),
-    );
+  test("lists every comment however many there are", () => {
+    const comments = Array.from({ length: 501 }, (_, index) => ({
+      file: "src/a.ts",
+      line: index + 1,
+      requirements: ["REQ-a"],
+      manifestLinked: [],
+    }));
     const action = inlineImplementsReviewAction(comments);
     const evidence = action?.evidence as {
       comments: unknown[];
       total: number;
     };
-    expect(evidence.comments).toHaveLength(INLINE_IMPLEMENTS_EVIDENCE_LIMIT);
-    expect(evidence.total).toBe(INLINE_IMPLEMENTS_EVIDENCE_LIMIT + 1);
-    expect(
-      action?.invocation?.kind === "review" && action.invocation.instruction,
-    ).toContain(
-      `Evidence lists the first ${INLINE_IMPLEMENTS_EVIDENCE_LIMIT}; rerun kibi migrate for the rest.`,
-    );
+    expect(evidence.comments).toStrictEqual(comments);
+    expect(evidence.total).toBe(501);
   });
 });

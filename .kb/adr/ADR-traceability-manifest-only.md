@@ -4,8 +4,8 @@ status: accepted
 firmness: firm
 origin:
   kind: agent
-  approved_by: Piotr Franczyk
-  ref: 'Piotr Franczyk, project thread, 2026-11-11: "comments should be fallbacks, and the symbols cooridnates should take their role ... should we just hard drop/migrate them?"; wording approved 2026-11-11 ("Ok")'
+  approved_by: maintainer
+  ref: 'Maintainer decision, 2026-11-11: "comments should be fallbacks, and the symbols cooridnates should take their role ... should we just hard drop/migrate them?"; wording approved 2026-11-11 ("Ok")'
   recorded_at: '2026-11-11T05:45:16.871Z'
 tags:
   - traceability
