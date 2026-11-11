@@ -7,7 +7,6 @@ tags:
   - prolog
   - requirement-proof
   - truthful-consistency
-  - review:context-missing
 semantic_text: Contradiction checking must decide numeric comparisons exactly, including strict greater-than and less-than bounds. Rule-versus-rule conflict checking must classify each rule pair as contradiction, disjoint, or unresolved. The proof ladder contradiction stage must report analysis incomplete instead of no conflict found for a requirement with unmodeled propositions.
 semantic_clauses:
   - Contradiction checking must decide numeric comparisons exactly, including strict greater-than and less-than bounds.
@@ -49,9 +48,12 @@ id: REQ-kibi-truthful-consistency
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Contradiction checking must decide numeric comparisons exactly, including strict greater-than and less-than bounds. Rule-versus-rule conflict checking must classify each rule pair as contradiction, disjoint, or unresolved. The proof ladder contradiction stage must report analysis incomplete instead of no conflict found for a requirement with unmodeled propositions.
+
+## Why
+Contradiction checks reported "no conflict" when they couldn't decide, and numeric bounds weren't compared exactly. Reporting incomplete analysis keeps a missing model from passing as consistency. Source: PR 329, "Truthful consistency".

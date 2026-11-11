@@ -13,10 +13,8 @@ id: TEST-rule-registry-single-source
 type: test
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 proof_receipts:
   - version: kibi.proof-receipt.v2
     receipt_id: PR-c9cfb3388c39e51085781926
@@ -54,3 +52,6 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
+
+## Context
+The TypeScript rule registry, the `kb_check` input enum and Prolog dispatch were kept in sync by hand. They're now generated from one JSON file, and this test fails CI if any of them drifts. Source: commit "generate the check-rule registry from a single JSON source".

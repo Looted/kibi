@@ -6,7 +6,6 @@ tags:
   - skillopt
   - claude-code
   - e2e
-  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -22,7 +21,7 @@ proof_bindings:
     native_id: documentation/tests/e2e/skillopt-claude-code-host.e2e.ts::skillopt Claude Code host e2e
 origin:
   kind: agent
-  ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host'
+  ref: 'Maintainer request, 2026-10-05: continue PR 331 on another agent host Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-05T22:05:47.109Z'
 id: TEST-e2e-skillopt-claude-code-host
 type: test
@@ -63,3 +62,6 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
+
+## Context
+This runs one real cell through the CLIs with a stub model, so no paid launch is needed. It checks the pinned model, the strict MCP config, file rules, denied private roots and the filtered environment.

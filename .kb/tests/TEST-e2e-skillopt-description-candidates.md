@@ -5,7 +5,6 @@ priority: should
 tags:
   - skillopt
   - e2e
-  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -21,7 +20,7 @@ proof_bindings:
     native_id: documentation/tests/e2e/skillopt-description-candidates.e2e.ts::skillopt description candidates e2e
 origin:
   kind: agent
-  ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+  ref: 'Maintainer request, 2026-10-06: let SkillOpt optimize the skill description, not just the body Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-06T00:22:45.349Z'
 id: TEST-e2e-skillopt-description-candidates
 type: test
@@ -60,3 +59,6 @@ proof_receipts:
         attempts:
           status: unavailable
 ---
+
+## Context
+Agents decide whether to load a skill from its description, so a candidate may replace the description too. This proves that compose freezes it and the target reads exactly that text. Source: commit "prove description candidates end to end".

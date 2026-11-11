@@ -50,8 +50,9 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 ---
+
+## Context
+This was one of the packed tests added in PR 262. It runs batch diagnostics through the production `runBatch`, which was exported for this, so a failing suite reports an actionable cause.
