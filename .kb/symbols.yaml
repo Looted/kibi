@@ -20557,6 +20557,17 @@ symbols:
         target: TEST-kibi-local-proof-parity
       - type: implements
         target: REQ-kibi-local-proof-parity
+  - id: SYM-kb-zero-findings-gate
+    title: kb-zero-findings.sh
+    status: active
+    sourceFile: scripts/kb-zero-findings.sh
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: implements
+        target: REQ-kibi-own-kb-zero-findings
+      - type: covered_by
+        target: TEST-prolog-bundled-ci
   - id: SYM-mcp-release-package-metadata
     title: package.json
     status: active

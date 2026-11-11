@@ -419,3 +419,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-54fc64c025d0
+  - type: constrains
+    from: REQ-kibi-own-kb-zero-findings
+    to: FACT-SUBJ-kibi-own-kb-zero-findings
+    created_at: 2026-11-11T17:41:30.936Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-023a76d1a163
+  - type: requires_property
+    from: REQ-kibi-own-kb-zero-findings
+    to: FACT-PROP-kibi-own-kb-zero-findings-c01
+    created_at: 2026-11-11T17:41:30.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69fd91574bde
+  - type: requires_property
+    from: REQ-kibi-own-kb-zero-findings
+    to: FACT-PROP-kibi-own-kb-zero-findings-c02
+    created_at: 2026-11-11T17:41:31.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56001bb4d435
+  - type: specified_by
+    from: REQ-kibi-own-kb-zero-findings
+    to: SCEN-kibi-own-kb-zero-findings
+    created_at: 2026-11-11T17:41:31.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-951ecb47f398
+  - type: specified_by
+    from: REQ-kibi-own-kb-zero-findings
+    to: SCEN-NEG-kibi-own-kb-zero-findings
+    created_at: 2026-11-11T17:41:31.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca420ff9e7f4
+  - type: relates_to
+    from: REQ-kibi-own-kb-zero-findings
+    to: REQ-cli-check
+    created_at: 2026-11-11T17:41:31.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-011e141ae59e
