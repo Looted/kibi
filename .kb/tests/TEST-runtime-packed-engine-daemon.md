@@ -7,7 +7,6 @@ tags:
   - packed
   - e2e
   - proof
-  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -57,6 +56,9 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+## Context
+This installs published tarballs into a clean prefix and starts the engine client from the installed runtime. It proves daemon resolution without a nested `kibi-cli`.

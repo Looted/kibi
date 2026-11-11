@@ -10,7 +10,6 @@ tags:
   - cli
   - discovery
   - search
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-mcp-search-discovery
@@ -89,7 +88,7 @@ semantic_inventory:
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6). Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 3): "Ok"'
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6). Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 3): "Ok" Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   approved_by: maintainer
   recorded_at: '2026-11-03T11:34:18.000Z'
 firmness: default
@@ -103,3 +102,6 @@ rationale: "Agents and people should find the same answers whether they use MCP 
 - The discovery surface must offer coverage reporting with kb_coverage and kibi coverage.
 - The discovery surface must offer bounded relationship traversal with kb_graph and kibi graph.
 - kb_query must remain exact and deterministic and must not be turned into fuzzy search.
+
+## Why
+Users needed exploratory analysis without falling back to grep or raw KB internals. `kb_query` stays exact, and the product exposes curated answers rather than raw inference. Source: ADR "Discovery tools expand the public read surface".

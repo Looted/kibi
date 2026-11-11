@@ -11,7 +11,6 @@ tags:
   - cli
   - parity
   - policy
-  - review:context-missing
   - umbrella
 links:
   - type: relates_to
@@ -60,9 +59,12 @@ semantic_clauses:
   - hosts select the visible approved surface by capability rather than by a fixed preference
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 The public operation surface stays aligned across MCP and the trusted project-local CLI. Both peers expose the same versioned operation catalog and structured contracts; hosts select the visible approved surface by capability rather than by a fixed preference.
+
+## Why
+Guidance treated one surface as primary and the other as a hidden fallback, which caused drift in docs, prompts and policy checks. MCP and CLI are peers. Source: ADR-022.

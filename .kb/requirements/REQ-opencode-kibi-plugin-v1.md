@@ -11,7 +11,6 @@ tags:
   - opencode
   - kibi
   - plugin
-  - review:context-missing
   - umbrella
 links:
   - type: specified_by
@@ -76,7 +75,7 @@ semantic_clauses:
   - detailed specifications remain in their respective requirement documents
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "An umbrella requirement; its claims point at granular requirements, which carry the failure-side scenarios."
 failure_side_waiver_approved_by: Piotr Franczyk
@@ -84,3 +83,6 @@ firmness: default
 required_evidence: tested
 ---
 The OpenCode Kibi Plugin provides Kibi context and synchronization within OpenCode. Agent-facing bootstrap guidance routes to the canonical kibi-bootstrap skill and kb_plan_bootstrap plan/apply contract; other work follows typed status and the canonical usage, freshness, and traceability skills.
+
+## Why
+OpenCode needed Kibi context and sync without duplicating Kibi logic in the host. The plugin is a thin bridge to `kibi sync` and the MCP tools. Source: ADR-016; commit "create Kibi traceability artifacts for OpenCode plugin v1".

@@ -94,9 +94,10 @@ id: REQ-KIBI-BOOTSTRAP-PLAN
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok" Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 ---
 The bootstrap workflow must produce a read-only deterministic plan and apply only an explicitly approved exact plan through kb_apply_plan.
+
+## Why
+Onboarding mixed repository init with teaching Kibi about an existing codebase, through an autopilot. A reviewable hash-bound plan, with only the approved plan applied, gives one clear and safe path. Source: changeset "steady-bootstrap-plan"; ADR-KIBI-BOOTSTRAP-PLAN-APPLY.

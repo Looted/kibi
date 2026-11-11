@@ -9,7 +9,6 @@ tags:
   - brand
   - proof
   - accessibility
-  - review:context-missing
 semantic_text: The Kibi HTML requirement-health report and generated badge must use the canonical Kibi logo, wordmark, and proof-rail visual system. The report must show the exact proven numerator and current-requirement denominator beside the percentage. The report must show sequential semantic-model, scenario, implementation, end-to-end, and evidence gate counts. Each requirement drop must be assigned to the earliest unmet gate. The report and badge must remain self-contained and use no network assets. The report must meet WCAG AA contrast and communicate status without color alone. The report must remain responsive and printable.
 semantic_clauses:
   - The Kibi HTML requirement-health report and generated badge must use the canonical Kibi logo, wordmark, and proof-rail visual system
@@ -103,9 +102,12 @@ id: REQ-kibi-branded-health-report
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Kibi's public requirement-health report is a proof instrument and a brand surface. It uses the canonical marks and proof-rail visual grammar while keeping strict health data understandable, portable, and accessible.
+
+## Why
+A plain badge with an honest low score looked broken. The branded report and badge stay recognizable, and they open into the evidence behind the score. Source: changeset "clear-proof-rails".

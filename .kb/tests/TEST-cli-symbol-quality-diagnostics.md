@@ -17,10 +17,8 @@ proof_contract:
 type: test
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 proof_receipts:
   - version: kibi.proof-receipt.v2
     receipt_id: PR-7da8a42d10259b0ed008bfbe
@@ -60,3 +58,6 @@ proof_receipts:
 ---
 
 Validates multi-requirement symbol and duplicate-coordinate review diagnostics.
+
+## Context
+This checks the symbol-side advisories: one symbol owning many requirements, and duplicate coordinates.

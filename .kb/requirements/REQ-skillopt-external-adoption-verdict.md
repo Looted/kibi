@@ -12,7 +12,6 @@ tags:
   - evaluation
   - security
   - self-improvement
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-skillopt-external-adoption-verdict
@@ -75,7 +74,7 @@ semantic_inventory:
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6). Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6). Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok" Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   approved_by: maintainer
   recorded_at: '2026-11-03T11:38:31.000Z'
 firmness: firm
@@ -85,3 +84,6 @@ rationale: "Changing the canonical skill affects every user, so only an independ
 Local or fake SkillOpt evidence stays review-only. Production mutation of the canonical skill and mirrors is allowed only after an independently verified external verdict binds the source root, candidate hash, immutable root authorization, supervisor parent, invocation and matrix identity, and terminal evidence. This requirement does not assume any repository-hosted signer or authority service.
 
 Incomplete runtime configuration and infrastructure failures are not behavioral evidence: the bridge must reject missing or partial executable paths, and runtime, training, interruption, budget, or evidence-conflict failures must produce a structured exit-1 no-go without a terminal eligibility review. Only a complete matrix may reach external-verdict review.
+
+## Why
+Locked or isolated checkouts could silently fall back to a different skill tree during review. Production adoption now needs an independently verified external verdict, and local evidence stays review-only. Source: changeset "scoped-skill-readers"; commit "harden F1 code quality and adoption verdict path".

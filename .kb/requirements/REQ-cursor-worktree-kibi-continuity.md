@@ -12,7 +12,6 @@ tags:
   - mcp
   - cli
   - policy
-  - review:context-missing
 links:
   - type: relates_to
     target: ADR-022
@@ -57,7 +56,7 @@ semantic_inventory:
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6). Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   approved_by: maintainer
   recorded_at: '2026-11-03T11:34:18.000Z'
 failure_side_waiver: "A continuity claim: a worktree switch keeps the same Kibi surface. Nothing is submitted for Kibi to refuse."
@@ -68,3 +67,6 @@ required_evidence: tested
 - A Cursor worktree switch must not change the public Kibi surface that the user sees.
 - Guidance for the active Cursor worktree must remain consistent with the same public operation model.
 - Kibi continuity must survive branch and worktree movement without rewriting history.
+
+## Why
+This came with the MCP and CLI parity decision: a worktree switch in Cursor must not change the public surface the user sees. Source: ADR-022.

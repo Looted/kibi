@@ -12,7 +12,6 @@ tags:
   - proof
   - receipts
   - telemetry
-  - review:context-missing
 logic_claims:
   - CLAIM-33DAF370A02DCC89
   - CLAIM-ABCF552AF7013256
@@ -57,10 +56,13 @@ semantic_clauses:
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 
 Full checks must use the same live snapshot-bound receipt evidence as requirement coverage when deciding whether to emit coverage-depth diagnostics. A fresh passing scenario-backed E2E receipt must not produce a contradictory weak-depth warning when other proof gaps remain. Receipt freshness diagnostics must identify affected requirements and tests and direct agents to kibi prove with current proof receipts.
+
+## Why
+Full checks reported a weak-depth warning even when the same live receipt already proved the scenario-backed test. Agents therefore got contradictory guidance. Source: changeset "proof-aware-receipts-and-diagnostics".

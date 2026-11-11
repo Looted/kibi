@@ -8,7 +8,6 @@ tags:
   - badge
   - init
   - e2e
-  - review:context-missing
 text_ref: documentation/tests/e2e/packed/github-report-integration.test.ts
 verification_scope: end_to_end
 verification_perspective: consumer
@@ -59,6 +58,9 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+## Context
+The proof ratchet failed because the new Pages requirement had an incomplete inventory and uncovered symbols. This packed `init --github` test closed that gap. Source: commit "close GitHub report proof gaps".
