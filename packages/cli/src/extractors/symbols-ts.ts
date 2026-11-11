@@ -68,9 +68,6 @@ export function createTsMorphSourceAnalysisProvider(): SourceAnalysisProvider {
           startColumn: symbol.startColumn,
           endLine: symbol.endLine,
           endColumn: symbol.endColumn,
-          ...(symbol.directiveText
-            ? { directiveText: symbol.directiveText }
-            : {}),
         })),
       };
     },

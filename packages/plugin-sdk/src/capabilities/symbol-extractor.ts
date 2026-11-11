@@ -26,6 +26,12 @@ export interface SourceSymbolAnalysis {
   readonly startColumn: number;
   readonly endLine: number;
   readonly endColumn: number;
+  /**
+   * @deprecated Kibi hosts ignore this field. Source comments are not a
+   * traceability source: the symbol manifest is the only record of which
+   * requirements a symbol implements. Kept so existing extractors that still
+   * send it keep validating.
+   */
   readonly directiveText?: string;
 }
 

@@ -43,7 +43,7 @@ export interface ExtractedSymbol {
     endLine: number;
   };
   hunkRanges: HunkRange[]; // intersecting hunks from staged file
-  reqLinks: string[]; // requirement IDs from directive comments
+  reqLinks: string[]; // requirement IDs the symbol manifest links with implements
   relationships?: TraceabilityRelationship[];
 }
 
@@ -179,7 +179,6 @@ function buildSymbolResult(
   name: string,
   kind: ExtractedSymbol["kind"],
   span: { startLine: number; endLine: number },
-  inlineReqLinks: string[],
   manifestLookup: ManifestLookup | undefined,
   nestedSpans: readonly HunkLineRange[],
 ): ExtractedSymbol {
@@ -188,9 +187,9 @@ function buildSymbolResult(
     name,
     manifestLookup,
   );
-  const manifestReqLinks = getRequirementLinks(relationships);
-  const mergedReqLinks =
-    inlineReqLinks.length > 0 ? inlineReqLinks : manifestReqLinks;
+  // Source comments are never read: the symbol manifest is the only record
+  // of which requirements a symbol implements.
+  const reqLinks = getRequirementLinks(relationships);
 
   return {
     id,
@@ -203,7 +202,7 @@ function buildSymbolResult(
       endLine: span.endLine,
     },
     hunkRanges: ownedHunks(span, nestedSpans, stagedFile.hunkRanges),
-    reqLinks: mergedReqLinks,
+    reqLinks,
     ...(relationships !== undefined ? { relationships } : {}),
   };
 }
@@ -223,29 +222,6 @@ function computeContentSha(content: string): string {
   const h = createHash("sha256");
   h.update(content);
   return h.digest("hex");
-}
-
-function parseReqDirectives(text: string | undefined): string[] {
-  // look for lines containing implements REQ-123 or implements: REQ-1, REQ-2
-  // Stop at end-of-line and only accept IDs starting with an uppercase letter
-  // to avoid capturing tokens like `export`, `function`, etc.
-  const REQ_ID = "[A-Za-z][A-Za-z0-9\\-_]*";
-  const regex = new RegExp(
-    `implements\\s*:?\\s*(${REQ_ID}(?:\\s*,\\s*${REQ_ID})*)\\s*$`,
-    "gim",
-  );
-  const reqs = new Set<string>();
-  let m: RegExpExecArray | null;
-  while (true) {
-    // A symbol without directive text reads as the text "undefined", which
-    // holds no directive.
-    m = regex.exec(String(text));
-    if (!m) break;
-    // The list starts and ends with an ID, so splitting on the separators
-    // leaves no empty or padded part.
-    for (const part of (m[1] as string).split(/[,\s]+/)) reqs.add(part);
-  }
-  return Array.from(reqs);
 }
 
 // implements REQ-capability-plugin-activation-disclosure-v1
@@ -419,7 +395,6 @@ function symbolsFromAnalysis(
         ),
         symbol.kind as ExtractedSymbol["kind"],
         { startLine: symbol.startLine, endLine: symbol.endLine },
-        parseReqDirectives(symbol.directiveText),
         manifestLookup,
         nestedSpans(symbol, analysis.symbols),
       ),

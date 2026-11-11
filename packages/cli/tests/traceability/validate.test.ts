@@ -228,9 +228,8 @@ describe("traceability/validate", () => {
     expect(report).toContain("implements -> REQ-<area>-<behavior>");
     expect(report).toContain("executable_for -> TEST-<area>-<behavior>");
     expect(report).toContain("Stage .kb/symbols.yaml with the code.");
-    expect(report).toContain(
-      "write a comment `implements REQ-<area>-<behavior>` directly above the declaration",
-    );
+    // Source comments are not a link, so the guidance never suggests one.
+    expect(report).not.toContain("comment");
     expect(report).toContain("re-run kibi check --staged");
   });
 
@@ -377,7 +376,6 @@ describe("traceability/validate symbol coverage", () => {
         "  src/alpha.ts:12  alpha  (0 of 1 link(s))",
         "To link a symbol, give it an owning requirement, stage the change and re-run kibi check --staged:",
         '  - Add a .kb/symbols.yaml entry with kb_upsert (CLI: kibi upsert --input -): title as listed above (e.g. "alpha"), sourceFile, and the relationship implements -> REQ-<area>-<behavior> for production code or executable_for -> TEST-<area>-<behavior> for executable test code. Stage .kb/symbols.yaml with the code.',
-        "  - Or write a comment `implements REQ-<area>-<behavior>` directly above the declaration.",
         "  If no requirement fits, find one with kb_search or create it with kb_upsert (type req) first; production symbols also need covered_by -> TEST-<area>-<behavior>.",
       ].join("\n"),
     );

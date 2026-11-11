@@ -35,6 +35,7 @@ import { analyzePath } from "./path-kind.js";
 import type { RuntimeDegradedOverlay } from "./plugin-startup.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
 import type { RiskClass } from "./risk-classifier.js";
+import { getFileLinkedTargetsByType } from "./file-entity-links.js";
 import { classifyRisk } from "./risk-classifier.js";
 import type { SyncScheduler } from "./scheduler.js";
 import type { SessionEditState } from "./session-edit-state.js";
@@ -267,6 +268,11 @@ export function classifyEditedFile(
     hasMustPriority,
     hasDurableComment: !!precomputedSuggestion,
     fileContent,
+    hasManifestLinks:
+      pathAnalysis.kind === "code" &&
+      getFileLinkedTargetsByType(worktreeRoot, normalizedFilePath, [
+        "implements",
+      ]).length > 0,
   });
   return { hasMustPriority, precomputedSuggestion, riskClass };
 }

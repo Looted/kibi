@@ -516,7 +516,8 @@ export function createOverlayFacts(symbols: ExtractedSymbol[]): string {
       `kb:changed_symbol_loc(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(symbol.location.file)}, ${symbol.location.startLine}, 0, ${escapePrologAtom(symbol.name)}).`,
     );
 
-    // Emit overlay facts for requirement links from code-comment directives.
+    // Emit overlay facts for the requirement links the symbol manifest gives
+    // the changed symbol; source comments are never a link.
     for (const reqId of symbol.reqLinks) {
       lines.push(
         `kb:changed_symbol_req(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(reqId)}).`,

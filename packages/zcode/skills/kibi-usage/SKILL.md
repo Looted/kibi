@@ -604,8 +604,9 @@ Represent implementation ownership with a `symbol` entity that has
 `sourceFile`, `implements` to the requirement, and `covered_by` to the test.
 Prolog `symbol-coverage` also requires the test to `validates` the requirement
 (or the requirement `verified_by` the test). `covered_by` alone is not
-enough. Do not rely on legacy `// implements REQ-<area>-<behavior>` comments as the
-traceability record.
+enough. Code comments such as `// implements REQ-<area>-<behavior>` are not read
+by any Kibi check; the symbol manifest is the only traceability record, so do
+not add them.
 
 Set the symbol's `title` to the behavioral member the extractor can locate in
 `sourceFile`: `ClassName.methodName`, an exported function, or a class, not a

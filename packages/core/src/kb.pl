@@ -3505,8 +3505,9 @@ coerce_timestamp_atom(Val, Atom) :-
 
 %% changed_symbol_missing_req(+Symbol, +MinLinks, -Count)
 % True if Symbol has fewer than MinLinks requirement connections.
-% changed_symbol_req/2 overlay facts (from code-comment directives) are also
-% counted so that `// implements: REQ-001` can satisfy the gate.
+% changed_symbol_req/2 overlay facts carry the implements links the symbol
+% manifest resolves for a changed symbol (including a directory-local
+% symbols.yaml); source code comments never produce one.
 changed_symbol_missing_req(Symbol, MinLinks, Count) :-
     changed_symbol(Symbol),
     \+ executable_test_symbol(Symbol),

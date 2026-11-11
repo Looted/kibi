@@ -1487,6 +1487,21 @@ async function buildWorkspaceMigrationPlan(
       }
     }
   }
+  // Inline implements comments are no longer read; list the ones left in
+  // tracked source files so their links move into the manifest.
+  const { findInlineImplementsComments, inlineImplementsReviewAction } =
+    await import("../operations/migration/inline-implements-comments.js");
+  const inlineReview = inlineImplementsReviewAction(
+    findInlineImplementsComments(workspaceRoot),
+  );
+  if (inlineReview !== null) {
+    plans.push(
+      buildMigrationPlan({
+        evaluatedDomains: ["symbol"],
+        actions: [migrationAction(inlineReview)],
+      }),
+    );
+  }
   const skippedCheck = checkable && !storeSynced;
   if (
     fragmentActions.length > 0 ||

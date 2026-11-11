@@ -69,5 +69,5 @@ collide even when they touch unrelated behavior.
 `entity-id-style` reports new purely numeric IDs (`REQ-123`) and IDs whose
 filename stem differs from `id` as non-blocking quality diagnostics. Legacy
 numbered entities created before the naming standard are grandfathered and are
-not renamed, because code comments such as `// implements REQ-003` still
+not renamed, because symbol manifests, commits and other repositories still
 reference them.

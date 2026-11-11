@@ -71,7 +71,6 @@ interface DefinitionCandidate {
   readonly baseQualifiedName: string;
   readonly qualifiedName: string;
   readonly signature?: string;
-  readonly directiveText?: string;
   readonly containerName?: string;
   readonly isDefinition: boolean;
 }
@@ -578,29 +577,6 @@ function classifyDefinition(
   return undefined;
 }
 
-function leadingDirective(
-  content: string,
-  startLine: number,
-  language: TreeSitterLanguage,
-): string | undefined {
-  const marker =
-    language === "prolog"
-      ? "%"
-      : ["python", "bash", "ruby", "terraform", "hcl"].includes(language)
-        ? "#"
-        : "//";
-  const lines = content.split(/\r\n|\n|\r/);
-  const directives: string[] = [];
-  for (let index = startLine - 2; index >= 0; index -= 1) {
-    const line = lines[index]?.trim();
-    if (line === undefined || line.length === 0 || !line.startsWith(marker))
-      break;
-    if (/\bimplements\s+REQ-[A-Za-z0-9-]+\b/.test(line))
-      directives.unshift(line);
-  }
-  return directives.length > 0 ? directives.join("\n") : undefined;
-}
-
 function candidateFromMatch(
   language: TreeSitterLanguage,
   content: string,
@@ -661,11 +637,6 @@ function candidateFromMatch(
     kind === "function" || kind === "method"
       ? signatureFor(language, queryNode)
       : undefined;
-  const directiveText = leadingDirective(
-    content,
-    rangeForNode(definitionNode).startLine,
-    language,
-  );
   const containerName = scopes.at(-1);
   const destructorMarker = isCsharpDestructor
     ? directChildOfType(queryNode, "~")
@@ -694,7 +665,6 @@ function candidateFromMatch(
     qualifiedName: baseQualifiedName,
     ...(signature === undefined ? {} : { signature }),
     ...(containerName === undefined ? {} : { containerName }),
-    ...(directiveText === undefined ? {} : { directiveText }),
     isDefinition:
       queryNode.type === "function_definition" ||
       ancestorsOf(queryNode).some(
@@ -1414,11 +1384,6 @@ function collectPrologCandidates(
   const predicates = [...groups.values()].map((group): DefinitionCandidate => {
     const start = rangeForNode(prologDocumentationStart(group.first));
     const end = rangeForNode(group.last);
-    const directiveText = leadingDirective(
-      content,
-      group.first.startPosition.row + 1,
-      "prolog",
-    );
     return {
       name: group.name,
       kind: group.kind,
@@ -1436,7 +1401,6 @@ function collectPrologCandidates(
       ...(group.containerName === undefined
         ? {}
         : { containerName: group.containerName }),
-      ...(directiveText === undefined ? {} : { directiveText }),
       isDefinition: true,
     };
   });
@@ -1778,9 +1742,6 @@ function buildSymbol(candidate: DefinitionCandidate): SourceSymbolAnalysisV2 {
     ...(candidate.containerName === undefined
       ? {}
       : { containerName: candidate.containerName }),
-    ...(candidate.directiveText === undefined
-      ? {}
-      : { directiveText: candidate.directiveText }),
   };
 }
 

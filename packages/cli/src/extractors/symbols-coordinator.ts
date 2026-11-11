@@ -61,7 +61,6 @@ export interface SourceSymbolAnalysis {
   startColumn: number;
   endLine: number;
   endColumn: number;
-  directiveText?: string;
 }
 
 export interface SourceModuleAnalysis {
@@ -169,7 +168,6 @@ function toCoordinatorResult(
       startColumn: symbol.startColumn,
       endLine: symbol.endLine,
       endColumn: symbol.endColumn,
-      ...(symbol.directiveText ? { directiveText: symbol.directiveText } : {}),
     })),
   };
 }
