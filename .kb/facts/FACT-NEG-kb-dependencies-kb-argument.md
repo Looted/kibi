@@ -15,4 +15,4 @@ origin:
 id: FACT-NEG-kb-dependencies-kb-argument
 type: fact
 ---
-A kb argument that names no declared KB dependency. The failure-side scenario of REQ-kb-dependencies-git assumes this state and expects Kibi to refuse it with a coded error instead of answering.
+A kb argument that names no declared KB dependency. The failure-side scenario of REQ-kb-dependency-kb-argument assumes this state and expects Kibi to refuse it with a coded error instead of answering.

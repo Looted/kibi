@@ -23,4 +23,4 @@ canonical_key: fresh_clone_setup_policy(kibi_init,agent_instructions_on,write_ma
 id: FACT-PRED-fresh-clone-agent-instructions
 type: fact
 ---
-Kibi init writes a managed Kibi section into AGENTS.md. This predicate grounds the claim of REQ-kibi-fresh-clone-setup quoted in claim_text, so the requirement's semantic inventory counts it as modeled.
+Kibi init writes a managed Kibi section into AGENTS.md. This predicate grounds the claim of REQ-kibi-init-setup-choices quoted in claim_text, so the requirement's semantic inventory counts it as modeled.

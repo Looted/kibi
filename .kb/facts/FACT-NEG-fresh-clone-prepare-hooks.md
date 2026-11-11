@@ -16,4 +16,4 @@ origin:
 id: FACT-NEG-fresh-clone-prepare-hooks
 type: fact
 ---
-package.json has no prepare step that installs Kibi's hooks while prepare hooks are on. The failure-side scenario of REQ-kibi-fresh-clone-setup assumes this state and expects Kibi to report it instead of carrying on silently.
+package.json has no prepare step that installs Kibi's hooks while prepare hooks are on. The failure-side scenario of REQ-kibi-init-setup-choices assumes this state and expects Kibi to report it instead of carrying on silently.

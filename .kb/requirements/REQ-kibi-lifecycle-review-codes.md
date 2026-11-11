@@ -89,7 +89,7 @@ The proposed ADR review code shall be review_adr_proposed. The unlinked ADR revi
 
 These are the codes of the lifecycle findings that kibi migrate leaves for a person to review.
 
-REQ-kibi-kb-lifecycle-integrity has kb_check report lifecycle problems with stable codes an agent can act on: review codes for findings a person must judge and action ids and codes for repairs Kibi can apply. They are stated here so every code is proved against its constant.
+kb_check reports lifecycle problems with stable codes an agent can act on: review codes for findings a person must judge and action ids and codes for repairs Kibi can apply. They are stated here so every code is proved against its constant.
 
 ## Why this changed
 

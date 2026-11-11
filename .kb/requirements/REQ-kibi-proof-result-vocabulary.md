@@ -53,7 +53,7 @@ A proof result outcome shall be passed, failed, timed_out, skipped, interrupted 
 
 packages/cli/src/public/proof-protocol.ts closes the lists a proof run reports its results with.
 
-REQ-kibi-fresh-verification-receipts records proof runs as receipts. packages/cli/src/public/proof-protocol.ts closes the lists a run reports with, packages/cli/src/proof/integrations.ts names the producers and where runs and integrations live, and the receipt and coverage report are bounded. They are stated here so every value is proved against its constant.
+Kibi records proof runs as receipts. packages/cli/src/public/proof-protocol.ts closes the lists a run reports with, packages/cli/src/proof/integrations.ts names the producers and where runs and integrations live, and the receipt and coverage report are bounded. They are stated here so every value is proved against its constant.
 
 ## Why this changed
 

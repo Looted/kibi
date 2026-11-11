@@ -21,4 +21,4 @@ origin:
 id: FACT-PRED-kb-dependencies-kb-argument
 type: fact
 ---
-Kibi's read operations accept a kb argument naming a KB dependency. This predicate grounds the claim of REQ-kb-dependencies-git quoted in claim_text, so the requirement's semantic inventory counts it as modeled.
+Kibi's read operations accept a kb argument naming a KB dependency. This predicate grounds the claim of REQ-kb-dependency-kb-argument quoted in claim_text, so the requirement's semantic inventory counts it as modeled.

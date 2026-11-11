@@ -21,4 +21,4 @@ origin:
 id: FACT-PRED-kb-dependencies-schema-range
 type: fact
 ---
-Kibi refuses a KB dependency outside the supported KB schema range. This predicate grounds the claim of REQ-kb-dependencies-git quoted in claim_text, so the requirement's semantic inventory counts it as modeled.
+Kibi refuses a KB dependency outside the supported KB schema range. This predicate grounds the claim of REQ-kb-dependency-schema-window quoted in claim_text, so the requirement's semantic inventory counts it as modeled.

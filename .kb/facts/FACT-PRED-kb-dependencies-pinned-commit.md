@@ -21,4 +21,4 @@ origin:
 id: FACT-PRED-kb-dependencies-pinned-commit
 type: fact
 ---
-Kibi reads a KB dependency only at its pinned commit. This predicate grounds the claim of REQ-kb-dependencies-git quoted in claim_text, so the requirement's semantic inventory counts it as modeled.
+Kibi reads a KB dependency only at its pinned commit. This predicate grounds the claim of REQ-kb-dependency-pinned-commit quoted in claim_text, so the requirement's semantic inventory counts it as modeled.

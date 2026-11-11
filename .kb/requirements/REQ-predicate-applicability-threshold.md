@@ -34,7 +34,7 @@ A strong predicate applicability score shall be 0.8.
 
 ## Context
 
-REQ-kibi-predicate-suggestion-relevance-v1 ranks predicate suggestions by applicability. The score at which a suggestion counts as strong is stated here so it is proved against the constant.
+REQ-kibi-suggestion-relevance-gate ranks predicate suggestions by applicability. The score at which a suggestion counts as strong is stated here so it is proved against the constant.
 
 ## Source
 

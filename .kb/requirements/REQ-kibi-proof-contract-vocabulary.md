@@ -44,7 +44,7 @@ A proof success policy shall be all_required_first_attempt or own_results_first_
 
 packages/cli/src/public/proof-protocol.ts closes the success policies and binding kinds a test's proof contract may declare.
 
-REQ-kibi-fresh-verification-receipts records proof runs as receipts. packages/cli/src/public/proof-protocol.ts closes the lists a run reports with, packages/cli/src/proof/integrations.ts names the producers and where runs and integrations live, and the receipt and coverage report are bounded. They are stated here so every value is proved against its constant.
+Kibi records proof runs as receipts. packages/cli/src/public/proof-protocol.ts closes the lists a run reports with, packages/cli/src/proof/integrations.ts names the producers and where runs and integrations live, and the receipt and coverage report are bounded. They are stated here so every value is proved against its constant.
 
 ## Why this changed
 

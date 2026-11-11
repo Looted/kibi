@@ -44,7 +44,7 @@ Kibi shall keep at most 50 proof receipts per test. Kibi shall read coverage row
 
 The receipt history of each test and the coverage report's row pages are bounded so a long-lived KB stays fast to read.
 
-REQ-kibi-fresh-verification-receipts records proof runs as receipts. packages/cli/src/public/proof-protocol.ts closes the lists a run reports with, packages/cli/src/proof/integrations.ts names the producers and where runs and integrations live, and the receipt and coverage report are bounded. They are stated here so every value is proved against its constant.
+Kibi records proof runs as receipts. packages/cli/src/public/proof-protocol.ts closes the lists a run reports with, packages/cli/src/proof/integrations.ts names the producers and where runs and integrations live, and the receipt and coverage report are bounded. They are stated here so every value is proved against its constant.
 
 ## Why this changed
 

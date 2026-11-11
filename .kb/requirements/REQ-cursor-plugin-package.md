@@ -94,4 +94,4 @@ The kibi-cursor package must publish its .cursor-plugin manifest directory, its 
 
 ## Context
 
-Cursor reads a plugin from .cursor-plugin/plugin.json, which points at the skills, rules, commands, hooks and MCP configuration. These claims pin what the published kibi-cursor package contains, so each one is proved by reading the package files. The adapter's runtime behaviour is stated in REQ-cursor-kibi-plugin-v1.
+Cursor reads a plugin from .cursor-plugin/plugin.json, which points at the skills, rules, commands, hooks and MCP configuration. These claims pin what the published kibi-cursor package contains, so each one is proved by reading the package files. The adapter's runtime behaviour is stated in REQ-cursor-hook-limits.

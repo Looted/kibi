@@ -43,7 +43,7 @@ The engine protocol version shall be 1. The engine daemon shall stop after 60000
 
 ## Context
 
-packages/cli/src/engine.ts speaks a versioned protocol with the journaled engine REQ-core-journaled-engine-persistence keeps alive, and stops the daemon after an idle period. Both are stated here so they are proved against the constants.
+packages/cli/src/engine.ts speaks a versioned protocol with the journaled engine of REQ-kibi-engine-single-writer-protocol, and stops the daemon after an idle period. Both are stated here so they are proved against the constants.
 
 ## Source
 

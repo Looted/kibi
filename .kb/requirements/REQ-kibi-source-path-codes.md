@@ -62,7 +62,7 @@ The dangling source path review code shall be review_source_path_dangling. The d
 
 These are the codes of the dangling source path check and of the repair kibi migrate plans for it.
 
-REQ-kibi-kb-lifecycle-integrity has kb_check report lifecycle problems with stable codes an agent can act on: review codes for findings a person must judge and action ids and codes for repairs Kibi can apply. They are stated here so every code is proved against its constant.
+kb_check reports lifecycle problems with stable codes an agent can act on: review codes for findings a person must judge and action ids and codes for repairs Kibi can apply. They are stated here so every code is proved against its constant.
 
 ## Why this changed
 

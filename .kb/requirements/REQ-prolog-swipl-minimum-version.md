@@ -34,7 +34,7 @@ The minimum SWI-Prolog major version shall be 9.
 
 ## Context
 
-MINIMUM_SWIPL_MAJOR in packages/cli/src/prolog/swipl-resolver.ts is the version floor REQ-prolog-bundled-runtime applies when it rejects a swipl on PATH older than 9.0. It is stated here as a number so it is proved against the constant; the resolution order stays in REQ-prolog-bundled-runtime.
+MINIMUM_SWIPL_MAJOR in packages/cli/src/prolog/swipl-resolver.ts is the version floor REQ-prolog-swipl-resolution-order applies when it rejects a swipl on PATH older than 9.0. It is stated here as a number so it is proved against the constant; the resolution order stays in REQ-prolog-swipl-resolution-order.
 
 ## Source
 

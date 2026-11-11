@@ -23,4 +23,4 @@ canonical_key: fresh_clone_setup_policy(kibi_init,prepare_hooks_on_without_hook_
 id: FACT-PRED-fresh-clone-prepare-hooks
 type: fact
 ---
-Kibi init adds a prepare step that installs its Git hooks. This predicate grounds the claim of REQ-kibi-fresh-clone-setup quoted in claim_text, so the requirement's semantic inventory counts it as modeled.
+Kibi init adds a prepare step that installs its Git hooks. This predicate grounds the claim of REQ-kibi-init-setup-choices quoted in claim_text, so the requirement's semantic inventory counts it as modeled.

@@ -23,4 +23,4 @@ canonical_key: fresh_clone_setup_policy(kibi_operations,branch_store_never_compi
 id: FACT-PRED-fresh-clone-auto-compile
 type: fact
 ---
-Kibi compiles a never-compiled branch store on first use. This predicate grounds the claim of REQ-kibi-fresh-clone-setup quoted in claim_text, so the requirement's semantic inventory counts it as modeled.
+Kibi compiles a never-compiled branch store on first use. This predicate grounds the claim of REQ-kibi-first-use-auto-compile quoted in claim_text, so the requirement's semantic inventory counts it as modeled.

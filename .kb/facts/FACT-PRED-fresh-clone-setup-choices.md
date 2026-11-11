@@ -23,4 +23,4 @@ canonical_key: fresh_clone_setup_policy(kibi_init,setup_choices,record_auto_sync
 id: FACT-PRED-fresh-clone-setup-choices
 type: fact
 ---
-Kibi init records the fresh-clone setup choices. This predicate grounds the claim of REQ-kibi-fresh-clone-setup quoted in claim_text, so the requirement's semantic inventory counts it as modeled.
+Kibi init records the fresh-clone setup choices. This predicate grounds the claim of REQ-kibi-init-setup-choices quoted in claim_text, so the requirement's semantic inventory counts it as modeled.

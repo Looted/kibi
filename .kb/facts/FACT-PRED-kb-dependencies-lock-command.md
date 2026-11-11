@@ -21,4 +21,4 @@ origin:
 id: FACT-PRED-kb-dependencies-lock-command
 type: fact
 ---
-The kibi deps lock command pins each ref to a commit and KB schema. This predicate grounds the claim of REQ-kb-dependencies-git quoted in claim_text, so the requirement's semantic inventory counts it as modeled.
+The kibi deps lock command pins each ref to a commit and KB schema. This predicate grounds the claim of REQ-kb-dependency-lock-command quoted in claim_text, so the requirement's semantic inventory counts it as modeled.

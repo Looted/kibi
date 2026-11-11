@@ -15,4 +15,4 @@ origin:
 id: FACT-NEG-kb-dependencies-lock-command
 type: fact
 ---
-A declared git ref that kibi deps lock cannot resolve to a commit. The failure-side scenario of REQ-kb-dependencies-git assumes this state and expects Kibi to refuse it with a coded error instead of answering.
+A declared git ref that kibi deps lock cannot resolve to a commit. The failure-side scenario of REQ-kb-dependency-lock-command assumes this state and expects Kibi to refuse it with a coded error instead of answering.

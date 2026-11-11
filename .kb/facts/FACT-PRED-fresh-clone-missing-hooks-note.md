@@ -23,4 +23,4 @@ canonical_key: fresh_clone_setup_policy(kibi_harness_plugin_session_start,kibi_h
 id: FACT-PRED-fresh-clone-missing-hooks-note
 type: fact
 ---
-Kibi's harness plugins note missing Kibi hooks at session start. This predicate grounds the claim of REQ-kibi-fresh-clone-setup quoted in claim_text, so the requirement's semantic inventory counts it as modeled.
+Kibi's harness plugins note missing Kibi hooks at session start. This predicate grounds the claim of REQ-kibi-missing-hooks-notice quoted in claim_text, so the requirement's semantic inventory counts it as modeled.

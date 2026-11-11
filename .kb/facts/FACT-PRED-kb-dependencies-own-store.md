@@ -21,4 +21,4 @@ origin:
 id: FACT-PRED-kb-dependencies-own-store
 type: fact
 ---
-Kibi answers a KB dependency read from the dependency's own read-only store. This predicate grounds the claim of REQ-kb-dependencies-git quoted in claim_text, so the requirement's semantic inventory counts it as modeled.
+Kibi answers a KB dependency read from the dependency's own read-only store. This predicate grounds the claim of REQ-kb-dependency-read-scope quoted in claim_text, so the requirement's semantic inventory counts it as modeled.

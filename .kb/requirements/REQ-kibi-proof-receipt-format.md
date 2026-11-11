@@ -70,7 +70,7 @@ The first proof receipt version shall be kibi.proof-receipt.v1. A readable proof
 
 ## Context
 
-REQ-kibi-fresh-verification-receipts keeps receipts readable across versions and binds each receipt to an execution fingerprint built from named parts. kibi prove records its progress in a fixed file, and a missing integration is set up by a named plan step. They are stated here so every value is proved against its constant.
+Kibi keeps receipts readable across versions and binds each receipt to an execution fingerprint built from named parts. kibi prove records its progress in a fixed file, and a missing integration is set up by a named plan step. They are stated here so every value is proved against its constant.
 
 ## Source
 

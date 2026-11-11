@@ -16,4 +16,4 @@ origin:
 id: FACT-NEG-fresh-clone-missing-hooks-note
 type: fact
 ---
-A session starts in a checkout without Kibi's hooks and the agent is not told. The failure-side scenario of REQ-kibi-fresh-clone-setup assumes this state and expects Kibi to report it instead of carrying on silently.
+A session starts in a checkout without Kibi's hooks and the agent is not told. The failure-side scenario of REQ-kibi-missing-hooks-notice assumes this state and expects Kibi to report it instead of carrying on silently.

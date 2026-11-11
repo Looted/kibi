@@ -52,7 +52,7 @@ The legacy migration plan version shall be kibi.legacy-migration-plan.v1. The mi
 
 ## Context
 
-REQ-agent-guided-migration-orchestration hands an agent a versioned plan, a legacy KB gets its own versioned plan, the plan is bound by a versioned digest and a plan that cannot run is refused with a fixed code. They are stated here so every value is proved against its constant.
+REQ-kibi-migration-plan-contract hands an agent a versioned plan, a legacy KB gets its own versioned plan, the plan is bound by a versioned digest and a plan that cannot run is refused with a fixed code. They are stated here so every value is proved against its constant.
 
 ## Source
 
