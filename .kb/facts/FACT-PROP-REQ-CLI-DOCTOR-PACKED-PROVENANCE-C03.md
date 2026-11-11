@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.cli.doctor
-property_key: clause_03_the_package_provenance_unresolved_migration_acti
+property_key: provenance_unresolved_only_for_absent_packages
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_cli_doctor_packed_provenance.clause_03_the_package_provenance_unresolved_migration_acti.eq.true
+canonical_key: req.req_cli_doctor_packed_provenance.provenance_unresolved_only_for_absent_packages.eq.true
 claim_key: CLAIM-4C2B0FF892A705D9
 claim_text: The package-provenance-unresolved migration action is reserved for packages that are genuinely absent from the install graph
 id: FACT-PROP-REQ-CLI-DOCTOR-PACKED-PROVENANCE-C03

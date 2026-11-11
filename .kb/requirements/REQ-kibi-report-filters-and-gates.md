@@ -43,7 +43,7 @@ A health report filter shall be all, proved, tested, attention, below_floor, pen
 
 ## Context
 
-packages/cli/src/report/report-view.ts defines the filters and gates of the report REQ-kibi-html-health-report renders. Both sets are stated here so they are proved against the report view.
+packages/cli/src/report/report-view.ts defines the filters and gates of the report REQ-kibi-health-report-content renders. Both sets are stated here so they are proved against the report view.
 
 ## Source
 

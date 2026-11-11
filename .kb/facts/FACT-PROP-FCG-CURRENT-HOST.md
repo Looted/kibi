@@ -1,6 +1,6 @@
 ---
 title: 'Property: monitoring_scope(opencode.kibi_plugin) = host_side_events_only'
-status: active
+status: archived
 tags:
   - lane:strict
   - property-value

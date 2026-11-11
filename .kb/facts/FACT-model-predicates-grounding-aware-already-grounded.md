@@ -1,6 +1,6 @@
 ---
 title: Predicate modeling must report already grounded with no write plan when the requirement already grounds the claim
-status: active
+status: archived
 text_ref: REQ-model-predicates-grounding-aware
 tags:
   - strict-modeling

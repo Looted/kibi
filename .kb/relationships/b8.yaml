@@ -13,13 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-201dc23e2007
-  - type: implements
-    from: SYM-kibi-predicate-schema-draft
-    to: REQ-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T08:28:37.278Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-259f34186ef3
   - type: covered_by
     from: SYM-kibi-predicate-schema-draft
     to: TEST-kibi-predicate-suggestion-relevance-v1
@@ -62,20 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d5d9acf2ce6
-  - type: executable_for
-    from: SYM-e2e-test-010
-    to: TEST-010
-    created_at: 2026-09-05T14:51:49.203Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6f643afa0990
-  - type: covered_by
-    from: SYM-cli-impact-normalizeSourceFile
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:16:49.070Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0a052529ae77
   - type: covered_by
     from: SYM-COARSE_GRANULARITY_REASONS
     to: TEST-cli-symbol-behavioral-anchors
@@ -84,40 +63,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-7a07cd3feb89
   - type: covered_by
-    from: SYM-prove-test-id
-    to: TEST-kibi-fresh-verification-receipts
-    created_at: 2026-09-09T03:37:51.501Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-692d589d0c0b
-  - type: covered_by
-    from: SYM-prove-test-id
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-09T06:04:31.399Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b8bdc8063bf1
-  - type: implements
-    from: SYM-prove-test-id
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-09T06:04:31.403Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3ff027fb27b7
-  - type: covered_by
     from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version
     to: TEST-e2e-plan-compiler-hash
     created_at: 2026-09-18T07:14:52.222Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-14e283a682d1
-  - type: covered_by
-    from: SYM-cap-plugin-matchgroups-f8bcd46e
-    to: TEST-capability-plugin-host-resolution-v1
-    created_at: 2026-09-22T19:42:41.900Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f42cb98cf303
   - type: covered_by
     from: SYM-cap-plugin-createjevplugin-a2c5a4bf
     to: TEST-e2e-capability-plugins
@@ -146,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f3d3aa327fc2
-  - type: implements
-    from: SYM-core-kb-query-proof-contracts
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-26T10:14:17.236Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-81feb922ad0d
   - type: covered_by
     from: SYM-core-kb-query-proof-contracts
     to: TEST-kibi-proof-contract-projection-pagination
@@ -196,13 +140,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b150f16ee8ed
   - type: implements
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version
-    to: REQ-kibi-change-to-proof-plan-compiler-v2
-    created_at: 2026-10-04T03:01:26.704Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4802129ff595
-  - type: implements
     from: SYM-skillopt-validate-candidate-description
     to: REQ-skillopt-description-candidates
     created_at: 2026-10-06T00:22:53.415Z
@@ -218,7 +155,7 @@ relationships:
     id: rel-dba0a21f84ae
   - type: constrains
     from: REQ-kb-upsert-ledger-contract-in-error
-    to: FACT-SUBJ-REQ-MCP-TOOL-UPSERT
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
     created_at: 2026-10-14T17:11:15.780Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -244,27 +181,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-93d831cda728
-  - type: implements
-    from: SYM-cli-signoff-model-signoff-firmness
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:53:39.624Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bde6223a4db7
-  - type: covered_by
-    from: SYM-cli-signoff-model-signoff-firmness
-    to: TEST-kibi-signoff-views
-    created_at: 2026-10-23T10:53:39.651Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0ad349ba91ad
-  - type: implements
-    from: SYM-claim-binding-verdicts
-    to: REQ-kibi-claim-bound-proofs
-    created_at: 2026-10-25T18:22:01.285Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2087d3732f36
   - type: covered_by
     from: SYM-claim-binding-verdicts
     to: TEST-kibi-claim-bound-proofs-exhaustive
@@ -377,17 +293,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aafbf0d72b0d
-  - type: implements
-    from: SYM-setup-choices-setup-choices-source
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:53:20.911Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23f0f4a2e015
-  - type: covered_by
-    from: SYM-setup-choices-setup-choices-source
-    to: TEST-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:53:20.970Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2ad48c2504ca

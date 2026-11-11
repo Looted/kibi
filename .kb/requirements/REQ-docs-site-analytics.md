@@ -46,6 +46,7 @@ semantic_inventory:
       end: 222
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-06T17:52:36.175Z'
 id: REQ-docs-site-analytics
 type: req

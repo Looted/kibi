@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_08_the_opencode_plugin_must_classify_direct_edits_to_kb_interna
+property_key: risk_manual_kb_edit
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_risk_classification.clause_08_the_opencode_plugin_must_classify_direct_edits_to_kb_interna.eq.true
+canonical_key: req.req_opencode_risk_classification.risk_manual_kb_edit.eq.true
 claim_key: CLAIM-CEEDAB81502F968D
 claim_text: The OpenCode plugin must classify direct edits to .kb internal files as manual_kb_edit, with the strongest warning
 origin:

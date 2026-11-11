@@ -157,7 +157,7 @@ describe("pre-read snippets", () => {
       "REQ-currency-display (superseded): Totals display with a currency symbol — formatTotal",
     );
     expect(text).toContain("Covered by: TEST-checkout-rounding.");
-    expect(text).toContain('kb_query({id:"REQ-checkout-rounding"})');
+    expect(text).toContain('kb_query({id:"REQ-checkout-rounding", includeBody:true})');
     expect(text).toContain('sourceLocations:[{path:"src/checkout.ts"}]');
 
     expect(
@@ -725,7 +725,7 @@ describe("shell commands", () => {
       command: "cd src && sed -n 1,20p checkout.ts | head",
     });
     expect(text).toContain("REQ-checkout-rounding");
-    expect(text).toContain('kb_query({id:"REQ-checkout-rounding"})');
+    expect(text).toContain('kb_query({id:"REQ-checkout-rounding", includeBody:true})');
     expect(await pre("Bash", { command: "cat src/checkout.ts" })).toBe(
       undefined,
     );

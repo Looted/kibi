@@ -1,39 +1,4 @@
 relationships:
-  - type: implements
-    from: SYM-skillopt-operator-base-resolution-options
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-15T23:11:23.395Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c86c80a329c0
-  - type: covered_by
-    from: SYM-skillopt-operator-base-resolution-options
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-15T23:11:23.403Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ed122b18a954
-  - type: implements
-    from: SYM-auto-B722155D82DD
-    to: REQ-mcp-search-discovery
-    created_at: 2026-08-16T07:55:03.557Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ff4475ca36dd
-  - type: covered_by
-    from: SYM-auto-B722155D82DD
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T07:55:03.563Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0c8e1ba60bad
-  - type: covered_by
-    from: SYM-cli-engine-migration
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-08-16T19:47:07.427Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e06e7db3aa44
   - type: executable_for
     from: 36ec3bc91de13ec6
     to: TEST-kibi-predicate-suggestion-relevance-v1
@@ -41,13 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3801c003d00
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidates-buildbootstrapcandidates
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-21T19:52:19.739Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-530bf95108e4
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidates-buildbootstrapcandidates
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -62,20 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-60c0d59e4127
-  - type: implements
-    from: SYM-auto-B722155D82DD
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:55:22.551Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-39eef1510df1
-  - type: covered_by
-    from: SYM-auto-B722155D82DD
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:55:22.554Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f98b58a1dbf5
   - type: covered_by
     from: SYM-extractFromManifest
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -91,54 +35,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8d9951f133e5
   - type: covered_by
-    from: SYM-cli-engine-migration
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:30:16.271Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ef7d55ff35be
-  - type: covered_by
-    from: SYM-cursor-CursorHookResult
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-05T15:37:30.061Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9e5ca35cbfa1
-  - type: executable_for
-    from: SYM-e2e-test-mcp-relationship-preflight
-    to: TEST-mcp-relationship-preflight
-    created_at: 2026-09-05T15:46:07.592Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1eaa336286b9
-  - type: covered_by
     from: SYM-producer-kinds
     to: TEST-kibi-verification-evidence-contract
     created_at: 2026-09-05T17:31:01.823Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-80199e23c1be
-  - type: covered_by
-    from: SYM-modeling-predicate-utils-escapeRegExp
-    to: TEST-mcp-suggest-predicates
-    created_at: 2026-09-05T17:45:14.184Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d99ffd780d98
-  - type: covered_by
-    from: SYM-auto-B722155D82DD
-    to: TEST-mcp-search-discovery
-    created_at: 2026-09-06T09:06:01.047Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4c16c4c5f88f
-  - type: covered_by
-    from: SYM-cap-plugin-capabilityregistrycache-get-27109bcb
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:39:59.337Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9d1c00b63f8d
   - type: covered_by
     from: SYM-parser-unit-worker-coverage
     to: TEST-e2e-coverage-pipeline
@@ -153,20 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7263080c23ba
-  - type: covered_by
-    from: SYM-source-analysis-v2-symbol-extractor-v2-capability-id-43e5dbce
-    to: TEST-source-analysis-v2-contract
-    created_at: 2026-09-26T16:58:32.913Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3c4f8873419e
-  - type: implements
-    from: SYM-source-analysis-v2-symbol-extractor-v2-capability-id-43e5dbce
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T16:58:32.925Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eafd2953cd66
   - type: constrains
     from: REQ-docs-readme-published-links
     to: FACT-docs-site-subject
@@ -202,20 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b0296a4058f3
-  - type: covered_by
-    from: SYM-skillopt-mcp-model-modes
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-04T12:15:17.953Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2aba1dd4a6e4
-  - type: implements
-    from: SYM-skillopt-mcp-model-modes
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-04T20:37:02.840Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-aba701a068ee
   - type: implements
     from: SYM-core-requirement-evidence
     to: REQ-kibi-evidence-levels
@@ -230,13 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-674cabf63336
-  - type: implements
-    from: SYM-producer-kinds
-    to: REQ-kibi-proof-run-vocabulary
-    created_at: 2026-10-28T17:49:07.734Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f52bd2ed3225
   - type: covered_by
     from: SYM-producer-kinds
     to: TEST-proof-producer-kinds

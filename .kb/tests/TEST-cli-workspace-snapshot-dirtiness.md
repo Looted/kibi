@@ -1,6 +1,6 @@
 ---
 title: CLI workspace snapshot relevance regression
-status: active
+status: passing
 tags:
   - cli
   - verification

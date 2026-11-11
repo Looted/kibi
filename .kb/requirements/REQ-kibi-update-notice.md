@@ -9,6 +9,8 @@ tags:
   - update-notice
 origin:
   kind: agent
+  ref: 'Maintainer decision, 2026-11-10, on approving the update-notice requirement as written: "Approve as written"'
+  approved_by: maintainer
   recorded_at: '2026-11-04T13:31:35.409Z'
 required_evidence: tested
 semantic_text: The kibi CLI must print a one-line update notice on stderr when a newer kibi-cli release is published on npm. The kibi CLI must ask the npm registry for the latest kibi-cli release from a detached background process and cache the answer for a day. The update notice must stay silent when stderr is not a terminal, when the command prints JSON, in CI and test runs, and when KIBI_UPDATE_CHECK=0 or NO_UPDATE_NOTIFIER is set. The update notice must name the KB schema change when the newer release writes a newer KB schema. Kibi doctor must report whether a newer kibi-cli release is published.

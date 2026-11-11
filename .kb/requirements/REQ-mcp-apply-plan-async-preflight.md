@@ -34,6 +34,7 @@ semantic_inventory:
       end: 219
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-07T19:01:23.987Z'
 id: REQ-mcp-apply-plan-async-preflight
 type: req

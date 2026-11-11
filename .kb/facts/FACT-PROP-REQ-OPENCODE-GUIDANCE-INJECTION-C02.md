@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_01_the_opencode_plugin_must_inject_kibi_guidance_into_the_sessi
+property_key: injects_file_guidance
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_guidance_injection.clause_01_the_opencode_plugin_must_inject_kibi_guidance_into_the_sessi.eq.true
+canonical_key: req.req_opencode_guidance_injection.injects_file_guidance.eq.true
 claim_key: CLAIM-B6A53F7C2A95AE7C
 claim_text: The OpenCode plugin must inject Kibi guidance into the session with the requirements and traceability context of the files in play
 origin:

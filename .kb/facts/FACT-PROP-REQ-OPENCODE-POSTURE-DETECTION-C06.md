@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_06_the_opencode_plugin_must_add_a_maintenancedegraded_overlay_w
+property_key: degraded_overlay_without_runtime
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_posture_detection.clause_06_the_opencode_plugin_must_add_a_maintenancedegraded_overlay_w.eq.true
+canonical_key: req.req_opencode_posture_detection.degraded_overlay_without_runtime.eq.true
 claim_key: CLAIM-7B14D62631489D2D
 claim_text: The OpenCode plugin must add a maintenanceDegraded overlay when runtime execution is unavailable
 origin:

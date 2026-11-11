@@ -1,6 +1,6 @@
 ---
 title: Superseded requirements are closed, authored sources resolve, and migration repairs what it safely can
-status: open
+status: closed
 required_evidence: tested
 priority: must
 tags:
@@ -79,6 +79,7 @@ logic_claims:
   - CLAIM-672C86985C64E3A7
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T05:38:25.487Z'
 id: REQ-kibi-kb-lifecycle-integrity
 type: req

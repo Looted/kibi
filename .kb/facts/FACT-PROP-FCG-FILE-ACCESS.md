@@ -1,6 +1,6 @@
 ---
 title: 'Property: file_access_policy(opencode.kibi_plugin) = monitor_only_no_interception_or_content_modification'
-status: active
+status: archived
 tags:
   - lane:strict
   - property-value

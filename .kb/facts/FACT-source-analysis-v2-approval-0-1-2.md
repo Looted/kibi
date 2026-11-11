@@ -5,13 +5,16 @@ tags:
   - source-analysis
   - release-qualification
   - review
-  - review:context-missing
 text_ref: 'The source-analysis v2 contract remains current for the qualified Tree-sitter 0.1.2 closure. Independent review confirmed that clearing worker execArgv fixes Node evaluated-module entrypoints without changing input, concurrency, output, deadline or Node heap/stack configuration. Node and Bun public subprocess regressions passed. Bun does not enforce Node resourceLimits; README and qualification documentation now state that limitation explicitly. Release tools verified all 30 integrity entries and regenerated the approved executable/asset closure. Approved manifest SHA-256: 2be6a369cd0917d18ec26a0ce0d4127e487220a130c3fb846ef6c4415a3f6c9a. This record describes qualification of these exact bytes; fresh packed consumer and full proof validation remain required before completion.'
 fact_kind: observation
 id: FACT-source-analysis-v2-approval-0-1-2
 type: fact
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 3): "Agree with batch 3 as well."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+Source analyzers run only when their exact package contents are approved, so every change to the parser closure carries the review that approved it. This one records approval of the 0.1.2 release, which fixed Node worker entrypoints, and notes that Bun doesn't enforce Node's resource limits. Source: docs/architecture/multilingual-source-analysis.md; PR 282.

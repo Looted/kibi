@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-16T18:51:45.134Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-write-sync-semantic-cache
-    to: TEST-kibi-proposition-complete-ingestion
-    created_at: 2026-08-16T18:52:06.549Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3d7046746fef
   - type: specified_by
     from: REQ-014
     to: SCEN-009
@@ -69,13 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99fe570678f8
-  - type: constrains
-    from: REQ-kibi-predicate-suggestion-relevance-v1
-    to: FACT-SUBJECT-79C92ADA34274409
-    created_at: 2026-08-20T22:05:24.885Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5e6b0d32fc3f
   - type: requires_rule
     from: REQ-kibi-predicate-suggestion-relevance-v1
     to: FACT-RULE-B4018810804C39BB
@@ -189,13 +175,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-6477c0c8fee2
   - type: covered_by
-    from: SYM-SkillBundle
-    to: TEST-skill-cli-load-validate
-    created_at: 2026-09-05T18:02:10.755Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a2cc120e2eb0
-  - type: covered_by
     from: SYM-vscode-code-lens-provider-on-did-change-code-lenses
     to: TEST-vscode-traceability
     created_at: 2026-09-05T18:25:33.520Z
@@ -230,20 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-105e11955dc2
-  - type: covered_by
-    from: SYM-source-analysis-v2-symbolextractorv2-0c4764f1
-    to: TEST-source-analysis-v2-contract
-    created_at: 2026-09-26T16:58:39.863Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-884574645c55
-  - type: implements
-    from: SYM-source-analysis-v2-symbolextractorv2-0c4764f1
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T16:58:39.884Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c69a6e56a08c
   - type: implements
     from: SYM-prolog-spike-sample-linux-cli
     to: REQ-native-cli-suite-diagnostics
@@ -384,20 +349,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-07fe4db97bcf
-  - type: implements
-    from: SYM-agent-instructions-agents-file
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:50:12.896Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-24b02f32a121
-  - type: covered_by
-    from: SYM-agent-instructions-agents-file
-    to: TEST-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:50:12.922Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eeaaa28786c0
   - type: covered_by
     from: SYM-agent-core-telemetry-signals-telemetryrule
     to: TEST-kibi-telemetry-expected-outcomes-cli
@@ -405,10 +356,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-06f9f7b5de69
-  - type: implements
-    from: SYM-agent-core-telemetry-signals-telemetryrule
-    to: REQ-kibi-telemetry-agent-signals
-    created_at: 2026-11-03T14:23:10.330Z
+  - type: assumes
+    from: SCEN-kibi-happy-path-gap
+    to: FACT-kibi-happy-path-gap-success-only-not-tested
+    created_at: 2026-11-04T16:55:00.000Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-123a69f741cf
+    id: rel-b2babf67a9a0
+  - type: assumes
+    from: SCEN-NEG-kibi-builtin-semantic-classifier-NETWORK-CALL
+    to: FACT-NEG-kibi-builtin-semantic-classifier-NETWORK-CALL
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49ee6e222cce
+  - type: verified_by
+    from: SCEN-NEG-kibi-builtin-semantic-classifier-NETWORK-CALL
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8e4d368f633

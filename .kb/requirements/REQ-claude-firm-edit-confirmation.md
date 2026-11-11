@@ -31,6 +31,7 @@ logic_claims:
   - CLAIM-3451CCB02BE8F626
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T16:57:37.649Z'
 id: REQ-claude-firm-edit-confirmation
 type: req

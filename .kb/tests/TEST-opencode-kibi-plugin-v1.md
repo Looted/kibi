@@ -1,7 +1,7 @@
 ---
 id: TEST-opencode-kibi-plugin-v1
 title: OpenCode Kibi Plugin v1 Automated Verification
-status: active
+status: passing
 created_at: 2026-03-13T00:00:00.000Z
 updated_at: 2026-04-20T00:00:00.000Z
 priority: must
@@ -20,7 +20,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-opencode-kibi-plugin-v1
+    - symbol_id: SYM-e2e-opencode-plugin
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:

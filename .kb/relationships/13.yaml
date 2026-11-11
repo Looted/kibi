@@ -21,54 +21,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b6d92104cde2
   - type: covered_by
-    from: SYM-reqcompiler-parity-surface
-    to: TEST-kibi-distribution-parity-matrix
-    created_at: 2026-08-16T18:51:45.127Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-864bc8e749d9
-  - type: implements
-    from: SYM-BRIDGE-SOURCE-WORKTREE-ENV
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-23T23:34:06.981Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1c6e2d3e10ab
-  - type: covered_by
-    from: SYM-BRIDGE-SOURCE-WORKTREE-ENV
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-23T23:34:06.991Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8aeb514ee66c
-  - type: covered_by
-    from: SYM-ManifestSymbolEntry
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:15:36.998Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c6fd2e9603a3
-  - type: covered_by
-    from: SYM-ManifestSymbolEntry
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:23:22.450Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b4460d49b00f
-  - type: covered_by
     from: SYM-convert-junit-xml
     to: TEST-kibi-verification-evidence-contract
     created_at: 2026-09-05T17:29:14.409Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f09a71c66a21
-  - type: covered_by
-    from: SYM-SearchMatch
-    to: TEST-mcp-search-discovery
-    created_at: 2026-09-05T17:36:31.220Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-42994a901a98
   - type: covered_by
     from: SYM-skillopt-default-evaluate-held-out
     to: TEST-skillopt-external-adoption-verdict
@@ -132,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-adf94f0c3d99
-  - type: covered_by
-    from: SYM-cap-plugin-kibiplugincapabilities-e695d15b
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:46:41.622Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bd21b15814dc
   - type: executable_for
     from: SYM-e2e-cli-env-bootstrap
     to: TEST-e2e-kibi-env-bootstrap
@@ -146,41 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-22084c7e514e
-  - type: implements
-    from: SYM-cli-EngineSession-recordModuleLoad
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-26T22:36:33.597Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-25cd87da8cc8
-  - type: covered_by
-    from: SYM-cli-EngineSession-recordModuleLoad
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-09-26T22:36:33.629Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3673757b1548
-  - type: implements
-    from: SYM-claude-HookInput
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:35:55.059Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4b6ff8105151
-  - type: covered_by
-    from: SYM-claude-HookInput
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:35:55.074Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-06714380047d
-  - type: implements
-    from: SYM-impact-stage-e-validateanalysisreviews
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-30T15:23:33.504Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8e2441246fe9
   - type: covered_by
     from: SYM-impact-stage-e-validateanalysisreviews
     to: TEST-impact-policy-stage-e-installed-e2e
@@ -244,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb031f7c2758
-  - type: implements
-    from: SYM-agent-core-decision-guard-requestwords
-    to: REQ-agent-hosts-decision-guard
-    created_at: 2026-10-14T17:47:54.983Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2ee6a9025fb9
   - type: covered_by
     from: SYM-agent-core-decision-guard-requestwords
     to: TEST-codex-kibi-plugin-v1
@@ -377,3 +286,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ad7476226c71
+  - type: assumes
+    from: SCEN-kibi-dimension-gap
+    to: FACT-kibi-dimension-gap-verdict-only-not-tested
+    created_at: 2026-11-04T16:55:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f0b97ecbca6
+  - type: assumes
+    from: SCEN-NEG-kibi-engine-durable-transactions-PARTIAL-COMMIT
+    to: FACT-NEG-kibi-engine-durable-transactions-PARTIAL-COMMIT
+    created_at: 2026-11-10T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5988345fd2a
+  - type: verified_by
+    from: SCEN-NEG-kibi-engine-durable-transactions-PARTIAL-COMMIT
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-11-10T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26fbbfabd8df
+  - type: assumes
+    from: SCEN-NEG-kibi-suggestion-prose-classification-COMPOUND-CLAUSE
+    to: FACT-NEG-kibi-suggestion-prose-classification-COMPOUND-CLAUSE
+    created_at: 2026-11-10T18:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f38fdb225614
+  - type: verified_by
+    from: SCEN-NEG-kibi-suggestion-prose-classification-COMPOUND-CLAUSE
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-11-10T18:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01cbc5bf197c

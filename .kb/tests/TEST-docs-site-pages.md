@@ -5,7 +5,6 @@ tags:
   - docs
   - site
   - pages
-  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -53,6 +52,9 @@ proof_receipts:
           status: unavailable
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+## Context
+This builds the site from repository docs and fails on any broken internal link. Source: PR 289.

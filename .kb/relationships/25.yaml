@@ -55,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7a80ee1fbba4
-  - type: covered_by
-    from: SYM-cli-prolog-search-query-input
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.145Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e5475fa77713
   - type: implements
     from: SYM-requirement-normalize-text
     to: REQ-002
@@ -83,48 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4619ecda905b
-  - type: implements
-    from: SYM-SkillsListResult
-    to: REQ-002
-    created_at: 2026-08-22T20:09:52.973Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d22dbaa62e55
-  - type: covered_by
-    from: SYM-SkillsListResult
-    to: TEST-005
-    created_at: 2026-08-22T20:09:52.994Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0f120b9aff7b
-  - type: covered_by
-    from: SYM-SkillsListResult
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:09:53.000Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-adc7c68f228d
-  - type: covered_by
-    from: SYM-cli-github-workflow-kind
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-28T10:10:39.582Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f373b23449b1
-  - type: covered_by
-    from: SYM-codex-HookEnvironment
-    to: TEST-codex-kibi-plugin-v1
-    created_at: 2026-09-05T15:19:59.001Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ccbcfed65135
-  - type: covered_by
-    from: SYM-SkillsListResult
-    to: TEST-mcp-skills-resource-discoverability
-    created_at: 2026-09-18T14:56:48.961Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3aa2390c0eeb
   - type: covered_by
     from: SYM-requirement-normalize-text
     to: TEST-e2e-mcp-model-requirement
@@ -132,27 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d7f12c35f9f
-  - type: implements
-    from: SYM-executeIngestProof
-    to: REQ-kibi-verification-receipts-v2
-    created_at: 2026-09-26T09:58:53.103Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2bad0f3de09e
-  - type: covered_by
-    from: SYM-executeIngestProof
-    to: TEST-kibi-fresh-verification-receipts
-    created_at: 2026-09-26T09:58:53.107Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bf34d0e7c036
-  - type: covered_by
-    from: SYM-executeIngestProof
-    to: TEST-kibi-proof-ingest-batch-atomicity
-    created_at: 2026-09-26T09:58:53.110Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1ddf66a311c7
   - type: executable_for
     from: SYM-claude-test-Fixture
     to: TEST-claude-code-kibi-plugin-v1
@@ -160,20 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b886a4f9746d
-  - type: implements
-    from: SYM-executeIngestProof
-    to: REQ-kibi-fresh-verification-receipts-v2
-    created_at: 2026-10-04T03:00:17.419Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1b9c19c79d2e
-  - type: implements
-    from: SYM-cli-signoff-statement-sentence-diff
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:44:43.652Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e17f712454a1
   - type: covered_by
     from: SYM-cli-signoff-statement-sentence-diff
     to: TEST-kibi-signoff-views
@@ -181,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3a896ac1cee8
-  - type: implements
-    from: SYM-code-models-rule-certificate-problem
-    to: REQ-kibi-non-numeric-proof-kinds
-    created_at: 2026-10-26T09:48:52.553Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-164e52795942
   - type: covered_by
     from: SYM-code-models-rule-certificate-problem
     to: TEST-kibi-non-numeric-proof-kinds
@@ -307,17 +216,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9253a558c0a0
-  - type: implements
-    from: SYM-kb-dependencies-kb-dependency-error-code
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:54:46.962Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-87f83e7d75b7
-  - type: covered_by
-    from: SYM-kb-dependencies-kb-dependency-error-code
-    to: TEST-kb-dependencies-git
-    created_at: 2026-11-04T10:54:46.985Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-190649578720

@@ -48,6 +48,7 @@ logic_claims:
   - CLAIM-DC6A3FB8B3FD84DF
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-24T20:31:49.266Z'
 id: REQ-kibi-intervals-verified
 type: req

@@ -5,7 +5,7 @@ status: open
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
 priority: must
-tags: [requirements, parity, distribution, dogfood, packed, cli, mcp, review:context-missing]
+tags: [requirements, parity, distribution, dogfood, packed, cli, mcp]
 logic_claims:
   - CLAIM-46D4F2FCBD3E4628
   - CLAIM-D4F442D51F73F900
@@ -93,7 +93,7 @@ links:
   - type: depends_on
     target: REQ-kibi-operation-interface-parity
   - type: depends_on
-    target: REQ-kibi-conservative-requirement-proof
+    target: REQ-kibi-proof-ledger-grounding-contradictions
   - type: specified_by
     target: SCEN-kibi-distribution-parity-matrix
   - type: requires_property
@@ -120,7 +120,7 @@ links:
     target: FACT-PARITY-REPORT
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 8): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 semantic_text: The runner must execute the same canonical fixture set against the source checkout, fresh CLI and MCP packages, and every project-resolved runtime. The canonical fixture set must include semantic inventory, contradiction witnesses, conservative proof, repair plans, verification receipts, and telemetry acceptance. Runtime provenance must come from actual executable or entrypoint resolution instead of package manifests. Normalization must remove volatile paths, timestamps, ephemeral identifiers, snapshots, and environment values while preserving stable statuses, gap codes, diagnostic identifiers, and contradiction witnesses. Capability evidence must use exactly one state from supported, unsupported, or failed. An unsupported capability must never count as a match. Packed outcomes must exactly equal source outcomes for every supported capability. Every project-resolved divergence must name an upgrade or compatibility action. The gate must fail for source-to-packed drift, unresolved provenance, execution failure, or an unactioned project divergence. The runner must execute resolved project binaries only inside isolated fixture workspaces without mutating audited project knowledge bases. The report must use a versioned deterministic machine-readable contract.
 type: req
@@ -129,3 +129,6 @@ required_evidence: tested
 ---
 
 The runner must execute the same canonical fixture set against the source checkout, fresh CLI and MCP packages, and every project-resolved runtime. The canonical fixture set must include semantic inventory, contradiction witnesses, conservative proof, repair plans, verification receipts, and telemetry acceptance. Runtime provenance must come from actual executable or entrypoint resolution instead of package manifests. Normalization must remove volatile paths, timestamps, ephemeral identifiers, snapshots, and environment values while preserving stable statuses, gap codes, diagnostic identifiers, and contradiction witnesses. Capability evidence must use exactly one state from supported, unsupported, or failed. An unsupported capability must never count as a match. Packed outcomes must exactly equal source outcomes for every supported capability. Every project-resolved divergence must name an upgrade or compatibility action. The gate must fail for source-to-packed drift, unresolved provenance, execution failure, or an unactioned project divergence. The runner must execute resolved project binaries only inside isolated fixture workspaces without mutating audited project knowledge bases. The report must use a versioned deterministic machine-readable contract.
+
+## Why
+One test project ran Kibi from this checkout while the other pinned older packages. A healthy dogfood setup could hide a regression in the pinned packages, and the reverse. Running the same fixtures through every resolved distribution catches both. Source: docs/requirement-compiler-roadmap.md, vector 7: "parity prevents dogfood from hiding packaged regressions".

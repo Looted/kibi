@@ -78,6 +78,7 @@ logic_claims:
   - CLAIM-5AE3601D25967B56
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:21:35.276Z'
 id: REQ-kibi-entity-origin
 type: req

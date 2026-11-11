@@ -17,6 +17,7 @@ import {
 import type { ExtractionResult } from "../../../src/extractors/markdown.js";
 import type { SourceChangeAnalysis } from "../../../src/plugins/source-change-analysis.js";
 import type { QualityDiagnostic } from "../../../src/public/impact-diagnostics.js";
+import type { MigrationPlan } from "../../../src/public/operations/migration-plan.js";
 import type { StagedFile } from "../../../src/traceability/git-staged.js";
 import { IMPACT_REVIEW_PATH } from "../../../src/traceability/impact-review.js";
 import type { KibiImpactDiagnostic } from "../../../src/traceability/staged-diagnostics.js";
@@ -241,6 +242,23 @@ describe("diagnostic rendering", () => {
         },
       },
     ]);
+  });
+
+  test("a structured result carries the check's migration plan", () => {
+    const io = captureConsole();
+    const migrationPlan = {
+      version: "kibi.migration-plan.v2",
+      planHash: "a".repeat(64),
+    } as unknown as MigrationPlan;
+    printStructuredCheckResult({
+      violations: [],
+      qualityDiagnostics: [],
+      migrationPlan,
+    });
+    expect(
+      io.logs().map((line) => JSON.parse(line))[0].structuredContent
+        .migrationPlan,
+    ).toEqual({ version: "kibi.migration-plan.v2", planHash: "a".repeat(64) });
   });
 });
 

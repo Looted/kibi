@@ -10,7 +10,6 @@ tags:
   - opencode
   - kibi
   - sync
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-background-sync
@@ -67,8 +66,12 @@ origin:
   recorded_at: '2026-11-03T11:35:21.000Z'
 firmness: default
 required_evidence: tested
+rationale: "The KB must stay current while the agent edits, without making the agent wait on sync."
 ---
 - The OpenCode plugin must run kibi sync debounced and non-blocking after file edits that can change the KB.
 - The OpenCode plugin must not block the OpenCode session while sync runs.
 - The OpenCode plugin's sync debounce interval must be configurable in the plugin settings.
 - The OpenCode plugin must switch to maintenanceDegraded mode when its sync scheduler cannot be created or sync fails.
+
+## Rationale
+The KB must stay current while the agent edits, without making the agent wait on sync.

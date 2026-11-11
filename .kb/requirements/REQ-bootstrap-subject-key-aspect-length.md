@@ -33,6 +33,7 @@ semantic_inventory:
       end: 199
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T08:34:41.902Z'
 id: REQ-bootstrap-subject-key-aspect-length
 type: req

@@ -1,7 +1,7 @@
 ---
 id: REQ-cursor-kibi-plugin-v1
 title: 'Cursor Kibi Plugin v1: Optional MCP adapter package'
-status: open
+status: closed
 created_at: 2026-06-09T00:00:00.000Z
 updated_at: 2026-06-09T00:00:00.000Z
 source: packages/cursor/
@@ -12,7 +12,6 @@ tags:
   - cursor
   - plugin
   - mcp
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-cursor-kibi-plugin-v1
@@ -82,7 +81,7 @@ semantic_inventory:
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   approved_by: maintainer
   recorded_at: '2026-10-27T07:51:58.946Z'
 firmness: default

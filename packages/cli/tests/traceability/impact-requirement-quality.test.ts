@@ -189,6 +189,64 @@ describe("requirement quality impact diagnostics", () => {
     );
   });
 
+  it("does not count closed or superseded requirements as dependents", () => {
+    const requirement = makeRequirementResult({
+      id: "REQ-HISTORY",
+      relationships: [
+        { type: "depends_on", to: "REQ-CURRENT-DEP" },
+        { type: "depends_on", to: "REQ-CLOSED-DEP" },
+      ],
+    });
+    const dependents = [
+      makeRequirementResult({ id: "REQ-CURRENT-DEP" }),
+      makeRequirementResult({ id: "REQ-CLOSED-DEP", status: "closed" }),
+      ...Array.from({ length: 4 }, (_unused, index) =>
+        makeRequirementResult({
+          id: `REQ-OPEN-${index + 1}`,
+          status: "open",
+          relationships: [{ type: "depends_on", to: "REQ-HISTORY" }],
+        }),
+      ),
+      ...["closed", "superseded", "deprecated"].map((status) =>
+        makeRequirementResult({
+          id: `REQ-PAST-${status}`,
+          status,
+          relationships: [{ type: "depends_on", to: "REQ-HISTORY" }],
+        }),
+      ),
+    ];
+
+    const broad = createRequirementQualityDiagnostics({
+      manifestResults: [requirement, ...dependents],
+    }).filter((diagnostic) => diagnostic.entityId === "REQ-HISTORY");
+
+    // Five current dependents is at the threshold, not above it.
+    expect(broad).toEqual([]);
+
+    const withOneMore = createRequirementQualityDiagnostics({
+      manifestResults: [
+        requirement,
+        ...dependents,
+        makeRequirementResult({
+          id: "REQ-OPEN-5",
+          relationships: [{ type: "depends_on", to: "REQ-HISTORY" }],
+        }),
+      ],
+    }).filter((diagnostic) => diagnostic.entityId === "REQ-HISTORY");
+    expect(withOneMore[0]?.evidence).toEqual(
+      expect.objectContaining({
+        dependentRequirementIds: [
+          "REQ-CURRENT-DEP",
+          "REQ-OPEN-1",
+          "REQ-OPEN-2",
+          "REQ-OPEN-3",
+          "REQ-OPEN-4",
+          "REQ-OPEN-5",
+        ],
+      }),
+    );
+  });
+
   it("reads fanout from known target types, every link kind and split records", () => {
     const entity = (id: string, type: string): ExtractionResult => ({
       entity: {

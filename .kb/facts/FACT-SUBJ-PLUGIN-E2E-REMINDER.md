@@ -1,6 +1,6 @@
 ---
 title: OpenCode Plugin E2E Reminder Policy
-status: active
+status: archived
 tags:
   - strict-lane
   - opencode

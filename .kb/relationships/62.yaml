@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-db3492b26dd2
-    type: covered_by
-    from: SYM-reqcompiler-parity-runtime-adapter
-    to: TEST-kibi-distribution-parity-matrix
-    created_at: "2026-08-16T18:51:45.112Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: implements
     from: SYM-sendToast
     to: REQ-opencode-kibi-plugin-v1
@@ -27,27 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f8d4ea726fd
-  - type: covered_by
-    from: SYM-operation-sparql-remote-input
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:38:39.129Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3a01789ad376
-  - type: implements
-    from: SYM-operation-sparql-remote-input
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:04:09.491Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0dceed3b7790
-  - type: covered_by
-    from: SYM-operation-sparql-remote-input
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:04:09.493Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-608fdfd335d3
   - type: covered_by
     from: SYM-core-kb-commit-upsert
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -83,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-19779f1d3058
-  - type: covered_by
-    from: SYM-SkillOversizeError-maxBytes
-    to: TEST-skill-cli-load-validate
-    created_at: 2026-09-05T18:02:33.208Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b2c6ccc0bd20
   - type: covered_by
     from: SYM-SkillValidationError-field
     to: TEST-skill-cli-load-validate
@@ -132,20 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f20cba6a5e69
-  - type: implements
-    from: SYM-claude-HookOutput
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:19:32.862Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-20e8c9c4f28b
-  - type: covered_by
-    from: SYM-claude-HookOutput
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:19:32.920Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ac3c680b4009
   - type: covered_by
     from: SYM-impact-stage-e-hasvalidbaseimpactpolicy
     to: TEST-impact-policy-stage-e-installed-e2e
@@ -153,27 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1e61d459c0c
-  - type: implements
-    from: SYM-impact-stage-e-hasvalidbaseimpactpolicy
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:40:26.934Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c79664a8afd7
-  - type: implements
-    from: SYM-prolog-swipl-pkg-locate-dts
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T22:56:44.703Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8afda5ce6a05
-  - type: covered_by
-    from: SYM-prolog-swipl-pkg-locate-dts
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T22:56:44.728Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-43931af2cf4d
   - type: requires_predicate
     from: REQ-mcp-workspace-routing
     to: FACT-PRED-mcp-routing-explicit-argument
@@ -321,13 +251,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7d73dafbc6a4
-  - type: implements
-    from: SYM-proof-certificates-state-machine-certificate
-    to: REQ-kibi-non-numeric-proof-kinds
-    created_at: 2026-10-26T09:49:37.825Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e593f782cf55
   - type: covered_by
     from: SYM-proof-certificates-state-machine-certificate
     to: TEST-kibi-non-numeric-proof-kinds
@@ -412,3 +335,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-67ab7f16b819
+  - type: assumes
+    from: SCEN-bootstrap-discovered-candidate-budget
+    to: FACT-bootstrap-discovered-candidate-budget-independent-budget
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a815f91e10fd
+  - type: assumes
+    from: SCEN-bootstrap-discovered-candidate-budget
+    to: FACT-bootstrap-discovered-candidate-budget-generic-markdown-default
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99e2f59deb8f
+  - type: assumes
+    from: SCEN-bootstrap-discovered-candidate-budget
+    to: FACT-bootstrap-discovered-candidate-budget-suppression-summary
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1761241dc96
+  - type: assumes
+    from: SCEN-bootstrap-discovered-candidate-budget
+    to: FACT-bootstrap-discovered-candidate-budget-seeded-claim-plan
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-318f87e3bf4b
+  - type: constrains
+    from: REQ-kibi-ci-proof-reuse
+    to: FACT-SUBJ-kibi-ci-proof-reuse
+    created_at: 2026-11-10T11:19:59.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92f6b1834cfb
+  - type: requires_property
+    from: REQ-kibi-ci-proof-reuse
+    to: FACT-PROP-kibi-ci-proof-reuse-c01
+    created_at: 2026-11-10T11:19:59.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc8337d80563
+  - type: requires_property
+    from: REQ-kibi-ci-proof-reuse
+    to: FACT-PROP-kibi-ci-proof-reuse-c02
+    created_at: 2026-11-10T11:19:59.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f330abc436a4
+  - type: specified_by
+    from: REQ-kibi-ci-proof-reuse
+    to: SCEN-kibi-ci-proof-reuse
+    created_at: 2026-11-10T11:19:59.242Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-598a9eee99ee
+  - type: specified_by
+    from: REQ-kibi-ci-proof-reuse
+    to: SCEN-NEG-kibi-ci-proof-reuse-CHANGED-SNAPSHOT
+    created_at: 2026-11-10T11:19:59.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e4f0e5800ce
+  - type: relates_to
+    from: REQ-kibi-ci-proof-reuse
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-11-10T11:19:59.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6cedd8e6817e
+  - type: assumes
+    from: SCEN-NEG-kibi-own-kb-zero-findings
+    to: FACT-NEG-kibi-own-kb-zero-findings-INFO
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7262bb8fbd0
+  - type: assumes
+    from: SCEN-NEG-kibi-own-kb-zero-findings
+    to: FACT-NEG-kibi-own-kb-zero-findings-MISSING
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bb4aa18c6bb
+  - type: verified_by
+    from: SCEN-NEG-kibi-own-kb-zero-findings
+    to: TEST-prolog-bundled-ci
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a41895eb73b8

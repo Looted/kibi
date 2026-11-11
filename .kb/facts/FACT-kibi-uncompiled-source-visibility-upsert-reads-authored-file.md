@@ -9,7 +9,7 @@ value_type: bool
 value_bool: true
 claim_key: CLAIM-79311696D567A10D
 claim_text: A kb_upsert of an entity that the store lacks but an authored file declares must check the write against the front matter of that file as the stored state
-text_ref: REQ-kibi-uncompiled-source-visibility
+text_ref: REQ-kibi-uncompiled-source-upsert-guard
 tags:
   - strict-modeling
   - lane:strict

@@ -7,7 +7,6 @@ tags:
   - testing
   - scripts
   - ci
-  - review:context-missing
 text_ref: scripts/run-unit-coverage.ts
 semantic_text: For the scripts coverage shard, the runner must list every recursively discovered scripts/tests path matching the test/spec filename pattern. The scripts coverage shard must include test/root-summary.test.ts exactly once after those paths. The scripts coverage shard must request process-per-file isolation.
 semantic_inventory_version: kibi.semantic-inventory.v1
@@ -47,7 +46,7 @@ id: REQ-scripts-coverage-shard-isolation
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 4): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "The claims describe a static shard configuration (which paths, process isolation, one summary test); the runner refuses nothing."
 failure_side_waiver_approved_by: Piotr Franczyk
@@ -55,3 +54,6 @@ firmness: default
 required_evidence: tested
 ---
 For the scripts coverage shard, the runner must list every recursively discovered scripts/tests path matching the test/spec filename pattern. The scripts coverage shard must include test/root-summary.test.ts exactly once after those paths. The scripts coverage shard must request process-per-file isolation.
+
+## Why
+Three subprocess tests hit the time limit with empty output in the shared Bun coverage process, but finished quickly on their own. Running each scripts test file in its own process keeps the full test set and the 15-second limit. Source: docs/swipl-bundle-spike.md; commit "repair native spike environments and CI isolation".

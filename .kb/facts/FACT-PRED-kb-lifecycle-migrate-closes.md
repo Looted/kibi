@@ -8,7 +8,7 @@ tags:
   - migration
 claim_key: CLAIM-23CF2F42184248A2
 claim_text: kibi migrate must plan an automatic action that changes only the status line of an open superseded requirement to closed
-text_ref: .kb/requirements/REQ-kibi-kb-lifecycle-integrity.md
+text_ref: .kb/requirements/REQ-kibi-superseded-requirements-closed.md
 fact_kind: predicate
 predicate_name: logical_requirement_rule
 predicate_args:

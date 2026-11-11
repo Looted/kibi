@@ -3,7 +3,7 @@ title: A README.md inside an entity directory carries entity frontmatter and syn
 status: active
 fact_kind: property_value
 subject_key: kibi.kb.canonical_layout
-property_key: clause_04_readme_md_files_under_entity_directories_must_be
+property_key: sync_ignores_lane_readme
 operator: eq
 value_type: bool
 value_bool: false

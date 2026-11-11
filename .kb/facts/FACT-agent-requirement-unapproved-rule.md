@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.check.rule_names
 claim_key: CLAIM-F67FF62F420AF804
 claim_text: The unapproved agent requirement rule shall be agent-requirement-unapproved
-text_ref: REQ-kibi-check-rule-names
+text_ref: REQ-kibi-origin-review-rule-names
 property_key: agent_unapproved_rule
 operator: eq
 value_type: string

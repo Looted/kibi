@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.plugin.onboarding_routing
-property_key: clause_01_the_opencode_plugin_must_detect_uninitialized_or_weakly_seed
+property_key: detects_unseeded_with_intent
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_bootstrap_nudge.clause_01_the_opencode_plugin_must_detect_uninitialized_or_weakly_seed.eq.true
+canonical_key: req.req_opencode_bootstrap_nudge.detects_unseeded_with_intent.eq.true
 claim_key: CLAIM-0A782E5D59B95ED2
 claim_text: The OpenCode plugin must detect uninitialized or weakly seeded repositories that declare Kibi intent
 origin:

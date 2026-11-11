@@ -10,7 +10,6 @@ tags:
   - symbols
   - traceability
   - ontology
-  - review:context-missing
 links:
   - type: supersedes
     target: REQ-symbol-granularity
@@ -49,8 +48,11 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Symbol traceability granularity checks must reject coarse file/module links only when narrower behavioral symbols are available. Type-shape symbols such as interfaces, type aliases, and enums must not by themselves block a coarse behavioral link.
+
+## Why this changed
+Requiring the narrowest symbol of any kind made interfaces, type aliases and enums block a coarse behavioral link. Only narrower behavioral symbols should do that. Source: commit "add behavioral anchor traceability", Jun 6; diff of the two statements.

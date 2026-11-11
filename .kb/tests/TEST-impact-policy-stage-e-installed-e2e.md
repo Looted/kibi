@@ -1,13 +1,12 @@
 ---
 title: Installed staged impact review, derived coordinate cache and trusted aggregate gate lifecycle
-status: active
+status: passing
 tags:
   - multilingual
   - impact-policy
   - stage-e
   - e2e
   - consumer
-  - review:context-missing
 text_ref: documentation/tests/e2e/packed/impact-review-stage-e.test.ts
 verification_scope: end_to_end
 verification_perspective: consumer
@@ -26,17 +25,17 @@ id: TEST-impact-policy-stage-e-installed-e2e
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-5af273131f6a8e2ac8d66738
+    receipt_id: PR-2a3773628cd1ba389a90b867
     test_id: TEST-impact-policy-stage-e-installed-e2e
     scope: end_to_end
     outcome: passed
-    code_snapshot: 21d3705e88a7719227fc5095b0ab5b18b69f15341f63355c92a4a88c77f7ea32
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T21:00:57.391Z'
-    finished_at: '2026-10-28T21:02:47.631Z'
-    artifact_digest: ce49b8e32d217a1c2a70d52e0e6dc5c93b46fb66e6a46556271c1a11ff99f0bf
+    code_snapshot: b95fa37681e8a263f7711717a0c81ed6eb85ba81a6d11a9483e6acc81f4800fc
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T15:19:53.875Z'
+    finished_at: '2026-11-10T15:20:37.496Z'
+    artifact_digest: 3bc2b6124472a54f13f04c706d86c08eb582634222c67cc6de8f2e731d71c5e3
     contract_hash: c2eb1035aa4e92933096678876e955f9a13300287f2cfecd6b5ba038aaed6454
-    binding_hash: c0c19ae644099ab77d3625cae8aac470f934b29329c8d58bbbc89f5a8a8950dd
+    binding_hash: 750ed4d5a8d1956fb1e87f333863ec5b4301720d5bf0ae6a2d0f1351fb016d3d
     fingerprint: 707a71967bb43296116fef56f996bdb2bc0f728c88acfe5c1812b6cf3415d654
     fingerprint_components:
       contract: c2eb1035aa4e92933096678876e955f9a13300287f2cfecd6b5ba038aaed6454
@@ -62,6 +61,10 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 3): "Agree with batch 3 as well."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+This runs the full Stage E lifecycle in an installed package (staged review, derived coordinate cache and the trusted aggregate gate), because the gate's trust rules only hold when policy and evaluator come from protected code.

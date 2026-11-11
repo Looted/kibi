@@ -31,6 +31,7 @@ logic_claims:
   - CLAIM-7B28D337C59D5BCE
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T16:57:41.453Z'
 id: REQ-claude-decision-capture-nudges
 type: req

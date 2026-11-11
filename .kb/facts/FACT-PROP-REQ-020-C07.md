@@ -5,14 +5,14 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.release.versioning
-property_key: clause_07_master_publishing_master_ci_builds_and_publishes
+property_key: master_ci_publishes
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_020.clause_07_master_publishing_master_ci_builds_and_publishes.eq.true
-claim_key: CLAIM-3804C9E583B24080
-claim_text: '**Master Publishing**: `master` CI builds and publishes newly bumped versions to npm'
+canonical_key: req.req_020.master_ci_publishes.eq.true
+claim_key: CLAIM-12E9B0C280564B80
+claim_text: 'Master CI must build and publish newly bumped versions to npm'
 id: FACT-PROP-REQ-020-C07
 type: fact
 origin:

@@ -34,41 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-58a4f66839b1
-  - type: implements
-    from: SYM-normalizePropertyKey
-    to: REQ-011
-    created_at: 2026-08-22T20:13:25.817Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b7e17247a2fc
-  - type: covered_by
-    from: SYM-normalizePropertyKey
-    to: TEST-cli-strict-modeling
-    created_at: 2026-08-22T20:13:25.832Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e0055429632e
-  - type: covered_by
-    from: SYM-normalizePropertyKey
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:13:25.836Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c700b860007a
-  - type: implements
-    from: SYM-skillopt-cursor-usage-error
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-24T17:28:53.497Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3068470e909a
-  - type: covered_by
-    from: SYM-skillopt-cursor-usage-error
-    to: TEST-skillopt-cursor-compat
-    created_at: 2026-08-25T19:52:26.195Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ad66b08e3807
   - type: constrains
     from: REQ-mcp-search-discovery
     to: FACT-SUBJ-REQ-MCP-SEARCH-DISCOVERY
@@ -83,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4c71f57f83a
-  - type: covered_by
-    from: SYM-normalizePropertyKey
-    to: TEST-001
-    created_at: 2026-09-05T14:51:33.009Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dca2fc0eef2c
   - type: covered_by
     from: SYM-proof-run-artifact-errors
     to: TEST-kibi-verification-evidence-contract
@@ -118,27 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0f300fda9f12
-  - type: covered_by
-    from: SYM-cap-plugin-jevnoulanswer-422f8e2c
-    to: TEST-capability-plugin-jev-mocked-v1
-    created_at: 2026-09-22T19:44:49.215Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9b3f4d4ea07f
-  - type: implements
-    from: SYM-cursor-canonicalKbToolName
-    to: REQ-cursor-kibi-plugin-v1
-    created_at: 2026-09-27T09:30:38.370Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bc3c9632b1e2
-  - type: covered_by
-    from: SYM-cursor-canonicalKbToolName
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-27T09:30:38.384Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ed3910dd972c
   - type: validates
     from: TEST-kibi-search-answer-layer
     to: SCEN-kibi-search-answer-layer
@@ -146,13 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-051e47d68a3b
-  - type: implements
-    from: SYM-telemetry-acceptance-firstLinkedEdits
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T03:15:40.060Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c709c5c5c993
   - type: covered_by
     from: SYM-telemetry-acceptance-firstLinkedEdits
     to: TEST-kibi-telemetry-lookup-before-first-edit
@@ -181,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-248b30282490
-  - type: implements
-    from: SYM-agent-core-snippets-implementedrequirementids
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-10-14T10:08:10.508Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cc0d3b0d2bc1
   - type: covered_by
     from: SYM-agent-core-snippets-implementedrequirementids
     to: TEST-claude-code-kibi-plugin-v1
@@ -251,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae196589bcc0
-  - type: implements
-    from: SYM-const-symbol-granularity-rule
-    to: REQ-kibi-check-rule-names
-    created_at: 2026-10-28T20:22:54.918Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-93ce6759cefd
   - type: covered_by
     from: SYM-const-symbol-granularity-rule
     to: TEST-proof-symbol-granularity-rule

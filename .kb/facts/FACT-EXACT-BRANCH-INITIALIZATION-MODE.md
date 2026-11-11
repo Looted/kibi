@@ -1,6 +1,6 @@
 ---
 title: Explicit exact-branch store initialization mode
-status: active
+status: archived
 tags:
   - branching
   - initialization

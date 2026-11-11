@@ -1,6 +1,6 @@
 ---
 title: kibi-plugin-search-hints tokenizer, model, cache and bootstrap offer tests
-status: active
+status: passing
 tags:
   - search
   - plugins

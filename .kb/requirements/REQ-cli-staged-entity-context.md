@@ -10,6 +10,7 @@ tags:
   - entity-context
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-16T08:50:09.402Z'
 id: REQ-cli-staged-entity-context
 type: req

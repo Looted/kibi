@@ -6,7 +6,6 @@ tags:
   - bundle
   - ci
   - lane:strict
-  - review:context-missing
 priority: must
 text_ref: .github/workflows/swipl-ci-bundle.yml
 semantic_text: Kibi's own CI Prolog jobs must run the bundled SWI-Prolog archive built by the release pipeline after re-verifying its checksum, pins, and binary hash. Kibi's own CI must keep one job that runs a system SWI-Prolog selected with KIBI_SWIPL=system. A cached CI archive must skip the commit and run binding only through the explicit cached-build flag. Release workflows must never use the cached-build flag.
@@ -59,9 +58,12 @@ id: REQ-prolog-bundled-ci
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 4): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Kibi's own CI Prolog jobs must run the bundled SWI-Prolog archive built by the release pipeline after re-verifying its checksum, pins, and binary hash. Kibi's own CI must keep one job that runs a system SWI-Prolog selected with KIBI_SWIPL=system. A cached CI archive must skip the commit and run binding only through the explicit cached-build flag. Release workflows must never use the cached-build flag.
+
+## Why
+Kibi's own CI should test the bytes users get, so most jobs run the bundled build after re-verifying it. One job keeps a system install with `KIBI_SWIPL=system`, so the fallback path stays tested. The cache is keyed on pins, patches and build scripts, and a release never trusts it. Source: PR 299 phase 5.

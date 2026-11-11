@@ -1440,7 +1440,7 @@ function fileKnowledgeSnippet(input) {
   }
   const location = primaryFocus ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}` : `{path:${jsonString(relativePath)}}`;
   const next = [
-    leadId ? `kb_query({id:${jsonString(leadId)}}) returns full requirement text` : undefined,
+    leadId ? `kb_query({id:${jsonString(leadId)}, includeBody:true}) returns the full requirement text and why it exists` : undefined,
     `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`
   ].filter((part) => part !== undefined);
   lines.push(`Next layer: ${next.join("; ")}.`);
@@ -1585,6 +1585,12 @@ function signoffReminder() {
 // ../agent-core/dist/kb-mcp-tools.js
 function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function canonicalKbToolName(toolName) {
+  const trimmed = String(toolName).trim();
+  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) : trimmed.replace(/^MCP:/i, "");
+  const operation = lastSegment.replace(/^kibi_/, "");
+  return operation.startsWith("kb_") ? operation : undefined;
 }
 var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
 function isKibiMcpToolName(toolName) {
@@ -2487,10 +2493,8 @@ function strings(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string" && item.length > 0) : [];
 }
 function canonicalKbOperation(toolName) {
-  const name = `${toolName}`.trim();
-  const lastSegment = name.split("__").at(-1);
-  const operation = lastSegment.replace(/^kibi_/, "");
-  return /^kb_[a-z_]+$/.test(operation) ? operation : undefined;
+  const operation = canonicalKbToolName(toolName);
+  return /^kb_[a-z_]+$/.test(String(operation)) ? operation : undefined;
 }
 function payloadOf(toolInput) {
   if (!isRecord3(toolInput))

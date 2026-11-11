@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.migration.orchestration
-property_key: clause_03_checks_and_status_must_remain_read_only
+property_key: checks_and_status_read_only
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_agent_guided_migration_orchestration.clause_03_checks_and_status_must_remain_read_only.eq.true
+canonical_key: req.req_agent_guided_migration_orchestration.checks_and_status_read_only.eq.true
 claim_key: CLAIM-1EDEF6580A6786E1
 claim_text: Checks and status must remain read-only
 id: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C03

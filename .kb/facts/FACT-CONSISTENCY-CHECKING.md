@@ -1,7 +1,7 @@
 ---
 id: FACT-CONSISTENCY-CHECKING
 title: Consistency Checking
-status: active
+status: archived
 created_at: 2026-02-20T14:40:00Z
 updated_at: 2026-02-20T14:40:00Z
 tags: [validation, check]

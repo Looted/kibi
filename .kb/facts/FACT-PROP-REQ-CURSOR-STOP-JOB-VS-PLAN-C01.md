@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: cursor.kibi_plugin
-property_key: clause_01_the_cursor_kibi_stop_hook_must_treat_plan_delive
+property_key: stop_hook_separates_plan_delivery_from_completion
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_cursor_stop_job_vs_plan.clause_01_the_cursor_kibi_stop_hook_must_treat_plan_delive.eq.true
+canonical_key: req.req_cursor_stop_job_vs_plan.stop_hook_separates_plan_delivery_from_completion.eq.true
 claim_key: CLAIM-C4A8EFB8E769B0F4
 claim_text: The Cursor Kibi stop hook must treat plan delivery as distinct from job completion
 id: FACT-PROP-REQ-CURSOR-STOP-JOB-VS-PLAN-C01

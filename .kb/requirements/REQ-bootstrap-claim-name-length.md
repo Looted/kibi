@@ -33,7 +33,9 @@ semantic_inventory:
       start: 128
       end: 199
 origin:
+  ref: 'Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T09:14:16.476Z'
 id: REQ-bootstrap-claim-name-length
 type: req
@@ -47,3 +49,6 @@ After a bootstrap of a test project with declared components, every generated na
 ## Source
 
 Onboarding evaluation round 6 analysis (2026-10-08), finding K6b.
+
+## Why this changed
+The requirement was renamed before release because it limits generated claim names, not subject-key aspects. Source: the old requirement's Context; PR 373.

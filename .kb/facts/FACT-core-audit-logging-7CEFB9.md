@@ -1,6 +1,6 @@
 ---
 title: Each audit log entry includes a timestamp, the operation type and the affected entity data
-status: active
+status: archived
 fact_kind: property_value
 subject_key: kibi.audit.log
 property_key: audit_entry_fields

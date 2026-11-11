@@ -1,6 +1,6 @@
 ---
 title: kb_search search hints host tests
-status: active
+status: passing
 tags:
   - search
   - plugins

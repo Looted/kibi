@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.plugin.onboarding_routing
-property_key: clause_03_the_opencode_plugin_must_escalate_to_the_user_or_operator_wh
+property_key: escalates_setup_repair
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_bootstrap_nudge.clause_03_the_opencode_plugin_must_escalate_to_the_user_or_operator_wh.eq.true
+canonical_key: req.req_opencode_bootstrap_nudge.escalates_setup_repair.eq.true
 claim_key: CLAIM-674B2D9C4F9B8C0C
 claim_text: The OpenCode plugin must escalate to the user or operator when environment setup or repair is required
 origin:

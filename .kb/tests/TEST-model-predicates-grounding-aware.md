@@ -1,6 +1,6 @@
 ---
 title: Predicate modeling existing grounding tests
-status: active
+status: passing
 priority: must
 tags:
   - modeling

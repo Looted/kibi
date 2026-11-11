@@ -61,7 +61,7 @@ The semantic inventory version shall be kibi.semantic-inventory.v1. The staged i
 
 ## Context
 
-REQ-kibi-proposition-complete-ingestion stores a versioned semantic inventory on every requirement, reports a staged inventory that drifted from its prose under its own rule, and keeps a sync cache with a version and an age bound. They are stated here so every value is proved against its constant.
+REQ-kibi-complete-proposition-ledgers stores a versioned semantic inventory on every requirement, reports a staged inventory that drifted from its prose under its own rule, and keeps a sync cache with a version and an age bound. They are stated here so every value is proved against its constant.
 
 ## Source
 

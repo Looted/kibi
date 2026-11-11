@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.proof.run_vocabulary
 claim_key: CLAIM-2BAB7735C9EF0E1A
 claim_text: The proof integrations file shall be .kb/proof/integrations.json
-text_ref: REQ-kibi-proof-run-vocabulary
+text_ref: REQ-kibi-proof-producers-and-storage
 property_key: integrations_path
 operator: eq
 value_type: string

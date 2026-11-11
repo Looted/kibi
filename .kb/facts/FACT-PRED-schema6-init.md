@@ -1,6 +1,6 @@
 ---
 title: kibi init starts new knowledge bases at schema 6
-status: active
+status: archived
 tags:
   - lane:ontology
   - migration

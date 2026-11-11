@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.migration.pin_codes
 claim_key: CLAIM-D062BE9E6D27EA1F
 claim_text: The missing context tag code shall be context_missing_tag
-text_ref: REQ-cli-migration-pin-codes
+text_ref: REQ-cli-migration-context-codes
 property_key: context_tag_code
 operator: eq
 value_type: string

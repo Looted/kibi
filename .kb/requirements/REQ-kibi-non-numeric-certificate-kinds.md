@@ -34,7 +34,7 @@ Rule, state_machine and regex must each be certificate proof kinds.
 
 ## Context
 
-REQ-kibi-non-numeric-proof-kinds adds rule, state_machine and regex proofs. isCertificateProofKind in packages/cli/src/public/proof-protocol.ts decides which kinds need a certificate, and a rule certificate proves the three kinds are among them.
+REQ-kibi-rule-proofs, REQ-kibi-state-machine-proofs and REQ-kibi-regex-proofs add rule, state_machine and regex proofs. isCertificateProofKind in packages/cli/src/public/proof-protocol.ts decides which kinds need a certificate, and a rule certificate proves the three kinds are among them.
 
 ## Source
 

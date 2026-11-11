@@ -8,7 +8,7 @@ tags:
   - compaction
 claim_key: CLAIM-EAC6FD7EE537498D
 claim_text: Every proof ingest must compact receipt history to the newest receipt, the newest passing receipt, and the newest receipt per scope and contract hash for the current binding and for the live snapshot
-text_ref: .kb/requirements/REQ-kibi-fresh-verification-receipts-v2.md
+text_ref: .kb/requirements/REQ-kibi-proof-receipt-compaction.md
 fact_kind: property_value
 subject_key: kibi.proof.receipts
 property_key: receipts_kept_by_ingest_compaction

@@ -34,6 +34,7 @@ logic_claims:
   - CLAIM-F5088C6A06F70549
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T20:16:31.326Z'
 id: REQ-prolog-utf8-text
 type: req

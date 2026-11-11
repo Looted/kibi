@@ -11,13 +11,6 @@ relationships:
     created_by: migration/adr-017
     source: documentation/scenarios/SCEN-005.md
   - type: covered_by
-    from: SYM-auto-0973EC5179BE
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T07:53:02.249Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c6cc8b15ee3b
-  - type: covered_by
     from: SYM-cli-engine-commands
     to: TEST-core-journaled-engine-persistence
     created_at: 2026-08-16T19:47:07.423Z
@@ -45,20 +38,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-511052386b19
-  - type: implements
-    from: SYM-auto-0973EC5179BE
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:48:41.088Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bce41705e53d
-  - type: covered_by
-    from: SYM-auto-0973EC5179BE
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:48:41.095Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e02be980711e
   - type: covered_by
     from: SYM-cli-engine-commands
     to: TEST-core-journaled-engine-delta-sync
@@ -80,69 +59,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-831127a30937
-  - type: implements
-    from: SYM-quality-inventory-fb246ed248a3
-    to: REQ-core-persistence
-    created_at: 2026-09-14T20:32:10.618Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3a9c259c91dd
-  - type: covered_by
-    from: SYM-quality-inventory-fb246ed248a3
-    to: TEST-cli-prolog-codec
-    created_at: 2026-09-14T20:32:10.631Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-52c3b76543ce
-  - type: implements
-    from: SYM-coordinate-repair-inspect
-    to: REQ-kibi-dependency-ordered-repair-plan
-    created_at: 2026-09-15T07:41:10.691Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f5133f2c8a4f
-  - type: covered_by
-    from: SYM-coordinate-repair-inspect
-    to: TEST-coordinate-repair-capability
-    created_at: 2026-09-15T07:41:10.699Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0ffbb015cac6
-  - type: covered_by
-    from: SYM-coordinate-repair-inspect
-    to: TEST-kibi-dependency-ordered-repair-plan
-    created_at: 2026-09-15T07:41:10.704Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8a43e6a7686f
-  - type: covered_by
-    from: SYM-withExclusiveMirrorWriterLock
-    to: TEST-skillopt-automatic-adoption
-    created_at: 2026-09-16T13:11:41.720Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-91f7978f0130
-  - type: covered_by
-    from: SYM-cap-plugin-manifestsymbolentry-884c336b
-    to: TEST-capability-plugin-host-resolution-v1
-    created_at: 2026-09-22T19:43:44.171Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7b10298e3086
-  - type: implements
-    from: SYM-claude-KibiWorkspaceResolution
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:27:35.864Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-85a1bf833b9a
-  - type: covered_by
-    from: SYM-claude-KibiWorkspaceResolution
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:27:35.887Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c628f41ce21e
   - type: covered_by
     from: SYM-impact-stage-e-createimpactreviewrecord
     to: TEST-impact-policy-stage-e-installed-e2e
@@ -150,13 +66,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-97c1af9d3066
-  - type: implements
-    from: SYM-impact-stage-e-createimpactreviewrecord
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:36:33.052Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5e631dede512
   - type: implements
     from: SYM-env-bootstrap-kibi-project-env-file
     to: REQ-kibi-env-bootstrap-files
@@ -276,3 +185,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de8c34c00989
+  - type: constrains
+    from: REQ-kibi-impact-next-actions
+    to: FACT-SUBJ-kibi-impact-next-actions
+    created_at: 2026-11-10T14:32:54.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e788a6667ab
+  - type: requires_property
+    from: REQ-kibi-impact-next-actions
+    to: FACT-PROP-kibi-impact-next-actions-c01
+    created_at: 2026-11-10T14:32:54.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1a7412445c2
+  - type: specified_by
+    from: REQ-kibi-impact-next-actions
+    to: SCEN-kibi-impact-next-actions
+    created_at: 2026-11-10T14:32:54.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b34d56a18513
+  - type: specified_by
+    from: REQ-kibi-impact-next-actions
+    to: SCEN-NEG-kibi-impact-next-actions-NO-SUGGESTION
+    created_at: 2026-11-10T14:32:54.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c67b57fe1f10
+  - type: relates_to
+    from: REQ-kibi-impact-next-actions
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-11-10T14:32:54.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37a73b00890a

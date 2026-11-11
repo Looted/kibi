@@ -18,4 +18,4 @@ origin:
 id: FACT-NEG-kibi-telemetry-agent-signals-invented-field
 type: fact
 ---
-Denies that a field name outside every Kibi schema is sent as other, as if a key an agent invented, which may hold customer vocabulary, reached telemetry. The negative scenario for REQ-kibi-telemetry-agent-signals assumes it and expects Kibi to reject it.
+Denies that a field name outside every Kibi schema is sent as other, as if a key an agent invented, which may hold customer vocabulary, reached telemetry. The negative scenario for REQ-kibi-telemetry-event-contents assumes it and expects Kibi to reject it.

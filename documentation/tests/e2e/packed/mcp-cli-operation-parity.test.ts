@@ -226,6 +226,81 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
   );
 
   it(
+    "refuses plan-bootstrap input the shared planner does not define, or of the wrong type, with the same coded error on MCP and the CLI JSON route",
+    { timeout: 120_000 },
+    async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      // Both adapters validate against the one planner contract, so a field
+      // it does not define, or a value of the wrong type, is refused by each
+      // with one coded error.
+      const cases = [
+        {
+          input: { maxCandidates: 1, legacyAlias: true },
+          names: /legacyAlias/,
+        },
+        { input: { maxCandidates: "many" }, names: /maxCandidates/ },
+      ];
+      const mcpErrors: (Record<string, unknown> | undefined)[] = [];
+      const process = startMcpServer(sandbox);
+      try {
+        await sendMcpRequest(process, 1, "initialize", {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "packed-parity", version: "1.0.0" },
+        });
+        process.stdin?.write(
+          `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`,
+        );
+        for (const [index, { input }] of cases.entries()) {
+          const response = await sendMcpRequest(
+            process,
+            2 + index,
+            "tools/call",
+            {
+              name: "kb_plan_bootstrap",
+              arguments: input,
+            },
+          );
+          assert.ifError(response.error);
+          assert.strictEqual(response.result?.isError, true);
+          const envelope = response.result?.structuredContent as
+            | { status?: string; error?: Record<string, unknown> }
+            | undefined;
+          assert.strictEqual(envelope?.status, "error");
+          mcpErrors.push(envelope?.error);
+        }
+      } finally {
+        process.kill();
+      }
+
+      for (const [index, { input, names }] of cases.entries()) {
+        const mcpError = mcpErrors[index];
+        assert.strictEqual(mcpError?.code, "VALIDATION_FAILED");
+        assert.match(String(mcpError?.message), names);
+        const cli = await runStdinRoute(sandbox, "plan-bootstrap", input);
+        assert.notStrictEqual(cli.exitCode, 0);
+        const cliEnvelope = JSON.parse(cli.stdout) as {
+          status: string;
+          error: Record<string, unknown>;
+        };
+        assert.strictEqual(cliEnvelope.status, "error");
+        assert.strictEqual(cliEnvelope.error.code, mcpError?.code);
+        assert.strictEqual(cliEnvelope.error.retryable, mcpError?.retryable);
+        // The CLI adds a hint naming its --schema flag to the same message.
+        assert.ok(
+          String(cliEnvelope.error.message).startsWith(
+            String(mcpError?.message),
+          ),
+          `CLI message ${String(cliEnvelope.error.message)} does not start with MCP message ${String(mcpError?.message)}`,
+        );
+      }
+    },
+  );
+
+  it(
     "excludes an entity that carries none of the requested tags from a tag-filtered kb_query",
     { timeout: 180_000 },
     async (testContext) => {

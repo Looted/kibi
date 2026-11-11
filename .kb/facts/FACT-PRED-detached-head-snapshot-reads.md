@@ -8,7 +8,7 @@ tags:
   - read-only
 claim_key: CLAIM-B615857DD8297373
 claim_text: Read-only operations on a detached HEAD with zero or several local branches at HEAD must attach a read-only snapshot store compiled from the checkout's tracked sources
-text_ref: .kb/requirements/REQ-branch-store-recovery-v4.md
+text_ref: .kb/requirements/REQ-kibi-detached-head-snapshots.md
 fact_kind: predicate
 predicate_name: logical_requirement_rule
 predicate_args:

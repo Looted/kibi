@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_05_the_opencode_plugin_must_append_a_completion_reminder_to_run
+property_key: completion_reminder_for_behavior
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_guidance_injection.clause_05_the_opencode_plugin_must_append_a_completion_reminder_to_run.eq.true
+canonical_key: req.req_opencode_guidance_injection.completion_reminder_for_behavior.eq.true
 claim_key: CLAIM-524A6FD98B91D92F
 claim_text: The OpenCode plugin must append a completion reminder to run kb_check for behavior candidates
 origin:

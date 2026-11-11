@@ -61,7 +61,7 @@ The default proof steps file shall be proof/steps.json. The per-test proof repor
 
 ## Context
 
-REQ-kibi-fresh-verification-receipts-v2 lets a command proof integration attribute a failing step to the tests that own it through a per-test report. The steps file, the environment variable that names the report, its version and its outcomes are stated here so each is proved against the constant.
+REQ-kibi-proof-per-test-attribution lets a command proof integration attribute a failing step to the tests that own it through a per-test report. The steps file, the environment variable that names the report, its version and its outcomes are stated here so each is proved against the constant.
 
 ## Source
 

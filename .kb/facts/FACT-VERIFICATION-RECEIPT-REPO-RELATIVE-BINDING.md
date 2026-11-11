@@ -8,7 +8,7 @@ tags:
   - snapshot
 claim_key: CLAIM-A0151FEC23EA1948
 claim_text: Receipt bindings must locate the test document and each symbol source file through a normalized repository-relative path
-text_ref: .kb/requirements/REQ-kibi-fresh-verification-receipts-v2.md
+text_ref: .kb/requirements/REQ-kibi-proof-receipt-freshness.md
 fact_kind: property_value
 subject_key: kibi.proof.receipts
 property_key: binding_paths_not_repo_relative

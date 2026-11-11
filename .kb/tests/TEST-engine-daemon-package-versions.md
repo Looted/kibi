@@ -1,6 +1,6 @@
 ---
 title: Engine daemon package version tests
-status: active
+status: passing
 priority: must
 tags:
   - engine

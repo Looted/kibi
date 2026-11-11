@@ -9,7 +9,7 @@ priority: must
 tags:
   - cli
   - skills
-  - review:context-missing
+  - umbrella
 links:
   - type: specified_by
     target: SCEN-reusable-skill-subsystem
@@ -34,10 +34,13 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving entity context that was inferred (not recorded in history) in the KB gold-standard review (context batch 9, inferred): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 
 The CLI exposes reusable bundled Markdown skills and validates their manifests/resources before surfacing them to agents.
+
+## Why
+Agent guidance used to be long prompts copied into each host, and they drifted apart. Bundled, validated skills give every host the same guidance from one source. Inferred from: changeset "canonical-skill-guidance": "agent guidance stays in one place and cannot drift".

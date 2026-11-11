@@ -1,6 +1,6 @@
 ---
 title: Rule, state machine and pattern claims are proved against the model Kibi reads from the code
-status: open
+status: closed
 priority: should
 required_evidence: tested
 firmness: default
@@ -56,7 +56,7 @@ logic_claims:
   - CLAIM-AE11D0AF415B97E7
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Maintainer decision, 2026-11-04, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 2): "Approved"'
   approved_by: maintainer
   recorded_at: '2026-10-28T13:45:56.604Z'
 id: REQ-kibi-non-numeric-proof-kinds

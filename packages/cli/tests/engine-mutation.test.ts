@@ -576,9 +576,15 @@ describe("durability barrier", () => {
       close(fd);
     }) as never);
     fsyncJournaledBranchStore(store);
-    expect(opened).toStrictEqual([
-      path.join(store, "rdf", "a", "b", "j2"),
-      path.join(store, "rdf", "j1"),
+    // Journal files come in directory-listing order, which the filesystem
+    // decides; everything after them has a fixed order.
+    expect(opened.slice(0, 2).sort()).toStrictEqual(
+      [
+        path.join(store, "rdf", "j1"),
+        path.join(store, "rdf", "a", "b", "j2"),
+      ].sort(),
+    );
+    expect(opened.slice(2)).toStrictEqual([
       path.join(store, "CURRENT"),
       path.join(store, "kb.rdf"),
       path.join(store, "rdf", "a", "b"),

@@ -34,6 +34,7 @@ semantic_inventory:
       end: 306
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T08:00:10.934Z'
 id: REQ-kb-firm-decision-edit
 type: req

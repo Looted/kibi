@@ -1,18 +1,18 @@
 ---
-title: The SkillOpt cursor operator must parse its qualify
+title: The SkillOpt cursor operator must parse its qualify and compat commands strictly
 status: active
 tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.skillopt.cursor_lane
-property_key: clause_01_the_skillopt_cursor_operator_must_parse_its_qual
+property_key: parses_qualify_compat_strictly
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_skillopt_cursor_compat.clause_01_the_skillopt_cursor_operator_must_parse_its_qual.eq.true
-claim_key: CLAIM-EB0CB5AD393F637A
-claim_text: The SkillOpt cursor operator must parse its qualify
+canonical_key: req.req_skillopt_cursor_compat.parses_qualify_compat_strictly.eq.true
+claim_key: CLAIM-E6797752C2F4D53E
+claim_text: The SkillOpt cursor operator must parse its qualify and compat commands strictly
 id: FACT-PROP-REQ-SKILLOPT-CURSOR-COMPAT-C01
 type: fact
 origin:
