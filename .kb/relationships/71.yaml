@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3bec4e7d73f6
+  - type: verified_by
+    from: SCEN-search-answer-replacement-strong-match
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-11T17:33:45.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4cdb0df0f61
+  - type: assumes
+    from: SCEN-search-answer-replacement-strong-match
+    to: FACT-search-answer-replacement-only-for-strong-predecessor
+    created_at: 2026-11-11T17:39:04.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-045f1dd4d021

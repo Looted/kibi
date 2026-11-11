@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a4f785ed80b2
+  - type: verified_by
+    from: SCEN-unowned-file-closed-candidates
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-11T17:33:52.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-519c29487aa4
+  - type: verified_by
+    from: SCEN-unowned-file-closed-candidates
+    to: TEST-search-answer-hygiene
+    created_at: 2026-11-11T17:33:52.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21b859d6673d

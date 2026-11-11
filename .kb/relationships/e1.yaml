@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b5a8d366897
+  - type: assumes
+    from: SCEN-NEG-search-answer-replacement-WEAK-MATCH-PULLS
+    to: FACT-NEG-search-answer-replacement-WEAK-MATCH-PULLS
+    created_at: 2026-11-11T17:33:44.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfdcf224cfda
+  - type: verified_by
+    from: SCEN-NEG-search-answer-replacement-WEAK-MATCH-PULLS
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-11T17:33:44.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da812de38ea2

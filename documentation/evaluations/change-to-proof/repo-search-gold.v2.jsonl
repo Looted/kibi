@@ -31,6 +31,7 @@
 {"id":"repo-receipts-v2","query":"how are proof receipts v2 validated for E2E tests?","expectedIds":["REQ-kibi-fresh-verification-receipts-v2"],"supersededIds":["REQ-kibi-verification-receipts-v2","REQ-kibi-fresh-verification-receipts"]}
 {"id":"repo-branch-copy","query":"does a new branch copy the default branch KB when it is first checked out?","expectedIds":["REQ-branch-store-recovery-v4"],"supersededIds":["REQ-012","REQ-branch-store-recovery-v2","REQ-branch-store-recovery-v3"]}
 {"id":"repo-docs-site","query":"how is the documentation site published to GitHub Pages?","expectedIds":["REQ-docs-site-root-pages"],"supersededIds":["REQ-docs-site-pages"]}
+{"id":"repo-cli-commands-closed","query":"which commands does the kibi CLI provide?","expectedIds":["REQ-cli-query","REQ-cli-check","REQ-cli-gc","REQ-cli-doctor"],"supersededIds":["REQ-003"]}
 {"id":"repo-abstain-billing","query":"how should Kibi bill customers for premium seats?","expectedIds":[],"expectAbstention":true}
 {"id":"repo-abstain-gdpr","query":"what is the GDPR retention period for customer emails?","expectedIds":[],"expectAbstention":true}
 {"id":"repo-abstain-autoscaling","query":"which Kubernetes autoscaling policy applies to the web tier?","expectedIds":[],"expectAbstention":true}

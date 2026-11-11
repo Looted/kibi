@@ -763,12 +763,16 @@ symbols:
         target: TEST-kibi-search-answer-layer
       - type: covered_by
         target: TEST-search-answer-hygiene
+      - type: covered_by
+        target: TEST-search-closed-requirements
       - type: implements
         target: REQ-kibi-intent-aware-source-discovery
       - type: implements
         target: REQ-kibi-search-answer-layer-v2
       - type: implements
         target: REQ-search-answer-hygiene
+      - type: implements
+        target: REQ-search-closed-requirements-below-current
   - id: SYM-kibi-cli-src-intent-search-ts-executeintentsearch
     title: executeIntentSearch
     sourceFile: packages/cli/src/intent-search.ts
@@ -48277,12 +48281,18 @@ symbols:
         target: TEST-kibi-search-answer-layer
       - type: covered_by
         target: TEST-search-answer-hygiene
+      - type: covered_by
+        target: TEST-search-closed-requirements
       - type: implements
         target: REQ-kibi-query-fact-filters
       - type: implements
         target: REQ-kibi-search-answer-layer-v2
       - type: implements
         target: REQ-search-answer-hygiene
+      - type: implements
+        target: REQ-search-answer-replacement-strong-match
+      - type: implements
+        target: REQ-search-closed-requirements-below-current
   - id: SYM-cli-dispatch-composite
     title: dispatchComposite
     status: active
@@ -54883,6 +54893,8 @@ symbols:
         target: REQ-claude-request-topic-candidates
       - type: implements
         target: REQ-kb-unowned-file-candidates
+      - type: implements
+        target: REQ-unowned-file-closed-candidates
   - id: SYM-agent-core-candidates-requirementcandidatesforpath
     title: requirementCandidatesForPath
     status: active
@@ -54898,6 +54910,8 @@ symbols:
         target: REQ-claude-request-topic-candidates
       - type: implements
         target: REQ-kb-unowned-file-candidates
+      - type: implements
+        target: REQ-unowned-file-closed-candidates
   - id: SYM-agent-core-candidates-max-requirement-candidates
     title: MAX_REQUIREMENT_CANDIDATES
     status: active
@@ -54954,6 +54968,8 @@ symbols:
         target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-kb-unowned-file-candidates
+      - type: implements
+        target: REQ-unowned-file-closed-candidates
   - id: SYM-cli-unowned-files-unownedfilediagnosticsoptions
     title: UnownedFileDiagnosticsOptions
     status: active
@@ -54980,6 +54996,8 @@ symbols:
         target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-kb-unowned-file-candidates
+      - type: implements
+        target: REQ-unowned-file-closed-candidates
   - id: SYM-test-requirement-candidates
     title: Requirement candidates suite
     status: active
@@ -69152,3 +69170,67 @@ symbols:
         target: TEST-cli-doctor-workflows
       - type: implements
         target: REQ-cli-doctor
+  - id: SYM-test-search-closed-requirements
+    title: Closed requirements in kibi search suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/search-closed-requirements.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:34:15.962Z
+    relationships:
+      - type: executable_for
+        target: TEST-search-closed-requirements
+  - id: SYM-cli-intent-search-closed-requirement-factor
+    title: CLOSED_REQUIREMENT_FACTOR
+    status: active
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:34:20.718Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-closed-requirements
+      - type: implements
+        target: REQ-search-closed-requirements-below-current
+  - id: SYM-cli-intent-search-is-closed-requirement
+    title: isClosedRequirement
+    status: active
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:34:25.015Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-closed-requirements
+      - type: implements
+        target: REQ-search-closed-requirements-below-current
+  - id: SYM-cli-search-answer-successor-pull-ratio
+    title: SUCCESSOR_PULL_RATIO
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:34:33.858Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-closed-requirements
+      - type: implements
+        target: REQ-search-answer-replacement-strong-match
+  - id: SYM-agent-core-candidates-replacedrequirements
+    title: replacedRequirements
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:34:42.870Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-unowned-file-closed-candidates

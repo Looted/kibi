@@ -388,3 +388,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cdaa861dea33
+  - type: implements
+    from: SYM-cli-intent-search-closed-requirement-factor
+    to: REQ-search-closed-requirements-below-current
+    created_at: 2026-11-11T17:34:21.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0efae147c764
+  - type: covered_by
+    from: SYM-cli-intent-search-closed-requirement-factor
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-11T17:34:21.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b1c4e4594f6

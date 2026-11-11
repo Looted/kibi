@@ -409,3 +409,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-731d89b8fc5d
+  - type: assumes
+    from: SCEN-NEG-search-answer-replacement-STRONG-MATCH-DROPPED
+    to: FACT-NEG-search-answer-replacement-STRONG-MATCH-DROPPED
+    created_at: 2026-11-11T17:39:03.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73502189288e
+  - type: verified_by
+    from: SCEN-NEG-search-answer-replacement-STRONG-MATCH-DROPPED
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-11T17:39:03.205Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe28813041ac

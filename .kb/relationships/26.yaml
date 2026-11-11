@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-916272714141
+  - type: implements
+    from: SYM-agent-core-candidates-replacedrequirements
+    to: REQ-unowned-file-closed-candidates
+    created_at: 2026-11-11T17:34:44.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d347f688940b
+  - type: covered_by
+    from: SYM-agent-core-candidates-replacedrequirements
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-11T17:34:44.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98c3a9409969

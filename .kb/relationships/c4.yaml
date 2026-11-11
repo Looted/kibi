@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-65c9fe78e2fa
+  - type: implements
+    from: SYM-agent-core-candidates-requirementcandidatesforpath
+    to: REQ-unowned-file-closed-candidates
+    created_at: 2026-11-11T17:34:52.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f522908e1cb9
+  - type: implements
+    from: SYM-cli-unowned-files-rankrequirementcandidates
+    to: REQ-unowned-file-closed-candidates
+    created_at: 2026-11-11T17:34:56.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bbcf4b72114

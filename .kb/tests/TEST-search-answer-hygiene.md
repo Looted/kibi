@@ -22,18 +22,18 @@ origin:
 id: TEST-search-answer-hygiene
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-96f543e7cf4e743fae280013
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-e74debec07624b77ccd5cf5a
     test_id: TEST-search-answer-hygiene
     scope: end_to_end
     outcome: passed
-    code_snapshot: 09cf85102d3ba6901db3ca0d929ce1a9dce997ca7c8927f0afde16374b62ccd3
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-11T20:01:00.952Z'
-    finished_at: '2026-10-11T20:01:07.162Z'
-    artifact_digest: 8ff8435352652d2c1f5a385cff011d7bd8cc2ea5f295a04786462bad1187d562
+    code_snapshot: 216cfd98a14d6f9a06eb92c6fc15d752812ff64437317fb6a5c2ce92241c6a3e
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-11T17:40:28.722Z'
+    finished_at: '2026-11-11T17:40:35.563Z'
+    artifact_digest: a5b31cc0279212737fcd2d30cfebf97806333cd3c6f177f39d1d4ac34a5afe19
     contract_hash: f913941aabb08a027a8c8fd7a7273703cba182c449aad71efacd7d5a2f554b14
-    binding_hash: f343f1b70e7bcf7b3b418ae458ba020b1cc2f73aa93e5cdb959c1175007c0b9c
+    binding_hash: 511841b1ca3f91df5c86efa80a927c10ab47d1aa6b6aad9a2a38198141a43397
     fingerprint: 7953753de099c33718227964b553f2c363f50b61455e44758a118a811ad08fbd
     fingerprint_components:
       contract: f913941aabb08a027a8c8fd7a7273703cba182c449aad71efacd7d5a2f554b14
@@ -55,6 +55,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 # Answer-layer hygiene: ungoverned top hits, linked ties, inherited source evidence and the check evaluation report
 

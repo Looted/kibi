@@ -174,3 +174,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c2bac1ffdba6
+  - type: assumes
+    from: SCEN-NEG-unowned-file-closed-candidates-CLOSED-FIRST
+    to: FACT-NEG-unowned-file-closed-candidates-CLOSED-FIRST
+    created_at: 2026-11-11T17:33:48.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-429e13af41e5
+  - type: verified_by
+    from: SCEN-NEG-unowned-file-closed-candidates-CLOSED-FIRST
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-11T17:33:48.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7f3ed54d10e
+  - type: verified_by
+    from: SCEN-NEG-unowned-file-closed-candidates-CLOSED-FIRST
+    to: TEST-search-answer-hygiene
+    created_at: 2026-11-11T17:33:49.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b6d9974cf36

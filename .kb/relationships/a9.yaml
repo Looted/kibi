@@ -356,3 +356,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0badbc26b97c
+  - type: constrains
+    from: REQ-search-answer-replacement-strong-match
+    to: FACT-search-answer-replacement-subject
+    created_at: 2026-11-11T17:33:45.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa40ff07878d
+  - type: requires_property
+    from: REQ-search-answer-replacement-strong-match
+    to: FACT-search-answer-replacement-only-for-strong-predecessor
+    created_at: 2026-11-11T17:33:45.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13ae3be247a6
+  - type: specified_by
+    from: REQ-search-answer-replacement-strong-match
+    to: SCEN-search-answer-replacement-strong-match
+    created_at: 2026-11-11T17:33:46.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75e9f468ccc4
+  - type: specified_by
+    from: REQ-search-answer-replacement-strong-match
+    to: SCEN-NEG-search-answer-replacement-WEAK-MATCH-PULLS
+    created_at: 2026-11-11T17:33:46.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90a485a32bf7
+  - type: verified_by
+    from: REQ-search-answer-replacement-strong-match
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-11T17:33:46.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-743f26289128
+  - type: specified_by
+    from: REQ-search-answer-replacement-strong-match
+    to: SCEN-NEG-search-answer-replacement-STRONG-MATCH-DROPPED
+    created_at: 2026-11-11T17:39:05.268Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29c8844a93f9
