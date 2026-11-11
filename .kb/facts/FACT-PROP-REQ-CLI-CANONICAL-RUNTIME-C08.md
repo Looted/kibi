@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.kb.canonical_layout
-property_key: clause_08_createrepoignorepolicy_must_hard_deny_derived_kb
+property_key: ignore_policy_denies_derived_trees
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_cli_canonical_runtime.clause_08_createrepoignorepolicy_must_hard_deny_derived_kb.eq.true
+canonical_key: req.req_cli_canonical_runtime.ignore_policy_denies_derived_trees.eq.true
 claim_key: CLAIM-B842BEFAEC1A9D00
 claim_text: createRepoIgnorePolicy must hard-deny derived .kb runtime trees including .kb/migrations and must not ignore authored knowledge lanes
 id: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C08

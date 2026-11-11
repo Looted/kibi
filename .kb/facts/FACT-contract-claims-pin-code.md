@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.migration.pin_codes
 claim_key: CLAIM-B00B92DBDAF79B88
 claim_text: The proof contract claims pin code shall be proof_contract_claims_pin
-text_ref: REQ-cli-migration-pin-codes
+text_ref: REQ-cli-migration-proof-codes
 property_key: contract_pin_code
 operator: eq
 value_type: string

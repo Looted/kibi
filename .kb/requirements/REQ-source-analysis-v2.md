@@ -5,7 +5,6 @@ tags:
   - multilingual
   - source-analysis
   - v2
-  - review:context-missing
 text_ref: docs/architecture/multilingual-source-analysis.md
 semantic_text: Source analysis v2 must preserve an explicit completeness status. Source analysis v2 must validate UTF-16 source ranges against the supplied snapshot content. Source analysis v2 must preserve authored symbol identity when declaration locators are unambiguous.
 logic_claims:
@@ -48,9 +47,12 @@ id: REQ-source-analysis-v2
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 3): "Agree with batch 3 as well."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Source analysis v2 must preserve an explicit completeness status. Source analysis v2 must validate UTF-16 source ranges against the supplied snapshot content. Source analysis v2 must preserve authored symbol identity when declaration locators are unambiguous.
+
+## Why
+The v1 extractor was synchronous and only knew TypeScript, and it couldn't say whether its analysis was complete. V2 adds Python, Go and Rust through one shared contract, and it separates ok, partial, unsupported and failed. That way a configured provider's failure never reads as an empty file. V1 stays available so existing providers keep working. Source: docs/architecture/multilingual-source-analysis.md, "Decision"; PR 282.

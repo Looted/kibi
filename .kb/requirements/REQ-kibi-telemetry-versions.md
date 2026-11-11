@@ -52,7 +52,7 @@ The telemetry acceptance version shall be kibi.telemetry-acceptance.v1. The tele
 
 ## Context
 
-REQ-kibi-telemetry-acceptance-gate scores agent sessions from telemetry. Its report and the remediation evidence carry versions, and only a closed list of operations counts as looking up the KB before an edit. They are stated here so every value is proved against its constant.
+REQ-kibi-telemetry-acceptance-report-verdict scores agent sessions from telemetry. Its report and the remediation evidence carry versions, and only a closed list of operations counts as looking up the KB before an edit. They are stated here so every value is proved against its constant.
 
 ## Source
 

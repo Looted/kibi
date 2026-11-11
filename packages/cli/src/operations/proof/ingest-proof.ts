@@ -229,7 +229,7 @@ function ownsNativeId(binding: ProofBinding, nativeId: string): boolean {
   return binding.native_id === nativeId || binding.aliases?.includes(nativeId) === true;
 }
 
-function enforceNativeCaseBindings(
+export function enforceNativeCaseBindings(
   testId: string,
   contract: ProofContract,
   bindings: readonly ProofBinding[],

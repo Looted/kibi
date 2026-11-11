@@ -1,6 +1,6 @@
 ---
 title: 'Predicate: conditional_behavior(host_mcp_launcher,any_launcher_build,embed_canonical_session_proxy_unchanged)'
-status: active
+status: archived
 fact_kind: predicate
 predicate_name: conditional_behavior
 predicate_args:

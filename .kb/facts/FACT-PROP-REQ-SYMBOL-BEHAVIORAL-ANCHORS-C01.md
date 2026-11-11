@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.symbols.traceability
-property_key: clause_01_symbol_traceability_granularity_checks_must_reje
+property_key: rejects_coarse_link_with_narrower_symbols
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_symbol_behavioral_anchors.clause_01_symbol_traceability_granularity_checks_must_reje.eq.true
+canonical_key: req.req_symbol_behavioral_anchors.rejects_coarse_link_with_narrower_symbols.eq.true
 claim_key: CLAIM-867030205D8FADB4
 claim_text: Symbol traceability granularity checks must reject coarse file/module links only when narrower behavioral symbols are available
 id: FACT-PROP-REQ-SYMBOL-BEHAVIORAL-ANCHORS-C01

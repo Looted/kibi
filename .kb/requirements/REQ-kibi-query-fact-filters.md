@@ -58,6 +58,7 @@ logic_claims:
   - CLAIM-1C1A8782A49CDAB5
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-11T14:55:13.182Z'
 id: REQ-kibi-query-fact-filters
 type: req

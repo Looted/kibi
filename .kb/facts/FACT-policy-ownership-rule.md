@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.check.rule_names
 claim_key: CLAIM-07BF06E3E4B8056F
 claim_text: The policy ownership rule shall be policy-ownership
-text_ref: REQ-kibi-check-rule-names
+text_ref: REQ-kibi-policy-rule-names
 property_key: policy_ownership_rule
 operator: eq
 value_type: string

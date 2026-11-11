@@ -1,18 +1,18 @@
 ---
-title: compat commands strictly and must run the cursor compatibility lane before any p
+title: The SkillOpt cursor operator must run the cursor compatibility lane before any paid evaluation cells are spent
 status: active
 tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.skillopt.cursor_lane
-property_key: clause_02_compat_commands_strictly_and_must_run_the_cursor
+property_key: compat_lane_runs_before_paid_cells
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_skillopt_cursor_compat.clause_02_compat_commands_strictly_and_must_run_the_cursor.eq.true
-claim_key: CLAIM-D19905F495ABB7C3
-claim_text: compat commands strictly and must run the cursor compatibility lane before any paid evaluation cells are spent
+canonical_key: req.req_skillopt_cursor_compat.compat_lane_runs_before_paid_cells.eq.true
+claim_key: CLAIM-D8634B4704091AEA
+claim_text: must run the cursor compatibility lane before any paid evaluation cells are spent
 id: FACT-PROP-REQ-SKILLOPT-CURSOR-COMPAT-C02
 type: fact
 origin:

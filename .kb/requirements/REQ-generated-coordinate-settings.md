@@ -43,7 +43,7 @@ The generated symbol fields shall be sourceLine, sourceColumn, sourceEndLine, so
 
 ## Context
 
-REQ-generated-coordinate-persistence keeps symbol coordinates out of the authored manifest: the generated fields are the line and column bounds and their timestamp, and the derived coordinates file carries a format version. Both are stated here so they are proved against the constants.
+REQ-generated-coordinate-authoring keeps symbol coordinates out of the authored manifest: the generated fields are the line and column bounds and their timestamp, and the derived coordinates file carries a format version. Both are stated here so they are proved against the constants.
 
 ## Source
 

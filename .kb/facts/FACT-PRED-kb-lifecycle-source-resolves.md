@@ -8,7 +8,7 @@ tags:
   - checks
 claim_key: CLAIM-A7F1B7772049A2DE
 claim_text: kb_check must report an authored source that is not an existing workspace path, an entity id, or an http(s) URL as a blocking source-path-dangling violation
-text_ref: .kb/requirements/REQ-kibi-kb-lifecycle-integrity.md
+text_ref: .kb/requirements/REQ-kibi-authored-sources-resolve.md
 fact_kind: predicate
 predicate_name: logical_requirement_rule
 predicate_args:

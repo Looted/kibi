@@ -3,7 +3,7 @@ title: The portable artifact packages the seven Kibi skills
 status: active
 fact_kind: property_value
 subject_key: cursor.kibi_plugin
-property_key: bundled_skills
+property_key: agent_plugin_bundled_skills
 operator: eq
 value_type: set
 value_set:

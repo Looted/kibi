@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_03_the_opencode_plugin_must_only_extract_comment_blocks_that_re
+property_key: extracts_only_prose_blocks
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_comment_routing.clause_03_the_opencode_plugin_must_only_extract_comment_blocks_that_re.eq.true
+canonical_key: req.req_opencode_comment_routing.extracts_only_prose_blocks.eq.true
 claim_key: CLAIM-6CD99B815C1F0BEB
 claim_text: The OpenCode plugin must only extract comment blocks that reach guidance.commentDetection.minLines lines and contain prose
 origin:

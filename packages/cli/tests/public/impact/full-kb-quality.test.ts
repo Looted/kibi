@@ -267,6 +267,47 @@ describe("collectFullKbQualityDiagnostics", () => {
     ]);
   });
 
+  it("reads proof_exempt from either a Prolog atom or a boolean", async () => {
+    const rows = [
+      { id: "REQ-ATOM", proof_exempt: "true", proof_exempt_reason: "CI only" },
+      { id: "REQ-BOOL", proof_exempt: true },
+      { id: "REQ-OFF-ATOM", proof_exempt: "false" },
+      { id: "REQ-OFF-BOOL", proof_exempt: false },
+      { id: "REQ-NONE" },
+    ];
+    const prolog: Pick<PrologPort, "query"> & {
+      queryEntities: NonNullable<PrologPort["queryEntities"]>;
+    } = {
+      query: async (): Promise<QueryResult> => ({
+        success: true,
+        bindings: { Rels: "[]" },
+      }),
+      queryEntities: async ({ offset }) => ({
+        count: rows.length,
+        entities:
+          offset === 0
+            ? rows.map((row) => ({ type: "req", title: row.id, ...row }))
+            : [],
+      }),
+    };
+
+    const results = await loadKbExtractionResults(prolog);
+
+    expect(
+      results.map((result) => [
+        result.entity.id,
+        result.entity.proof_exempt,
+        result.entity.proof_exempt_reason,
+      ]),
+    ).toEqual([
+      ["REQ-ATOM", true, "CI only"],
+      ["REQ-BOOL", true, undefined],
+      ["REQ-OFF-ATOM", false, undefined],
+      ["REQ-OFF-BOOL", false, undefined],
+      ["REQ-NONE", undefined, undefined],
+    ]);
+  });
+
   it("splits an overflowing bounded batch before falling back to single entities", async () => {
     const calls: string[] = [];
     const prolog: Pick<PrologProcess, "query"> = {

@@ -4,7 +4,6 @@ status: passing
 tags:
   - plugins
   - protocol
-  - review:context-missing
 verification_scope: unit
 proof_contract:
   version: kibi.proof-contract.v1
@@ -18,7 +17,7 @@ id: TEST-capability-plugin-protocol-v1
 type: test
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 proof_receipts:
   - version: kibi.proof-receipt.v2
@@ -60,3 +59,6 @@ proof_receipts:
 # TEST-capability-plugin-protocol-v1
 
 Automated coverage: packages/plugin-sdk/tests/sdk.test.ts
+
+## Context
+Added when SDK validation and version provenance were hardened, so an invalid plugin or a mismatched version is rejected before use. Source: Commit "make capability seams authoritative and restore parity".

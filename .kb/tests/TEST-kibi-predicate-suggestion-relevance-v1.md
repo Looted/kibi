@@ -1,6 +1,6 @@
 ---
 title: Predicate Suggestion Relevance End-to-End Contract
-status: active
+status: passing
 priority: must
 text_ref: packages/mcp/tests/tools/suggest-predicates.test.ts
 tags:
@@ -10,7 +10,6 @@ tags:
   - predicates
   - relevance
   - e2e
-  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -24,17 +23,17 @@ id: TEST-kibi-predicate-suggestion-relevance-v1
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-0cc82ee4a186482d51d77c51
+    receipt_id: PR-e9cd08c30506d743fb316f54
     test_id: TEST-kibi-predicate-suggestion-relevance-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: 22167f86b92b569f6025fc027363fc3255f14eaf8bb0d6afc9c70b78a5eac329
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T19:17:43.062Z'
-    finished_at: '2026-10-28T19:18:49.336Z'
-    artifact_digest: 34791c82ffe368217e9498af74b2eb933cf671dec392f83660083244bff55d5c
+    code_snapshot: 35a491d9823c7a05484c300945b0578ad590fb32222b0602563f88dcd5e2e0df
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T08:54:25.827Z'
+    finished_at: '2026-11-10T08:54:33.955Z'
+    artifact_digest: 021df5e3ad8236c689ca3cc47929f5b28246c84d1f96f22fe242516a8dee2cd0
     contract_hash: 591f5200542a98be532340312e47ae45a2d9fc3475eaa6db6c7abfa6d063bf37
-    binding_hash: 1ae1c839b244a82e70e44cf54ce98ba2bc9b93890067e4ed1e5e4a3dfd8148b4
+    binding_hash: d706c3cf50166e0020e68ad52dca6c1f21237297522dde1bdd3f43cac831465a
     fingerprint: 66c49dedca0fab50fa69126a13f443c32c13439ffc5fdb5d189a638b3b04e599
     fingerprint_components:
       contract: 591f5200542a98be532340312e47ae45a2d9fc3475eaa6db6c7abfa6d063bf37
@@ -60,6 +59,9 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+## Context
+This checks the explanation fields (eligibility, rejection reasons, binding provenance, score parts), so a reviewer can see why a candidate was or wasn't recommended.

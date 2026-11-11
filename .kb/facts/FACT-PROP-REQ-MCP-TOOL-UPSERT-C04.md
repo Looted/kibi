@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.kb_upsert
-property_key: clause_04_the_kb_upsert_mcp_tool_must_reject_a_write_that_contradicts_
+property_key: rejects_unsuperseded_contradiction
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_tool_upsert.clause_04_the_kb_upsert_mcp_tool_must_reject_a_write_that_contradicts_.eq.true
+canonical_key: req.req_mcp_tool_upsert.rejects_unsuperseded_contradiction.eq.true
 claim_key: CLAIM-5AEC54A85BBFABCE
 claim_text: The kb_upsert MCP tool must reject a write that contradicts an existing requirement unless the write declares a supersedes relationship
 origin:

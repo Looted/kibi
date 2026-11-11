@@ -1,6 +1,6 @@
 ---
 title: CI coverage pipeline runs end to end over real Bun coverage
-status: active
+status: passing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -54,8 +54,9 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 ---
+
+## Context
+Coverage was an honest proof gap. This drives real Bun coverage shards through the runner, LCOV merge, branch summaries, manifest audit and the fail-closed gate.

@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-15T22:15:29.403Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-auto-9C1F333AEDAA
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T07:49:52.578Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b77a8f93aee6
   - type: validates
     from: TEST-kibi-verification-evidence-contract
     to: SCEN-kibi-verification-evidence-contract
@@ -20,13 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b34ef37473f1
-  - type: covered_by
-    from: SYM-kibi-cli-src-intent-search-ts-intentsearchanalysis
-    to: TEST-kibi-intent-aware-source-discovery
-    created_at: 2026-08-16T19:46:36.844Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-665cd52a0f10
   - type: implements
     from: SYM-cli-init-command
     to: REQ-kibi-github-report-integration
@@ -48,55 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-15d0c4a3754c
-  - type: implements
-    from: d36577498a152edf
-    to: REQ-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T10:54:23.309Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fd268f2a4b2c
-  - type: covered_by
-    from: d36577498a152edf
-    to: TEST-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T12:54:02.021Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-86929af55c6a
-  - type: implements
-    from: SYM-RuntimeDegradedOverlay
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:54:53.960Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4683f415f624
-  - type: covered_by
-    from: SYM-RuntimeDegradedOverlay
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:54:53.974Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f1bddd09b004
-  - type: covered_by
-    from: SYM-RuntimeDegradedOverlay
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:54:53.982Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-37980d3f6746
-  - type: implements
-    from: SYM-auto-9C1F333AEDAA
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:54:49.676Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6d5712ae1161
-  - type: covered_by
-    from: SYM-auto-9C1F333AEDAA
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:54:49.681Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6393d6736ed3
   - type: covered_by
     from: SYM-predicate-usage-hints-part-3
     to: TEST-mcp-suggest-predicates
@@ -104,62 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0216ae6529a
-  - type: covered_by
-    from: SYM-VerificationHarnessCliOptions
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:10:37.459Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a48d5475b363
-  - type: implements
-    from: SYM-sweep-store-lock
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:38:55.098Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f172c1064557
-  - type: covered_by
-    from: SYM-sweep-store-lock
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:38:55.107Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e97b5ad34f05
-  - type: implements
-    from: SYM-quality-producer-terminateStepProcess
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-14T18:54:58.247Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e97f514ea978
-  - type: covered_by
-    from: SYM-quality-producer-terminateStepProcess
-    to: TEST-proof-runner-integrity
-    created_at: 2026-09-14T18:54:58.262Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6312c9c3d4df
-  - type: covered_by
-    from: SYM-quality-producer-terminateStepProcess
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-18T07:43:26.613Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e1ced74bd109
-  - type: covered_by
-    from: SYM-VerificationHarnessCliOptions
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:24:25.975Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ff66f9ed1c00
-  - type: implements
-    from: SYM-skillopt-fake-provider-configuration
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:40:59.663Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-59fbb1db2c74
   - type: specified_by
     from: REQ-capability-plugin-observable-behavior-v1
     to: SCEN-capability-plugin-observable-behavior-v1
@@ -209,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-597ef9c1c7c4
-  - type: requires_predicate
-    from: REQ-capability-plugin-observable-behavior-v1
-    to: FACT-PRED-820A58EABBF6
-    created_at: 2026-09-22T19:13:53.198Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eaac38287cde
   - type: covered_by
     from: SYM-cap-plugin-enrichsymbolcoordinateswithtsmorph-c8d71d59
     to: TEST-e2e-capability-plugins
@@ -237,20 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7dca4a36a7d
-  - type: implements
-    from: SYM-cursor-dts-nextAncestorDirectory
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:04.328Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6ea1f5ca2b93
-  - type: covered_by
-    from: SYM-cursor-dts-nextAncestorDirectory
-    to: TEST-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:04.345Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4093f013c8ca
   - type: constrains
     from: REQ-kibi-contradiction-review-candidates
     to: FACT-SUBJ-kibi-contradiction-review
@@ -328,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-62faa53870ae
+  - type: assumes
+    from: SCEN-bootstrap-authoring-claim-review
+    to: FACT-bootstrap-authoring-claim-review-named
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d03f62e6ee9d
+  - type: relates_to
+    from: REQ-capability-plugin-observable-behavior-v1
+    to: FACT-PRED-820A58EABBF6
+    created_at: 2026-11-11T17:40:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2343eeb0f943

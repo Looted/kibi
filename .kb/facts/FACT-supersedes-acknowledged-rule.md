@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.check.rule_names
 claim_key: CLAIM-D6F1B2CD2BC64534
 claim_text: The acknowledged supersedes reason rule shall be supersedes-reason-acknowledged
-text_ref: REQ-kibi-check-rule-names
+text_ref: REQ-kibi-symbol-and-supersede-rule-names
 property_key: acknowledged_rule
 operator: eq
 value_type: string

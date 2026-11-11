@@ -1,6 +1,6 @@
 ---
 title: SkillOpt optimization runs on the harness chosen for the run and keeps its evidence with that harness
-status: open
+status: closed
 priority: must
 tags:
   - skillopt
@@ -9,7 +9,7 @@ tags:
 firmness: firm
 origin:
   kind: human
-  ref: 'Maintainer decision, 2026-10-21: "I''m constantly switching harnesses, so we should rather support multiple, with specific one chosen before the run."'
+  ref: 'Maintainer decision, 2026-10-21: "I''m constantly switching harnesses, so we should rather support multiple, with specific one chosen before the run." Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   recorded_at: '2026-10-21T11:05:29.674Z'
 rationale: Operators switch agent harnesses often; the Codex-only rule tied every SkillOpt guarantee to one harness and to a removed bundle gate. Evidence from different harnesses is not comparable, so each run records its harness and refuses evidence from another.
 semantic_text: SkillOpt must run every cell of a run on the agent harness chosen for that run before it starts. Each run must record its harness and the harness CLI version in the campaign record, the evaluation context and the package receipt. Confirm and package must refuse evidence produced on a different harness before any artifact or paid preparation. Candidate adoption must stay blocked until every individual gate passes and a reviewer approves the exact candidate hashes. Optimization must change only skill bodies and must keep skill frontmatter and declared resources unchanged. A cell receipt with zero protocol points must record the first missing required MCP call as a public tool name and position. Public feedback for the next revision must carry that missing call without call arguments, task identifiers or private evaluator content. The offline workflow contracts must carry no assembled-bundle gate, phase or result.

@@ -3,7 +3,7 @@ title: kibi-mcp is started with --help together with a flag that configures the 
 status: active
 fact_kind: property_value
 subject_key: mcp.binary.help
-property_key: clause_02_it_must_not_start_the_mcp_stdio_server_or_wait_f
+property_key: help_skips_stdio_server
 operator: eq
 value_type: bool
 value_bool: false

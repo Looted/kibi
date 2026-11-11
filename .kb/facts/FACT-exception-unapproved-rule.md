@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.check.rule_names
 claim_key: CLAIM-18FA2C11AFA7F302
 claim_text: The unapproved exception rule shall be exception-unapproved
-text_ref: REQ-kibi-check-rule-names
+text_ref: REQ-kibi-origin-review-rule-names
 property_key: exception_unapproved_rule
 operator: eq
 value_type: string

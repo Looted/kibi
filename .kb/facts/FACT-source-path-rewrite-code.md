@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.lifecycle.check_codes
 claim_key: CLAIM-831D86A6F95FE733
 claim_text: The source path rewrite code shall be source_path_rewrite
-text_ref: REQ-kibi-lifecycle-check-codes
+text_ref: REQ-kibi-source-path-codes
 property_key: source_path_rewrite_code
 operator: eq
 value_type: string

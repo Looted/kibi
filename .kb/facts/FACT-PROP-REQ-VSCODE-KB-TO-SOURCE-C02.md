@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: vscode.kibi_extension
-property_key: clause_02_the_vs_code_extension_must_resolve_navigation_coordinates_fr
+property_key: resolves_coordinates_from_manifests
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_vscode_kb_to_source.clause_02_the_vs_code_extension_must_resolve_navigation_coordinates_fr.eq.true
+canonical_key: req.req_vscode_kb_to_source.resolves_coordinates_from_manifests.eq.true
 claim_key: CLAIM-0C836E504D2BEBAE
 claim_text: The VS Code extension must resolve navigation coordinates from .kb/symbols.yaml and the generated .kb/symbol-coordinates.yaml
 id: FACT-PROP-REQ-VSCODE-KB-TO-SOURCE-C02

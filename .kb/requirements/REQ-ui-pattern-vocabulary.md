@@ -9,6 +9,7 @@ tags:
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-10-09: UI design plugin'
+  approved_by: maintainer
   recorded_at: '2026-10-09T12:13:23.515Z'
 rationale: Agents need a shared vocabulary for which visual pattern a UI concept uses, so a rewrite to a different pattern becomes a checkable claim instead of prose.
 semantic_text: The built-in predicate catalog must offer the ui_pattern, same_pattern, pattern_marker and ui_container schemas. Predicate suggestions must route UI pattern prose to the UI predicates instead of coding standard rules.

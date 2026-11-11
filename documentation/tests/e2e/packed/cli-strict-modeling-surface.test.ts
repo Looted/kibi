@@ -36,6 +36,26 @@ async function runModelRequirement(
   return kibi(sandbox, ["model-requirement", "--input", inputPath]);
 }
 
+type AdvisorSuggestion = {
+  kind: string;
+  claim?: { property_key?: string; value_int?: number };
+  predicate?: { predicate_name?: string };
+};
+
+async function adviseOn(
+  sandbox: TestSandbox,
+  text: string,
+): Promise<AdvisorSuggestion[]> {
+  const inputPath = join(sandbox.repoDir, "advisor-input.json");
+  writeFileSync(inputPath, `${JSON.stringify({ text })}\n`, "utf8");
+  const result = await kibi(sandbox, ["semantic-advisor", "--input", inputPath]);
+  assert.strictEqual(result.exitCode, 0, `${result.stdout}${result.stderr}`);
+  const envelope = JSON.parse(result.stdout) as {
+    data?: { receipt?: { suggestions?: AdvisorSuggestion[] } };
+  };
+  return envelope.data?.receipt?.suggestions ?? [];
+}
+
 /**
  * E2E: strict modeling write sets through the packed CLI.
  *
@@ -117,6 +137,53 @@ if (RUN_NODE_TEST_SUITE) {
           payload.isStrict,
           false,
           `low-confidence prose must stay in the observation lane: ${result.stdout.slice(0, 400)}`,
+        );
+      },
+    );
+
+    it(
+      "suggests a strict fact for one measurable value and a predicate fact for a matching rule, and neither for vague prose",
+      { timeout: 120000 },
+      async () => {
+        if (!hasProlog) return;
+        const expiry = await adviseOn(
+          sandbox,
+          "Session tokens expire after 30 days.",
+        );
+        assert.ok(
+          expiry.some(
+            (s) =>
+              s.kind === "strict_property" &&
+              s.claim?.property_key === "expiry_days" &&
+              s.claim.value_int === 30,
+          ),
+          `a single measurable value must get a strict property suggestion: ${JSON.stringify(expiry)}`,
+        );
+        const guard = await adviseOn(
+          sandbox,
+          "Paid launches must stay disabled until the budget is approved.",
+        );
+        assert.ok(
+          guard.some(
+            (s) =>
+              s.kind === "predicate" &&
+              s.predicate?.predicate_name === "guard",
+          ),
+          `prose matching a core predicate rule must get a predicate suggestion: ${JSON.stringify(guard)}`,
+        );
+        const vague = await adviseOn(
+          sandbox,
+          "Session tokens should be handled carefully.",
+        );
+        assert.ok(
+          !vague.some(
+            (s) => s.kind === "strict_property" || s.kind === "predicate",
+          ),
+          `vague prose must not get a strict or predicate suggestion: ${JSON.stringify(vague)}`,
+        );
+        assert.ok(
+          vague.some((s) => s.kind === "ontology_gap"),
+          `vague prose must be reported as an ontology gap: ${JSON.stringify(vague)}`,
         );
       },
     );

@@ -11,8 +11,8 @@ value_type: int
 value_int: 0
 polarity: require
 canonical_key: kibi.release.versioning:release_steps_not_automated_via_changesets:eq:0
-claim_key: CLAIM-46FF585AFDBB5020
-claim_text: '**Automation**: All release steps are automated via Changesets'
+claim_key: CLAIM-C174E132C461E804
+claim_text: 'All release steps must be automated via Changesets'
 id: FACT-PROP-REQ-020-C05
 type: fact
 origin:

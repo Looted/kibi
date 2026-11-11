@@ -3,7 +3,6 @@ title: Builtin capability parity
 status: open
 tags:
   - plugins
-  - review:context-missing
 semantic_text: When kibi.plugins is absent, the host must use only automatically registered kibi-plugin-builtin providers. Builtin providers must be allowed to keep historical deterministic semantic ontology and TypeScript symbol analysis.
 logic_claims:
   - CLAIM-C03388C2E2F780AC
@@ -38,7 +37,7 @@ semantic_clauses:
   - Builtin providers must be allowed to keep historical deterministic semantic ontology and TypeScript symbol analysis.
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -46,3 +45,6 @@ required_evidence: tested
 # REQ-capability-plugin-builtin-parity-v1
 
 When kibi.plugins is absent, the host must use only automatically registered kibi-plugin-builtin providers. Builtin providers must be allowed to keep historical deterministic semantic ontology and TypeScript symbol analysis.
+
+## Why
+Extracting the seams must not change anything for projects that configure no plugins, so the builtin keeps the historical deterministic behavior. Source: PR 265 summary: "default behavior preserved by kibi-plugin-builtin".

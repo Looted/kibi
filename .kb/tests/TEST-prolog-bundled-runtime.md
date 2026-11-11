@@ -1,12 +1,11 @@
 ---
 title: Resolver, package metadata, and launch environment controls
-status: active
+status: passing
 verification_scope: end_to_end
 verification_perspective: internal
 tags:
   - prolog
   - bundle
-  - review:context-missing
 proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
@@ -54,6 +53,10 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 4): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+This checks the resolver, the platform package metadata (`os`, `cpu`, `libc`, no install scripts) and the launch environment, which must set `SWI_HOME_DIR` for a bundle.

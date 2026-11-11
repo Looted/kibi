@@ -3,7 +3,7 @@ title: Requirement prose fits no predicate schema in the catalog
 status: active
 fact_kind: property_value
 subject_key: kibi.modeling.predicates
-property_key: clause_01_the_mcp_server_must_suggest_matching_ontology_pr
+property_key: suggests_predicate_schemas
 operator: eq
 value_type: bool
 value_bool: false

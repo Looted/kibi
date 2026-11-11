@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-04e1a08172b1
-    type: implements
-    from: SYM-auto-F45AD8A9E2FF
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-15T22:20:22.155Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-auto-F45AD8A9E2FF
     to: TEST-cli-branch-store-recovery
@@ -43,25 +36,11 @@ relationships:
     id: rel-7f64693bec64
   - type: implements
     from: SYM-discovery-execute-status
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:33:33.466Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-376ecbe76aef
-  - type: implements
-    from: SYM-discovery-execute-status
     to: REQ-cli-status-pre-first-sync
     created_at: 2026-08-22T20:33:33.483Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4144c120ebd5
-  - type: implements
-    from: SYM-discovery-execute-status
-    to: REQ-mcp-search-discovery
-    created_at: 2026-08-22T20:33:33.492Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-97ccbafb69e4
   - type: covered_by
     from: SYM-discovery-execute-status
     to: TEST-kibi-operation-interface-parity
@@ -97,27 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4fa717ed0139
-  - type: implements
-    from: SYM-AutoUpdateInput
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:45:05.157Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0a6e0ed75014
-  - type: covered_by
-    from: SYM-AutoUpdateInput
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:45:05.191Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3a9904fc4692
-  - type: covered_by
-    from: SYM-AutoUpdateInput
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:45:05.208Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5f629f87096e
   - type: covered_by
     from: SYM-mcp-connectTransport
     to: TEST-005
@@ -140,13 +98,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-2c1917fbfcc6
   - type: covered_by
-    from: SYM-removeAt
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:12:59.690Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b0beb75fcb62
-  - type: covered_by
     from: SYM-parseRdfRelationships
     to: TEST-vscode-traceability
     created_at: 2026-09-05T18:25:05.209Z
@@ -160,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c1b8a4cf549
-  - type: covered_by
-    from: SYM-removeAt
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:25:48.553Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-725216f49c8a
   - type: covered_by
     from: SYM-parseRdfRelationships
     to: TEST-e2e-vscode-extension-lifecycle
@@ -223,34 +167,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-632cb138301e
-  - type: implements
-    from: SYM-cursor-dts-hasConsumerNodeModulesLink
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:11.922Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c560df7d90bb
-  - type: covered_by
-    from: SYM-cursor-dts-hasConsumerNodeModulesLink
-    to: TEST-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:11.941Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-61f03b3275cc
-  - type: implements
-    from: SYM-auto-F45AD8A9E2FF
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:57:49.100Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ada24538b953
-  - type: implements
-    from: SYM-discovery-execute-status
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T03:00:06.494Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-61a8fa3fb55d
   - type: executable_for
     from: SYM-test-kb-entity-body-context
     to: TEST-kb-entity-body-context
@@ -258,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1c1101f43aeb
-  - type: implements
-    from: SYM-discovery-execute-status
-    to: REQ-kibi-uncompiled-source-visibility
-    created_at: 2026-10-14T09:05:23.465Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-377eaff30995
   - type: covered_by
     from: SYM-discovery-execute-status
     to: TEST-kibi-uncompiled-source-visibility
@@ -272,20 +181,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ff9c8940e22d
-  - type: implements
-    from: SYM-diagnostics-DiagnosticCategory
-    to: REQ-cli-sync-summary-kb-totals
-    created_at: 2026-10-14T21:22:10.813Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a5261d53ee8f
-  - type: covered_by
-    from: SYM-diagnostics-DiagnosticCategory
-    to: TEST-cli-migrated-kb-type-backfill-sync-totals
-    created_at: 2026-10-14T21:22:10.860Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5453dd49ab60
   - type: implements
     from: SYM-discovery-execute-status
     to: REQ-legacy-kb-first-step-migrate
@@ -300,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dc57dd907d93
-  - type: implements
-    from: SYM-cli-signoff-model-signoff-gate-labels
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:52:30.072Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-069708af36b8
   - type: covered_by
     from: SYM-cli-signoff-model-signoff-gate-labels
     to: TEST-kibi-signoff-views
@@ -447,17 +335,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b48f539b097a
-  - type: implements
-    from: SYM-cli-update-check-update-check-interval-ms
-    to: REQ-kibi-update-notice
-    created_at: 2026-11-04T13:23:21.061Z
+  - type: constrains
+    from: REQ-kibi-coverage-depth-quality
+    to: FACT-SUBJ-kibi-coverage-depth-quality
+    created_at: 2026-11-10T10:27:39.313Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-1a4b1ea6ae33
-  - type: covered_by
-    from: SYM-cli-update-check-update-check-interval-ms
-    to: TEST-kibi-update-notice
-    created_at: 2026-11-04T13:23:21.126Z
+    id: rel-0337dc7fca26
+  - type: requires_property
+    from: REQ-kibi-coverage-depth-quality
+    to: FACT-PROP-kibi-coverage-depth-quality-c01
+    created_at: 2026-11-10T10:27:39.353Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-49ec6dfaabdd
+    id: rel-f9831e7bf1c2
+  - type: specified_by
+    from: REQ-kibi-coverage-depth-quality
+    to: SCEN-kibi-coverage-depth-quality
+    created_at: 2026-11-10T10:27:39.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92c9d69c6772
+  - type: specified_by
+    from: REQ-kibi-coverage-depth-quality
+    to: SCEN-NEG-kibi-coverage-depth-quality-UNREPORTED-SHALLOW
+    created_at: 2026-11-10T10:27:39.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ab2c63658db
+  - type: relates_to
+    from: REQ-kibi-coverage-depth-quality
+    to: REQ-audit-quality-diagnostics-v1
+    created_at: 2026-11-10T10:27:39.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f30db70beae8
+  - type: requires_property
+    from: REQ-kibi-coverage-depth-quality
+    to: FACT-PROP-kibi-coverage-depth-quality-c02
+    created_at: 2026-11-11T17:45:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43d8d2f9de32
+  - type: specified_by
+    from: REQ-kibi-coverage-depth-quality
+    to: SCEN-kibi-coverage-depth-proof-exempt
+    created_at: 2026-11-11T18:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff3b44265147
+  - type: specified_by
+    from: REQ-kibi-coverage-depth-quality
+    to: SCEN-NEG-kibi-coverage-depth-proof-exempt
+    created_at: 2026-11-11T18:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee4e31030b7f

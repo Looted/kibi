@@ -54,6 +54,7 @@ import {
 import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import { executeCheck } from "../public/operations/check-executor.js";
 import { EVIDENCE_FLOOR_RULE } from "../public/operations/evidence-floor.js";
+import type { MigrationPlan } from "../public/operations/migration-plan.js";
 import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
 import { refreshDetachedSnapshot } from "../runtime/detached-snapshot.js";
 import { amendsRootCommit } from "../traceability/commit-amend.js";
@@ -340,6 +341,7 @@ export function formatQualityDiagnostics(
 export function printStructuredCheckResult(input: {
   violations: readonly Violation[];
   qualityDiagnostics: readonly QualityDiagnostic[];
+  migrationPlan?: MigrationPlan;
 }): void {
   console.log(
     JSON.stringify({
@@ -348,6 +350,10 @@ export function printStructuredCheckResult(input: {
         count: input.violations.length,
         diagnostics: [],
         qualityDiagnostics: input.qualityDiagnostics,
+        // The same migration plan kb_check returns, so the CLI and MCP agree.
+        ...(input.migrationPlan !== undefined
+          ? { migrationPlan: input.migrationPlan }
+          : {}),
       },
     }),
   );
@@ -1387,7 +1393,12 @@ export async function checkCommand(
     const qualityDiagnostics =
       result.structuredContent?.qualityDiagnostics ?? [];
     if (options.format === "json") {
-      printStructuredCheckResult({ violations, qualityDiagnostics });
+      const migrationPlan = result.structuredContent?.migrationPlan;
+      printStructuredCheckResult({
+        violations,
+        qualityDiagnostics,
+        ...(migrationPlan !== undefined ? { migrationPlan } : {}),
+      });
       return { exitCode: violations.length === 0 ? 0 : 1 };
     }
     const qualityOutput = formatQualityDiagnostics(qualityDiagnostics);

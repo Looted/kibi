@@ -3,7 +3,7 @@ title: A paid SkillOpt optimize launch is attempted without the paid gate or the
 status: active
 fact_kind: property_value
 operator: eq
-property_key: clause_01_paid_skillopt_model_launches_must_fail_closed_unless_the_ext
+property_key: paid_launch_fails_closed
 subject_key: kibi.skillopt.paid_launch
 value_type: bool
 value_bool: false

@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.kb_query
-property_key: clause_03_the_kb_query_mcp_tool_must_return_entities_as_structured_con
+property_key: returns_structured_content
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_tool_query.clause_03_the_kb_query_mcp_tool_must_return_entities_as_structured_con.eq.true
+canonical_key: req.req_mcp_tool_query.returns_structured_content.eq.true
 claim_key: CLAIM-F1952E51CF943BCB
 claim_text: The kb_query MCP tool must return entities as structured content
 origin:

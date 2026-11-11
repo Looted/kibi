@@ -6,8 +6,9 @@ id: TEST-mutation-saga-compensation
 type: test
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 ---
+
+## Context
+This checks the saga's promise: steps roll back in reverse order, exactly once, never past the commit point, and rollback failures are aggregated into the error.

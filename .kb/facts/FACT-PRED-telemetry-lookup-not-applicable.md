@@ -8,7 +8,7 @@ tags:
   - hooks
 claim_key: CLAIM-2826A6AB85ACB393
 claim_text: The lookup_before_first_edit metric must be not applicable when no host hook recorded an edit of a requirement-linked file
-text_ref: .kb/requirements/REQ-kibi-telemetry-acceptance-gate-v2.md
+text_ref: .kb/requirements/REQ-kibi-telemetry-correlation-and-lookup-metrics.md
 fact_kind: predicate
 predicate_name: logical_requirement_rule
 predicate_args:

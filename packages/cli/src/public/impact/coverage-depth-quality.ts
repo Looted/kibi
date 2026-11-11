@@ -2,6 +2,7 @@ import type {
   ExtractedEntity,
   ExtractionResult,
 } from "../../extractors/markdown.js";
+import { hasDeclarationExtractor } from "../../plugins/source-classification.js";
 import { COARSE_GRANULARITY_REASONS } from "../symbol-granularity.generated.js";
 import type { QualityDiagnostic } from "./types.js";
 
@@ -186,6 +187,15 @@ function createDiagnostic(
   const coverageDepth = classifyCoverageDepth(coverage);
   if (coverageDepth === "behavior_level") return undefined;
 
+  // A proof-exempt requirement is outside E2E-proof scope by an authored
+  // reason, so asking it for e2e depth contradicts that decision.
+  if (
+    coverage.requirement.proof_exempt === true &&
+    (coverage.requirement.proof_exempt_reason ?? "").trim() !== ""
+  ) {
+    return undefined;
+  }
+
   // Structural coverage and conservative proof are separate lanes. A current
   // scenario-backed E2E receipt is strong execution evidence even when the
   // requirement remains unresolved for ontology, symbol, or coordinate gaps.
@@ -367,6 +377,19 @@ function byEntityId(left: QualityDiagnostic, right: QualityDiagnostic): number {
 const COARSE_REASONS: ReadonlySet<string> = new Set(COARSE_GRANULARITY_REASONS);
 
 /**
+ * A whole-file anchor on a file no source extractor covers (JSON, YAML,
+ * workflows, extensionless scripts) has no smaller unit to link, so it is as
+ * precise as it can be and the review leaves it out.
+ */
+function hasNarrowerUnit(symbol: ExtractedEntity, sourceFile: string): boolean {
+  return (
+    !COARSE_REASONS.has(symbol.granularity_reason ?? "") ||
+    sourceFile === "" ||
+    hasDeclarationExtractor(sourceFile)
+  );
+}
+
+/**
  * Requirements whose every implementing production symbol is a whole-file
  * anchor (a coarse granularity_reason). Coverage then only says some test
  * touches the file, so `tested` evidence is cheap; narrower behavioral
@@ -378,11 +401,13 @@ export function createCoarseAnchorQualityDiagnostics(
 ): readonly QualityDiagnostic[] {
   const superseded = supersededRequirementIds(manifestResults);
   const anchorsByRequirement = new Map<string, ExtractedEntity[]>();
+  const sourceFiles = new Map<string, string>();
   for (const result of manifestResults) {
     if (result.entity.type !== "symbol") continue;
     // Executable test code is not a production symbol.
     if (result.relationships.some((rel) => rel.type === "executable_for"))
       continue;
+    sourceFiles.set(result.entity.id, result.sourceFile?.trim() ?? "");
     for (const relationship of result.relationships) {
       if (relationship.type !== "implements") continue;
       const list = anchorsByRequirement.get(relationship.to) ?? [];
@@ -399,9 +424,12 @@ export function createCoarseAnchorQualityDiagnostics(
     .flatMap((result): QualityDiagnostic[] => {
       const anchors = anchorsByRequirement.get(result.entity.id);
       if (anchors === undefined) return [];
-      const symbols = uniqueEntities(anchors);
+      const symbols = uniqueEntities(anchors).filter((symbol) =>
+        hasNarrowerUnit(symbol, sourceFiles.get(symbol.id) ?? ""),
+      );
       // has(undefined) is false: a symbol without a reason is not coarse.
       if (
+        symbols.length === 0 ||
         !symbols.every((symbol) =>
           COARSE_REASONS.has(symbol.granularity_reason as string),
         )

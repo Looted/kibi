@@ -34,7 +34,7 @@ The kibi signoff format environment variable shall be KIBI_SIGNOFF_FORMAT.
 
 ## Context
 
-SIGNOFF_FORMAT_ENV in packages/cli/src/commands/signoff.ts names the variable a host sets to choose the signoff view format instead of REQ-kibi-signoff-views' default unfenced Markdown. It is stated here so the name is proved against the constant.
+SIGNOFF_FORMAT_ENV in packages/cli/src/commands/signoff.ts names the variable a host sets to choose the signoff view format instead of the default unfenced Markdown of REQ-kibi-signoff-written-and-printed. It is stated here so the name is proved against the constant.
 
 ## Source
 

@@ -3,6 +3,7 @@ title: The semantic advisor marks quantified clauses with the groundings that re
 status: active
 fact_kind: predicate
 predicate_name: advisor_policy
+predicate_namespace: kibi.modeling
 predicate_args:
   - normative_quantified_clause
   - dimension_field

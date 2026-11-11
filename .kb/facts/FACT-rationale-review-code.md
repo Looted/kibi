@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.lifecycle.check_codes
 claim_key: CLAIM-0380F3C1816B850D
 claim_text: The missing rationale review code shall be review_requirement_rationale_missing
-text_ref: REQ-kibi-lifecycle-check-codes
+text_ref: REQ-kibi-lifecycle-review-codes
 property_key: rationale_code
 operator: eq
 value_type: string

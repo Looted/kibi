@@ -9,7 +9,7 @@ value_type: bool
 value_bool: true
 claim_key: CLAIM-4107EC64A4208A83
 claim_text: Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call
-text_ref: REQ-claude-code-kibi-plugin-v1
+text_ref: REQ-claude-stop-reminder-and-firm-ask
 tags:
   - strict-modeling
   - lane:strict

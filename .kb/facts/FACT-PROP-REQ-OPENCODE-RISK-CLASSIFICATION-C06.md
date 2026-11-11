@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_06_the_opencode_plugin_must_classify_code_changes_that_need_tra
+property_key: risk_behavior_candidate
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_risk_classification.clause_06_the_opencode_plugin_must_classify_code_changes_that_need_tra.eq.true
+canonical_key: req.req_opencode_risk_classification.risk_behavior_candidate.eq.true
 claim_key: CLAIM-4148F2B27497C1F4
 claim_text: The OpenCode plugin must classify code changes that need traceability as behavior_candidate
 origin:

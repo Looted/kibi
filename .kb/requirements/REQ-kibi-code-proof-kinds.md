@@ -89,4 +89,4 @@ Choosing the remaining formal-proof phases: "I'd like to do all the remaining ph
 
 ## Why this changed
 
-The rule, state_machine and regex kinds (REQ-kibi-non-numeric-proof-kinds) and the source kind (REQ-kibi-source-proof-kinds) added four certificate kinds after this requirement was written. On 2026-10-27 its kind lists were updated to the eleven kinds the proof protocol accepts, eight of them certificate kinds, so the exhaustive proof over the protocol's kind list holds again.
+The rule, state_machine and regex kinds (REQ-kibi-rule-proofs, REQ-kibi-state-machine-proofs and REQ-kibi-regex-proofs) and the source kind (REQ-kibi-source-proof-kinds) added four certificate kinds after this requirement was written. On 2026-10-27 its kind lists were updated to the eleven kinds the proof protocol accepts, eight of them certificate kinds, so the exhaustive proof over the protocol's kind list holds again.

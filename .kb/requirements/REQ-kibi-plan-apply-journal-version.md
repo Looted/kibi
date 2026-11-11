@@ -34,7 +34,7 @@ The plan apply journal version shall be kibi.plan-apply-journal.v1.
 
 ## Context
 
-REQ-kibi-change-to-proof-plan-compiler applies a reviewed plan step by step and records each step in a journal so an interrupted apply can resume. The journal version is stated here so it is proved against the constant.
+REQ-kibi-change-to-proof-plan-compiler-v2 applies a reviewed plan step by step and records each step in a journal so an interrupted apply can resume. The journal version is stated here so it is proved against the constant.
 
 ## Source
 

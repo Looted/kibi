@@ -20,6 +20,7 @@ logic_claims:
   - CLAIM-D75EA03CE26FF1F2
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-27T08:05:58.880Z'
 id: REQ-bootstrap-claim-restatement-threshold
 type: req

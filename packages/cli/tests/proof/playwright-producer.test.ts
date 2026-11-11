@@ -52,12 +52,60 @@ describe("Kibi Playwright producer", () => {
     expect(results).toHaveLength(1);
     expect(results[0]?.target).toBe("chromium");
     expect(results[0]?.binding).toBe("native_case");
+    expect(results[0]?.native_id).toBe(
+      "tests/checkout.spec.ts:4:1 › checkout › accepts a card",
+    );
     expect(results[0]?.attempts).toEqual({
       status: "complete",
       entries: [
         { outcome: "failed", duration_ms: 10 },
         { outcome: "passed", duration_ms: 12 },
       ],
+    });
+    expect(proofRunArtifactErrors(artifact)).toEqual([]);
+  });
+
+  test("names each case by spec location and titles, without the project and file suites", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-producer-"));
+    const output = path.join(root, "run.json");
+    const producer = new KibiPlaywrightProducer({
+      outputPath: output,
+      codeSnapshot: "a".repeat(64),
+      commandArgv: ["npx", "playwright", "test"],
+    });
+    const cases: Array<[string[], string, number | undefined]> = [
+      // Playwright's own title path: root, project, file suite, describe, test.
+      [["", "chromium", "checkout.spec.ts", "checkout", "pays"], "chromium", 5],
+      // A file suite that names the whole relative path, without a project.
+      [["tests/checkout.spec.ts", "refunds"], "firefox", undefined],
+      // A first title that only shares the file name's tail is kept.
+      [["spec.ts", "voids"], "webkit", 2],
+      // No titles at all.
+      [[], "edge", 3],
+    ];
+    for (const [titles, project, column] of cases) {
+      producer.onTestEnd(
+        {
+          titlePath: () => titles,
+          location: { file: "tests/checkout.spec.ts", line: 4, column },
+          project: () => ({ name: project }),
+        },
+        { status: "passed", duration: 1 },
+      );
+    }
+    await producer.onEnd({ status: "passed" });
+    const artifact = JSON.parse(await readFile(output, "utf8")) as {
+      proof_results: { target: string; native_id: string }[];
+    };
+    expect(
+      Object.fromEntries(
+        artifact.proof_results.map((result) => [result.target, result.native_id]),
+      ),
+    ).toEqual({
+      chromium: "tests/checkout.spec.ts:4:5 › checkout › pays",
+      firefox: "tests/checkout.spec.ts:4:1 › refunds",
+      webkit: "tests/checkout.spec.ts:4:2 › spec.ts › voids",
+      edge: "tests/checkout.spec.ts:4:3",
     });
     expect(proofRunArtifactErrors(artifact)).toEqual([]);
   });

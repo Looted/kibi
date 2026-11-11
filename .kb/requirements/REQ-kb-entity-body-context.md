@@ -47,6 +47,7 @@ logic_claims:
   - CLAIM-3DBD5E66B2FCF8D9
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-06T18:33:08.826Z'
 id: REQ-kb-entity-body-context
 type: req

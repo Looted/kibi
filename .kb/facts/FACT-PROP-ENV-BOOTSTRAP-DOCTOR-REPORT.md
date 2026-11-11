@@ -5,7 +5,7 @@ tags:
   - lane:strict
   - env
   - bootstrap
-text_ref: .kb/requirements/REQ-kibi-env-bootstrap.md
+text_ref: .kb/requirements/REQ-kibi-env-bootstrap-doctor-attribution.md
 fact_kind: property_value
 subject_key: kibi.env_bootstrap
 property_key: doctor_plugin_report

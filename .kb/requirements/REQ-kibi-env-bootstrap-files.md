@@ -43,7 +43,7 @@ The Kibi project environment file shall be .env.kibi. The legacy Kibi environmen
 
 ## Context
 
-packages/cli/src/env/bootstrap.ts names the files REQ-kibi-env-bootstrap loads before a command runs: the project file Kibi owns and the legacy shared file it still reads. They are stated here so each name is proved against the constant; precedence and resolver use stay in REQ-kibi-env-bootstrap.
+packages/cli/src/env/bootstrap.ts names the files REQ-kibi-env-bootstrap-shared loads before a command runs: the project file Kibi owns and the legacy shared file it still reads. They are stated here so each name is proved against the constant; precedence and resolver use stay in REQ-kibi-env-bootstrap-shared.
 
 ## Source
 

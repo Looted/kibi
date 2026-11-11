@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.check.rule_names
 claim_key: CLAIM-CDC574A1940BB7F6
 claim_text: The scoped check omission note id shall be scoped_check_omitted_quality
-text_ref: REQ-kibi-check-rule-names
+text_ref: REQ-kibi-symbol-and-supersede-rule-names
 property_key: scoped_omitted_id
 operator: eq
 value_type: string

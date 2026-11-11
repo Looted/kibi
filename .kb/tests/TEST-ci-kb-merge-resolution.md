@@ -6,7 +6,6 @@ tags:
   - ci
   - merge
   - proof
-  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: internal
 proof_contract:
@@ -56,6 +55,9 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+## Context
+The merge workflow failed on PR 320 because it built the driver from a stale PR branch. When both sides add a requirement, Git also keeps one baseline count bump for two new entries. The workflow now builds from develop and checks the baseline before pushing. Source: PR 323.

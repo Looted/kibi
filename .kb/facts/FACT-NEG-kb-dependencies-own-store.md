@@ -15,4 +15,4 @@ origin:
 id: FACT-NEG-kb-dependencies-own-store
 type: fact
 ---
-A KB dependency read answered from, or written into, the project's own KB. The failure-side scenario of REQ-kb-dependencies-git assumes this state and expects Kibi to refuse it with a coded error instead of answering.
+A KB dependency read answered from, or written into, the project's own KB. The failure-side scenario of REQ-kb-dependency-read-scope assumes this state and expects Kibi to refuse it with a coded error instead of answering.

@@ -8,7 +8,6 @@ tags:
   - mcp
   - consumer-local
   - launcher
-  - review:context-missing
 owner: cursor-team
 priority: must
 semantic_text: 'The published kibi-cursor plugin must resolve and execute the consumer project''s project-local kibi-mcp package without downloading packages or using a global or plugin-local runtime. It must resolve the consumer workspace in deterministic order: explicit workspace argument, WORKSPACE_FOLDER_PATHS, KIBI_WORKSPACE, CURSOR_WORKSPACE, then cwd only when cwd demonstrably contains project-local kibi-mcp; unresolved placeholders are invalid and ambiguous multiple usable roots fail clearly. The launcher must resolve kibi-mcp through consumer-scoped Node package semantics including exports-restricted and pnpm-style layouts, and reject packages outside consumer scope unless active package-manager semantics authorize it. It must spawn the declared kibi-mcp bin with cwd and KIBI_WORKSPACE set to the consumer workspace, preserve stdio, and propagate child exit codes and termination signals. Missing project-local kibi-mcp must produce a concise actionable error.'
@@ -76,9 +75,12 @@ semantic_clauses:
   - Missing project-local kibi-mcp must produce a concise actionable error
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 The published kibi-cursor plugin must resolve and execute the consumer project's project-local kibi-mcp package without downloading packages or using a global or plugin-local runtime. It must resolve the consumer workspace in deterministic order: explicit workspace argument, WORKSPACE_FOLDER_PATHS, KIBI_WORKSPACE, CURSOR_WORKSPACE, then cwd only when cwd demonstrably contains project-local kibi-mcp; unresolved placeholders are invalid and ambiguous multiple usable roots fail clearly. The launcher must resolve kibi-mcp through consumer-scoped Node package semantics including exports-restricted and pnpm-style layouts, and reject packages outside consumer scope unless active package-manager semantics authorize it. It must spawn the declared kibi-mcp bin with cwd and KIBI_WORKSPACE set to the consumer workspace, preserve stdio, and propagate child exit codes and termination signals. Missing project-local kibi-mcp must produce a concise actionable error.
+
+## Why
+Cursor users had to add a separate project MCP configuration. The launcher starts the `kibi-mcp` installed in the opened project and never downloads or falls back to a global runtime, so the project's pinned version is always the one that runs. Source: Changeset "friendly-cursors-launch".

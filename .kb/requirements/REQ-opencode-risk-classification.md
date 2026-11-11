@@ -10,7 +10,6 @@ tags:
   - opencode
   - kibi
   - risk
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-risk-classification
@@ -103,6 +102,7 @@ origin:
   recorded_at: '2026-11-03T12:03:44.000Z'
 firmness: default
 required_evidence: tested
+rationale: "Enforcement should match the risk of an edit: docs and tests stay light, structural KB and code changes get checked."
 ---
 - The OpenCode plugin must classify a proposed edit into a risk class that sets its enforcement level.
 - The OpenCode plugin must classify edits to non-KB documentation as safe_docs_only.
@@ -112,3 +112,6 @@ required_evidence: tested
 - The OpenCode plugin must classify code changes that need traceability as behavior_candidate.
 - The OpenCode plugin must classify symbol changes missing requirement links as traceability_candidate.
 - The OpenCode plugin must classify direct edits to .kb internal files as manual_kb_edit, with the strongest warning.
+
+## Rationale
+Enforcement should match the risk of an edit: docs and tests stay light, structural KB and code changes get checked.

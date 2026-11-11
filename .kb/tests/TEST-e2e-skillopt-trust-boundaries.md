@@ -1,6 +1,6 @@
 ---
 title: SkillOpt external trust boundaries fail closed through the real CLIs
-status: active
+status: passing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -17,18 +17,18 @@ proof_bindings:
 id: TEST-e2e-skillopt-trust-boundaries
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-220f8f7a7c0bd02946ff6c8a
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-462cdbd0451151d3dbf563da
     test_id: TEST-e2e-skillopt-trust-boundaries
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: c05f77bba7df77f015b0b2d3c442676cd9c4f40576ae886f262844f8bf718d9b
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T10:06:32.031Z'
+    finished_at: '2026-11-10T10:06:34.297Z'
+    artifact_digest: 206bfdec2fa3a8f8e13c439ce12ce3383f45852d9739f0114fd250c62f21408e
     contract_hash: 9020824a8e1d04d5bdf1177ebadc073b9c5a92e28cc227941f1dd81f3a509009
-    binding_hash: 9841c10f584814cd89196e317b5bf54580efa69bcc88e9dbe4cdc85298774a7f
+    binding_hash: 52d17fd243f5139638d021ce2689535a0d0f4bfdc52eff8a30ea452a42ada1a8
     fingerprint: 88e534076ad7041d09154b93c898e71b247f6063a280809d0ee97a038a1bd02e
     fingerprint_components:
       contract: 9020824a8e1d04d5bdf1177ebadc073b9c5a92e28cc227941f1dd81f3a509009
@@ -50,10 +50,13 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 ---
+
+## Context
+This drives the real SkillOpt CLIs through every refusal path. It turned a missing Codex executable from a raw ENOENT crash into a typed prerequisite error with a durable gate receipt.

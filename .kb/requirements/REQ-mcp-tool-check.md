@@ -10,7 +10,6 @@ tags:
   - mcp
   - kibi
   - validation
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-mcp-tool-check-coverage
@@ -68,7 +67,7 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving entity context that was inferred (not recorded in history) in the KB gold-standard review (context batch 9, inferred): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -80,3 +79,6 @@ The `kb_check` MCP tool must:
 2. Support filtering for specific rules (e.g., `must-priority-coverage`, `symbol-traceability`).
 3. Return a list of violations with clear descriptions and entity references.
 4. Support being called both before and after mutations to verify integrity.
+
+## Why
+Agents need to validate the KB themselves, before and after a change, through the same tool surface they write with. Otherwise they only find violations at commit time. Inferred from: the requirement's own text.

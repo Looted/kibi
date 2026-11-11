@@ -1,6 +1,6 @@
 ---
 title: UI pattern vocabulary tests
-status: active
+status: passing
 tags:
   - predicates
   - ui

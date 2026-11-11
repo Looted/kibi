@@ -1,6 +1,6 @@
 ---
 title: Check policy contract and evaluation tests
-status: active
+status: passing
 tags:
   - plugins
   - check-policy

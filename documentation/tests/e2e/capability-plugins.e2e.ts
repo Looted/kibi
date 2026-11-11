@@ -35,6 +35,11 @@ import {
 } from "../../../packages/cli/src/plugins/index.ts";
 import { createStubBuiltinPlugin } from "../../../packages/cli/src/plugins/registry.ts";
 import {
+  createBuiltinOntologyPack,
+  createBuiltinSemanticClassifier,
+  createBuiltinTsMorphSymbolExtractorV2,
+} from "../../../packages/plugin-builtin/src/index.ts";
+import {
   JEV_DEFAULT_MODEL,
   JEV_MAX_TIMEOUT_MS,
   JevProviderError,
@@ -798,6 +803,95 @@ try {
     pluginCheck?.message ===
       "example-capability-plugin kibi.semantic-classifier.v1 augment declared=yes",
     "kibi doctor reports configured plugins",
+  );
+
+  // Builtin providers: deterministic ontology matching across the core,
+  // policy and product rule sets, network-free classification, and ts-morph
+  // declaration symbols with Class.method names and no private members.
+  const ontology = createBuiltinOntologyPack();
+  for (const [statement, predicateName] of [
+    ["Paid launches must stay disabled until the budget is approved.", "guard"],
+    ["Customer data must be stored in the EU region.", "data_residency_rule"],
+    [
+      "Mobile builds must pass smoke tests before TestFlight distribution.",
+      "release_gate_rule",
+    ],
+  ] as const) {
+    const first = JSON.stringify(ontology.match({ statement }));
+    const hits = ontology.match({ statement });
+    assert(
+      hits[0]?.predicateName === predicateName,
+      `builtin ontology matches ${predicateName} for "${statement}"`,
+    );
+    assert(
+      JSON.stringify(hits) === first,
+      `builtin ontology matching is deterministic for ${predicateName}`,
+    );
+  }
+  assert(
+    ontology.match({ statement: "Session tokens should be handled carefully." })
+      .length === 0,
+    "builtin ontology returns no candidate for unmatched prose",
+  );
+
+  const realFetch = globalThis.fetch;
+  let networkCalls = 0;
+  globalThis.fetch = (async () => {
+    networkCalls += 1;
+    throw new Error("network is not allowed for the builtin classifier");
+  }) as unknown as typeof fetch;
+  let classified: Awaited<
+    ReturnType<ReturnType<typeof createBuiltinSemanticClassifier>["classify"]>
+  >;
+  try {
+    const classifier = createBuiltinSemanticClassifier();
+    const input = {
+      propositions: [
+        {
+          claimKey: "CLAIM-EXPIRY",
+          statement: "Session tokens must expire after 30 days.",
+        },
+        {
+          claimKey: "CLAIM-GUARD",
+          statement:
+            "Paid launches must stay disabled until the budget is approved.",
+        },
+        { claimKey: "CLAIM-NONE", statement: "The team likes coffee." },
+      ],
+    };
+    classified = await classifier.classify(input);
+    const again = await classifier.classify(input);
+    assert(
+      JSON.stringify(again) === JSON.stringify(classified),
+      "builtin classifier is deterministic",
+    );
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+  assert(networkCalls === 0, "builtin classifier makes no network call");
+  assert(
+    classified.decisions.map((d) => d.lane).join(",") ===
+      "strict_property,predicate,none",
+    "builtin classifier assigns strict_property, predicate and none lanes",
+  );
+
+  const tsResult = await createBuiltinTsMorphSymbolExtractorV2().analyze({
+    path: "src/ledger.ts",
+    content: [
+      "export class Ledger {",
+      "  record(x: number) { return x; }",
+      "  private hide() {}",
+      "  #secret() {}",
+      "}",
+      "export function total(xs: number[]) { return xs.length; }",
+      "",
+    ].join("\n"),
+  });
+  const tsNames = tsResult.symbols.map((symbol) => symbol.name).sort();
+  assert(
+    tsResult.module.analysisMode === "parser" &&
+      tsNames.join(",") === "Ledger,Ledger.record,total",
+    `builtin ts-morph extractor names Class.method and skips private members (got ${tsNames.join(",")})`,
   );
 
   console.log("capability plugin e2e passed");

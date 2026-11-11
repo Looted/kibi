@@ -274,6 +274,44 @@ Service must retain audit records.
   );
 }
 
+// The legacy baseline is taken once: a legacy requirement whose prose changes
+// after it is judged like a new one, while untouched legacy requirements stay
+// baselined.
+async function packedSyncEnforcesLedgerOnChangedLegacyRequirement(
+  sandbox: TestSandbox,
+) {
+  createMarkdownFile(
+    sandbox,
+    ".kb/requirements/legacy.md",
+    { id: "REQ-LEGACY", title: "Legacy", type: "req", status: "open" },
+    "Reference material.",
+  );
+  createMarkdownFile(
+    sandbox,
+    ".kb/requirements/untouched.md",
+    { id: "REQ-UNTOUCHED", title: "Untouched", type: "req", status: "open" },
+    "The service must log requests.",
+  );
+  const baseline = await kibi(sandbox, ["sync"]);
+  assert.strictEqual(
+    baseline.exitCode,
+    0,
+    `${baseline.stdout}${baseline.stderr}`,
+  );
+
+  createMarkdownFile(
+    sandbox,
+    ".kb/requirements/legacy.md",
+    { id: "REQ-LEGACY", title: "Legacy", type: "req", status: "open" },
+    "Service must retain audit records.",
+  );
+  const changed = await kibi(sandbox, ["sync"]);
+  const output = `${changed.stdout}${changed.stderr}`;
+  assert.notStrictEqual(changed.exitCode, 0, output);
+  assert.match(output, /legacy\.md: proposition-complete ingestion failed/);
+  assert.doesNotMatch(output, /untouched\.md|REQ-UNTOUCHED/);
+}
+
 // A requirement that pins semantic_text is modeled and proved from that text
 // alone, so the staged gate refuses a body edit that changes the statement
 // without restating it, and lets a context-only edit through.
@@ -366,6 +404,14 @@ if (RUN_NODE_TEST_SUITE) {
         return;
       }
       await packedCliEnforcesPropositionCompleteIngestion(sandbox);
+    });
+
+    it("refuses a legacy requirement whose prose changed after the baseline", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      await packedSyncEnforcesLedgerOnChangedLegacyRequirement(sandbox);
     });
 
     it("refuses a staged body edit that leaves pinned semantic_text behind", async (testContext) => {

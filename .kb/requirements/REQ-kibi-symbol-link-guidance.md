@@ -40,6 +40,7 @@ logic_claims:
   - CLAIM-76FE56010239A24E
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-15T15:56:05.004Z'
 id: REQ-kibi-symbol-link-guidance
 type: req

@@ -27,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5f2040cc5a30
-  - type: implements
-    from: SYM-core-proof-issues
-    to: REQ-kibi-conservative-requirement-proof
-    created_at: 2026-08-18T19:48:27.283Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f679a1f37fe8
   - type: covered_by
     from: SYM-core-proof-issues
     to: TEST-kibi-conservative-requirement-proof
@@ -41,48 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-64ccb4ed67a7
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoverysummary
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:14.864Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0d1ab3489e11
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoverysummary
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:14.871Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8f43c0242d6b
-  - type: implements
-    from: SYM-DeleteArgs
-    to: REQ-002
-    created_at: 2026-08-22T20:05:08.445Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-44f55c78d48b
-  - type: covered_by
-    from: SYM-DeleteArgs
-    to: TEST-005
-    created_at: 2026-08-22T20:05:08.461Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-827aa8964846
-  - type: covered_by
-    from: SYM-DeleteArgs
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:05:08.466Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ade6c85aa3e5
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoverysummary
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:15:11.428Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-807f51a5012f
   - type: implements
     from: SYM-cli-with-exit-code
     to: REQ-kibi-operation-interface-parity
@@ -147,20 +98,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-f889be9237b7
   - type: covered_by
-    from: SYM-KibiImpactDiagnosticId
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:13:28.325Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-adece3b7b7b7
-  - type: covered_by
-    from: SYM-cursor-clearSessionHookState
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-05T15:38:11.726Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-748fda60c792
-  - type: covered_by
     from: SYM-auto-87E4086AAAB1
     to: TEST-kibi-operation-interface-parity
     created_at: 2026-09-05T17:18:39.104Z
@@ -182,20 +119,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0605ce197fbf
   - type: covered_by
-    from: SYM-PredicateMatrixCell
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:09:13.431Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-be0804c2a78d
-  - type: covered_by
-    from: SYM-SourceTreeHashError
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:10:12.225Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b3be911a445c
-  - type: covered_by
     from: SYM-skillopt-predicate-held-out-case-ids
     to: TEST-skillopt-predicate-first-requirements
     created_at: 2026-09-05T18:20:38.189Z
@@ -209,55 +132,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-87228784ecd4
-  - type: covered_by
-    from: SYM-DeleteArgs
-    to: TEST-mcp-upsert-coverage
-    created_at: 2026-09-18T14:51:51.324Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-31e4442403b5
-  - type: covered_by
-    from: SYM-SourceTreeHashError
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:24:10.694Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3d3b768e1bf0
-  - type: implements
-    from: SYM-PredicateMatrixCell
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:36:39.650Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-29c15053225d
-  - type: implements
-    from: SYM-agent-core-classifyPath
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:30:52.148Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e117e409ff76
-  - type: implements
-    from: SYM-agent-core-classifyPath
-    to: REQ-codex-kibi-plugin-v1
-    created_at: 2026-09-27T16:30:52.182Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bcf5595846e3
-  - type: implements
-    from: SYM-agent-core-classifyPath
-    to: REQ-cursor-kibi-plugin-v1
-    created_at: 2026-09-27T16:30:52.206Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a0f551d5765a
-  - type: implements
-    from: SYM-agent-core-classifyPath
-    to: REQ-zcode-kibi-plugin-v1
-    created_at: 2026-09-27T16:30:52.226Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30c15d9f2e54
   - type: covered_by
     from: SYM-agent-core-classifyPath
     to: TEST-claude-code-kibi-plugin-v1
@@ -286,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a735cae45b8e
-  - type: implements
-    from: SYM-agent-core-buildKnowledgeIndex
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:49:16.695Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3bc981f2a570
   - type: covered_by
     from: SYM-agent-core-buildKnowledgeIndex
     to: TEST-claude-code-kibi-plugin-v1
@@ -300,20 +167,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-182a43a8c6f1
-  - type: covered_by
-    from: SYM-source-analysis-v2-validatesourceanalysisresultv2options-882eaa93
-    to: TEST-source-analysis-v2-contract
-    created_at: 2026-09-26T16:59:16.750Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-017c9adf1740
-  - type: implements
-    from: SYM-source-analysis-v2-validatesourceanalysisresultv2options-882eaa93
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T16:59:16.768Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-46a853215098
   - type: verified_by
     from: SCEN-scripts-coverage-shard-isolation
     to: TEST-scripts-coverage-shard-isolation
@@ -321,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b03181cc8e63
-  - type: implements
-    from: SYM-prolog-build-audit-macos
-    to: REQ-prolog-build-pipeline-validation
-    created_at: 2026-09-30T17:52:24.703Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8fe3ab533820
   - type: covered_by
     from: SYM-prolog-build-audit-macos
     to: TEST-prolog-build-pipeline-validation
@@ -349,34 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e4ba89646a4
-  - type: implements
-    from: SYM-upsert-validation-options-type
-    to: REQ-kibi-truthful-consistency
-    created_at: 2026-10-14T10:14:34.803Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-16d0b3fe833b
-  - type: covered_by
-    from: SYM-upsert-validation-options-type
-    to: TEST-kibi-truthful-consistency
-    created_at: 2026-10-14T10:14:34.833Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cd25cad68ca6
-  - type: implements
-    from: SYM-agent-core-snippets-summarize
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-10-14T10:08:20.048Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fe9a471fa8d6
-  - type: covered_by
-    from: SYM-agent-core-snippets-summarize
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-10-14T10:08:20.091Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3caa1bc29d13
   - type: validates
     from: TEST-proof-cursor-rules
     to: SCEN-cursor-kibi-plugin-v1

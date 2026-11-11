@@ -1,6 +1,6 @@
 ---
 title: related-requirement-unmodeled rule tests
-status: active
+status: passing
 priority: must
 tags:
   - checks

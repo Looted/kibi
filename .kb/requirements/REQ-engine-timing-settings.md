@@ -43,7 +43,7 @@ The engine daemon shall check for idleness every 30000 milliseconds. The engine 
 
 ## Context
 
-packages/cli/src/engine.ts checks the journaled engine REQ-core-journaled-engine-persistence keeps alive for idleness on an interval and gives Prolog a grace period to exit before it is stopped. Both are stated here so they are proved against the constants.
+packages/cli/src/engine.ts checks the journaled engine of REQ-kibi-engine-single-writer-protocol for idleness on an interval and gives Prolog a grace period to exit before it is stopped. Both are stated here so they are proved against the constants.
 
 ## Source
 

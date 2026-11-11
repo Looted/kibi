@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-415c0ab42971
-    type: covered_by
-    from: SYM-reqcompiler-ingestion-boundary-result
-    to: TEST-kibi-proposition-complete-ingestion
-    created_at: 2026-08-16T18:52:06.550Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: executable_for
     from: SYM-cli-prolog-shared-fixture-tests
     to: TEST-test-journaled-engine-harness
@@ -13,13 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0ab8e6bd1765
-  - type: implements
-    from: SYM-canonical-isKbKnowledgePath
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:02:51.148Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-76dbbb031501
   - type: covered_by
     from: SYM-canonical-isKbKnowledgePath
     to: TEST-cli-canonical-init
@@ -27,37 +13,9 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8fb903ab24fd
-  - type: implements
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-template
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:51.846Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-163183b81ccb
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-template
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:51.853Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3d4432a70f8a
-  - type: covered_by
-    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-template
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:15:06.527Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8e8ca3b6ca51
-  - type: covered_by
-    from: SYM-SourceAnalysisProvider
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:15:59.200Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-33246378f84e
   - type: constrains
     from: REQ-vscode-source-to-kb
-    to: FACT-SUBJ-REQ-VSCODE-SOURCE-TO-KB
+    to: FACT-SUBJ-REQ-VSCODE-KB-TO-SOURCE
     created_at: 2026-09-05T14:15:25.963Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -69,34 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d139b5850c0
-  - type: covered_by
-    from: SYM-codex-recordKbMcpTool
-    to: TEST-codex-kibi-plugin-v1
-    created_at: 2026-09-05T15:21:55.273Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-487261aa65fb
-  - type: covered_by
-    from: SYM-SourceAnalysisProvider
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:23:43.358Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-32ef645f777a
-  - type: executable_for
-    from: SYM-e2e-test-mcp-tool-check-coverage
-    to: TEST-mcp-tool-check-coverage
-    created_at: 2026-09-05T15:47:20.651Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-058acc7b706f
-  - type: executable_for
-    from: SYM-e2e-test-skillopt-cursor-compat
-    to: TEST-skillopt-cursor-compat
-    created_at: 2026-09-05T15:49:45.090Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-947bf24651b6
   - type: implements
     from: SYM-cap-plugin-loadpluginpackage-007aa5b1
     to: REQ-capability-plugin-observable-behavior-v1
@@ -111,20 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b965af9f5a7
-  - type: covered_by
-    from: SYM-impact-stage-e-fingerprint
-    to: TEST-impact-policy-stage-e-installed-e2e
-    created_at: 2026-09-27T17:38:12.283Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e6bb41b9274f
-  - type: implements
-    from: SYM-impact-stage-e-fingerprint
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:38:12.303Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c353baf6919d
   - type: implements
     from: SYM-mcp-tools-list-diagnostic-contract
     to: REQ-kibi-operation-interface-parity
@@ -160,20 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1ad870b31d1
-  - type: implements
-    from: SYM-skillopt-runtime-fixture-kb-setup-setupseededpreconditionkb-403f2dec
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T13:18:40.305Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-93c075320704
-  - type: covered_by
-    from: SYM-skillopt-runtime-fixture-kb-setup-setupseededpreconditionkb-403f2dec
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T13:18:40.324Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-89c8558d683b
   - type: constrains
     from: REQ-kb-decision-firmness
     to: FACT-SUBJECT-KIBI-DECISION-FIRMNESS

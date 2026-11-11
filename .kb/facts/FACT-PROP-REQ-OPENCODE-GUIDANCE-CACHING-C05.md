@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_05_the_opencode_plugin_must_expire_cached_guidance_after_a_conf
+property_key: cache_ttl_configurable
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_guidance_caching.clause_05_the_opencode_plugin_must_expire_cached_guidance_after_a_conf.eq.true
+canonical_key: req.req_opencode_guidance_caching.cache_ttl_configurable.eq.true
 claim_key: CLAIM-BA66C33DECC223DF
 claim_text: The OpenCode plugin must expire cached guidance after a configurable time to live
 origin:

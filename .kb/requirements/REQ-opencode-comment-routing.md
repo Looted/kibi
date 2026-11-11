@@ -12,7 +12,6 @@ tags:
   - python
   - javascript
   - typescript
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-python-comment-routing
@@ -125,6 +124,7 @@ origin:
   recorded_at: '2026-11-03T12:03:44.000Z'
 firmness: default
 required_evidence: tested
+rationale: "Durable knowledge written as long code comments is invisible to Kibi; routing it to KB entities keeps it traceable and checkable."
 ---
 - The OpenCode plugin must detect long explanatory comments in code files and guide the agent to route durable knowledge to the matching Kibi entity type (FACT, ADR, REQ, SCEN or TEST) instead of an inline comment.
 - The OpenCode plugin must extract JavaScript and TypeScript line, block and doc comments and Python comment blocks and true docstrings.
@@ -144,3 +144,6 @@ Acceptance examples:
 - Short or ordinary comments do not trigger guidance.
 - Repeated saves of identical comments do not repeat the warning.
 - Sync and targeted validation behavior stay unchanged.
+
+## Rationale
+Durable knowledge written as long code comments is invisible to Kibi; routing it to KB entities keeps it traceable and checkable.

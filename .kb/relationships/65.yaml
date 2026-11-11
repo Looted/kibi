@@ -13,76 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-84dc2dc3cbab
-  - type: implements
-    from: SYM-cli-report-parse-git-remote
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T21:04:31.840Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3ed0ead7adfc
-  - type: covered_by
-    from: SYM-cli-report-parse-git-remote
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-18T21:04:31.853Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-efa5861aefed
-  - type: implements
-    from: SYM-ToastPayload
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:56:56.087Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2076d632358a
-  - type: covered_by
-    from: SYM-ToastPayload
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:56:56.099Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a71976d6299c
-  - type: covered_by
-    from: SYM-ToastPayload
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:56:56.104Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e2946f72de95
-  - type: implements
-    from: SYM-SparqlArgs
-    to: REQ-prolog-library-adoption
-    created_at: 2026-08-23T12:40:09.605Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6bc1ab518a08
-  - type: covered_by
-    from: SYM-SparqlArgs
-    to: TEST-prolog-library-adoption-mcp
-    created_at: 2026-08-23T12:40:09.619Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-da7050dd4c93
-  - type: implements
-    from: SYM-SparqlArgs
-    to: REQ-002
-    created_at: 2026-08-23T22:10:12.240Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-86a26a30b1da
-  - type: covered_by
-    from: SYM-SparqlArgs
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:10:12.248Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f152ed21e714
-  - type: executable_for
-    from: SYM-e2e-test-cursor-kibi-plugin-v1
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-05T15:37:12.770Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b56c04feaaa9
   - type: covered_by
     from: SYM-semantic-advisor-detectStrictSuggestion
     to: TEST-mcp-semantic-advisor-preflight
@@ -125,27 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f1b9b0f3ea32
-  - type: implements
-    from: SYM-package-catalog-dir
-    to: REQ-020
-    created_at: 2026-09-21T15:27:51.976Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6540baa92657
-  - type: covered_by
-    from: SYM-package-catalog-dir
-    to: TEST-014
-    created_at: 2026-09-21T19:23:01.051Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a72692a3118d
-  - type: covered_by
-    from: SYM-cap-plugin-capabilityregistry-getbuiltinplugin-eac3b9f7
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:39:22.059Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-be8fb8e371d2
   - type: executable_for
     from: SYM-claude-test-COORDINATES_YAML
     to: TEST-claude-code-kibi-plugin-v1
@@ -251,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6de2fad23152
-  - type: implements
-    from: SYM-kb-dependencies-lock-entry-matches
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:55:50.402Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-514d643454ba
   - type: covered_by
     from: SYM-kb-dependencies-lock-entry-matches
     to: TEST-kb-dependencies-git
@@ -265,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce049424bd7d
+  - type: assumes
+    from: SCEN-NEG-kibi-proof-per-test-attribution-UNATTRIBUTABLE-FAILURE
+    to: FACT-NEG-kibi-proof-per-test-attribution-UNATTRIBUTABLE-FAILURE
+    created_at: 2026-11-10T17:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb39d3d34aba
+  - type: verified_by
+    from: SCEN-NEG-kibi-proof-per-test-attribution-UNATTRIBUTABLE-FAILURE
+    to: TEST-kibi-proof-receipt-compaction-cli
+    created_at: 2026-11-10T17:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0006b958a76

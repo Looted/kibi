@@ -14,40 +14,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-d640ab668620
   - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-scenariodraft
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-16T19:45:30.455Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-66ef7e754a54
-  - type: implements
-    from: SYM-canonical-missingCanonicalLanes
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:01:17.871Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7190e0c27c9c
-  - type: covered_by
     from: SYM-canonical-missingCanonicalLanes
     to: TEST-cli-migrate
     created_at: 2026-08-18T17:01:17.879Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f51e89d23e2
-  - type: implements
-    from: SYM-skillopt-mcp-broker-error-name
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-21T19:52:46.998Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b827303200a2
-  - type: covered_by
-    from: SYM-skillopt-mcp-broker-error-name
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-21T19:52:47.020Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-73e4abcb84a0
   - type: covered_by
     from: SYM-auto-D694B2C4BE06
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -119,13 +91,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-32127a75997f
   - type: covered_by
-    from: SYM-run-proof-producer
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-05T17:33:26.894Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a24b9044368c
-  - type: covered_by
     from: SYM-skillsListCommand
     to: TEST-skill-cli-load-validate
     created_at: 2026-09-05T18:05:36.568Z
@@ -147,26 +112,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-dc082e1c7e3a
   - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-scenariodraft
-    to: TEST-e2e-plan-compiler-hash
-    created_at: 2026-09-18T07:18:22.964Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c74e3a4077c3
-  - type: covered_by
     from: SYM-cap-plugin-policy-predicate-rules-67c10eed
     to: TEST-e2e-capability-plugins
     created_at: 2026-09-22T19:42:58.618Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-593ea1f492ef
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-scenariodraft
-    to: REQ-kibi-change-to-proof-plan-compiler-v2
-    created_at: 2026-10-04T03:02:25.337Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-93d45dfab819
   - type: verified_by
     from: SCEN-bootstrap-advisor-proposition-roles
     to: TEST-kibi-bootstrap-knowledge-sources
@@ -181,13 +132,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38dee1c807e8
-  - type: implements
-    from: SYM-decision-firmness-firm-unreferenced-rule
-    to: REQ-kb-decision-firmness
-    created_at: 2026-10-13T12:57:52.811Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-19824cb506fb
   - type: covered_by
     from: SYM-decision-firmness-firm-unreferenced-rule
     to: TEST-kb-decision-firmness
@@ -321,3 +265,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b983ecb4c029
+  - type: assumes
+    from: SCEN-bootstrap-advisor-proposition-roles
+    to: FACT-bootstrap-advisor-proposition-roles-bootstrap-roles-from-advisor
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7364708f59d9
+  - type: assumes
+    from: SCEN-bootstrap-advisor-proposition-roles
+    to: FACT-bootstrap-advisor-proposition-roles-relative-clause-definition-verb-normative
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f2e2f926a4c
+  - type: assumes
+    from: SCEN-bootstrap-advisor-proposition-roles
+    to: FACT-bootstrap-advisor-proposition-roles-legacy-definition-role-accepted
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19c38e0f54fa
