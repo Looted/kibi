@@ -99,11 +99,11 @@ relationships:
     id: rel-4c51242399ba
   - type: depends_on
     from: REQ-core-engine-read-limits
-    to: REQ-core-journaled-engine-persistence
+    to: REQ-kibi-engine-single-writer-protocol
     created_at: 2026-10-04T02:19:03.415Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-e9b1a383f6a3
+    id: rel-89701e4ef4f2
   - type: implements
     from: SYM-plan-apply-journal-createPlanApplyJournal
     to: REQ-kibi-change-to-proof-plan-compiler-v2

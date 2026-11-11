@@ -365,11 +365,11 @@ relationships:
     id: rel-486b8f97c211
   - type: depends_on
     from: REQ-kibi-legacy-migration-preview-v2
-    to: REQ-kibi-proposition-complete-ingestion
+    to: REQ-kibi-complete-proposition-ledgers
     created_at: 2026-11-03T11:43:56.495Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-c44b829354a0
+    id: rel-316b194ed643
   - type: specified_by
     from: REQ-kibi-legacy-migration-preview-v2
     to: SCEN-kibi-legacy-migration-preview-v2

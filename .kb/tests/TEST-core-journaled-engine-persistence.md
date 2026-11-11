@@ -13,7 +13,9 @@ links:
   - type: validates
     target: SCEN-core-journaled-engine-migration
   - type: validates
-    target: REQ-core-journaled-engine-persistence
+    target: REQ-kibi-engine-durable-transactions
+  - type: validates
+    target: REQ-kibi-engine-guarded-migration
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:

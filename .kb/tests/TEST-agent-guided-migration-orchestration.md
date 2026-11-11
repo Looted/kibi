@@ -9,7 +9,9 @@ links:
   - type: validates
     target: SCEN-agent-guided-migration-orchestration
   - type: validates
-    target: REQ-agent-guided-migration-orchestration
+    target: REQ-kibi-migration-apply-gate
+  - type: validates
+    target: REQ-kibi-migration-plan-contract
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:

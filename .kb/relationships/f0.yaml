@@ -337,8 +337,8 @@ relationships:
     id: rel-5aa67a383fa4
   - type: depends_on
     from: REQ-kibi-telemetry-evidence-correlation
-    to: REQ-kibi-telemetry-acceptance-gate-v2
+    to: REQ-kibi-telemetry-correlation-and-lookup-metrics
     created_at: 2026-11-05T07:40:00.000Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-514f788c643b
+    id: rel-a97e8078e55b

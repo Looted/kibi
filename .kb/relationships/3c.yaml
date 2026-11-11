@@ -15,11 +15,18 @@ relationships:
     id: rel-a8506cae1b11
   - type: validates
     from: TEST-core-journaled-engine-persistence
-    to: REQ-core-journaled-engine-persistence
+    to: REQ-kibi-engine-durable-transactions
     created_at: 2026-08-16T19:42:16.104Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-5dc2a154c6d2
+    id: rel-a356f76d6458
+  - type: validates
+    from: TEST-core-journaled-engine-persistence
+    to: REQ-kibi-engine-guarded-migration
+    created_at: 2026-08-16T19:42:16.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4bcb23bf221
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-discovery-evidence-scanevidence
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY

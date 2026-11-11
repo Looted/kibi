@@ -11,7 +11,9 @@ tags:
   - verification
 links:
   - type: validates
-    target: REQ-020
+    target: REQ-kibi-release-master-publishes-only
+  - type: validates
+    target: REQ-kibi-release-versioning-on-develop
   - type: validates
     target: SCEN-release-automation
   - ADR-014

@@ -82,7 +82,7 @@ semantic_inventory:
       end: 624
 links:
   - type: depends_on
-    target: REQ-kibi-html-health-report
+    target: REQ-kibi-health-report-content
   - type: specified_by
     target: SCEN-kibi-branded-health-report
   - type: requires_predicate

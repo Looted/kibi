@@ -358,11 +358,11 @@ relationships:
     id: rel-0ab63f7c45df
   - type: depends_on
     from: REQ-kibi-telemetry-remediation-report
-    to: REQ-kibi-telemetry-acceptance-gate-v2
+    to: REQ-kibi-telemetry-acceptance-report-verdict
     created_at: 2026-11-05T07:40:00.000Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-7e86c77eeef7
+    id: rel-5fff4f19df5e
   - type: constrains
     from: REQ-kibi-release-versioning-on-develop
     to: FACT-SUBJ-REQ-020

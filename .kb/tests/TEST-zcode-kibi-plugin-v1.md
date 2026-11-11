@@ -9,7 +9,9 @@ links:
   - type: validates
     target: SCEN-zcode-kibi-plugin-v1
   - type: validates
-    target: REQ-zcode-kibi-plugin-v1
+    target: REQ-zcode-adapter-package
+  - type: validates
+    target: REQ-zcode-unowned-workspace-silence
 type: test
 verification_scope: end_to_end
 verification_perspective: consumer

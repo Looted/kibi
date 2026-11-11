@@ -2551,35 +2551,9 @@ symbols:
         target: REQ-codex-adapter-package
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-  - id: SYM-codex-addDirtyPaths
-    title: addDirtyPaths
-    sourceFile: packages/codex/src/hook-state.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-codex-hook-limits
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-  - id: SYM-codex-clearDirtyPaths
-    title: clearDirtyPaths
-    sourceFile: packages/codex/src/hook-state.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-codex-hook-limits
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
   - id: SYM-codex-directKbEditWarning
     title: DIRECT_KB_EDIT_WARNING
     sourceFile: packages/codex/src/messages.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -2590,8 +2564,6 @@ symbols:
   - id: SYM-codex-freshnessReminder
     title: freshnessReminder
     sourceFile: packages/codex/src/messages.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -2602,8 +2574,6 @@ symbols:
   - id: SYM-codex-impactCheckReminder
     title: impactCheckReminder
     sourceFile: packages/codex/src/messages.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -2614,8 +2584,6 @@ symbols:
   - id: SYM-codex-main
     title: main
     sourceFile: packages/codex/src/hook-runner.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -2633,23 +2601,9 @@ symbols:
         target: REQ-codex-adapter-package
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-  - id: SYM-codex-recordKbMcpTool
-    title: recordKbMcpTool
-    sourceFile: packages/codex/src/hook-state.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-codex-hook-limits
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
   - id: SYM-codex-resolveKibiWorkspace
     title: resolveKibiWorkspace
     sourceFile: packages/codex/src/workspace-optin.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -2660,8 +2614,6 @@ symbols:
   - id: SYM-codex-resolveWorkspaceStateDir
     title: resolveWorkspaceStateDir
     sourceFile: packages/codex/src/hook-state.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -2956,7 +2908,6 @@ symbols:
     sourceFile: packages/cursor/src/hook-state.ts
     granularity_reason: legacy-link
     links:
-      - REQ-cursor-kibi-plugin-v1
       - REQ-cursor-stop-job-vs-plan
     status: active
     relationships:
@@ -2984,7 +2935,6 @@ symbols:
     sourceFile: packages/cursor/src/messages.ts
     granularity_reason: legacy-link
     links:
-      - REQ-cursor-kibi-plugin-v1
       - REQ-agent-kibi-interface-selection
     status: active
     relationships:
@@ -3010,7 +2960,6 @@ symbols:
     sourceFile: packages/cursor/src/messages.ts
     granularity_reason: legacy-link
     links:
-      - REQ-cursor-kibi-plugin-v1
       - REQ-agent-kibi-interface-selection
     status: active
     relationships:
@@ -3042,8 +2991,6 @@ symbols:
     title: freshnessReminder
     sourceFile: packages/cursor/src/messages.ts
     granularity_reason: legacy-link
-    links:
-      - REQ-cursor-kibi-plugin-v1
     status: active
     relationships:
       - type: implements
@@ -3054,8 +3001,6 @@ symbols:
     title: hasGuidedPath
     sourceFile: packages/cursor/src/hook-state.ts
     granularity_reason: legacy-link
-    links:
-      - REQ-cursor-kibi-plugin-v1
     status: active
     relationships:
       - type: implements
@@ -3087,8 +3032,6 @@ symbols:
   - id: SYM-cursor-isKbFreshnessRelevantPath
     title: isKbFreshnessRelevantPath
     sourceFile: packages/cursor/src/path-policy.ts
-    links:
-      - REQ-cursor-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -3151,7 +3094,6 @@ symbols:
     title: parseHookInput
     sourceFile: packages/cursor/src/hook-input.ts
     links:
-      - REQ-cursor-kibi-plugin-v1
       - REQ-cursor-stop-job-vs-plan
     status: active
     granularity_reason: legacy-link
@@ -3166,7 +3108,6 @@ symbols:
     title: readGuidance
     sourceFile: packages/cursor/src/guidance.ts
     links:
-      - REQ-cursor-kibi-plugin-v1
       - REQ-agent-kibi-interface-selection
     status: active
     granularity_reason: legacy-link
@@ -3182,8 +3123,6 @@ symbols:
     sourceFile: packages/cursor/src/hook-state.ts
     text_ref: packages/cursor/src/hook-state.ts#recordKbMcpTool
     symbol_role: behavioral
-    links:
-      - REQ-cursor-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -3207,8 +3146,6 @@ symbols:
     title: rememberGuidedPath
     sourceFile: packages/cursor/src/hook-state.ts
     granularity_reason: legacy-link
-    links:
-      - REQ-cursor-kibi-plugin-v1
     status: active
     relationships:
       - type: implements
@@ -3231,8 +3168,6 @@ symbols:
   - id: SYM-cursor-resolveStateDir
     title: resolveStateDir
     sourceFile: packages/cursor/src/hook-state-storage.ts
-    links:
-      - REQ-cursor-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -3262,7 +3197,6 @@ symbols:
     sourceFile: packages/cursor/src/messages.ts
     granularity_reason: legacy-link
     links:
-      - REQ-cursor-kibi-plugin-v1
       - REQ-cursor-stop-job-vs-plan
     status: active
     relationships:
@@ -3277,8 +3211,6 @@ symbols:
   - id: SYM-cursor-updateHookState
     title: updateHookState
     sourceFile: packages/cursor/src/hook-state-storage.ts
-    links:
-      - REQ-cursor-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -3319,7 +3251,6 @@ symbols:
     sourceFile: packages/cursor/src/guidance.ts
     text_ref: packages/cursor/src/guidance.ts#writeGuidance
     links:
-      - REQ-cursor-kibi-plugin-v1
       - REQ-agent-kibi-interface-selection
     status: active
     granularity_reason: legacy-link
@@ -3407,8 +3338,6 @@ symbols:
   - id: SYM-determineReleaseAction
     title: determineReleaseAction
     sourceFile: scripts/release-state.ts
-    links:
-      - REQ-020
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -3850,7 +3779,6 @@ symbols:
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
     links:
       - REQ-cli-staged-impact-enforcement
-      - REQ-symbol-granularity
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -7408,8 +7336,6 @@ symbols:
   - id: SYM-PUBLISHABLE-DIRS
     title: PUBLISHABLE_DIRS
     sourceFile: scripts/package-catalog.ts
-    links:
-      - REQ-020
     status: active
     granularity_reason: legacy-link
     symbol_role: config
@@ -14010,8 +13936,6 @@ symbols:
   - id: SYM-zcode-canonicalizeWorkspacePath
     title: canonicalizeWorkspacePath
     sourceFile: packages/zcode/src/path-policy.ts
-    links:
-      - REQ-zcode-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -14022,8 +13946,6 @@ symbols:
   - id: SYM-zcode-resolveSessionStateDir
     title: resolveSessionStateDir
     sourceFile: packages/zcode/src/hook-state.ts
-    links:
-      - REQ-zcode-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -14077,8 +13999,6 @@ symbols:
   - id: SYM-zcode-addDirtyPaths
     title: addDirtyPaths
     sourceFile: packages/zcode/src/hook-state.ts
-    links:
-      - REQ-zcode-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -14089,8 +14009,6 @@ symbols:
   - id: SYM-zcode-main
     title: main
     sourceFile: packages/zcode/src/hook-runner.ts
-    links:
-      - REQ-zcode-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -14111,8 +14029,6 @@ symbols:
   - id: SYM-zcode-recordKbMcpTool
     title: recordKbMcpTool
     sourceFile: packages/zcode/src/hook-state.ts
-    links:
-      - REQ-zcode-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -14123,8 +14039,6 @@ symbols:
   - id: SYM-zcode-resolveKibiWorkspace
     title: resolveKibiWorkspace
     sourceFile: packages/zcode/src/workspace-optin.ts
-    links:
-      - REQ-zcode-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -14144,8 +14058,6 @@ symbols:
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
         target: REQ-zcode-advisory-enforcement-boundary-v1
-    links:
-      - REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-mcp-registration-config
     title: ZCode MCP registration config
     status: active
@@ -18879,26 +18791,6 @@ symbols:
     relationships:
       - type: implements
         target: REQ-claude-stop-reminder-and-firm-ask
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-  - id: SYM-claude-workspaceDataDir
-    title: workspaceDataDir
-    status: active
-    sourceFile: packages/claude/src/session-state.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-claude-linked-requirement-context
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-  - id: SYM-claude-sessionDir
-    title: sessionDir
-    status: active
-    sourceFile: packages/claude/src/session-state.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-claude-linked-requirement-context
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
   - id: SYM-claude-applyEvent

@@ -22,8 +22,6 @@ tags:
   - extractors
   - relationships
 links:
-  - type: validates
-    target: REQ-cli-sync
   - type: relates_to
     target: SCEN-012
 origin:

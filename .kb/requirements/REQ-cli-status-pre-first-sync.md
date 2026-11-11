@@ -10,7 +10,7 @@ tags:
   - status
 links:
   - type: depends_on
-    target: REQ-mcp-search-discovery
+    target: REQ-kibi-discovery-inspection
   - type: specified_by
     target: SCEN-cli-status-pre-first-sync
   - type: verified_by

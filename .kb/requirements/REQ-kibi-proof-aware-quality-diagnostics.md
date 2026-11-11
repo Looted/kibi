@@ -44,7 +44,7 @@ semantic_inventory:
       end: 410
 links:
   - type: depends_on
-    target: REQ-kibi-conservative-requirement-proof
+    target: REQ-kibi-proof-e2e-evidence-chain
   - type: specified_by
     target: SCEN-kibi-proof-aware-quality-diagnostics
   - type: verified_by

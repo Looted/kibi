@@ -15,11 +15,11 @@ relationships:
     id: rel-79270995002f
   - type: validates
     from: TEST-mcp-canonical-activation
-    to: REQ-cli-canonical-runtime
+    to: REQ-kibi-manifest-initialized-signal
     created_at: 2026-08-18T16:39:38.074Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-ca09253b5416
+    id: rel-09118e4c48b5
   - type: covered_by
     from: SYM-cli-report-relative-time
     to: TEST-kibi-html-health-report

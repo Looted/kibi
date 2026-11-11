@@ -70,9 +70,9 @@ semantic_inventory:
     span: {start: 932, end: 996}
 links:
   - type: depends_on
-    target: REQ-kibi-conservative-requirement-proof
+    target: REQ-kibi-proof-outcome-and-repair-guidance
   - type: depends_on
-    target: REQ-kibi-proposition-complete-ingestion
+    target: REQ-kibi-complete-proposition-ledgers
   - type: specified_by
     target: SCEN-kibi-dependency-ordered-repair-plan
   - type: requires_property

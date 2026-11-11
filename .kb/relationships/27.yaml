@@ -120,11 +120,11 @@ relationships:
     id: rel-0c14985801b5
   - type: depends_on
     from: REQ-cli-status-pre-first-sync
-    to: REQ-mcp-search-discovery
+    to: REQ-kibi-discovery-inspection
     created_at: 2026-11-03T11:41:44.558Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-02c6597ec4d4
+    id: rel-6d15895e58db
   - type: specified_by
     from: REQ-cli-status-pre-first-sync
     to: SCEN-cli-status-pre-first-sync

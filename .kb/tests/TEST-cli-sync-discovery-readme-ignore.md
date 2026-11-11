@@ -15,8 +15,6 @@ verification_perspective: internal
 links:
   - type: validates
     target: SCEN-001
-  - type: validates
-    target: REQ-core-extractors
 proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof

@@ -15,7 +15,11 @@ links:
   - type: validates
     target: SCEN-test-journaled-engine-harness
   - type: validates
-    target: REQ-test-journaled-engine-harness
+    target: REQ-cli-lazy-operation-loading
+  - type: validates
+    target: REQ-test-bounded-suite-runners
+  - type: validates
+    target: REQ-test-engine-isolation-and-cleanup
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:

@@ -122,7 +122,7 @@ links:
   - type: depends_on
     target: REQ-kibi-dependency-ordered-repair-plan
   - type: depends_on
-    target: REQ-kibi-proposition-complete-ingestion
+    target: REQ-kibi-complete-proposition-ledgers
   - type: specified_by
     target: SCEN-kibi-legacy-migration-preview-v2
   - type: requires_predicate

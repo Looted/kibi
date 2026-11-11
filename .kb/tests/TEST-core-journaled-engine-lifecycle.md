@@ -13,7 +13,9 @@ links:
   - type: validates
     target: SCEN-core-journaled-engine-lifecycle
   - type: validates
-    target: REQ-core-journaled-engine-persistence
+    target: REQ-kibi-engine-durable-transactions
+  - type: validates
+    target: REQ-kibi-engine-single-writer-protocol
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:

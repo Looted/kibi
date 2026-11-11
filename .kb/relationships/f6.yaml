@@ -8,11 +8,11 @@ relationships:
     source: mcp://kibi/upsert
   - type: validates
     from: TEST-core-journaled-engine-delta-sync
-    to: REQ-core-journaled-engine-persistence
+    to: REQ-kibi-sync-delta-compilation
     created_at: 2026-08-16T19:42:20.946Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-658202c314a7
+    id: rel-031810dda81a
   - type: specified_by
     from: REQ-cli-check
     to: SCEN-005

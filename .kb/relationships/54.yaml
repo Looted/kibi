@@ -8,11 +8,11 @@ relationships:
     source: mcp://kibi/upsert
   - type: validates
     from: TEST-cursor-canonical-manifest
-    to: REQ-cli-canonical-runtime
+    to: REQ-kibi-manifest-initialized-signal
     created_at: 2026-08-18T16:39:39.529Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-fd1e5e4627c8
+    id: rel-738f02f3ed5c
   - type: implements
     from: SYM-cli-operation-error
     to: REQ-kibi-operation-interface-parity

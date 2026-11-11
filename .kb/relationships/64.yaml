@@ -190,11 +190,11 @@ relationships:
     id: rel-96f46863cc7f
   - type: depends_on
     from: REQ-kibi-distribution-parity-matrix
-    to: REQ-kibi-conservative-requirement-proof
+    to: REQ-kibi-proof-ledger-grounding-contradictions
     created_at: 2026-11-03T11:43:24.467Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-22a5c5d89738
+    id: rel-2adaf7311518
   - type: specified_by
     from: REQ-kibi-distribution-parity-matrix
     to: SCEN-kibi-distribution-parity-matrix

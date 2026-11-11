@@ -18,8 +18,6 @@ verification_scope: integration
 verification_perspective: internal
 links:
   - type: validates
-    target: REQ-core-atomic-upsert-persistence
-  - type: validates
     target: SCEN-core-atomic-upsert-persistence
 origin:
   kind: migration

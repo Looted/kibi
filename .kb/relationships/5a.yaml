@@ -8,11 +8,25 @@ relationships:
     id: rel-ddc73e25ee04
   - type: validates
     from: TEST-test-journaled-engine-harness
-    to: REQ-test-journaled-engine-harness
+    to: REQ-cli-lazy-operation-loading
     created_at: 2026-08-16T18:52:30.381Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-9115273999c2
+    id: rel-19dc5d70cc09
+  - type: validates
+    from: TEST-test-journaled-engine-harness
+    to: REQ-test-bounded-suite-runners
+    created_at: 2026-08-16T18:52:30.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b2217d6099c
+  - type: validates
+    from: TEST-test-journaled-engine-harness
+    to: REQ-test-engine-isolation-and-cleanup
+    created_at: 2026-08-16T18:52:30.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a53a2c17b23
   - type: executable_for
     from: SYM-test-runtime-engine-daemon
     to: TEST-runtime-packed-engine-daemon

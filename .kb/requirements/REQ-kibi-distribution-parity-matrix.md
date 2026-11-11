@@ -93,7 +93,7 @@ links:
   - type: depends_on
     target: REQ-kibi-operation-interface-parity
   - type: depends_on
-    target: REQ-kibi-conservative-requirement-proof
+    target: REQ-kibi-proof-ledger-grounding-contradictions
   - type: specified_by
     target: SCEN-kibi-distribution-parity-matrix
   - type: requires_property
