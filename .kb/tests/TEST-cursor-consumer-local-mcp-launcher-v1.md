@@ -9,7 +9,6 @@ tags:
   - consumer-local
   - launcher
   - verification
-  - review:context-missing
 priority: must
 id: TEST-cursor-consumer-local-mcp-launcher-v1
 type: test
@@ -61,6 +60,9 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+## Context
+This covers isolated and packed launches, workspace selection, package layouts, exit codes and signal forwarding.

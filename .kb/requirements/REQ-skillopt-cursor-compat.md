@@ -5,7 +5,6 @@ tags:
   - skillopt
   - cursor
   - compatibility
-  - review:context-missing
 semantic_text: The SkillOpt cursor operator must parse its qualify and compat commands strictly and must run the cursor compatibility lane before any paid evaluation cells are spent. The lane must gate evaluation on a passing cursor qualification check, summarize per-variant cell outcomes with absolute floors, and persist a compatibility report without recording account data. When arguments or gates are invalid, the operator fails closed with a usage error instead of launching cells.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
@@ -53,9 +52,12 @@ semantic_clauses:
   - When arguments or gates are invalid, the operator fails closed with a usage error instead of launching cells
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 The SkillOpt cursor operator must parse its qualify and compat commands strictly and must run the cursor compatibility lane before any paid evaluation cells are spent. The lane must gate evaluation on a passing cursor qualification check, summarize per-variant cell outcomes with absolute floors, and persist a compatibility report without recording account data. When arguments or gates are invalid, the operator fails closed with a usage error instead of launching cells.
+
+## Why
+The Cursor lane reuses the Codex fixtures, broker, verifier and scorer. Qualification fails closed before any cells are spent, so a broken Cursor setup can't burn paid evaluation. Results are non-authoritative, and adoption stays external-verdict-only. Source: Commit "add Cursor compatibility lane", Aug 24. The code shipped first; the requirement chain was added on Aug 25.

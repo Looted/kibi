@@ -54,8 +54,9 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 ---
+
+## Context
+This bundles the shipped extension and activates it against a real workspace: tree, navigation to real coordinates, code lenses and context on open.

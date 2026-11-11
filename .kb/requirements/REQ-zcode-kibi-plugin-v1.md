@@ -11,7 +11,6 @@ tags:
   - zcode
   - plugin
   - mcp
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-zcode-kibi-plugin-v1

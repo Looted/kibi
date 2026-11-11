@@ -3,7 +3,6 @@ title: Observable capability plugin behavior
 status: open
 tags:
   - plugins
-  - review:context-missing
 semantic_text: Undeclared, path, and global plugin package names are invalid resolution inputs and must fail closed. When an installed capability plugin is not activated, the host must not import that package. An external capability provider must not run during a maintenance operation. Optional Jev must be absent from the default CLI, MCP, and runtime dependency graphs. An SDK-only third-party plugin must be allowed through the host capability seam as a provider operation. An external semantic classifier must be allowed only for kb_semantic_advisor. An external semantic classifier must be allowed only for kb_compile_intent.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
@@ -93,7 +92,7 @@ semantic_clauses:
   - An external semantic classifier must be allowed only for kb_compile_intent.
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -101,3 +100,6 @@ required_evidence: tested
 # REQ-capability-plugin-observable-behavior-v1
 
 Undeclared, path, and global plugin package names are invalid resolution inputs and must fail closed. When an installed capability plugin is not activated, the host must not import that package. An external capability provider must not run during a maintenance operation. Optional Jev must be absent from the default CLI, MCP, and runtime dependency graphs. An SDK-only third-party plugin must be allowed through the host capability seam as a provider operation. An external semantic classifier must be allowed only for kb_semantic_advisor. An external semantic classifier must be allowed only for kb_compile_intent.
+
+## Why
+The first version had no end-to-end proof of activation, rejection, mode and fallback. This requirement states the behavior a user can observe, so it could be proved through a real install. Maintenance paths stay builtin-only so checks stay deterministic. Source: Commit "prove observable plugin behavior and configure Jev from the environment"; ADR "Builtin semantics".

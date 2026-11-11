@@ -3,7 +3,6 @@ title: Capability plugin host resolution tests
 status: passing
 tags:
   - plugins
-  - review:context-missing
 verification_scope: unit
 proof_contract:
   version: kibi.proof-contract.v1
@@ -17,7 +16,7 @@ id: TEST-capability-plugin-host-resolution-v1
 type: test
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 proof_receipts:
   - version: kibi.proof-receipt.v2
@@ -59,3 +58,6 @@ proof_receipts:
 # TEST-capability-plugin-host-resolution-v1
 
 Automated coverage: packages/cli/tests/plugins/capability-plugin-host.test.ts
+
+## Context
+Resolution follows each package manager's rules (npm, pnpm symlinks, Yarn PnP) and must reject paths, globals and undeclared packages. These host tests cover those cases. Source: docs/plugin-development.md, "Activation".

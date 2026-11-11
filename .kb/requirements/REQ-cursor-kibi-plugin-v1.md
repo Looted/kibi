@@ -12,7 +12,6 @@ tags:
   - cursor
   - plugin
   - mcp
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-cursor-kibi-plugin-v1

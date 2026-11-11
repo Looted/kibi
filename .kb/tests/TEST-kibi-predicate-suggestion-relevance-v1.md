@@ -10,7 +10,6 @@ tags:
   - predicates
   - relevance
   - e2e
-  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -60,6 +59,9 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+## Context
+This checks the explanation fields (eligibility, rejection reasons, binding provenance, score parts), so a reviewer can see why a candidate was or wasn't recommended.

@@ -12,7 +12,6 @@ tags:
   - codex
   - plugin
   - mcp
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-codex-kibi-plugin-v1
