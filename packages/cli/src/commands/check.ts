@@ -58,7 +58,6 @@ import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
 import { refreshDetachedSnapshot } from "../runtime/detached-snapshot.js";
 import { amendsRootCommit } from "../traceability/commit-amend.js";
 import {
-  KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
   type KibiEntityType,
   type KibiImpactEvidence,
@@ -94,7 +93,6 @@ import {
 import {
   classifyKibiImpactEvidence,
   isBehaviorSourceEdit,
-  parseKibiImpactOverride,
 } from "../traceability/staged-impact-contract.js";
 import {
   stagedInventoryDriftViolations,
@@ -531,7 +529,6 @@ export function buildStagedKibiImpactEvidence(options: {
   const behaviorSourcePaths = sourceChanges
     .filter((change) => change.kind === "behavior_source_edit")
     .map((change) => change.path);
-  const allSourcePaths = sourceChanges.map((change) => change.path);
   const behaviorSourceFiles = sourceFiles.filter((file) =>
     behaviorSourcePaths.includes(file.path),
   );
@@ -558,21 +555,11 @@ export function buildStagedKibiImpactEvidence(options: {
     KibiImpactEvidence["mode"],
     { kind: "kb_changes" }
   >["kbArtifacts"][number];
-  type NoImpactOverride = Extract<
-    KibiImpactEvidence["mode"],
-    { kind: "no_impact_override" }
-  >["override"];
 
   const resolvedKbArtifacts: KbArtifact[] = [];
-  let override: NoImpactOverride | null = null;
 
   for (const file of markdownFiles) {
-    const parsedOverride = parseKibiImpactOverride(file.content ?? "");
-    const evidenceKind = classifyKibiImpactEvidence({
-      filePath: file.path,
-      overrideDeclared: parsedOverride.declared,
-      overrideRationale: parsedOverride.rationale,
-    });
+    const evidenceKind = classifyKibiImpactEvidence({ filePath: file.path });
 
     if (evidenceKind === "entity_markdown") {
       const result = markdownResultsByPath.get(file.path);
@@ -585,20 +572,7 @@ export function buildStagedKibiImpactEvidence(options: {
           sourcePaths: [...behaviorSourcePaths],
         });
       }
-      continue;
     }
-
-    if (!parsedOverride.declared || override !== null) {
-      continue;
-    }
-
-    override = {
-      declaration: KIBI_NO_IMPACT_DECLARATION,
-      path: file.path,
-      sourcePaths: [...allSourcePaths],
-      reason: "non_behavioral_source_edit",
-      rationale: parsedOverride.rationale ?? "",
-    };
   }
 
   if (stagedAuthoredSymbolsEvidence.changedEntityIds.length > 0) {
@@ -630,9 +604,7 @@ export function buildStagedKibiImpactEvidence(options: {
     mode:
       resolvedKbArtifacts.length > 0
         ? { kind: "kb_changes", kbArtifacts: resolvedKbArtifacts }
-        : override
-          ? { kind: "no_impact_override", override }
-          : { kind: "missing" },
+        : { kind: "missing" },
   };
 }
 

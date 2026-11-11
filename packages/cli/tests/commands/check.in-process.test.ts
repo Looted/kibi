@@ -635,32 +635,6 @@ Fixture requirement for the staged check: users sign in before they reach their 
     expect(io.logText()).toContain("No violations found in staged symbols");
   });
 
-  test("applies a no-impact override and flags a missing rationale", async () => {
-    const restoreEnv = isolateKibiEnv();
-    restores.push(restoreEnv);
-    const cwd = createGitWorkspace();
-    roots.push(cwd);
-    writeFileSync(path.join(cwd, "notes.txt"), "hello\n");
-    writeFileSync(path.join(cwd, "impact.md"), "Kibi-Impact: none\n");
-    git(cwd, "add notes.txt impact.md");
-    const io = captureIo();
-    restores.push(io.restore);
-    const missing = await withCwd(cwd, () =>
-      checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
-    );
-    expect(missing.exitCode).toBe(0);
-
-    writeFileSync(
-      path.join(cwd, "impact.md"),
-      "Kibi-Impact: none\nRationale: comment-only notes\n",
-    );
-    git(cwd, "add impact.md");
-    const ok = await withCwd(cwd, () =>
-      checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
-    );
-    expect(ok.exitCode).toBe(0);
-  });
-
   test("rejects malformed staged manifests even for test-only source changes", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);

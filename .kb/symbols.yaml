@@ -2982,16 +2982,6 @@ symbols:
         target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
-  - id: SYM-AuditedNoImpactOverrideInput
-    title: AuditedNoImpactOverrideInput
-    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-AuditEntityPayload
     title: AuditEntityPayload
     status: active
@@ -8828,16 +8818,6 @@ symbols:
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-paid-matrix-infrastructure
-  - id: SYM-hasOverrideRationale
-    title: hasOverrideRationale
-    sourceFile: packages/cli/src/traceability/evidence-model.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-hasTraversal
     title: hasTraversal
     sourceFile: scripts/skillopt-eval/verification-harness-options.ts
@@ -9237,16 +9217,6 @@ symbols:
         target: TEST-mcp-upsert-symbol-behavioral-anchors
       - type: implements
         target: REQ-symbol-behavioral-anchors
-  - id: SYM-isAuditedNoImpactOverrideAllowed
-    title: isAuditedNoImpactOverrideAllowed
-    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-isBehavioralSymbol
     title: isBehavioralSymbol
     sourceFile: packages/cli/src/public/symbol-granularity.ts
@@ -9669,20 +9639,6 @@ symbols:
         target: REQ-002
       - type: implements
         target: REQ-mcp-cli-help
-  - id: SYM-KIBI-NO-IMPACT-DECLARATION
-    title: KIBI_NO_IMPACT_DECLARATION
-    sourceFile: packages/cli/src/traceability/evidence-model.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: covered_by
-        target: TEST-proof-no-impact-declaration
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-staged-impact-identifiers
   - id: SYM-KIBI-REFRESH-TREE-COMMAND
     title: KIBI_REFRESH_TREE_COMMAND
     sourceFile: packages/vscode/src/extensionIds.ts
@@ -10022,16 +9978,6 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
       - type: implements
         target: REQ-cli-staged-impact-enforcement
-  - id: SYM-KibiImpactNoImpactOverrideMode
-    title: KibiImpactNoImpactOverrideMode
-    sourceFile: packages/cli/src/traceability/evidence-model.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-KibiImpactSourceChange
     title: KibiImpactSourceChange
     sourceFile: packages/cli/src/traceability/evidence-model.ts
@@ -10044,26 +9990,6 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
   - id: SYM-KibiImpactSymbolsManifest
     title: KibiImpactSymbolsManifest
-    sourceFile: packages/cli/src/traceability/evidence-model.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
-  - id: SYM-KibiNoImpactOverride
-    title: KibiNoImpactOverride
-    sourceFile: packages/cli/src/traceability/evidence-model.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
-  - id: SYM-KibiNoImpactReason
-    title: KibiNoImpactReason
     sourceFile: packages/cli/src/traceability/evidence-model.ts
     status: active
     granularity_reason: legacy-link
@@ -13251,16 +13177,6 @@ symbols:
         target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
-  - id: SYM-ParsedKibiImpactOverride
-    title: ParsedKibiImpactOverride
-    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-parseHeldOutReservation
     title: parseHeldOutReservation
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -13283,16 +13199,6 @@ symbols:
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-paid-matrix-infrastructure
-  - id: SYM-parseKibiImpactOverride
-    title: parseKibiImpactOverride
-    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-parseRdfRelationships
     title: parseRdfRelationships
     sourceFile: packages/vscode/src/shared/rdf-parser.ts
@@ -38497,16 +38403,6 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
       - type: implements
         target: REQ-cli-staged-impact-enforcement
-  - id: SYM-create-missing-override-rationale-diagnostic
-    title: createMissingOverrideRationaleDiagnostic
-    status: active
-    sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-cli-staged-impact-enforcement
   - id: SYM-manifest-record-source-path
     title: manifestRecordSourcePath
     status: active
@@ -62107,20 +62003,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-impact-diagnostic-ids
-  - id: SYM-proof-no-impact-declaration
-    title: noImpactDeclarationCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/staged-impact-identifiers.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - regex
-    origin:
-      kind: agent
-      recorded_at: 2026-10-28T18:57:11.124Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-no-impact-declaration
   - id: SYM-proof-symbols-manifest-path
     title: symbolsManifestPathCertificate
     status: active

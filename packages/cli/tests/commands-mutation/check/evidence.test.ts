@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { buildStagedKibiImpactEvidence } from "../../../src/commands/check.js";
 import type { ExtractionResult } from "../../../src/extractors/markdown.js";
-import { KIBI_NO_IMPACT_DECLARATION } from "../../../src/traceability/evidence-model.js";
 import type { StagedFile } from "../../../src/traceability/git-staged.js";
 import * as contract from "../../../src/traceability/staged-impact-contract.js";
 import * as manifest from "../../../src/traceability/staged-symbols-manifest.js";
@@ -228,48 +227,45 @@ describe("markdown evidence", () => {
     });
   });
 
-  test("the first declared override with a rationale is kept", () => {
-    const declared = "Kibi-Impact: none\nRationale: rename only\n";
+  test("a no-impact line in a note outside the entity lanes is not evidence", () => {
     const evidence = build({
-      sourceFiles: [file("src/behavior.ts"), file("src/plain.ts")],
+      sourceFiles: [file("src/behavior.ts")],
       markdownFiles: [
-        file("notes/plain.md", { content: "no override" }),
-        file("notes/first.md", { content: declared }),
-        file("notes/second.md", {
-          content: "Kibi-Impact: none\nRationale: other\n",
+        file("notes/a.md", {
+          content: "Kibi-Impact: none\nRationale: rename only\n",
         }),
       ],
     });
-    expect(evidence.mode).toEqual({
-      kind: "no_impact_override",
-      override: {
-        declaration: KIBI_NO_IMPACT_DECLARATION,
-        path: "notes/first.md",
-        sourcePaths: ["src/behavior.ts", "src/plain.ts"],
-        reason: "non_behavioral_source_edit",
-        rationale: "rename only",
-      },
-    });
+    expect(evidence.mode).toEqual({ kind: "missing" });
   });
 
-  test("a declared override without a rationale keeps an empty one", () => {
+  test("an entity document quoting a no-impact line stays evidence", () => {
     const evidence = build({
-      markdownFiles: [file("notes/a.md", { content: "Kibi-Impact: none\n" })],
+      sourceFiles: [file("src/behavior.ts")],
+      symbolsByFile: new Map([["src/behavior.ts", [{}]]]) as never,
+      markdownFiles: [
+        file(REQ, {
+          content:
+            "---\nid: REQ-1\n---\nKibi-Impact: none\nRationale: quoted\n",
+        }),
+      ],
+      markdownResultsByPath: new Map([[REQ, entity("req", "REQ-1")]]),
     });
-    expect(evidence.mode).toMatchObject({
-      kind: "no_impact_override",
-      override: { path: "notes/a.md", rationale: "" },
+    expect(evidence.mode).toEqual({
+      kind: "kb_changes",
+      kbArtifacts: [
+        {
+          kind: "entity_markdown",
+          path: REQ,
+          entityTypes: ["req"],
+          entityIds: ["REQ-1"],
+          sourcePaths: ["src/behavior.ts"],
+        },
+      ],
     });
   });
 
-  test("markdown without content is read as empty", () => {
-    const parse = spyOn(contract, "parseKibiImpactOverride");
-    spies.push(parse);
-    build({ markdownFiles: [file("notes/a.md")] });
-    expect(parse.mock.calls).toEqual([[""]]);
-  });
-
-  test("artifacts win over an override", () => {
+  test("a no-impact line does not displace authored symbol evidence", () => {
     authored = {
       path: ".kb/symbols.yaml",
       changedEntityIds: ["SYM-1"],

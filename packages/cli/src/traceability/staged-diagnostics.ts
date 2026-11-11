@@ -5,7 +5,6 @@ import {
   type KibiImpactEvidence,
   type KibiImpactSymbolsManifestFileDetail,
   getMissingBehaviorSourcePaths,
-  hasOverrideRationale,
 } from "./evidence-model.js";
 
 export type KibiImpactDiagnosticId =
@@ -22,7 +21,6 @@ export type KibiImpactDiagnosticId =
   | "requirement_status_review"
   | "strict_fact_modeling_review"
   | "logical_coverage_review"
-  | "kibi_impact_override_missing_rationale"
   | "entity_id_style_review";
 
 export interface KibiImpactDiagnostic extends QualityDiagnostic {
@@ -192,30 +190,6 @@ function createSymbolsManifestStaleDiagnostic(
   };
 }
 
-export function createMissingOverrideRationaleDiagnostic(
-  evidence: KibiImpactEvidence,
-): KibiImpactDiagnostic {
-  if (evidence.mode.kind !== "no_impact_override") {
-    throw new Error(
-      "Override rationale diagnostic requires a no-impact override",
-    );
-  }
-
-  const paths = [...evidence.mode.override.sourcePaths].sort();
-
-  return {
-    id: "kibi_impact_override_missing_rationale",
-    severity: "error",
-    blocking: true,
-    category: "fact",
-    files: [evidence.mode.override.path, ...paths],
-    docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
-    message: `Kibi-Impact: none override is missing rationale for staged source files: ${formatFileList(paths)}`,
-    suggestion:
-      "Add a non-empty rationale in the same staged override record, keep overrides limited to false positives or non-behavioral source edits, and re-run kibi check --staged.",
-  };
-}
-
 /**
  * Collects deterministic staged diagnostics for Kibi impact enforcement.
  *
@@ -228,13 +202,6 @@ export function collectStagedKibiDiagnostics(
   symbolsManifestPath: string = KIBI_SYMBOLS_MANIFEST_PATH,
 ): KibiImpactDiagnostic[] {
   const diagnostics: KibiImpactDiagnostic[] = [];
-
-  if (
-    evidence.mode.kind === "no_impact_override" &&
-    !hasOverrideRationale(evidence)
-  ) {
-    diagnostics.push(createMissingOverrideRationaleDiagnostic(evidence));
-  }
 
   if (
     evidence.symbolsManifest.state === "stale" &&

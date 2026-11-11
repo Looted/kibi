@@ -5093,16 +5093,6 @@
     ]
   },
   {
-    "test_id": "TEST-proof-no-impact-declaration",
-    "steps": [
-      [
-        "bun",
-        "test",
-        "./packages/cli/tests/proofs/claims/staged-impact-identifiers.proof.test.ts"
-      ]
-    ]
-  },
-  {
     "test_id": "TEST-proof-symbols-manifest-path",
     "steps": [
       [

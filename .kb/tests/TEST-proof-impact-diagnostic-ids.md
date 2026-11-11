@@ -1,5 +1,5 @@
 ---
-title: A staged impact diagnostic shall be kibi_impact_evidence_missing, symbols_manifest_stale or kibi_impact_override_missing_rationale, by an exhaustive proof
+title: A staged impact diagnostic shall be kibi_impact_evidence_missing or symbols_manifest_stale, by an exhaustive proof
 status: passing
 tags:
   - proof
@@ -18,7 +18,7 @@ proof_contract:
   domain_source:
     symbol_id: SYM-KIBI-IMPACT-DIAGNOSTIC-IDS
   proves:
-    - CLAIM-5DCC5375F28A93DF
+    - CLAIM-F99938945F5E84C3
 origin:
   kind: agent
   recorded_at: '2026-10-28T18:56:52.625Z'

@@ -126,13 +126,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-4b244166cc22
   - type: covered_by
-    from: SYM-ParsedKibiImpactOverride
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:14:51.338Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a4547ae8f101
-  - type: covered_by
     from: SYM-auto-4EA730253252
     to: TEST-kibi-operation-interface-parity
     created_at: 2026-09-05T17:17:15.850Z

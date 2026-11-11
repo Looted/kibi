@@ -28,7 +28,6 @@ symbols_manifest_stale: .kb/symbols.yaml does not cover the declarations of stag
 | `symbols_manifest_stale` | A staged behavior file declares symbols `.kb/symbols.yaml` has no entry for, or an entry names a declaration that is gone. | Author entries for the listed symbols, re-point or retire entries whose declaration is gone, and stage `.kb/symbols.yaml`. Coordinates are derived locally and never staged. |
 | `symbol_granularity_violation` | A changed behavioral member is owned only by a coarse class or module symbol while a narrower declaration exists. | Add a symbol for the member itself (`title` = `Class.method` or the exported function) with its own links; use `granularity_reason` (`config-artifact`, `module-level-behavior`, `extractor-miss`, `legacy-link`, `test-suite`) only when it is true. |
 | `symbol-coverage` | A changed symbol, or a symbol whose staged manifest entry changed, fails the full-check rule on the staged knowledge. | The symbol `implements` the requirement and is `covered_by` a test that verifies it: through the requirement's scenario (`verified_by` scenario -> test) when it has one, else `verified_by` requirement -> test. A direct requirement -> test link does not count while a scenario exists. The finding's suggestion names the missing link (see `kibi-traceability`). |
-| `kibi_impact_override_missing_rationale` | A `Kibi-Impact: none` declaration has no `Rationale:` line. | Add the rationale, or drop the declaration and stage real evidence. |
 | `entity-context-missing` (staged entity) | A staged requirement, scenario, test, ADR or observation fact has fewer than 12 words of context. | Upsert a sectioned `document.body` (see `kibi-usage`, Entity body contract). |
 | `domain-contradictions`, `kb-consistency`, `scenario-feasibility`, `exception-claim-keys` (staged `.kb/` change) | The staged knowledge introduces a violation the last commit did not have. `kb-consistency` also catches facts that contradict only together and names their requirements. | Fix the knowledge; a contradiction with a recorded rule goes to the person (`kibi-decisions`). |
 | Proposition-complete ingestion | A staged requirement's semantic inventory is missing or no longer matches its prose. | Re-derive it (`kb_model` analyze with the complete prose) or run `kibi migrate` for drift. |
@@ -54,19 +53,12 @@ These warn but do not block. Read them; they are often the real review.
   staged text file (not TypeScript or JavaScript) has no owning requirement,
   or has one and no matching evidence changed.
 
-## Audited no-impact declaration
+## No waiver line
 
-For a false positive or an edit that changes no behavior, Kibi accepts a
-staged Markdown note in a knowledge lane under `.kb/` with the two lines
-
-```text
-Kibi-Impact: none
-Rationale: <why the staged source edits change no behavior>
-```
-
-It never satisfies a genuine behavior change, and it is visible in review.
-Prefer real evidence; use the note only when the person agrees the edit has
-no behavior impact.
+No declaration line in a note, entity document or commit message waives a
+behavior edit; `kibi_impact_evidence_missing` stays until real evidence is
+staged. A false positive is cleared by authoring `.kb/symbols.yaml` entries
+for the file's declarations.
 
 ## Impact-review record
 

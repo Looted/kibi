@@ -140,13 +140,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-27e7ff431f5b
   - type: covered_by
-    from: SYM-hasOverrideRationale
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:18:07.489Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e2d706b54c05
-  - type: covered_by
     from: SYM-cli-processExtractions
     to: TEST-cli-sync-discovery-readme-ignore
     created_at: 2026-09-05T15:24:57.665Z

@@ -11,7 +11,6 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 type: scenario
 ---
-
 # CLI Staged Impact Enforcement
 
 ## Given
@@ -33,10 +32,9 @@ type: scenario
 - Comment-only or formatting-only diffs are classified as non-behavioral
 
 ## Stale Manifest Detection
-- When source edits alter extracted symbol coordinates but `documentation/symbols.yaml` is not staged or is stale, `symbols_manifest_stale` is emitted
+- When source edits alter extracted symbol coordinates but `.kb/symbols.yaml` is not staged or is stale, `symbols_manifest_stale` is emitted
 - Timestamp-only churn in the manifest does not hard-fail
 
-## Override Policy
-- `no_impact_override` is available only for classifier false positives
-- It must include a rationale and is auditable
-- It NEVER satisfies genuinely behavior-changing edits
+## No Waiver Line
+- A `Kibi-Impact: none` line in a note or entity document does not waive a behavior edit; the check still emits `kibi_impact_evidence_missing`
+- A false positive is cleared by authoring `.kb/symbols.yaml` entries for the file's declarations

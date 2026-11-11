@@ -10,10 +10,8 @@ import {
   type BehaviorSourceEditInput,
   type KibiImpactEvidenceInput,
   classifyKibiImpactEvidence,
-  isAuditedNoImpactOverrideAllowed,
   isBehaviorSourceEdit,
   isSupportedBehaviorSourcePath,
-  parseKibiImpactOverride,
 } from "../../src/traceability/staged-impact-contract.js";
 
 // ---------------------------------------------------------------------------
@@ -204,22 +202,6 @@ describe("classifyKibiImpactEvidence", () => {
     expect(classifyKibiImpactEvidence(input)).toBeNull();
   });
 
-  it("classifies a no-impact override with rationale as audited_no_impact", () => {
-    const input: KibiImpactEvidenceInput = {
-      overrideDeclared: true,
-      overrideRationale: "Comment-only rewrite, no behavior change.",
-    };
-    expect(classifyKibiImpactEvidence(input)).toBe("audited_no_impact");
-  });
-
-  it("does NOT classify an override without rationale as audited_no_impact", () => {
-    const input: KibiImpactEvidenceInput = {
-      overrideDeclared: true,
-      overrideRationale: null,
-    };
-    expect(classifyKibiImpactEvidence(input)).toBeNull();
-  });
-
   it("returns null for an unrecognized file path", () => {
     const input: KibiImpactEvidenceInput = {
       filePath: "src/something.ts",
@@ -230,80 +212,6 @@ describe("classifyKibiImpactEvidence", () => {
   it("returns null when no filePath is provided", () => {
     const input: KibiImpactEvidenceInput = {};
     expect(classifyKibiImpactEvidence(input)).toBeNull();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// parseKibiImpactOverride
-// ---------------------------------------------------------------------------
-
-describe("parseKibiImpactOverride", () => {
-  it("parses a Kibi-Impact: none declaration with rationale", () => {
-    const result = parseKibiImpactOverride(
-      "Kibi-Impact: none\nRationale: Comment-only rewrite.",
-    );
-    expect(result.declared).toBe(true);
-    expect(result.rationale).toBe("Comment-only rewrite.");
-  });
-
-  it("parses a declaration without rationale", () => {
-    const result = parseKibiImpactOverride("Kibi-Impact: none");
-    expect(result.declared).toBe(true);
-    expect(result.rationale).toBeNull();
-  });
-
-  it("returns declared=false for text without the declaration", () => {
-    const result = parseKibiImpactOverride("Some other text");
-    expect(result.declared).toBe(false);
-    expect(result.rationale).toBeNull();
-  });
-
-  it("treats whitespace-only rationale as null", () => {
-    const result = parseKibiImpactOverride("Kibi-Impact: none\nRationale:   ");
-    expect(result.declared).toBe(true);
-    expect(result.rationale).toBeNull();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// isAuditedNoImpactOverrideAllowed
-// ---------------------------------------------------------------------------
-
-describe("isAuditedNoImpactOverrideAllowed", () => {
-  it("allows override for non-behavior edit with declared override and rationale", () => {
-    expect(
-      isAuditedNoImpactOverrideAllowed({
-        behaviorSourceEdit: false,
-        override: { declared: true, rationale: "Whitespace-only change." },
-      }),
-    ).toBe(true);
-  });
-
-  it("rejects override for a genuine behavior source edit even with rationale", () => {
-    expect(
-      isAuditedNoImpactOverrideAllowed({
-        behaviorSourceEdit: true,
-        override: { declared: true, rationale: "Should not matter." },
-      }),
-    ).toBe(false);
-  });
-
-  it("rejects override when declaration is missing", () => {
-    expect(
-      isAuditedNoImpactOverrideAllowed({
-        behaviorSourceEdit: false,
-        override: { declared: false, rationale: "Some reason." },
-      }),
-    ).toBe(false);
-  });
-
-  it("rejects override when rationale is missing", () => {
-    expect(
-      isAuditedNoImpactOverrideAllowed({
-        behaviorSourceEdit: false,
-        override: { declared: true, rationale: null },
-      }),
-    ).toBe(false);
   });
 });
 
