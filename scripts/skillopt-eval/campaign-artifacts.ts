@@ -190,7 +190,6 @@ function composePlan(
  * source body. Applying offsets in descending order makes composition
  * independent of the other insertions; the inverse pass proves exact recovery.
  */
-// implements REQ-skillopt-codex-optimization; narrow campaign MR ownership.
 export function composeCampaignManifest(
   input: Readonly<{
     skill: CanonicalSkill;
@@ -275,7 +274,6 @@ export function composeCampaignManifest(
   return manifest;
 }
 
-// implements REQ-skillopt-codex-optimization; narrow campaign MR ownership.
 export function validateCampaignManifestAgainstSurface(
   manifest: CampaignManifest,
   surface: CampaignSourceSurface,
@@ -522,7 +520,6 @@ function rejectPrivateFeedback(value: unknown): void {
   }
 }
 
-// implements REQ-skillopt-codex-optimization; narrow campaign MR ownership.
 export function parsePublicFeedback(value: unknown): PublicFeedback {
   rejectPrivateFeedback(value);
   return PublicFeedbackSchema.parse(value);
@@ -556,7 +553,6 @@ export type SourceFence = Readonly<{
   files: number;
 }>;
 
-// implements REQ-skillopt-codex-optimization; narrow campaign MR ownership.
 export async function defaultSourceFence(root: string): Promise<SourceFence> {
   const [headResult, treeResult] = await Promise.all([
     runBoundedProcess({
