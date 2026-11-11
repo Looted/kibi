@@ -9,7 +9,6 @@ priority: must
 tags:
   - cli
   - query
-  - review:context-missing
 links:
   - type: supersedes
     target: REQ-003
@@ -71,10 +70,13 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The `kibi query` command provides CLI access to the knowledge base. It supports filtering by entity type, ID, tags, and source file.
 Output can be formatted as human-readable tables or machine-readable JSON.
 It also supports querying relationships for specific entities.
+
+## Why this changed
+REQ-003 described every CLI command in one requirement, so it could not be traced or tested per command. It was split into one requirement per command, and this one covers kibi query. Source: commit "docs(req): split app surface requirements", May 13.

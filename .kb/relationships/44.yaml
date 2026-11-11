@@ -1,25 +1,4 @@
 relationships:
-  - type: covered_by
-    from: SYM-isSupportedLegacyBranchMigration
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-17T08:38:26.460Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e62ce9eedfa4
-  - type: implements
-    from: SYM-skillopt-required-kibi-tools
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-21T19:52:52.491Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-609c3f85e5d9
-  - type: covered_by
-    from: SYM-skillopt-required-kibi-tools
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-21T19:52:52.506Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-050f1a1a1745
   - type: executable_for
     from: SYM-packed-create-owned-temp-directory
     to: TEST-test-journaled-engine-harness
@@ -48,27 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c45a4d2e617
-  - type: implements
-    from: SYM-cli-discovery-resolve-core-module
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:23:57.598Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9acbc7fe6e53
-  - type: covered_by
-    from: SYM-cli-discovery-resolve-core-module
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-22T20:23:57.614Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a53d7afd0f7b
-  - type: covered_by
-    from: SYM-cli-discovery-resolve-core-module
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:23:57.618Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cb3161bd9728
   - type: covered_by
     from: SYM-markdown-normalizeDateLike
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -133,20 +91,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-24c5db84e043
   - type: implements
-    from: SYM-cli-apply-classification-routing
-    to: REQ-capability-plugin-observable-behavior-v1
-    created_at: 2026-09-22T19:48:18.724Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-64734c87e84a
-  - type: covered_by
-    from: SYM-cli-apply-classification-routing
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:48:18.728Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9bc3acd5bc5b
-  - type: implements
     from: SYM-jev-resolve-timeout
     to: REQ-capability-plugin-configuration-v1
     created_at: 2026-09-22T19:49:18.766Z
@@ -174,13 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-44b666375179
-  - type: implements
-    from: SYM-isSupportedLegacyBranchMigration
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T03:00:58.354Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8c455ac81650
   - type: validates
     from: TEST-check-related-requirement-unmodeled
     to: REQ-check-related-requirement-unmodeled
@@ -195,13 +132,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d55aaa85118e
-  - type: implements
-    from: SYM-cli-signoff-collect-summary
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-22T09:25:45.034Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a9341894e8c7
   - type: covered_by
     from: SYM-cli-signoff-collect-summary
     to: TEST-kibi-signoff-views
@@ -377,3 +307,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-24d476df509b
+  - type: constrains
+    from: REQ-kibi-origin-review-rule-names
+    to: FACT-kibi-check-rule-names-component
+    created_at: 2026-11-04T18:08:59.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72c6e7199345
+  - type: requires_property
+    from: REQ-kibi-origin-review-rule-names
+    to: FACT-agent-requirement-unapproved-rule
+    created_at: 2026-11-04T18:08:59.426Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1236013a5d2
+  - type: requires_property
+    from: REQ-kibi-origin-review-rule-names
+    to: FACT-exception-unapproved-rule
+    created_at: 2026-11-04T18:08:59.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-272d13474051
+  - type: requires_property
+    from: REQ-kibi-origin-review-rule-names
+    to: FACT-exception-self-attested-rule
+    created_at: 2026-11-04T18:08:59.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c8c821fbafe
+  - type: requires_property
+    from: REQ-kibi-origin-review-rule-names
+    to: FACT-rationale-missing-rule
+    created_at: 2026-11-04T18:08:59.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0e52a6db530
+  - type: specified_by
+    from: REQ-kibi-origin-review-rule-names
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-11-04T18:08:59.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d362e15bc1d8
+  - type: supersedes
+    from: REQ-kibi-origin-review-rule-names
+    to: REQ-kibi-check-rule-names
+    created_at: 2026-11-04T18:08:59.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbd848b484c9
+  - type: constrains
+    from: REQ-kibi-playwright-native-id
+    to: FACT-SUBJ-kibi-playwright-native-id
+    created_at: 2026-11-11T17:35:22.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab40c72f181f
+  - type: requires_property
+    from: REQ-kibi-playwright-native-id
+    to: FACT-PROP-kibi-playwright-native-id-c01
+    created_at: 2026-11-11T17:35:22.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a0f16e3f630
+  - type: requires_property
+    from: REQ-kibi-playwright-native-id
+    to: FACT-PROP-kibi-playwright-native-id-c02
+    created_at: 2026-11-11T17:35:22.988Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ff1dd6245b7
+  - type: specified_by
+    from: REQ-kibi-playwright-native-id
+    to: SCEN-kibi-playwright-native-id
+    created_at: 2026-11-11T17:35:23.015Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-236418d993ce
+  - type: specified_by
+    from: REQ-kibi-playwright-native-id
+    to: SCEN-NEG-kibi-playwright-native-id
+    created_at: 2026-11-11T17:35:23.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72bac60d9fd4
+  - type: relates_to
+    from: REQ-kibi-playwright-native-id
+    to: REQ-kibi-proof-producers
+    created_at: 2026-11-11T17:35:23.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b22adb4b2560

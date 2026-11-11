@@ -10,7 +10,7 @@ value_int: 0
 canonical_key: kibi.non_numeric_proof:machine_projection_members_differing_from_set_fact:eq:0
 claim_key: CLAIM-720C6C0BB97B89F0
 claim_text: A state_machine proof must establish exactly the transitions, initial states, terminal states or reachable states a set fact names
-text_ref: REQ-kibi-non-numeric-proof-kinds
+text_ref: REQ-kibi-state-machine-proofs
 tags:
   - strict-modeling
   - lane:strict

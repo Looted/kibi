@@ -1,6 +1,6 @@
 ---
 title: Predicate replacement plan diagnostics tests
-status: active
+status: passing
 tags:
   - modeling
   - predicates

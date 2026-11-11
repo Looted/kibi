@@ -16,7 +16,8 @@ const RUN_NODE_TEST_SUITE =
 /**
  * E2E: harness-independent Kibi env bootstrap.
  *
- * REQ-kibi-env-bootstrap / SCEN-kibi-env-bootstrap — process env wins over
+ * REQ-kibi-env-bootstrap-shared, -workspace-root and -doctor-attribution /
+ * SCEN-kibi-env-bootstrap — process env wins over
  * project `.env.kibi`, blank values are unset, and workspace resolution honors
  * KIBI_WORKSPACE without importing third-party plugin packages from doctor.
  */
@@ -59,6 +60,11 @@ if (RUN_NODE_TEST_SUITE) {
           env?: NodeJS.ProcessEnv,
         ) => string;
         resetKibiEnvironmentBootstrapStateForTests: () => void;
+        secretSourceFromBootstrap: (
+          key: string,
+          bootstrap: { sources: Record<string, string> },
+          env?: NodeJS.ProcessEnv,
+        ) => string;
       };
     }
 
@@ -133,6 +139,90 @@ if (RUN_NODE_TEST_SUITE) {
           KIBI_WORKSPACE: other,
         });
         assert.strictEqual(resolved, other);
+      },
+    );
+
+    it(
+      "a nested harness directory resolves to the enclosing workspace, never to itself",
+      { timeout: 30000 },
+      () => {
+        const {
+          bootstrapKibiEnvironment,
+          resolveKibiWorkspaceRoot,
+          resetKibiEnvironmentBootstrapStateForTests,
+        } = loadRuntime();
+
+        const harness = join(sandbox.repoDir, "tools", "harness");
+        mkdirSync(harness, { recursive: true });
+        writeFileSync(
+          join(sandbox.repoDir, ".env.kibi"),
+          "BOOT_NESTED=from-workspace\n",
+        );
+        const env: NodeJS.ProcessEnv = {
+          PATH: process.env.PATH,
+          HOME: sandbox.homeDir,
+        };
+
+        resetKibiEnvironmentBootstrapStateForTests();
+        assert.strictEqual(
+          resolveKibiWorkspaceRoot(harness, env),
+          sandbox.repoDir,
+        );
+        const result = bootstrapKibiEnvironment({
+          env,
+          startDir: harness,
+          xdgConfigHome: join(sandbox.homeDir, ".config"),
+        });
+        assert.strictEqual(result.workspaceRoot, sandbox.repoDir);
+        assert.strictEqual(env.BOOT_NESTED, "from-workspace");
+        assert.strictEqual(result.sources.BOOT_NESTED, "project_env");
+      },
+    );
+
+    it(
+      "doctor attributes a file-loaded secret to its file, not to the process",
+      { timeout: 30000 },
+      () => {
+        const {
+          bootstrapKibiEnvironment,
+          resetKibiEnvironmentBootstrapStateForTests,
+          secretSourceFromBootstrap,
+        } = loadRuntime();
+
+        writeFileSync(
+          join(sandbox.repoDir, ".env.kibi"),
+          "BOOT_FILE_SECRET=s3cret-from-file\n",
+        );
+        const env: NodeJS.ProcessEnv = {
+          PATH: process.env.PATH,
+          HOME: sandbox.homeDir,
+          BOOT_SHELL_SECRET: "s3cret-from-shell",
+        };
+
+        resetKibiEnvironmentBootstrapStateForTests();
+        const result = bootstrapKibiEnvironment({
+          env,
+          startDir: sandbox.repoDir,
+          xdgConfigHome: join(sandbox.homeDir, ".config"),
+        });
+        // After the bootstrap both keys sit in the process env; attribution
+        // still names where each one came from.
+        assert.strictEqual(env.BOOT_FILE_SECRET, "s3cret-from-file");
+        const fileSource = secretSourceFromBootstrap(
+          "BOOT_FILE_SECRET",
+          result,
+          env,
+        );
+        assert.strictEqual(fileSource, "project_env");
+        assert.strictEqual(
+          secretSourceFromBootstrap("BOOT_SHELL_SECRET", result, env),
+          "process",
+        );
+        assert.strictEqual(
+          secretSourceFromBootstrap("BOOT_ABSENT_SECRET", result, env),
+          "missing",
+        );
+        assert.ok(!fileSource.includes("s3cret"));
       },
     );
   });

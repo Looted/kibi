@@ -20,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cbe3d01d2152
-  - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-proposaldecision
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-16T19:45:30.473Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8a247d18b58e
   - type: verified_by
     from: SCEN-kibi-snapshot-relevance
     to: TEST-cli-workspace-snapshot-dirtiness
@@ -34,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb0ec92e20fa
-  - type: implements
-    from: SYM-cursor-resolveProjectLocalMcp
-    to: REQ-cursor-kibi-plugin-v1
-    created_at: 2026-08-20T12:40:34.783Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5ffd0eb2e19c
   - type: covered_by
     from: SYM-cursor-resolveProjectLocalMcp
     to: TEST-cursor-kibi-plugin-v1
@@ -48,13 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92ea5c52a32e
-  - type: implements
-    from: SYM-cursor-resolveProjectLocalMcp
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-08-20T13:00:53.165Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e775959ce33d
   - type: covered_by
     from: SYM-cursor-resolveProjectLocalMcp
     to: TEST-cursor-consumer-local-mcp-launcher-v1
@@ -90,20 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-053a8a41e779
-  - type: covered_by
-    from: SYM-semantic-advisor-shortHash
-    to: TEST-mcp-semantic-advisor-preflight
-    created_at: 2026-09-05T17:39:58.526Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-550d2d907ebb
-  - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-proposaldecision
-    to: TEST-e2e-plan-compiler-hash
-    created_at: 2026-09-18T07:17:57.755Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f8c5cb16cab2
   - type: verified_by
     from: SCEN-kibi-snapshot-relevance
     to: TEST-e2e-snapshot-relevance
@@ -125,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09ce3c87ca91
-  - type: implements
-    from: SYM-source-analysis-timing-max-events
-    to: REQ-installed-staged-impact-timing-integrity
-    created_at: 2026-09-28T09:40:11.375Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9549e828fa55
   - type: covered_by
     from: SYM-source-analysis-timing-max-events
     to: TEST-installed-staged-impact-timing-integrity
@@ -139,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5969447704e9
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-proposaldecision
-    to: REQ-kibi-change-to-proof-plan-compiler-v2
-    created_at: 2026-10-04T03:02:17.390Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d34cca2d54f1
   - type: verified_by
     from: SCEN-bootstrap-apply-long-running
     to: TEST-bootstrap-apply-long-running
@@ -153,13 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae0755f06212
-  - type: implements
-    from: SYM-init-helpers-managed-hook-names
-    to: REQ-git-hook-effective-install
-    created_at: 2026-10-13T12:57:16.122Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-015537b3003a
   - type: covered_by
     from: SYM-init-helpers-managed-hook-names
     to: TEST-git-hook-effective-install
@@ -181,13 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f0457631586
-  - type: implements
-    from: SYM-agent-core-decision-guard-claimcapturereminder
-    to: REQ-agent-hosts-decision-guard
-    created_at: 2026-10-14T17:47:58.039Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-305ed5d6f501
   - type: covered_by
     from: SYM-agent-core-decision-guard-claimcapturereminder
     to: TEST-codex-kibi-plugin-v1
@@ -293,13 +230,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c31f88dbb5f5
-  - type: implements
-    from: SYM-schema6-check-actions-EXCEPTION_UNAPPROVED_REVIEW_CODE
-    to: REQ-kibi-lifecycle-check-codes
-    created_at: 2026-10-28T17:26:25.395Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d81f5c9a13c9
   - type: covered_by
     from: SYM-schema6-check-actions-EXCEPTION_UNAPPROVED_REVIEW_CODE
     to: TEST-proof-exception-unapproved-review-code
@@ -391,3 +321,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf9c048c1ec8
+  - type: assumes
+    from: SCEN-bootstrap-apply-long-running
+    to: FACT-bootstrap-apply-long-running-progress
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8353c8b50cc5
+  - type: assumes
+    from: SCEN-bootstrap-apply-long-running
+    to: FACT-bootstrap-apply-long-running-progress-notifications
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e76b40777b4
+  - type: assumes
+    from: SCEN-bootstrap-apply-long-running
+    to: FACT-bootstrap-apply-long-running-async-receipt
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d41adc0d795b
+  - type: assumes
+    from: SCEN-bootstrap-apply-long-running
+    to: FACT-bootstrap-apply-long-running-interrupted-action
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f5846e038c2
+  - type: assumes
+    from: SCEN-bootstrap-apply-long-running
+    to: FACT-bootstrap-apply-long-running-dead-lock-reclaimed
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdc756776b12
+  - type: assumes
+    from: SCEN-bootstrap-apply-long-running
+    to: FACT-bootstrap-apply-long-running-live-lock-blocks
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a4cab35ba45
+  - type: assumes
+    from: SCEN-kibi-contradiction-review-candidates
+    to: FACT-review-candidate-min-score
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a16f4cfc0c32
+  - type: assumes
+    from: SCEN-kibi-contradiction-review-candidates
+    to: FACT-max-review-candidates
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a2873025f63
+  - type: assumes
+    from: SCEN-kibi-contradiction-review-candidates
+    to: FACT-kibi-contradiction-review-candidates-named
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ee91b17ef1d

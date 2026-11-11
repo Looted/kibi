@@ -42,6 +42,7 @@ logic_claims:
   - CLAIM-C034269633EA20C6
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-07T12:28:50.072Z'
 id: REQ-model-predicates-grounding-aware
 type: req

@@ -1,7 +1,7 @@
 ---
 id: FACT-LEGACY-MIGRATION-PRESERVE-TEXT-REF
 title: Conflicting text references block migration writes
-status: active
+status: archived
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
 tags:

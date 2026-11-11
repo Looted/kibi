@@ -22,6 +22,7 @@ import {
   classifiedExtensions,
   classifySource,
   extensionLanguage,
+  hasDeclarationExtractor,
   isQualifiedSourcePath,
   isTsJsSourcePath,
 } from "../../src/plugins/source-classification.js";
@@ -466,5 +467,10 @@ describe("single extension table", () => {
     expect(isQualifiedSourcePath("src/a.rs")).toBe(true);
     expect(isQualifiedSourcePath("src/a.java")).toBe(false);
     expect(isQualifiedSourcePath("src/a.json")).toBe(false);
+    expect(hasDeclarationExtractor("src/a.java")).toBe(true);
+    expect(hasDeclarationExtractor("include/x.h")).toBe(true);
+    expect(hasDeclarationExtractor("package.json")).toBe(false);
+    expect(hasDeclarationExtractor(".github/workflows/ci.yml")).toBe(false);
+    expect(hasDeclarationExtractor("bin/kibi-mcp")).toBe(false);
   });
 });

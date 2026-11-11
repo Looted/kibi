@@ -1,6 +1,6 @@
 ---
 title: Telemetry shows where agents struggle using fixed signals only
-status: open
+status: closed
 priority: should
 required_evidence: tested
 tags:
@@ -19,7 +19,7 @@ semantic_clauses:
   - Retry, repeated search and skill load markers shall stay on the user's machine as one-way hashes.
 origin:
   kind: agent
-  ref: 'Maintainer request, 2026-11-03: "Also add meaningful data to reporting so we can see where the agents struggle and what are the pain points in current kibi implementation." Constraint: "We don''t want to see clients actual data (as this would be against GDPR)."'
+  ref: 'Maintainer request, 2026-11-03: "Also add meaningful data to reporting so we can see where the agents struggle and what are the pain points in current kibi implementation." Constraint: "We don''t want to see clients actual data (as this would be against GDPR)." Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 3): "Ok"'
   approved_by: maintainer
   recorded_at: '2026-11-03T14:22:36.175Z'
 semantic_inventory_version: kibi.semantic-inventory.v1

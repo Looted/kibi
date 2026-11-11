@@ -1,7 +1,7 @@
 ---
 id: ADR-discovery-tools-public-surface
 title: Discovery tools expand the public read surface without exposing raw inference
-status: proposed
+status: accepted
 created_at: 2026-03-22T00:00:00Z
 updated_at: 2026-03-22T18:30:00Z
 tags:
@@ -9,9 +9,12 @@ tags:
   - cli
   - discovery
   - inference
+links:
+  - type: relates_to
+    target: REQ-mcp-search-discovery
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'Maintainer decision, 2026-11-04, accepting the implemented proposed ADRs and the KB gold-standard cleanup: "Ok, all approved."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 type: adr
 ---

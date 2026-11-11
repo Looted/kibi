@@ -1,7 +1,7 @@
 ---
 id: REQ-core-extractors
 title: Markdown and YAML metadata extractors
-status: open
+status: closed
 created_at: 2026-05-13T10:00:00.000Z
 updated_at: 2026-08-02T00:00:00.000Z
 source: REQ-007
@@ -71,13 +71,14 @@ semantic_inventory:
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6). Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   approved_by: maintainer
   recorded_at: '2026-11-03T11:34:18.000Z'
 failure_side_waiver: "The claims describe extraction and idempotent refresh. Malformed front matter is reported as a warning, which other requirements govern, so this one refuses nothing."
 failure_side_waiver_approved_by: Piotr Franczyk
 firmness: firm
 required_evidence: tested
+rationale: "Markdown and YAML are the authored source of truth for the KB, so extraction must import them faithfully, including typed links, or the graph diverges from what people wrote."
 ---
 - The Markdown extractor must parse YAML front matter for the core entity types and import Markdown links as relates_to edges.
 - The symbol extractor must import code symbol definitions from symbols.yaml into the KB.

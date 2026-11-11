@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_02_the_opencode_plugin_must_classify_the_workspace_as_root_part
+property_key: posture_root_partial
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_posture_detection.clause_02_the_opencode_plugin_must_classify_the_workspace_as_root_part.eq.true
+canonical_key: req.req_opencode_posture_detection.posture_root_partial.eq.true
 claim_key: CLAIM-6F87BA1F99FB1899
 claim_text: The OpenCode plugin must classify the workspace as root_partial when the root .kb/manifest.json exists but some canonical KB targets are missing
 origin:

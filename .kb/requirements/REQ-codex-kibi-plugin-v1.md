@@ -1,7 +1,7 @@
 ---
 id: REQ-codex-kibi-plugin-v1
 title: 'Codex Kibi Plugin v1: Optional MCP adapter package'
-status: open
+status: closed
 created_at: 2026-06-02T00:00:00.000Z
 updated_at: 2026-06-02T00:00:00.000Z
 source: packages/codex/
@@ -12,7 +12,6 @@ tags:
   - codex
   - plugin
   - mcp
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-codex-kibi-plugin-v1
@@ -82,7 +81,7 @@ semantic_inventory:
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-30, approving the reworded hooks rule during the edge-case coverage review: hooks never deny a tool call, and at Stop they ask the agent to continue.'
+  ref: 'Maintainer decision, 2026-10-30, approving the reworded hooks rule during the edge-case coverage review: hooks never deny a tool call, and at Stop they ask the agent to continue. Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   approved_by: maintainer
   recorded_at: '2026-10-27T07:48:21.532Z'
 firmness: firm

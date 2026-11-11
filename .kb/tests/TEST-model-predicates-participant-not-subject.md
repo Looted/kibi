@@ -1,6 +1,6 @@
 ---
 title: Predicate participant binding tests
-status: active
+status: passing
 tags:
   - modeling
   - predicates

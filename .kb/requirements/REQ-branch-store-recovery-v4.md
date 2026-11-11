@@ -1,6 +1,6 @@
 ---
 title: Exact branch-local KB identity, same-identity storage migration and read-only detached HEAD snapshots
-status: open
+status: closed
 required_evidence: tested
 priority: must
 tags:
@@ -119,6 +119,7 @@ logic_claims:
   - CLAIM-1D06495FE053404E
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:18:02.233Z'
 id: REQ-branch-store-recovery-v4
 type: req

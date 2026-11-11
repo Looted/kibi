@@ -6,7 +6,6 @@ tags:
   - zcode
   - enforcement
   - boundary
-  - review:context-missing
 semantic_text: |-
   The kibi-zcode adapter's asset scope is declarative plugin assets.
 
@@ -101,7 +100,7 @@ id: REQ-zcode-advisory-enforcement-boundary-v1
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -119,3 +118,6 @@ When kibi-zcode is installed and enabled, it must not replace MCP tooling behavi
 The kibi-zcode adapter must not provide a hard enforcement gate.
 
 Kibi git hooks installed by kibi init must remain the hard enforcement gate.
+
+## Why
+The ZCode plugin copies the Codex adapter's model: its hooks only advise, and hard enforcement stays with the `kibi check --staged` Git hook. That way one gate works the same in every harness. Source: PR 251, "hook-runner".

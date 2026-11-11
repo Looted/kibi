@@ -3,7 +3,7 @@ title: An agent edits an opaque internal file under .kb directly
 status: active
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_08_the_opencode_plugin_must_classify_direct_edits_to_kb_interna
+property_key: risk_manual_kb_edit
 operator: eq
 value_type: bool
 value_bool: false

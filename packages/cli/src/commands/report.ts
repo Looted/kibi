@@ -207,7 +207,8 @@ export async function openReport(filePath: string): Promise<void> {
   });
 }
 
-function assertCompleteRequirementRows(
+/** Refuses a coverage page that holds fewer rows than there are requirements, because health metrics from one page would misstate the project. */
+export function assertCompleteRequirementRows(
   coverage: HtmlReportCoverage,
   limit: number,
 ): void {

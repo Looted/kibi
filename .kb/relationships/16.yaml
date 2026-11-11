@@ -1,25 +1,11 @@
 relationships:
   - type: covered_by
-    from: SYM-HeldOutEvidenceError
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-08-15T23:11:07.308Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bc333cfc4b30
-  - type: covered_by
     from: SYM-operation-execute-check
     to: TEST-kibi-telemetry-acceptance-gate
     created_at: 2026-08-16T18:52:12.187Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ea6519401db
-  - type: covered_by
-    from: SYM-cli-github-metric-docs-url
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-19T20:55:11.114Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-925f078b3fec
   - type: implements
     from: SYM-scripts-finalizeLcov
     to: REQ-014
@@ -91,33 +77,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-a833292c4c82
   - type: covered_by
-    from: SYM-KibiImpactEvidenceInput
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:13:43.674Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-167b1014195a
-  - type: covered_by
     from: SYM-proof-bindings-errors
     to: TEST-kibi-verification-evidence-contract
     created_at: 2026-09-05T17:31:17.089Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92bc2d505a3e
-  - type: implements
-    from: SYM-cli-SelectableRuleNames
-    to: REQ-006
-    created_at: 2026-09-07T11:46:50.178Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-86e20b27b100
-  - type: covered_by
-    from: SYM-cli-SelectableRuleNames
-    to: TEST-rule-registry-single-source
-    created_at: 2026-09-14T19:09:48.559Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f23e2aa6dfbe
   - type: verified_by
     from: SCEN-zcode-manual-mcp-configuration-v1
     to: TEST-zcode-kibi-plugin-v1
@@ -125,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bc090c4be050
-  - type: implements
-    from: SYM-HeldOutEvidenceError
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:35:45.981Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4d1c6e54557d
   - type: specified_by
     from: REQ-kibi-unit-canonicalization
     to: SCEN-kibi-unit-canonicalization
@@ -167,13 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0ac18548b14
-  - type: implements
-    from: SYM-operation-execute-check
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T03:04:30.953Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4422bfc4a210
   - type: validates
     from: TEST-kibi-conditional-feasibility-cli
     to: SCEN-kibi-conditional-feasibility
@@ -209,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-880439262416
-  - type: implements
-    from: SYM-operation-execute-check
-    to: REQ-search-answer-hygiene
-    created_at: 2026-10-12T23:37:28.755Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7b06bb1f9e01
   - type: covered_by
     from: SYM-operation-execute-check
     to: TEST-search-answer-hygiene
@@ -356,17 +300,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6426c553f013
-  - type: implements
-    from: SYM-kb-dependencies-kb-dependency-lock-entry-type
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:55:23.150Z
+  - type: constrains
+    from: REQ-skillopt-candidate-adoption-gates
+    to: FACT-subject-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:29:35.464Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-0b0d60acce11
-  - type: covered_by
-    from: SYM-kb-dependencies-kb-dependency-lock-entry-type
-    to: TEST-kb-dependencies-git
-    created_at: 2026-11-04T10:55:23.172Z
+    id: rel-6c7e2dd072ef
+  - type: requires_property
+    from: REQ-skillopt-candidate-adoption-gates
+    to: FACT-prop-skillopt-host-neutral-optimization-c04
+    created_at: 2026-11-10T09:29:35.501Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-0226e5b564aa
+    id: rel-d1dfed50c176
+  - type: requires_property
+    from: REQ-skillopt-candidate-adoption-gates
+    to: FACT-prop-skillopt-host-neutral-optimization-c05
+    created_at: 2026-11-10T09:29:35.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21842bfd8a6d
+  - type: specified_by
+    from: REQ-skillopt-candidate-adoption-gates
+    to: SCEN-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:29:35.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb1b222b6375
+  - type: specified_by
+    from: REQ-skillopt-candidate-adoption-gates
+    to: SCEN-CASE-skillopt-host-neutral-optimization-UNAPPROVED-ADOPTION
+    created_at: 2026-11-10T09:29:35.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0e3ab1962de
+  - type: verified_by
+    from: REQ-skillopt-candidate-adoption-gates
+    to: TEST-e2e-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:29:35.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9003d8585f16
+  - type: verified_by
+    from: REQ-skillopt-candidate-adoption-gates
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-11-10T09:29:35.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fae80a49aca
+  - type: supersedes
+    from: REQ-skillopt-candidate-adoption-gates
+    to: REQ-skillopt-host-neutral-optimization
+    created_at: 2026-11-10T09:29:35.634Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7455a6b327d

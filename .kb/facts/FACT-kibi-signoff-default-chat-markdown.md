@@ -9,7 +9,7 @@ value_type: bool
 value_bool: true
 claim_key: CLAIM-9866F122FBE889F5
 claim_text: Kibi signoff must print the view as unfenced Markdown by default, so that it renders in any chat window or messaging tool
-text_ref: REQ-kibi-signoff-views
+text_ref: REQ-kibi-signoff-written-and-printed
 tags:
   - strict-modeling
   - lane:strict

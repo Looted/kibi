@@ -35,13 +35,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a071525e7443
-  - type: implements
-    from: SYM-mcp-search-adapter
-    to: REQ-mcp-search-discovery
-    created_at: 2026-08-22T20:28:18.288Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-72d2de96df35
   - type: covered_by
     from: SYM-mcp-search-adapter
     to: TEST-kibi-operation-interface-parity
@@ -63,13 +56,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-857c304cc6de
-  - type: covered_by
-    from: SYM-markdown-FrontmatterError-hint
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:19:05.004Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5c985e3c30a9
   - type: constrains
     from: REQ-skillopt-cursor-compat
     to: FACT-SUBJ-REQ-SKILLOPT-CURSOR-COMPAT
@@ -106,40 +92,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-4e5be96aa7de
   - type: covered_by
-    from: SYM-markdown-FrontmatterError-hint
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:26:23.481Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0feaa3e391e6
-  - type: covered_by
     from: SYM-mcp-search-adapter
     to: TEST-mcp-search-discovery
     created_at: 2026-09-05T17:37:12.524Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bfdd396d6de2
-  - type: covered_by
-    from: SYM-TaskFixtureResolutionError
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:10:27.729Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-373a2233fa9b
-  - type: implements
-    from: SYM-TaskFixtureResolutionError
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:37:01.975Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3ed30ee0fde9
-  - type: implements
-    from: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:27:47.517Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6359f9d9a2aa
   - type: covered_by
     from: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
     to: TEST-claude-code-kibi-plugin-v1
@@ -154,13 +112,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-81d8bd1e74c1
-  - type: implements
-    from: SYM-impact-stage-e-impactreviewinventory
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:43:46.643Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5ab30efac861
   - type: implements
     from: SYM-impact-stage-e-impactreviewinventory
     to: REQ-impact-review-public-preparation

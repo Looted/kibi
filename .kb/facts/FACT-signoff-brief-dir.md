@@ -16,4 +16,4 @@ origin:
 id: FACT-signoff-brief-dir
 type: fact
 ---
-SIGNOFF_BRIEF_DIR in packages/cli/src/signoff/model.ts is the directory REQ-kibi-signoff-views names for the latest JSON, Markdown and HTML views, and SIGNOFF_MARKDOWN_LIMIT in packages/cli/src/signoff/markdown.ts is how many rows the chat view shows before leaving the rest to the HTML view. Both are stated here so they are proved against the constants.
+SIGNOFF_BRIEF_DIR in packages/cli/src/signoff/model.ts is the directory REQ-kibi-signoff-written-and-printed names for the latest JSON, Markdown and HTML views, and SIGNOFF_MARKDOWN_LIMIT in packages/cli/src/signoff/markdown.ts is how many rows the chat view shows before leaving the rest to the HTML view. Both are stated here so they are proved against the constants.

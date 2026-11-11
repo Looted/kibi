@@ -1,67 +1,4 @@
 relationships:
-  - id: rel-19cb3655103f
-    type: covered_by
-    from: SYM-cli-github-list-remotes
-    to: TEST-kibi-github-report-e2e
-    created_at: "2026-08-19T20:54:58.758Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-SourceAnalysisResult
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:16:06.104Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-988eb625f58b
-  - type: covered_by
-    from: SYM-SourceAnalysisResult
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:23:48.622Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9a169be8ef48
-  - type: implements
-    from: SYM-janitor-finding
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:59:02.342Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23909acc3387
-  - type: covered_by
-    from: SYM-janitor-finding
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:59:02.349Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bf0ee4247b74
-  - type: implements
-    from: SYM-run-unit-coverage-selectedShards
-    to: REQ-014
-    created_at: 2026-09-19T23:24:32.712Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-477880d37c29
-  - type: covered_by
-    from: SYM-run-unit-coverage-selectedShards
-    to: TEST-e2e-coverage-pipeline
-    created_at: 2026-09-20T06:00:20.474Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c9f0778c53ad
-  - type: implements
-    from: SYM-package-catalog-tarball-clean-dirs
-    to: REQ-020
-    created_at: 2026-09-21T15:28:54.699Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6608e75b2d28
-  - type: covered_by
-    from: SYM-package-catalog-tarball-clean-dirs
-    to: TEST-014
-    created_at: 2026-09-21T19:34:28.276Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3dbeb780dfaf
   - type: implements
     from: SYM-cap-plugin-analyzesemanticadvisorinputwithplugins-a97f0adf
     to: REQ-capability-plugin-observable-behavior-v1
@@ -90,27 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-022dc8cde3e8
-  - type: implements
-    from: SYM-cap-plugin-composeontologycatalog-ebc62146
-    to: REQ-capability-plugin-three-capabilities-v1
-    created_at: 2026-09-22T19:34:18.147Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5063397875d9
-  - type: covered_by
-    from: SYM-cap-plugin-composeontologycatalog-ebc62146
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:34:18.150Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-744f44b3a082
-  - type: implements
-    from: SYM-cli-check-generated-manifests
-    to: REQ-cli-check
-    created_at: 2026-09-24T19:46:13.476Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-77424ff08dc8
   - type: covered_by
     from: SYM-cli-check-generated-manifests
     to: TEST-004
@@ -118,20 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b1a7d4c3649
-  - type: implements
-    from: SYM-cli-PruneReceiptsArgs
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-26T23:18:42.437Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-13719731bd13
-  - type: covered_by
-    from: SYM-cli-PruneReceiptsArgs
-    to: TEST-e2e-proof-maintenance-ops
-    created_at: 2026-09-26T23:18:42.452Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d3762825df9a
   - type: covered_by
     from: SYM-cli-check-generated-manifests
     to: TEST-impact-policy-stage-e-installed-e2e
@@ -139,48 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-521baa1208f5
-  - type: implements
-    from: SYM-cli-check-generated-manifests
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:32:35.397Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5fe7183d385e
-  - type: covered_by
-    from: SYM-impact-stage-e-type-impactpolicy
-    to: TEST-impact-policy-stage-e-installed-e2e
-    created_at: 2026-09-27T17:50:45.926Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8e0e5cf31bd7
-  - type: implements
-    from: SYM-impact-stage-e-type-impactpolicy
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:50:45.949Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-574561f5c01d
-  - type: implements
-    from: SYM-prolog-swipl-swiplgoalrunner-src
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T23:35:50.423Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ff9808984fc6
-  - type: covered_by
-    from: SYM-prolog-swipl-swiplgoalrunner-src
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T23:35:50.450Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-63fec4f98a15
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-buildintentclaimcandidates
-    to: REQ-kibi-bootstrap-knowledge-sources
-    created_at: 2026-10-02T07:40:32.303Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-85faff57bdb0
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-buildintentclaimcandidates
     to: TEST-kibi-bootstrap-knowledge-sources
@@ -188,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-141ad9c84d7c
-  - type: implements
-    from: SYM-BranchRecoverOptions
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:55:04.621Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-14b074bb3530
   - type: implements
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-buildintentclaimcandidates
     to: REQ-bootstrap-claim-kinds-and-conflicts
@@ -251,17 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8b84fe316c7f
-  - type: implements
-    from: SYM-setup-choices-read-setup-choices
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:52:54.499Z
+  - type: validates
+    from: TEST-agent-core-shared-hook-inputs
+    to: SCEN-agent-core-shared-hook-inputs
+    created_at: 2026-11-04T14:37:06.717Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-f74e9cb4419e
-  - type: covered_by
-    from: SYM-setup-choices-read-setup-choices
-    to: TEST-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:52:54.519Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c186e9b43cef
+    id: rel-1bb5ab5f7711

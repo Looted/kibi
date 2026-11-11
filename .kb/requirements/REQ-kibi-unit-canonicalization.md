@@ -6,7 +6,6 @@ tags:
   - validation
   - units
   - vocabulary-convergence
-  - review:context-missing
 semantic_text: Kibi must compare property values with a known duration, data-size, or percentage unit in the base unit of that family. Kibi must store authored property values and units unchanged. Unknown or ambiguous units must never be equated with a different unit.
 semantic_clauses:
   - Kibi must compare property values with a known duration, data-size, or percentage unit in the base unit of that family.
@@ -48,9 +47,12 @@ id: REQ-kibi-unit-canonicalization
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 2): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Kibi must compare property values with a known duration, data-size, or percentage unit in the base unit of that family. Kibi must store authored property values and units unchanged. Unknown or ambiguous units must never be equated with a different unit.
+
+## Why
+"30 minutes" and "1800 seconds" are the same bound, but they never matched, so neither redundancy nor contradiction could see them. Values are converted only for comparison, so authored text is unchanged. `KB` is left unequated because it means both 1000 and 1024 bytes, and "knowledge base" in this repo.

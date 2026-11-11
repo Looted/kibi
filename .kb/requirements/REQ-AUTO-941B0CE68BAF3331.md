@@ -7,7 +7,6 @@ tags:
   - confidence-band:high
   - provenance:kb-requirements-req-cli-staged-complete-inventory-v1-md
   - lane:strict
-  - review:context-missing
 semantic_text: The staged check must inventory every path in the Git index before filtering.
 logic_claims:
   - CLAIM-F51B8CA6D6AB3904
@@ -28,7 +27,7 @@ id: REQ-AUTO-941B0CE68BAF3331
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "The claim fixes what the staged check reads (every Git index path before filtering); it describes an inventory step, and there is no input for the check to refuse."
 failure_side_waiver_approved_by: Piotr Franczyk
@@ -36,3 +35,6 @@ firmness: default
 required_evidence: tested
 ---
 The staged check must inventory every path in the Git index before filtering.
+
+## Why
+`kibi check --staged` printed "No staged files found." and exited 0 when every staged path had an unsupported extension, so a skipped change looked like an empty index. Inventorying every path first makes skipped files visible. Source: Issue 240, fixed by PR 242.

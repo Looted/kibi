@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_02_the_opencode_plugin_must_not_block_the_opencode_session_whil
+property_key: sync_does_not_block_session
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_background_sync.clause_02_the_opencode_plugin_must_not_block_the_opencode_session_whil.eq.true
+canonical_key: req.req_opencode_background_sync.sync_does_not_block_session.eq.true
 claim_key: CLAIM-319DA90A9B492077
 claim_text: The OpenCode plugin must not block the OpenCode session while sync runs
 origin:

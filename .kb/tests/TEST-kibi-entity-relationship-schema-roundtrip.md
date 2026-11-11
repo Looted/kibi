@@ -1,6 +1,6 @@
 ---
 title: Entity and typed relationship schema round-trip
-status: active
+status: passing
 priority: must
 tags:
   - cli

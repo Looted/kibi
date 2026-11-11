@@ -9,7 +9,6 @@ priority: must
 tags:
   - cli
   - doctor
-  - review:context-missing
 links:
   - type: supersedes
     target: REQ-003
@@ -47,10 +46,13 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The `kibi doctor` command runs a series of diagnostic checks to verify that the local environment (SWI-Prolog version, git)
 and the project KB setup (.kb directory, config, hooks) are correctly configured and healthy.
 It provides actionable remediation steps for failed checks.
+
+## Why this changed
+REQ-003 described every CLI command in one requirement, so it could not be traced or tested per command. It was split into one requirement per command, and this one covers kibi doctor. Source: commit "docs(req): split app surface requirements", May 13.

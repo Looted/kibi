@@ -1,6 +1,6 @@
 ---
 title: Predicate binding clause tests
-status: active
+status: passing
 priority: must
 tags:
   - modeling

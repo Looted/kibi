@@ -24,6 +24,7 @@ logic_claims:
   - CLAIM-B2091FBE30CF1239
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T21:06:50.866Z'
 id: REQ-legacy-kb-first-step-migrate
 type: req

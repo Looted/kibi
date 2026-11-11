@@ -1,6 +1,6 @@
 ---
 title: 'Predicate: conditional_behavior(kibi_claude_mcp_launcher,client_supports_mcp_roots,read_client_roots_before_each_tool_call)'
-status: active
+status: archived
 fact_kind: predicate
 predicate_name: conditional_behavior
 predicate_args:

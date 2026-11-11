@@ -166,6 +166,19 @@ describe("workspace resolution", () => {
     expect(workspaceFromRoots([plain, root])).toBe(root);
   });
 
+  test("does not treat a leftover .kb/config.json without a manifest as a workspace", () => {
+    const leftover = tempDir("kibi-router-leftover-");
+    fs.mkdirSync(path.join(leftover, ".git"));
+    fs.mkdirSync(path.join(leftover, ".kb"));
+    fs.writeFileSync(path.join(leftover, ".kb", "config.json"), "{}\n");
+    expect(kibiWorkspaceFor(leftover)).toBeNull();
+    fs.writeFileSync(
+      path.join(leftover, ".kb", "manifest.json"),
+      '{"manifestVersion":1}\n',
+    );
+    expect(kibiWorkspaceFor(leftover)).toBe(leftover);
+  });
+
   test("adds workspaceRoot to every tool schema", () => {
     const [tool] = withWorkspaceRootSchema([
       { name: "kb_x", inputSchema: { type: "object", properties: { q: {} } } },

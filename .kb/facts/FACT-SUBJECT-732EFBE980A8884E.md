@@ -1,6 +1,6 @@
 ---
 title: Typed Entities
-status: active
+status: archived
 text_ref: .kb/requirements/REQ-004.md
 tags:
   - strict-modeling

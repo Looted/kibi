@@ -8,24 +8,21 @@ tags:
   - cli
   - discovery
   - status
-  - review:context-missing
 links:
   - type: depends_on
-    target: REQ-mcp-search-discovery
+    target: REQ-kibi-discovery-inspection
   - type: specified_by
     target: SCEN-cli-status-pre-first-sync
   - type: verified_by
     target: TEST-cli-status-pre-first-sync
-semantic_text: Kibi CLI must support `status` command immediately after `kibi init`, providing essential metadata about the repository's KB state even before the first `kibi sync` has been performed. This enables tools and agents to discover the KB presence and status programmatically in a fresh environment.
+semantic_text: Kibi CLI must support `status` command immediately after `kibi init`, providing essential metadata about the repository's KB state even before the first `kibi sync` has been performed.
 logic_claims:
   - CLAIM-11181E5550A15678
-  - CLAIM-1907A992CB5758E0
 semantic_clauses:
   - Kibi CLI must support `status` command immediately after `kibi init`, providing essential metadata about the repository's KB state even before the first `kibi sync` has been performed
-  - This enables tools and agents to discover the KB presence and status programmatically in a fresh environment
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: d04b790fdc1b0afd2df6299f293d8d150663ee3b00fcb723693a1b5f5a977c2b
+semantic_source_hash: 59e134c6bdedb736afc239b7d6a48893ea681d2ecd0dd8831abf5c0db805800d
 semantic_inventory:
   - claim_key: CLAIM-11181E5550A15678
     claim_text: Kibi CLI must support `status` command immediately after `kibi init`, providing essential metadata about the repository's KB state even before the first `kibi sync` has been performed
@@ -34,13 +31,6 @@ semantic_inventory:
     span:
       start: 0
       end: 183
-  - claim_key: CLAIM-1907A992CB5758E0
-    claim_text: This enables tools and agents to discover the KB presence and status programmatically in a fresh environment
-    role: descriptive
-    status: modeled
-    span:
-      start: 185
-      end: 293
 type: req
 origin:
   kind: migration
@@ -50,6 +40,10 @@ failure_side_waiver: "A capability claim: kibi status works right after init. It
 failure_side_waiver_approved_by: Piotr Franczyk
 firmness: default
 required_evidence: tested
+rationale: Lets tools and agents discover the KB and its status programmatically in a fresh environment.
 ---
 
 Kibi CLI must support `status` command immediately after `kibi init`, providing essential metadata about the repository's KB state even before the first `kibi sync` has been performed. This enables tools and agents to discover the KB presence and status programmatically in a fresh environment.
+
+## Rationale
+Lets tools and agents discover the KB and its status programmatically in a fresh environment.

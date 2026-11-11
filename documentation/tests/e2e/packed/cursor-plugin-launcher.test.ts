@@ -171,6 +171,63 @@ describe(
       }
     });
 
+    it("the packed session hook treats a leftover .kb/config.json without .kb/manifest.json as an uninitialized project", () => {
+      const hookRunner = join(
+        sandbox.npmPrefix,
+        "node_modules",
+        "kibi-cursor",
+        "dist",
+        "hook-runner.js",
+      );
+      assert.equal(
+        existsSync(hookRunner),
+        true,
+        "kibi-cursor is not installed",
+      );
+      const workspace = mkdtempSync(join(tmpdir(), "kibi-cursor-readiness-"));
+      const pluginData = mkdtempSync(
+        join(tmpdir(), "kibi-cursor-readiness-data-"),
+      );
+      const sessionStart = () => {
+        const result = spawnSync(process.execPath, [hookRunner], {
+          cwd: workspace,
+          env: { ...sandbox.env, PLUGIN_DATA: pluginData },
+          input: JSON.stringify({
+            conversation_id: "readiness",
+            workspace_roots: [workspace],
+            hook_event_name: "sessionStart",
+          }),
+          encoding: "utf8",
+        });
+        assert.equal(result.status, 0, result.stderr);
+        return JSON.parse(result.stdout) as Record<string, unknown>;
+      };
+      try {
+        mkdirSync(join(workspace, ".kb"), { recursive: true });
+        writeFileSync(
+          join(workspace, ".kb", "config.json"),
+          `${JSON.stringify({ paths: { requirements: "reqs" } })}\n`,
+        );
+        const legacyOnly = sessionStart();
+        assert.match(
+          String(legacyOnly.additional_context ?? ""),
+          /Kibi config was not found/,
+          JSON.stringify(legacyOnly),
+        );
+
+        writeFileSync(join(workspace, ".kb", "manifest.json"), "{}\n");
+        const initialized = sessionStart();
+        assert.doesNotMatch(
+          String(initialized.additional_context ?? ""),
+          /Kibi config was not found/,
+          JSON.stringify(initialized),
+        );
+      } finally {
+        rmSync(workspace, { recursive: true, force: true });
+        rmSync(pluginData, { recursive: true, force: true });
+      }
+    });
+
     it("the packed stop hook still asks for an impact check when a plan turn also edited source", () => {
       // The installed package resolves kibi-agent-core from the consumer.
       const hookRunner = join(

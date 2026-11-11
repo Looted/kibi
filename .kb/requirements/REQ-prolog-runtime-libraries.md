@@ -43,7 +43,7 @@ The required SWI-Prolog libraries shall be semweb/rdf_db, semweb/rdf_persistency
 
 ## Context
 
-REQ-prolog-bundled-runtime accepts a SWI-Prolog runtime only when it loads every library Kibi needs, and Kibi reads engine errors by a fixed line prefix. Both are stated here so they are proved against the constants.
+REQ-prolog-bundle-verification accepts a SWI-Prolog runtime only when it loads every library Kibi needs, and Kibi reads engine errors by a fixed line prefix. Both are stated here so they are proved against the constants.
 
 ## Source
 

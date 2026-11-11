@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_03_the_opencode_plugin_s_sync_debounce_interval_must_be_configu
+property_key: debounce_configurable
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_background_sync.clause_03_the_opencode_plugin_s_sync_debounce_interval_must_be_configu.eq.true
+canonical_key: req.req_opencode_background_sync.debounce_configurable.eq.true
 claim_key: CLAIM-6C25740401DD0B4E
 claim_text: The OpenCode plugin's sync debounce interval must be configurable in the plugin settings
 origin:

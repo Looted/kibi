@@ -1,7 +1,7 @@
 ---
 id: FACT-LIMIT-2
 title: Maximum of Two
-status: active
+status: archived
 created_at: 2026-02-20T13:00:00Z
 updated_at: 2026-04-21T10:00:00Z
 tags: [cardinality]

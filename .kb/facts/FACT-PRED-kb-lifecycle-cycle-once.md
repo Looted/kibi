@@ -15,7 +15,7 @@ tags:
   - checks
 claim_key: CLAIM-5477F33D482A3C02
 claim_text: kb_check must report each supersession cycle once, naming every member, without reporting its members again as open
-text_ref: .kb/requirements/REQ-kibi-kb-lifecycle-integrity.md
+text_ref: .kb/requirements/REQ-kibi-superseded-requirements-closed.md
 origin:
   kind: agent
   recorded_at: '2026-10-04T05:38:14.438Z'

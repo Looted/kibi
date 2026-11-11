@@ -1149,7 +1149,7 @@ function fileKnowledgeSnippet(input) {
   }
   const location = primaryFocus ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}` : `{path:${jsonString(relativePath)}}`;
   const next = [
-    leadId ? `kb_query({id:${jsonString(leadId)}}) returns full requirement text` : undefined,
+    leadId ? `kb_query({id:${jsonString(leadId)}, includeBody:true}) returns the full requirement text and why it exists` : undefined,
     `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`
   ].filter((part) => part !== undefined);
   lines.push(`Next layer: ${next.join("; ")}.`);
@@ -3288,6 +3288,7 @@ async function runHookCliIfMain(isMain = isInvokedAsCli(process.argv[1], import.
 runHookCliIfMain();
 var hookRunnerPath = fileURLToPath2(import.meta.url);
 export {
+  hasKibiConfig,
   hookRunnerPath,
   isInvokedAsCli,
   kibiWorkspaceFor,

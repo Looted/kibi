@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_06_the_opencode_plugin_must_inject_routing_guidance_that_names_
+property_key: routing_names_entity_type
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_comment_routing.clause_06_the_opencode_plugin_must_inject_routing_guidance_that_names_.eq.true
+canonical_key: req.req_opencode_comment_routing.routing_names_entity_type.eq.true
 claim_key: CLAIM-F4A9E02A99F0CB62
 claim_text: The OpenCode plugin must inject routing guidance that names the classified entity type
 origin:

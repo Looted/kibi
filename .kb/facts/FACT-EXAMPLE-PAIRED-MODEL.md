@@ -1,7 +1,7 @@
 ---
 id: FACT-EXAMPLE-PAIRED-MODEL
 title: "Paired modeling example: strict domain fact + requirement constraint"
-status: active
+status: archived
 created_at: 2026-03-27T10:00:00Z
 updated_at: 2026-04-22T10:00:00Z
 tags:
@@ -38,7 +38,7 @@ A `subject` fact names the domain concept:
 id: FACT-USER-ROLE
 title: "user-role: domain subject for user role constraints"
 fact_kind: subject
-status: active
+status: archived
 ```
 
 ### 2. Property-Value Fact

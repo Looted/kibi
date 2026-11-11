@@ -11,7 +11,6 @@ tags:
   - opencode
   - kibi
   - enforcement
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-smart-enforcement-v1-coverage
@@ -46,7 +45,7 @@ semantic_inventory:
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).).'
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).). Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   approved_by: maintainer
   recorded_at: '2026-11-03T12:03:44.000Z'
 firmness: default
@@ -56,3 +55,6 @@ required_evidence: tested
 - The OpenCode Kibi plugin's guidance must stay non-blocking and within its token budget.
 
 This requirement is the umbrella for REQ-opencode-posture-detection, REQ-opencode-risk-classification and REQ-opencode-guidance-caching.
+
+## Why
+Static guidance was noisy and wasted tokens: agents got Kibi nudges in uninitialized repos and on non-Kibi files, and some edited `.kb/` by hand. Enforcement now follows workspace posture and edit risk. Source: ADR-019.

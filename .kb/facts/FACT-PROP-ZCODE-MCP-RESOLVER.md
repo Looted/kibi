@@ -21,6 +21,6 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
-text_ref: REQ-zcode-kibi-plugin-v1
+text_ref: REQ-zcode-adapter-package
 ---
 The exposed MCP configuration must resolve the project-local kibi-mcp binary

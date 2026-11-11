@@ -1,7 +1,7 @@
 ---
 id: TEST-kibi-github-report-integration
 title: GitHub badge, report init, and PR-vs-Pages workflow tests
-status: active
+status: passing
 tags:
   - cli
   - github

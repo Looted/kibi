@@ -1,6 +1,6 @@
 ---
 title: 'Predicate: not conditional_behavior(non_claude_host_mcp_launcher,kibi_workspace_env_set,follow_client_roots)'
-status: active
+status: archived
 fact_kind: predicate
 predicate_name: conditional_behavior
 predicate_args:

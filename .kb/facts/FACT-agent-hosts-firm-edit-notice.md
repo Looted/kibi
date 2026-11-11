@@ -9,7 +9,7 @@ value_type: bool
 value_bool: true
 claim_key: CLAIM-24C16C22D1A2FAC8
 claim_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent to ask the person before an edit that breaks that rule, once per requirement per session
-text_ref: REQ-agent-hosts-decision-guard
+text_ref: REQ-agent-hosts-firm-edit-ask
 tags:
   - strict-modeling
   - lane:strict

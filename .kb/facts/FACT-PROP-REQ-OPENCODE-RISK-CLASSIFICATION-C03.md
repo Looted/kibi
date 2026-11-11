@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_03_the_opencode_plugin_must_classify_edits_to_tests_only_as_saf
+property_key: risk_safe_test_only
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_risk_classification.clause_03_the_opencode_plugin_must_classify_edits_to_tests_only_as_saf.eq.true
+canonical_key: req.req_opencode_risk_classification.risk_safe_test_only.eq.true
 claim_key: CLAIM-263CB1244332B8B5
 claim_text: The OpenCode plugin must classify edits to tests only as safe_test_only
 origin:

@@ -3,6 +3,7 @@ title: A requirement whose value past a bound has no scenario is put forward as 
 status: active
 fact_kind: predicate
 predicate_name: proof_gate_policy
+predicate_namespace: kibi.proof
 predicate_args:
   - tested_status
   - uncovered_rejection_case

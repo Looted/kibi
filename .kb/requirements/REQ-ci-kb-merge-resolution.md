@@ -8,7 +8,6 @@ tags:
   - merge
   - proof
   - kb
-  - review:context-missing
 semantic_text: The Kibi KB merge workflow must build the merge driver from the base branch. The Kibi KB merge workflow must not install the pull request branch dependencies before merging. When the proof gate fails, the Kibi KB merge workflow must not push the merge.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

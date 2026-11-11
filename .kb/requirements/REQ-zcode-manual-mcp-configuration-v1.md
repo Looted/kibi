@@ -6,7 +6,6 @@ tags:
   - zcode
   - documentation
   - mcp
-  - review:context-missing
 semantic_text: |-
   Documentation must identify the kibi-zcode adapter as optional.
 
@@ -53,7 +52,7 @@ id: REQ-zcode-manual-mcp-configuration-v1
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 failure_side_waiver: "The claims are documentation content (optional adapter, manual MCP path); they are checked by reading the README and have no refusal side."
 failure_side_waiver_approved_by: Piotr Franczyk
@@ -65,3 +64,6 @@ Documentation must identify the kibi-zcode adapter as optional.
 When the marketplace installation path is not used, documentation must provide a supported manual MCP configuration path.
 
 The documented manual MCP configuration must invoke a supported kibi-mcp entry point.
+
+## Why
+Only installing from a local checkout's marketplace file is supported, and GitHub-source installs aren't. So the docs must also give a manual MCP configuration for users who don't use the marketplace. Source: PR 251, "Marketplace install contract".

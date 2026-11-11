@@ -10,7 +10,6 @@ tags:
   - auditability
   - diagnostics
   - traceability
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-audit-quality-diagnostics-v1
@@ -58,7 +57,7 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -67,3 +66,6 @@ required_evidence: tested
 Kibi check surfaces must keep objectively invalid graph/schema/strict-fact states in the hard `violations[]` lane while surfacing heuristic modeling-quality signals in non-blocking `qualityDiagnostics[]`.
 
 Quality diagnostics must be visible automatically through existing CLI, MCP, coverage, staged-check, and OpenCode scheduled-check paths so agents are prompted to update granular requirements, symbols, facts, and tests without needing a separate audit command.
+
+## Why
+Heuristic modeling-quality signals needed a lane of their own, so advisory findings never change pass/fail counts or exit codes. They show up automatically in the paths agents already use. Source: changeset "quality-diagnostic-contract".

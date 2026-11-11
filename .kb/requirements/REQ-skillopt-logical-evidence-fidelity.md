@@ -12,7 +12,6 @@ tags:
   - evidence
   - feedback
   - umbrella
-  - review:context-missing
 semantic_text: "Final-state property evidence must preserve the stored property_key without deriving a namespace from subject_key. Exact entity queries must preserve every target when a relationship type occurs more than once. Safe-mutation evaluation fixtures must expose the requested typed relationships and the real test evidence needed to close symbol coverage. Safe-mutation final-state scoring must verify the exact requested ownership and coverage relationships. Provider credit or usage exhaustion must terminate paid optimization as budget-exhausted infrastructure evidence. Behavioral failures without critical failures must retain a structured feedback category for the optimizer. Semantic-advisor readiness must remain partial until every normative claim has a distinct logical grounding edge."
 logic_claims:
   - CLAIM-D593FEA65D7C463C
@@ -95,7 +94,7 @@ links:
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving entity context that was inferred (not recorded in history) in the KB gold-standard review (context batch 9, inferred): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -116,3 +115,6 @@ Behavioral failures without critical failures must retain a structured feedback 
 Semantic-advisor readiness must remain partial until every normative claim has a distinct logical grounding edge.
 
 These seven clauses form the complete logical representation of this requirement. They use the project-local `evaluation_evidence_rule(component, condition, outcome)` schema because low-confidence built-in matches such as state or retention rules do not preserve the evaluator semantics.
+
+## Why
+SkillOpt scores skill changes by what the agent left in the KB. If scoring misreads that evidence, for example by deriving the wrong key or dropping a duplicate relationship, the optimizer learns from false signals. Inferred from: the requirement's own clauses.

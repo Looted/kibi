@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_07_the_opencode_plugin_must_fingerprint_seen_comments_so_that_i
+property_key: fingerprints_seen_comments
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_comment_routing.clause_07_the_opencode_plugin_must_fingerprint_seen_comments_so_that_i.eq.true
+canonical_key: req.req_opencode_comment_routing.fingerprints_seen_comments.eq.true
 claim_key: CLAIM-2BCFC01CFC2DDE58
 claim_text: The OpenCode plugin must fingerprint seen comments so that identical comments do not trigger repeated guidance
 origin:

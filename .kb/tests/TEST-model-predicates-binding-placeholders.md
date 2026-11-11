@@ -1,6 +1,6 @@
 ---
 title: Predicate binding placeholder tests
-status: active
+status: passing
 priority: must
 tags:
   - modeling

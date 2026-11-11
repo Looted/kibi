@@ -10,7 +10,7 @@ value_int: 0
 canonical_key: kibi.non_numeric_proof:strings_accepted_by_only_one_regex:eq:0
 claim_key: CLAIM-0F30DA40393E530F
 claim_text: A regex proof must establish that the code's pattern accepts exactly the strings the fact's pattern describes
-text_ref: REQ-kibi-non-numeric-proof-kinds
+text_ref: REQ-kibi-regex-proofs
 tags:
   - strict-modeling
   - lane:strict

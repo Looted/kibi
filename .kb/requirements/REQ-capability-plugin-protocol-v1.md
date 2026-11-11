@@ -3,7 +3,6 @@ title: Capability plugin protocol safety
 status: open
 tags:
   - plugins
-  - review:context-missing
 semantic_text: An activated capability plugin must export validated protocol kibi.plugin.v1 from the named export kibiPlugin. The exported provider version must reference an existing resolved package version.
 logic_claims:
   - CLAIM-63FDA15E922B547A
@@ -38,7 +37,7 @@ semantic_clauses:
   - The exported provider version must reference an existing resolved package version.
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -46,3 +45,6 @@ required_evidence: tested
 # REQ-capability-plugin-protocol-v1
 
 An activated capability plugin must export validated protocol kibi.plugin.v1 from the named export kibiPlugin. The exported provider version must reference an existing resolved package version.
+
+## Why
+Kibi needed extension points for classification, ontology packs and symbol extraction without giving plugins mutation, Prolog or proof authority. One validated protocol and a named export let the host check every plugin before it runs. The version must come from the resolved package so provenance can't be faked by the export. Source: ADR-capability-plugins-v1, "Context" and "Activation model".

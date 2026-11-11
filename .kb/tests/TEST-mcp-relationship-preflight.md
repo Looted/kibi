@@ -1,7 +1,7 @@
 ---
 id: TEST-mcp-relationship-preflight
 title: Verify MCP relationship preflight diagnostics
-status: active
+status: passing
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
 source: packages/mcp/tests/tools/validate-upsert.test.ts
@@ -15,7 +15,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-mcp-relationship-preflight
+    - symbol_id: SYM-e2e-mcp-crud
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:

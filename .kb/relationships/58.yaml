@@ -24,27 +24,6 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/tests/TEST-010.md
-  - type: covered_by
-    from: SYM-cli-relationship-flatten
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-08-16T19:49:09.978Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-721d4c8eb019
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-candidate
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:18.246Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a4d99e142fa6
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-candidate
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:18.251Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-102124be1f6a
   - type: implements
     from: SYM-getWorkspaceMigrationWarning
     to: REQ-002
@@ -67,41 +46,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-4202be14eed2
   - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-candidate
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:16:30.066Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4d2beecba386
-  - type: covered_by
-    from: SYM-reqcompiler-find-gaps-payload
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:39:29.057Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-aaf3ab07d013
-  - type: implements
-    from: SYM-reqcompiler-find-gaps-payload
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:06:13.724Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3eda4d4a2c2c
-  - type: covered_by
-    from: SYM-reqcompiler-find-gaps-payload
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:06:13.727Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9ea0b0ec84fa
-  - type: covered_by
-    from: SYM-ReleaseAction
-    to: TEST-014
-    created_at: 2026-09-05T14:54:09.306Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1a82894809ec
-  - type: covered_by
     from: SYM-cursor-resolveStateDir
     to: TEST-cursor-kibi-plugin-v1
     created_at: 2026-09-05T15:40:01.498Z
@@ -116,27 +60,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-01b121dced3f
   - type: covered_by
-    from: SYM-mcp-hasImpactOptions
-    to: TEST-mcp-tool-check-coverage
-    created_at: 2026-09-05T17:49:31.203Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cf035c826ddd
-  - type: implements
-    from: SYM-staged-path
-    to: REQ-AUTO-941B0CE68BAF3331
-    created_at: 2026-09-14T14:41:11.412Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-974fbef094a3
-  - type: covered_by
-    from: SYM-staged-path
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-14T14:41:11.426Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6e72fb66c9dd
-  - type: covered_by
     from: SYM-getWorkspaceMigrationWarning
     to: TEST-e2e-mcp-model-requirement
     created_at: 2026-09-18T15:11:11.339Z
@@ -150,55 +73,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6568147e913a
-  - type: implements
-    from: SYM-cap-plugin-semantic-classifier-capability-id-c85ff905
-    to: REQ-capability-plugin-three-capabilities-v1
-    created_at: 2026-09-22T19:47:11.535Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-687b7c44acf9
-  - type: covered_by
-    from: SYM-cap-plugin-semantic-classifier-capability-id-c85ff905
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:47:11.561Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b9eed8a92187
-  - type: implements
-    from: SYM-cli-MutationRollbackFailureError
-    to: REQ-014
-    created_at: 2026-09-26T09:22:18.942Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-db3578e05a7d
-  - type: covered_by
-    from: SYM-cli-MutationRollbackFailureError
-    to: TEST-011
-    created_at: 2026-09-26T09:22:18.950Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-60bef4503d02
-  - type: covered_by
-    from: SYM-cli-MutationRollbackFailureError
-    to: TEST-mcp-upsert-coverage
-    created_at: 2026-09-26T09:22:18.954Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bc50dbb80f72
-  - type: implements
-    from: SYM-prolog-swipl-platform-packages-js
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:39.862Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-201f1dedd087
-  - type: covered_by
-    from: SYM-prolog-swipl-platform-packages-js
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:39.872Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ad7b5d9404a4
   - type: verified_by
     from: SCEN-mcp-oneof-guard-input-validation
     to: TEST-mcp-oneof-guard-input-validation
@@ -206,20 +80,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-08bd84347af5
-  - type: implements
-    from: SYM-kb-decision-firmness-plansupersedesreasonacknowledgement
-    to: REQ-kb-decision-firmness
-    created_at: 2026-10-12T22:26:46.275Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4d47adb2ebdb
-  - type: covered_by
-    from: SYM-kb-decision-firmness-plansupersedesreasonacknowledgement
-    to: TEST-kb-decision-firmness
-    created_at: 2026-10-12T22:26:46.291Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a82a2de7d478
   - type: constrains
     from: REQ-kibi-non-numeric-proof-kinds
     to: FACT-SUBJECT-KIBI-NON-NUMERIC-PROOF

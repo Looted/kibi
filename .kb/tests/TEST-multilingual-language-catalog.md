@@ -1,6 +1,6 @@
 ---
 title: Installed multilingual catalog and exact-index ownership behavior
-status: active
+status: passing
 text_ref: documentation/tests/e2e/packed/multilingual-language-catalog.test.ts
 tags:
   - multilingual
@@ -8,7 +8,6 @@ tags:
   - catalog
   - e2e
   - consumer
-  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -60,6 +59,10 @@ proof_receipts:
           status: unavailable
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 3): "Agree with batch 3 as well."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+This proves the catalog and exact-index ownership through an installed package, because the grammars ship as pinned assets that only exist after packing.

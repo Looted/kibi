@@ -34,6 +34,7 @@ semantic_inventory:
       end: 207
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T15:34:35.481Z'
 id: REQ-bootstrap-subject-fact-shared
 type: req

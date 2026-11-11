@@ -1,7 +1,7 @@
 ---
 id: FACT-CHECK-RULESET-CORE-3
 title: Core Check Ruleset Has Ten Categories
-status: active
+status: archived
 created_at: 2026-02-20T14:40:00Z
 updated_at: 2026-04-24T08:22:00Z
 tags: [validation, rules]

@@ -1,7 +1,7 @@
 ---
 title: HTML report output accepts a file or directory
 status: active
-text_ref: .kb/requirements/REQ-kibi-html-health-report.md
+text_ref: .kb/requirements/REQ-kibi-health-report-output.md
 tags:
   - lane:ontology
   - requirements

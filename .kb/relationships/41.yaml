@@ -6,13 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-979bb6ba8f1d
-  - type: implements
-    from: SYM-handleKbSuggestPredicates
-    to: REQ-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-20T22:11:16.938Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-91d265b38092
   - type: covered_by
     from: SYM-handleKbSuggestPredicates
     to: TEST-kibi-predicate-suggestion-relevance-v1
@@ -41,13 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a2b4931456c9
-  - type: executable_for
-    from: SYM-e2e-test-cursor-agent-plugin-v1
-    to: TEST-cursor-agent-plugin-v1
-    created_at: 2026-09-05T15:35:50.084Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-537d7ff014ca
   - type: covered_by
     from: SYM-handleKbSuggestPredicates
     to: TEST-mcp-suggest-predicates
@@ -77,20 +63,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-df9aced47a71
   - type: implements
-    from: SYM-impact-stage-e-preparedimpactreview
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-30T15:22:36.281Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2dd0446befa9
-  - type: covered_by
-    from: SYM-impact-stage-e-preparedimpactreview
-    to: TEST-impact-policy-stage-e-installed-e2e
-    created_at: 2026-09-30T15:22:36.290Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a99aafc44579
-  - type: implements
     from: SYM-prolog-release-verify-swipl-family-metadata
     to: REQ-prolog-bundled-release
     created_at: 2026-10-01T00:22:29.275Z
@@ -104,34 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3e5a1d9b2d8
-  - type: implements
-    from: SYM-BranchEnsureOptions
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:54:51.068Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f930444345f1
-  - type: implements
-    from: SYM-auto-EB53162A3CF2
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:57:40.807Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-57f35b30194a
-  - type: implements
-    from: SYM-mcp-session-inFlightRequests
-    to: REQ-core-prolog-process-management
-    created_at: 2026-10-04T03:03:53.699Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0f800b1d76c5
-  - type: implements
-    from: SYM-schema6-buildSchema6MigrationFragment
-    to: REQ-kibi-schema6-migration
-    created_at: 2026-10-04T03:13:26.284Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d5b599b59dcb
   - type: covered_by
     from: SYM-schema6-buildSchema6MigrationFragment
     to: TEST-kibi-schema6-migration
@@ -314,13 +258,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-998971123d28
-  - type: implements
-    from: SYM-upsert-assert-authored-write-compiles
-    to: REQ-kibi-uncompiled-source-visibility
-    created_at: 2026-10-14T09:04:10.232Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fd01d293bcb1
   - type: covered_by
     from: SYM-upsert-assert-authored-write-compiles
     to: TEST-kibi-uncompiled-source-visibility

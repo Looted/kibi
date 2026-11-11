@@ -3,7 +3,7 @@ title: Bootstrap contract clause 07
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap.plan
-property_key: contract_clause_7
+property_key: partial_apply_writes_repair_journal
 operator: eq
 value_type: string
 value_string: Partial application must produce a typed repair journal with action-start and post-action checkpoints, reject original-plan replay, and fail closed on changed state

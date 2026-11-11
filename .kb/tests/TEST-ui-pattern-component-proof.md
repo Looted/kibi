@@ -1,6 +1,6 @@
 ---
 title: UI pattern component proof tests
-status: active
+status: passing
 tags:
   - proof
   - ui

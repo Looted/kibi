@@ -1,7 +1,7 @@
 ---
 id: TEST-opencode-smart-enforcement-v1-coverage
 title: Verify posture-aware OpenCode smart enforcement
-status: active
+status: passing
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-21T00:00:00.000Z
 priority: must
@@ -16,7 +16,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-opencode-smart-enforcement-v1-coverage
+    - symbol_id: SYM-e2e-opencode-plugin
       target: default
   success_policy: all_required_first_attempt
 type: test

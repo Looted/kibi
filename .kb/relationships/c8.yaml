@@ -1,18 +1,4 @@
 relationships:
-  - id: rel-f9fd6fd12fa4
-    type: covered_by
-    from: SYM-reqcompiler-usage-log-row
-    to: TEST-kibi-telemetry-acceptance-gate
-    created_at: "2026-08-16T18:52:12.209Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-cli-engine-durable-fsync
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-08-16T19:47:07.417Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0241bf3f1401
   - type: executable_for
     from: SYM-test-packed-source-relationship-parity
     to: TEST-kibi-source-relationship-parity
@@ -29,32 +15,11 @@ relationships:
     id: rel-79270995002f
   - type: validates
     from: TEST-mcp-canonical-activation
-    to: REQ-cli-canonical-runtime
+    to: REQ-kibi-manifest-initialized-signal
     created_at: 2026-08-18T16:39:38.074Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-ca09253b5416
-  - type: implements
-    from: SYM-canonical-defaultKbManifest
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:02:02.469Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5b229df41868
-  - type: covered_by
-    from: SYM-canonical-defaultKbManifest
-    to: TEST-cli-canonical-init
-    created_at: 2026-08-18T17:02:02.478Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a10070664da7
-  - type: implements
-    from: SYM-cli-report-relative-time
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T19:47:56.764Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-631ef4750435
+    id: rel-09118e4c48b5
   - type: covered_by
     from: SYM-cli-report-relative-time
     to: TEST-kibi-html-health-report
@@ -62,20 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4a180dee6768
-  - type: implements
-    from: SYM-cli-report-commit-web-url
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T20:41:20.811Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23b78fee954f
-  - type: covered_by
-    from: SYM-cli-report-commit-web-url
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-18T20:41:20.826Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f61611c2d6b7
   - type: covered_by
     from: SYM-cli-github-badge-workflow-relpath
     to: TEST-kibi-github-report-e2e
@@ -83,13 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-05910a7db2d9
-  - type: implements
-    from: SYM-cursor-parseWorkspaceFolderPaths
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-08-20T13:01:07.148Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6cfc9180481d
   - type: covered_by
     from: SYM-cursor-parseWorkspaceFolderPaths
     to: TEST-cursor-consumer-local-mcp-launcher-v1
@@ -140,20 +84,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-fe63b7c4a829
   - type: covered_by
-    from: SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-26T07:15:00.916Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1e7971fe6d80
-  - type: covered_by
-    from: SYM-cli-github-scaffold-options
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-28T10:10:11.040Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cfef4bd1304f
-  - type: covered_by
     from: SYM-kibi-mcp-bin-entrypoint
     to: TEST-005
     created_at: 2026-09-05T14:47:03.586Z
@@ -161,40 +91,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-328b139b24ff
   - type: covered_by
-    from: SYM-cleanupTempKb
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:15:33.728Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9b3cc84a3915
-  - type: covered_by
     from: SYM-codex-adapterKind
     to: TEST-codex-kibi-plugin-v1
     created_at: 2026-09-05T15:20:25.610Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d6f12d5a4ed
-  - type: covered_by
-    from: SYM-cli-engine-durable-fsync
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:30:00.133Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-083b44fdef45
-  - type: covered_by
-    from: SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG
-    to: TEST-001
-    created_at: 2026-09-05T15:35:04.759Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23d6da0cd9f9
-  - type: executable_for
-    from: SYM-e2e-test-generated-coordinate-repair
-    to: TEST-generated-coordinate-repair
-    created_at: 2026-09-05T15:44:15.308Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3e010fd96012
   - type: implements
     from: SYM-quality-coverage-branch-summary
     to: REQ-014
@@ -266,13 +168,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-97128ada8171
   - type: implements
-    from: SYM-reqcompiler-usage-log-row
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T03:06:14.070Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c8c90f5252bc
-  - type: implements
     from: SYM-cli-kibi-package-versions
     to: REQ-engine-daemon-package-versions
     created_at: 2026-10-08T21:27:36.529Z
@@ -321,20 +216,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ed1cb2d7f43
-  - type: implements
-    from: SYM-cli-with-witness-diagnosis
-    to: REQ-kibi-code-proof-kinds
-    created_at: 2026-10-26T15:58:30.053Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f70a6d2ea69d
-  - type: covered_by
-    from: SYM-cli-with-witness-diagnosis
-    to: TEST-kibi-code-proof-kinds
-    created_at: 2026-10-26T15:58:30.072Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d1b3ec3ba8a6
   - type: validates
     from: TEST-proof-proof-test-report-env
     to: SCEN-kibi-fresh-verification-receipts
@@ -342,13 +223,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4d3cebe2c819
-  - type: implements
-    from: SYM-schema6-check-actions-MIGRATION_SYNC_CODE
-    to: REQ-kibi-lifecycle-check-codes
-    created_at: 2026-10-28T17:29:10.135Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8e50bbb943a2
   - type: covered_by
     from: SYM-schema6-check-actions-MIGRATION_SYNC_CODE
     to: TEST-proof-migration-sync-code

@@ -34,7 +34,7 @@ The Kibi signoff version shall be kibi.signoff.v1.
 
 ## Context
 
-SIGNOFF_VERSION in packages/cli/src/signoff/model.ts versions the signoff model REQ-kibi-signoff-views renders. It is stated here so the version is proved against the constant.
+SIGNOFF_VERSION in packages/cli/src/signoff/model.ts versions the signoff model REQ-kibi-signoff-written-and-printed renders. It is stated here so the version is proved against the constant.
 
 ## Source
 

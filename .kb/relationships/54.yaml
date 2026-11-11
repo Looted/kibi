@@ -8,25 +8,11 @@ relationships:
     source: mcp://kibi/upsert
   - type: validates
     from: TEST-cursor-canonical-manifest
-    to: REQ-cli-canonical-runtime
+    to: REQ-kibi-manifest-initialized-signal
     created_at: 2026-08-18T16:39:39.529Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-fd1e5e4627c8
-  - type: implements
-    from: SYM-canonical-KibiTreeDataProvider-refresh
-    to: REQ-vscode-traceability
-    created_at: 2026-08-18T17:38:05.210Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-922d63e1faed
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-refresh
-    to: TEST-vscode-traceability
-    created_at: 2026-08-18T17:38:05.219Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7696630d41fb
+    id: rel-738f02f3ed5c
   - type: implements
     from: SYM-cli-operation-error
     to: REQ-kibi-operation-interface-parity
@@ -48,55 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2826be4c7d7e
-  - type: covered_by
-    from: SYM-resolveNpmFixture
-    to: TEST-014
-    created_at: 2026-09-05T14:54:46.158Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a0958814a527
-  - type: covered_by
-    from: SYM-kibi-migration-plan-hash
-    to: TEST-agent-guided-migration-orchestration
-    created_at: 2026-09-05T15:01:15.720Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cfe1bcd10ce8
-  - type: covered_by
-    from: SYM-PrepareArtifactPathOptions
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:09:29.646Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-70a6139eb9d7
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-refresh
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:27:42.837Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-70f7cf0cda9c
-  - type: covered_by
-    from: SYM-BranchCoverageSummary
-    to: TEST-e2e-coverage-pipeline
-    created_at: 2026-09-19T18:11:36.280Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cf2131ca0275
-  - type: covered_by
-    from: SYM-PrepareArtifactPathOptions
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:23:12.384Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f0885ea522e
-  - type: covered_by
-    from: SYM-canonical-KibiTreeDataProvider-refresh
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:32:04.891Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-49e3341b10be
   - type: specified_by
     from: REQ-kibi-predicate-argument-constants
     to: SCEN-kibi-predicate-argument-constants
@@ -132,20 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c5b01638a5f0
-  - type: implements
-    from: SYM-agent-core-IndexedSymbol
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:50:31.692Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7b7728cdcca1
-  - type: covered_by
-    from: SYM-agent-core-IndexedSymbol
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:50:31.719Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ffb1c7637fbf
   - type: verified_by
     from: SCEN-kibi-telemetry-lookup-before-first-edit
     to: TEST-kibi-telemetry-lookup-before-first-edit
@@ -167,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e7067d12f097
-  - type: implements
-    from: SYM-agent-core-candidates-max-requirement-candidates
-    to: REQ-kb-unowned-file-candidates
-    created_at: 2026-10-14T09:46:33.336Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7f0e668475b2
   - type: covered_by
     from: SYM-agent-core-candidates-max-requirement-candidates
     to: TEST-claude-edit-snippet-hook
@@ -328,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-286f9e084d49
+  - type: assumes
+    from: SCEN-NEG-cli-lazy-operation-loading-METADATA-DRIFT
+    to: FACT-NEG-cli-lazy-operation-loading-METADATA-DRIFT
+    created_at: 2026-11-10T11:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04503660dd2d
+  - type: verified_by
+    from: SCEN-NEG-cli-lazy-operation-loading-METADATA-DRIFT
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-11-10T11:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1421e1a3324f

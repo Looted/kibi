@@ -51,7 +51,9 @@ semantic_inventory:
       start: 350
       end: 432
 origin:
+  ref: 'Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-07T19:00:20.382Z'
 id: REQ-model-predicates-grounding-aware-v2
 type: req
@@ -65,3 +67,6 @@ Answering `already_grounded` for every claim a requirement already grounds hid w
 ## Source
 
 Onboarding evaluation round 5 analysis (2026-10-07), finding K3b: an external agent onboarded a test project with Kibi 2.9.0 and kibi-mcp 3.4.0.
+
+## Why this changed
+After a bootstrap, predicate modeling answered "already grounded" for every requirement. That hid ontology gaps and missing argument bindings, and pointed at a replacement plan that was often null. Source: PR 369.

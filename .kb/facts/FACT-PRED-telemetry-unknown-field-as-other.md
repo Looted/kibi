@@ -22,4 +22,4 @@ origin:
 id: FACT-PRED-telemetry-unknown-field-as-other
 type: fact
 ---
-A field name that no Kibi schema defines shall be sent as other. Grounds one clause of REQ-kibi-telemetry-agent-signals as a conditional behavior of telemetry events.
+A field name that no Kibi schema defines shall be sent as other. Grounds one clause of REQ-kibi-telemetry-event-contents as a conditional behavior of telemetry events.

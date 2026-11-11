@@ -1,6 +1,6 @@
 ---
 title: Asynchronous plan apply preflight tests
-status: active
+status: passing
 priority: must
 tags:
   - mcp

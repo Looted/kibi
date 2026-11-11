@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.engine.prolog_libraries
-property_key: clause_03_kibi_must_expose_the_remote_sparql_capability_through_the_cu
+property_key: sparql_select_only
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_prolog_library_adoption.clause_03_kibi_must_expose_the_remote_sparql_capability_through_the_cu.eq.true
+canonical_key: req.req_prolog_library_adoption.sparql_select_only.eq.true
 claim_key: CLAIM-6AF26FA207F4CC74
 claim_text: Kibi must expose the remote SPARQL capability through the curated MCP surface, validating endpoint safety and accepting only SELECT queries
 origin:

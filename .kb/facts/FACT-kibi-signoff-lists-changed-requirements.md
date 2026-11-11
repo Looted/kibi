@@ -9,7 +9,7 @@ value_type: int
 value_int: 0
 claim_key: CLAIM-AA496D7010BCE3DD
 claim_text: Kibi signoff must list each requirement a change adds, rewrites or retires and each current requirement the changed code implements, quoting its statement with its firmness and proof state
-text_ref: REQ-kibi-signoff-views
+text_ref: REQ-kibi-signoff-lists-requirements-and-decisions
 tags:
   - strict-modeling
   - lane:strict

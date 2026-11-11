@@ -9,7 +9,7 @@ value_type: bool
 value_bool: false
 claim_text: When kibi-cursor is installed or enabled, it must not modify core Kibi runtime components
 claim_key: CLAIM-6B1861EAA48FF0C3
-text_ref: REQ-cursor-kibi-plugin-v1
+text_ref: REQ-cursor-adapter-package
 origin:
   kind: agent
   recorded_at: '2026-10-27T07:51:44.826Z'

@@ -10,7 +10,7 @@ tags:
   - mcp
   - ontology
   - predicates
-  - review:context-missing
+  - umbrella
 links:
   - type: specified_by
     target: SCEN-mcp-suggest-predicates
@@ -45,10 +45,13 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving entity context that was inferred (not recorded in history) in the KB gold-standard review (context batch 9, inferred): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 
 The MCP server must suggest matching ontology predicate schemas for requirement prose, return safe predicate fact apply plans when a schema fits, and report ontology-gap observations when no candidate is suitable. Suggestions must preserve deontic polarity (`deny` for prohibition cues such as “must not” or “never”) and bind declared project-local argument names when the claim supplies them; they must not silently turn a prohibition into an assertion or invent unbound values.
+
+## Why
+Agents tend to store claims as prose or invent predicates. Suggesting existing schemas makes claims comparable. Keeping polarity matters because turning a "must not" into an assertion would invert the requirement. Inferred from: the semantic advisor changesets, Jun 8; the requirement's own text.

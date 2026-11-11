@@ -7,7 +7,6 @@ tags:
   - engine
   - daemon
   - lane:strict
-  - review:context-missing
 text_ref: packages/cli/src/engine.ts
 semantic_text: The engine daemon handshake must report the resolved SWI-Prolog executable and version. The engine daemon must reject a request from a client whose resolved SWI-Prolog differs from its own. The engine client must replace a daemon whose resolved SWI-Prolog differs instead of reusing it
 semantic_source_field: semantic_text
@@ -49,9 +48,12 @@ id: REQ-prolog-daemon-runtime-identity
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 4): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 The engine daemon handshake must report the resolved SWI-Prolog executable and version. The engine daemon must reject a request from a client whose resolved SWI-Prolog differs from its own. The engine client must replace a daemon whose resolved SWI-Prolog differs instead of reusing it
+
+## Why
+Once Kibi could resolve SWI-Prolog from an environment variable, a bundle or PATH, two clients in one workspace could resolve different binaries. A daemon started with one of them must not answer the other, so a mismatched client gets a restarted daemon, never a reused one. Source: PR 299 phase 3.

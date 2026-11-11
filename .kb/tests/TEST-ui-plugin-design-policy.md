@@ -1,6 +1,6 @@
 ---
 title: kibi-plugin-ui policy tests
-status: active
+status: passing
 tags:
   - plugins
   - ui
