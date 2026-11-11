@@ -5,7 +5,7 @@ status: closed
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
 priority: must
-tags: [requirements, semantic-inventory, ingestion, prolog, sync, review:context-missing]
+tags: [requirements, semantic-inventory, ingestion, prolog, sync]
 logic_claims:
   - CLAIM-7B8BE5762245E3D2
   - CLAIM-8F21AE06ED7D0517
@@ -66,7 +66,7 @@ links:
     target: FACT-INGESTION-SYNC-MIGRATION
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok" Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 8): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 semantic_text: Current requirement writes must reject any omitted assertive proposition. Ledger entries must bind to the exact semantic source field, SHA-256 hash, and UTF-8 span. Duplicate claim keys or spans must be rejected. Ambiguity, ontology gaps, or missing interpretations remain explicit unresolved states rather than evidence of consistency. Every modeled proposition must have exactly one logical grounding fact with the same claim key. Markdown sync must baseline existing legacy requirements once, then enforce complete ledgers for new or semantically changed requirements.
 type: req
@@ -75,3 +75,6 @@ required_evidence: tested
 ---
 
 Current requirement writes must reject any omitted assertive proposition. Ledger entries must bind to the exact semantic source field, SHA-256 hash, and UTF-8 span. Duplicate claim keys or spans must be rejected. Ambiguity, ontology gaps, or missing interpretations remain explicit unresolved states rather than evidence of consistency. Every modeled proposition must have exactly one logical grounding fact with the same claim key. Markdown sync must baseline existing legacy requirements once, then enforce complete ledgers for new or semantically changed requirements.
+
+## Why
+Neither audited project could prove that its prose was fully accounted for, and claims were flattened into sentence-shaped booleans. Rejecting omitted propositions, and binding every entry to its exact source span, keeps ambiguity or missing ontology from passing as consistency. Source: docs/requirement-compiler-roadmap.md, "Evidence baseline" and vector 2.
