@@ -1,7 +1,7 @@
 #!/bin/sh
 # Kibi's own KB is kept at zero findings: the full kibi check must report no
-# violations, no diagnostics and no quality diagnostics, including info-level
-# ones. Other projects may accept advisories; this repository does not.
+# violations and no quality diagnostics, including info-level ones. The gate
+# fails closed when either result group is missing from the output. Other projects may accept advisories; this repository does not.
 # KIBI_CLI selects another Kibi build.
 set -eu
 
@@ -21,7 +21,13 @@ node -e '
     process.exit(1);
   }
   const p = r.structuredContent ?? r;
-  const groups = ["violations", "diagnostics", "qualityDiagnostics"];
+  const required = ["violations", "qualityDiagnostics"];
+  const missing = required.filter((g) => !Array.isArray(p[g]));
+  if (missing.length > 0) {
+    console.error(`kibi check output has no ${missing.join(" or ")} array; the gate cannot tell whether the KB is clean.`);
+    process.exit(1);
+  }
+  const groups = [...required, "diagnostics"];
   let total = 0;
   for (const g of groups) {
     const items = Array.isArray(p[g]) ? p[g] : [];

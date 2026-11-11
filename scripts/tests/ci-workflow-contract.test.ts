@@ -376,9 +376,10 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
   test("Kibi's own KB check fails on any finding, info level included", () => {
     const gate = read("scripts", "kb-zero-findings.sh");
     expect(gate).toContain("check --format json");
-    for (const group of ["violations", "diagnostics", "qualityDiagnostics"]) {
-      expect(gate).toContain(`"${group}"`);
-    }
+    expect(gate).toContain(
+      'const required = ["violations", "qualityDiagnostics"]',
+    );
+    expect(gate).toContain("!Array.isArray(p[g])");
     expect(read("scripts", "proof-prepush.sh")).toContain(
       "sh scripts/kb-zero-findings.sh",
     );
