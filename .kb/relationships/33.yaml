@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8143f36528ca
+  - type: assumes
+    from: SCEN-kibi-coverage-depth-proof-exempt
+    to: FACT-PROP-kibi-coverage-depth-quality-c02
+    created_at: 2026-11-11T18:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e3c8d6153ea
+  - type: verified_by
+    from: SCEN-kibi-coverage-depth-proof-exempt
+    to: TEST-e2e-check-review-rules
+    created_at: 2026-11-11T18:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0927b82b367

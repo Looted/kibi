@@ -342,3 +342,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90e01f464cce
+  - type: assumes
+    from: SCEN-kibi-broad-requirement-review
+    to: FACT-PROP-kibi-broad-requirement-review-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8798953d8bf7
+  - type: assumes
+    from: SCEN-kibi-broad-requirement-review
+    to: FACT-PROP-kibi-broad-requirement-review-c02
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4da2ccd84a8
+  - type: assumes
+    from: SCEN-kibi-broad-requirement-review
+    to: FACT-PROP-kibi-broad-requirement-review-c03
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00f110389839
+  - type: verified_by
+    from: SCEN-kibi-broad-requirement-review
+    to: TEST-e2e-check-review-rules
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c53ef6d7079

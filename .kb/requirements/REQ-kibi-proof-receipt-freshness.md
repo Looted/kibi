@@ -1,77 +1,71 @@
 ---
 title: Proof receipts are validated as fresh, passing and bound to the current snapshot before they prove a requirement
 status: open
-semantic_text: Proof-bearing tests must carry kibi.proof-receipt.v1 execution history that kb_upsert and incremental sync never shorten, rewrite, or reorder. Each proof receipt must bind its test ID, typed verification scope, integration command, current code snapshot, canonical environment hash, execution fingerprint, timestamps, outcome, and artifact digest. The newest proof receipt for the current code snapshot must be passing and no older than seven days. A missing, stale, failed, malformed, mismatched, or future-dated proof receipt must not prove the requirement. Coverage and status must expose the deterministic current code snapshot through CLI and MCP. Durable test status remains structural metadata and cannot substitute for proof receipts. Receipt bindings must locate the test document and each symbol source file through a normalized repository-relative path.
+semantic_text: Proof-bearing tests must carry proof receipt execution history that kb_upsert and incremental sync never shorten, rewrite, or reorder. Each proof receipt must bind its test ID, typed verification scope, integration command, current code snapshot, canonical environment hash, execution fingerprint, timestamps, outcome, and artifact digest. The newest proof receipt for the current code snapshot must be passing and no older than seven days. A missing, stale, failed, malformed, mismatched, or future-dated proof receipt must not prove the requirement. Coverage and status must expose the deterministic current code snapshot through CLI and MCP. Durable test status remains structural metadata and cannot substitute for proof receipts. Receipt bindings must locate the test document and each symbol source file through a normalized repository-relative path.
 semantic_clauses:
-  - Proof-bearing tests must carry kibi.proof-receipt.v1 execution history that kb_upsert and incremental sync never shorten, rewrite, or reorder.
-  - Each proof receipt must bind its test ID, typed verification scope, integration command, current code snapshot, canonical environment hash, execution fingerprint, timestamps, outcome, and artifact digest.
-  - The newest proof receipt for the current code snapshot must be passing and no older than seven days.
-  - A missing, stale, failed, malformed, mismatched, or future-dated proof receipt must not prove the requirement.
-  - Coverage and status must expose the deterministic current code snapshot through CLI and MCP.
-  - Durable test status remains structural metadata and cannot substitute for proof receipts.
-  - Receipt bindings must locate the test document and each symbol source file through a normalized repository-relative path.
+  - Proof-bearing tests must carry proof receipt execution history that kb_upsert and incremental sync never shorten, rewrite, or reorder
+  - Each proof receipt must bind its test ID, typed verification scope, integration command, current code snapshot, canonical environment hash, execution fingerprint, timestamps, outcome, and artifact digest
+  - The newest proof receipt for the current code snapshot must be passing and no older than seven days
+  - A missing, stale, failed, malformed, mismatched, or future-dated proof receipt must not prove the requirement
+  - Coverage and status must expose the deterministic current code snapshot through CLI and MCP
+  - Durable test status remains structural metadata and cannot substitute for proof receipts
+  - Receipt bindings must locate the test document and each symbol source file through a normalized repository-relative path
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: c3d92cf560ce8d5bc037396c136618b9b2a65357cf61af906dd1194ad1f8f196
+semantic_source_hash: 99230e4a1dd9f05751cbaa54c7e82b0bcf1aa7cbe6e52f4d1eb07074ab867893
 semantic_inventory:
-  - claim_key: CLAIM-F0E4D725D82887B3
-    claim_text: Proof-bearing tests must carry kibi.proof-receipt.v1 execution history that kb_upsert and incremental sync never shorten, rewrite, or reorder
+  - claim_key: CLAIM-76ACF45E5EAD5F00
+    claim_text: Proof-bearing tests must carry proof receipt execution history that kb_upsert and incremental sync never shorten, rewrite, or reorder
     role: normative
     status: modeled
     span:
       start: 0
-      end: 141
+      end: 133
     reason: Grounded by a verification_receipt_rule fact reviewed against the current code.
   - claim_key: CLAIM-BCC4E6CCF9623500
     claim_text: Each proof receipt must bind its test ID, typed verification scope, integration command, current code snapshot, canonical environment hash, execution fingerprint, timestamps, outcome, and artifact digest
     role: normative
     status: modeled
     span:
-      start: 143
-      end: 346
-    reason: Grounded by the same fact that grounded this clause in the superseded requirement.
+      start: 135
+      end: 338
   - claim_key: CLAIM-A3834334B2DFAF17
     claim_text: The newest proof receipt for the current code snapshot must be passing and no older than seven days
     role: normative
     status: modeled
     span:
-      start: 348
-      end: 447
-    reason: Grounded by the same fact that grounded this clause in the superseded requirement.
+      start: 340
+      end: 439
   - claim_key: CLAIM-BB50FABD208405B7
     claim_text: A missing, stale, failed, malformed, mismatched, or future-dated proof receipt must not prove the requirement
     role: normative
     status: modeled
     span:
-      start: 449
-      end: 558
-    reason: Grounded by the same fact that grounded this clause in the superseded requirement.
+      start: 441
+      end: 550
   - claim_key: CLAIM-BCCEE9616D8F0A33
     claim_text: Coverage and status must expose the deterministic current code snapshot through CLI and MCP
     role: normative
     status: modeled
     span:
-      start: 560
-      end: 651
-    reason: Grounded by the same fact that grounded this clause in the superseded requirement.
+      start: 552
+      end: 643
   - claim_key: CLAIM-0C6463BA2B3AA64B
     claim_text: Durable test status remains structural metadata and cannot substitute for proof receipts
     role: normative
     status: modeled
     span:
-      start: 653
-      end: 741
-    reason: Grounded by the same fact that grounded this clause in the superseded requirement.
+      start: 645
+      end: 733
   - claim_key: CLAIM-A0151FEC23EA1948
     claim_text: Receipt bindings must locate the test document and each symbol source file through a normalized repository-relative path
     role: normative
     status: modeled
     span:
-      start: 743
-      end: 863
-    reason: Grounded by a verification_receipt_rule fact reviewed against the current code.
+      start: 735
+      end: 855
 logic_claims:
-  - CLAIM-F0E4D725D82887B3
+  - CLAIM-76ACF45E5EAD5F00
   - CLAIM-BCC4E6CCF9623500
   - CLAIM-A3834334B2DFAF17
   - CLAIM-BB50FABD208405B7
@@ -80,7 +74,7 @@ logic_claims:
   - CLAIM-A0151FEC23EA1948
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
+  ref: 'Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok" Maintainer decision, 2026-11-11, approving the wording fixes of the second KB gold-standard review: "Ok"'
   approved_by: maintainer
   recorded_at: '2026-11-10T08:29:20.169Z'
 priority: must
@@ -95,7 +89,7 @@ tags:
 id: REQ-kibi-proof-receipt-freshness
 type: req
 ---
-Proof-bearing tests must carry kibi.proof-receipt.v1 execution history that kb_upsert and incremental sync never shorten, rewrite, or reorder. Each proof receipt must bind its test ID, typed verification scope, integration command, current code snapshot, canonical environment hash, execution fingerprint, timestamps, outcome, and artifact digest. The newest proof receipt for the current code snapshot must be passing and no older than seven days. A missing, stale, failed, malformed, mismatched, or future-dated proof receipt must not prove the requirement. Coverage and status must expose the deterministic current code snapshot through CLI and MCP. Durable test status remains structural metadata and cannot substitute for proof receipts. Receipt bindings must locate the test document and each symbol source file through a normalized repository-relative path.
+Proof-bearing tests must carry proof receipt execution history that kb_upsert and incremental sync never shorten, rewrite, or reorder. Each proof receipt must bind its test ID, typed verification scope, integration command, current code snapshot, canonical environment hash, execution fingerprint, timestamps, outcome, and artifact digest. The newest proof receipt for the current code snapshot must be passing and no older than seven days. A missing, stale, failed, malformed, mismatched, or future-dated proof receipt must not prove the requirement. Coverage and status must expose the deterministic current code snapshot through CLI and MCP. Durable test status remains structural metadata and cannot substitute for proof receipts. Receipt bindings must locate the test document and each symbol source file through a normalized repository-relative path.
 
 ## Context
 

@@ -391,3 +391,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-592d50bcc709
+  - type: assumes
+    from: SCEN-kibi-playwright-native-id
+    to: FACT-PROP-kibi-playwright-native-id-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79104db7217d
+  - type: assumes
+    from: SCEN-kibi-playwright-native-id
+    to: FACT-PROP-kibi-playwright-native-id-c02
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d48363114138
+  - type: verified_by
+    from: SCEN-kibi-playwright-native-id
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dd4d6672b13

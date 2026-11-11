@@ -1728,6 +1728,36 @@ symbols:
         target: TEST-cli-symbol-quality-diagnostics
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
+  - id: SYM-cli-impact-createBroadRequirementDiagnostics
+    title: createBroadRequirementDiagnostics
+    sourceFile: packages/cli/src/public/impact/requirement-quality.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-kibi-broad-requirement-review
+      - type: covered_by
+        target: TEST-e2e-check-review-rules
+  - id: SYM-cli-impact-createCoarseAnchorQualityDiagnostics
+    title: createCoarseAnchorQualityDiagnostics
+    sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-kibi-coarse-anchor-review
+      - type: covered_by
+        target: TEST-e2e-check-review-rules
+  - id: SYM-ingest-proof-enforceNativeCaseBindings
+    title: enforceNativeCaseBindings
+    sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-kibi-playwright-native-id
+      - type: covered_by
+        target: TEST-e2e-check-review-rules
   - id: SYM-cli-impact-createCoverageDepthQualityDiagnostics
     title: createCoverageDepthQualityDiagnostics
     sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
@@ -1735,6 +1765,8 @@ symbols:
     symbol_role: behavioral
     status: active
     relationships:
+      - type: covered_by
+        target: TEST-e2e-check-review-rules
       - type: implements
         target: REQ-kibi-coverage-depth-quality
       - type: covered_by
@@ -15760,6 +15792,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: implements
+        target: REQ-kibi-playwright-native-id
       - type: covered_by
         target: TEST-e2e-proof-maintenance-ops
       - type: implements
@@ -16791,6 +16825,15 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-e2e-plan-compiler-hash
+  - id: SYM-e2e-test-check-review-rules
+    title: check-review-rules.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/check-review-rules.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-check-review-rules
   - id: SYM-e2e-test-cli-schema-version-surface
     title: cli-schema-version-surface.test
     status: active

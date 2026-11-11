@@ -412,13 +412,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-95e51b644bf1
-  - type: requires_predicate
-    from: REQ-kibi-proof-receipt-freshness
-    to: FACT-VERIFICATION-RECEIPT-HISTORY-AUTHOR-APPEND-ONLY
-    created_at: 2026-11-10T08:29:20.217Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b11e62ebfd13
   - type: requires_property
     from: REQ-kibi-proof-receipt-freshness
     to: FACT-VERIFICATION-RECEIPT-BINDING
@@ -517,3 +510,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e7746d961e32
+  - type: requires_predicate
+    from: REQ-kibi-proof-receipt-freshness
+    to: FACT-VERIFICATION-RECEIPT-HISTORY-APPEND-ONLY
+    created_at: 2026-11-11T17:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b6f2331188b

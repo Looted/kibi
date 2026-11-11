@@ -328,3 +328,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b0f7e36df093
+  - type: assumes
+    from: SCEN-NEG-kibi-playwright-native-id
+    to: FACT-NEG-kibi-playwright-native-id-UNNAMED
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d509ed6c639
+  - type: assumes
+    from: SCEN-NEG-kibi-playwright-native-id
+    to: FACT-NEG-kibi-playwright-native-id-MISSING
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d77da0549567
+  - type: verified_by
+    from: SCEN-NEG-kibi-playwright-native-id
+    to: TEST-e2e-check-review-rules
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7ea3a7b3323

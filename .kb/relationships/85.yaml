@@ -391,13 +391,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-03bc09bc7062
-  - type: requires_property
-    from: REQ-kibi-release-versioning-on-develop
-    to: FACT-PROP-REQ-020-C10
-    created_at: 2026-11-05T10:52:39.047Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7d4002ba4c80
   - type: specified_by
     from: REQ-kibi-release-versioning-on-develop
     to: SCEN-release-automation

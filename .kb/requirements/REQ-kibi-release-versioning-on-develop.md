@@ -1,15 +1,14 @@
 ---
 title: Kibi npm package releases are versioned through Changesets on develop
 status: open
-semantic_text: All Kibi npm packages must share consistent semantic versioning. All release steps must be automated via Changesets. Version bumps and changelog updates must happen on develop or feature branches using bun run version-packages. If KB query is unstable, agents must consult documentation/requirements/REQ-020.md and ADRs for release policy.
+semantic_text: All Kibi npm packages must share consistent semantic versioning. All release steps must be automated via Changesets. Version bumps and changelog updates must happen on develop or feature branches using bun run version-packages.
 semantic_clauses:
-  - All Kibi npm packages must share consistent semantic versioning.
-  - All release steps must be automated via Changesets.
-  - Version bumps and changelog updates must happen on develop or feature branches using bun run version-packages.
-  - If KB query is unstable, agents must consult documentation/requirements/REQ-020.md and ADRs for release policy.
+  - All Kibi npm packages must share consistent semantic versioning
+  - All release steps must be automated via Changesets
+  - Version bumps and changelog updates must happen on develop or feature branches using bun run version-packages
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 7610b76f8b39d0b3cf38607d73a8db82f6e9b73470f657756f519a6a158ba53b
+semantic_source_hash: 4860eed7cff44cb4fbf7b7ec682b03ae06fcff6cda920c23dcaaf5f69b011e1e
 semantic_inventory:
   - claim_key: CLAIM-D3C7AC23296BED7E
     claim_text: All Kibi npm packages must share consistent semantic versioning
@@ -18,7 +17,6 @@ semantic_inventory:
     span:
       start: 0
       end: 63
-    reason: Grounded by the linked fact with this claim key.
   - claim_key: CLAIM-C174E132C461E804
     claim_text: All release steps must be automated via Changesets
     role: normative
@@ -26,7 +24,6 @@ semantic_inventory:
     span:
       start: 65
       end: 115
-    reason: Grounded by the linked fact with this claim key.
   - claim_key: CLAIM-8A94470D1E4C9378
     claim_text: Version bumps and changelog updates must happen on develop or feature branches using bun run version-packages
     role: normative
@@ -34,23 +31,13 @@ semantic_inventory:
     span:
       start: 117
       end: 226
-    reason: Grounded by the linked fact with this claim key.
-  - claim_key: CLAIM-891E2F67460FDB62
-    claim_text: If KB query is unstable, agents must consult documentation/requirements/REQ-020.md and ADRs for release policy
-    role: condition
-    status: modeled
-    span:
-      start: 228
-      end: 338
-    reason: Grounded by the linked fact with this claim key.
 logic_claims:
   - CLAIM-D3C7AC23296BED7E
   - CLAIM-C174E132C461E804
   - CLAIM-8A94470D1E4C9378
-  - CLAIM-891E2F67460FDB62
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
+  ref: 'Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok" Maintainer decision, 2026-11-11, approving the wording fixes of the second KB gold-standard review: "Ok"'
   approved_by: maintainer
   recorded_at: '2026-11-05T10:52:38.894Z'
 firmness: default
@@ -62,7 +49,7 @@ tags:
 id: REQ-kibi-release-versioning-on-develop
 type: req
 ---
-All Kibi npm packages must share consistent semantic versioning. All release steps must be automated via Changesets. Version bumps and changelog updates must happen on develop or feature branches using bun run version-packages. If KB query is unstable, agents must consult documentation/requirements/REQ-020.md and ADRs for release policy.
+All Kibi npm packages must share consistent semantic versioning. All release steps must be automated via Changesets. Version bumps and changelog updates must happen on develop or feature branches using bun run version-packages.
 
 ## Context
 

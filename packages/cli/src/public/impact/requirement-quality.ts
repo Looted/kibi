@@ -199,7 +199,7 @@ function isUmbrellaRequirement(result: ExtractionResult): boolean {
   );
 }
 
-function createBroadRequirementDiagnostics(
+export function createBroadRequirementDiagnostics(
   results: readonly ExtractionResult[],
 ): readonly KibiImpactDiagnostic[] {
   const typesByEntityId = entityTypeById(results);

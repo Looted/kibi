@@ -7484,5 +7484,15 @@
         "./packages/cli/tests/traceability/impact-policy.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-e2e-check-review-rules",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/check-review-rules.test.ts"
+      ]
+    ]
   }
 ]

@@ -293,3 +293,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8280945eb4fd
+  - type: constrains
+    from: REQ-kibi-coarse-anchor-review
+    to: FACT-SUBJ-kibi-coarse-anchor-review
+    created_at: 2026-11-11T17:35:19.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9133abd2930e
+  - type: requires_property
+    from: REQ-kibi-coarse-anchor-review
+    to: FACT-PROP-kibi-coarse-anchor-review-c01
+    created_at: 2026-11-11T17:35:20.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a03a260d9548
+  - type: requires_property
+    from: REQ-kibi-coarse-anchor-review
+    to: FACT-PROP-kibi-coarse-anchor-review-c02
+    created_at: 2026-11-11T17:35:20.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-502accfc5038
+  - type: specified_by
+    from: REQ-kibi-coarse-anchor-review
+    to: SCEN-kibi-coarse-anchor-review
+    created_at: 2026-11-11T17:35:20.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ada4416a4eb
+  - type: specified_by
+    from: REQ-kibi-coarse-anchor-review
+    to: SCEN-NEG-kibi-coarse-anchor-review
+    created_at: 2026-11-11T17:35:20.102Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b66f5705ddfc
+  - type: relates_to
+    from: REQ-kibi-coarse-anchor-review
+    to: REQ-audit-quality-diagnostics-v1
+    created_at: 2026-11-11T17:35:20.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d97f17fdc944

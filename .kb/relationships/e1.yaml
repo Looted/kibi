@@ -363,3 +363,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fabbbc26b83
+  - type: assumes
+    from: SCEN-kibi-coarse-anchor-review
+    to: FACT-PROP-kibi-coarse-anchor-review-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-494722627052
+  - type: assumes
+    from: SCEN-kibi-coarse-anchor-review
+    to: FACT-PROP-kibi-coarse-anchor-review-c02
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3071078702f
+  - type: verified_by
+    from: SCEN-kibi-coarse-anchor-review
+    to: TEST-e2e-check-review-rules
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68a50ab91449
