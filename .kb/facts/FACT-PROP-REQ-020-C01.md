@@ -11,8 +11,8 @@ value_type: int
 value_int: 0
 polarity: require
 canonical_key: kibi.release.versioning:npm_packages_off_shared_semver_version:eq:0
-claim_key: CLAIM-71ECF95CFB22CA5C
-claim_text: Consistent semantic versioning across all npm packages
+claim_key: CLAIM-D3C7AC23296BED7E
+claim_text: All Kibi npm packages must share consistent semantic versioning
 id: FACT-PROP-REQ-020-C01
 type: fact
 origin:

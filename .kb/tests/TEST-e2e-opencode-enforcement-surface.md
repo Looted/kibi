@@ -48,10 +48,11 @@ proof_receipts:
           status: unavailable
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 ---
 
 Packed end-to-end regression for installed opencode plugin enforcement surface.
+
+## Context
+This was one of the 14 packed tests that raised proof coverage from 66/104 to 93/101. It runs against the installed OpenCode tarball, because enforcement behavior only matters as users install it. Source: PR 262.

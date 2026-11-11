@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.proof.run_vocabulary
 claim_key: CLAIM-3A5E7E22374EF666
 claim_text: A proof binding kind shall be native_case or aggregate_run
-text_ref: REQ-kibi-proof-run-vocabulary
+text_ref: REQ-kibi-proof-contract-vocabulary
 property_key: binding_kinds
 operator: eq
 value_type: set

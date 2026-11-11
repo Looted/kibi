@@ -3,6 +3,7 @@ title: A dimension waiver closes the gap only once a person approves it
 status: active
 fact_kind: predicate
 predicate_name: proof_gate_policy
+predicate_namespace: kibi.proof
 predicate_args:
   - dimension_unrepresented
   - dimension_waiver

@@ -1,6 +1,6 @@
 ---
 title: No entity or relationship mutation is missing from the branch audit log
-status: deprecated
+status: archived
 fact_kind: property_value
 subject_key: kibi.audit.log
 property_key: kb_mutations_missing_from_branch_audit_log

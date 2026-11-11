@@ -5,14 +5,14 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.release.versioning
-property_key: clause_06_versioning_on_develop_version_bumps_and_changelo
+property_key: version_bumps_on_develop
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_020.clause_06_versioning_on_develop_version_bumps_and_changelo.eq.true
-claim_key: CLAIM-8E9C2B4098E4E5A6
-claim_text: '**Versioning on Develop**: Version bumps and changelog updates happen on `develop` (or feature branches) using `bun run version-packages`'
+canonical_key: req.req_020.version_bumps_on_develop.eq.true
+claim_key: CLAIM-8A94470D1E4C9378
+claim_text: 'Version bumps and changelog updates must happen on develop or feature branches using bun run version-packages'
 id: FACT-PROP-REQ-020-C06
 type: fact
 origin:

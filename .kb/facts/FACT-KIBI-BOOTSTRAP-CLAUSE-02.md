@@ -3,7 +3,7 @@ title: Bootstrap contract clause 02
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap.plan
-property_key: contract_clause_2
+property_key: explicit_request_seeds_then_hands_off
 operator: eq
 value_type: string
 value_string: An explicit bootstrap request must perform initial inference and seed through kibi-bootstrap, then seeded repositories must hand off to normal Kibi work

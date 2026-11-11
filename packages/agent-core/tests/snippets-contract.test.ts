@@ -471,7 +471,7 @@ describe("fileKnowledgeSnippet", () => {
       '- +2 more requirements: kb_query({sourceFile:"a.ts"})',
       "Covered by: T1, T2, T3 +1.",
       "Test code for: R8, R9.",
-      'Next layer: kb_query({id:"R1"}) returns full requirement text; kb_search({query:"<topic>", sourceLocations:[{path:"a.ts"}]}) answers with governing requirements, facts, decisions, and tests.',
+      'Next layer: kb_query({id:"R1", includeBody:true}) returns the full requirement text and why it exists; kb_search({query:"<topic>", sourceLocations:[{path:"a.ts"}]}) answers with governing requirements, facts, decisions, and tests.',
     ]);
     const four = fileKnowledgeSnippet({
       relativePath: "a.ts",

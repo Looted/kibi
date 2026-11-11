@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-6cbd71972555
-    type: covered_by
-    from: SYM-reqcompiler-parity-options
-    to: TEST-kibi-distribution-parity-matrix
-    created_at: "2026-08-16T18:51:45.120Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-modeling-predicate-loader-loadExistingPredicateSchemas
     to: TEST-kibi-ontology-convergence-witnesses
@@ -35,13 +28,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b7b7a54fc421
   - type: covered_by
-    from: SYM-KibiImpactEvidenceKind
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:13:48.704Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dd6925c561ba
-  - type: covered_by
     from: SYM-modeling-predicate-loader-loadExistingPredicateSchemas
     to: TEST-mcp-suggest-predicates
     created_at: 2026-09-05T17:44:45.327Z
@@ -62,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4752c9d7c04c
-  - type: covered_by
-    from: SYM-mcp-CheckArgs
-    to: TEST-mcp-tool-check-coverage
-    created_at: 2026-09-06T09:06:04.853Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-650ecb586e56
   - type: implements
     from: SYM-x-oc-handleKbToolEvent
     to: REQ-opencode-kibi-plugin-v1
@@ -111,27 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0664888bb036
-  - type: covered_by
-    from: SYM-cap-plugin-ispluginmode-4ce39fb0
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:47:30.157Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8285c4d6a7f1
-  - type: covered_by
-    from: SYM-impact-public-preparation-prepareimpactreviewinput
-    to: TEST-impact-public-preparation-parity
-    created_at: 2026-09-27T17:33:46.975Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4dc9b1ac2b16
-  - type: implements
-    from: SYM-impact-public-preparation-prepareimpactreviewinput
-    to: REQ-impact-review-public-preparation
-    created_at: 2026-09-27T17:33:47.019Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8b6677ec8ecb
   - type: requires_property
     from: REQ-branch-store-recovery-v4
     to: FACT-EXACT-BRANCH-IDENTITY-SOURCE
@@ -230,13 +188,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d82b3c58e197
-  - type: covered_by
-    from: SYM-reqcompiler-legacy-migration-plan
-    to: TEST-kibi-legacy-migration-preview-v2
-    created_at: 2026-10-04T04:18:48.504Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a30fedd0356f
   - type: executable_for
     from: SYM-test-model-predicates-plan-roundtrip
     to: TEST-model-predicates-plan-roundtrip
@@ -440,6 +391,62 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8c958daa8697
+  - type: constrains
+    from: REQ-kibi-search-hints-shown
+    to: FACT-search-hints-host-subject
+    created_at: 2026-11-04T14:55:45.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44952368583c
+  - type: requires_property
+    from: REQ-kibi-search-hints-shown
+    to: FACT-search-hints-host-lifted
+    created_at: 2026-11-04T14:55:45.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2ac43659120
+  - type: requires_property
+    from: REQ-kibi-search-hints-shown
+    to: FACT-search-hints-host-max-shown
+    created_at: 2026-11-04T14:55:45.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57274edab8a3
+  - type: requires_property
+    from: REQ-kibi-search-hints-shown
+    to: FACT-search-hints-host-omit-governing
+    created_at: 2026-11-04T14:55:45.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63afd66f1ac2
+  - type: specified_by
+    from: REQ-kibi-search-hints-shown
+    to: SCEN-CASE-kibi-search-hints-host-ELEVEN-SHOWN
+    created_at: 2026-11-04T14:55:45.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e71421cef8c3
+  - type: specified_by
+    from: REQ-kibi-search-hints-shown
+    to: SCEN-CASE-kibi-search-hints-host-TWO-GOVERNING-OMITTED
+    created_at: 2026-11-04T14:55:45.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed0d160d9a96
+  - type: specified_by
+    from: REQ-kibi-search-hints-shown
+    to: SCEN-CASE-kibi-search-hints-host-FOURTH-GOVERNING-OMITTED
+    created_at: 2026-11-04T14:55:45.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ebb7beaf328
+  - type: supersedes
+    from: REQ-kibi-search-hints-shown
+    to: REQ-kibi-search-hints-host
+    created_at: 2026-11-04T14:55:45.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-960bb7c02a57
   - type: verified_by
     from: SCEN-kb-requirement-retired-status-migration-suggestion
     to: TEST-kb-requirement-retired-status

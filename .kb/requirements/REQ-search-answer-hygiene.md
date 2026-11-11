@@ -57,6 +57,7 @@ semantic_inventory:
     reason: Grounded by a logical_requirement_rule predicate fact over the reviewed project-local logical_requirement_rule schema.
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-11T19:54:22.919Z'
 id: REQ-search-answer-hygiene
 type: req

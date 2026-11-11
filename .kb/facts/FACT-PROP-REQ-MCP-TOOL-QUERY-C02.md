@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.kb_query
-property_key: clause_02_the_kb_query_mcp_tool_must_page_results_with_the_limit_and_o
+property_key: pages_with_limit_offset
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_tool_query.clause_02_the_kb_query_mcp_tool_must_page_results_with_the_limit_and_o.eq.true
+canonical_key: req.req_mcp_tool_query.pages_with_limit_offset.eq.true
 claim_key: CLAIM-AF3C0A24FFE156A1
 claim_text: The kb_query MCP tool must page results with the limit and offset parameters
 origin:

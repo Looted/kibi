@@ -1,7 +1,7 @@
 ---
 id: REQ-test-journaled-engine-harness
 title: Reuse and clean up journaled engines in tests
-status: open
+status: closed
 created_at: 2026-08-12T00:00:00Z
 updated_at: 2026-08-15T08:05:00Z
 source: test/root.test.ts
@@ -11,7 +11,6 @@ tags:
   - engine
   - performance
   - isolation
-  - review:context-missing
 semantic_text: |-
   Test harnesses MUST assign spawned engines to private runtime directories and durably terminate every owned engine before deleting fixture state
 
@@ -86,7 +85,7 @@ links:
     target: FACT-CLI-LAZY-OPERATION-LOAD
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok" Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 type: req
 firmness: default
@@ -112,3 +111,6 @@ CLI command registration MUST remain lightweight. The selected implementation
 MUST be loaded only when invoked, and automated parity checks MUST prove that
 the lightweight command metadata and lazy loader match the authoritative
 18-operation catalog.
+
+## Why
+Repeated module loading and package installs dominated test time. Detached fixture engines also stayed alive until the ten-minute idle timeout and held memory. Shared installs and owned teardown fix both. Source: ADR-025.

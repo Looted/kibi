@@ -1,7 +1,7 @@
 ---
 id: FACT-ATOMIC-UPSERT-SNAPSHOT
 title: Concurrent upserts require a current attached snapshot
-status: active
+status: archived
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
 tags: [lane:ontology, persistence, concurrency, snapshots]

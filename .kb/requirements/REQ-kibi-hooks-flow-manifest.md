@@ -60,6 +60,7 @@ semantic_inventory:
     reason: Grounded by a logical_requirement_rule predicate fact over the reviewed project-local logical_requirement_rule schema.
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-11T16:20:18.520Z'
 id: REQ-kibi-hooks-flow-manifest
 type: req

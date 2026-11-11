@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.migration.pin_codes
 claim_key: CLAIM-5E5165DB903B6897
 claim_text: The firm supersede acknowledgement code shall be firm_supersede_acknowledge
-text_ref: REQ-cli-migration-pin-codes
+text_ref: REQ-cli-migration-supersession-codes
 property_key: firm_supersede_code
 operator: eq
 value_type: string

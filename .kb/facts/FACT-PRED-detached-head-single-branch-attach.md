@@ -14,7 +14,7 @@ tags:
   - detached-head
 claim_key: CLAIM-3A3F394B6600B1F4
 claim_text: A detached HEAD with exactly one local branch at HEAD must attach that branch's KB
-text_ref: .kb/requirements/REQ-branch-store-recovery-v4.md
+text_ref: .kb/requirements/REQ-kibi-detached-head-snapshots.md
 origin:
   kind: agent
   recorded_at: '2026-10-04T02:17:53.110Z'

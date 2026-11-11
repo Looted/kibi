@@ -10,7 +10,6 @@ tags:
   - core
   - prolog
   - audit
-  - review:context-missing
   - historical-status:retired
 links:
   - type: supersedes

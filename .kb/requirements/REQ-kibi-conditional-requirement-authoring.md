@@ -69,6 +69,7 @@ logic_claims:
   - CLAIM-C55A9879165FC4A7
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:31:48.670Z'
 id: REQ-kibi-conditional-requirement-authoring
 type: req

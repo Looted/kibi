@@ -1,9 +1,9 @@
 ---
-title: 'Non-numeric proof kinds: Kibi must re-evaluate the code''s predicate tables, transition rel'
-status: active
+title: 'Non-numeric proof kinds: Kibi re-evaluates the predicate tables before accepting a rule certificate'
+status: archived
 fact_kind: property_value
 subject_key: kibi.non_numeric_proof
-property_key: recheck_code_model
+property_key: recheck_rule_tables
 operator: eq
 claim_key: CLAIM-A8CF0DAB38939C0B
 claim_text: Kibi must re-evaluate the code's predicate tables, transition relation or pattern before it accepts a rule, state_machine or regex certificate

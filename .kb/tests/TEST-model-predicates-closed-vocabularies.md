@@ -1,6 +1,6 @@
 ---
 title: Predicate closed vocabulary tests
-status: active
+status: passing
 priority: must
 tags:
   - modeling

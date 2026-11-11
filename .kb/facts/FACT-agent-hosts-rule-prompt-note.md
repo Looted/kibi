@@ -9,7 +9,7 @@ value_type: bool
 value_bool: true
 claim_key: CLAIM-764840ECA62AFC1F
 claim_text: When a submitted prompt reads as a rule, the Codex, Cursor, ZCode hooks must give the agent the note that recording the rule with kb_upsert is part of the change
-text_ref: REQ-agent-hosts-decision-guard
+text_ref: REQ-agent-hosts-rule-prompt-note
 tags:
   - strict-modeling
   - lane:strict

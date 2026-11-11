@@ -13,20 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-44b62faedd6d
-  - type: implements
-    from: SYM-canonical-readKbManifest
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:02:10.638Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-125c0dea4cf1
-  - type: covered_by
-    from: SYM-canonical-readKbManifest
-    to: TEST-cli-canonical-init
-    created_at: 2026-08-18T17:02:10.645Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b3f1eae0337f
   - type: validates
     from: TEST-cursor-consumer-local-mcp-launcher-v1
     to: REQ-cursor-consumer-local-mcp-launcher-v1
@@ -34,48 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e4f0f9ec4e4
-  - type: implements
-    from: SYM-modeling-requirement-utils-trimSentenceTail
-    to: REQ-002
-    created_at: 2026-08-22T20:08:46.149Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12dc81c69f76
-  - type: covered_by
-    from: SYM-modeling-requirement-utils-trimSentenceTail
-    to: TEST-005
-    created_at: 2026-08-22T20:08:46.160Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f8cb8f90f3e
-  - type: covered_by
-    from: SYM-modeling-requirement-utils-trimSentenceTail
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:08:46.163Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c4c69dd9ded5
-  - type: implements
-    from: SYM-buildStableRequirementIds
-    to: REQ-011
-    created_at: 2026-08-22T20:12:11.168Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3347d18a0b19
-  - type: covered_by
-    from: SYM-buildStableRequirementIds
-    to: TEST-cli-strict-modeling
-    created_at: 2026-08-22T20:12:11.180Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fe2f889a498d
-  - type: covered_by
-    from: SYM-buildStableRequirementIds
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:12:11.185Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-54149bf5f1bb
   - type: covered_by
     from: SYM-auto-974943F1E67A
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -83,34 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-165df6c739e2
-  - type: covered_by
-    from: SYM-cli-validation-result-type
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:36:50.188Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b8e76f3366af
-  - type: implements
-    from: SYM-cli-validation-result-type
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:00:20.157Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ec3f90c4e391
-  - type: covered_by
-    from: SYM-cli-validation-result-type
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:00:20.162Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4d9ed4d1ce8e
-  - type: covered_by
-    from: SYM-buildStableRequirementIds
-    to: TEST-001
-    created_at: 2026-09-05T14:50:56.794Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3970e85ea790
   - type: executable_for
     from: SYM-e2e-test-root-suite-batch-diagnostics
     to: TEST-root-suite-batch-diagnostics
@@ -125,13 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-deb89b680b08
-  - type: covered_by
-    from: SYM-mcp-getIsShuttingDown
-    to: TEST-mcp-session-state
-    created_at: 2026-09-14T19:10:50.603Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fe003d43c74e
   - type: verified_by
     from: SCEN-zcode-advisory-boundary-v1
     to: TEST-zcode-kibi-plugin-v1
@@ -139,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d896e49aed3
-  - type: covered_by
-    from: SYM-modeling-requirement-utils-trimSentenceTail
-    to: TEST-e2e-mcp-model-requirement
-    created_at: 2026-09-18T15:21:51.180Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c7aa59575f8a
   - type: specified_by
     from: REQ-kibi-local-proof-parity
     to: SCEN-kibi-local-proof-parity
@@ -153,34 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a6dc67187ca
-  - type: covered_by
-    from: SYM-source-analysis-v2-sourceanalysisuncoveredrangev2
-    to: TEST-source-analysis-v2-contract
-    created_at: 2026-09-27T09:59:53.228Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0ef70fea27dc
-  - type: implements
-    from: SYM-source-analysis-v2-sourceanalysisuncoveredrangev2
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-27T09:59:53.248Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7061f921a726
-  - type: implements
-    from: SYM-source-analysis-v2-sourceanalysisuncoveredrangev2
-    to: REQ-capability-plugin-protocol-v1
-    created_at: 2026-09-27T09:59:53.265Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d06a876451d4
-  - type: covered_by
-    from: SYM-source-analysis-v2-sourceanalysisuncoveredrangev2
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-27T11:01:38.628Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8636559d248f
   - type: validates
     from: TEST-prolog-spike-config-validation
     to: SCEN-prolog-spike-config-validation
@@ -202,27 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-821befcd1f23
-  - type: implements
-    from: SYM-mcp-getIsShuttingDown
-    to: REQ-core-prolog-process-management
-    created_at: 2026-10-04T03:03:34.590Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5e3d3387a9f5
-  - type: covered_by
-    from: SYM-mcp-getIsShuttingDown
-    to: TEST-005
-    created_at: 2026-10-04T03:27:42.622Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3b17b27fb86f
-  - type: implements
-    from: SYM-skillopt-campaign-workflow-runrevisecampaign-65760487
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:23:33.348Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6f0d42de8cca
   - type: covered_by
     from: SYM-skillopt-campaign-workflow-runrevisecampaign-65760487
     to: TEST-skillopt-codex-optimization
@@ -244,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2abaca356c27
-  - type: implements
-    from: SYM-const-exception-unapproved-rule
-    to: REQ-kibi-check-rule-names
-    created_at: 2026-10-28T20:20:58.820Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-62b889e5c358
   - type: covered_by
     from: SYM-const-exception-unapproved-rule
     to: TEST-proof-exception-unapproved-rule
@@ -300,10 +146,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0ff98e636f26
-  - type: implements
-    from: SYM-agent-core-usage-telemetry-remembertelemetryskillload
-    to: REQ-kibi-telemetry-agent-signals
-    created_at: 2026-11-03T14:23:54.431Z
+  - type: constrains
+    from: REQ-kibi-diagnostic-usage-records
+    to: FACT-SUBJECT-KIBI-TELEMETRY-REMEDIATION
+    created_at: 2026-11-05T06:48:53.012Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-1d1d0da666b6
+    id: rel-4519f0a1bd76
+  - type: requires_predicate
+    from: REQ-kibi-diagnostic-usage-records
+    to: FACT-TELEM-CLI-LOGGING
+    created_at: 2026-11-05T06:48:53.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32245009966b
+  - type: requires_predicate
+    from: REQ-kibi-diagnostic-usage-records
+    to: FACT-TELEM-MCP-LOGGING
+    created_at: 2026-11-05T06:48:53.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-649b0a685c56
+  - type: requires_property
+    from: REQ-kibi-diagnostic-usage-records
+    to: FACT-TELEM-SESSION
+    created_at: 2026-11-05T06:48:53.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0959a6f88c4
+  - type: requires_property
+    from: REQ-kibi-diagnostic-usage-records
+    to: FACT-TELEM-ACTOR
+    created_at: 2026-11-05T06:48:53.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d090966c80fd
+  - type: specified_by
+    from: REQ-kibi-diagnostic-usage-records
+    to: SCEN-kibi-telemetry-remediation-evidence
+    created_at: 2026-11-05T06:48:53.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45fc2e35d468
+  - type: specified_by
+    from: REQ-kibi-diagnostic-usage-records
+    to: SCEN-CASE-kibi-telemetry-remediation-evidence-DROPPED-ACTOR
+    created_at: 2026-11-05T06:48:53.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cad95d13381a
+  - type: specified_by
+    from: REQ-kibi-diagnostic-usage-records
+    to: SCEN-CASE-kibi-telemetry-remediation-evidence-DROPPED-SESSION
+    created_at: 2026-11-05T06:48:53.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a3c79684eba
+  - type: verified_by
+    from: REQ-kibi-diagnostic-usage-records
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-11-05T06:48:53.201Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-baf7f45f3ccd
+  - type: supersedes
+    from: REQ-kibi-diagnostic-usage-records
+    to: REQ-kibi-telemetry-remediation-evidence
+    created_at: 2026-11-05T06:48:53.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59d804578261
+  - type: depends_on
+    from: REQ-kibi-diagnostic-usage-records
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-11-05T07:40:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c21ce33b10d

@@ -13,27 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-208e917b6bdb
-  - type: implements
-    from: SYM-cli-report-format-source-coordinate
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T20:41:30.707Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4c394d2a5915
-  - type: covered_by
-    from: SYM-cli-report-format-source-coordinate
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-18T20:41:30.719Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30ccdc360ecf
-  - type: implements
-    from: SYM-cli-logic-ir-LOGIC_RULE_MAX_ATOMS
-    to: REQ-kibi-logical-requirement-coverage
-    created_at: 2026-08-22T20:21:25.829Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e92e043ab571
   - type: covered_by
     from: SYM-cli-logic-ir-LOGIC_RULE_MAX_ATOMS
     to: TEST-kibi-logical-requirement-coverage
@@ -76,34 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-11eac07d7922
-  - type: implements
-    from: SYM-KibiConfig
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:51:35.083Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7ad3815ee559
-  - type: covered_by
-    from: SYM-KibiConfig
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:51:35.097Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5561e1f43375
-  - type: covered_by
-    from: SYM-KibiConfig
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:51:35.104Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-474951e5f4c6
-  - type: implements
-    from: SYM-skillopt-cursor-main
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-24T17:28:35.869Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9c591541b506
   - type: covered_by
     from: SYM-skillopt-cursor-main
     to: TEST-skillopt-cursor-compat
@@ -237,20 +188,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0294033f333c
-  - type: implements
-    from: SYM-package-catalog-dirs-for-slice
-    to: REQ-020
-    created_at: 2026-09-21T15:29:17.583Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1de84a60a822
-  - type: covered_by
-    from: SYM-package-catalog-dirs-for-slice
-    to: TEST-014
-    created_at: 2026-09-21T19:24:16.431Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-54dd7667ec3e
   - type: verified_by
     from: SCEN-capability-plugin-jev-inactive-v1
     to: TEST-e2e-capability-plugins
@@ -302,7 +239,7 @@ relationships:
     id: rel-84519161bd00
   - type: implements
     from: SYM-schema6-planOriginBackfill
-    to: REQ-kibi-schema6-migration
+    to: REQ-kibi-schema6-migration-v2
     created_at: 2026-10-04T03:12:57.543Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -321,20 +258,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e37f47f32d1
-  - type: implements
-    from: SYM-skillopt-campaign-artifacts-campaignmodelprovenance-f489f4b8
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:21:10.268Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-29496eb51b17
-  - type: covered_by
-    from: SYM-skillopt-campaign-artifacts-campaignmodelprovenance-f489f4b8
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:21:10.286Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e529eec4b95a
   - type: constrains
     from: REQ-model-predicates-grounding-aware-v2
     to: FACT-SUBJECT-KIBI-PREDICATE-MODELING-GROUNDING
@@ -580,17 +503,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ebf0175c2ff3
-  - type: implements
-    from: SYM-cli-update-check-track-update-command
-    to: REQ-kibi-update-notice
-    created_at: 2026-11-04T13:25:30.045Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c4b227138eeb
-  - type: covered_by
-    from: SYM-cli-update-check-track-update-command
-    to: TEST-kibi-update-notice
-    created_at: 2026-11-04T13:25:30.103Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-09145cfdeb0a

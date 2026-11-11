@@ -1,7 +1,7 @@
 ---
 id: FACT-USER-ROLE
 title: User Role Assignment
-status: active
+status: archived
 created_at: 2026-02-20T13:00:00.000Z
 updated_at: 2026-04-21T10:00:00.000Z
 tags:

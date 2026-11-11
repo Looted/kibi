@@ -131,7 +131,7 @@ function parseChangeKind(
  * knows the grounding key without a kb_query.
  */
 // implements REQ-upsert-committed-claim-key
-function storedClaimKey(
+export function storedClaimKey(
   entity: Readonly<Record<string, unknown>>,
 ): { claimKey: string } | Record<string, never> {
   return entity.type === "fact" && typeof entity.claim_key === "string"

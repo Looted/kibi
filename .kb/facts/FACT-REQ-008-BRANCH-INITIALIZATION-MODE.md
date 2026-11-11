@@ -1,6 +1,6 @@
 ---
 title: REQ-008 automatic branch initialization mode
-status: active
+status: archived
 tags:
   - branching
   - initialization

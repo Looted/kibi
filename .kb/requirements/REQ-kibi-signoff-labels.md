@@ -124,7 +124,7 @@ A signoff gate shall be semantic, scenario, implementation, e2e, evidence or tes
 
 ## Context
 
-packages/cli/src/signoff/model.ts labels the signoff views REQ-kibi-signoff-views renders: every gate a requirement can still be waiting on and every kind of change a signoff lists. The gate and change names and their labels are stated here so each is proved against the label tables.
+packages/cli/src/signoff/model.ts labels the signoff views REQ-kibi-signoff-lists-requirements-and-decisions renders: every gate a requirement can still be waiting on and every kind of change a signoff lists. The gate and change names and their labels are stated here so each is proved against the label tables.
 
 ## Source
 

@@ -56,6 +56,8 @@ logic_claims:
   - CLAIM-85F5EF006162712C
 origin:
   kind: agent
+  ref: 'Maintainer decision, 2026-11-11, asking for the issues filed from the second KB gold-standard review, GitHub issue 695 among them, to be worked on: "start working on the issues as soon as you''re done creating the issues."'
+  approved_by: maintainer
   recorded_at: '2026-11-11T17:30:54.178Z'
 id: REQ-kb-requirement-retired-status
 type: req

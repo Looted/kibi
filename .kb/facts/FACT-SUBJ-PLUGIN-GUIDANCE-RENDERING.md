@@ -1,6 +1,6 @@
 ---
 title: OpenCode Plugin Guidance Rendering
-status: active
+status: archived
 tags:
   - strict-lane
   - opencode

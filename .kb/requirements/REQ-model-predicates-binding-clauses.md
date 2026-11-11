@@ -31,6 +31,7 @@ logic_claims:
   - CLAIM-8E858DE64B082EF4
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T21:05:30.909Z'
 id: REQ-model-predicates-binding-clauses
 type: req

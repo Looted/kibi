@@ -1,6 +1,6 @@
 ---
 title: MCP conditional input validation tests
-status: active
+status: passing
 priority: must
 tags:
   - mcp

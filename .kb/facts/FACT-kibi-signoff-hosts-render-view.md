@@ -9,7 +9,7 @@ value_type: bool
 value_bool: true
 claim_key: CLAIM-1BE21B0FB39D22F2
 claim_text: The Kibi Claude Code, OpenCode and VS Code integrations must show a fenced signoff view as rendered text instead of a raw code block
-text_ref: REQ-kibi-signoff-views
+text_ref: REQ-kibi-signoff-host-rendering-and-ask
 tags:
   - strict-modeling
   - lane:strict

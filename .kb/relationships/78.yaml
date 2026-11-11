@@ -34,13 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-536ac6362c2a
-  - type: implements
-    from: SYM-cli-report-filter-counts
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T20:41:11.643Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9350659a5a55
   - type: covered_by
     from: SYM-cli-report-filter-counts
     to: TEST-kibi-html-health-report
@@ -55,65 +48,9 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-560142600034
-  - type: implements
-    from: SYM-ToolHandler
-    to: REQ-002
-    created_at: 2026-08-22T20:10:59.961Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-15efade7a0bc
-  - type: covered_by
-    from: SYM-ToolHandler
-    to: TEST-005
-    created_at: 2026-08-22T20:10:59.972Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7af21a0af4f7
-  - type: covered_by
-    from: SYM-ToolHandler
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:10:59.976Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-11fda491b95e
-  - type: implements
-    from: SYM-loadSyncConfig
-    to: REQ-011
-    created_at: 2026-08-22T20:13:03.311Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fdc2e4d50115
-  - type: covered_by
-    from: SYM-loadSyncConfig
-    to: TEST-cli-config-schema
-    created_at: 2026-08-22T20:13:03.325Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4471aa1af08a
-  - type: covered_by
-    from: SYM-loadSyncConfig
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:13:03.330Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6c4c8229f95e
-  - type: implements
-    from: SYM-skillopt-setup-seeded-fresh-kb
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-26T18:07:18.183Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-df36aa647696
-  - type: covered_by
-    from: SYM-skillopt-setup-seeded-fresh-kb
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-28T10:08:24.454Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-803f2c30f989
   - type: constrains
     from: REQ-cli-init-canonical
-    to: FACT-SUBJ-REQ-CLI-INIT-CANONICAL
+    to: FACT-SUBJ-REQ-CLI-CANONICAL-RUNTIME
     created_at: 2026-09-05T14:30:19.443Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -147,13 +84,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-df2af6adfb10
   - type: covered_by
-    from: SYM-loadSyncConfig
-    to: TEST-001
-    created_at: 2026-09-05T14:51:17.034Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2f29bec8156a
-  - type: covered_by
     from: SYM-validateKbUpsertArgs
     to: TEST-mcp-upsert-coverage
     created_at: 2026-09-05T17:50:19.918Z
@@ -161,47 +91,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-43d15d8f6366
   - type: covered_by
-    from: SYM-validateArtifactRootMetadata
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:16:08.019Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0e29476d38b3
-  - type: covered_by
-    from: SYM-ToolHandler
-    to: TEST-agent-kibi-interface-selection
-    created_at: 2026-09-18T15:02:37.442Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7eaeb0b7491b
-  - type: covered_by
-    from: SYM-validateArtifactRootMetadata
-    to: TEST-e2e-skillopt-trust-boundaries
-    created_at: 2026-09-19T19:26:57.620Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-41a0eb183322
-  - type: implements
-    from: SYM-agent-core-isMeaningfulTrackedPath
-    to: REQ-codex-kibi-plugin-v1
-    created_at: 2026-09-27T16:56:53.368Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-18b6d864641c
-  - type: covered_by
     from: SYM-agent-core-isMeaningfulTrackedPath
     to: TEST-codex-kibi-plugin-v1
     created_at: 2026-09-27T16:56:53.516Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e80cd8c3bb4
-  - type: implements
-    from: SYM-reqcompiler-telemetry-default-policy
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T03:05:48.664Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-40a8972951c8
   - type: validates
     from: TEST-mcp-conditional-input-validation
     to: REQ-mcp-conditional-input-validation

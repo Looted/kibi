@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.lifecycle.check_codes
 claim_key: CLAIM-D5C09CC767D572F9
 claim_text: The dangling source path review code shall be review_source_path_dangling
-text_ref: REQ-kibi-lifecycle-check-codes
+text_ref: REQ-kibi-source-path-codes
 property_key: source_path_review_code
 operator: eq
 value_type: string

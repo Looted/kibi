@@ -3,7 +3,6 @@ title: Three replaceable capabilities
 status: open
 tags:
   - plugins
-  - review:context-missing
 semantic_text: Allowed capability states are one of kibi.semantic-classifier.v1, kibi.ontology-pack.v1, and kibi.symbol-extractor.v1. Each capability must have at most one replace provider per capability. Shadow mode must leave canonical capability results unchanged. Augment mode must add capability results beside builtin providers.
 logic_claims:
   - CLAIM-E6E0E9DF0A44A625
@@ -60,7 +59,7 @@ semantic_clauses:
   - Augment mode must add capability results beside builtin providers.
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -68,3 +67,6 @@ required_evidence: tested
 # REQ-capability-plugin-three-capabilities-v1
 
 Allowed capability states are one of kibi.semantic-classifier.v1, kibi.ontology-pack.v1, and kibi.symbol-extractor.v1. Each capability must have at most one replace provider per capability. Shadow mode must leave canonical capability results unchanged. Augment mode must add capability results beside builtin providers.
+
+## Why
+Only these three seams were extracted; everything else stays core. At most one replace per capability keeps results deterministic, and shadow mode lets a provider be compared without changing canonical results. Source: ADR-capability-plugins-v1, "replace / augment / shadow" and "What remains permanently core".

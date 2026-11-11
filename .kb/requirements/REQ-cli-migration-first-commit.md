@@ -46,6 +46,7 @@ logic_claims:
   - CLAIM-8978BA88AFEA16AD
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T08:45:46.601Z'
 id: REQ-cli-migration-first-commit
 type: req

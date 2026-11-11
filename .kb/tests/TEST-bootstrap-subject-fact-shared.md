@@ -1,6 +1,6 @@
 ---
 title: Bootstrap shared subject fact tests
-status: active
+status: passing
 priority: must
 tags:
   - bootstrap

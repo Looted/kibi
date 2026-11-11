@@ -15,4 +15,4 @@ origin:
 id: FACT-NEG-kb-dependencies-schema-range
 type: fact
 ---
-A KB dependency on a KB schema older than 6 or newer than the running Kibi reads. The failure-side scenario of REQ-kb-dependencies-git assumes this state and expects Kibi to refuse it with a coded error instead of answering.
+A KB dependency on a KB schema older than 6 or newer than the running Kibi reads. The failure-side scenario of REQ-kb-dependency-schema-window assumes this state and expects Kibi to refuse it with a coded error instead of answering.

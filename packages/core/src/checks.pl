@@ -2583,12 +2583,13 @@ retired_only_dependent(Retired, Type, Id, Owners) :-
     ord_subtract(Owners, Retired, []).
 
 %% live_dependent(+Type, +Props)
-% Facts and scenarios are archived with status deprecated; a test has no
-% archived status, so every test is live until it is deleted or relinked.
+% A fact or scenario is archived once its status is deprecated (or a legacy
+% archived, inactive or deleted); a test has no archived status, so every
+% test is live until it is deleted or relinked.
 live_dependent(test, _) :- !.
 live_dependent(_, Props) :-
     requirement_status_atom(Props, Status),
-    Status \== deprecated.
+    \+ memberchk(Status, [deprecated, archived, inactive, deleted]).
 
 dependent_owner(fact, FactId, ReqId) :-
     member(Rel, [constrains, requires_property, requires_predicate, requires_rule]),

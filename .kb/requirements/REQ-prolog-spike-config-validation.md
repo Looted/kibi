@@ -8,7 +8,6 @@ tags:
   - spike
   - build
   - validation
-  - review:context-missing
 semantic_text: The SWI-Prolog spike configuration check must accept the pinned source manifest for linux-x64-gnu and darwin-arm64. The configuration check must reject malformed source metadata. The configuration check must reject unsupported targets. The configuration check must report the pinned SWI-Prolog version, dependency versions, and required library list. The configuration check must not start a native build.
 semantic_clauses:
   - The SWI-Prolog spike configuration check must accept the pinned source manifest for linux-x64-gnu and darwin-arm64
@@ -65,9 +64,12 @@ id: REQ-prolog-spike-config-validation
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 4): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 The SWI-Prolog spike configuration check must accept the pinned source manifest for linux-x64-gnu and darwin-arm64. The configuration check must reject malformed source metadata. The configuration check must reject unsupported targets. The configuration check must report the pinned SWI-Prolog version, dependency versions, and required library list. The configuration check must not start a native build.
+
+## Why
+Pins and targets can be checked locally with `verify-config`, without the expensive native build. A bad pin then fails in seconds, not after a full CI build. Source: docs/swipl-bundle-spike.md.

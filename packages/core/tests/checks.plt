@@ -2461,6 +2461,8 @@ test(retired_owner_only) :-
         chk_rel(constrains, 'REQ-DONE', 'FACT-SHARED'),
         chk_ent(fact, 'FACT-ARCHIVED', [status=deprecated]),
         chk_rel(constrains, 'REQ-R1', 'FACT-ARCHIVED'),
+        chk_ent(fact, 'FACT-LEGACY-ARCHIVED', [status=archived]),
+        chk_rel(constrains, 'REQ-R1', 'FACT-LEGACY-ARCHIVED'),
         chk_ent(fact, 'FACT-LOOSE', []),
         chk_ent(scenario, 'SCEN-OLD', []),
         chk_rel(specified_by, 'REQ-R1', 'SCEN-OLD'),

@@ -1,7 +1,7 @@
 ---
 id: FACT-AUDIT-LOCK-PROBE
 title: Upsert probes stale audit locks before RDF mutation
-status: active
+status: archived
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
 tags: [lane:ontology, audit, locking, stale-runtime]

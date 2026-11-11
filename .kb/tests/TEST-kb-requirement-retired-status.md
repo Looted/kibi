@@ -1,6 +1,6 @@
 ---
 title: Retired requirement status checks, search, upsert guard and migration tests
-status: active
+status: passing
 priority: must
 tags:
   - kb
@@ -22,17 +22,17 @@ id: TEST-kb-requirement-retired-status
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-d2ceae26ae67b00cf4f94dbc
+    receipt_id: PR-dc6b6eaee30494f977bb98c7
     test_id: TEST-kb-requirement-retired-status
     scope: end_to_end
     outcome: passed
-    code_snapshot: aeb1b8daccf5d3d662cdc3486663e474e0119f51cb6aa86a0b2aac9e1cf0e3f0
+    code_snapshot: b3f2d595aa42b351bb73247ee698528eb1a48c9ecbd2a6bd353d802a8b0027ea
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-11T17:43:02.755Z'
-    finished_at: '2026-11-11T17:43:11.763Z'
-    artifact_digest: 7522940bb3fdd5cc90f6c29114ac31768cca9a60af374e705b3327e729ae30f2
+    started_at: '2026-11-11T20:18:14.137Z'
+    finished_at: '2026-11-11T20:18:22.428Z'
+    artifact_digest: 57d7f1558bb75d9b9f735599fe39b87bac60dd63fde39541f2e8a091813e8efd
     contract_hash: 92abb2863950a009e6c7d35b81d9714c60e72d5df8b590627a8871e3d9b749ee
-    binding_hash: 98f665157f35eb1244a91eeedcf0254b0eb3eaf8b03f7b59cea10196abe1012c
+    binding_hash: 56c0910974f59e4ad5292a2cf74f9a4d8f763862e934c776737e7e2f2761df40
     fingerprint: 3a728e3429be17751aa944e33a23a9a87fbbbba43cf68153480a74d3aa0b9a97
     fingerprint_components:
       contract: 92abb2863950a009e6c7d35b81d9714c60e72d5df8b590627a8871e3d9b749ee

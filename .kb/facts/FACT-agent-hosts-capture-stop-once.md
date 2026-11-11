@@ -9,7 +9,7 @@ value_type: int
 value_int: 1
 claim_key: CLAIM-0B8E0F35E08185E6
 claim_text: When a session that changed source files stops without any kb_upsert write, the Codex, Cursor, ZCode stop hooks must ask the agent once per session to record the decision behind the change
-text_ref: REQ-agent-hosts-decision-guard
+text_ref: REQ-agent-hosts-stop-capture
 tags:
   - strict-modeling
   - lane:strict

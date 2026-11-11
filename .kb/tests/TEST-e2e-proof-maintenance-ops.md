@@ -1,6 +1,6 @@
 ---
 title: Proof receipt maintenance operations run end to end against a packed CLI
-status: active
+status: passing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -18,17 +18,17 @@ id: TEST-e2e-proof-maintenance-ops
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-af20ee3f60a81629db13053e
+    receipt_id: PR-e3dbb5e3867bb7cf98845370
     test_id: TEST-e2e-proof-maintenance-ops
     scope: end_to_end
     outcome: passed
-    code_snapshot: ccdea2974dcdded674ee350fe5c87cf96382361e8b7009a6573bea25829d6148
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T11:19:33.591Z'
-    finished_at: '2026-10-28T11:19:43.692Z'
-    artifact_digest: d37b77068a15e3b8b79016c0619b146e3bf9cf7ff072fd5898859cc3888134c0
+    code_snapshot: b95fa37681e8a263f7711717a0c81ed6eb85ba81a6d11a9483e6acc81f4800fc
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T15:20:40.006Z'
+    finished_at: '2026-11-10T15:20:59.624Z'
+    artifact_digest: 5836acd6b24ee854d125b0312e4ca1514bbceb4f2d168499feb74eb41b2fc6b8
     contract_hash: 8ecb8862ac3eaba2c7f243c0054a56bcd3aca6aac01412c866cf305548c197e7
-    binding_hash: cd21da5258378d8f059d49bcb32011493f3e4b58cd0ad320d1b21a3475ed99a7
+    binding_hash: 188017d495f9d8b0a5d95d7658c2a74155d31a5fdda71f5a0a756c19495521f5
     fingerprint: 3f18e5b25f13814b178dd4b22d750cb2ebd0f43dd7181893405cd652cc7f5447
     fingerprint_components:
       contract: 8ecb8862ac3eaba2c7f243c0054a56bcd3aca6aac01412c866cf305548c197e7
@@ -54,8 +54,9 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 ---
+
+## Context
+This runs migrate-legacy, prune and JUnit ambiguity against a packed CLI. It exposed that migrate-legacy had to read authored documents, because sync no longer compiled the legacy lane.

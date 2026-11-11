@@ -1,6 +1,6 @@
 ---
 title: Proof run results and producers
-status: open
+status: closed
 priority: must
 firmness: default
 semantic_text: A proof result outcome shall be passed, failed, timed_out, skipped, interrupted or errored. A proof run failure phase shall be setup, collection, execution, teardown or infrastructure. A proof success policy shall be all_required_first_attempt or own_results_first_attempt. A proof binding kind shall be native_case or aggregate_run. A proof run attempts status shall be complete or unavailable. A proof producer shall be command, playwright, junit or tap. The proof integrations file shall be .kb/proof/integrations.json. Proof runs shall be stored under .kb/proof/runs. Kibi shall keep at most 50 proof receipts per test. Kibi shall read coverage rows in pages of at most 10 rows.

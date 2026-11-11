@@ -1,7 +1,7 @@
 ---
 id: TEST-core-journaled-engine-persistence
 title: Journal replay, rollback, migration, audit atomicity, and compaction
-status: active
+status: passing
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
 priority: must
@@ -13,7 +13,9 @@ links:
   - type: validates
     target: SCEN-core-journaled-engine-migration
   - type: validates
-    target: REQ-core-journaled-engine-persistence
+    target: REQ-kibi-engine-durable-transactions
+  - type: validates
+    target: REQ-kibi-engine-guarded-migration
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -25,18 +27,18 @@ proof_contract:
   success_policy: all_required_first_attempt
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-b890e2877f04c8b5585ff5ca
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-668aafa309782a47463da3e4
     test_id: TEST-core-journaled-engine-persistence
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: edc0588eed59351e216a3466342eacd255130ecbca12d0f17c5c6c51dd2fd1cf
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T16:15:07.213Z'
+    finished_at: '2026-11-10T16:15:28.035Z'
+    artifact_digest: fc5ebf926d1b8ba2a054fbcee5935a630ae69be2db94368a0f883c199b8c7aa1
     contract_hash: e83572511b55e99bdd4658f9cd1225bdbec0e73965b6e7f5a142bc85959ad09b
-    binding_hash: 7ded5deb4a2d4512013be73b7b0460516757299ec53da12695522363fd9083d4
+    binding_hash: 1ad19a5ed85560eed3e997d6c98b105eb2c55bbb2f230510d2d84cff8d186194
     fingerprint: 88ca3961fd0a7095a3e4ff654ca98c299ddbf0ff0d7b81fcfdb49e6dd5a0cacc
     fingerprint_components:
       contract: e83572511b55e99bdd4658f9cd1225bdbec0e73965b6e7f5a142bc85959ad09b
@@ -58,6 +60,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

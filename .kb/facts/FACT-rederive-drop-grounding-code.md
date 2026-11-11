@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.migration.pin_codes
 claim_key: CLAIM-D37EB3FBA38FA2D5
 claim_text: The rederive with dropped grounding code shall be semantic_inventory_rederive_drop_grounding
-text_ref: REQ-cli-migration-pin-codes
+text_ref: REQ-cli-migration-context-codes
 property_key: drop_grounding_code
 operator: eq
 value_type: string

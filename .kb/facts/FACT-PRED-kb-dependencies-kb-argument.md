@@ -14,11 +14,11 @@ canonical_key: kb_dependency_policy(read_operations,kb_argument,accept_dependenc
 polarity: assert
 claim_key: CLAIM-12CFD74D2BA5EF66
 claim_text: Kibi's search, query, status, find-gaps, coverage and graph operations must accept a kb argument naming a KB dependency over MCP and the CLI
-text_ref: .kb/requirements/REQ-kb-dependencies-git.md
+text_ref: .kb/requirements/REQ-kb-dependency-kb-argument.md
 origin:
   kind: agent
   recorded_at: '2026-11-04T10:41:19.775Z'
 id: FACT-PRED-kb-dependencies-kb-argument
 type: fact
 ---
-Kibi's read operations accept a kb argument naming a KB dependency. This predicate grounds the claim of REQ-kb-dependencies-git quoted in claim_text, so the requirement's semantic inventory counts it as modeled.
+Kibi's read operations accept a kb argument naming a KB dependency. This predicate grounds the claim of REQ-kb-dependency-kb-argument quoted in claim_text, so the requirement's semantic inventory counts it as modeled.

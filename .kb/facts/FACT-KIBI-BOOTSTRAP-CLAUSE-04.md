@@ -3,7 +3,7 @@ title: Bootstrap contract clause 04
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap.plan
-property_key: contract_clause_4
+property_key: plan_is_deterministic_read_only_and_hash_bound
 operator: eq
 value_type: string
 value_string: The planner must return a deterministic read-only hash-bound plan with exact branch, KB, workspace, and source evidence bindings and bounded context questions

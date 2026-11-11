@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: vscode.kibi_extension
-property_key: clause_03_a_registered_symbol_must_show_a_code_lens_with_the_count_of_
+property_key: code_lens_link_counts
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_vscode_source_to_kb.clause_03_a_registered_symbol_must_show_a_code_lens_with_the_count_of_.eq.true
+canonical_key: req.req_vscode_source_to_kb.code_lens_link_counts.eq.true
 claim_key: CLAIM-84323746191FF72F
 claim_text: A registered symbol must show a Code Lens with the count of its linked requirements and tests
 origin:

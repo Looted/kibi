@@ -7,7 +7,6 @@ tags:
   - spike
   - linux
   - diagnostics
-  - review:context-missing
 text_ref: scripts/swipl-spike.py
 semantic_text: On Linux, native CLI diagnostics must preserve the monitored command exit code and stdout and stderr. On Linux, native CLI diagnostics must observe descendants launched by background threads while sampling at most 256 processes and 256 tasks per process. Native CLI diagnostic samples must omit command arguments and environment variables. An unavailable native CLI diagnostic output must preserve a successful monitored command result and stdout and stderr.
 semantic_clauses:
@@ -56,9 +55,12 @@ id: REQ-native-cli-suite-diagnostics
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 4): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 On Linux, native CLI diagnostics must preserve the monitored command exit code and stdout and stderr. On Linux, native CLI diagnostics must observe descendants launched by background threads while sampling at most 256 processes and 256 tasks per process. Native CLI diagnostic samples must omit command arguments and environment variables. An unavailable native CLI diagnostic output must preserve a successful monitored command result and stdout and stderr.
+
+## Why
+A native Linux CLI run stalled, and the cause was never found. The diagnostics were added to see processes during such a run. They had to keep the command's output and exit code intact, and record no arguments or environment values. Source: docs/swipl-bundle-spike.md, fourth Linux run.

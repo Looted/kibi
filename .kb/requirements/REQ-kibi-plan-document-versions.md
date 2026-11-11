@@ -61,7 +61,7 @@ The compiled plan version shall be kibi.compile-plan.v1. The plan apply result v
 
 ## Context
 
-REQ-kibi-change-to-proof-plan-compiler compiles a change into a plan an agent reviews and applies; repair and symbol repair plans follow the same shape. Every plan document and the apply result carry a version string, stated here so it is proved against its constant.
+REQ-kibi-change-to-proof-plan-compiler-v2 compiles a change into a plan an agent reviews and applies; repair and symbol repair plans follow the same shape. Every plan document and the apply result carry a version string, stated here so it is proved against its constant.
 
 ## Source
 

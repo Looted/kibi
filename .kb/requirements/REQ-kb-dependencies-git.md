@@ -1,6 +1,6 @@
 ---
 title: A project reads the KBs of its git dependencies, pinned and read-only
-status: open
+status: closed
 priority: must
 firmness: firm
 tags:
@@ -11,7 +11,7 @@ tags:
 origin:
   kind: agent
   approved_by: maintainer
-  ref: 'Maintainer request and decisions, 2026-11-04: "A first step could be allowing a projects kibi to read knowledge bases of it''s dependencies [...] A problem we would have to solve would be pinning the proper .kb version for the release we''re using.", "We can start from schema 6 [...] it should be a read only version, that doesn''t slow down our own kb." and "You can start with git repos."'
+  ref: 'Maintainer request and decisions, 2026-11-04: "A first step could be allowing a projects kibi to read knowledge bases of it''s dependencies [...] A problem we would have to solve would be pinning the proper .kb version for the release we''re using.", "We can start from schema 6 [...] it should be a read only version, that doesn''t slow down our own kb." and "You can start with git repos." Maintainer decision, 2026-11-10, approving the behavior splits of the requirements the develop merge made broad in the KB gold-standard review (split batch 6): "Ok"'
   recorded_at: '2026-11-04T11:14:55.410Z'
 semantic_text: Kibi must read a KB dependency declared in .kb/dependencies.json only at the commit pinned for it in .kb/dependencies.lock.json. Kibi must answer a read scoped to a KB dependency from that dependency's own read-only branch store, never from or into the project's KB. Kibi must refuse a KB dependency whose KB schema is older than 6 or newer than the running Kibi supports. The kibi deps lock command must resolve a declared git ref to a commit and record that commit with the dependency's KB schema. Kibi's search, query, status, find-gaps, coverage and graph operations must accept a kb argument naming a KB dependency over MCP and the CLI.
 logic_claims:

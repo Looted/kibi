@@ -79,7 +79,7 @@ The detached HEAD read-only code shall be detached_head_read_only. The branch st
 
 ## Context
 
-REQ-branch-store-recovery-v4 serves a detached HEAD from a read-only snapshot and says so with a stable code. A branch store has a versioned manifest, an uncompiled store is reported under its own code and rule, and a taken-over store lock leaves a record that stays visible for a fixed time. They are stated here so every value is proved against its constant.
+REQ-kibi-detached-head-snapshots serves a detached HEAD from a read-only snapshot and says so with a stable code. A branch store has a versioned manifest, an uncompiled store is reported under its own code and rule, and a taken-over store lock leaves a record that stays visible for a fixed time. They are stated here so every value is proved against its constant.
 
 ## Source
 

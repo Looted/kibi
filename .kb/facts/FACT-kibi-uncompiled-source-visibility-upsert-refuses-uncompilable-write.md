@@ -9,7 +9,7 @@ value_type: bool
 value_bool: true
 claim_key: CLAIM-C7EE1BD318612D61
 claim_text: A kb_upsert that would leave an authored file uncompilable must be refused with the file and the extraction error
-text_ref: REQ-kibi-uncompiled-source-visibility
+text_ref: REQ-kibi-uncompiled-source-upsert-guard
 tags:
   - strict-modeling
   - lane:strict

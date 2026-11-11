@@ -56,6 +56,7 @@ logic_claims:
   - CLAIM-4FF040470292D49E
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-23T14:07:21.019Z'
 id: REQ-kibi-kb-certificates
 type: req

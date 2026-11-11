@@ -61,7 +61,7 @@ The guided migration plan version shall be kibi.migration-plan.v2. The predicate
 
 ## Context
 
-packages/cli/src/public/operations/migration-plan.ts versions the plan REQ-agent-guided-migration-orchestration hands an agent and names the steps it can hold beside the schema migration. They are stated here so every value is proved against its constant.
+packages/cli/src/public/operations/migration-plan.ts versions the plan REQ-kibi-migration-plan-contract hands an agent and names the steps it can hold beside the schema migration. They are stated here so every value is proved against its constant.
 
 ## Source
 

@@ -1,6 +1,6 @@
 ---
 title: A fresh clone uses Kibi without running kibi init
-status: open
+status: closed
 priority: must
 firmness: firm
 tags:
@@ -10,7 +10,7 @@ tags:
   - harness
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-03: "I''m generally for making kibi as automated as possible, but I don''t want to break peoples flow (or break their CI). Agent could ask the questions during onboarding (or migrating) and let the user choose." then "Go ahead." (request of 2026-10-30: "I assumed that once initialized, kibi does work everywhere?")'
+  ref: 'Maintainer decision, 2026-11-03: "I''m generally for making kibi as automated as possible, but I don''t want to break peoples flow (or break their CI). Agent could ask the questions during onboarding (or migrating) and let the user choose." then "Go ahead." (request of 2026-10-30: "I assumed that once initialized, kibi does work everywhere?") Maintainer decision, 2026-11-04, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 2): "Approved"'
   approved_by: maintainer
   recorded_at: '2026-11-03T16:08:42.879Z'
 semantic_text: The `kibi init` command must record four setup choices (autoSync, prepareHooks, agentInstructions, ciGate) in the repository. The `kibi init` command must write a marker-delimited Kibi section into AGENTS.md when agentInstructions is on. The `kibi init` command must add a package.json prepare step that installs Kibi's Git hooks when prepareHooks is on, unless a hook manager owns the hooks. Kibi must compile a never-compiled branch store on first use without writing any file Git tracks, unless auto-sync is turned off. Kibi's harness plugins must tell the agent at session start when Kibi's Git hooks are missing from the checkout.

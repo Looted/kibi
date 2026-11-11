@@ -5,7 +5,7 @@ status: open
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
 priority: must
-tags: [requirements, ontology, predicates, contradictions, prolog, witnesses, review:context-missing]
+tags: [requirements, ontology, predicates, contradictions, prolog, witnesses]
 logic_claims:
   - CLAIM-B3F961E54107D338
   - CLAIM-5D43551AD833A708
@@ -48,7 +48,7 @@ links:
   - type: specified_by
     target: SCEN-kibi-ontology-convergence-witnesses
   - type: constrains
-    target: FACT-SUBJECT-79C92ADA34274409
+    target: FACT-SUBJ-REQ-MCP-SUGGEST-PREDICATES
   - type: requires_predicate
     target: FACT-ONTOLOGY-SCHEMA-DISCOVERY
   - type: requires_property
@@ -59,7 +59,7 @@ links:
     target: FACT-RULE-OVERLAP-UNRESOLVED
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 8): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 semantic_text: Predicate suggestion must discover existing project-local schemas from normalized RDF. It must not emit an applicable predicate plan until every ordered argument has an exact binding. Domain contradiction diagnostics must attach source-bound witnesses for strict properties, ground predicates, and safe rules. Rule overlap that cannot be proved or excluded must remain unresolved in requirement proof.
 type: req
@@ -68,3 +68,6 @@ required_evidence: tested
 ---
 
 Predicate suggestion must discover existing project-local schemas from normalized RDF. It must not emit an applicable predicate plan until every ordered argument has an exact binding. Domain contradiction diagnostics must attach source-bound witnesses for strict properties, ground predicates, and safe rules. Rule overlap that cannot be proved or excluded must remain unresolved in requirement proof.
+
+## Why
+Predicate suggestions must reuse project-local schemas, and they must not offer a write plan until every argument is bound. Contradictions return source-bound witnesses so a reviewer can see exactly what conflicts. Source: docs/requirement-compiler-roadmap.md, vector 4.

@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_04_the_opencode_plugin_must_switch_to_maintenancedegraded_mode_
+property_key: degrades_on_sync_failure
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_background_sync.clause_04_the_opencode_plugin_must_switch_to_maintenancedegraded_mode_.eq.true
+canonical_key: req.req_opencode_background_sync.degrades_on_sync_failure.eq.true
 claim_key: CLAIM-76B92897D005A8DC
 claim_text: The OpenCode plugin must switch to maintenanceDegraded mode when its sync scheduler cannot be created or sync fails
 origin:

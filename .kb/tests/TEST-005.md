@@ -1,7 +1,7 @@
 ---
 id: TEST-005
 title: MCP server responds to the curated public tools with valid JSON-RPC format
-status: active
+status: passing
 created_at: 2026-02-18T13:12:25.000Z
 updated_at: 2026-08-02T00:00:00.000Z
 priority: must
@@ -24,17 +24,17 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-073a9277d85c4dc18db18c10
+    receipt_id: PR-01e20da126168088071bb0a4
     test_id: TEST-005
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d5bc71e944be8ddccfdb37cf3622375ef36850933b4f87d153a603152368662
+    code_snapshot: 77a05ac3f136388d07560216e6f9644997c4b9918c6920a54149f03a47779bca
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-05T12:09:33.691Z'
-    finished_at: '2026-11-05T12:12:51.062Z'
-    artifact_digest: b39b74bff9760a7f282a5add8db18a92492ed15d5551c7473e7778ed0e83fcbf
+    started_at: '2026-11-10T05:33:42.441Z'
+    finished_at: '2026-11-10T05:36:08.645Z'
+    artifact_digest: dc8736db249dfdd88751ad8485abe81283e5b9591ca84f894b18a7ce3504ead7
     contract_hash: 3b755a1568518b84db09ba49a7bc043751efed57b0b5add647ddcbf0bcfc5f20
-    binding_hash: 2bf9a8ff1db7657eff2bc183e80b0225929a4b427f0d41c2ed079c8f31712ef6
+    binding_hash: 0959cb217b4ec6c76c359222dffabe374b234976c26ec5cb00e1b280fe9ea57c
     fingerprint: bb2dbb871f65c91f4ec367a69ce4bfca8564d072e38934b82c85a46dc08c48ec
     fingerprint_components:
       contract: 3b755a1568518b84db09ba49a7bc043751efed57b0b5add647ddcbf0bcfc5f20

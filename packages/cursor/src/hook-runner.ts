@@ -223,7 +223,8 @@ function emptyResult(): CursorHookResult {
   return {};
 }
 
-function hasKibiConfig(cwd: string | undefined): boolean {
+/** Whether the Cursor workspace root holds `.kb/manifest.json`, the initialized-project signal. */
+export function hasKibiConfig(cwd: string | undefined): boolean {
   if (!cwd) {
     return false;
   }

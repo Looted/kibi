@@ -3,7 +3,7 @@ title: A coarse file-level symbol link is staged for a file that has narrower be
 status: active
 fact_kind: property_value
 operator: eq
-property_key: clause_01_symbol_traceability_granularity_checks_must_reje
+property_key: rejects_coarse_link_with_narrower_symbols
 subject_key: kibi.symbols.traceability
 value_type: bool
 value_bool: false

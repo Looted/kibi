@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.migration.orchestration
-property_key: clause_06_schema_and_storage_migrations_must_be_ordered_idempotent_aud
+property_key: migrations_ordered_idempotent_audited
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_agent_guided_migration_orchestration.clause_06_schema_and_storage_migrations_must_be_ordered_idempotent_aud.eq.true
+canonical_key: req.req_agent_guided_migration_orchestration.migrations_ordered_idempotent_audited.eq.true
 claim_key: CLAIM-976C8836CB246AEE
 claim_text: Schema and storage migrations must be ordered, idempotent, audited and recoverable, with backups preserved before the next status readback
 origin:

@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.sync.extractors
-property_key: clause_05_consecutive_refreshes_over_unchanged_sources_must_be_idempot
+property_key: refresh_idempotent
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_core_extractors.clause_05_consecutive_refreshes_over_unchanged_sources_must_be_idempot.eq.true
+canonical_key: req.req_core_extractors.refresh_idempotent.eq.true
 claim_key: CLAIM-973E5C6674238256
 claim_text: Consecutive refreshes over unchanged sources must be idempotent and must not alternate generated coordinate fields in the authored manifest
 origin:

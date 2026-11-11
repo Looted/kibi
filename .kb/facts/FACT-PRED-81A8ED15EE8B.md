@@ -1,7 +1,7 @@
 ---
 title: HTML report opens only after a successful write
 status: active
-text_ref: .kb/requirements/REQ-kibi-html-health-report.md
+text_ref: .kb/requirements/REQ-kibi-health-report-output.md
 tags:
   - lane:ontology
   - requirements

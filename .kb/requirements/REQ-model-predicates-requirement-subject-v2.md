@@ -46,7 +46,9 @@ logic_claims:
   - CLAIM-3DCEEFDFC309E017
   - CLAIM-139A118D7DD550F8
 origin:
+  ref: 'Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T21:05:28.021Z'
 id: REQ-model-predicates-requirement-subject-v2
 type: req
@@ -60,3 +62,6 @@ Round 8 of the external onboarding evaluation applied a kb_model replacement pla
 ## Source
 
 > Onboarding evaluation round 8, finding K16: kb_model binds the requirement subject by argument name, sets subject_key for schemas without a subject argument, and recommends replace_grounding only for a paired predicate.
+
+## Why this changed
+This is the same change as the strict-pairing v2 requirement, seen from the modeling side: the subject is bound by name in any position, not only as the first argument. Source: PR 379.

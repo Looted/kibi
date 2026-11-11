@@ -9,7 +9,6 @@ tags:
   - consumer-local
   - plugin
   - predicates
-  - review:context-missing
 semantic_text: 'A published kibi-cursor plugin shall resolve and run only the kibi-mcp package installed in the consumer project, without downloading packages or consulting global or plugin-local runtimes. The launcher must resolve the consumer workspace by trying these named sources first in order: explicit workspace argument, WORKSPACE_FOLDER_PATHS, KIBI_WORKSPACE, CURSOR_WORKSPACE, then cwd only when cwd contains project-local kibi-mcp. The launcher shall reject unresolved placeholders and ambiguous sets of multiple usable workspace roots with a clear error. The launcher shall resolve kibi-mcp through consumer-scoped Node package semantics, including exports-restricted and pnpm-style layouts, and shall reject packages outside consumer scope unless active package-manager semantics authorize them. The launcher shall spawn the declared kibi-mcp bin with the consumer workspace as cwd and KIBI_WORKSPACE, preserve stdio, and propagate child exit codes and termination signals. When the project-local kibi-mcp dependency is missing, the launcher shall report a concise actionable error outcome.'
 semantic_clauses:
   - A published kibi-cursor plugin shall resolve and run only the kibi-mcp package installed in the consumer project, without downloading packages or consulting global or plugin-local runtimes
@@ -75,9 +74,12 @@ id: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 A published kibi-cursor plugin shall resolve and run only the kibi-mcp package installed in the consumer project, without downloading packages or consulting global or plugin-local runtimes. The launcher must resolve the consumer workspace by trying these named sources first in order: explicit workspace argument, WORKSPACE_FOLDER_PATHS, KIBI_WORKSPACE, CURSOR_WORKSPACE, then cwd only when cwd contains project-local kibi-mcp. The launcher shall reject unresolved placeholders and ambiguous sets of multiple usable workspace roots with a clear error. The launcher shall resolve kibi-mcp through consumer-scoped Node package semantics, including exports-restricted and pnpm-style layouts, and shall reject packages outside consumer scope unless active package-manager semantics authorize them. The launcher shall spawn the declared kibi-mcp bin with the consumer workspace as cwd and KIBI_WORKSPACE, preserve stdio, and propagate child exit codes and termination signals. When the project-local kibi-mcp dependency is missing, the launcher shall report a concise actionable error outcome.
+
+## Why
+This models the Cursor launcher with five reusable launcher predicates, so other host launchers can be described with the same vocabulary. Source: Changeset "launcher-predicate-catalog", Aug 21.

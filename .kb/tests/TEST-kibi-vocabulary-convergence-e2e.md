@@ -4,7 +4,6 @@ status: passing
 verification_scope: end_to_end
 tags:
   - vocabulary-convergence
-  - review:context-missing
 id: TEST-kibi-vocabulary-convergence-e2e
 type: test
 proof_contract:
@@ -52,6 +51,10 @@ proof_receipts:
     evidence_level: tested
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 2): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+This is the packed end-to-end proof that the convergence checks and subject reuse work in an installed Kibi, not only in unit tests.

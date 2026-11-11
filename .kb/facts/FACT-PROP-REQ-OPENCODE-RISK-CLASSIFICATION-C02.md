@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_02_the_opencode_plugin_must_classify_edits_to_non_kb_documentat
+property_key: risk_safe_docs_only
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_risk_classification.clause_02_the_opencode_plugin_must_classify_edits_to_non_kb_documentat.eq.true
+canonical_key: req.req_opencode_risk_classification.risk_safe_docs_only.eq.true
 claim_key: CLAIM-7C58E817F622B538
 claim_text: The OpenCode plugin must classify edits to non-KB documentation as safe_docs_only
 origin:

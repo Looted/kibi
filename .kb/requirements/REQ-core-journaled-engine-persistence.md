@@ -1,7 +1,7 @@
 ---
 id: REQ-core-journaled-engine-persistence
 title: Journaled single-writer engine persistence
-status: open
+status: closed
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
 source: packages/core/src/kb.pl
@@ -12,7 +12,6 @@ tags:
   - prolog
   - rdf
   - persistence
-  - review:context-missing
 semantic_text: |-
   Kibi MUST run one Node.js 18+ single-writer engine for each canonical workspace and branch
 
@@ -91,7 +90,7 @@ links:
     target: FACT-JOURNALED-ENGINE-DELTA-SYNC
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok" Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 type: req
 ---
@@ -118,3 +117,6 @@ Normal sync MUST compile only changed source entities, relationship shards, and
 deletions into one or more journaled transactions. `sync --rebuild` is the only
 generation-replacement path. Journal compaction MAY run while the engine is
 idle when journals exceed 16 MiB and MUST remain available explicitly.
+
+## Why
+The old runtime started SWI-Prolog per command and rewrote the whole RDF snapshot on every durable change. Sync and symbol storage therefore scaled with the full graph. One journaled engine per workspace and branch keeps the work per request bounded. Source: ADR-024; changeset "journaled-engine".

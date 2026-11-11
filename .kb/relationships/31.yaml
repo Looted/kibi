@@ -17,20 +17,6 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/scenarios/SCEN-002.md
-  - type: implements
-    from: SYM-skillopt-file-bridge-write-public
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-16T07:14:02.465Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12dc40d80a08
-  - type: covered_by
-    from: SYM-skillopt-file-bridge-write-public
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-16T07:14:02.476Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8279e7a919f2
   - type: covered_by
     from: SYM-reqcompiler-coverage-command
     to: TEST-kibi-conservative-requirement-proof
@@ -115,41 +101,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-27ffaf59fcdf
-  - type: implements
-    from: SYM-skillopt-runtime-login-auth-paths
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-09-08T00:34:02.605Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3b07d7675b80
-  - type: covered_by
-    from: SYM-skillopt-runtime-login-auth-paths
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-09-08T00:34:02.612Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d2bd70aab8b8
-  - type: implements
-    from: SYM-janitor-options
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:58:46.480Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ed957c81dd20
-  - type: covered_by
-    from: SYM-janitor-options
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-09-15T07:58:46.494Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bcdd9645c909
-  - type: implements
-    from: SYM-reqcompiler-coverage-command
-    to: REQ-kibi-conservative-requirement-proof
-    created_at: 2026-09-18T07:44:39.153Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d6eb28745396
   - type: covered_by
     from: SYM-reqcompiler-coverage-command
     to: TEST-e2e-coverage-proof-status
@@ -178,13 +129,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4157e5228640
-  - type: implements
-    from: SYM-impact-stage-e-sideevidence
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-30T15:24:02.394Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f4a439ab7b3f
   - type: covered_by
     from: SYM-impact-stage-e-sideevidence
     to: TEST-impact-policy-stage-e-installed-e2e
@@ -605,13 +549,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5adb322244e8
-  - type: implements
-    from: SYM-kb-dependencies-kb-dependency-min-schema-version
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:54:08.314Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-02827f2e565e
   - type: covered_by
     from: SYM-kb-dependencies-kb-dependency-min-schema-version
     to: TEST-kb-dependencies-git

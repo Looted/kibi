@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.migration.pin_codes
 claim_key: CLAIM-DD9D88701148517A
 claim_text: A superseded requirement shall close with status closed
-text_ref: REQ-cli-migration-pin-codes
+text_ref: REQ-cli-migration-supersession-codes
 property_key: closed_status
 operator: eq
 value_type: string

@@ -25,6 +25,7 @@ semantic_inventory:
       end: 143
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T17:11:15.771Z'
 id: REQ-kb-upsert-ledger-contract-in-error
 type: req

@@ -1,12 +1,5 @@
 relationships:
   - type: covered_by
-    from: SYM-auto-947A5C4D4E76
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-16T07:54:15.614Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a736611372d8
-  - type: covered_by
     from: SYM-cli-get-operation-metadata
     to: TEST-test-journaled-engine-harness
     created_at: 2026-08-16T18:52:30.391Z
@@ -34,44 +27,9 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5d4b690f0d8
-  - type: implements
-    from: SYM-TimeoutHandle
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:56:45.001Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-377965e53b90
-  - type: covered_by
-    from: SYM-TimeoutHandle
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:56:45.021Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0b7f7d28277a
-  - type: covered_by
-    from: SYM-TimeoutHandle
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:56:45.031Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6682207d42a1
-  - type: implements
-    from: SYM-auto-947A5C4D4E76
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:54:34.829Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7b5374086427
-  - type: covered_by
-    from: SYM-auto-947A5C4D4E76
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:54:34.834Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e8c423d2a11b
   - type: constrains
     from: REQ-mcp-tool-upsert
-    to: FACT-SUBJ-REQ-MCP-TOOL-UPSERT
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
     created_at: 2026-09-05T14:13:29.719Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -85,7 +43,7 @@ relationships:
     id: rel-3b31e1f18029
   - type: constrains
     from: REQ-opencode-file-context-guidance-v1
-    to: FACT-SUBJ-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1
+    to: FACT-SUBJ-OPENCODE-PLUGIN
     created_at: 2026-09-05T14:36:14.548Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -154,41 +112,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-eea66a213d37
   - type: executable_for
-    from: SYM-e2e-test-003
-    to: TEST-003
-    created_at: 2026-09-05T14:38:09.019Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3a4a83e3c9b5
-  - type: covered_by
-    from: SYM-NpmFixtureMock
-    to: TEST-014
-    created_at: 2026-09-05T14:53:50.038Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f334034979aa
-  - type: covered_by
-    from: SYM-inferSymbolRole
-    to: TEST-cli-symbol-behavioral-anchors
-    created_at: 2026-09-05T18:22:27.007Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-02acb529adc3
-  - type: covered_by
-    from: SYM-auto-947A5C4D4E76
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-18T06:57:07.676Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30c58c128c71
-  - type: covered_by
-    from: SYM-cap-plugin-semanticclassificationdecision-2a43bb19
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:45:36.165Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cb33fed65b75
-  - type: executable_for
     from: SYM-claude-test-cleanupTempDirs
     to: TEST-claude-code-kibi-plugin-v1
     created_at: 2026-09-27T09:28:25.873Z
@@ -202,13 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b8848675d6d
-  - type: implements
-    from: SYM-auto-947A5C4D4E76
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:57:04.186Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-19c63e7f0267
   - type: implements
     from: SYM-entity-origin-resolveUpsertOrigin
     to: REQ-kibi-entity-origin

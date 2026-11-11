@@ -1,6 +1,6 @@
 ---
 title: 'Predicate: conditional_behavior(host_mcp_launcher,starting_kibi_mcp,identify_host_to_kibi_mcp)'
-status: active
+status: archived
 fact_kind: predicate
 predicate_name: conditional_behavior
 predicate_args:

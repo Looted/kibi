@@ -6,20 +6,6 @@ relationships:
     created_at: "2026-08-16T19:49:09.928Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-cli-engine-publication-lease-type
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-08-16T21:08:59.362Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fa29ce5b2458
-  - type: covered_by
-    from: SYM-cli-engine-publication-lease-type
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-08-16T22:22:15.306Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1b2c600789b6
   - type: covered_by
     from: SYM-cli-github-detect-readme
     to: TEST-kibi-github-report-e2e
@@ -57,39 +43,11 @@ relationships:
     id: rel-e69834eeaabf
   - type: implements
     from: SYM-skillopt-python-env-adapter
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-09-10T15:00:27.605Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f91a4e4bbc8f
-  - type: implements
-    from: SYM-classify-store-lock-holder
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-14T12:37:50.306Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bcab03371d81
-  - type: covered_by
-    from: SYM-classify-store-lock-holder
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-09-14T17:05:25.410Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8e3874db2f81
-  - type: implements
-    from: SYM-skillopt-python-env-adapter
     to: REQ-skillopt-paid-matrix-infrastructure
     created_at: 2026-09-19T19:40:00.279Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c45ed37a136a
-  - type: implements
-    from: SYM-cap-plugin-external-semantic-classifier-operations-2fb73e29
-    to: REQ-capability-plugin-observable-behavior-v1
-    created_at: 2026-09-22T19:38:43.801Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8a40721509e7
   - type: covered_by
     from: SYM-cap-plugin-external-semantic-classifier-operations-2fb73e29
     to: TEST-e2e-capability-plugins
@@ -97,76 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a6f2e9a24be
-  - type: implements
-    from: SYM-docs-site-page-meta-isAuthoredPage
-    to: REQ-docs-readme-published-links
-    created_at: 2026-09-29T21:45:27.112Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-de723796e89b
-  - type: implements
-    from: SYM-docs-site-page-meta-isAuthoredPage
-    to: REQ-docs-site-root-pages
-    created_at: 2026-09-29T21:45:27.115Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-21171655b594
-  - type: covered_by
-    from: SYM-docs-site-page-meta-isAuthoredPage
-    to: TEST-docs-readme-published-links
-    created_at: 2026-09-29T21:45:27.118Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5a1157e6e7cb
-  - type: covered_by
-    from: SYM-docs-site-page-meta-isAuthoredPage
-    to: TEST-docs-site-pages
-    created_at: 2026-09-29T21:45:27.121Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-512580c1fa84
-  - type: covered_by
-    from: SYM-claude-HookUsageRow
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-10-01T20:20:25.991Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0b8877bff274
-  - type: implements
-    from: SYM-cursor-dts-runLaunchEntrypoint
-    to: REQ-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:37.694Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cf31873f9fcb
-  - type: covered_by
-    from: SYM-cursor-dts-runLaunchEntrypoint
-    to: TEST-cursor-consumer-local-mcp-launcher-v1
-    created_at: 2026-10-02T12:21:37.709Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-698a7692571a
-  - type: implements
-    from: SYM-claude-HookUsageRow
-    to: REQ-claude-hook-usage-telemetry-v2
-    created_at: 2026-10-04T02:58:47.374Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-99a94f682975
-  - type: implements
-    from: SYM-diagnostics-branchErrorToDiagnostic
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-14T21:22:24.098Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ee3a13906f2f
-  - type: covered_by
-    from: SYM-diagnostics-branchErrorToDiagnostic
-    to: TEST-branch-detached-head-read-only
-    created_at: 2026-10-14T21:22:24.116Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6292402b514e
   - type: implements
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapclaimconflict
     to: REQ-bootstrap-claim-kinds-and-conflicts

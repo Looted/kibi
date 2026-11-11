@@ -3,6 +3,7 @@ title: A requirement with an uncovered rejection case is not tested
 status: active
 fact_kind: predicate
 predicate_name: proof_gate_policy
+predicate_namespace: kibi.proof
 predicate_args:
   - tested_status
   - uncovered_rejection_case

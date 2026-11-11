@@ -1,18 +1,4 @@
 relationships:
-  - id: rel-04d6f357eff9
-    type: covered_by
-    from: SYM-core-kb-literal-to-value
-    to: TEST-kibi-conservative-requirement-proof
-    created_at: "2026-08-16T18:51:34.253Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrap-provider-order
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:28.601Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-be2a19867eed
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrap-provider-order
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -20,13 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ca6a9d7bba0
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:54:26.002Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7351dbbfbd29
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -70,34 +49,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-89037d48017c
   - type: covered_by
-    from: SYM-SourceSymbolAnalysis
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:16:16.973Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-31ca5a04a1e8
-  - type: covered_by
-    from: SYM-SourceSymbolAnalysis
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:23:59.140Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b70a6b02523e
-  - type: executable_for
-    from: SYM-e2e-test-cursor-worktree-kibi-continuity
-    to: TEST-cursor-worktree-kibi-continuity
-    created_at: 2026-09-05T15:44:03.168Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ab3dd1746387
-  - type: covered_by
-    from: SYM-Target
-    to: TEST-skill-cli-load-validate
-    created_at: 2026-09-05T18:03:01.192Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12d9ef186876
-  - type: covered_by
     from: SYM-skillopt-fake-provider-recover
     to: TEST-skillopt-paid-launch-accounting
     created_at: 2026-09-05T18:17:50.995Z
@@ -111,20 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83e3f6effca7
-  - type: implements
-    from: SYM-skillopt-runtime-auth-error
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-09-08T00:33:48.763Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-594366732bc1
-  - type: covered_by
-    from: SYM-skillopt-runtime-auth-error
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-09-08T00:33:48.771Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c576195a74df
   - type: implements
     from: SYM-coordinate-repair-evidence
     to: REQ-kibi-dependency-ordered-repair-plan
@@ -147,20 +84,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-27e3e748fbc5
   - type: implements
-    from: SYM-core-kb-literal-to-value
-    to: REQ-kibi-conservative-requirement-proof
-    created_at: 2026-09-18T07:09:39.526Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5cd0b5dff56e
-  - type: covered_by
-    from: SYM-core-kb-literal-to-value
-    to: TEST-e2e-coverage-proof-status
-    created_at: 2026-09-18T07:09:39.534Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cd35432f193e
-  - type: implements
     from: SYM-skillopt-fake-provider-recover
     to: REQ-skillopt-paid-matrix-infrastructure
     created_at: 2026-09-19T19:41:31.220Z
@@ -174,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b5316bc697d
-  - type: implements
-    from: SYM-mcp-next-ancestor-directory
-    to: REQ-kibi-env-bootstrap
-    created_at: 2026-09-23T11:20:29.109Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2d84df605baf
   - type: covered_by
     from: SYM-mcp-next-ancestor-directory
     to: TEST-cli-env-bootstrap
@@ -202,13 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-776640ecfd10
-  - type: implements
-    from: SYM-agent-core-readEntitySummary
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:49:41.435Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b0c3816d77ef
   - type: covered_by
     from: SYM-agent-core-readEntitySummary
     to: TEST-claude-code-kibi-plugin-v1
@@ -216,34 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c63980b125a2
-  - type: implements
-    from: SYM-mcp-ChildCommand
-    to: REQ-mcp-workspace-routing
-    created_at: 2026-10-02T14:46:48.041Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-476eddb7c52a
-  - type: covered_by
-    from: SYM-mcp-ChildCommand
-    to: TEST-mcp-workspace-routing
-    created_at: 2026-10-02T14:46:48.069Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1b38c3ea42b2
-  - type: implements
-    from: SYM-skillopt-final-answer
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-04T12:50:13.218Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-be970022b2f5
-  - type: covered_by
-    from: SYM-skillopt-final-answer
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-04T12:50:13.243Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a17e8daf670f
   - type: verified_by
     from: SCEN-kb-unowned-file-candidates
     to: TEST-claude-edit-snippet-hook
@@ -342,17 +223,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7a8f85751d4
-  - type: implements
-    from: SYM-cli-update-check-update-cache-file
-    to: REQ-kibi-update-notice
-    created_at: 2026-11-04T13:23:14.707Z
+  - type: constrains
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: FACT-SUBJECT-7D8A11CB905D46FD
+    created_at: 2026-11-05T10:35:40.334Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-0479be65b53e
-  - type: covered_by
-    from: SYM-cli-update-check-update-cache-file
-    to: TEST-kibi-update-notice
-    created_at: 2026-11-04T13:23:14.744Z
+    id: rel-2e1cd2311d33
+  - type: constrains
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: FACT-SUBJECT-KIBI-CLAUDE-FIRM-EDIT-CONFIRMATION
+    created_at: 2026-11-05T10:35:40.394Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-e2fce375a456
+    id: rel-c0b2958aab72
+  - type: requires_property
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: FACT-PROP-E5A7DECFE2B39039
+    created_at: 2026-11-05T10:35:40.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bb171bd0cb7
+  - type: requires_property
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: FACT-claude-plugin-may-ask-firm-edit
+    created_at: 2026-11-05T10:35:40.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23ebd98e0f08
+  - type: specified_by
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: SCEN-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:35:40.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-177822e8db71
+  - type: specified_by
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: SCEN-CASE-claude-code-kibi-plugin-v1-SECOND-STOP-REMINDER
+    created_at: 2026-11-05T10:35:40.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5db411076ce
+  - type: verified_by
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:35:40.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64dfc224e9ea
+  - type: relates_to
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: REQ-claude-firm-edit-confirmation
+    created_at: 2026-11-05T10:35:40.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6e9c8284f8a
+  - type: supersedes
+    from: REQ-claude-stop-reminder-and-firm-ask
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:35:40.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5229c539b250

@@ -209,6 +209,7 @@ export {
   codedErrorOf,
   normalizeResultPayload,
   operationData,
+  prepareOperationInput,
   resultVersion,
   toKibiResult,
 } from "kibi-cli/operations/result-envelope";

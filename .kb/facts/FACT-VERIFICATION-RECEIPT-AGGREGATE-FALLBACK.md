@@ -8,7 +8,7 @@ tags:
   - attribution
 claim_key: CLAIM-78992ABE870528FE
 claim_text: A missing, malformed, or incomplete per-test report must keep the whole-run evaluation
-text_ref: .kb/requirements/REQ-kibi-fresh-verification-receipts-v2.md
+text_ref: .kb/requirements/REQ-kibi-proof-per-test-attribution.md
 fact_kind: predicate
 predicate_name: verification_receipt_rule
 predicate_args:

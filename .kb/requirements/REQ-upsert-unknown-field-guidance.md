@@ -43,6 +43,7 @@ logic_claims:
   - CLAIM-C62090C3F4B5F4C6
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-07T12:28:24.052Z'
 id: REQ-upsert-unknown-field-guidance
 type: req

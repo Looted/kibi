@@ -11,8 +11,6 @@ tags:
   - unit
 links:
   - type: validates
-    target: REQ-cli-sync
-  - type: validates
     target: SCEN-007
 origin:
   kind: migration

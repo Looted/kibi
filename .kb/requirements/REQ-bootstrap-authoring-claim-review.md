@@ -9,6 +9,7 @@ tags:
   - truthful-consistency
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-16T08:59:22.548Z'
 id: REQ-bootstrap-authoring-claim-review
 type: req

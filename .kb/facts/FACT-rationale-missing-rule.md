@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.check.rule_names
 claim_key: CLAIM-6A0DF299ADF1444D
 claim_text: The missing requirement rationale rule shall be requirement-rationale-missing
-text_ref: REQ-kibi-check-rule-names
+text_ref: REQ-kibi-origin-review-rule-names
 property_key: rationale_rule
 operator: eq
 value_type: string

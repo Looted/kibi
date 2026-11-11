@@ -2,6 +2,7 @@ import { MIGRATION_PLAN_REFUSED } from "../../operations/planning/migration-refu
 import type { KibiResult, OperationEffect, OperationName } from "./types.js";
 
 export { codedErrorOf } from "../../cli-errors.js";
+export { prepareOperationInput } from "../../cli-validate.js";
 export type { CodedErrorFields } from "../../cli-errors.js";
 
 export const KIBI_PROTOCOL_VERSION = 1 as const;

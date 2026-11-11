@@ -12,7 +12,6 @@ tags:
   - playwright
   - receipts
   - proof
-  - review:context-missing
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: 0d306a819eaeffa40bca53923d7146f7ce6829f97ea3029f69c9b1dec79b71e4
@@ -49,10 +48,13 @@ semantic_text: Kibi must give each proof obligation a stable symbol identity, co
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 
 Kibi must give each proof obligation a stable symbol identity, connect executable test symbols to that obligation, and accept proof only from fresh, passed proof receipts bound to the current proof contract, execution fingerprint, and snapshot. Unknown attempt histories, retries, skips, failed runs, stale receipts, and mismatched contracts or fingerprints must remain non-proof outcomes.
+
+## Why
+Proof had to come only from fresh passing receipts bound to the current contract, fingerprint and snapshot. Retries, skips and stale or mismatched receipts must never count. Source: changesets "compile-intent" and "verify-playwright".

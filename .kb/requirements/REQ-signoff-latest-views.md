@@ -51,7 +51,7 @@ The latest Kibi signoff JSON view file shall be .kb/briefs/signoff/latest.json. 
 
 ## Context
 
-REQ-kibi-signoff-views has kibi signoff write the latest JSON, Markdown and HTML views under the brief directory REQ-kibi-signoff-brief-location names. The file of each view is stated here so it is proved against packages/cli/src/signoff/model.ts.
+REQ-kibi-signoff-written-and-printed has kibi signoff write the latest JSON, Markdown and HTML views under the brief directory REQ-kibi-signoff-brief-location names. The file of each view is stated here so it is proved against packages/cli/src/signoff/model.ts.
 
 ## Source
 

@@ -3,7 +3,7 @@ title: Traceability from the KB to source is asked for an entity with no source 
 status: active
 fact_kind: property_value
 operator: eq
-property_key: clause_01_the_kibi_vs_code_extension_must_provide_traceability_in_both
+property_key: bidirectional_traceability
 subject_key: vscode.kibi_extension
 value_type: bool
 value_bool: false

@@ -3,7 +3,7 @@ title: The same path is edited again in a session that already showed its file-c
 status: active
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_04_guidance_must_be_suppressed_after_the_first_occu
+property_key: guidance_once_per_path
 operator: eq
 value_type: bool
 value_bool: false

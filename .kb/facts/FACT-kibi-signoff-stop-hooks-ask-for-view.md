@@ -9,7 +9,7 @@ value_type: int
 value_int: 1
 claim_key: CLAIM-65ED97AB98F70C91
 claim_text: The Kibi Claude Code, Codex, Cursor and ZCode stop hooks must ask once for the signoff view when a session wrote a requirement after the last kibi signoff run
-text_ref: REQ-kibi-signoff-views
+text_ref: REQ-kibi-signoff-host-rendering-and-ask
 tags:
   - strict-modeling
   - lane:strict

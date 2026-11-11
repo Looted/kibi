@@ -23,4 +23,4 @@ origin:
 id: FACT-canonical-kb-lanes
 type: fact
 ---
-ENTITY_LANES in packages/cli/src/utils/kb-paths.ts names the Git-tracked directories under .kb that hold authored entities. REQ-cli-canonical-runtime says how sync discovers them and how kb_upsert writes into them; this requirement states the lane list so it is proved against the code.
+ENTITY_LANES in packages/cli/src/utils/kb-paths.ts names the Git-tracked directories under .kb that hold authored entities. REQ-kibi-sync-canonical-discovery says how sync discovers them and REQ-kibi-canonical-source-authoring how kb_upsert writes into them; this requirement states the lane list so it is proved against the code.
