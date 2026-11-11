@@ -304,20 +304,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43f152242e8e
-  - type: implements
-    from: SYM-cli-build-search-answer
-    to: REQ-search-closed-requirements-below-current
-    created_at: 2026-11-11T17:34:39.619Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7231a8326fe4
-  - type: implements
-    from: SYM-cli-build-search-answer
-    to: REQ-search-answer-replacement-strong-match
-    created_at: 2026-11-11T17:34:39.653Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d50a2d8a0385
   - type: covered_by
     from: SYM-cli-build-search-answer
     to: TEST-search-closed-requirements

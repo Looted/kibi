@@ -356,13 +356,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0110b12bbb5f
-  - type: implements
-    from: SYM-kibi-cli-src-intent-search-ts-rankintententities
-    to: REQ-search-closed-requirements-below-current
-    created_at: 2026-11-11T17:34:30.766Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6cf1e105f2d7
   - type: covered_by
     from: SYM-kibi-cli-src-intent-search-ts-rankintententities
     to: TEST-search-closed-requirements

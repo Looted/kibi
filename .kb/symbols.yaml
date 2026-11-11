@@ -516,8 +516,6 @@ symbols:
         target: REQ-kibi-intent-aware-source-discovery
       - type: implements
         target: REQ-search-answer-hygiene
-      - type: implements
-        target: REQ-search-closed-requirements-below-current
   - id: SYM-kibi-cli-src-intent-search-ts-executeintentsearch
     title: executeIntentSearch
     sourceFile: packages/cli/src/intent-search.ts
@@ -21773,10 +21771,6 @@ symbols:
         target: REQ-kibi-search-answer-layer-v2
       - type: implements
         target: REQ-search-answer-hygiene
-      - type: implements
-        target: REQ-search-answer-replacement-strong-match
-      - type: implements
-        target: REQ-search-closed-requirements-below-current
   - id: SYM-cli-dispatch-composite
     title: dispatchComposite
     status: active
@@ -26140,8 +26134,6 @@ symbols:
         target: REQ-claude-request-topic-candidates
       - type: implements
         target: REQ-kb-unowned-file-candidates
-      - type: implements
-        target: REQ-unowned-file-closed-candidates
   - id: SYM-agent-core-candidates-requirementcandidatesforpath
     title: requirementCandidatesForPath
     status: active
@@ -26157,8 +26149,6 @@ symbols:
         target: REQ-claude-request-topic-candidates
       - type: implements
         target: REQ-kb-unowned-file-candidates
-      - type: implements
-        target: REQ-unowned-file-closed-candidates
   - id: SYM-agent-core-candidates-max-requirement-candidates
     title: MAX_REQUIREMENT_CANDIDATES
     status: active
