@@ -1,6 +1,6 @@
 ---
 title: Type-shape symbols such as interfaces, type aliases, and enums must not by thems
-status: active
+status: archived
 tags:
   - strict-lane
 fact_kind: property_value

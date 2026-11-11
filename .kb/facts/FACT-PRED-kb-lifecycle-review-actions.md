@@ -1,6 +1,6 @@
 ---
 title: Supersession cycles stay review actions
-status: active
+status: archived
 tags:
   - lane:ontology
   - lifecycle

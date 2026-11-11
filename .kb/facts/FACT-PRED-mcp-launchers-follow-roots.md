@@ -1,6 +1,6 @@
 ---
 title: 'Predicate: conditional_behavior(non_claude_host_mcp_launcher,client_supports_mcp_roots,answer_tool_call_from_roots_workspace)'
-status: active
+status: archived
 fact_kind: predicate
 predicate_name: conditional_behavior
 predicate_args:

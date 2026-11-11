@@ -1,6 +1,6 @@
 ---
 title: 'Property: guidance_source_policy(opencode.kibi_plugin) = file_lifecycle_events_plus_e2e_evidence'
-status: active
+status: archived
 tags:
   - lane:strict
   - property-value

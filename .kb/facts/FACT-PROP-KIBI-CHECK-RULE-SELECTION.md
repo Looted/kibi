@@ -1,6 +1,6 @@
 ---
 title: Kibi check supports rule selection and staged focus
-status: active
+status: archived
 fact_kind: property_value
 subject_key: kibi.check
 property_key: rule_selection_scope

@@ -1,7 +1,7 @@
 ---
 id: FACT-REQ-PROOF-VERIFICATION-RETRY-SAFETY
 title: Kibi rejects retry and partial verification as proof
-status: active
+status: archived
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
 tags:

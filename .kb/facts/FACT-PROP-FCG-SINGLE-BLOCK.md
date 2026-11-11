@@ -1,6 +1,6 @@
 ---
 title: 'Property: rendering_policy(opencode.kibi_plugin.guidance_rendering) = folded_single_block_per_plugin_v1'
-status: active
+status: archived
 tags:
   - lane:strict
   - property-value

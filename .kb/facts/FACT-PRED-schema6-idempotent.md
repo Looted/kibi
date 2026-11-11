@@ -1,6 +1,6 @@
 ---
 title: A rerun after an applied schema 6 migration finds nothing to migrate
-status: active
+status: archived
 tags:
   - lane:ontology
   - migration

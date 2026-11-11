@@ -1,6 +1,6 @@
 ---
 title: 'Non-numeric proof kinds: Kibi re-evaluates the predicate tables before accepting a rule certificate'
-status: active
+status: archived
 fact_kind: property_value
 subject_key: kibi.non_numeric_proof
 property_key: recheck_rule_tables
