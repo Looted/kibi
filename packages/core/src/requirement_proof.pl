@@ -242,11 +242,16 @@ proof_exempt(Props, Reason) :-
     Reason \= ''.
 
 %% applicability_exclusion_reason(+ReqId, -Reason)
-% Typed reason a requirement fails current_req/1: superseded lifecycle, or a
-% status outside the canonical+legacy requirement vocabulary (e.g. the ADR
+% Typed reason a requirement fails current_req/1: superseded lifecycle, a
+% retired requirement, or a status outside the canonical+legacy requirement vocabulary (e.g. the ADR
 % vocabulary 'accepted').
 applicability_exclusion_reason(ReqId, "requirement is superseded by a newer requirement") :-
     kb_relationship(supersedes, _, ReqId),
+    !.
+applicability_exclusion_reason(ReqId, 'requirement is retired: the behavior it stated no longer exists') :-
+    kb_entity(ReqId, req, Props),
+    memberchk(status=Status, Props),
+    normalize_term_atom(Status, retired),
     !.
 applicability_exclusion_reason(ReqId, Reason) :-
     kb_entity(ReqId, req, Props),

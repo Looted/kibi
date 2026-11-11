@@ -54,7 +54,7 @@ export function legacyStatusDraftCertificate(): CodeCertificate {
   });
 }
 
-/** A requirement marked deprecated shall be migrated as closed. */
+/** A requirement marked deprecated shall be migrated as retired. */
 export function legacyStatusDeprecatedCertificate(): CodeCertificate {
   return regexCertificate({
     testId: "TEST-proof-legacy-status-deprecated",
@@ -72,7 +72,7 @@ export function legacyStatusSupersededCertificate(): CodeCertificate {
   });
 }
 
-/** A requirement marked rejected shall be migrated as closed. */
+/** A requirement marked rejected shall be migrated as retired. */
 export function legacyStatusRejectedCertificate(): CodeCertificate {
   return regexCertificate({
     testId: "TEST-proof-legacy-status-rejected",
@@ -109,9 +109,9 @@ describe("Suggested status for legacy requirement status words", () => {
     expect(SUGGESTED_REQUIREMENT_STATUS.draft).toBe("open");
   });
 
-  test("A requirement marked deprecated shall be migrated as closed", () => {
+  test("A requirement marked deprecated shall be migrated as retired", () => {
     writeCodeCertificate(legacyStatusDeprecatedCertificate());
-    expect(SUGGESTED_REQUIREMENT_STATUS.deprecated).toBe("closed");
+    expect(SUGGESTED_REQUIREMENT_STATUS.deprecated).toBe("retired");
   });
 
   test("A requirement marked superseded shall be migrated as closed", () => {
@@ -119,8 +119,8 @@ describe("Suggested status for legacy requirement status words", () => {
     expect(SUGGESTED_REQUIREMENT_STATUS.superseded).toBe("closed");
   });
 
-  test("A requirement marked rejected shall be migrated as closed", () => {
+  test("A requirement marked rejected shall be migrated as retired", () => {
     writeCodeCertificate(legacyStatusRejectedCertificate());
-    expect(SUGGESTED_REQUIREMENT_STATUS.rejected).toBe("closed");
+    expect(SUGGESTED_REQUIREMENT_STATUS.rejected).toBe("retired");
   });
 });

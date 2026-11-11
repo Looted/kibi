@@ -776,7 +776,7 @@ test(supersession_reachability) :-
 
 chk_owner_violation(Symbol, Title, Owners, Replacements, Violation) :-
     atomic_list_concat(Owners, ', ', OwnerText),
-    format(string(D), "Symbol ~w (~w) implements only superseded or deprecated requirements (~w), so no current requirement owns it",
+    format(string(D), "Symbol ~w (~w) implements only superseded, deprecated or retired requirements (~w), so no current requirement owns it",
            [Title, Symbol, OwnerText]),
     (   Replacements == []
     ->  S = "Link the symbol to the current requirement that governs it (implements), or remove the symbol if its behavior is gone"
@@ -816,12 +816,16 @@ test(retired_owners) :-
         chk_raw_entity(symbol, 'SYM-8', [id='SYM-8']),
         chk_rel(implements, 'SYM-8', 'REQ-DEP'),
         chk_raw_rel(implements, 'TEST-NOT-SYMBOL', 'REQ-DEP'),
+        chk_req('REQ-RET', [status=retired, retired_reason="Gone"]),
+        chk_ent(symbol, 'SYM-9', []),
+        chk_rel(implements, 'SYM-9', 'REQ-RET'),
         first_answer_is_last(check_symbol_owner_superseded(Violations))
     )),
     chk_owner_violation('SYM-1', "One", ['REQ-OLD'], ['REQ-NEW', 'REQ-NEW2'], V1),
     chk_owner_violation('SYM-2', "Fixture entity", ['REQ-DEP', 'REQ-OLD'], ['REQ-NEW', 'REQ-NEW2'], V2),
     chk_owner_violation('SYM-8', 'SYM-8', ['REQ-DEP'], [], V3),
-    chk_same(Violations, [V1, V2, V3]).
+    chk_owner_violation('SYM-9', "Fixture entity", ['REQ-RET'], [], V4),
+    chk_same(Violations, [V1, V2, V3, V4]).
 
 chk_retired_symbols(Count) :-
     chk_req('REQ-GONE', [status=deprecated]),
@@ -843,7 +847,7 @@ test(review_limit_exceeded, [Length, Last, Summary] == [26, 'SYM-025', Expected]
     last(Violations, violation(Rule, Entity, Text, Suggestion, Source, Evidence)),
     Summary = [Rule, Entity, Text, Suggestion, Source, Evidence.total, Evidence.listed],
     Expected = ['symbol-owner-superseded', workspace,
-                "2 more symbol(s) implement only superseded or deprecated requirements; the list above stops at 25",
+                "2 more symbol(s) implement only superseded, deprecated or retired requirements; the list above stops at 25",
                 "Relink the listed symbols first; the next kb_check lists the following ones", "", 27, 25].
 
 test(review_limit, Limit == 25) :-
@@ -2398,18 +2402,94 @@ test(numeric_string_contexts) :-
 
 test(req_status_vocabulary, Sorted == [violation('req-status-vocabulary', 'REQ-ACC', D, S, 'REQ-ACC.md')]) :-
     format(string(D), "Requirement status 'accepted' is not a current requirement status; it is silently excluded from the proof ladder", []),
-    S = "Set status to one of open, in_progress, closed (legacy: active, approved). To park a current requirement out of E2E-proof scope, use proof_exempt: true with proof_exempt_reason instead of an ADR status",
+    S = "Set status to one of open, in_progress, closed, retired (legacy: active, approved). Use retired with retired_reason when the behavior no longer exists; to park a current requirement out of E2E-proof scope, use proof_exempt: true with proof_exempt_reason instead of an ADR status",
     chk_kb((
         forall(member(St, [open, in_progress, closed, active, approved]),
                (atom_concat('REQ-', St, Id), chk_req(Id, [status=St]))),
+        chk_req('REQ-retired', [status=retired, retired_reason="Gone"]),
         chk_req('REQ-ACC', [status=accepted]),
         chk_raw_entity(req, 'REQ-NOSTATUS', [id='REQ-NOSTATUS']),
         check_req_status_vocabulary(Sorted)
     )).
 
 test(status_vocabularies) :-
-    checks:canonical_req_statuses(C), C == [open, in_progress, closed],
+    checks:canonical_req_statuses(C), C == [open, in_progress, closed, retired],
     checks:legacy_req_statuses(L), L == [active, approved].
+
+% A retired requirement states why; a blank or missing reason is reported.
+test(retired_reason_missing, Violations == [
+        violation('retired-reason-missing', 'REQ-BLANK', D1, S, 'REQ-BLANK.md'),
+        violation('retired-reason-missing', 'REQ-NONE', D2, S, 'REQ-NONE.md')]) :-
+    S = "Add retired_reason: why the behavior no longer exists, with the date or change that retired it. If the requirement still states current intent, set status back to closed or open",
+    D1 = "Requirement REQ-BLANK is retired but states no retired_reason, so nothing records why it stopped governing",
+    D2 = "Requirement REQ-NONE is retired but states no retired_reason, so nothing records why it stopped governing",
+    chk_kb((
+        chk_req('REQ-OK', [status=retired, retired_reason="Removed on 2026-10-30"]),
+        chk_req('REQ-BLANK', [status=retired, retired_reason="   "]),
+        chk_req('REQ-NONE', [status=retired]),
+        chk_req('REQ-CLOSED', [status=closed]),
+        check_retired_reason_missing(Violations0),
+        msort(Violations0, Violations)
+    )).
+
+chk_retired_only(Type, Id, Owners, Violation) :-
+    atomic_list_concat(Owners, ', ', OwnerText),
+    format(string(D), "Current ~w ~w is owned only by retired requirements (~w), so it describes behavior that no longer exists",
+           [Type, Id, OwnerText]),
+    (   Type == test
+    ->  S = "Link the test to the current requirement or scenario whose behavior it still checks, or delete it (kb_delete) if that behavior is gone"
+    ;   S = "Link it to the current requirement that took over this behavior, or archive it with status: deprecated"
+    ),
+    format(atom(Source), '~w.md', [Id]),
+    Violation = violation('retired-owner-only', Id, D, S, Source, _{entityType: Type, owners: Owners}).
+
+% Facts, scenarios and tests whose every owner is retired are reported; a
+% shared, archived or ownerless dependent is not.
+test(retired_owner_only) :-
+    chk_kb((
+        chk_req('REQ-R1', [status=retired, retired_reason="Gone"]),
+        chk_req('REQ-R2', [status=retired, retired_reason="Gone"]),
+        chk_req('REQ-LIVE'),
+        chk_req('REQ-DONE', [status=closed]),
+        chk_ent(fact, 'FACT-ONLY', []),
+        chk_rel(constrains, 'REQ-R1', 'FACT-ONLY'),
+        chk_ent(fact, 'FACT-TWO', []),
+        chk_rel(requires_property, 'REQ-R1', 'FACT-TWO'),
+        chk_rel(requires_predicate, 'REQ-R2', 'FACT-TWO'),
+        chk_ent(fact, 'FACT-SHARED', []),
+        chk_rel(constrains, 'REQ-R1', 'FACT-SHARED'),
+        chk_rel(constrains, 'REQ-DONE', 'FACT-SHARED'),
+        chk_ent(fact, 'FACT-ARCHIVED', [status=deprecated]),
+        chk_rel(constrains, 'REQ-R1', 'FACT-ARCHIVED'),
+        chk_ent(fact, 'FACT-LOOSE', []),
+        chk_ent(scenario, 'SCEN-OLD', []),
+        chk_rel(specified_by, 'REQ-R1', 'SCEN-OLD'),
+        chk_ent(scenario, 'SCEN-LIVE', []),
+        chk_rel(specified_by, 'REQ-R1', 'SCEN-LIVE'),
+        chk_rel(specified_by, 'REQ-LIVE', 'SCEN-LIVE'),
+        chk_ent(test, 'TEST-DIRECT', [status=passing]),
+        chk_rel(verified_by, 'REQ-R2', 'TEST-DIRECT'),
+        chk_ent(test, 'TEST-VIA-SCEN', [status=passing]),
+        chk_rel(validates, 'TEST-VIA-SCEN', 'SCEN-OLD'),
+        chk_ent(test, 'TEST-LIVE-SCEN', [status=passing]),
+        chk_rel(validates, 'TEST-LIVE-SCEN', 'SCEN-OLD'),
+        chk_rel(verified_by, 'SCEN-LIVE', 'TEST-LIVE-SCEN'),
+        check_retired_owner_only(Violations)
+    )),
+    chk_retired_only(fact, 'FACT-ONLY', ['REQ-R1'], V1),
+    chk_retired_only(fact, 'FACT-TWO', ['REQ-R1', 'REQ-R2'], V2),
+    chk_retired_only(scenario, 'SCEN-OLD', ['REQ-R1'], V3),
+    chk_retired_only(test, 'TEST-DIRECT', ['REQ-R2'], V4),
+    chk_retired_only(test, 'TEST-VIA-SCEN', ['REQ-R1'], V5),
+    chk_same(Violations, [V1, V2, V3, V4, V5]).
+
+test(retired_owner_only_without_retired, Violations == []) :-
+    chk_kb((
+        chk_req('REQ-DEP', [status=deprecated]),
+        chk_ent(fact, 'FACT-X', []),
+        chk_rel(constrains, 'REQ-DEP', 'FACT-X'),
+        check_retired_owner_only(Violations)
+    )).
 
 chk_shape(Id, Props, Result) :-
     chk_kb((
@@ -3487,7 +3567,8 @@ chk_all_keys([adr_proposed, adr_unlinked, deprecated_adr_no_successor, domain_co
               kb_consistency, kb_consistency_unresolved, logic_coverage, must_priority_coverage,
               no_cycles, no_dangling_refs, numeric_string_value, ontology_quality,
               predicate_verifiability, proof_contract_symbols, related_requirement_unmodeled,
-              req_status_vocabulary, required_fields, rule_key_arguments_missing, rule_safety,
+              req_status_vocabulary, required_fields, retired_owner_only, retired_reason_missing,
+              rule_key_arguments_missing, rule_safety,
               rule_verifiability, scenario_feasibility, scenario_feasibility_unknown,
               scenario_outcome_mismatch, semantic_completeness, strict_fact_shape,
               strict_readiness, strict_req_fact_pairing, subject_key_identity, subject_key_shape,

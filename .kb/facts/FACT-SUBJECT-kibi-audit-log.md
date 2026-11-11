@@ -1,6 +1,6 @@
 ---
 title: Kibi audit log
-status: active
+status: deprecated
 tags:
   - lane:strict
   - fact:subject

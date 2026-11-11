@@ -29,7 +29,10 @@
 // claims it proves.
 // Schema 13 derives symbol coordinates on every sync and keeps
 // .kb/symbol-coordinates.yaml out of Git.
-export const LATEST_KB_SCHEMA_VERSION = 13;
+// Schema 14 adds the retired requirement status (with retired_reason) and
+// blocks current facts, scenarios and tests owned only by retired
+// requirements.
+export const LATEST_KB_SCHEMA_VERSION = 14;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

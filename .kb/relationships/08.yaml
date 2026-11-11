@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0871e60c334d
+  - type: assumes
+    from: SCEN-NEG-kb-requirement-retired-status-STILL-GOVERNS
+    to: FACT-NEG-kb-requirement-retired-status-STILL-GOVERNS
+    created_at: 2026-11-11T17:42:16.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7c79ac63363
+  - type: verified_by
+    from: SCEN-NEG-kb-requirement-retired-status-STILL-GOVERNS
+    to: TEST-kb-requirement-retired-status
+    created_at: 2026-11-11T17:42:16.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b79f3cdfd90

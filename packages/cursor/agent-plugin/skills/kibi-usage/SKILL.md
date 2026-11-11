@@ -351,9 +351,15 @@ authored. Each one is the order the write path accepts.
    plan carries `supersessionRequired: true` and both routes refuse it
    (`REQUIREMENT_SUPERSESSION_REQUIRED`): Kibi never deletes an authored
    requirement. Evolve it instead with a new
-   requirement linked by `supersedes` and close the old one, or, for an
-   agent-origin requirement nobody approved and nothing links to, upsert it
-   with `status: closed` (keep its `title`); it stays on disk as history. A
+   requirement linked by `supersedes` and close the old one. When the
+   behavior is gone and nothing replaces it (or for an agent-origin
+   requirement nobody approved and nothing links to), upsert it with
+   `status: retired` and a `retired_reason` saying why (keep its `title`);
+   it stays on disk as history and stops governing. Then relink or archive
+   (`status: deprecated`) the facts and scenarios it alone owned, and
+   relink or delete its tests: `kb_check` blocks them under
+   `retired-owner-only`. Leave a requirement that is done and still valid
+   `closed`. A
    person may remove the file in Git and run `kibi sync`; agents do not edit
    `.kb/` directly.
 4. **After a commit-time refusal** (`Contradiction detected …

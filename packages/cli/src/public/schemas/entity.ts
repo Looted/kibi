@@ -356,6 +356,7 @@ const entitySchema: Record<string, unknown> = {
         "proposed",
         "accepted",
         "removed",
+        "retired",
       ],
     },
     created_at: { type: "string" },
@@ -397,6 +398,13 @@ const entitySchema: Record<string, unknown> = {
       minLength: 1,
       description:
         "Requirement-only. Required when proof_exempt is true; surfaces as the applicability reason in coverage rows.",
+    },
+    retired_reason: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Requirement-only. Required when status is retired: why the behavior no longer exists, with the date or change that retired it. A retired requirement no longer governs, and nothing current may be owned only by it.",
     },
     approved_by: {
       type: "string",
@@ -821,6 +829,7 @@ const entitySchema: Record<string, unknown> = {
             { required: ["semantic_source_hash"] },
             { required: ["proof_exempt"] },
             { required: ["proof_exempt_reason"] },
+            { required: ["retired_reason"] },
             { required: ["approved_by"] },
             { required: ["approval_ref"] },
             { required: ["failure_side_waiver"] },

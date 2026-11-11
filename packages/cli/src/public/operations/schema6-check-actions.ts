@@ -690,7 +690,7 @@ export function schema6ReviewActionsFromCheck(
       safety: "review",
       invocation: {
         kind: "review",
-        instruction: `${total} symbol(s) implement only superseded or deprecated requirements${total > listed.length ? `; these ${listed.length} come first` : ""}: ${listed.join(", ")}. For each, kb_upsert the symbol with an implements link to the requirement that replaced its owner (evidence lists the replacements) when it still implements that behavior, or remove the symbol when the behavior is gone. Rerun kb_check for the next page.`,
+        instruction: `${total} symbol(s) implement only superseded, deprecated or retired requirements${total > listed.length ? `; these ${listed.length} come first` : ""}: ${listed.join(", ")}. For each, kb_upsert the symbol with an implements link to the requirement that replaced its owner (evidence lists the replacements) when it still implements that behavior, or remove the symbol when the behavior is gone. Rerun kb_check for the next page.`,
       },
       affectedEntityIds: listed,
       affectedFiles: [...new Set(symbolOwners.files)].sort(),

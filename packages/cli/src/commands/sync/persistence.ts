@@ -596,6 +596,7 @@ export async function persistEntities(
         "failure_side_waiver",
         "failure_side_waiver_approved_by",
         "rationale",
+        "retired_reason",
       ] as const) {
         const value = entity.type === "req" ? entity[field] : undefined;
         if (value !== undefined)

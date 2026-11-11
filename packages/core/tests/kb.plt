@@ -6482,7 +6482,7 @@ test(symbol_owner_superseded_lists_symbols_without_current_owner, [setup(setup_k
     Violations = [violation('symbol-owner-superseded', 'SYM-ORPHANED', Description, Suggestion, _, Evidence)],
     assertion(Evidence.owners == ['REQ-RETIRED']),
     assertion(Evidence.replacements == ['REQ-SUCCESSOR']),
-    assertion(sub_string(Description, _, _, _, "implements only superseded or deprecated requirements (REQ-RETIRED)")),
+    assertion(sub_string(Description, _, _, _, "implements only superseded, deprecated or retired requirements (REQ-RETIRED)")),
     assertion(sub_string(Suggestion, _, _, _, "implements REQ-SUCCESSOR")).
 
 test(symbol_owner_superseded_caps_the_list_with_a_summary, [setup(setup_kb), cleanup(cleanup_kb)]) :-

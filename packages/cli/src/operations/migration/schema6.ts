@@ -97,6 +97,13 @@ import {
   planRequirementStatusMappings,
 } from "./requirement-status.js";
 import {
+  REQ_RETIRED_STATUS_ACTION_PREFIX,
+  REQ_RETIRED_STATUS_SUGGEST_CODE,
+  type RetiredStatusSuggestion,
+  applyRetiredStatus,
+  planRetiredStatusSuggestions,
+} from "./retired-status.js";
+import {
   type PlannedSourcePathRepairs,
   type SourcePathRemoval,
   type SourcePathRewrite,
@@ -417,8 +424,8 @@ export function requirementStatusActions(
                 kind: "review",
                 instruction:
                   finding.extractionError === null
-                    ? `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress or closed (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate.`
-                    : `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a status Kibi knows, so kibi sync cannot compile it (${finding.extractionError}) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress or closed in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate.`,
+                    ? `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate.`
+                    : `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a status Kibi knows, so kibi sync cannot compile it (${finding.extractionError}) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate.`,
               }
             : { kind: "cli", command_argv: approvalArgv([id]) },
         affectedEntityIds: [finding.requirementId],
@@ -443,6 +450,12 @@ export function requirementStatusActions(
                 approve: `kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action ${id}`,
                 choice:
                   "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+                ...(target === "retired"
+                  ? {
+                      retiredReason:
+                        "A retired requirement needs retired_reason; after the mapping, add why the behavior no longer exists, or kibi check reports retired-reason-missing.",
+                    }
+                  : {}),
               }),
           latentDrift:
             drift === null
@@ -476,6 +489,48 @@ export function requirementStatusActions(
       actions.push(dropGroundingAction(drift, after));
   }
   return actions;
+}
+
+/**
+ * One review action per closed requirement whose own source says it was
+ * retired (KB schema 14): approving it by id sets status retired with the
+ * quoted retired_reason. Kibi never retires a requirement on its own.
+ */
+// implements REQ-kb-requirement-retired-status
+export function retiredStatusActions(workspaceRoot: string): MigrationAction[] {
+  return planRetiredStatusSuggestions(workspaceRoot).map(
+    (suggestion: RetiredStatusSuggestion) => {
+      const id = `${REQ_RETIRED_STATUS_ACTION_PREFIX}${suggestion.requirementId}`;
+      return migrationAction({
+        id,
+        code: REQ_RETIRED_STATUS_SUGGEST_CODE,
+        category: "semantic",
+        safety: "review",
+        autoApplicable: false,
+        invocation: { kind: "cli", command_argv: approvalArgv([id]) },
+        affectedEntityIds: [suggestion.requirementId],
+        affectedFiles: [suggestion.path],
+        postconditions: [
+          {
+            rule: "retired-reason-missing",
+            entityId: suggestion.requirementId,
+            findings: 0,
+          },
+        ],
+        dispositionRequired: true,
+        allowedDispositions: ["fixed", "deferred"],
+        evidence: {
+          reason:
+            "This requirement is closed, nothing supersedes it, and its own source says it was retired. A closed requirement still governs search, hooks and every current-intent rule; status retired stops that. Approving sets status: retired and retired_reason to the quoted words, editing only those two lines.",
+          signals: suggestion.signals.map((signal) => ({ ...signal })),
+          retiredReason: suggestion.retiredReason,
+          approve: `kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action ${id}`,
+          choice:
+            "Retiring is a person's call. If the requirement still states current intent, leave it closed and mark this action deferred; to word the reason differently, set status: retired and retired_reason in the file by hand.",
+        },
+      });
+    },
+  );
 }
 
 /** The status mapping an approved req_status_vocabulary_map action lists. */
@@ -882,6 +937,9 @@ export function buildSchema6MigrationFragment(input: {
   // is re-derived only after an approved mapping.
   const statusActions = requirementStatusActions(input.workspaceRoot);
   actions.push(...statusActions);
+  // Closed requirements whose source says they were retired are suggested
+  // at any schema version: a person approves each by id.
+  actions.push(...retiredStatusActions(input.workspaceRoot));
   if (
     statusActions.some(
       (action) => action.id === REQ_STATUS_DELIVERED_MAP_ACTION_ID,
@@ -1175,6 +1233,16 @@ export async function applySchema6MigrationAction(
       );
       return;
     }
+    case REQ_RETIRED_STATUS_SUGGEST_CODE: {
+      const file = action.affectedFiles[0];
+      const reason = action.evidence.retiredReason;
+      if (file === undefined || typeof reason !== "string")
+        throw new Error(
+          "Retired status suggestion names no file or reason; set status: retired and retired_reason by hand.",
+        );
+      applyRetiredStatus(context.workspaceRoot, file, reason);
+      return;
+    }
     case REQ_STATUS_DELIVERED_MAP_CODE: {
       const result = applyDeliveredStatusMappings(
         context.workspaceRoot,
@@ -1272,6 +1340,7 @@ export async function applySchema6MigrationAction(
 export const SCHEMA6_APPROVABLE_REVIEW_CODES: ReadonlySet<string> = new Set([
   SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE,
   REQ_STATUS_VOCABULARY_MAP_CODE,
+  REQ_RETIRED_STATUS_SUGGEST_CODE,
   // A re-derivation that waits on an approved status mapping.
   SEMANTIC_INVENTORY_REDERIVE_CODE,
 ]);

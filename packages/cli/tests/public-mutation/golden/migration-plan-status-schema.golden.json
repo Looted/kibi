@@ -89,7 +89,7 @@
           "configStatus": {
             "status": "older",
             "currentVersion": 12,
-            "latestVersion": 13,
+            "latestVersion": 14,
             "needsMigration": true,
             "warning": null,
             "configHash": "hash"
@@ -101,7 +101,7 @@
       }
     ],
     "diagnostics": ["planned"],
-    "planHash": "77a5e4c1f5d98e2c27744193dc4a74d379ed2c16860e8f7aba9f05ced9a7ee7a",
+    "planHash": "c86a69a039110a0176b9671f9b268fd58960a6b689dfd0397124ef11710512a9",
     "status": "partial",
     "summary": {
       "actionCount": 3,
@@ -139,7 +139,7 @@
         "configStatus": {
           "status": "older",
           "currentVersion": 12,
-          "latestVersion": 13,
+          "latestVersion": 14,
           "needsMigration": true,
           "warning": null,
           "configHash": "hash"
@@ -177,7 +177,7 @@
         "configStatus": {
           "status": "newer",
           "currentVersion": 12,
-          "latestVersion": 13,
+          "latestVersion": 14,
           "needsMigration": true,
           "warning": null,
           "configHash": "hash"
@@ -234,7 +234,7 @@
         "configStatus": {
           "status": "invalid",
           "currentVersion": 12,
-          "latestVersion": 13,
+          "latestVersion": 14,
           "needsMigration": true,
           "warning": null,
           "configHash": "hash"

@@ -49,8 +49,8 @@
       "evidence": {
         "configStatus": {
           "status": "older",
-          "currentVersion": 13,
-          "latestVersion": 13,
+          "currentVersion": 14,
+          "latestVersion": 14,
           "needsMigration": true,
           "warning": null,
           "configHash": "hash"
@@ -115,8 +115,8 @@
       "evidence": {
         "configStatus": {
           "status": "newer",
-          "currentVersion": 13,
-          "latestVersion": 13,
+          "currentVersion": 14,
+          "latestVersion": 14,
           "needsMigration": true,
           "warning": null,
           "configHash": "hash"
@@ -230,8 +230,8 @@
       "evidence": {
         "configStatus": {
           "status": "older",
-          "currentVersion": 13,
-          "latestVersion": 13,
+          "currentVersion": 14,
+          "latestVersion": 14,
           "needsMigration": true,
           "warning": null,
           "configHash": "hash"

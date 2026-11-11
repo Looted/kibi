@@ -1,15 +1,15 @@
 ---
-title: A requirement marked rejected shall be migrated as closed
+title: A requirement marked rejected shall be migrated as retired
 status: active
 fact_kind: property_value
 subject_key: kibi.migration.suggested_status
-claim_key: CLAIM-0A2412C4CAB9F99B
-claim_text: A requirement marked rejected shall be migrated as closed
+claim_key: CLAIM-356408991377FEF1
+claim_text: A requirement marked rejected shall be migrated as retired
 text_ref: REQ-cli-migration-suggested-status
 property_key: rejected_suggested_status
 operator: eq
 value_type: string
-value_string: closed
+value_string: retired
 origin:
   kind: agent
   recorded_at: '2026-10-29T10:39:28.043Z'

@@ -9,7 +9,7 @@
     "files": [".kb/req/REQ-passing.md"],
     "docs": ["docs/entity-schema.md"],
     "message": "Requirement REQ-passing uses test-like status passing.",
-    "suggestion": "Use requirement lifecycle statuses such as open, in_progress, active, accepted, closed, deprecated, or superseded; keep passing/failing statuses on test entities.",
+    "suggestion": "Use requirement lifecycle statuses such as open, in_progress, closed, or retired; keep passing/failing statuses on test entities.",
     "evidence": {
       "status": "passing"
     }
@@ -24,7 +24,7 @@
     "files": [".kb/req/REQ-failing.md"],
     "docs": ["docs/entity-schema.md"],
     "message": "Requirement REQ-failing uses test-like status failing.",
-    "suggestion": "Use requirement lifecycle statuses such as open, in_progress, active, accepted, closed, deprecated, or superseded; keep passing/failing statuses on test entities.",
+    "suggestion": "Use requirement lifecycle statuses such as open, in_progress, closed, or retired; keep passing/failing statuses on test entities.",
     "evidence": {
       "status": "failing"
     }
@@ -39,7 +39,7 @@
     "files": [".kb/req/REQ-skipped.md"],
     "docs": ["docs/entity-schema.md"],
     "message": "Requirement REQ-skipped uses test-like status skipped.",
-    "suggestion": "Use requirement lifecycle statuses such as open, in_progress, active, accepted, closed, deprecated, or superseded; keep passing/failing statuses on test entities.",
+    "suggestion": "Use requirement lifecycle statuses such as open, in_progress, closed, or retired; keep passing/failing statuses on test entities.",
     "evidence": {
       "status": "skipped"
     }
@@ -54,7 +54,7 @@
     "files": [".kb/req/REQ-pending.md"],
     "docs": ["docs/entity-schema.md"],
     "message": "Requirement REQ-pending uses test-like status pending.",
-    "suggestion": "Use requirement lifecycle statuses such as open, in_progress, active, accepted, closed, deprecated, or superseded; keep passing/failing statuses on test entities.",
+    "suggestion": "Use requirement lifecycle statuses such as open, in_progress, closed, or retired; keep passing/failing statuses on test entities.",
     "evidence": {
       "status": "pending"
     }
