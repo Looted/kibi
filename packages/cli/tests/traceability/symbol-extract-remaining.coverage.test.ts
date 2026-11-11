@@ -134,7 +134,7 @@ describe("extractSymbolsFromStagedFile leftover script, cache, and hunk branches
     restores.push(restoreEnv);
     const methodText = spyOn(
       MethodDeclaration.prototype,
-      "getFullText",
+      "getEnd",
     ).mockImplementation(() => {
       throw new Error("method boom");
     });
@@ -164,25 +164,25 @@ export type Alias = string;
     restores.push(restoreEnv);
     const propertyText = spyOn(
       PropertyDeclaration.prototype,
-      "getFullText",
+      "getEnd",
     ).mockImplementation(() => {
       throw new Error("property boom");
     });
     const accessorText = spyOn(
       GetAccessorDeclaration.prototype,
-      "getFullText",
+      "getEnd",
     ).mockImplementation(() => {
       throw new Error("accessor boom");
     });
     const ifaceText = spyOn(
       InterfaceDeclaration.prototype,
-      "getText",
+      "getEnd",
     ).mockImplementation(() => {
       throw new Error("iface boom");
     });
     const aliasText = spyOn(
       TypeAliasDeclaration.prototype,
-      "getText",
+      "getEnd",
     ).mockImplementation(() => {
       throw new Error("alias boom");
     });
