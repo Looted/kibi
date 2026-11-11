@@ -706,3 +706,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b52d26bb2a7
+  - type: implements
+    from: SYM-cli-engine-start-diagnostic
+    to: REQ-kibi-anonymous-usage-telemetry
+    created_at: 2026-11-11T18:09:59.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-884106507eac
+  - type: covered_by
+    from: SYM-cli-engine-start-diagnostic
+    to: TEST-kibi-anonymous-usage-telemetry
+    created_at: 2026-11-11T18:09:59.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0a792635cd9

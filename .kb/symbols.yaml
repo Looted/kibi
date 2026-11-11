@@ -69152,3 +69152,42 @@ symbols:
         target: TEST-cli-doctor-workflows
       - type: implements
         target: REQ-cli-doctor
+  - id: SYM-cli-engine-start-failure-kind
+    title: engineStartFailureKind
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T18:09:53.139Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry
+      - type: implements
+        target: REQ-kibi-anonymous-usage-telemetry
+  - id: SYM-cli-engine-start-diagnostic
+    title: engineStartDiagnostic
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T18:09:57.994Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry
+      - type: implements
+        target: REQ-kibi-anonymous-usage-telemetry
+  - id: SYM-cli-parse-engine-start-diagnostic
+    title: parseEngineStartDiagnostic
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T18:10:02.955Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry
+      - type: implements
+        target: REQ-kibi-anonymous-usage-telemetry

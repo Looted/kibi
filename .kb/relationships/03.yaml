@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cc9ef55015b6
+  - type: implements
+    from: SYM-cli-engine-start-failure-kind
+    to: REQ-kibi-anonymous-usage-telemetry
+    created_at: 2026-11-11T18:09:54.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-584fc0ce4fd1
+  - type: covered_by
+    from: SYM-cli-engine-start-failure-kind
+    to: TEST-kibi-anonymous-usage-telemetry
+    created_at: 2026-11-11T18:09:54.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b39c4307d39

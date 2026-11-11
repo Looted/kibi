@@ -12,6 +12,30 @@ import {
 
 const CASES: Array<[string, string, string, string]> = [
   [
+    "Kibi engine failed to start: Kibi could not find a usable SWI-Prolog (9.0 or newer is required). Query failed",
+    "swipl_not_found",
+    "prolog_lifecycle",
+    "No usable SWI-Prolog was found; install one or set KIBI_SWIPL, then restart the MCP server.",
+  ],
+  [
+    "Kibi engine failed to start: Failed to load Kibi core module; query failed",
+    "engine_start_failed",
+    "engine_lifecycle",
+    "The Kibi engine daemon failed to start; run kibi doctor for the cause.",
+  ],
+  [
+    "Unable to connect to Kibi engine at /run/k.sock: timed out after 120000ms",
+    "engine_connect_timeout",
+    "engine_lifecycle",
+    "The Kibi engine daemon did not accept connections; run kibi engine stop and retry.",
+  ],
+  [
+    "Kibi engine exited (exit code 1) before it accepted connections at /run/k.sock",
+    "engine_connect_timeout",
+    "engine_lifecycle",
+    "The Kibi engine daemon did not accept connections; run kibi engine stop and retry.",
+  ],
+  [
     "STALE_SNAPSHOT seen",
     "stale_snapshot",
     "persistence",
@@ -110,6 +134,11 @@ describe("classifyDiagnosticError, exact", () => {
     const category = (message: string) =>
       classifyDiagnosticError(new Error(message)).error_category;
     expect(category("unknown option only")).toBe("handler_error");
+    expect(category("x Kibi engine failed to start")).toBe("handler_error");
+    expect(category("x Unable to connect to Kibi engine")).toBe(
+      "handler_error",
+    );
+    expect(category("Kibi engine exited (exit code 1)")).toBe("handler_error");
     expect(category("use h for help")).toBe("handler_error");
     expect(category("timed out after ms")).toBe("handler_error");
     expect(category("x Entity validation failed:")).toBe("handler_error");
