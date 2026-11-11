@@ -6,7 +6,6 @@ tags:
   - build
   - pipeline
   - validation
-  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: internal
 proof_contract:
@@ -54,6 +53,10 @@ proof_receipts:
           status: unavailable
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 4): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+The native pipeline builds, relocates, strips and signs every file, and the controls check the artifact boundaries, so a defect fails locally before an expensive four-platform run. Source: PR 299 phase 2: "Local pipeline controls: 70 passed".
