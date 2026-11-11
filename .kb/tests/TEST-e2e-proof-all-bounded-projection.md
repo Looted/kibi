@@ -1,12 +1,11 @@
 ---
 title: Installed public prove-all excludes large unrelated archived test metadata
-status: active
+status: passing
 tags:
   - proof
   - consumer
   - projection
   - e2e
-  - review:context-missing
 text_ref: documentation/tests/e2e/packed/proof-all-bounded-projection.test.ts
 verification_scope: end_to_end
 verification_perspective: consumer
@@ -59,6 +58,10 @@ proof_receipts:
           status: unavailable
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 3): "Agree with batch 3 as well."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+This is PR 282's installed regression: prove-all picks the single contract among 500 large archived records. Strict proof stopped at 109 of 110 until the projection had real end-to-end coverage.

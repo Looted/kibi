@@ -26,18 +26,18 @@ proof_contract:
   success_policy: all_required_first_attempt
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-938b1b180ac06348e5c2c1d7
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-b552ae26182be0d5a801d1cf
     test_id: TEST-kibi-telemetry-remediation-evidence
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 379aa918061d87d478f5c6907af80b9d31dab67e9189a94467199a38d0fd1ea4
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-05T07:15:06.846Z'
+    finished_at: '2026-11-05T07:15:10.385Z'
+    artifact_digest: 1887f17ba5e762440f0a26ef28ba8bfcd77eaaf14ee0c4ab5d1e9d4e899e58c9
     contract_hash: 6debbc187218ca97f73dfdab81233e24fad2f517d78137438cd0ac5cf24b6b39
-    binding_hash: e94764d29273b940686fcbaa2835416f4a9d481422cd2b545d8b8998c0572329
+    binding_hash: d4277a4c785257b0436f778815c3e388a6318e1f2297d0997db4789edb2743e4
     fingerprint: 0b3a78c605209aa605da6e31c4a8f8c314c1e9549e493b905416efc21a9530d6
     fingerprint_components:
       contract: 6debbc187218ca97f73dfdab81233e24fad2f517d78137438cd0ac5cf24b6b39
@@ -59,6 +59,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

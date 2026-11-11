@@ -1,7 +1,7 @@
 ---
 id: TEST-agent-guided-migration-orchestration
 title: Migration plan hashing, safety gates, and post-apply readback
-status: active
+status: passing
 created_at: 2026-08-14T00:00:00.000Z
 updated_at: 2026-08-14T00:00:00.000Z
 priority: must
@@ -9,7 +9,9 @@ links:
   - type: validates
     target: SCEN-agent-guided-migration-orchestration
   - type: validates
-    target: REQ-agent-guided-migration-orchestration
+    target: REQ-kibi-migration-apply-gate
+  - type: validates
+    target: REQ-kibi-migration-plan-contract
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -22,17 +24,17 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-cbb8cd41a4fe45f04d01d71d
+    receipt_id: PR-a090681ab18196ddec0630a8
     test_id: TEST-agent-guided-migration-orchestration
     scope: end_to_end
     outcome: passed
-    code_snapshot: 45723d09ccc2f66812136995f1e9ff533e86cd9788676661b6338c4073cf1090
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T20:56:28.249Z'
-    finished_at: '2026-10-28T20:57:48.995Z'
-    artifact_digest: c2897be40b87b249e1ed6db078243990c4e4a6933d81b79d6dd5457ecb663f9b
+    code_snapshot: 179137a4cc98bad746ede4707d2bddad6bd790d7d9588e4925b753857111ca11
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-10T18:10:20.858Z'
+    finished_at: '2026-11-10T18:10:39.559Z'
+    artifact_digest: aab168ad750d6f7398beb752839186314c3ab6b57b5021402ba8233a0f76d674
     contract_hash: a95ef7e3f6863462b57beaadbfdea7eef67385f2f5e43dff17d627c6841d4600
-    binding_hash: fdf7ae5e13d056b0454825e409dd03bc88901b4bc23617acb4559236db02853f
+    binding_hash: 6c926cc5e20aec0c7d0a244be6332956df9d109c3dfcbee9f83fe17592a51481
     fingerprint: 10833314215144e0eec2bd80138dd1ba984dd767735564493d48b7cd7a5300a6
     fingerprint_components:
       contract: a95ef7e3f6863462b57beaadbfdea7eef67385f2f5e43dff17d627c6841d4600

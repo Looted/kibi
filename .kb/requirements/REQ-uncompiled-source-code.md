@@ -34,7 +34,7 @@ The failed source extraction code shall be source_extraction_failed.
 
 ## Context
 
-REQ-kibi-uncompiled-source-visibility has sync report a source file it could not extract instead of dropping it silently. The code it uses is stated here so it is proved against the constant.
+REQ-kibi-uncompiled-source-reported has sync report a source file it could not extract instead of dropping it silently. The code it uses is stated here so it is proved against the constant.
 
 ## Source
 

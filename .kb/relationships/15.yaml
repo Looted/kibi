@@ -27,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf794c2b405d
-  - type: implements
-    from: SYM-cli-register-maintenance-commands
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-08-22T20:26:05.309Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c5c8f4037ebd
   - type: covered_by
     from: SYM-cli-register-maintenance-commands
     to: TEST-kibi-operation-interface-parity
@@ -70,54 +63,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0a4bf6d803ce
   - type: covered_by
-    from: SYM-cli-github-remote
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-28T10:09:44.639Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c9cda9867279
-  - type: covered_by
-    from: SYM-KibiImpactDiagnosticId-contract
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:13:33.544Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eba8b26ff85d
-  - type: covered_by
-    from: SYM-cli-impact-createImpactManifestLookup
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:16:10.086Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-326a4e125557
-  - type: covered_by
     from: SYM-modeling-predicate-inference-1-inferMutualExclusionArgs
     to: TEST-mcp-suggest-predicates
     created_at: 2026-09-05T17:42:10.404Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-100efb99443d
-  - type: covered_by
-    from: SYM-StoredHeldOutTerminalReceipt
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:10:22.070Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-962aa501a575
-  - type: implements
-    from: SYM-StoredHeldOutTerminalReceipt
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:36:57.472Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e3ef7498c4d0
-  - type: implements
-    from: SYM-cli-listSearchCandidates
-    to: REQ-mcp-search-discovery
-    created_at: 2026-09-27T22:10:21.502Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8a03f8f7cda7
   - type: covered_by
     from: SYM-cli-listSearchCandidates
     to: TEST-mcp-search-discovery
@@ -167,27 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d370a8efcdbb
-  - type: implements
-    from: SYM-mcp-gitCommonDirectory
-    to: REQ-mcp-workspace-routing
-    created_at: 2026-10-02T14:43:35.667Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dd1f245d1203
-  - type: covered_by
-    from: SYM-mcp-gitCommonDirectory
-    to: TEST-mcp-workspace-routing
-    created_at: 2026-10-02T14:43:35.699Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8bc8497e8244
-  - type: implements
-    from: SYM-cli-register-maintenance-commands
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T02:59:26.502Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3c4cc4d74cdb
   - type: constrains
     from: REQ-model-predicates-requirement-subject-v2
     to: FACT-SUBJ-PREDICATE-SUGGESTION-PLAN

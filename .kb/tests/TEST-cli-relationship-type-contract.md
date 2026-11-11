@@ -1,6 +1,6 @@
 ---
 title: CLI relationship type vocabulary contract
-status: active
+status: passing
 tags:
   - cli
   - relationships

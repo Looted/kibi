@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.sync.extractors
-property_key: clause_03_typed_relationship_objects_in_markdown_front_matter_must_be_
+property_key: typed_relationships_imported
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_core_extractors.clause_03_typed_relationship_objects_in_markdown_front_matter_must_be_.eq.true
+canonical_key: req.req_core_extractors.typed_relationships_imported.eq.true
 claim_key: CLAIM-032A21035746B5BE
 claim_text: Typed relationship objects in Markdown front matter must be imported with their explicit types
 origin:

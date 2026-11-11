@@ -4,7 +4,6 @@ status: passing
 verification_scope: end_to_end
 tags:
   - vocabulary-convergence
-  - review:context-missing
 id: TEST-kibi-predicate-vocabulary-migration-e2e
 type: test
 proof_contract:
@@ -50,6 +49,10 @@ proof_receipts:
           status: unavailable
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 2): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+
+## Context
+This proves conformance and migration through the packed CLI, as a user runs them. It also shows a rejected upsert reporting its writes as failed: before this PR, the error envelope reported them as completed.

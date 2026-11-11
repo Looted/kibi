@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.lifecycle.check_codes
 claim_key: CLAIM-38F792CCEE6129F9
 claim_text: The unlinked ADR review code shall be review_adr_unlinked
-text_ref: REQ-kibi-lifecycle-check-codes
+text_ref: REQ-kibi-lifecycle-review-codes
 property_key: adr_unlinked_code
 operator: eq
 value_type: string

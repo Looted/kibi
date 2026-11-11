@@ -6,7 +6,6 @@ tags:
   - relationships
   - redundancy
   - vocabulary-convergence
-  - review:context-missing
 semantic_text: Kibi must accept restates as a relationship from one requirement to another requirement. A restates link must keep both linked requirements current.
 semantic_clauses:
   - Kibi must accept restates as a relationship from one requirement to another requirement.
@@ -38,9 +37,12 @@ id: REQ-kibi-restates-relationship
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 2): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Kibi must accept restates as a relationship from one requirement to another requirement. A restates link must keep both linked requirements current.
+
+## Why
+Some requirements repeat another on purpose. Supersedes would retire one of them, so restates silences the redundancy finding while keeping both current.

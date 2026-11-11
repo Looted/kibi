@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_09_the_opencode_plugin_must_run_comment_analysis_after_file_edi
+property_key: comment_analysis_non_blocking
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_comment_routing.clause_09_the_opencode_plugin_must_run_comment_analysis_after_file_edi.eq.true
+canonical_key: req.req_opencode_comment_routing.comment_analysis_non_blocking.eq.true
 claim_key: CLAIM-B720EA9494541601
 claim_text: The OpenCode plugin must run comment analysis after file.edited events without blocking sync or other plugin operations
 origin:

@@ -1,18 +1,4 @@
 relationships:
-  - type: implements
-    from: SYM-auto-4682A3D1BEB4
-    to: REQ-mcp-search-discovery
-    created_at: 2026-08-16T07:55:02.187Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3e71c4fb763f
-  - type: covered_by
-    from: SYM-auto-4682A3D1BEB4
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T07:55:02.192Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-665c73fb1de2
   - type: covered_by
     from: SYM-reqcompiler-sync-cache-ttl
     to: TEST-kibi-proposition-complete-ingestion
@@ -20,13 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cd8794c97f62
-  - type: covered_by
-    from: SYM-cli-relationship-extracted-shape
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-08-16T19:49:09.991Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-608487a40d79
   - type: implements
     from: SYM-initializeDiagnosticMode
     to: REQ-002
@@ -48,20 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-41b50b6fba0c
-  - type: implements
-    from: SYM-auto-4682A3D1BEB4
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:53:09.486Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ca55a99beaa0
-  - type: covered_by
-    from: SYM-auto-4682A3D1BEB4
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:53:09.495Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b9ae8e1be1cb
   - type: relates_to
     from: FACT-core-prolog-process-management-5009E0
     to: REQ-core-prolog-process-management
@@ -69,34 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2062add6e68a
-  - type: implements
-    from: SYM-kibi-bootstrap-plan-expected-snapshots
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-26T18:07:41.033Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fd0e15a294e2
-  - type: covered_by
-    from: SYM-kibi-bootstrap-plan-expected-snapshots
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T10:10:55.021Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8fb0f2c9ef1e
-  - type: covered_by
-    from: SYM-kibi-bootstrap-plan-expected-snapshots
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-28T10:11:23.057Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-248e617d323e
-  - type: covered_by
-    from: SYM-KibiImpactEvidence
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:13:38.605Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b77127b6cc39
   - type: covered_by
     from: SYM-environment-hash
     to: TEST-kibi-verification-evidence-contract
@@ -119,13 +56,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-37011a061a1d
   - type: covered_by
-    from: SYM-normalizeResourcePath
-    to: TEST-skill-cli-load-validate
-    created_at: 2026-09-05T18:04:39.325Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3f52f2cb8063
-  - type: covered_by
     from: SYM-skillopt-predicate-development-case-id
     to: TEST-skillopt-predicate-first-requirements
     created_at: 2026-09-05T18:20:24.239Z
@@ -133,75 +63,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-29078c3b45f3
   - type: covered_by
-    from: SYM-auto-4682A3D1BEB4
-    to: TEST-mcp-search-discovery
-    created_at: 2026-09-06T09:05:57.227Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-679ecdf87456
-  - type: covered_by
     from: SYM-initializeDiagnosticMode
     to: TEST-kibi-telemetry-acceptance-gate
     created_at: 2026-09-18T15:14:30.137Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-588097454551
-  - type: implements
-    from: SYM-run-unit-coverage-failure
-    to: REQ-014
-    created_at: 2026-09-21T15:26:53.033Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-936a2b1ff7c0
-  - type: covered_by
-    from: SYM-run-unit-coverage-failure
-    to: TEST-scripts-unit-coverage-runner
-    created_at: 2026-09-21T15:26:53.038Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2d41caf62421
-  - type: covered_by
-    from: SYM-run-unit-coverage-failure
-    to: TEST-e2e-coverage-pipeline
-    created_at: 2026-09-21T19:06:11.833Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-01ec4c100c96
-  - type: covered_by
-    from: SYM-source-analysis-v2-gitchangesnapshot-c5e637cb
-    to: TEST-source-analysis-v2-contract
-    created_at: 2026-09-26T16:56:26.017Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3df11801e15f
-  - type: implements
-    from: SYM-source-analysis-v2-gitchangesnapshot-c5e637cb
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T16:56:26.033Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1832dca132bc
-  - type: implements
-    from: SYM-mcp-WorkspaceRouterOptions
-    to: REQ-mcp-workspace-routing
-    created_at: 2026-10-02T14:47:05.118Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8db1ace2f396
-  - type: covered_by
-    from: SYM-mcp-WorkspaceRouterOptions
-    to: TEST-mcp-workspace-routing
-    created_at: 2026-10-02T14:47:05.143Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cdabf25cf1e0
-  - type: implements
-    from: SYM-BranchStoreInspection
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:55:09.999Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5b35b238e2f5
   - type: validates
     from: TEST-proof-cli-excludes-jev
     to: SCEN-capability-plugin-observable-behavior-v1
@@ -349,3 +216,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2adf7d8726dc
+  - type: assumes
+    from: SCEN-NEG-claude-code-kibi-plugin-v1-DENYING-HOOK
+    to: FACT-NEG-claude-code-kibi-plugin-v1-DENYING-HOOK
+    created_at: 2026-11-05T10:55:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24022fded53e
+  - type: verified_by
+    from: SCEN-NEG-claude-code-kibi-plugin-v1-DENYING-HOOK
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:55:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d5b2912dad7
+  - type: assumes
+    from: SCEN-NEG-kibi-advisor-strict-suggestions-VAGUE-STRICT
+    to: FACT-NEG-kibi-advisor-strict-suggestions-VAGUE-STRICT
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f14f236a73c
+  - type: verified_by
+    from: SCEN-NEG-kibi-advisor-strict-suggestions-VAGUE-STRICT
+    to: TEST-e2e-strict-modeling-surface
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-500a39b5e94c

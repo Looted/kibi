@@ -806,9 +806,9 @@ if (RUN_NODE_TEST_SUITE) {
           "An unknown rule name must not run as an empty rule selection",
         );
         assert.ok(
-          /Input validation error/.test(responseText) &&
-            responseText.includes("rules[0]"),
-          "The error must point at the rejected rule name",
+          responseText.includes("VALIDATION_FAILED") &&
+            responseText.includes("/rules/0"),
+          "The error must be the coded contract error pointing at the rejected rule name",
         );
       },
     );

@@ -1,6 +1,6 @@
 ---
 title: kibi signoff shows the requirement summary and pending decisions as one readable view on every host
-status: open
+status: closed
 required_evidence: tested
 priority: should
 tags:
@@ -71,6 +71,7 @@ logic_claims:
   - CLAIM-65ED97AB98F70C91
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-22T09:25:17.980Z'
 id: REQ-kibi-signoff-views
 type: req

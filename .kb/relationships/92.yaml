@@ -25,20 +25,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-4d0ec55034fa
   - type: implements
-    from: SYM-cli-engine-publication-lease-acquire
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-08-16T21:08:52.543Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5eba913ec94a
-  - type: covered_by
-    from: SYM-cli-engine-publication-lease-acquire
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T21:08:52.553Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ad00cfa510d3
-  - type: implements
     from: SYM-canonical-loadEntityPaths
     to: REQ-cli-init-canonical
     created_at: 2026-08-18T17:01:33.863Z
@@ -80,13 +66,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-db2c6904c500
-  - type: executable_for
-    from: SYM-e2e-test-012
-    to: TEST-012
-    created_at: 2026-09-05T14:52:52.388Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-57fb3dcdf5a0
   - type: covered_by
     from: SYM-createOverlayFacts
     to: TEST-cli-staged-impact-enforcement
@@ -94,13 +73,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-79f76122a3ea
-  - type: covered_by
-    from: SYM-cli-engine-publication-lease-acquire
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:30:41.898Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e1b0cc5106f2
   - type: covered_by
     from: SYM-modeling-predicate-inference-3-inferEnforcementLocationRuleArgs
     to: TEST-mcp-suggest-predicates
@@ -115,34 +87,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-466202716678
-  - type: executable_for
-    from: SYM-e2e-test-012
-    to: TEST-008
-    created_at: 2026-09-18T12:45:16.159Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a9736c5cf18e
-  - type: implements
-    from: SYM-cap-plugin-symbol-extractor-capability-id-8f5f547b
-    to: REQ-capability-plugin-three-capabilities-v1
-    created_at: 2026-09-22T19:47:18.273Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-95043d75e216
-  - type: covered_by
-    from: SYM-cap-plugin-symbol-extractor-capability-id-8f5f547b
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:47:18.280Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-499da17750ee
-  - type: implements
-    from: SYM-claude-readFocus
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:18:15.278Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ea84962c425b
   - type: covered_by
     from: SYM-claude-readFocus
     to: TEST-claude-code-kibi-plugin-v1
@@ -150,13 +94,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d6e5c9d29f2
-  - type: implements
-    from: SYM-zcode-directKbEditWarning
-    to: REQ-zcode-kibi-plugin-v1
-    created_at: 2026-09-28T07:56:36.630Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d1f1241b65bd
   - type: implements
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapknowledgesource
     to: REQ-kibi-bootstrap-knowledge-sources
@@ -269,13 +206,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-47a92fea846a
-  - type: implements
-    from: SYM-schema6-check-actions-ADR_PROPOSED_REVIEW_CODE
-    to: REQ-kibi-lifecycle-check-codes
-    created_at: 2026-10-28T17:25:43.401Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2f221275ab5a
   - type: covered_by
     from: SYM-schema6-check-actions-ADR_PROPOSED_REVIEW_CODE
     to: TEST-proof-adr-proposed-review-code
@@ -290,13 +220,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37e948a578d7
-  - type: implements
-    from: SYM-schema6-check-actions-SUPERSESSION_CYCLE_REVIEW_CODE
-    to: REQ-kibi-lifecycle-check-codes
-    created_at: 2026-10-28T17:27:07.810Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3dea7e977bfd
   - type: covered_by
     from: SYM-schema6-check-actions-SUPERSESSION_CYCLE_REVIEW_CODE
     to: TEST-proof-supersession-cycle-review-code
@@ -402,3 +325,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-31a4dd4c53e5
+  - type: assumes
+    from: SCEN-kibi-impact-next-actions
+    to: FACT-PROP-kibi-impact-next-actions-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35590287701a
+  - type: verified_by
+    from: SCEN-kibi-impact-next-actions
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a91dd0475b70

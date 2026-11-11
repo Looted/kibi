@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.symbols.coordinates
-property_key: clause_07_coordinate_artifact_publication_must_be_atomic_bound_to_the_
+property_key: atomic_bound_publication
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_generated_coordinate_persistence.clause_07_coordinate_artifact_publication_must_be_atomic_bound_to_the_.eq.true
+canonical_key: req.req_generated_coordinate_persistence.atomic_bound_publication.eq.true
 claim_key: CLAIM-59F5FF0447C4D992
 claim_text: Coordinate artifact publication must be atomic, bound to the current extraction identity, preserve unrelated valid records, and fail closed on malformed artifacts
 id: FACT-PROP-REQ-GENERATED-COORDINATE-PERSISTENCE-C07

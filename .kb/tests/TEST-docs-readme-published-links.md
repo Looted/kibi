@@ -5,7 +5,6 @@ tags:
   - docs
   - readme
   - llms
-  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -53,6 +52,9 @@ proof_receipts:
           status: unavailable
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+## Context
+The doc catalog is the only map from a source file to a published page. This test fails if the README links a catalog source directly, or if a published URL isn't in the catalog. Source: PR 297.

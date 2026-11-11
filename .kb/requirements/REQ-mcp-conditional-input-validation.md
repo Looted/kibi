@@ -43,6 +43,7 @@ logic_claims:
   - CLAIM-E30769F2BD9D33DE
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-07T12:27:17.534Z'
 id: REQ-mcp-conditional-input-validation
 type: req

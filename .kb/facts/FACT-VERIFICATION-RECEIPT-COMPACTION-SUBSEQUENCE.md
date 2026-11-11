@@ -8,7 +8,7 @@ tags:
   - compaction
 claim_key: CLAIM-C2C5945CEAEEED35
 claim_text: Receipt compaction must keep the original receipts in their original order and refuse any result that is not an ordered subsequence
-text_ref: .kb/requirements/REQ-kibi-fresh-verification-receipts-v2.md
+text_ref: .kb/requirements/REQ-kibi-proof-receipt-compaction.md
 fact_kind: predicate
 predicate_name: verification_receipt_rule
 predicate_args:

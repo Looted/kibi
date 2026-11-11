@@ -10,7 +10,6 @@ tags:
   - report
   - badge
   - ci
-  - review:context-missing
 type: req
 links:
   - type: specified_by
@@ -167,7 +166,7 @@ semantic_inventory:
     reason: Grounded by logical_requirement_rule with approved schema FACT-SCHEMA-LOGICAL-REQUIREMENT-RULE.
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -182,3 +181,6 @@ standalone workflow and adding a README badge that links to the report.
 an explicit `--github --badge-only` opt-out. `--badge-only` without `--github`
 is rejected. Re-running the scaffold must not overwrite a customized workflow
 or duplicate an existing Kibi badge.
+
+## Why
+Projects wanted the badge and the matching report on GitHub Pages. Publishing both from one snapshot keeps the badge and the report consistent, and badge-only is an explicit opt-out. Source: changeset "github-badge-report".

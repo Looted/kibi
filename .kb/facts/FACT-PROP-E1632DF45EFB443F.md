@@ -1,6 +1,6 @@
 ---
 title: Count = 8
-status: active
+status: archived
 text_ref: .kb/requirements/REQ-004.md
 tags:
   - strict-modeling

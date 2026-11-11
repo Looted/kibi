@@ -62,7 +62,7 @@ The search hints weak top score shall be 0.44. The search hints host shall show 
 
 ## Context
 
-These are the fixed numbers of kb_search search hints: SEARCH_HINT_WEAK_SCORE and SEARCH_HINT_LIMIT in packages/cli/src/search-hints.ts, SEARCH_HINTS_MAX_LIMIT in packages/plugin-sdk/src/capabilities/search-hints.ts and SEARCH_HINTS_OFFER_REQUIREMENTS in packages/cli/src/operations/bootstrap/plugin-offers.ts. They were measured on Kibi's own KB. Each one is stated here as a number so it is proved against the constant itself; how each is used stays in REQ-kibi-search-hints-host, REQ-capability-search-hints-v1 and REQ-kibi-plugin-search-hints.
+These are the fixed numbers of kb_search search hints: SEARCH_HINT_WEAK_SCORE and SEARCH_HINT_LIMIT in packages/cli/src/search-hints.ts, SEARCH_HINTS_MAX_LIMIT in packages/plugin-sdk/src/capabilities/search-hints.ts and SEARCH_HINTS_OFFER_REQUIREMENTS in packages/cli/src/operations/bootstrap/plugin-offers.ts. They were measured on Kibi's own KB. Each one is stated here as a number so it is proved against the constant itself; how each is used stays in REQ-kibi-search-hints-shown, REQ-capability-search-hints-v1 and REQ-kibi-plugin-search-hints.
 
 ## Source
 

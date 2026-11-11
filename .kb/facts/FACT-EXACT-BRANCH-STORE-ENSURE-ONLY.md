@@ -7,7 +7,7 @@ tags:
   - storage
 claim_key: CLAIM-540E77EE18088717
 claim_text: A missing exact branch store is created only on an explicit branch ensure
-text_ref: .kb/requirements/REQ-branch-store-recovery-v4.md
+text_ref: .kb/requirements/REQ-kibi-exact-branch-identity.md
 fact_kind: property_value
 subject_key: kibi.kb.branch
 property_key: initialization_mode

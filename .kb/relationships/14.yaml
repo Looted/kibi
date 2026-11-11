@@ -6,13 +6,6 @@ relationships:
     created_at: 2026-08-16T19:47:37.156Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-cli-rule-registry-getCanonicalRules
-    to: REQ-cli-check
-    created_at: 2026-08-18T17:03:43.735Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a0d113d7625c
   - type: covered_by
     from: SYM-cli-rule-registry-getCanonicalRules
     to: TEST-004
@@ -34,27 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6c498e95631c
-  - type: implements
-    from: 28f7e953a0a87fbb
-    to: REQ-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T10:54:27.192Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5604e2655c7a
-  - type: covered_by
-    from: 28f7e953a0a87fbb
-    to: TEST-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T12:52:10.084Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-88203f6703da
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-guidance-actions-buildactions
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-21T19:37:51.900Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e47128c048ec
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-guidance-actions-buildactions
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -112,27 +84,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-619a12bf13cc
   - type: covered_by
-    from: SYM-discovery-query-payload
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:37:06.980Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5f1b7daeef6f
-  - type: implements
-    from: SYM-discovery-query-payload
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:00:38.743Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a538c48070d2
-  - type: covered_by
-    from: SYM-discovery-query-payload
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:00:38.748Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f9c575bc968d
-  - type: covered_by
     from: SYM-kibi-migration-merge
     to: TEST-agent-guided-migration-orchestration
     created_at: 2026-09-05T15:01:03.765Z
@@ -153,27 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d22c85b535e9
-  - type: implements
-    from: SYM-quality-inventory-d98db976efac
-    to: REQ-cli-check
-    created_at: 2026-09-14T20:26:47.248Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-654f2b90e077
-  - type: covered_by
-    from: SYM-quality-inventory-d98db976efac
-    to: TEST-cli-check-integrity
-    created_at: 2026-09-14T20:26:47.266Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-41e7ea63736f
-  - type: covered_by
-    from: SYM-quality-inventory-d98db976efac
-    to: TEST-004
-    created_at: 2026-09-18T07:38:44.656Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ee80350d39e7
   - type: covered_by
     from: SYM-vscode-code-action-provider-watch-manifest
     to: TEST-e2e-vscode-extension-lifecycle
@@ -181,27 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7d79b355fedf
-  - type: implements
-    from: SYM-doctor-detect-execute-apply-plan
-    to: REQ-cli-doctor
-    created_at: 2026-09-22T11:34:43.879Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23e5ebd82cc4
-  - type: implements
-    from: SYM-doctor-detect-execute-apply-plan
-    to: REQ-agent-guided-migration-orchestration
-    created_at: 2026-09-22T11:34:43.889Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-08291ad87a1c
-  - type: implements
-    from: SYM-doctor-detect-execute-apply-plan
-    to: REQ-cli-doctor-packed-provenance
-    created_at: 2026-09-22T11:34:43.896Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b23ee2afd8a1
   - type: covered_by
     from: SYM-doctor-detect-execute-apply-plan
     to: TEST-001
@@ -231,54 +140,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-1ab4fb31c93c
   - type: covered_by
-    from: SYM-cap-plugin-schemaidfor-b12987e6
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:42:32.001Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dc92352b9dcd
-  - type: implements
-    from: SYM-zcode-canonicalKbToolName
-    to: REQ-zcode-kibi-plugin-v1
-    created_at: 2026-09-27T09:30:46.478Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-54736e684039
-  - type: covered_by
-    from: SYM-zcode-canonicalKbToolName
-    to: TEST-zcode-kibi-plugin-v1
-    created_at: 2026-09-27T09:30:46.505Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9b37476359db
-  - type: implements
-    from: SYM-performance-trace-max-bytes
-    to: REQ-installed-staged-impact-timing-integrity
-    created_at: 2026-09-28T09:39:51.588Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-60364989a1e3
-  - type: covered_by
     from: SYM-performance-trace-max-bytes
     to: TEST-installed-staged-impact-timing-integrity
     created_at: 2026-09-28T09:39:51.619Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-660fc1bef7b5
-  - type: implements
-    from: SYM-source-analysis-v2-gateanalysis
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-30T15:21:53.135Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9d8441292c54
-  - type: covered_by
-    from: SYM-source-analysis-v2-gateanalysis
-    to: TEST-source-analysis-v2-contract
-    created_at: 2026-09-30T15:21:53.151Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a716ef3bafb2
   - type: implements
     from: SYM-prolog-swipl-probe-libraries
     to: REQ-prolog-doctor-runtime-report
@@ -328,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-544b12055539
-  - type: implements
-    from: SYM-upsert-authored-entity-lookup
-    to: REQ-kibi-uncompiled-source-visibility
-    created_at: 2026-10-14T09:03:55.980Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-389dbb88ea48
   - type: covered_by
     from: SYM-upsert-authored-entity-lookup
     to: TEST-kibi-uncompiled-source-visibility
@@ -349,13 +209,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-148a425d8839
-  - type: implements
-    from: SYM-diagnostics-createDocsNotIndexedDiagnostic
-    to: REQ-kibi-uncompiled-source-visibility
-    created_at: 2026-10-14T21:22:37.143Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a61534538a68
   - type: covered_by
     from: SYM-diagnostics-createDocsNotIndexedDiagnostic
     to: TEST-kibi-uncompiled-source-visibility
@@ -363,20 +216,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3c06826a9d11
-  - type: implements
-    from: SYM-cli-signoff-signoff-command-deps
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:53:22.766Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e086372f3405
-  - type: covered_by
-    from: SYM-cli-signoff-signoff-command-deps
-    to: TEST-kibi-signoff-views
-    created_at: 2026-10-23T10:53:22.791Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c0d42b823de5
   - type: executable_for
     from: SYM-test-evidence-floors-exhaustive
     to: TEST-kibi-evidence-floors-exhaustive
@@ -391,13 +230,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4fbbb912e7e0
-  - type: implements
-    from: SYM-cli-evidence-levels
-    to: REQ-kibi-evidence-floors
-    created_at: 2026-10-24T19:32:42.609Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fe199c54da8f
   - type: covered_by
     from: SYM-cli-evidence-levels
     to: TEST-kibi-evidence-levels

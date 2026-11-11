@@ -508,7 +508,7 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
     : `{path:${jsonString(relativePath)}}`;
   const next = [
     leadId
-      ? `kb_query({id:${jsonString(leadId)}}) returns full requirement text`
+      ? `kb_query({id:${jsonString(leadId)}, includeBody:true}) returns the full requirement text and why it exists`
       : undefined,
     `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`,
   ].filter((part): part is string => part !== undefined);

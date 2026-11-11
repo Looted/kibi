@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.check.rule_names
 claim_key: CLAIM-5DDCB11FE4E1B302
 claim_text: The self-attested exception approval rule shall be exception-approval-self-attested
-text_ref: REQ-kibi-check-rule-names
+text_ref: REQ-kibi-origin-review-rule-names
 property_key: self_attested_rule
 operator: eq
 value_type: string

@@ -3,7 +3,7 @@ title: The attached branch KB is replaced by an external kibi sync while an MCP 
 status: active
 fact_kind: property_value
 subject_key: mcp.branch_attachment
-property_key: clause_02_mcp_must_refresh_attachment_state_before_serving
+property_key: refreshes_before_serving
 operator: eq
 value_type: bool
 value_bool: false

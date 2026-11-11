@@ -3,7 +3,7 @@ title: Bootstrap contract clause 03
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap.plan
-property_key: contract_clause_3
+property_key: canonical_names_without_legacy_aliases
 operator: eq
 value_type: string
 value_string: Public interfaces must use canonical plan-bootstrap and kb_plan_bootstrap names without legacy aliases

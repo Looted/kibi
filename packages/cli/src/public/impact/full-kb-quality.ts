@@ -99,6 +99,7 @@ const STRING_FIELDS = [
   "rule_schema_id",
   "rule_name",
   "semantic_key",
+  "proof_exempt_reason",
 ] as const;
 
 /** Optional fields copied when they hold one of the listed strings. */
@@ -173,6 +174,13 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
     updated_at: stringField(entity, "updated_at"),
     source: stringField(entity, "source"),
   };
+  // Stored as a Prolog atom, so the projection may answer "true" or true.
+  const proofExempt = entity.proof_exempt;
+  if (proofExempt === true || proofExempt === "true") {
+    extracted.proof_exempt = true;
+  } else if (proofExempt === false || proofExempt === "false") {
+    extracted.proof_exempt = false;
+  }
   for (const field of STRING_FIELDS) {
     const value = optionalStringField(entity, field);
     if (value !== undefined) extracted[field] = value;

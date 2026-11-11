@@ -8,7 +8,7 @@ tags:
   - checks
 claim_key: CLAIM-2008EB7A5331AA76
 claim_text: kb_check must report a requirement that another requirement supersedes and that is not closed as a blocking superseded-requirement-open violation
-text_ref: .kb/requirements/REQ-kibi-kb-lifecycle-integrity.md
+text_ref: .kb/requirements/REQ-kibi-superseded-requirements-closed.md
 fact_kind: predicate
 predicate_name: logical_requirement_rule
 predicate_args:

@@ -8,4 +8,5 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 bun scripts/verify-publish-metadata.ts
 bun packages/cli/bin/kibi check-generated --staged
+sh scripts/kb-zero-findings.sh
 exec sh scripts/proof-gate.sh

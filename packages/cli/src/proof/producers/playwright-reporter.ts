@@ -36,13 +36,42 @@ function titlePath(test: unknown): string[] {
   return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
 }
 
-function sourceLocation(test: unknown): { file: string; line: number } {
-  const location = (test as { location?: { file?: string; line?: number } })
-    .location;
+function sourceLocation(test: unknown): {
+  file: string;
+  line: number;
+  column: number;
+} {
+  const location = (
+    test as { location?: { file?: string; line?: number; column?: number } }
+  ).location;
   return {
     file: typeof location?.file === "string" ? location.file : "unknown",
     line: Number.isInteger(location?.line) ? Number(location?.line) : 1,
+    column: Number.isInteger(location?.column) ? Number(location?.column) : 1,
   };
+}
+
+/**
+ * The case identity Playwright's list reporter prints: the spec location,
+ * then the describe and test titles. Playwright's title path starts with the
+ * project and file suites, which the location already names.
+ */
+function nativeCaseId(
+  titles: readonly string[],
+  project: string,
+  sourceFile: string,
+  location: { line: number; column: number },
+): string {
+  let named = titles[0] === project ? titles.slice(1) : titles;
+  const fileSuite = named[0];
+  if (
+    fileSuite !== undefined &&
+    (sourceFile === fileSuite || sourceFile.endsWith(`/${fileSuite}`))
+  )
+    named = named.slice(1);
+  return [`${sourceFile}:${location.line}:${location.column}`, ...named].join(
+    " › ",
+  );
 }
 
 function targetName(test: unknown, result: unknown): string {
@@ -151,6 +180,7 @@ export class KibiPlaywrightProducer {
       target,
       outcome: attempt.outcome,
       binding: "native_case",
+      native_id: nativeCaseId(titles, target, sourceFile, location),
       attempts: { status: "complete", entries: [attempt] },
     });
   }

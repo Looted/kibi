@@ -1,6 +1,6 @@
 ---
 title: Bootstrap claim name length tests
-status: active
+status: passing
 priority: must
 tags:
   - bootstrap

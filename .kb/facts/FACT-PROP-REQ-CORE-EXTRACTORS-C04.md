@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.sync.extractors
-property_key: clause_04_symbol_coordinate_refreshes_must_keep_authored_metadata_in_s
+property_key: authored_and_generated_split
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_core_extractors.clause_04_symbol_coordinate_refreshes_must_keep_authored_metadata_in_s.eq.true
+canonical_key: req.req_core_extractors.authored_and_generated_split.eq.true
 claim_key: CLAIM-4CC3B142BC51AEA3
 claim_text: Symbol coordinate refreshes must keep authored metadata in symbols.yaml and generated locations in symbol-coordinates.yaml
 origin:

@@ -20,6 +20,7 @@ logic_claims:
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+  approved_by: maintainer
   recorded_at: '2026-10-06T20:43:48.691Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

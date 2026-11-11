@@ -10,20 +10,6 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/flags/FLAG-005.md
-  - type: executable_for
-    from: SYM-test-owned-engine-runner
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-16T18:52:30.454Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-986517822b74
-  - type: implements
-    from: SYM-cli-symbol-granularity-validate
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-16T21:13:56.991Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-783052c01041
   - type: covered_by
     from: SYM-cli-symbol-granularity-validate
     to: TEST-mcp-upsert-coverage
@@ -45,13 +31,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c71eab6b69d
-  - type: implements
-    from: SYM-classifyKibiImpactEvidence
-    to: REQ-cli-canonical-runtime
-    created_at: 2026-08-18T16:41:32.196Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d3246b977ebe
   - type: covered_by
     from: SYM-classifyKibiImpactEvidence
     to: TEST-cli-canonical-runtime
@@ -59,13 +38,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9ce600dda7c7
-  - type: implements
-    from: SYM-cli-report-parse-timestamp
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T21:04:23.389Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d215b73ade9e
   - type: covered_by
     from: SYM-cli-report-parse-timestamp
     to: TEST-kibi-html-health-report
@@ -116,27 +88,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-42ef06133aa4
   - type: implements
-    from: SYM-EditEventKind
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:47:33.771Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-da33cc52a41a
-  - type: covered_by
-    from: SYM-EditEventKind
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:47:33.786Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1d176c2614a0
-  - type: covered_by
-    from: SYM-EditEventKind
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:47:33.793Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-94aad3e26c5b
-  - type: implements
     from: SYM-skillopt-provider-budget-exhausted
     to: REQ-skillopt-logical-evidence-fidelity
     created_at: 2026-08-22T20:58:09.815Z
@@ -157,20 +108,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1be36577784c
-  - type: implements
-    from: SYM-skillopt-objective-workflows
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-24T17:20:33.849Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-208231d765c4
-  - type: covered_by
-    from: SYM-skillopt-objective-workflows
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-25T19:52:54.577Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3fa71594aa22
   - type: covered_by
     from: SYM-refreshManifestCoordinates
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -199,27 +136,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dfca57681da4
-  - type: implements
-    from: SYM-cli-SagaRollbackFailure
-    to: REQ-014
-    created_at: 2026-09-07T11:46:41.444Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2da203d852cc
-  - type: covered_by
-    from: SYM-cli-SagaRollbackFailure
-    to: TEST-mcp-upsert-coverage
-    created_at: 2026-09-09T03:34:19.781Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b60f9212b3f9
-  - type: covered_by
-    from: SYM-cli-SagaRollbackFailure
-    to: TEST-011
-    created_at: 2026-09-09T06:03:07.478Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5bf729012249
   - type: covered_by
     from: SYM-refreshManifestCoordinates
     to: TEST-coordinate-repair-capability
@@ -241,20 +157,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c9e4be9ac15
-  - type: implements
-    from: SYM-claude-scanSymbolsManifest
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:21:08.597Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-97e6c8591fd1
-  - type: covered_by
-    from: SYM-claude-scanSymbolsManifest
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:21:08.623Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7e026f3d8da6
   - type: executable_for
     from: SYM-skillopt-claude-code-host-tests
     to: TEST-skillopt-claude-code-host
@@ -262,13 +164,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1c202bb85891
-  - type: implements
-    from: SYM-migration-plan-freshness-resync
-    to: REQ-agent-guided-migration-orchestration
-    created_at: 2026-10-13T12:59:04.085Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-efd7f39910a9
   - type: implements
     from: SYM-migration-plan-freshness-resync
     to: REQ-cli-status-pre-first-sync
@@ -437,13 +332,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-65a45e924a32
-  - type: implements
-    from: SYM-search-hints-trigger
-    to: REQ-kibi-search-hints-host
-    created_at: 2026-10-29T19:22:55.292Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-66861749e5fa
   - type: covered_by
     from: SYM-search-hints-trigger
     to: TEST-kibi-search-hints-host
@@ -500,3 +388,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8fd5e9d784d8
+  - type: assumes
+    from: SCEN-NEG-kibi-impact-aggregate-pr-gate-POLICY-WEAKENING
+    to: FACT-NEG-kibi-impact-aggregate-pr-gate-POLICY-WEAKENING
+    created_at: 2026-11-10T14:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a42be458c466
+  - type: verified_by
+    from: SCEN-NEG-kibi-impact-aggregate-pr-gate-POLICY-WEAKENING
+    to: TEST-cli-impact-aggregate-gate-unit
+    created_at: 2026-11-10T14:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a99af8a5a0cf
+  - type: verified_by
+    from: SCEN-NEG-kibi-impact-aggregate-pr-gate-POLICY-WEAKENING
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-11-10T16:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb23fb2bd8fb
+  - type: assumes
+    from: SCEN-kibi-builtin-ts-symbols
+    to: FACT-PROP-kibi-builtin-ts-symbols-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cea849ae89c9
+  - type: verified_by
+    from: SCEN-kibi-builtin-ts-symbols
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e274d938a5ea
+  - type: constrains
+    from: REQ-kibi-symbol-granularity-quality
+    to: FACT-SUBJ-kibi-symbol-granularity-quality
+    created_at: 2026-11-10T14:53:12.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62156f5f8176
+  - type: requires_property
+    from: REQ-kibi-symbol-granularity-quality
+    to: FACT-PROP-kibi-symbol-granularity-quality-c01
+    created_at: 2026-11-10T14:53:12.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a008a785509
+  - type: specified_by
+    from: REQ-kibi-symbol-granularity-quality
+    to: SCEN-kibi-symbol-granularity-quality
+    created_at: 2026-11-10T14:53:12.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ac9d26dcea5
+  - type: specified_by
+    from: REQ-kibi-symbol-granularity-quality
+    to: SCEN-NEG-kibi-symbol-granularity-quality-UNREPORTED
+    created_at: 2026-11-10T14:53:12.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c304e0547d8d
+  - type: relates_to
+    from: REQ-kibi-symbol-granularity-quality
+    to: REQ-audit-quality-diagnostics-v1
+    created_at: 2026-11-10T14:53:12.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-889d89eb6279
+  - type: assumes
+    from: SCEN-NEG-kibi-symbol-granularity-quality-UNREPORTED
+    to: FACT-NEG-kibi-symbol-granularity-quality-UNREPORTED
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ac3268e1a56
+  - type: verified_by
+    from: SCEN-NEG-kibi-symbol-granularity-quality-UNREPORTED
+    to: TEST-008
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5580a58452b6
+  - type: requires_predicate
+    from: REQ-kb-dependency-lock-command
+    to: FACT-PRED-kb-dependencies-lock-command
+    created_at: 2026-11-10T14:59:38.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87445d676ce3
+  - type: specified_by
+    from: REQ-kb-dependency-lock-command
+    to: SCEN-kb-dependencies-git
+    created_at: 2026-11-10T14:59:38.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20fa7ae25655
+  - type: specified_by
+    from: REQ-kb-dependency-lock-command
+    to: SCEN-NEG-kb-dependencies-git-refused
+    created_at: 2026-11-10T14:59:38.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09922ad3f0c3
+  - type: verified_by
+    from: REQ-kb-dependency-lock-command
+    to: TEST-kb-dependencies-git
+    created_at: 2026-11-10T14:59:38.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f20f3f4acf67
+  - type: supersedes
+    from: REQ-kb-dependency-lock-command
+    to: REQ-kb-dependencies-git
+    created_at: 2026-11-10T15:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e2958117fb3

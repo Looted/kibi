@@ -32,6 +32,7 @@ logic_claims:
   - CLAIM-C61297098BFAB4AE
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T08:54:46.502Z'
 id: REQ-cli-migrate-legacy-requirement-status
 type: req

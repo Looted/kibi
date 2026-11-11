@@ -10,7 +10,6 @@ tags:
   - branch
   - freshness
   - prolog
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-mcp-kb-freshness
@@ -66,7 +65,7 @@ semantic_inventory:
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
@@ -77,3 +76,6 @@ MCP must detect when the attached branch KB snapshot has been replaced externall
 The attached KB stamp is based on branch KB filesystem metadata (`packages/mcp/src/server/kb-freshness.ts`) so same-branch replacements are detected without blocking normal branch-switch semantics.
 
 When mismatch is detected, MCP must attempt deterministic refresh, retry once if the stamp changed between pre-attach and post-attach detection, and fail closed with `KbRefreshError` when reconciliation cannot be completed.
+
+## Why
+Running `kibi sync --rebuild` left a long-running MCP server serving stale in-memory data until a restart. The server now detects that the snapshot was replaced, and fails fast if it can't refresh. Source: ADR-021; changeset "mcp-kb-auto-refresh".

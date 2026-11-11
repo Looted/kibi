@@ -1,7 +1,7 @@
 ---
 id: TEST-006
 title: Git hooks fire on branch switch and trigger KB sync
-status: active
+status: passing
 created_at: 2026-02-18T13:12:25.000Z
 updated_at: 2026-02-18T13:12:25.000Z
 priority: must

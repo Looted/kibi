@@ -25,6 +25,7 @@ semantic_inventory:
       end: 148
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T17:11:12.686Z'
 id: REQ-kb-upsert-keeps-omitted-proof-receipts
 type: req

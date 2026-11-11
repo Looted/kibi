@@ -52,20 +52,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b7488b6c0880
-  - type: implements
-    from: SYM-canonical-StorageMigrationPlan
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:01:21.887Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5b3fbda5f39d
-  - type: covered_by
-    from: SYM-canonical-StorageMigrationPlan
-    to: TEST-cli-migrate
-    created_at: 2026-08-18T17:01:21.897Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d7ad627a239d
   - type: verified_by
     from: SCEN-001
     to: TEST-001
@@ -122,34 +108,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8025387b1bcc
-  - type: implements
-    from: SYM-BRIDGE-ARTIFACT-ROOT-ENV
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-23T23:30:10.648Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-693efd5b8ab7
-  - type: covered_by
-    from: SYM-BRIDGE-ARTIFACT-ROOT-ENV
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-23T23:30:10.663Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-795af7fd1067
-  - type: executable_for
-    from: SYM-e2e-test-cli-doctor-packed-provenance
-    to: TEST-cli-doctor-packed-provenance
-    created_at: 2026-09-05T15:08:23.720Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-661ef75ae50f
-  - type: covered_by
-    from: SYM-canonical-StorageMigrationPlan
-    to: TEST-cli-canonical-status
-    created_at: 2026-09-06T09:05:48.146Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-367f8db22b9d
   - type: executable_for
     from: SYM-quality-maintenance-wrapper-tests
     to: TEST-proof-maintenance-roundtrip
@@ -157,76 +115,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a797cbc93759
-  - type: implements
-    from: SYM-quality-producer-runProofProducerIfEntrypoint
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-14T18:56:07.467Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-56b3a84cdf40
-  - type: covered_by
-    from: SYM-quality-producer-runProofProducerIfEntrypoint
-    to: TEST-proof-runner-integrity
-    created_at: 2026-09-14T18:56:07.480Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-31190736d9dd
-  - type: covered_by
-    from: SYM-quality-producer-runProofProducerIfEntrypoint
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-18T07:42:13.732Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-73a53838abb9
-  - type: implements
-    from: SYM-package-catalog-slice
-    to: REQ-020
-    created_at: 2026-09-21T15:27:30.447Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6e1add35f545
-  - type: covered_by
-    from: SYM-package-catalog-slice
-    to: TEST-014
-    created_at: 2026-09-21T19:33:11.565Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6c2abbaf91a2
-  - type: covered_by
-    from: SYM-cap-plugin-sourceanalysismode-0a9c1ff9
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:46:25.216Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-27abca936215
-  - type: implements
-    from: SYM-agent-core-loadKnowledgeIndex
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T16:30:40.236Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3e6c17b5fa5c
-  - type: implements
-    from: SYM-agent-core-loadKnowledgeIndex
-    to: REQ-codex-kibi-plugin-v1
-    created_at: 2026-09-27T16:30:40.266Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0dcb1c16b00b
-  - type: implements
-    from: SYM-agent-core-loadKnowledgeIndex
-    to: REQ-cursor-kibi-plugin-v1
-    created_at: 2026-09-27T16:30:40.286Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-be3e346a6da7
-  - type: implements
-    from: SYM-agent-core-loadKnowledgeIndex
-    to: REQ-zcode-kibi-plugin-v1
-    created_at: 2026-09-27T16:30:40.307Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8e4a145604dc
   - type: covered_by
     from: SYM-agent-core-loadKnowledgeIndex
     to: TEST-claude-code-kibi-plugin-v1
@@ -262,13 +150,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cd4f47536466
-  - type: implements
-    from: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T16:59:00.580Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-634d4145041d
   - type: covered_by
     from: SYM-treesitter-normalize-language
     to: TEST-source-analysis-v2-contract
@@ -276,13 +157,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f635afcc1fa0
-  - type: implements
-    from: SYM-treesitter-normalize-language
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T17:01:40.057Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-55236cba84d1
   - type: covered_by
     from: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
     to: TEST-multilingual-language-catalog
@@ -290,13 +164,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb6ef752dcdd
-  - type: implements
-    from: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
-    to: REQ-multilingual-language-catalog
-    created_at: 2026-09-27T12:04:59.165Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5966d8661c3b
   - type: covered_by
     from: SYM-treesitter-normalize-language
     to: TEST-multilingual-language-catalog
@@ -311,13 +178,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-520e8cdcf5d2
-  - type: implements
-    from: SYM-mcp-release-registry-metadata
-    to: REQ-020
-    created_at: 2026-09-30T14:20:21.945Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-59a09431db63
   - type: covered_by
     from: SYM-mcp-release-registry-metadata
     to: TEST-014
@@ -472,3 +332,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-78439ca9b179
+  - type: assumes
+    from: SCEN-kibi-builtin-semantic-classifier
+    to: FACT-PROP-kibi-builtin-semantic-classifier-c01
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39fdd5371c4a
+  - type: verified_by
+    from: SCEN-kibi-builtin-semantic-classifier
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-383c4d33cd91

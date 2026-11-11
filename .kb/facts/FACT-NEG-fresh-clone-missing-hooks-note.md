@@ -3,6 +3,7 @@ title: A session starts in a checkout without Kibi's hooks and the agent is not 
 status: active
 fact_kind: predicate
 predicate_name: fresh_clone_setup_policy
+predicate_namespace: kibi.setup
 predicate_args:
   - kibi_harness_plugin_session_start
   - kibi_hooks_missing_from_checkout
@@ -15,4 +16,4 @@ origin:
 id: FACT-NEG-fresh-clone-missing-hooks-note
 type: fact
 ---
-A session starts in a checkout without Kibi's hooks and the agent is not told. The failure-side scenario of REQ-kibi-fresh-clone-setup assumes this state and expects Kibi to report it instead of carrying on silently.
+A session starts in a checkout without Kibi's hooks and the agent is not told. The failure-side scenario of REQ-kibi-missing-hooks-notice assumes this state and expects Kibi to report it instead of carrying on silently.

@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.check.rule_names
 claim_key: CLAIM-5C7C8091600FD22F
 claim_text: The symbol granularity rule shall be symbol-granularity
-text_ref: REQ-kibi-check-rule-names
+text_ref: REQ-kibi-symbol-and-supersede-rule-names
 property_key: granularity_rule
 operator: eq
 value_type: string

@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: vscode.kibi_extension
-property_key: clause_04_the_kibi_tree_must_refresh_when_the_underlying_kb_snapshot_c
+property_key: tree_refreshes_on_snapshot
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_vscode_sidebar_kb_tree.clause_04_the_kibi_tree_must_refresh_when_the_underlying_kb_snapshot_c.eq.true
+canonical_key: req.req_vscode_sidebar_kb_tree.tree_refreshes_on_snapshot.eq.true
 claim_key: CLAIM-49172F2E2B1FB44E
 claim_text: The Kibi tree must refresh when the underlying KB snapshot changes
 origin:

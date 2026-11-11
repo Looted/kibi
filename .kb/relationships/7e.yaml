@@ -1,18 +1,4 @@
 relationships:
-  - type: implements
-    from: SYM-auto-6024925825AA
-    to: REQ-mcp-relationship-preflight
-    created_at: 2026-08-16T07:53:39.389Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3796221e23b7
-  - type: covered_by
-    from: SYM-auto-6024925825AA
-    to: TEST-mcp-relationship-preflight
-    created_at: 2026-08-16T07:53:39.392Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0d4d58dced88
   - type: covered_by
     from: SYM-cli-engine-daemon
     to: TEST-test-journaled-engine-harness
@@ -21,40 +7,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-568e45714ba9
   - type: covered_by
-    from: SYM-cli-engine-client-query-status
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.116Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-882e6e20768d
-  - type: covered_by
     from: SYM-cli-engine-daemon
     to: TEST-core-journaled-engine-lifecycle
     created_at: 2026-08-16T19:47:37.140Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-22f06297cb05
-  - type: implements
-    from: SYM-cli-rule-registry-ruleRunsByDefault
-    to: REQ-cli-check
-    created_at: 2026-08-18T18:22:51.300Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-843fc7b5f692
-  - type: covered_by
-    from: SYM-cli-rule-registry-ruleRunsByDefault
-    to: TEST-cli-quality-diagnostics-contract
-    created_at: 2026-08-18T18:22:51.308Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-948f82018e5f
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:48:40.893Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a3e45550e923
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -90,27 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2a3f5f0e65f5
-  - type: implements
-    from: SYM-StrictWriteSet
-    to: REQ-011
-    created_at: 2026-08-22T20:14:17.732Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3b1b505c60d3
-  - type: covered_by
-    from: SYM-StrictWriteSet
-    to: TEST-cli-strict-modeling
-    created_at: 2026-08-22T20:14:17.748Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-68c35a45f9a2
-  - type: covered_by
-    from: SYM-StrictWriteSet
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:14:17.756Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-31271b2a5752
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -139,69 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d7b020c1386
-  - type: implements
-    from: SYM-FileLifecycle
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:48:44.739Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-01e2e4ef3569
-  - type: covered_by
-    from: SYM-FileLifecycle
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:48:44.756Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-95c1a66ead74
-  - type: covered_by
-    from: SYM-FileLifecycle
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:48:44.764Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d0dca11d392f
-  - type: implements
-    from: SYM-auto-6024925825AA
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T21:53:33.827Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-313f793887f3
-  - type: covered_by
-    from: SYM-auto-6024925825AA
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T21:53:33.833Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-02419101c84d
-  - type: covered_by
-    from: SYM-cli-rule-registry-ruleRunsByDefault
-    to: TEST-004
-    created_at: 2026-08-29T11:40:21.968Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-630aab83d80d
-  - type: covered_by
-    from: SYM-StrictWriteSet
-    to: TEST-001
-    created_at: 2026-09-05T14:50:51.725Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5fe55e086ebe
-  - type: covered_by
-    from: SYM-KIBI-STAGED-IMPACT-EVIDENCE-DOC
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:12:57.417Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1502057590c1
-  - type: covered_by
-    from: SYM-cli-engine-client-query-status
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:29:17.121Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2b468b15cd15
   - type: covered_by
     from: SYM-cli-engine-daemon
     to: TEST-core-journaled-engine-delta-sync
@@ -209,20 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-36edd9fbddaa
-  - type: implements
-    from: SYM-skillopt-codex-optimizer-missing-guidance
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-09-08T00:33:35.363Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-68969b3c998f
-  - type: covered_by
-    from: SYM-skillopt-codex-optimizer-missing-guidance
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-09-08T00:33:35.374Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-261fc3c0fb62
   - type: covered_by
     from: SYM-quality-inventory-1e34ff86ea75
     to: TEST-skillopt-paid-launch-accounting
@@ -237,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c742525d8b3
-  - type: covered_by
-    from: SYM-auto-6024925825AA
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-18T06:55:48.829Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4e41dfb838b4
   - type: specified_by
     from: REQ-skillopt-paid-matrix-infrastructure
     to: SCEN-skillopt-paid-matrix-infrastructure
@@ -259,40 +112,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3be580c7d65d
   - type: covered_by
-    from: SYM-cap-plugin-granularitysymbolcandidate-9bf170cf
-    to: TEST-capability-plugin-host-resolution-v1
-    created_at: 2026-09-22T19:44:00.860Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b64f0bdab81d
-  - type: implements
-    from: SYM-cli-reloadFullEntities
-    to: REQ-mcp-search-discovery
-    created_at: 2026-09-27T22:10:35.497Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-48845f1f132e
-  - type: covered_by
     from: SYM-cli-reloadFullEntities
     to: TEST-mcp-search-discovery
     created_at: 2026-09-27T22:10:35.534Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ecb45394878
-  - type: implements
-    from: SYM-prolog-swipl-manifest-file-dts
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:16.027Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d14c3d9b0c3c
-  - type: covered_by
-    from: SYM-prolog-swipl-manifest-file-dts
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:16.039Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1d951958f911
   - type: implements
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates
     to: REQ-bootstrap-intent-claim-accounting
@@ -321,13 +146,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f8686ef3fd33
-  - type: implements
-    from: SYM-cli-stored-ledger-drift-storedLedgerDriftWarning
-    to: REQ-kibi-proposition-complete-ingestion
-    created_at: 2026-10-13T12:21:35.065Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a1176cd43255
   - type: covered_by
     from: SYM-cli-stored-ledger-drift-storedLedgerDriftWarning
     to: TEST-kibi-logical-requirement-coverage
@@ -419,13 +237,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de035796daa3
-  - type: implements
-    from: SYM-hooks-install-sync-prepare-script
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:52:31.267Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-14e4d578ab92
   - type: covered_by
     from: SYM-hooks-install-sync-prepare-script
     to: TEST-kibi-fresh-clone-setup
@@ -433,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd56677a131a
+  - type: assumes
+    from: SCEN-NEG-kibi-release-master-publish-OFF-MASTER
+    to: FACT-NEG-kibi-release-master-publish-OFF-MASTER
+    created_at: 2026-11-05T11:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4429e01df6a
+  - type: verified_by
+    from: SCEN-NEG-kibi-release-master-publish-OFF-MASTER
+    to: TEST-014
+    created_at: 2026-11-05T11:30:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e445f62d9f93

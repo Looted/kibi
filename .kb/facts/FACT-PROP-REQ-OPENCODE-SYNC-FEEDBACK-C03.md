@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_02_the_opencode_plugin_must_report_sync_errors_without_blocking
+property_key: reports_sync_errors_non_blocking
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_sync_feedback.clause_02_the_opencode_plugin_must_report_sync_errors_without_blocking.eq.true
+canonical_key: req.req_opencode_sync_feedback.reports_sync_errors_non_blocking.eq.true
 claim_key: CLAIM-CFEFD5B750E0410B
 claim_text: The OpenCode plugin must report sync errors without blocking the OpenCode session
 origin:

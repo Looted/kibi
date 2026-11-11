@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.migration.pin_codes
 claim_key: CLAIM-6C377382E2EA545C
 claim_text: Derived symbol coordinates shall start at KB schema version 13
-text_ref: REQ-cli-migration-pin-codes
+text_ref: REQ-cli-migration-symbol-codes
 property_key: derived_coordinates_schema
 operator: eq
 value_type: int

@@ -1,5 +1,11 @@
 import assert from "node:assert";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
@@ -214,6 +220,110 @@ if (RUN_NODE_TEST_SUITE) {
         }>;
         assert.strictEqual(symbol?.sourceLine, 1);
         assert.strictEqual(symbol?.sourceEndLine, 3);
+      },
+    );
+
+    async function syncSampleSymbol(): Promise<string> {
+      assert.strictEqual(
+        (await kibi(sandbox, ["init", "--no-hooks"])).exitCode,
+        0,
+      );
+      mkdirSync(join(sandbox.repoDir, "src"), { recursive: true });
+      writeFileSync(
+        join(sandbox.repoDir, "src", "sample.ts"),
+        "export function sample(): number {\n  return 1;\n}\n",
+      );
+      mkdirSync(join(sandbox.repoDir, ".kb"), { recursive: true });
+      writeFileSync(
+        join(sandbox.repoDir, ".kb", "symbols.yaml"),
+        "symbols:\n  - id: SYM-sample\n    title: sample\n    status: active\n    sourceFile: src/sample.ts\n",
+      );
+      await run("git", ["add", "src", ".kb/symbols.yaml"], {
+        cwd: sandbox.repoDir,
+        env: sandbox.env,
+      });
+      await run("git", ["commit", "-m", "add symbol fixture"], {
+        cwd: sandbox.repoDir,
+        env: sandbox.env,
+      });
+      const initialSync = await kibi(sandbox, ["sync"]);
+      assert.strictEqual(initialSync.exitCode, 0, initialSync.stderr);
+      const coordinatesPath = join(
+        sandbox.repoDir,
+        ".kb",
+        "symbol-coordinates.yaml",
+      );
+      assert.ok(
+        existsSync(coordinatesPath),
+        "the first sync must publish the coordinate artifact",
+      );
+      return coordinatesPath;
+    }
+
+    async function sampleSourceLine(): Promise<number | undefined> {
+      const query = await kibi(sandbox, [
+        "query",
+        "symbol",
+        "--id",
+        "SYM-sample",
+        "--format",
+        "json",
+      ]);
+      assert.strictEqual(query.exitCode, 0, query.stderr);
+      const [symbol] = JSON.parse(query.stdout) as Array<{
+        sourceLine?: number;
+      }>;
+      return symbol?.sourceLine;
+    }
+
+    it(
+      "does not ignore a deleted coordinate artifact: the next sync publishes it again",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const coordinatesPath = await syncSampleSymbol();
+        rmSync(coordinatesPath);
+
+        const resync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(resync.exitCode, 0, resync.stderr);
+        assert.ok(
+          existsSync(coordinatesPath),
+          "a sync after the artifact was deleted must publish it again",
+        );
+        assert.match(readFileSync(coordinatesPath, "utf8"), /SYM-sample/);
+        assert.strictEqual(await sampleSourceLine(), 1);
+      },
+    );
+
+    it(
+      "fails closed when a full coordinate refresh reads a malformed artifact",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const coordinatesPath = await syncSampleSymbol();
+        const malformed = "version: 2\ncoordinates:\n  - not a mapping\n";
+        writeFileSync(coordinatesPath, malformed);
+
+        const refresh = await kibi(sandbox, [
+          "sync",
+          "--refresh-symbol-coordinates",
+        ]);
+        const output = refresh.stdout + refresh.stderr;
+        assert.notStrictEqual(refresh.exitCode, 0, output);
+        assert.match(output, /Failed to parse coordinate artifact/);
+        assert.strictEqual(
+          readFileSync(coordinatesPath, "utf8"),
+          malformed,
+          "a refused refresh must not publish over the malformed artifact",
+        );
       },
     );
   });

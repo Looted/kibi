@@ -1,6 +1,6 @@
 ---
 title: Requirement proof uses fresh snapshot-bound proof receipts that ingest compacts and attributes per test
-status: open
+status: closed
 required_evidence: tested
 priority: must
 tags:
@@ -141,6 +141,7 @@ logic_claims:
   - CLAIM-A0151FEC23EA1948
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:16:29.860Z'
 id: REQ-kibi-fresh-verification-receipts-v2
 type: req

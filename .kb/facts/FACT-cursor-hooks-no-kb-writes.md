@@ -9,7 +9,7 @@ value_type: bool
 value_bool: false
 claim_text: kibi-cursor hooks must not write to the .kb directory
 claim_key: CLAIM-E5CB2AA3485D7A30
-text_ref: REQ-cursor-kibi-plugin-v1
+text_ref: REQ-cursor-hook-limits
 origin:
   kind: agent
   recorded_at: '2026-10-27T07:51:48.847Z'

@@ -1,6 +1,6 @@
 ---
 title: kibi.search-hints.v1 capability and result validation tests
-status: active
+status: passing
 tags:
   - search
   - plugins

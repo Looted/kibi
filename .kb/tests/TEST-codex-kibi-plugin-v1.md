@@ -1,7 +1,7 @@
 ---
 id: TEST-codex-kibi-plugin-v1
 title: Codex Kibi Plugin v1 Verification
-status: active
+status: passing
 created_at: 2026-06-02T00:00:00.000Z
 updated_at: 2026-06-02T00:00:00.000Z
 priority: must

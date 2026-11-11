@@ -10,7 +10,6 @@ tags:
   - opencode
   - kibi
   - guidance
-  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-guidance-injection
@@ -76,9 +75,13 @@ origin:
   recorded_at: '2026-11-03T11:35:21.000Z'
 firmness: default
 required_evidence: tested
+rationale: "Agents follow short, specific guidance about the files in play; long or repeated blocks get ignored and waste context."
 ---
 - The OpenCode plugin must inject Kibi guidance into the session with the requirements and traceability context of the files in play.
 - The OpenCode plugin must inject at most one guidance block per injection, capped at 5 bullets or 120 words.
 - The OpenCode plugin's guidance must include code traceability nudges (implements REQ-xxx).
 - The OpenCode plugin's guidance must include file lifecycle context for created, edited and deleted files.
 - The OpenCode plugin must append a completion reminder to run kb_check for behavior candidates.
+
+## Rationale
+Agents follow short, specific guidance about the files in play; long or repeated blocks get ignored and waste context.

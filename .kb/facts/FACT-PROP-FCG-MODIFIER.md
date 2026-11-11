@@ -1,6 +1,6 @@
 ---
 title: 'Property: lifecycle_modifier_pattern(opencode.kibi_plugin) = risk_modifiers_not_standalone_risk_class'
-status: active
+status: archived
 tags:
   - lane:strict
   - property-value

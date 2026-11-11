@@ -9,7 +9,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-skillopt-cursor-compat
+    - symbol_id: SYM-e2e-cursor-plugin-launcher
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:
@@ -48,8 +48,9 @@ proof_receipts:
           status: unavailable
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 5): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 ---
+
+## Context
+This checks strict argument parsing, the qualification gate, the absolute floors (zero security failures, mean ≥ 70, hard-pass rate ≥ 0.5) and usage errors.

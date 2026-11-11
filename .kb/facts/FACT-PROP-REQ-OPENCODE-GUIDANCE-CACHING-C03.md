@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_03_the_opencode_plugin_must_keep_guidance_cached_for_one_git_wo
+property_key: cache_isolated_per_worktree
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_guidance_caching.clause_03_the_opencode_plugin_must_keep_guidance_cached_for_one_git_wo.eq.true
+canonical_key: req.req_opencode_guidance_caching.cache_isolated_per_worktree.eq.true
 claim_key: CLAIM-8E9304A784CD2FD6
 claim_text: The OpenCode plugin must keep guidance cached for one git worktree from applying to another
 origin:

@@ -55,6 +55,7 @@ semantic_inventory:
       end: 581
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-12T22:24:19.023Z'
 id: REQ-kb-decision-firmness
 type: req

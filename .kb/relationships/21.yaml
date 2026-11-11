@@ -1,39 +1,4 @@
 relationships:
-  - id: rel-7859b65dea1d
-    type: implements
-    from: SYM-skillopt-operator-run-options
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-15T23:11:55.507Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-skillopt-operator-run-options
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-15T23:11:55.507Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3774af9dc4df
-  - type: covered_by
-    from: SYM-kibi-cli-src-intent-search-ts-intentsourcematch
-    to: TEST-kibi-intent-aware-source-discovery
-    created_at: 2026-08-16T19:46:36.838Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-59b495c21406
-  - type: covered_by
-    from: SYM-cli-github-report-workflow-relpath
-    to: TEST-kibi-github-report-e2e
-    created_at: 2026-08-19T20:56:00.691Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6d7d881675f5
-  - type: implements
-    from: 76bad0a66461775e
-    to: REQ-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T10:54:00.323Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5ea8b714beae
   - type: covered_by
     from: 76bad0a66461775e
     to: TEST-kibi-predicate-suggestion-relevance-v1
@@ -50,7 +15,7 @@ relationships:
     id: rel-75be46401101
   - type: constrains
     from: REQ-reusable-skill-subsystem
-    to: FACT-SUBJ-REQ-REUSABLE-SKILL-SUBSYSTEM
+    to: FACT-SUBJ-REQ-MCP-SKILLS-RESOURCE-DISCOVERABILITY
     created_at: 2026-09-05T14:14:37.171Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -69,13 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b31f3ae64f6
-  - type: covered_by
-    from: SYM-resolve-integration
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-05T17:33:15.870Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-248630fa9d8f
   - type: implements
     from: SYM-checkStrictReadiness
     to: REQ-cli-check
@@ -90,27 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b3d5433e5c9
-  - type: implements
-    from: SYM-cap-plugin-capabilityid-a3817409
-    to: REQ-capability-plugin-three-capabilities-v1
-    created_at: 2026-09-22T19:46:51.583Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7928a31c8339
-  - type: covered_by
-    from: SYM-cap-plugin-capabilityid-a3817409
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:46:51.586Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0dc7e30c6922
-  - type: implements
-    from: SYM-CI-PROOF-REUSE-DECISION
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-25T12:16:39.282Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fd2a00c52f47
   - type: covered_by
     from: SYM-CI-PROOF-REUSE-DECISION
     to: TEST-kibi-verification-evidence-contract
@@ -167,27 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-136aa01fd28f
-  - type: implements
-    from: SYM-telemetry-diagnostic-cli-host
-    to: REQ-kibi-telemetry-remediation-evidence
-    created_at: 2026-10-01T20:22:04.760Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f88dc73803df
-  - type: covered_by
-    from: SYM-telemetry-diagnostic-cli-host
-    to: TEST-kibi-telemetry-remediation-evidence
-    created_at: 2026-10-01T20:22:04.961Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f0971499783
-  - type: covered_by
-    from: SYM-reqcompiler-legacy-migration-input
-    to: TEST-kibi-legacy-migration-preview-v2
-    created_at: 2026-10-04T04:18:42.576Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8d34af78b95a
   - type: executable_for
     from: SYM-e2e-skillopt-claude-code-host
     to: TEST-e2e-skillopt-claude-code-host
@@ -237,13 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe9bdf02bace
-  - type: implements
-    from: SYM-vscode-register-signoff
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-22T09:27:02.720Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cf55887d6739
   - type: covered_by
     from: SYM-vscode-register-signoff
     to: TEST-kibi-signoff-views
@@ -265,20 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-015564e491dc
-  - type: implements
-    from: SYM-claim-bindings-required-fields-failures
-    to: REQ-kibi-non-numeric-proof-kinds
-    created_at: 2026-10-26T13:42:06.157Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a31aca37a722
-  - type: covered_by
-    from: SYM-claim-bindings-required-fields-failures
-    to: TEST-kibi-non-numeric-proof-kinds
-    created_at: 2026-10-26T13:42:06.179Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6090e510fde1
   - type: requires_property
     from: REQ-prolog-swipl-minimum-version
     to: FACT-swipl-minimum-major
@@ -447,3 +342,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c303f25d9154
+  - type: covered_by
+    from: SYM-checkStrictReadiness
+    to: TEST-cli-check-integrity
+    created_at: 2026-09-14T20:27:11.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b33d07538a70
+  - type: constrains
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: FACT-SUBJECT-KIBI-DECISION-FIRMNESS
+    created_at: 2026-11-04T14:58:24.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccde3610a8a2
+  - type: requires_property
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: FACT-kb-decision-firmness-implicit-firm-superseded-reported
+    created_at: 2026-11-04T14:58:24.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-373e7a329da3
+  - type: specified_by
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: SCEN-kb-decision-firmness-from-origin
+    created_at: 2026-11-04T14:58:24.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca5e7aaf8d80
+  - type: verified_by
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: TEST-kb-decision-firmness
+    created_at: 2026-11-04T14:58:24.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77552823177b
+  - type: relates_to
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: REQ-kb-decision-firmness
+    created_at: 2026-11-04T14:58:24.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbd9ab429f20
+  - type: supersedes
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: REQ-kb-decision-firmness-from-origin
+    created_at: 2026-11-04T14:58:24.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1703e4a068ab
+  - type: specified_by
+    from: REQ-kb-decision-implicit-supersede-reported
+    to: SCEN-NEG-kb-decision-implicit-supersede-UNREPORTED
+    created_at: 2026-11-04T15:03:37.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c554669d4c14
+  - type: constrains
+    from: REQ-kibi-proof-protocol-schemas
+    to: FACT-SUBJ-kibi-proof-protocol-schemas
+    created_at: 2026-11-10T11:19:53.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5a4bbdc02e8
+  - type: requires_property
+    from: REQ-kibi-proof-protocol-schemas
+    to: FACT-PROP-kibi-proof-protocol-schemas-c01
+    created_at: 2026-11-10T11:19:53.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d00fe3f0d1c
+  - type: specified_by
+    from: REQ-kibi-proof-protocol-schemas
+    to: SCEN-kibi-proof-protocol-schemas
+    created_at: 2026-11-10T11:19:53.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52b500c36823
+  - type: specified_by
+    from: REQ-kibi-proof-protocol-schemas
+    to: SCEN-NEG-kibi-proof-protocol-schemas-ACCEPTED-MALFORMED
+    created_at: 2026-11-10T11:19:53.644Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e507b241fa08
+  - type: relates_to
+    from: REQ-kibi-proof-protocol-schemas
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-11-10T11:19:53.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02c160d4a138

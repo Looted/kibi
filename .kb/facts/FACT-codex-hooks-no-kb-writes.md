@@ -9,7 +9,7 @@ value_type: bool
 value_bool: false
 claim_text: kibi-codex hooks must not write to the .kb directory
 claim_key: CLAIM-7A8F343AFD3A94F0
-text_ref: REQ-codex-kibi-plugin-v1
+text_ref: REQ-codex-hook-limits
 origin:
   kind: agent
   recorded_at: '2026-10-27T07:48:12.390Z'

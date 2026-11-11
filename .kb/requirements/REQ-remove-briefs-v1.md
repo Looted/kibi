@@ -13,7 +13,6 @@ tags:
   - opencode
   - vscode
   - historical-status:archived
-  - review:context-missing
 links:
   - type: supersedes
     target: REQ-opencode-kibi-briefing-v6
@@ -58,7 +57,7 @@ logic_claims:
   - CLAIM-88652EA2A55E0EDF
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, giving the reason briefs were removed in the KB gold-standard review: "Briefs were an experimental feature that did not work well. The briefs were uniformative, too technical and noisy. The current signoff mechanism fulfills simular purpose (human being notified of important kb changes)."'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
@@ -71,3 +70,6 @@ Kibi must remove the active briefing product surface across MCP, OpenCode, VS Co
 
 
 Retained for provenance.
+
+## Why this changed
+Briefs were an experimental feature that did not work well: the briefs were uninformative, too technical and noisy. The signoff mechanism now serves a similar purpose, notifying a person of important KB changes. Source: maintainer, 2026-11-11.

@@ -1,6 +1,6 @@
 ---
 title: Generated symbol coordinates persist across mutations and repair deterministically
-status: open
+status: closed
 owner: platform-team
 logic_claims:
   - CLAIM-2E1D66B90856D0BC
@@ -68,7 +68,6 @@ tags:
   - coordinates
   - sync
   - proof
-  - review:context-missing
 priority: must
 id: REQ-generated-coordinate-persistence
 type: req
@@ -83,11 +82,12 @@ semantic_clauses:
   - Coordinate artifact publication must be atomic, bound to the current extraction identity, preserve unrelated valid records, and fail closed on malformed artifacts.
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6).'
+  ref: 'Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Atomic clause rewrite of the migrated requirement body (kibi migrate v5->v6). Maintainer decision, 2026-11-04, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 2): "Approved" Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   approved_by: maintainer
   recorded_at: '2026-11-03T11:34:18.000Z'
 firmness: default
 required_evidence: tested
+rationale: "Symbol coordinates are derived compiler state; letting callers author them, or reporting a mutation complete when they failed to generate, leaves navigation and impact analysis pointing at the wrong code."
 ---
 - Callers must not author symbol coordinate fields through kb_upsert, because symbol source coordinates are generated compiler state.
 - A source-first symbol upsert must preserve or regenerate valid coordinates in persisted RDF without copying coordinate fields into the authored symbol manifest.
@@ -96,3 +96,6 @@ required_evidence: tested
 - An explicitly approved coordinate refresh must force coordinate-bearing symbols to persist even when normalized entity hashes match cached hashes.
 - Sync cache state may advance only after refresh, extraction, RDF persistence and durable save succeed.
 - Coordinate artifact publication must be atomic, bound to the current extraction identity, preserve unrelated valid records, and fail closed on malformed artifacts.
+
+## Why
+Partial symbol upserts could erase stored coordinates, and coordinate refresh failures were only logged. Treating coordinates as generated compiler state makes those failures abort the write instead. Source: commit "make generated symbol coordinates persistent and repairable".

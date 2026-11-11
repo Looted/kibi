@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.migration.pin_codes
 claim_key: CLAIM-A8F6A8E66D766038
 claim_text: The semantic text pin code shall be semantic_text_pin
-text_ref: REQ-cli-migration-pin-codes
+text_ref: REQ-cli-migration-context-codes
 property_key: semantic_pin_code
 operator: eq
 value_type: string

@@ -15,7 +15,7 @@ tags:
   - diagnostics
 claim_key: CLAIM-C9AE01EB382F2593
 claim_text: Every result served from the detached HEAD snapshot store must carry a detached_head_read_only warning naming the commit, the branches at HEAD, and the store path
-text_ref: .kb/requirements/REQ-branch-store-recovery-v4.md
+text_ref: .kb/requirements/REQ-kibi-detached-head-snapshots.md
 origin:
   kind: agent
   recorded_at: '2026-10-04T02:17:57.903Z'

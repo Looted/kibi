@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-15T22:16:44.371Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-auto-5E0D46927248
-    to: REQ-core-atomic-upsert-persistence
-    created_at: 2026-08-16T07:50:26.151Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b1043680874d
   - type: covered_by
     from: SYM-auto-5E0D46927248
     to: TEST-kibi-operation-interface-parity
@@ -27,41 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a9959331f954
-  - type: implements
-    from: SYM-canonical-MarkdownValidationResult
-    to: REQ-cli-staged-impact-enforcement
-    created_at: 2026-08-18T17:36:45.217Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1d24a7c52ca7
-  - type: covered_by
-    from: SYM-canonical-MarkdownValidationResult
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-08-18T17:36:45.226Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eaaf4de266fb
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:49:26.917Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e13b0dcd2fdb
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult
-    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    created_at: 2026-08-20T13:49:26.924Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5001382a9fcd
-  - type: covered_by
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:18:48.478Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9bfdd5106bde
   - type: covered_by
     from: SYM-auto-5E0D46927248
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -69,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-003064517816
-  - type: implements
-    from: SYM-hashManifestWithCoordinates
-    to: REQ-generated-coordinate-persistence
-    created_at: 2026-08-23T20:41:10.292Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5893ec75327d
   - type: covered_by
     from: SYM-hashManifestWithCoordinates
     to: TEST-generated-coordinate-repair
@@ -83,13 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a70751d12db
-  - type: covered_by
-    from: SYM-SYMBOLS-MANIFEST-COMMENT-BLOCK
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:15:48.059Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f3296117b818
   - type: constrains
     from: REQ-agent-guided-migration-orchestration
     to: FACT-SUBJ-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION
@@ -104,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d31229aba2c
-  - type: covered_by
-    from: SYM-SYMBOLS-MANIFEST-COMMENT-BLOCK
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:23:32.768Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-10bcebd05a39
   - type: covered_by
     from: SYM-SkillOversizeError
     to: TEST-skill-cli-load-validate
@@ -146,13 +83,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-53af16e01f06
-  - type: implements
-    from: SYM-agent-core-resolveKibiInterface
-    to: REQ-cursor-kibi-plugin-v1
-    created_at: 2026-09-27T16:45:52.209Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-125c84d87960
   - type: covered_by
     from: SYM-agent-core-resolveKibiInterface
     to: TEST-cursor-kibi-plugin-v1
@@ -167,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76e02cb074c7
-  - type: implements
-    from: SYM-auto-5E0D46927248
-    to: REQ-kibi-verification-receipts-v2
-    created_at: 2026-10-14T17:12:49.931Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d1c93bce72e4
   - type: implements
     from: SYM-auto-5E0D46927248
     to: REQ-kb-upsert-keeps-omitted-proof-receipts
@@ -197,25 +120,11 @@ relationships:
     id: rel-98bccf997b4f
   - type: implements
     from: SYM-assert-semantic-inventory-boundary
-    to: REQ-kibi-proposition-complete-ingestion
-    created_at: 2026-10-14T17:12:55.350Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8ab1d570cf9f
-  - type: implements
-    from: SYM-assert-semantic-inventory-boundary
     to: REQ-kb-upsert-ledger-contract-in-error
     created_at: 2026-10-14T17:12:55.377Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-afd9360a0537
-  - type: implements
-    from: SYM-cli-signoff-approval-sentence
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:44:57.328Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c1a3f154835a
   - type: covered_by
     from: SYM-cli-signoff-approval-sentence
     to: TEST-kibi-signoff-views
@@ -412,13 +321,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4c64358b0b57
-  - type: implements
-    from: SYM-kb-dependencies-resolve-kb-dependency
-    to: REQ-kb-dependencies-git
-    created_at: 2026-11-04T10:56:27.220Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ef2c32bd0a60
   - type: covered_by
     from: SYM-kb-dependencies-resolve-kb-dependency
     to: TEST-kb-dependencies-git
@@ -426,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d67cf5c983e
+  - type: assumes
+    from: SCEN-NEG-kibi-proof-receipt-maintenance-LEGACY-ONLY
+    to: FACT-NEG-kibi-proof-receipt-maintenance-LEGACY-ONLY
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-838510338b5a
+  - type: verified_by
+    from: SCEN-NEG-kibi-proof-receipt-maintenance-LEGACY-ONLY
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2a73fe1fd2b

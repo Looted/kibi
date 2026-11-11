@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_04_the_opencode_plugin_must_ignore_python_triple_quoted_strings
+property_key: ignores_non_docstring_strings
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_comment_routing.clause_04_the_opencode_plugin_must_ignore_python_triple_quoted_strings.eq.true
+canonical_key: req.req_opencode_comment_routing.ignores_non_docstring_strings.eq.true
 claim_key: CLAIM-E87D1912E1CCEC01
 claim_text: The OpenCode plugin must ignore Python triple-quoted strings that are not in docstring position
 origin:

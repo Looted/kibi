@@ -1,6 +1,6 @@
 ---
 title: CLI publishes a visual requirement health report
-status: open
+status: closed
 priority: must
 tags:
   - cli
@@ -9,7 +9,6 @@ tags:
   - coverage
   - proof
   - ci
-  - review:context-missing
 semantic_text: The Kibi CLI must generate a self-contained HTML requirement-health report from complete requirement and symbol coverage data. The report must show the Git branch, current requirement count, fully proven count and percentage, missing scenarios, stale end-to-end evidence, unique contradictions, unowned production symbols, and per-requirement proof stages. The report must escape knowledge-base text and work without network assets. The output option must accept an HTML file or directory and default to kibi-report/index.html. The open option must launch the generated file in the default browser only after a successful write. Report generation must fail when pagination would make requirement-level health metrics incomplete.
 semantic_clauses:
   - The Kibi CLI must generate a self-contained HTML requirement-health report from complete requirement and symbol coverage data
@@ -75,9 +74,12 @@ id: REQ-kibi-html-health-report
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 3): "Ok" Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 The Kibi CLI must generate a self-contained HTML requirement-health report from complete requirement and symbol coverage data. The report must show the Git branch, current requirement count, fully proven count and percentage, missing scenarios, stale end-to-end evidence, unique contradictions, unowned production symbols, and per-requirement proof stages. The report must escape knowledge-base text and work without network assets. The output option must accept an HTML file or directory and default to kibi-report/index.html. The open option must launch the generated file in the default browser only after a successful write. Report generation must fail when pagination would make requirement-level health metrics incomplete.
+
+## Why
+The proof model had no human-facing view. The report is a self-contained offline page that people can open, share or publish from CI without a frontend build. Source: changeset "calm-requirement-health".

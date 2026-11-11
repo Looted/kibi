@@ -3,7 +3,7 @@ title: A commit stages a behavior-changing source edit with no Kibi impact evide
 status: active
 fact_kind: property_value
 subject_key: kibi.cli.check.staged
-property_key: clause_01_the_staged_check_must_block_behavior_changing_so
+property_key: blocks_unevidenced_behavior_change
 operator: eq
 value_type: bool
 value_bool: false
