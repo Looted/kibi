@@ -9,6 +9,7 @@ tags:
   - search-hints
 origin:
   kind: agent
+  approved_by: maintainer
   ref: 'Issue #697: "Mark negative-path facts wherever they are shown" and "Rank a negative-path fact below the requirement it guards, so it doesn''t become the top hint."'
   recorded_at: '2026-11-11T17:20:24.110Z'
 semantic_text: kb_search must mark a negative-path fact as a forbidden situation wherever it shows the fact. kb_search must rank a negative-path fact below the current requirement it guards. Search hints must show a negative-path fact as the current requirement it guards.
