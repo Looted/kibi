@@ -409,3 +409,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-731d89b8fc5d
+  - type: verified_by
+    from: SCEN-kibi-negative-path-facts-marked
+    to: TEST-kibi-negative-path-facts-marked
+    created_at: 2026-11-11T17:20:35.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f076746597d
+  - type: assumes
+    from: SCEN-kibi-negative-path-facts-marked
+    to: FACT-kibi-negative-path-facts-marked-as-forbidden-where-shown
+    created_at: 2026-11-11T17:21:56.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fbfcf8bc48c
+  - type: assumes
+    from: SCEN-kibi-negative-path-facts-marked
+    to: FACT-kibi-negative-path-facts-ranked-below-guarded-requirement
+    created_at: 2026-11-11T17:21:56.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0af283a22fe2
+  - type: assumes
+    from: SCEN-kibi-negative-path-facts-marked
+    to: FACT-kibi-negative-path-facts-hints-show-guarded-requirement
+    created_at: 2026-11-11T17:21:56.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2512001ae00a

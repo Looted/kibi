@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a00a1d904cc0
+  - type: assumes
+    from: SCEN-NEG-kibi-negative-path-facts-marked-MARK
+    to: FACT-NEG-kibi-negative-path-facts-marked-MARK
+    created_at: 2026-11-11T17:20:36.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03eb41cf88cb
+  - type: verified_by
+    from: SCEN-NEG-kibi-negative-path-facts-marked-MARK
+    to: TEST-kibi-negative-path-facts-marked
+    created_at: 2026-11-11T17:20:36.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f859fa6b2f95

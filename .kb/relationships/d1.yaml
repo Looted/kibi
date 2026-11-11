@@ -615,3 +615,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ccee49cc1591
+  - type: constrains
+    from: REQ-kibi-negative-path-facts-marked
+    to: FACT-kibi-negative-path-facts-subject
+    created_at: 2026-11-11T17:20:24.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1c3a1aa3942
+  - type: requires_property
+    from: REQ-kibi-negative-path-facts-marked
+    to: FACT-kibi-negative-path-facts-marked-as-forbidden-where-shown
+    created_at: 2026-11-11T17:20:24.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e7973662a42
+  - type: requires_property
+    from: REQ-kibi-negative-path-facts-marked
+    to: FACT-kibi-negative-path-facts-ranked-below-guarded-requirement
+    created_at: 2026-11-11T17:20:24.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5739f879f48
+  - type: requires_property
+    from: REQ-kibi-negative-path-facts-marked
+    to: FACT-kibi-negative-path-facts-hints-show-guarded-requirement
+    created_at: 2026-11-11T17:20:24.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ef5f83852ff
+  - type: specified_by
+    from: REQ-kibi-negative-path-facts-marked
+    to: SCEN-kibi-negative-path-facts-marked
+    created_at: 2026-11-11T17:20:38.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5050fb77cecb
+  - type: specified_by
+    from: REQ-kibi-negative-path-facts-marked
+    to: SCEN-NEG-kibi-negative-path-facts-marked-MARK
+    created_at: 2026-11-11T17:20:38.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2157104012e2
+  - type: specified_by
+    from: REQ-kibi-negative-path-facts-marked
+    to: SCEN-NEG-kibi-negative-path-facts-marked-OUTRANKS
+    created_at: 2026-11-11T17:20:38.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-562122ba3521
+  - type: specified_by
+    from: REQ-kibi-negative-path-facts-marked
+    to: SCEN-NEG-kibi-negative-path-facts-marked-HINT-AS-FACT
+    created_at: 2026-11-11T17:20:38.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab87ee19c56d
