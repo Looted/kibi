@@ -577,8 +577,8 @@ describe("durability barrier", () => {
     }) as never);
     fsyncJournaledBranchStore(store);
     expect(opened).toStrictEqual([
-      path.join(store, "rdf", "j1"),
       path.join(store, "rdf", "a", "b", "j2"),
+      path.join(store, "rdf", "j1"),
       path.join(store, "CURRENT"),
       path.join(store, "kb.rdf"),
       path.join(store, "rdf", "a", "b"),

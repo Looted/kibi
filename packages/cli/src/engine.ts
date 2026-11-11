@@ -520,7 +520,11 @@ function fsyncJournalTree(
   platform: NodeJS.Platform,
 ): string[] {
   const directories: string[] = [];
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+  // Sorted, so the order does not depend on the filesystem's listing order.
+  const entries = readdirSync(directory, { withFileTypes: true }).sort(
+    (left, right) => (left.name < right.name ? -1 : 1),
+  );
+  for (const entry of entries) {
     const entryPath = path.join(directory, entry.name);
     if (entry.isDirectory())
       directories.push(...fsyncJournalTree(entryPath, platform));
