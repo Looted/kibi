@@ -39374,3 +39374,94 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-negative-path-facts-marked
+  - id: SYM-agent-core-is-dead-implements-comment
+    title: isDeadImplementsComment
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T13:31:29.090Z
+    relationships:
+      - type: covered_by
+        target: TEST-dead-implements-comment-deletion
+      - type: implements
+        target: REQ-dead-implements-comment-deletion
+  - id: SYM-agent-core-removes-only-dead-implements-comments
+    title: removesOnlyDeadImplementsComments
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T13:31:34.896Z
+    relationships:
+      - type: covered_by
+        target: TEST-dead-implements-comment-deletion
+      - type: implements
+        target: REQ-dead-implements-comment-deletion
+  - id: SYM-kb-dependencies-git-fetch-environment
+    title: gitFetchEnvironment
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T13:31:40.836Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependency-untrusted-input
+      - type: implements
+        target: REQ-kb-dependency-untrusted-input
+  - id: SYM-kb-dependencies-default-git-runner
+    title: defaultGitRunner
+    status: active
+    sourceFile: packages/cli/src/dependencies/kb-dependencies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T13:31:46.528Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependency-untrusted-input
+      - type: implements
+        target: REQ-kb-dependency-untrusted-input
+  - id: SYM-cli-serves-kb-dependency
+    title: servesKbDependency
+    status: active
+    sourceFile: packages/cli/src/plugins/project-config.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T13:31:52.268Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-dependency-untrusted-input
+      - type: implements
+        target: REQ-kb-dependency-untrusted-input
+  - id: SYM-cli-check-format-impact-text
+    title: formatImpactText
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T13:31:57.959Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-check-impact-diagnostics-once
+      - type: implements
+        target: REQ-kb-check-impact-diagnostics-once
+  - id: SYM-cli-quality-diagnostics-beside-impact
+    title: qualityDiagnosticsBesideImpact
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T13:32:04.262Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-check-impact-diagnostics-once
+      - type: implements
+        target: REQ-kb-check-impact-diagnostics-once

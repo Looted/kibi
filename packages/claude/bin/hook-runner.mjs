@@ -1503,6 +1503,8 @@ function confirmFirmEdits(env) {
   return !(value === "0" || value === "false" || value === "off");
 }
 function firmRequirementsTouched(input) {
+  if (input.commentOnly === true)
+    return { ids: [], symbol: undefined };
   const touched = input.wholeFile ? input.symbols : focusedSymbols(input.symbols, input.focus);
   const ids = implementedRequirementIds(touched).filter((id) => {
     if (input.confirmed?.has(id))
@@ -1511,6 +1513,56 @@ function firmRequirementsTouched(input) {
     return summary.firmness === "firm" && !isRetiredStatus(summary.status);
   });
   return { ids, symbol: input.wholeFile ? undefined : touched[0] };
+}
+var MAX_COMMENT_ONLY_BYTES = 2 * 1024 * 1024;
+var DEAD_IMPLEMENTS_LINE = /^\s*(?:\/\/+|#+|%+|\/\*+|\*|--)\s*(?:implements|Implements|IMPLEMENTS)(?:\s*:\s*|\s+)[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+(?:\s*,\s*[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+)*\s*(?:\*\/)?\s*$/;
+function isDeadImplementsComment(line) {
+  return DEAD_IMPLEMENTS_LINE.test(line);
+}
+function removesOnlyDeadComments(before, after) {
+  const kept = before.split(`
+`);
+  const wanted = after.split(`
+`);
+  let removed = 0;
+  let next = 0;
+  for (const line of kept) {
+    if (wanted[next] === line) {
+      next += 1;
+    } else if (isDeadImplementsComment(line)) {
+      removed += 1;
+    } else {
+      return false;
+    }
+  }
+  return removed > 0 && next === wanted.length;
+}
+function removesOnlyDeadImplementsComments(absolutePath, toolInput) {
+  const input = toolInput ?? {};
+  const edits = Array.isArray(input.edits) ? input.edits : [];
+  const records = [input, ...edits.map((edit) => edit ?? {})];
+  const pairs = [];
+  for (const entry of records) {
+    const before = entry.old_string ?? entry.oldString;
+    const after = entry.new_string ?? entry.newString;
+    if (before === undefined && after === undefined)
+      continue;
+    if (typeof before !== "string" || typeof after !== "string")
+      return false;
+    pairs.push([before, after]);
+  }
+  if (pairs.length === 0) {
+    if (typeof input.content !== "string")
+      return false;
+    try {
+      if (fs6.statSync(absolutePath).size > MAX_COMMENT_ONLY_BYTES)
+        return false;
+      pairs.push([fs6.readFileSync(absolutePath, "utf8"), input.content]);
+    } catch {
+      return false;
+    }
+  }
+  return pairs.every(([before, after]) => removesOnlyDeadComments(before, after));
 }
 function firmEditConfirmation(where, requirements) {
   const shown = requirements.slice(0, 2).map((summary) => summary.title ? `${summary.id}: ${summary.title}` : summary.id);
@@ -2946,7 +2998,7 @@ function preToolUse(input, workspace, trace = {}) {
   }
   trace.action = "edit_silent";
   const focus = toolName === "Edit" || toolName === "MultiEdit" ? editFocus2(target.absolute, input.toolInput) : undefined;
-  const firm = firmEdit(relativePath, symbols, focus, toolName === "Write", state, workspace);
+  const firm = removesOnlyDeadImplementsComments(target.absolute, input.toolInput) ? undefined : firmEdit(relativePath, symbols, focus, toolName === "Write", state, workspace);
   const output = editPreToolUse(relativePath, kind, symbols, focus, state, workspace, events, emit);
   return firm ? withFirmConfirmation(output, firm, workspace, trace) : output;
 }

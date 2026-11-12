@@ -35,6 +35,7 @@ beforeEach(() => {
     "KIBI_PROJECT_ROOT",
     "KIBI_ROOT",
     "KIBI_ENV_FILE",
+    "KIBI_KB_DEPENDENCY",
     "XDG_CONFIG_HOME",
     "BOOT_PROCESS",
     "BOOT_USER",
@@ -67,6 +68,21 @@ function writeUserEnv(content: string): string {
   trackEnv("XDG_CONFIG_HOME", userConfigRoot);
   return filePath;
 }
+
+describe("bootstrapKibiEnvironment in a KB dependency checkout", () => {
+  test("loads the user env file but not the checkout's own env files", () => {
+    writeUserEnv("BOOT_USER=user-only\n");
+    fs.writeFileSync(path.join(tmpDir, ".env.kibi"), "BOOT_PROJECT=project\n");
+    fs.writeFileSync(path.join(tmpDir, ".env"), "BOOT_LEGACY=legacy\n");
+    trackEnv("KIBI_KB_DEPENDENCY", `lib@${"a".repeat(40)}`);
+    const result = bootstrapKibiEnvironment();
+    expect(process.env.BOOT_USER).toBe("user-only");
+    expect(process.env.BOOT_PROJECT).toBeUndefined();
+    expect(process.env.BOOT_LEGACY).toBeUndefined();
+    expect(result.keysLoadedFromProject).toEqual([]);
+    expect(result.keysLoadedFromLegacy).toEqual([]);
+  });
+});
 
 describe("bootstrapKibiEnvironment precedence", () => {
   test("process overrides files; project overrides user; attribution labels are correct", () => {

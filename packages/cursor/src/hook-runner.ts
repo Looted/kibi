@@ -17,6 +17,7 @@ import {
   isRequirementUpsert,
   markDecisionFlag,
   recordRequest,
+  removesOnlyDeadImplementsComments,
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
@@ -127,6 +128,7 @@ function firmNotice(
   focus: LineRange[] | undefined,
   session: DecisionSession,
   env: NodeJS.ProcessEnv,
+  commentOnly: boolean,
 ): string | undefined {
   if (!confirmFirmEdits(env)) return undefined;
   const summarize = createEntitySummarizer(workspaceRoot);
@@ -136,6 +138,7 @@ function firmNotice(
     wholeFile: focus === undefined,
     summarize,
     confirmed: settledFirmRequirements(session),
+    commentOnly,
   });
   if (ids.length === 0) return undefined;
   settleFirmRequirements(session, ids);
@@ -381,6 +384,10 @@ export async function runHook(
           focus,
           session,
           environment.env ?? process.env,
+          removesOnlyDeadImplementsComments(
+            path.resolve(cwd, primaryPath),
+            input.toolInput,
+          ),
         );
         const guidance = hasGuidedPath(state, "pre-edit", relativePath)
           ? undefined

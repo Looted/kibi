@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b16108d77337
+  - type: verified_by
+    from: REQ-kb-check-impact-diagnostics-once
+    to: TEST-kb-check-impact-diagnostics-once
+    created_at: 2026-11-12T13:31:13.242Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af8c766e2a5a
+  - type: specified_by
+    from: REQ-kb-check-impact-diagnostics-once
+    to: SCEN-kb-check-impact-diagnostics-once
+    created_at: 2026-11-12T13:47:39.268Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d02c071a8059

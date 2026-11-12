@@ -997,6 +997,34 @@ describe("firm requirement confirmation", () => {
     expect(JSON.stringify(output)).not.toMatch(/"(?:deny|allow)"/);
   });
 
+  test("deleting implements comments Kibi no longer reads is not put to the person", async () => {
+    const fixture = createKibiWorkspace();
+    const { raw } = firmSession(fixture);
+    const file = path.join(fixture.root, "src/checkout.ts");
+    fs.writeFileSync(
+      file,
+      fs
+        .readFileSync(file, "utf8")
+        .replace(
+          "let total = 0;",
+          "// implements REQ-checkout-rounding\n  let total = 0;",
+        ),
+    );
+    const removal = {
+      file_path: "src/checkout.ts",
+      old_string: "  // implements REQ-checkout-rounding\n  let total = 0;",
+      new_string: "  let total = 0;",
+    };
+    expect(
+      (await raw("Edit", removal)).hookSpecificOutput?.permissionDecision,
+    ).toBeUndefined();
+    // The same edit with a code change in it is still asked about.
+    expect(
+      (await raw("Edit", { ...removal, new_string: "  let total = 1;" }))
+        .hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+  });
+
   test("once an edit was allowed the requirement is not asked about again; a declined edit is asked again", async () => {
     const fixture = createKibiWorkspace();
     const { raw, post } = firmSession(fixture);

@@ -27,6 +27,43 @@ afterEach(() => {
 });
 
 describe("migration plan builders and config status", () => {
+  test("an action for a diagnostic listed under impactDiagnostics names it", () => {
+    const listed = {
+      id: "requirement_statement_unverified",
+      entityId: "REQ-1",
+      files: ["w.py"],
+      message: "long statement",
+      suggestion: "confirm",
+    };
+    const workspace = { id: "symbol_semantic_review_needed", suggestion: "r" };
+    const elsewhere = { id: "other", message: "kept", suggestion: "fix" };
+    const actions = buildActionsFromCheck({
+      qualityDiagnostics: [listed, workspace, elsewhere],
+      impactDiagnostics: new Set<object>([listed, workspace]),
+    });
+    expect(actions.map((action) => action.evidence)).toStrictEqual([
+      {
+        diagnostic: {
+          id: "requirement_statement_unverified",
+          entityId: "REQ-1",
+          listedIn: "impactDiagnostics",
+        },
+      },
+      {
+        diagnostic: {
+          id: "symbol_semantic_review_needed",
+          listedIn: "impactDiagnostics",
+        },
+      },
+      { diagnostic: elsewhere },
+    ]);
+    expect(actions[0]?.invocation).toStrictEqual({
+      kind: "review",
+      instruction: "confirm",
+    });
+    expect(actions[0]?.affectedFiles).toStrictEqual(["w.py"]);
+  });
+
   test("buildActionsFromCheck uses description fallbacks and diagnostic files", () => {
     const actions = buildActionsFromCheck({
       violations: [

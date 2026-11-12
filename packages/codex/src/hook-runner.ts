@@ -15,6 +15,7 @@ import {
   isRequirementUpsert,
   markDecisionFlag,
   recordRequest,
+  removesOnlyDeadImplementsComments,
   requestWords,
   rulePromptNote,
   settleFirmRequirements,
@@ -276,6 +277,10 @@ function firmNotice(
       wholeFile: focus === undefined,
       summarize,
       confirmed: settled,
+      commentOnly: removesOnlyDeadImplementsComments(
+        target.absolute,
+        input.toolInput,
+      ),
     });
     if (ids.length === 0) continue;
     settleFirmRequirements(session, ids);

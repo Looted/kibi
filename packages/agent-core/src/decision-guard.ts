@@ -40,7 +40,10 @@ export function firmRequirementsTouched(input: {
   wholeFile: boolean;
   summarize: Summarize;
   confirmed?: ReadonlySet<string>;
+  /** The edit only removes dead `implements` comments, so it changes none. */
+  commentOnly?: boolean;
 }): { ids: string[]; symbol: IndexedSymbol | undefined } {
+  if (input.commentOnly === true) return { ids: [], symbol: undefined };
   const touched = input.wholeFile
     ? input.symbols
     : focusedSymbols(input.symbols, input.focus);
@@ -50,6 +53,79 @@ export function firmRequirementsTouched(input: {
     return summary.firmness === "firm" && !isRetiredStatus(summary.status);
   });
   return { ids, symbol: input.wholeFile ? undefined : touched[0] };
+}
+
+/** Files larger than this are not compared for a whole-file write. */
+const MAX_COMMENT_ONLY_BYTES = 2 * 1024 * 1024;
+
+/**
+ * A line that holds nothing but an `implements` comment naming entity ids
+ * (`// implements REQ-a, REQ-b`, `# implements: REQ-a`, ` * implements REQ-a`).
+ * Kibi stopped reading these comments as links, so removing one changes no
+ * behavior and no recorded link.
+ */
+const DEAD_IMPLEMENTS_LINE =
+  /^\s*(?:\/\/+|#+|%+|\/\*+|\*|--)\s*(?:implements|Implements|IMPLEMENTS)(?:\s*:\s*|\s+)[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+(?:\s*,\s*[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+)*\s*(?:\*\/)?\s*$/;
+
+/** True for a line that is only a dead `implements` comment. */
+export function isDeadImplementsComment(line: string): boolean {
+  return DEAD_IMPLEMENTS_LINE.test(line);
+}
+
+/** True when `after` is `before` with one or more dead comment lines removed. */
+function removesOnlyDeadComments(before: string, after: string): boolean {
+  const kept = before.split("\n");
+  const wanted = after.split("\n");
+  let removed = 0;
+  let next = 0;
+  for (const line of kept) {
+    if (wanted[next] === line) {
+      next += 1;
+    } else if (isDeadImplementsComment(line)) {
+      removed += 1;
+    } else {
+      return false;
+    }
+  }
+  return removed > 0 && next === wanted.length;
+}
+
+/**
+ * Whether an edit only deletes `implements` comments Kibi no longer reads:
+ * every replacement of an Edit or MultiEdit (`old_string`/`new_string`, or
+ * the camel-case spelling), or a whole-file write (`content`) compared with
+ * the file on disk. Such an edit keeps every requirement the code implements,
+ * so it is not put to the person. Any other shape of edit, including one made
+ * by a shell command, answers false.
+ */
+export function removesOnlyDeadImplementsComments(
+  absolutePath: string,
+  toolInput: unknown,
+): boolean {
+  type Fields = Record<string, unknown>;
+  const input = (toolInput ?? {}) as Fields;
+  const edits: unknown[] = Array.isArray(input.edits) ? input.edits : [];
+  const records = [input, ...edits.map((edit) => (edit ?? {}) as Fields)];
+  const pairs: [string, string][] = [];
+  for (const entry of records) {
+    const before = entry.old_string ?? entry.oldString;
+    const after = entry.new_string ?? entry.newString;
+    if (before === undefined && after === undefined) continue;
+    if (typeof before !== "string" || typeof after !== "string") return false;
+    pairs.push([before, after]);
+  }
+  if (pairs.length === 0) {
+    if (typeof input.content !== "string") return false;
+    try {
+      if (fs.statSync(absolutePath).size > MAX_COMMENT_ONLY_BYTES) return false;
+      pairs.push([fs.readFileSync(absolutePath, "utf8"), input.content]);
+    } catch {
+      return false;
+    }
+  }
+  return pairs.every(([before, after]) =>
+    removesOnlyDeadComments(before, after),
+  );
 }
 
 /**

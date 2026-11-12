@@ -62,6 +62,41 @@ function formatDiagnostics(diagnostics: readonly CheckDiagnostic[]) {
   }));
 }
 
+type ImpactDiagnostic = ChangedFileImpactResult["impactDiagnostics"][number];
+
+function impactDiagnosticFiles(diagnostic: ImpactDiagnostic): string {
+  return diagnostic.files.length > 0
+    ? diagnostic.files.join(", ")
+    : "unknown-source";
+}
+
+/**
+ * Impact diagnostics in order, with those that share a check, a severity, the
+ * same files and the same suggestion gathered under the first of them.
+ */
+function groupImpactDiagnostics(
+  diagnostics: readonly ImpactDiagnostic[],
+): ImpactDiagnostic[][] {
+  const groups = new Map<string, ImpactDiagnostic[]>();
+  for (const diagnostic of diagnostics) {
+    const key = JSON.stringify([
+      diagnostic.id,
+      diagnostic.severity,
+      diagnostic.files,
+      diagnostic.suggestion,
+    ]);
+    const group = groups.get(key);
+    if (group === undefined) groups.set(key, [diagnostic]);
+    else group.push(diagnostic);
+  }
+  return [...groups.values()];
+}
+
+/**
+ * The impact diagnostics as text. A suggestion that many diagnostics share
+ * (one changed file often yields the same review advice for every changed
+ * symbol) is written once, above the messages it applies to.
+ */
 export function formatImpactText(
   impactResult: ChangedFileImpactResult,
 ): string {
@@ -69,14 +104,32 @@ export function formatImpactText(
     return "No impact diagnostics found";
   }
 
-  const details = impactResult.impactDiagnostics.map((diagnostic) => {
-    const files =
-      diagnostic.files.length > 0
-        ? diagnostic.files.join(", ")
-        : "unknown-source";
-    return `- ${diagnostic.id} | ${diagnostic.severity} | ${files} | ${diagnostic.message} Suggestion: ${diagnostic.suggestion}`;
-  });
+  const details = groupImpactDiagnostics(impactResult.impactDiagnostics).map(
+    (group) => {
+      const first = group[0] as ImpactDiagnostic;
+      const head = `- ${first.id} | ${first.severity} | ${impactDiagnosticFiles(first)} | `;
+      if (group.length === 1) {
+        return `${head}${first.message} Suggestion: ${first.suggestion}`;
+      }
+      const messages = group.map((diagnostic) => `  - ${diagnostic.message}`);
+      return `${head}${group.length} diagnostics. Suggestion for each: ${first.suggestion}\n${messages.join("\n")}`;
+    },
+  );
   return `${impactResult.impactDiagnostics.length} impact diagnostics found\n${details.join("\n")}`;
+}
+
+/**
+ * The quality diagnostics a result lists under `qualityDiagnostics`: those the
+ * impact analysis did not already report. An impact diagnostic is in
+ * `impactDiagnostics`, and repeating it would double a scoped check's result.
+ */
+export function qualityDiagnosticsBesideImpact<T extends object>(
+  qualityDiagnostics: readonly T[],
+  impactResult: ChangedFileImpactResult | undefined,
+): readonly T[] {
+  if (impactResult === undefined) return qualityDiagnostics;
+  const reported = new Set<object>(impactResult.impactDiagnostics);
+  return qualityDiagnostics.filter((diagnostic) => !reported.has(diagnostic));
 }
 
 function formatOptionalList(
@@ -171,7 +224,10 @@ export function buildStructuredContent(input: {
   impactResult: ChangedFileImpactResult | undefined;
   migrationPlan?: MigrationPlan;
 }): CheckStructuredContent {
-  const qualityDiagnostics = input.qualityDiagnostics ?? [];
+  const qualityDiagnostics = qualityDiagnosticsBesideImpact(
+    input.qualityDiagnostics ?? [],
+    input.impactResult,
+  );
   return {
     violations: [...input.violations],
     count: input.violations.length,
@@ -225,8 +281,12 @@ export function buildSummary(input: {
   if (input.impactResult !== undefined) {
     sections.push(formatImpactText(input.impactResult));
   }
-  if (input.qualityDiagnostics.length > 0) {
-    sections.push(formatQualityDiagnosticsText(input.qualityDiagnostics));
+  const qualityDiagnostics = qualityDiagnosticsBesideImpact(
+    input.qualityDiagnostics,
+    input.impactResult,
+  );
+  if (qualityDiagnostics.length > 0) {
+    sections.push(formatQualityDiagnosticsText(qualityDiagnostics));
   }
   return sections.join("\n");
 }

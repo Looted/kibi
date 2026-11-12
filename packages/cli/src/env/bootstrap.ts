@@ -280,9 +280,16 @@ export function bootstrapKibiEnvironment(
   const keysLoadedFromProject: string[] = [];
   const keysLoadedFromLegacy: string[] = [];
 
+  // A process serving a KB dependency starts inside another repository's
+  // checkout: that repository's env files must not configure this process.
+  const foreignWorkspace = nonEmpty(env.KIBI_KB_DEPENDENCY);
   const userEntries = readEnvFileEntries(userEnvPath);
-  const projectEntries = readEnvFileEntries(projectEnvPath);
-  const legacyEntries = readEnvFileEntries(legacyEnvPath);
+  const projectEntries = foreignWorkspace
+    ? new Map<string, string>()
+    : readEnvFileEntries(projectEnvPath);
+  const legacyEntries = foreignWorkspace
+    ? new Map<string, string>()
+    : readEnvFileEntries(legacyEnvPath);
 
   // User first, then project (project may overwrite user-sourced keys).
   // Blank file values are unset — never applied, never overwrite.

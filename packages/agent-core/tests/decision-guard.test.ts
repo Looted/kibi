@@ -17,9 +17,11 @@ import {
   firmRequirementsTouched,
   hasDecisionFlag,
   holdRuleNote,
+  isDeadImplementsComment,
   isRequirementUpsert,
   markDecisionFlag,
   recordRequest,
+  removesOnlyDeadImplementsComments,
   requestWords,
   rulePromptNote,
   settleFirmRequirements,
@@ -79,6 +81,108 @@ describe("confirmFirmEdits", () => {
     expect(confirmFirmEdits({ KIBI_CONFIRM_FIRM_EDITS: "1" })).toBe(true);
     for (const off of ["0", "false", " OFF ", "False"])
       expect(confirmFirmEdits({ KIBI_CONFIRM_FIRM_EDITS: off })).toBe(false);
+  });
+});
+
+describe("dead implements comments", () => {
+  test("only a line that is nothing but an implements comment counts", () => {
+    for (const line of [
+      "// implements REQ-a",
+      "  # implements REQ-A-1, REQ-b_2",
+      "% implements: REQ-a",
+      " * implements REQ-a",
+      "/* implements REQ-a */",
+      "-- Implements REQ-a",
+    ]) {
+      expect(isDeadImplementsComment(line)).toBe(true);
+    }
+    for (const line of [
+      "",
+      "// this class implements Runnable",
+      "total += 1; // implements REQ-a",
+      "// implements REQ-a and more",
+      "implements REQ-a",
+      "// covered_by TEST-a",
+    ]) {
+      expect(isDeadImplementsComment(line)).toBe(false);
+    }
+  });
+
+  test("an edit that only deletes such comments is recognized", () => {
+    const only = (input: unknown) =>
+      removesOnlyDeadImplementsComments("/nonexistent", input);
+    expect(
+      only({
+        old_string: "# implements REQ-a\ndef f():\n    # implements REQ-b\n",
+        new_string: "def f():\n",
+      }),
+    ).toBe(true);
+    expect(
+      only({
+        edits: [
+          { oldString: "// implements REQ-a\nfn();", newString: "fn();" },
+          { old_string: "x\n// implements REQ-b", new_string: "x" },
+        ],
+      }),
+    ).toBe(true);
+    // Nothing removed, code changed, code removed, or a comment added.
+    expect(only({ old_string: "fn();", new_string: "fn();" })).toBe(false);
+    expect(
+      only({ old_string: "// implements REQ-a\nfn();", new_string: "fn2();" }),
+    ).toBe(false);
+    expect(
+      only({ old_string: "// implements REQ-a\nfn();", new_string: "" }),
+    ).toBe(false);
+    expect(
+      only({ old_string: "fn();", new_string: "// implements REQ-a\nfn();" }),
+    ).toBe(false);
+    expect(
+      only({
+        edits: [
+          { old_string: "// implements REQ-a\nfn();", new_string: "fn();" },
+          { old_string: "a", new_string: "b" },
+        ],
+      }),
+    ).toBe(false);
+    // Half an edit, no edit at all, or a shell command.
+    expect(only({ old_string: "// implements REQ-a" })).toBe(false);
+    expect(only({})).toBe(false);
+    expect(only(undefined)).toBe(false);
+    expect(only({ command: "sed -i /implements/d a.py" })).toBe(false);
+  });
+
+  test("a whole-file write is compared with the file on disk", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-guard-"));
+    dirs.push(dir);
+    const file = path.join(dir, "a.py");
+    fs.writeFileSync(file, "# implements REQ-a\ndef f():\n    return 1\n");
+    expect(
+      removesOnlyDeadImplementsComments(file, {
+        content: "def f():\n    return 1\n",
+      }),
+    ).toBe(true);
+    expect(
+      removesOnlyDeadImplementsComments(file, {
+        content: "def f():\n    return 2\n",
+      }),
+    ).toBe(false);
+    expect(
+      removesOnlyDeadImplementsComments(path.join(dir, "missing.py"), {
+        content: "x",
+      }),
+    ).toBe(false);
+  });
+
+  test("a comment-only edit touches no firm requirement", () => {
+    expect(
+      firmRequirementsTouched({
+        symbols: [symbol("SYM-a", 1, 9, ["REQ-firm"])],
+        focus: undefined,
+        wholeFile: true,
+        summarize,
+        commentOnly: true,
+      }),
+    ).toEqual({ ids: [], symbol: undefined });
   });
 });
 
