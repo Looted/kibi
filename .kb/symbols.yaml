@@ -39468,36 +39468,36 @@ symbols:
   - id: SYM-kb-dependency-untrusted-input-verifier
     title: KB dependency untrusted input verifier
     status: active
-    sourceFile: packages/cli/tests/plugins/project-config.test.ts
+    sourceFile: packages/cli/tests/dependencies/kb-dependency-untrusted-consumer.test.ts
     symbol_role: behavioral
     granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-12T14:23:34.155Z
+      recorded_at: 2026-11-12T14:30:48.562Z
     relationships:
       - type: executable_for
         target: TEST-kb-dependency-untrusted-input
   - id: SYM-dead-implements-comment-deletion-verifier
     title: Dead implements comment deletion verifier
     status: active
-    sourceFile: packages/agent-core/tests/decision-guard.test.ts
+    sourceFile: packages/claude/tests/dead-implements-comment-consumer.test.ts
     symbol_role: behavioral
     granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-12T14:23:43.158Z
+      recorded_at: 2026-11-12T14:30:52.969Z
     relationships:
       - type: executable_for
         target: TEST-dead-implements-comment-deletion
   - id: SYM-kb-check-impact-diagnostics-once-verifier
     title: kb_check impact diagnostics once verifier
     status: active
-    sourceFile: packages/mcp/tests/tools/check-impact.test.ts
+    sourceFile: packages/cli/tests/consumer/check-impact-diagnostics-once.test.ts
     symbol_role: behavioral
     granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-12T14:23:52.022Z
+      recorded_at: 2026-11-12T14:30:57.418Z
     relationships:
       - type: executable_for
         target: TEST-kb-check-impact-diagnostics-once

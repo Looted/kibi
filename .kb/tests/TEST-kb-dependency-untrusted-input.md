@@ -3,13 +3,14 @@ title: A KB dependency's git values and checkout cannot run code
 status: passing
 priority: must
 tags:
+  - e2e
   - integration
   - unit
-verification_scope: integration
+verification_scope: end_to_end
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-11-12, after the review of release 2026.11.2 reported the findings: "Well, can you make a PR with a hotfix then?" and "Yes, do all post review work in the hotfix."'
-  recorded_at: '2026-11-12T14:23:38.313Z'
+  recorded_at: '2026-11-12T14:31:01.259Z'
 id: TEST-kb-dependency-untrusted-input
 type: test
 proof_contract:
@@ -55,7 +56,10 @@ proof_receipts:
           status: unavailable
     kind: e2e
     evidence_level: tested
+verification_perspective: consumer
 ---
 `packages/cli/tests/dependencies/kb-dependencies.test.ts` asserts that a `git` or `ref` value starting with `-` or holding a control character is refused with DEPENDENCIES_INVALID when the manifest or the lock is read, that `ls-remote` and `fetch` receive the URL after `--end-of-options`, and that the fetch environment disables the `ext` transport. `packages/cli/tests/plugins/project-config.test.ts` asserts that with KIBI_KB_DEPENDENCY set the checkout's `package.json#kibi` plugins are not read, and `packages/cli/tests/env/bootstrap.test.ts` that its `.env.kibi` and `.env` are not loaded while the user env file is. It would pass falsely if the fixtures named no plugin or env key, so each case first asserts the value is read without the variable.
 
 Integration: the `git argument safety` cases run the real `git` binary against repositories created in a temporary directory, with an injected `--upload-pack=touch <marker>` value, and assert the marker file was never created.
+
+End to end: `packages/cli/tests/dependencies/kb-dependency-untrusted-consumer.test.ts` runs the built `kibi` binary in a fresh repository against a dependency repository that tries to run code. `kibi deps lock` and a `--kb` read refuse an injected `--upload-pack=touch <marker>` url or ref with DEPENDENCIES_INVALID and the marker file is never created; a `--kb` read of a dependency whose commit carries a plugin under `node_modules`, a `package.json#kibi.plugins` entry and a `.env.kibi` with a `NODE_OPTIONS` preload succeeds without the marker being written. Both cases fail on the 2026.11.2 build.

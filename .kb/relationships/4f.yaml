@@ -339,3 +339,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ccccf6ab4630
+  - type: assumes
+    from: SCEN-NEG-kb-check-impact-diagnostic-repeated
+    to: FACT-NEG-kb-check-impact-diagnostic-repeated
+    created_at: 2026-11-12T14:32:15.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e80fab3b8276
+  - type: verified_by
+    from: SCEN-NEG-kb-check-impact-diagnostic-repeated
+    to: TEST-kb-check-impact-diagnostics-once
+    created_at: 2026-11-12T14:32:15.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de190f35e167

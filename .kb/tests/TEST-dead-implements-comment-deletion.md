@@ -3,13 +3,14 @@ title: An edit that only deletes dead implements comments is not put to the pers
 status: passing
 priority: must
 tags:
+  - e2e
   - integration
   - unit
-verification_scope: integration
+verification_scope: end_to_end
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-11-12, after the review of release 2026.11.2 reported the findings: "Well, can you make a PR with a hotfix then?" and "Yes, do all post review work in the hotfix."'
-  recorded_at: '2026-11-12T14:23:47.129Z'
+  recorded_at: '2026-11-12T14:31:02.972Z'
 id: TEST-dead-implements-comment-deletion
 type: test
 proof_contract:
@@ -55,7 +56,10 @@ proof_receipts:
           status: unavailable
     kind: e2e
     evidence_level: tested
+verification_perspective: consumer
 ---
 `packages/agent-core/tests/decision-guard.test.ts` asserts which lines count as a dead implements comment and that an edit, a list of edits and a whole-file write are recognised only when every removed line is such a comment and nothing else changes. `packages/claude/tests/hook-runner.test.ts` asserts that the Claude hook does not ask for a comment-only deletion in a file a firm requirement governs and still asks when the same edit also changes code. It would pass falsely if the file were not governed by a firm requirement, so the second case uses the same file.
 
 Integration: the Claude case drives the real hook runner with PreToolUse events against a temporary workspace that holds a KB and the source file, so the decision guard, the manifest lookup and the hook output are exercised together.
+
+End to end: `packages/claude/tests/dead-implements-comment-consumer.test.ts` runs the shipped `bin/hook-runner.mjs` bundle under node with a PreToolUse event, as Claude Code does, in a workspace whose file a firm requirement governs. A comment-only deletion returns no permission decision and the same edit with a code change returns `ask`. The first assertion fails on the 2026.11.2 bundle.

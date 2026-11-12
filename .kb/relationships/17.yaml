@@ -248,3 +248,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-85b2176ea941
+  - type: assumes
+    from: SCEN-NEG-kb-dependency-untrusted-input
+    to: FACT-NEG-kb-dependency-option-like-git-value-accepted
+    created_at: 2026-11-12T14:32:09.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-769d9e2e1f98

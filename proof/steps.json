@@ -7563,7 +7563,8 @@
         "180000",
         "./packages/cli/tests/dependencies/kb-dependencies.test.ts",
         "./packages/cli/tests/plugins/project-config.test.ts",
-        "./packages/cli/tests/env/bootstrap.test.ts"
+        "./packages/cli/tests/env/bootstrap.test.ts",
+        "./packages/cli/tests/dependencies/kb-dependency-untrusted-consumer.test.ts"
       ]
     ]
   },
@@ -7576,7 +7577,8 @@
         "--timeout",
         "180000",
         "./packages/agent-core/tests/decision-guard.test.ts",
-        "./packages/claude/tests/hook-runner.test.ts"
+        "./packages/claude/tests/hook-runner.test.ts",
+        "./packages/claude/tests/dead-implements-comment-consumer.test.ts"
       ]
     ]
   },
@@ -7590,7 +7592,8 @@
         "180000",
         "./packages/cli/tests/public-mutation/operations/check-format-shared.mutation.test.ts",
         "./packages/cli/tests/public/operations/migration-plan-coverage.test.ts",
-        "./packages/mcp/tests/tools/check-impact.test.ts"
+        "./packages/mcp/tests/tools/check-impact.test.ts",
+        "./packages/cli/tests/consumer/check-impact-diagnostics-once.test.ts"
       ]
     ]
   }

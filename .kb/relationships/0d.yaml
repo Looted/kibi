@@ -272,3 +272,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d02c071a8059
+  - type: constrains
+    from: REQ-kb-check-impact-diagnostics-once
+    to: FACT-SUBJECT-D6BF4556F3B0B4D0
+    created_at: 2026-11-12T14:27:46.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56a997e263b4
+  - type: requires_property
+    from: REQ-kb-check-impact-diagnostics-once
+    to: FACT-PROP-D21D32E44A6F2E09
+    created_at: 2026-11-12T14:27:46.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07101fe4b475
+  - type: specified_by
+    from: REQ-kb-check-impact-diagnostics-once
+    to: SCEN-NEG-kb-check-impact-diagnostic-repeated
+    created_at: 2026-11-12T14:32:25.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2276a4427c3

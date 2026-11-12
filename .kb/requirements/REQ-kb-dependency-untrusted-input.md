@@ -10,7 +10,7 @@ origin:
   kind: agent
   ref: 'Maintainer request, 2026-11-12, after the review of release 2026.11.2 reported the findings: "Well, can you make a PR with a hotfix then?" and "Yes, do all post review work in the hotfix."; wording approved by the maintainer, 2026-11-12: "Approve"'
   approved_by: maintainer
-  recorded_at: '2026-11-12T14:23:40.808Z'
+  recorded_at: '2026-11-12T14:32:20.154Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: 441abe1a6c5fe9358986527686d3e4c78c9ca909d3d437f340faa18302085a0c
@@ -18,14 +18,14 @@ semantic_inventory:
   - claim_key: CLAIM-5334EEA1EC201828
     claim_text: Kibi must refuse a KB dependency whose git URL or ref starts with a hyphen
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
       start: 0
       end: 74
   - claim_key: CLAIM-824AC2A11EDF73F7
     claim_text: A Kibi process that serves a KB dependency must not load the plugins or the env files that the dependency's checkout declares
     role: normative
-    status: missing
+    status: modeled
     span:
       start: 76
       end: 201
