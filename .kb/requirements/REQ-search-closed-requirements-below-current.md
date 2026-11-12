@@ -30,6 +30,7 @@ logic_claims:
   - CLAIM-EB84071A3A98BEFC
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-11-11T17:33:40.133Z'
 id: REQ-search-closed-requirements-below-current
 type: req

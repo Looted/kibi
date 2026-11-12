@@ -22,6 +22,7 @@ logic_claims:
   - CLAIM-F4535F0F2AB06999
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-11-11T17:33:45.955Z'
 id: REQ-search-answer-replacement-strong-match
 type: req

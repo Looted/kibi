@@ -30,6 +30,7 @@ logic_claims:
   - CLAIM-27E2CE264574A3B2
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-11-11T17:33:53.229Z'
 id: REQ-unowned-file-closed-candidates
 type: req
