@@ -37,7 +37,6 @@ import {
   type DocSection,
   OG_IMAGE,
   REPORT_PATH,
-  SITE_TAGLINE,
   publishedLandingHref,
   publishedPageHref,
   sitePagePath,
@@ -557,7 +556,9 @@ function main(): void {
   const landing: PageShell = {
     root: "",
     title: "Kibi · Requirements framework for AI coding agents",
-    description: SITE_TAGLINE,
+    // Link previews (LinkedIn) want a description of at least 100 characters.
+    description:
+      "Kibi is a requirements framework for AI coding agents. It records the reasoning behind your code as requirements in your repository, links them to code and tests, and makes every later agent respect them.",
     publishedUrl: publishedLandingHref(),
     section: null,
     navHtml: buildNav(titles, null),
