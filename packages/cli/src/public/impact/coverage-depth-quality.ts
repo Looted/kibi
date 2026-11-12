@@ -325,7 +325,6 @@ function supersededRequirementIds(
   );
 }
 
-// implements REQ-audit-quality-diagnostics-v1
 function isReviewableRequirement(
   requirement: ExtractedEntity,
   superseded: ReadonlySet<string>,
@@ -395,7 +394,6 @@ function hasNarrowerUnit(symbol: ExtractedEntity, sourceFile: string): boolean {
  * touches the file, so `tested` evidence is cheap; narrower behavioral
  * symbols would tie it to the code that implements the claim.
  */
-// implements REQ-audit-quality-diagnostics-v1
 export function createCoarseAnchorQualityDiagnostics(
   manifestResults: readonly ExtractionResult[],
 ): readonly QualityDiagnostic[] {

@@ -19,7 +19,6 @@ export interface NavigationCommandsResult {
 /**
  * Registers navigation commands for opening entities and focusing the knowledge base view.
  */
-// implements REQ-vscode-traceability
 export function registerNavigationCommands(
   output: vscode.OutputChannel,
   treeDataProvider: {

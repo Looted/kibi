@@ -54,7 +54,6 @@ const NOT_INHERITED = new Set([
  * say, its `required_evidence`, and the store disagrees with the file until a
  * rebuild.
  */
-// implements REQ-kibi-operation-interface-parity
 export async function withStoredOmittedProperties(
   input: UpsertInput,
   lookup: StoredEntityLookup,

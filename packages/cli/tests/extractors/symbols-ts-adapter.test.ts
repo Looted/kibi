@@ -1,4 +1,3 @@
-// implements REQ-001
 import { describe, expect, test } from "bun:test";
 import {
   createTsMorphSourceAnalysisProvider,
@@ -15,7 +14,7 @@ describe("ts-morph source analysis adapter", () => {
     expect(provider.supportsFile("docs/a.md")).toBe(false);
   });
 
-  test("reports module and symbol fields, including directive text", () => {
+  test("reports module and symbol fields, never comment text", () => {
     const result = provider.analyzeText(
       "src/a.ts",
       [
@@ -40,9 +39,10 @@ describe("ts-morph source analysis adapter", () => {
       kind: "function",
       startLine: 3,
     });
-    expect(traced?.directiveText).toContain("implements REQ-1");
+    // A leading comment is not a traceability link, so no comment text is
+    // passed on.
+    expect(traced).not.toHaveProperty("directiveText");
     expect(Object.keys(plain ?? {}).sort()).toEqual([
-      "directiveText",
       "endColumn",
       "endLine",
       "kind",

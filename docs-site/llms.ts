@@ -10,7 +10,6 @@ import path from "node:path";
 import { DOCS, SITE_TAGLINE, publishedPageHref } from "./catalog.js";
 import { pageMeta } from "./page-meta.js";
 
-// implements REQ-docs-readme-published-links
 export function renderLlmsTxt(repoRoot: string): string {
   const lines = [
     "# Kibi",

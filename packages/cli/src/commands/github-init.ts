@@ -33,7 +33,6 @@ const __dirname = path.dirname(__filename);
 export const GITHUB_REPORT_WORKFLOW_RELPATH =
   ".github/workflows/kibi-report.yml";
 export const GITHUB_BADGE_WORKFLOW_RELPATH = ".github/workflows/kibi-badge.yml";
-// implements REQ-kibi-fresh-clone-setup
 export const GITHUB_CHECK_WORKFLOW_RELPATH = ".github/workflows/kibi-check.yml";
 export const GITHUB_PAGES_NAMESPACE = "kibi-report";
 export const KIBI_BADGE_ALT = "Kibi requirement health";
@@ -90,7 +89,6 @@ export type GitHubScaffoldResult = Readonly<{
   repo: GitHubRepo | undefined;
 }>;
 
-// implements REQ-kibi-github-report-integration
 export function githubTemplateDir(): string {
   return path.resolve(__dirname, "..", "..", "templates", "github");
 }
@@ -286,7 +284,6 @@ export function ensureKibiReportGitIgnore(cwd: string): GitIgnoreWriteStatus {
   return "updated";
 }
 
-// implements REQ-kibi-github-report-integration
 export function scaffoldGitHubIntegration(
   options: GitHubScaffoldOptions,
   deps: GitHubInitDeps = {},
@@ -444,7 +441,6 @@ function insertLine(
  * contributor's checkout has installed. Never overwrites a workflow the
  * project changed.
  */
-// implements REQ-kibi-fresh-clone-setup
 export function scaffoldCheckWorkflow(
   cwd: string,
   deps: Pick<GitHubInitDeps, "log" | "error"> = {},

@@ -138,7 +138,6 @@ function managerConfigPath(
  * a core.hooksPath pointing into `.husky`, then a manager configuration file
  * that has not been installed yet.
  */
-// implements REQ-git-hook-manager-integration
 export function detectHookManager(
   worktreeRoot: string,
   effectiveHooksDir: string,
@@ -300,7 +299,6 @@ function preCommitFrameworkCommands(
  * configuration, or null when the manager does not define that hook (or its
  * configuration cannot be read).
  */
-// implements REQ-git-hook-manager-integration
 export function hookManagerCommands(
   manager: HookManagerName,
   worktreeRoot: string,
@@ -381,7 +379,6 @@ const KIBI_HOOK_DELEGATIONS: Readonly<
 })();
 
 /** Labels of the Kibi commands a hook definition never visibly runs. */
-// implements REQ-git-hook-manager-integration
 export function missingKibiHookCommands(
   hook: ManagedHookName,
   scripts: readonly string[],
@@ -481,7 +478,6 @@ function preCommitFrameworkSnippet(hooks: readonly ManagedHookName[]): string {
  * templates run, in a hook manager's own format. `shell` and `husky` print
  * the hook-script snippets of `kibi init --print-hook`.
  */
-// implements REQ-git-hook-manager-integration
 export function hookManagerSnippet(
   format: HookSnippetFormat,
   hooks: readonly ManagedHookName[],
@@ -513,7 +509,6 @@ export interface HookManagerCoverage {
 }
 
 /** What each Kibi-managed hook looks like in the manager's configuration. */
-// implements REQ-git-hook-manager-integration
 export function hookManagerCoverage(
   manager: HookManagerName,
   worktreeRoot: string,

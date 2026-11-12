@@ -346,7 +346,6 @@ describe("compile plan application", () => {
     ]);
   });
 
-  // implements REQ-kibi-truthful-consistency
   function preflightContext(
     root: string,
     analysis: Parameters<typeof whatIfResult>[0],
@@ -514,7 +513,6 @@ describe("compile plan application", () => {
     expect(commits()).toBe(0);
   });
 
-  // implements REQ-kibi-truthful-consistency
   // A store that holds only what the plan's committed steps wrote, so a
   // lookup of an entity no step has committed yet fails.
   function stagedStoreContext(

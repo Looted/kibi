@@ -1,5 +1,4 @@
 % Module: kb_consistency
-% implements REQ-kibi-kb-certificates
 % The kb-consistency check rules.  Each run produces the certificate bundle
 % (certificates.pl), round-trips it through JSON exactly as a saved bundle
 % would be read, and re-checks it with the independent checker

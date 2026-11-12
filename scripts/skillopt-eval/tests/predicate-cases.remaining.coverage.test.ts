@@ -1,4 +1,3 @@
-// implements REQ-skillopt-predicate-first-requirements
 import { afterEach, describe, expect, test } from "bun:test";
 import { PREDICATE_CASES } from "../fixtures/predicate-case-data";
 import {

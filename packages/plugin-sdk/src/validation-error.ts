@@ -1,5 +1,4 @@
 /** The error every plugin-protocol validator throws, with a stable code. */
-// implements REQ-capability-plugin-protocol-v1
 export class PluginValidationError extends Error {
   readonly code: string;
 

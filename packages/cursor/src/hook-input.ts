@@ -1,4 +1,3 @@
-// implements REQ-cursor-kibi-plugin-v1, REQ-cursor-stop-job-vs-plan
 export type HookEvent =
   | "sessionStart"
   | "preToolUse"

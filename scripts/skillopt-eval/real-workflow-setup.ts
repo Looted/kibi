@@ -20,7 +20,6 @@ import {
  * "core" limits descriptors to the four core families (the legacy optimize
  * trainer's contract); "all" adds the skill's supplemental family.
  */
-// implements REQ-skillopt-codex-optimization
 export type FamilyScope = "all" | "core";
 
 function scopedCatalog(skill: CanonicalSkill, scope: FamilyScope) {
@@ -29,7 +28,6 @@ function scopedCatalog(skill: CanonicalSkill, scope: FamilyScope) {
     : buildSkillCatalog(skill);
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function publicSkillDescriptors(
   split: "train" | "development",
@@ -51,7 +49,6 @@ export function publicSkillDescriptors(
     }));
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export async function taskScopedPublicSkillDescriptors(
   split: "train" | "development",

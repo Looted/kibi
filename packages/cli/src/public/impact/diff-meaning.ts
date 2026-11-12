@@ -87,7 +87,6 @@ function hasMeaningfulDiffHunk(diffLines: readonly string[]): boolean {
   );
 }
 
-// implements REQ-cli-staged-impact-enforcement
 export function hasMeaningfulSourceDiff(diffText: string): boolean {
   // Every "@@" header line starts a new hunk; text before the first header
   // forms one more.

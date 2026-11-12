@@ -7,7 +7,6 @@
  */
 
 /** Entity IDs seeded by every decision and commit-review setup. */
-// implements REQ-skillopt-codex-optimization
 export const DECISION_IDS = {
   /** Firm rule set by a person: names are at most 32 characters. */
   rule: "REQ-fixture-family-name-length",
@@ -21,37 +20,30 @@ export const DECISION_IDS = {
 } as const;
 
 /** The seeded firm rule's stored title; editing it in place is forbidden. */
-// implements REQ-skillopt-codex-optimization
 export const DECISION_RULE_TITLE =
   "Fixture family names are at most 32 characters";
 
 /** Every entity a decision setup seeds; anything else was written by the model. */
-// implements REQ-skillopt-codex-optimization
 export const DECISION_SEEDED_IDS: ReadonlySet<string> = new Set(
   Object.values(DECISION_IDS),
 );
 
 /** Source of the new exported helper the label variants stage. */
-// implements REQ-skillopt-codex-optimization
 export const LABEL_SYMBOL_TITLE = "fixtureFamilyLabel";
 
 /** File the merge variant takes unchanged from the merged branch. */
-// implements REQ-skillopt-codex-optimization
 export const INHERITED_SOURCE_PATH = "src/inherited.ts";
 
 /** Path of the impact-review record the review variant drafts. */
-// implements REQ-skillopt-codex-optimization
 export const IMPACT_REVIEW_PATH = ".kibi/impact-review.json";
 
 /** Path of the impact policy the review variant commits. */
-// implements REQ-skillopt-codex-optimization
 export const IMPACT_POLICY_PATH = ".kibi/impact-policy.json";
 
 function doc(front: readonly string[], body: string): string {
   return ["---", ...front, "---", "", body, ""].join("\n");
 }
 
-// implements REQ-skillopt-codex-optimization
 export const DECISION_FIXTURE_SOURCE = [
   "// Fixture family names are trimmed and at most 32 characters long.",
   "const MAX_FAMILY_NAME_LENGTH = 32;",
@@ -66,7 +58,6 @@ export const DECISION_FIXTURE_SOURCE = [
   "",
 ].join("\n");
 
-// implements REQ-skillopt-codex-optimization
 export const DECISION_FIXTURE_TEST = [
   'import { expect, test } from "bun:test";',
   'import { fixtureFamily } from "../src/fixture";',
@@ -87,13 +78,10 @@ const LABEL_FUNCTION = [
 ].join("\n");
 
 /** Base source plus the exported label helper (staged by the label variants). */
-// implements REQ-skillopt-codex-optimization
 export const LABEL_FIXTURE_SOURCE = `${DECISION_FIXTURE_SOURCE}${LABEL_FUNCTION}`;
 
-// implements REQ-skillopt-codex-optimization
 export const LABEL_FIXTURE_TEST_PATH = "tests/fixture-family-label.test.ts";
 
-// implements REQ-skillopt-codex-optimization
 export const LABEL_FIXTURE_TEST = [
   'import { expect, test } from "bun:test";',
   'import { fixtureFamilyLabel } from "../src/fixture";',
@@ -105,7 +93,6 @@ export const LABEL_FIXTURE_TEST = [
 ].join("\n");
 
 /** The firm rule, its scenario, test and the enforcing symbol. */
-// implements REQ-skillopt-codex-optimization
 export const DECISION_DOCUMENTS: Readonly<Record<string, string>> = {
   [`.kb/requirements/${DECISION_IDS.rule}.md`]: doc(
     [
@@ -162,7 +149,6 @@ export const DECISION_DOCUMENTS: Readonly<Record<string, string>> = {
 };
 
 /** The label requirement, scenario and test recorded before the helper exists. */
-// implements REQ-skillopt-codex-optimization
 export const LABEL_DOCUMENTS: Readonly<Record<string, string>> = {
   [`.kb/requirements/${DECISION_IDS.labelRequirement}.md`]: doc(
     [
@@ -219,7 +205,6 @@ export const LABEL_DOCUMENTS: Readonly<Record<string, string>> = {
 };
 
 /** The seeded symbol manifest: fixtureFamily enforces the firm rule. */
-// implements REQ-skillopt-codex-optimization
 export const DECISION_SYMBOLS = [
   "symbols:",
   `  - id: ${DECISION_IDS.symbol}`,
@@ -235,7 +220,6 @@ export const DECISION_SYMBOLS = [
 ].join("\n");
 
 /** Uncommitted edit of the unrecorded-change variant: whitespace is rejected. */
-// implements REQ-skillopt-codex-optimization
 export const WHITESPACE_FIXTURE_SOURCE = DECISION_FIXTURE_SOURCE.replace(
   "  return trimmed;",
   [
@@ -246,45 +230,38 @@ export const WHITESPACE_FIXTURE_SOURCE = DECISION_FIXTURE_SOURCE.replace(
   ].join("\n"),
 );
 
-// implements REQ-skillopt-codex-optimization
 export const WHITESPACE_FIXTURE_TEST = DECISION_FIXTURE_TEST.replace(
   "});\n",
   '  expect(() => fixtureFamily("alpha beta")).toThrow();\n});\n',
 );
 
 /** Coordinates-only staged edit: two comment lines above the code. */
-// implements REQ-skillopt-codex-optimization
 export const COMMENTED_FIXTURE_SOURCE = `// Naming helpers for fixture families.\n// Callers pass raw user input.\n\n${DECISION_FIXTURE_SOURCE}`;
 
 /** Behavior-preserving staged rename of a local variable. */
-// implements REQ-skillopt-codex-optimization
 export const RENAMED_FIXTURE_SOURCE = DECISION_FIXTURE_SOURCE.replaceAll(
   "trimmed",
   "cleaned",
 );
 
 /** Staged message change judged by the impact-review variant. */
-// implements REQ-skillopt-codex-optimization
 export const MESSAGE_FIXTURE_SOURCE = DECISION_FIXTURE_SOURCE.replace(
   '"fixture family name is longer than 32 characters"',
   '`fixture family name "${trimmed}" is longer than 32 characters`',
 );
 
 /** Staged change that contradicts the firm rule: the limit becomes 64. */
-// implements REQ-skillopt-codex-optimization
 export const RAISED_LIMIT_FIXTURE_SOURCE = DECISION_FIXTURE_SOURCE.replaceAll(
   "32",
   "64",
 );
 
-// implements REQ-skillopt-codex-optimization
 export const RAISED_LIMIT_FIXTURE_TEST = DECISION_FIXTURE_TEST.replaceAll(
   "32",
   "64",
 ).replace("repeat(33)", "repeat(65)");
 
 /** Helper the merged side branch adds without Kibi evidence. */
-// implements REQ-skillopt-codex-optimization
 export const INHERITED_SOURCE = [
   "export function inheritedHelper(value: string): string {",
   "  return value.toUpperCase();",
@@ -293,7 +270,6 @@ export const INHERITED_SOURCE = [
 ].join("\n");
 
 /** Impact policy committed by the review variant. */
-// implements REQ-skillopt-codex-optimization
 export const IMPACT_POLICY = `${JSON.stringify(
   {
     contractVersion: "kibi.impact-policy.v1",

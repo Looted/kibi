@@ -3,7 +3,6 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { PrologProcess } from "../../src/prolog";
 import { utf8ChunkDecoder } from "../../src/prolog/utf8-transport";
 
-// implements REQ-prolog-utf8-text
 const TEXT = "§3 ¶2 – zażółć 漢字";
 
 describe("Prolog text transport under a non-UTF-8 locale", () => {

@@ -9,8 +9,6 @@ import {
   REVIEW_CANDIDATE_MIN_SCORE,
 } from "../../../src/operations/planning/conflict-review.js";
 
-// implements REQ-kibi-contradiction-review-limits
-
 /**
  * How many contradiction review candidates compile-intent lists and how similar
  * they must be. Kibi reads each constant itself at ingest, so the certificate is checked against the code.

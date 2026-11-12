@@ -25,7 +25,6 @@ function failResult(message: string): never {
 }
 
 /** A searchHints capability exposes an id, a model and hint(). */
-// implements REQ-capability-search-hints-v1
 export function validateSearchHints(value: unknown): SearchHintsV1 {
   if (!isRecord(value) || typeof value.hint !== "function") {
     throw new PluginValidationError(
@@ -50,7 +49,6 @@ export function validateSearchHints(value: unknown): SearchHintsV1 {
  * from highest to lowest (ties by id), and no more than `limit` hints may be
  * returned, so a provider cannot invent or reorder evidence.
  */
-// implements REQ-capability-search-hints-v1
 export function validateSearchHintsResult(
   value: unknown,
   entityIds: readonly string[],

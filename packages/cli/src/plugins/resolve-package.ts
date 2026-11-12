@@ -27,7 +27,6 @@ import {
   readProjectPackageJson,
 } from "./project-config.js";
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export class PluginResolutionError extends Error {
   readonly code: string;
 
@@ -38,7 +37,6 @@ export class PluginResolutionError extends Error {
   }
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type ResolvedProjectPackage = Readonly<{
   packageName: string;
   packageRoot: string;
@@ -72,7 +70,6 @@ function isWithinRoot(rootPath: string, candidatePath: string): boolean {
 /**
  * Bare npm package names only. Paths, URLs, subpaths, and aliases are rejected.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function isBarePackageName(packageName: string): boolean {
   const trimmed = packageName.trim();
   if (!trimmed || trimmed !== packageName) return false;
@@ -94,7 +91,6 @@ export function isBarePackageName(packageName: string): boolean {
   return true;
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export function assertBarePackageName(packageName: string): void {
   if (!isBarePackageName(packageName)) {
     throw new PluginResolutionError(
@@ -104,7 +100,6 @@ export function assertBarePackageName(packageName: string): void {
   }
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export function hasDeclaredProjectDependency(
   workspaceRoot: string,
   packageName: string,
@@ -124,7 +119,6 @@ export function hasDeclaredProjectDependency(
   );
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function hasConsumerNodeModulesLink(
   workspaceRoot: string,
   packageName: string,
@@ -151,7 +145,6 @@ export function hasConsumerNodeModulesLink(
  * within workspace OR node_modules symlink OR Yarn PnP active resolver.
  * Rejects NODE_PATH / global / ambient packages.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export function isProjectScopedPackage(
   workspaceRoot: string,
   packageName: string,
@@ -164,7 +157,6 @@ export function isProjectScopedPackage(
   );
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function packageJsonForResolvedFile(
   startPath: string,
   expectedPackageName: string,
@@ -196,7 +188,6 @@ export function packageJsonForResolvedFile(
  * Confine a resolved entry to the realpath'd package root. Rejects
  * `exports`/`main` traversal and symlink escapes.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function assertResolvedEntryInsidePackageRoot(
   packageRoot: string,
   entryPath: string,
@@ -288,7 +279,6 @@ function resolvePackageEntryWithNode(
  * Resolve a declared project-local plugin package through the workspace
  * package.json require graph. NODE_PATH / global / path / URL references fail.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function resolveProjectLocalPackage(
   workspaceRoot: string,
   packageName: string,

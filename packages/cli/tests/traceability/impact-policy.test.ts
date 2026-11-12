@@ -12,8 +12,6 @@ import {
   fingerprint,
 } from "../../src/traceability/impact-review.js";
 
-// implements REQ-impact-policy-stage-e-content-bound-review
-
 const FP = `sha256:${"1".repeat(64)}` as const;
 const FP2 = `sha256:${"2".repeat(64)}` as const;
 const OID = "c".repeat(40);

@@ -141,7 +141,6 @@ const GENERIC_DOCUMENT_NAMES = new Set([
  * generic name such as README.md, its directory (packages/recorder/README.md
  * covers recorder). A root README names no component.
  */
-// implements REQ-bootstrap-subject-key-shape
 export function markdownComponentHint(
   relativePath: string,
 ): string | undefined {
@@ -246,7 +245,6 @@ function requirementCandidate(
   };
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function markdownCandidates(
   item: BootstrapEvidence,
   existingIds: ReadonlySet<string>,

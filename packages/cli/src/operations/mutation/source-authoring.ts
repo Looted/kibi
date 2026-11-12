@@ -79,7 +79,6 @@ export function writePendingSourceReceipt(
 type FileTimes = Readonly<{ atime: Date; mtime: Date }>;
 
 /** The access and modification times of a file, or `null` when unreadable. */
-// implements REQ-core-atomic-upsert-persistence
 export function readFileTimes(absolutePath: string): FileTimes | null {
   try {
     const stat = fs.statSync(absolutePath);
@@ -94,7 +93,6 @@ export function readFileTimes(absolutePath: string): FileTimes | null {
  * times with the compiled snapshot, do not report a rolled-back write as a
  * newer source. Best effort: a port without a host file is left alone.
  */
-// implements REQ-core-atomic-upsert-persistence
 export function restoreFileTimes(
   absolutePath: string,
   times: FileTimes | null,
@@ -113,7 +111,6 @@ export function restoreFileTimes(
  * Snapshot a pending-source receipt's bytes, or `null` when none exists, so a
  * rolled-back write can restore the receipt exactly as it found it.
  */
-// implements REQ-core-atomic-upsert-persistence
 function readPendingSourceReceiptBytes(receiptPath: string): string | null {
   try {
     return fs.readFileSync(receiptPath).toString();
@@ -127,7 +124,6 @@ function readPendingSourceReceiptBytes(receiptPath: string): string | null {
  * receipt binds untracked input to exact bytes, so one left behind for a
  * removed file makes every later sync fail on a missing pending source.
  */
-// implements REQ-core-atomic-upsert-persistence, REQ-kibi-operation-interface-parity
 export function retirePendingSourceReceipt(
   workspaceRoot: string,
   relativePath: string,
@@ -146,7 +142,6 @@ export function retirePendingSourceReceipt(
  * a migration republishes the receipt it finds, and leaves a file without
  * one alone (tracked sources carry no receipt). Returns whether one existed.
  */
-// implements REQ-cli-schema-migration, REQ-core-atomic-upsert-persistence
 export function republishPendingSourceReceipt(
   workspaceRoot: string,
   relativePath: string,
@@ -369,7 +364,6 @@ function sourcePath(
  * on that file judges the file the writer merges into. Undefined when the
  * writer has no target (it reports DOCUMENT_PATH_REQUIRED itself).
  */
-// implements REQ-kibi-uncompiled-source-visibility
 export function newEntitySourceTarget(
   context: OperationContext,
   input: UpsertInput,
@@ -383,7 +377,6 @@ export function newEntitySourceTarget(
 }
 
 /** The front matter of an authored document; throws on YAML it cannot parse. */
-// implements REQ-kibi-uncompiled-source-visibility
 export function authoredFrontmatter(content: string): Record<string, unknown> {
   return bodyAndFrontmatter(content).frontmatter;
 }
@@ -441,7 +434,6 @@ function entityFrontmatterUpdates(
  * lists, indentation, comments). Returns undefined when the block is not a
  * plain block mapping that can be patched in place.
  */
-// implements REQ-core-persistence
 function patchFrontmatter(
   raw: string,
   loaded: Readonly<Record<string, unknown>>,
@@ -511,7 +503,6 @@ function patchFrontmatter(
   return patched;
 }
 
-// implements REQ-kb-upsert-statement-follows-semantic-text
 function sameStatement(left: string, right: string): boolean {
   const normalized = (text: string) => text.replace(/\s+/g, " ").trim();
   return normalized(left) === normalized(right);
@@ -523,7 +514,6 @@ function sameStatement(left: string, right: string): boolean {
  * (context sections are kept), so search and readers of the document never
  * quote a statement the requirement no longer makes.
  */
-// implements REQ-kb-upsert-statement-follows-semantic-text
 function bodyForStatement(
   type: string,
   entity: Readonly<Record<string, unknown>>,
@@ -579,7 +569,6 @@ function renderEntityDocument(
 }
 
 /** Generated coordinate fields belong exclusively to `.kb/symbol-coordinates.yaml`. */
-// implements REQ-generated-coordinate-persistence
 export const GENERATED_SYMBOL_FIELDS = [
   "sourceLine",
   "sourceColumn",
@@ -626,14 +615,12 @@ export function manifestRelationships(
   });
 }
 
-// implements REQ-source-analysis-v2
 // A matching entry that is not a mapping (a list whose missing `id` reads as
 // "undefined") cannot be merged.
 function manifestRecord(item: unknown): Record<string, unknown> | undefined {
   return isMap(item) ? (item.toJSON() as Record<string, unknown>) : undefined;
 }
 
-// implements REQ-source-analysis-v2
 function failDuplicateConflict(entityId: string, field: string): never {
   throw new OperationError(
     "SOURCE_DUPLICATE_CONFLICT",
@@ -642,7 +629,6 @@ function failDuplicateConflict(entityId: string, field: string): never {
   );
 }
 
-// implements REQ-source-analysis-v2
 function mergeCompatibleManifestField(
   target: Record<string, unknown>,
   field: string,
@@ -660,7 +646,6 @@ function mergeCompatibleManifestField(
   Object.defineProperty(target, field, { enumerable: true, value });
 }
 
-// implements REQ-source-analysis-v2
 function mergeDuplicateManifestFields(
   records: readonly Record<string, unknown>[],
   entityId: string,
@@ -681,7 +666,6 @@ function mergeDuplicateManifestFields(
   return merged;
 }
 
-// implements REQ-source-analysis-v2
 function manifestRelationshipRecords(
   record: Readonly<Record<string, unknown>>,
   entityId: string,
@@ -693,7 +677,6 @@ function manifestRelationshipRecords(
   return record.relationships;
 }
 
-// implements REQ-source-analysis-v2
 function mergeManifestRelationshipRecords(
   records: readonly Record<string, unknown>[],
   incoming: readonly RelationshipInput[] | undefined,
@@ -782,7 +765,6 @@ function mergeManifestRelationshipRecords(
   ];
 }
 
-// implements REQ-source-analysis-v2
 function mergeManifestLinks(
   records: readonly Record<string, unknown>[],
   entity: Readonly<Record<string, unknown>>,
@@ -839,7 +821,6 @@ function renderSymbolManifest(
   // A new manifest is an empty one that gains its first entry.
   const doc = parseDocument(existingContent ?? "symbols: []\n");
   const items = manifestSymbols(doc).items;
-  // implements REQ-core-persistence
   // Render the list (and the entries that were written inside it) as block
   // YAML so diffs stay reviewable.
   blockifySymbolManifest(doc);
@@ -1050,7 +1031,6 @@ export function renderYamlRelationshipDeletion(
  * document's current content. Compile plans render their documents with it
  * so a plan writes exactly what `kb_upsert` would.
  */
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-kb-upsert-statement-follows-semantic-text
 export function renderSourceDocument(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,
@@ -1084,7 +1064,6 @@ export function renderSourceDocument(
  * they connect. Any other Git outcome (not a repository, git missing) is
  * "unknown" and keeps the previous behaviour.
  */
-// implements REQ-core-persistence
 export function isUntrackedByGit(
   workspaceRoot: string,
   relative: string,
@@ -1105,7 +1084,6 @@ export function isUntrackedByGit(
   }
 }
 
-// implements REQ-kibi-operation-interface-parity
 /**
  * The authored document an upsert publishes, resolved and rendered without
  * writing: the target path (with its containment checks), the current bytes
@@ -1222,7 +1200,6 @@ export async function writeSourceForUpsert(
     if (before === undefined) {
       if (fsPort.unlink) await fsPort.unlink(absolute);
       else await fsPort.writeFile(absolute, "");
-      // implements REQ-core-atomic-upsert-persistence
       // A receipt that predates this write (its file was removed outside
       // Kibi) keeps binding the missing source so sync still reports it.
       try {
@@ -1245,7 +1222,6 @@ export async function writeSourceForUpsert(
         await fsPort.unlink?.(rollbackTemp).catch(() => undefined);
         throw error;
       }
-      // implements REQ-core-atomic-upsert-persistence
       // The authored bytes are back to `before`; rebind the pending receipt
       // and the file times to the same state they had before this write.
       try {

@@ -1,4 +1,3 @@
-// implements REQ-opencode-kibi-plugin-v1
 import path from "node:path";
 
 export type PathKind =
@@ -36,7 +35,6 @@ const KIBI_LANE_KINDS: Array<{ prefix: string; kind: PathKind }> = [
 ];
 
 export function analyzePath(
-  // implements REQ-opencode-kibi-plugin-v1
   filePath: string,
   cwd = process.cwd(),
 ): PathAnalysis {

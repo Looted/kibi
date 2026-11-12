@@ -95,7 +95,6 @@ export function stagedCodeModeHostExecutable(codexExecutable: string): string {
   return resolve(dirname(codexExecutable), "codex-code-mode-host");
 }
 
-// implements REQ-skillopt-codex-optimization
 export function buildCodexConfig(options: CodexConfigOptions): string {
   // Refuse to emit a launchable config unless the active models are valid
   // and explicitly priced; this runs before every Codex launch.
@@ -175,7 +174,6 @@ export function buildCodexConfig(options: CodexConfigOptions): string {
   ].join("\n");
 }
 
-// implements REQ-skillopt-codex-optimization
 export function buildCodexExecArgv(
   options: Readonly<{
     codexCommand: string;

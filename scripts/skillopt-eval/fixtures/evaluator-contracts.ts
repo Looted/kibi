@@ -358,7 +358,6 @@ type PrivateEvaluatorManifest = Readonly<
   z.infer<typeof PrivateEvaluatorManifestSchema>
 >;
 
-// implements REQ-skillopt-codex-optimization
 export function parsePrivateEvaluatorManifest(
   text: string,
 ): PrivateEvaluatorManifest {

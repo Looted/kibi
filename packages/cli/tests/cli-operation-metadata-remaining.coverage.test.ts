@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { afterEach, describe, expect, test } from "bun:test";
 import { getCliOperationMetadata } from "../src/cli-operation-metadata.js";
 import type { OperationName } from "../src/public/operations/types.js";

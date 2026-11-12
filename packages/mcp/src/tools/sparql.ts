@@ -9,7 +9,6 @@ export type SparqlArgs = Readonly<Record<string, unknown>> & {
 
 export type SparqlResult = Awaited<ReturnType<typeof sparqlRemoteSpec.execute>>;
 
-// implements REQ-002, REQ-013, REQ-kibi-operation-interface-parity
 export async function handleSparql(
   prologOrArgs: PrologProcess | SparqlArgs,
   legacyArgs?: SparqlArgs,

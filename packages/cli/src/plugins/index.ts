@@ -16,7 +16,6 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export {
   describeConfiguredCapabilityPlugins,
   readProjectKibiConfig,
@@ -24,7 +23,6 @@ export {
   type ConfiguredCapabilityPluginDiagnostic,
   type ProjectPackageManifest,
 } from "./project-config.js";
-// implements REQ-capability-plugin-activation-disclosure-v1
 export {
   PluginResolutionError,
   PluginValidationError,
@@ -38,13 +36,11 @@ export {
   resolveProjectLocalPackage,
   type ResolvedProjectPackage,
 } from "./resolve-package.js";
-// implements REQ-capability-plugin-activation-disclosure-v1
 export {
   loadPluginPackage,
   type LoadPluginOptions,
   type LoadedPlugin,
 } from "./load-plugin.js";
-// implements REQ-capability-plugin-activation-disclosure-v1
 export {
   CapabilityRegistry,
   CapabilityRegistryCache,
@@ -58,21 +54,18 @@ export {
   type CapabilityRegistryOptions,
   type EnsureCapabilityRegistryOptions,
 } from "./registry.js";
-// implements REQ-capability-plugin-activation-disclosure-v1
 export {
   composeSemanticClassification,
   publicCapabilityStamp,
   type ComposedSemanticClassifierResult,
   type SemanticClassifierDiagnostic,
 } from "./compose-semantic-classifier.js";
-// implements REQ-capability-plugin-activation-disclosure-v1
 export {
   composeOntologyCatalog,
   composeOntologyMatches,
   type ComposedOntologyCatalog,
   type StampedOntologyCandidate,
 } from "./compose-ontology-packs.js";
-// implements REQ-capability-plugin-activation-disclosure-v1
 export {
   SourceAnalysisService,
   analyzeWithResolution,
@@ -81,20 +74,17 @@ export {
   type HostSourceAnalysisResult,
   type SourceAnalysisServiceOptions,
 } from "./source-analysis-service.js";
-// implements REQ-capability-plugin-activation-disclosure-v1
 export {
   EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS,
   allowsExternalSemanticClassifier,
   type ExternalSemanticClassifierOperation,
 } from "./external-allowlist.js";
-// implements REQ-kibi-vocabulary-alignment-capability
 export {
   composeClaimComparison,
   composeSubjectRanking,
   type ComposedVocabularyResult,
   type VocabularyAlignmentDiagnostic,
 } from "./compose-vocabulary-alignment.js";
-// implements REQ-kibi-vocabulary-alignment-capability
 export {
   EXTERNAL_VOCABULARY_ALIGNMENT_OPERATIONS,
   allowsExternalVocabularyAlignment,

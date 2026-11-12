@@ -1,4 +1,3 @@
-// implements REQ-agent-core-shared-hook-inputs
 import { describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import path from "node:path";

@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// implements REQ-cursor-kibi-plugin-v1, REQ-cursor-stop-job-vs-plan
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -101,7 +100,6 @@ export type HookEnvironment = {
  * or undefined so the generic Cursor guidance applies. Test-only links
  * (`covered_by`, `executable_for`) are not requirement ownership here.
  */
-// implements REQ-cursor-kibi-plugin-v1
 function knowledgeFor(
   workspaceRoot: string,
   linked: SourceLinkedSymbols,
@@ -118,7 +116,6 @@ function knowledgeFor(
   });
 }
 
-// implements REQ-agent-hosts-decision-guard
 /**
  * Cursor does not enforce a hook's "ask", so an edit of code that implements
  * a firm requirement gets a notice telling the agent to ask the person first,
@@ -166,7 +163,6 @@ function packageVersion(): string | null {
  * telemetry metric: Kibi lookups through MCP or the CLI, and edits with the
  * requirements the edited files implement.
  */
-// implements REQ-cursor-kibi-plugin-v1
 function recordToolTelemetry(
   input: ReturnType<typeof parseHookInput>,
   workspaceRoot: string,
@@ -328,7 +324,6 @@ export async function runHook(
             initialState.mcpState,
             workspaceTrusted,
           );
-          // implements REQ-kibi-fresh-clone-setup
           const context = [advisory, missingHooksNote(cwd)]
             .filter((line): line is string => Boolean(line))
             .join("\n");
@@ -410,7 +405,6 @@ export async function runHook(
           : emptyResult();
       }
 
-      // implements REQ-agent-hosts-decision-guard
       case "beforeSubmitPrompt": {
         // Cursor's prompt hook cannot add context: the request's rule note
         // waits for the next pre-edit message.
@@ -516,7 +510,6 @@ export async function runHook(
           : kbUsageTrace(input.toolName, input.toolInput)?.kbOperation;
         if (kbOperation === "kb_upsert") {
           markDecisionFlag(session, "kb-recorded");
-          // implements REQ-kibi-signoff-views
           if (isRequirementUpsert(input.toolInput)) {
             markDecisionFlag(session, "requirement-recorded");
           }
@@ -599,13 +592,11 @@ export async function runHook(
           return emptyResult();
         }
 
-        // implements REQ-agent-hosts-decision-guard
         // Source changed and nothing was recorded: the follow-up asks for the
         // decision to be recorded, once per conversation.
         const capture = claimCaptureReminder(session)
           ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
           : undefined;
-        // implements REQ-kibi-signoff-views
         // Requirements were written without a signoff view since: ask once.
         // A recorded requirement also counts as recorded knowledge, so this
         // never coincides with the capture request above.
@@ -670,7 +661,6 @@ export async function main(): Promise<void> {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-// implements REQ-cursor-kibi-plugin-v1
 // covered_by TEST-cursor-kibi-plugin-v1
 export function isInvokedAsCli(
   argv1: string | undefined,

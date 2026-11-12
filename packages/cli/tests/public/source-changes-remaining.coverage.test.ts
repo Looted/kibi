@@ -1,4 +1,3 @@
-// implements REQ-cli-staged-impact-enforcement
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as childProcess from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";

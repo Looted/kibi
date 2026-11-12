@@ -1,4 +1,3 @@
-// implements REQ-core-prolog-process-management
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import {
   appendFileSync,

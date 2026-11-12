@@ -34,7 +34,6 @@ import { PRODUCT_TAIL_PREDICATE_RULES } from "./predicate-rules-product-tail.js"
 import { PRODUCT_PREDICATE_RULES } from "./predicate-rules-product.js";
 
 /** Same evaluation order as CLI analyze-prose predicate detection. */
-// implements REQ-capability-plugin-builtin-parity-v1
 export const BUILTIN_PREDICATE_RULE_SETS: readonly (readonly PredicateRule[])[] =
   [
     LAUNCHER_PREDICATE_RULES,
@@ -74,7 +73,6 @@ function deriveSchemas(
 
 const BUILTIN_SCHEMAS = deriveSchemas(BUILTIN_PREDICATE_RULE_SETS);
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export class BuiltinOntologyPack implements OntologyPackV1 {
   readonly id = "kibi-plugin-builtin.ontology";
 
@@ -93,7 +91,6 @@ export class BuiltinOntologyPack implements OntologyPackV1 {
   }
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function createBuiltinOntologyPack(): OntologyPackV1 {
   return new BuiltinOntologyPack();
 }

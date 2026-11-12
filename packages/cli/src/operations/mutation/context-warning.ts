@@ -33,7 +33,6 @@ export interface UpsertDocumentPaths {
  * written file when there is one, the supplied body, the preserved body of
  * the entity's existing document, or the default a new requirement gets.
  */
-// implements REQ-kb-entity-body-context
 export function upsertDocumentBody(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,
@@ -56,7 +55,6 @@ export function upsertDocumentBody(
  * kb_upsert warning for a written entity whose body lacks context. The same
  * finding blocks `kb_check` as entity-context-missing, so agents see it first.
  */
-// implements REQ-kb-entity-body-context
 export function entityContextWarnings(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,

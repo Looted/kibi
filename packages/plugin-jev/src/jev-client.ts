@@ -5,45 +5,37 @@
 
 import type { SEMANTIC_LANES } from "kibi-plugin-sdk";
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export type JevLane = (typeof SEMANTIC_LANES)[number];
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export type JevChoiceAnswer = Readonly<{
   choice: string;
   probabilities?: Readonly<Record<string, number>>;
   confidence?: number;
 }>;
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export type JevNoulAnswer = Readonly<{
   noul: number;
 }>;
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export type JevSystemOneResult = Readonly<{
   answers: Readonly<Record<string, JevChoiceAnswer | JevNoulAnswer>>;
 }>;
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export type JevSystemOneRequest = Readonly<{
   model?: string;
   state: unknown;
   questions: Readonly<Record<string, unknown>>;
 }>;
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export interface JevClient {
   systemOne(request: JevSystemOneRequest): Promise<JevSystemOneResult>;
 }
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export type JevClientFactory = (options?: {
   readonly apiKey?: string;
   readonly timeoutMs?: number;
 }) => JevClient;
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export class JevProviderError extends Error {
   readonly code:
     | "missing_api_key"
@@ -68,11 +60,9 @@ export class JevProviderError extends Error {
     }
   }
 
-  // implements REQ-capability-plugin-jev-fallback-v1
   readonly model?: string;
 }
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export function mapJevError(error: unknown): JevProviderError {
   if (error instanceof JevProviderError) return error;
   const message = error instanceof Error ? error.message : String(error);
@@ -122,13 +112,11 @@ export function mapJevError(error: unknown): JevProviderError {
   return new JevProviderError("unknown", message, { cause: error });
 }
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
 
 /** A Choice answer must carry a string choice. */
-// implements REQ-capability-plugin-jev-fallback-v1
 export function asChoice(answer: unknown): JevChoiceAnswer {
   if (
     typeof (answer as { choice?: unknown } | null | undefined)?.choice !==
@@ -143,7 +131,6 @@ export function asChoice(answer: unknown): JevChoiceAnswer {
 }
 
 /** A Noul answer must carry a finite number; NaN is not a probability. */
-// implements REQ-capability-plugin-jev-fallback-v1
 export function asNoul(answer: unknown): JevNoulAnswer {
   if (
     !Number.isFinite((answer as { noul?: unknown } | null | undefined)?.noul)
@@ -160,7 +147,6 @@ export function asNoul(answer: unknown): JevNoulAnswer {
  * The choice's own confidence, else the probability of the chosen option,
  * else 0.5. Non-finite numbers are ignored, and the result lies in [0, 1].
  */
-// implements REQ-capability-plugin-jev-fallback-v1
 export function choiceConfidence(answer: JevChoiceAnswer): number {
   if (Number.isFinite(answer.confidence)) {
     return clamp01(answer.confidence as number);

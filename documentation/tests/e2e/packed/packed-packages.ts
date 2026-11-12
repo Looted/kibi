@@ -1,5 +1,4 @@
 /** The data-only kibi-lang-* grammar packs kibi-plugin-treesitter reads with. */
-// implements REQ-kibi-tree-sitter-language-packs
 export const languagePackDirs = [
   "lang-go",
   "lang-rust",
@@ -15,11 +14,9 @@ export const languagePackDirs = [
   "lang-prolog",
 ] as const;
 
-// implements REQ-kibi-tree-sitter-language-packs
 export type LanguagePackDir = (typeof languagePackDirs)[number];
 
 /** Workspace package dirs that must be present in every packed tarball set. */
-// implements REQ-test-journaled-engine-harness
 export const packagesForPack = [
   "core",
   "plugin-sdk",
@@ -39,12 +36,9 @@ export const packagesForPack = [
   "cursor",
 ] as const;
 
-// implements REQ-test-journaled-engine-harness
 export type PackedPackageName = (typeof packagesForPack)[number];
 
 /** The kibi-swipl-<platform> package for this host (glibc Linux or macOS). */
-// implements REQ-test-journaled-engine-harness
-// implements REQ-prolog-bundled-release
 export function hostSwiplPlatformPackage(): string {
   if (process.platform === "linux")
     return `kibi-swipl-linux-${process.arch}-gnu`;

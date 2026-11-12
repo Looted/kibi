@@ -6,8 +6,6 @@ import {
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
 
-// implements REQ-capability-plugin-jev-optional-dependency
-
 /**
  * Jev is optional: the default packages do not list it as a dependency. Kibi
  * reads each package.json itself at ingest, so the claims stay proved only while

@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
 import { createHash } from "node:crypto";
 import fs from "node:fs";

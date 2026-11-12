@@ -1,4 +1,3 @@
-// implements REQ-agent-hosts-decision-guard
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import fs from "node:fs";

@@ -23,7 +23,6 @@ import {
   uncompiledBranchStoreReason,
 } from "./branch-store.js";
 
-// implements REQ-kibi-fresh-clone-setup
 export type AutoCompileOutcome =
   | "compiled"
   | "not-needed"
@@ -47,7 +46,6 @@ const NO_AUTO_COMPILE = new Set(["kb_apply_plan"]);
  * compile leaves the store as it was, and the operation then reports
  * branch_store_not_compiled as before.
  */
-// implements REQ-kibi-fresh-clone-setup
 export async function ensureBranchStoreCompiled(
   workspaceRoot: string,
   attachment: BranchAttachment,

@@ -1,4 +1,3 @@
-// implements REQ-symbol-coordinates-derived-locally
 import { describe, expect, test } from "bun:test";
 import {
   type TitledDeclaration,

@@ -19,7 +19,6 @@
 import type { Scope, ScriptKind, SyntaxKind } from "ts-morph";
 import { tsMorph } from "./ts-morph-runtime.js";
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export const SUPPORTED_SOURCE_EXTENSIONS = new Set([
   ".ts",
   ".tsx",
@@ -31,7 +30,6 @@ export const SUPPORTED_SOURCE_EXTENSIONS = new Set([
   ".cjs",
 ]);
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function chooseScriptKind(filePath: string): ScriptKind {
   const lower = filePath.toLowerCase();
   if (lower.endsWith(".tsx")) return tsMorph().ScriptKind.TSX;
@@ -46,7 +44,6 @@ export function chooseScriptKind(filePath: string): ScriptKind {
   return tsMorph().ScriptKind.JS;
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function formatMethodSymbolName(
   className: string | undefined,
   methodName: string,
@@ -58,7 +55,6 @@ export function formatMethodSymbolName(
  * Duck-typed private-member check used by ts-morph AST walks and CLI tests.
  * Accepts either `hasModifier(PrivateKeyword)` or `getScope() === "Private"`.
  */
-// implements REQ-capability-plugin-builtin-parity-v1
 export function isPrivateClassMember(member: {
   getName?: () => string;
   hasModifier?(kind: SyntaxKind): boolean;
@@ -76,7 +72,6 @@ export function isPrivateClassMember(member: {
   return false;
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function onlyCandidate<T>(candidates: readonly T[]): T | undefined {
   if (candidates.length !== 1) return undefined;
   return candidates[0];

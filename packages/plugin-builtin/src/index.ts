@@ -34,33 +34,24 @@ const packageJson = createRequire(import.meta.url)("../package.json") as {
   version: string;
 };
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export { createBuiltinOntologyPack } from "./ontology/builtin-ontology-pack.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export {
   BuiltinOntologyPack,
   BUILTIN_PREDICATE_RULE_SETS,
 } from "./ontology/builtin-ontology-pack.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export {
   detectPredicateRules,
   schemaIdFor,
   type PredicateRule,
 } from "./ontology/predicate-rule.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export { CORE_PREDICATE_RULES } from "./ontology/predicate-rules-core.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export {
   LAUNCHER_PREDICATE_RULES,
   exactLauncherPredicateArgs,
 } from "./ontology/predicate-rules-launcher.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export { POLICY_PREDICATE_RULES } from "./ontology/predicate-rules-policy.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export { PRODUCT_PREDICATE_RULES } from "./ontology/predicate-rules-product.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export { PRODUCT_TAIL_PREDICATE_RULES } from "./ontology/predicate-rules-product-tail.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export {
   normalizeKey,
   normalizePredicateToken,
@@ -68,37 +59,31 @@ export {
   singularize,
   commaList,
 } from "./ontology/normalize.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export {
   createBuiltinSemanticClassifier,
   BuiltinSemanticClassifier,
   detectSignals,
   chooseLane,
 } from "./semantic/builtin-classifier.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export {
   createBuiltinTsMorphSymbolExtractor,
   createBuiltinTsMorphSymbolExtractorV2,
   createBuiltinTsMorphSourceAnalysisProvider,
 } from "./symbols/ts-morph-extractor.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export {
   enrichSymbolCoordinatesWithTsMorph,
   type ManifestSymbolEntry,
   type SymbolCoordinates,
 } from "./symbols/ts-morph-enrichment.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export {
   collectGranularityCandidates,
   type GranularitySymbolCandidate,
 } from "./symbols/ts-morph-granularity.js";
-// implements REQ-capability-plugin-builtin-parity-v1
 export {
   isPrivateClassMember,
   onlyCandidate,
 } from "./symbols/ts-morph-shared.js";
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export {
   BUILTIN_CLAIM_SIMILARITY_THRESHOLD,
   BUILTIN_SUBJECT_REUSE_THRESHOLD,
@@ -114,7 +99,6 @@ export {
 /**
  * Default Kibi capability plugin.
  */
-// implements REQ-capability-plugin-builtin-parity-v1
 export const kibiPlugin = defineKibiPlugin({
   apiVersion: KIBI_PLUGIN_API_VERSION,
   id: "kibi-plugin-builtin",
@@ -142,5 +126,4 @@ export const kibiPlugin = defineKibiPlugin({
   },
 });
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export default kibiPlugin;

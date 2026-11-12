@@ -38,10 +38,8 @@ import { tokenSourceHash } from "./search-token-cache.js";
  * below it, against 6 of 30 gold questions it got right. Host-owned, so no
  * provider can move it.
  */
-// implements REQ-kibi-search-hints-host
 export const SEARCH_HINT_WEAK_SCORE = 0.44;
 /** Requirements shown as hints. */
-// implements REQ-kibi-search-hints-host
 export const SEARCH_HINT_LIMIT = 10;
 /** Entities asked of the provider before they are lifted to requirements. */
 const PROVIDER_LIMIT = 20;
@@ -53,10 +51,8 @@ const WARM_CALL_TIMEOUT_MS = 500;
 /** Providers that answered once in this process; later calls get less time. */
 const warmedProviders = new WeakSet<object>();
 
-// implements REQ-kibi-search-hints-host
 export type SearchHintsTrigger = "abstained" | "weak";
 
-// implements REQ-kibi-search-hints-host
 export type SearchHintItem = Readonly<{
   id: string;
   title: string;
@@ -70,7 +66,6 @@ export type SearchHintItem = Readonly<{
   negativePath?: NegativePathMarker;
 }>;
 
-// implements REQ-kibi-search-hints-host
 export type SearchHintsAnalysis = Readonly<{
   trigger: SearchHintsTrigger;
   provider: PluginProviderStamp | null;
@@ -83,7 +78,6 @@ export type SearchHintsAnalysis = Readonly<{
 }>;
 
 /** Why a lexical answer needs hints, or null when it is strong enough. */
-// implements REQ-kibi-search-hints-host
 export function searchHintsTrigger(
   analysis: IntentSearchAnalysis,
 ): SearchHintsTrigger | null {
@@ -130,7 +124,6 @@ function entityText(
 }
 
 /** The current entities a provider may hint at, as the search loaded them. */
-// implements REQ-kibi-search-hints-host
 export function searchHintsEntities(
   entities: readonly Record<string, unknown>[],
   bodies: MarkdownBodyCache,
@@ -172,7 +165,6 @@ function cacheDirectory(workspaceRoot: string): string {
  * whose rejecting scenarios assume it, and, when none is current, as itself
  * marked as a situation that must not happen.
  */
-// implements REQ-kibi-search-hints-host, REQ-kibi-negative-path-facts-marked
 async function liftToRequirements(
   prolog: Pick<PrologPort, "query">,
   hints: readonly { readonly id: string; readonly score: number }[],
@@ -230,7 +222,6 @@ async function liftToRequirements(
  * answer is strong or no provider is configured. Hints never change the
  * ranked results, the governing answer or abstention.
  */
-// implements REQ-kibi-search-hints-host
 export async function buildSearchHints(
   options: Readonly<{
     query: string;
@@ -293,7 +284,6 @@ export async function buildSearchHints(
 }
 
 /** The sentence a search answer's text adds when hints are shown. */
-// implements REQ-kibi-search-hints-host
 export function searchHintsNote(
   hints: SearchHintsAnalysis | undefined,
 ): string {

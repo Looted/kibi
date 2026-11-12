@@ -8,8 +8,6 @@ import {
   readProjectPackageJson,
 } from "../../src/plugins/project-config.js";
 
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
-
 const roots: string[] = [];
 afterEach(() => {
   for (const root of roots.splice(0))

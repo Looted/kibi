@@ -1,4 +1,3 @@
-// implements REQ-kibi-scenario-feasibility-v2
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

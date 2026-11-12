@@ -125,7 +125,6 @@ describe("syncCommand error and option paths", () => {
   });
 
   test("refuses a coordinate refresh while a declared source analyzer is not installed", async () => {
-    // implements REQ-symbol-coordinates-derived-locally
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const cwd = createGitWorkspace();
@@ -162,7 +161,6 @@ describe("syncCommand error and option paths", () => {
   });
 
   test("a flow-style symbol manifest is rewritten in block layout", async () => {
-    // implements REQ-kibi-hooks-flow-manifest
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const cwd = createGitWorkspace();

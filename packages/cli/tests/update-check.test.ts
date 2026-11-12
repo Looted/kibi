@@ -29,8 +29,6 @@ import {
 } from "../src/update-check.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../src/utils/schema-version.js";
 
-// implements REQ-kibi-update-notice
-
 const DAY = 24 * 60 * 60 * 1000;
 const NOW = Date.parse("2026-11-04T12:00:00.000Z");
 /** An installed (not source-checkout) module path. */

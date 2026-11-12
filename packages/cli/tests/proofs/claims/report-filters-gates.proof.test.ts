@@ -9,8 +9,6 @@ import {
   REPORT_FILTERS,
 } from "../../../src/report/report-view.js";
 
-// implements REQ-kibi-report-filters-and-gates
-
 /**
  * The filters the health report offers and the proof gates it shows for each requirement. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

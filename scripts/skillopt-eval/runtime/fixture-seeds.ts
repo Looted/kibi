@@ -9,7 +9,6 @@
  */
 
 /** Entity IDs seeded by `seeded_governed_area_kb`. */
-// implements REQ-skillopt-codex-optimization
 export const GOVERNED_AREA_IDS = {
   /** Current requirement: names must be non-empty after trimming. */
   current: "REQ-fixture-family-name-v2",
@@ -23,7 +22,6 @@ export const GOVERNED_AREA_IDS = {
 } as const;
 
 /** Entity IDs seeded by `seeded_precondition_kb`. */
-// implements REQ-skillopt-codex-optimization
 export const PRECONDITION_IDS = {
   /** Base requirement compiled to a forbid rule on `call_quota.remaining`. */
   base: "REQ-client-call-quota",
@@ -33,7 +31,6 @@ export const PRECONDITION_IDS = {
 } as const;
 
 /** Entity IDs seeded by `seeded_consistency_kb`. */
-// implements REQ-skillopt-codex-optimization
 export const CONSISTENCY_IDS = {
   /** One modeled clause plus one ontology-gap clause: analysis incomplete. */
   incomplete: "REQ-call-quota-reset-review",
@@ -49,7 +46,6 @@ export const CONSISTENCY_IDS = {
 } as const;
 
 /** Entity IDs seeded by `seeded_unresolved_rule_kb`. */
-// implements REQ-skillopt-codex-optimization
 export const UNRESOLVED_RULE_IDS = {
   /** Forbid-unless rule compiled from the settled-amount precondition. */
   settledAmount: "REQ-refund-settled-amount",
@@ -61,7 +57,6 @@ export const UNRESOLVED_RULE_IDS = {
 } as const;
 
 /** Prose of the two refund rules the unresolved-pair setup records. */
-// implements REQ-skillopt-codex-optimization
 export const UNRESOLVED_RULE_PROSE = {
   settledAmount:
     "A refund may be issued only when the order's settled amount is greater than zero.",
@@ -69,7 +64,6 @@ export const UNRESOLVED_RULE_PROSE = {
 } as const;
 
 /** Context section shared by the two refund requirements. */
-// implements REQ-skillopt-codex-optimization
 export const UNRESOLVED_RULE_CONTEXT =
   "Evaluator-owned refund requirement: the payments owner set both refund rules, and the consistency cases ask an agent to report what the checker can and cannot decide about them.";
 
@@ -78,7 +72,6 @@ export const UNRESOLVED_RULE_CONTEXT =
  * body names a different order predicate, and neither rule entails the other's
  * body or exception, so the pair stays `unresolved`.
  */
-// implements REQ-skillopt-codex-optimization
 export const CHARGEBACK_RULE_IR = {
   version: "kibi.logic.v1",
   kind: "rule",
@@ -102,7 +95,6 @@ export const CHARGEBACK_RULE_IR = {
  * checker reports the opposing refund rules as an `unresolved` rule conflict.
  * A final check whose only violations are this one counts as clean.
  */
-// implements REQ-skillopt-codex-optimization
 export function isSeededUnresolvedRuleViolation(violation: unknown): boolean {
   if (violation === null || typeof violation !== "object") return false;
   const record = violation as Record<string, unknown>;
@@ -116,7 +108,6 @@ export function isSeededUnresolvedRuleViolation(violation: unknown): boolean {
 }
 
 /** Entity IDs seeded by `seeded_joint_contradiction_kb`. */
-// implements REQ-skillopt-codex-optimization
 export const JOINT_CONTRADICTION_IDS = {
   /** `remaining >= 0`. */
   floor: "REQ-call-quota-floor",
@@ -142,7 +133,6 @@ export const JOINT_CONTRADICTION_IDS = {
 } as const;
 
 /** Prose of the joint-contradiction requirements (ledgers are computed live). */
-// implements REQ-skillopt-codex-optimization
 export const JOINT_CONTRADICTION_PROSE = {
   floor: "The remaining call quota must be at least 0.",
   ceiling: "The remaining call quota must be at most 1.",
@@ -153,7 +143,6 @@ export const JOINT_CONTRADICTION_PROSE = {
 } as const;
 
 /** The four requirements whose facts contradict only together. */
-// implements REQ-skillopt-codex-optimization
 export const JOINT_CONTRADICTION_CORE = [
   JOINT_CONTRADICTION_IDS.ceiling,
   JOINT_CONTRADICTION_IDS.floor,
@@ -166,7 +155,6 @@ export const JOINT_CONTRADICTION_CORE = [
  * `kb-consistency` reports the four call-quota bounds as one irreducible core.
  * A final check whose only violations are seeded ones counts as clean.
  */
-// implements REQ-skillopt-codex-optimization
 export function isSeededJointContradictionViolation(
   violation: unknown,
 ): boolean {
@@ -179,7 +167,6 @@ export function isSeededJointContradictionViolation(
 }
 
 /** Human provenance stamped on the refund requirements. */
-// implements REQ-skillopt-codex-optimization
 export const UNRESOLVED_RULE_ORIGIN = [
   "  kind: human",
   "  ref: documentation/requirements/fixture.md",
@@ -187,12 +174,10 @@ export const UNRESOLVED_RULE_ORIGIN = [
 ].join("\n");
 
 /** Prose the precondition setup compiles through compile-intent. */
-// implements REQ-skillopt-codex-optimization
 export const PRECONDITION_INTENT =
   "A client call may happen only when the call quota remaining is positive.";
 
 /** Prose of the consistency requirements (advisor ledgers are computed live). */
-// implements REQ-skillopt-codex-optimization
 export const CONSISTENCY_PROSE = {
   incomplete:
     "The remaining call quota must be greater than 0. Every quota reset must be reviewed by an operator.",
@@ -201,7 +186,6 @@ export const CONSISTENCY_PROSE = {
 } as const;
 
 /** Every entity a scenario setup seeds; anything else was written by the model. */
-// implements REQ-skillopt-codex-optimization
 export const SEEDED_ENTITY_IDS: ReadonlySet<string> = new Set([
   "REQ-SETUP-BASE",
   "TEST-SETUP-FIXTURE",
@@ -213,7 +197,6 @@ export const SEEDED_ENTITY_IDS: ReadonlySet<string> = new Set([
   ...Object.values(JOINT_CONTRADICTION_IDS),
 ]);
 
-// implements REQ-skillopt-codex-optimization
 export const GOVERNED_FIXTURE_SOURCE = [
   "// Fixture family names are trimmed and must not be empty.",
   "export function fixtureFamily(name: string): string {",
@@ -226,7 +209,6 @@ export const GOVERNED_FIXTURE_SOURCE = [
   "",
 ].join("\n");
 
-// implements REQ-skillopt-codex-optimization
 export const GOVERNED_FIXTURE_TEST = [
   'import { expect, test } from "bun:test";',
   'import { fixtureFamily } from "../src/fixture";',
@@ -243,7 +225,6 @@ function doc(frontMatter: readonly string[], body = ""): string {
 }
 
 /** Authored `.kb` documents of the governed-area seed, by relative path. */
-// implements REQ-skillopt-codex-optimization
 export const GOVERNED_AREA_DOCUMENTS: Readonly<Record<string, string>> = {
   [`.kb/requirements/${GOVERNED_AREA_IDS.superseded}.md`]: doc(
     [
@@ -334,7 +315,6 @@ export const GOVERNED_AREA_DOCUMENTS: Readonly<Record<string, string>> = {
 };
 
 /** Documents the precondition seed adds after compiling the base rule. */
-// implements REQ-skillopt-codex-optimization
 export const PRECONDITION_DOCUMENTS: Readonly<Record<string, string>> = {
   [`.kb/facts/${PRECONDITION_IDS.zeroQuotaFact}.md`]: doc([
     `id: ${PRECONDITION_IDS.zeroQuotaFact}`,
@@ -364,7 +344,6 @@ export const PRECONDITION_DOCUMENTS: Readonly<Record<string, string>> = {
 };
 
 /** Human provenance stamped on the compiled base requirement. */
-// implements REQ-skillopt-codex-optimization
 export const PRECONDITION_ORIGIN = [
   "  kind: human",
   "  ref: documentation/requirements/fixture.md",
@@ -372,7 +351,6 @@ export const PRECONDITION_ORIGIN = [
 ].join("\n");
 
 /** Approval granted to the post-approval exception case (public file). */
-// implements REQ-skillopt-codex-optimization
 export const PRECONDITION_APPROVED_EXCEPTION = {
   scenario: "A client with zero remaining call quota completes a promo call",
   baseRequirement: PRECONDITION_IDS.base,
@@ -382,7 +360,6 @@ export const PRECONDITION_APPROVED_EXCEPTION = {
 } as const;
 
 /** Subject fact shared by the consistency requirements. */
-// implements REQ-skillopt-codex-optimization
 export const CONSISTENCY_SUBJECT_DOCUMENT = doc([
   `id: ${CONSISTENCY_IDS.subject}`,
   "title: Client call quota",
@@ -393,7 +370,6 @@ export const CONSISTENCY_SUBJECT_DOCUMENT = doc([
 ]);
 
 /** A `client.call_quota.remaining` property fact grounding one claim. */
-// implements REQ-skillopt-codex-optimization
 export function consistencyValueFact(input: {
   readonly id: string;
   readonly title: string;
@@ -423,7 +399,6 @@ export function consistencyValueFact(input: {
 }
 
 /** One semantic-advisor proposition as recorded in a requirement ledger. */
-// implements REQ-skillopt-codex-optimization
 export type LedgerProposition = Readonly<{
   claim_key: string;
   claim_text: string;
@@ -433,7 +408,6 @@ export type LedgerProposition = Readonly<{
 }>;
 
 /** A current requirement carrying the advisor's clause ledger. */
-// implements REQ-skillopt-codex-optimization
 export function ledgerRequirement(input: {
   readonly id: string;
   readonly title: string;
@@ -482,10 +456,8 @@ export function ledgerRequirement(input: {
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export const CONSISTENCY_E2E_TEST_PATH = "tests/call-quota.e2e.test.ts";
 
-// implements REQ-skillopt-codex-optimization
 export const CONSISTENCY_E2E_TEST_SOURCE = [
   'import { expect, test } from "bun:test";',
   "",
@@ -496,7 +468,6 @@ export const CONSISTENCY_E2E_TEST_SOURCE = [
   "",
 ].join("\n");
 
-// implements REQ-skillopt-codex-optimization
 export const CONSISTENCY_E2E_TEST_DOCUMENT = doc(
   [
     `id: ${CONSISTENCY_IDS.e2eTest}`,

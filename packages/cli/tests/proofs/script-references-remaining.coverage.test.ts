@@ -15,8 +15,6 @@ import {
   matchWorkspaceFiles,
 } from "../../src/public/proof-sources.js";
 
-// implements REQ-kibi-source-proof-kinds
-
 function extract(extractKind: string, text: string) {
   return extractScriptReferences(ts, "src/file.ts", text, {
     reader: "references",

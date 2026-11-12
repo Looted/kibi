@@ -4,8 +4,6 @@ import {
   analysisObligation,
 } from "../../src/traceability/analysis-gate.js";
 
-// implements REQ-source-analysis-v2
-
 type R = { startLine: number; endLine: number; reason: string };
 
 const gap = (startLine: number, endLine: number, reason = "macro"): R => ({

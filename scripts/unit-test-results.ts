@@ -15,7 +15,6 @@ import { execFileSync } from "node:child_process";
  * The proof producer may reuse a clean file result instead of running the same
  * test file again for the same commit.
  */
-// implements REQ-kibi-verification-evidence-contract
 export const UNIT_TEST_RESULTS_VERSION = "kibi.unit-test-results.v1";
 
 export type FileTestResult = Readonly<{
@@ -76,7 +75,6 @@ function addResult(
  * with nested suites for describe blocks. Errors count as failures; a count
  * that is not a non-negative integer makes the file fail closed.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function parseJunitFileResults(
   xml: string,
 ): Map<string, FileTestResult> {
@@ -110,7 +108,6 @@ export function parseJunitFileResults(
 }
 
 /** A file result the proof producer may reuse: it ran tests and all passed. */
-// implements REQ-kibi-verification-evidence-contract
 export function isCleanFileResult(result: FileTestResult | undefined): boolean {
   return (
     result !== undefined &&
@@ -171,7 +168,6 @@ function isFileResult(value: unknown): value is FileTestResult {
  * every shard ran on that same commit with a clean tracked tree; otherwise it
  * stays unusable for reuse while still listing what ran.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function mergeShardTestResults(
   shards: readonly unknown[],
 ): UnitTestResultsLedger {

@@ -1,4 +1,3 @@
-// implements REQ-kibi-hooks-flow-manifest
 import { afterEach, describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";

@@ -1,4 +1,3 @@
-// implements REQ-ci-kb-merge-resolution
 import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import {

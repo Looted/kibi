@@ -78,7 +78,6 @@ export type {
  * `answer` carries the user-facing final answer that the evaluator's
  * final-answer lane scores.
  */
-// implements REQ-skillopt-codex-optimization
 export const EPISODE_OUTPUT_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -97,7 +96,6 @@ const MAX_WORKSPACE_SOURCE_BYTES = 256 * 1024;
  * Final contents of the target's `src/` tree for the workspace-assertion lane.
  * Bounded and regular-file only; unreadable entries are skipped.
  */
-// implements REQ-skillopt-codex-optimization
 export async function readWorkspaceSources(
   workspaceRoot: string,
 ): Promise<Readonly<Record<string, string>>> {
@@ -191,7 +189,6 @@ function assertNoCallerScoreInjection(options: CodexCellOptions): void {
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function runCodexCell(
   options: CodexCellOptions,
   dependencies: CodexCellDependencies = defaultCodexCellDependencies(options),

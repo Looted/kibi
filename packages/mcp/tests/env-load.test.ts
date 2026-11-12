@@ -1,4 +1,3 @@
-// implements REQ-002
 import {
   afterEach,
   beforeEach,

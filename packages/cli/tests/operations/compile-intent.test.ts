@@ -120,7 +120,6 @@ describe("kb_compile_intent", () => {
     );
   });
 
-  // implements REQ-kibi-truthful-consistency
   describe("conditional requirements", () => {
     const query = mock(
       async (goal: string): Promise<PrologQueryResult> =>
@@ -382,7 +381,6 @@ describe("kb_compile_intent", () => {
     expect(staged).toContain("'REQ-A'");
   });
 
-  // implements REQ-kibi-truthful-consistency
   test("blocks on any introduced conflict or infeasibility and keeps the before/after split", async () => {
     const unrelatedConflict = {
       kind: "property",

@@ -6,15 +6,12 @@
 
 import type { DocPage } from "./catalog.js";
 
-// implements REQ-docs-site-root-pages
 export type FrontMatter = {
   title?: string;
   description?: string;
   body: string;
 };
 
-// implements REQ-docs-readme-published-links
-// implements REQ-docs-site-root-pages
 export function parseFrontMatter(raw: string): FrontMatter {
   const match = raw.match(/^---\n([\s\S]*?)\n---\n/);
   if (!match?.[1]) return { body: raw };
@@ -31,14 +28,10 @@ export function parseFrontMatter(raw: string): FrontMatter {
   };
 }
 
-// implements REQ-docs-readme-published-links
-// implements REQ-docs-site-root-pages
 export function isAuthoredPage(page: DocPage): boolean {
   return page.source.startsWith("docs-site/content/");
 }
 
-// implements REQ-docs-readme-published-links
-// implements REQ-docs-site-root-pages
 export function pageMeta(
   page: DocPage,
   raw: string,

@@ -28,7 +28,6 @@ const ArtifactRefSchema = z
  * Public record of a failed protocol: the first required call the cell never
  * made, by tool name and position. No arguments or expected values.
  */
-// implements REQ-skillopt-host-neutral-optimization
 export const ProtocolFailureSchema = z
   .object({
     kind: z.literal("missing_required_call"),
@@ -37,7 +36,6 @@ export const ProtocolFailureSchema = z
   })
   .strict();
 
-// implements REQ-skillopt-codex-optimization
 export const CodexEpisodeReceiptSchema = z
   .object({
     schemaVersion: z.literal(CONTRACT_SCHEMA_VERSION),
@@ -134,7 +132,6 @@ const PROVIDER_BUDGET_EXHAUSTED = [
   /credit balance (?:is )?(?:too low|exhausted|depleted)/i,
 ] as const;
 
-// implements REQ-skillopt-logical-evidence-fidelity
 function providerBudgetExhausted(input: EpisodeReplayInput): boolean {
   const terminalOutput = `${input.transcript}\n${input.stderr}`;
   return PROVIDER_BUDGET_EXHAUSTED.some((pattern) =>
@@ -202,7 +199,6 @@ function terminalState(
   return { status: scoreStatus(input.score), failures: [...failures] };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function replayCodexEpisode(
   rawInput: EpisodeReplayInput,
 ): CodexEpisodeReceipt {

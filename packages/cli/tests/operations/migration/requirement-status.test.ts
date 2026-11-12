@@ -18,8 +18,6 @@ import {
   requirementStatusActions,
 } from "../../../src/operations/migration/schema6.js";
 
-// implements REQ-cli-migrate-legacy-requirement-status
-
 function requirement(
   root: string,
   id: string,

@@ -174,7 +174,6 @@ export {
 export function resolveOpencodeTarball(
   repoRoot: string = REPO_ROOT,
 ): TarballResult {
-  // implements REQ-opencode-kibi-plugin-v1
   const tarballEnv = process.env.KIBI_TEST_TARBALLS;
 
   if (tarballEnv) {
@@ -239,7 +238,6 @@ export function resolveOpencodeTarball(
  * Creates a temporary directory with a minimal package.json.
  */
 export function createIsolatedInstall(prefix?: string): IsolatedInstall {
-  // implements REQ-opencode-kibi-plugin-v1
   const tmpDir = mkdtempSync(
     join(prefix || tmpdir(), "kibi-opencode-packed-e2e-"),
   );
@@ -295,7 +293,6 @@ export function installOpencodeTarball(
   installDir: string,
   tarballPath: string,
 ): void {
-  // implements REQ-opencode-kibi-plugin-v1
   log("  📥 Installing kibi-opencode from tarball...");
   const installArgs = ["install", "--no-audit"];
   const tarballEnv = process.env.KIBI_TEST_TARBALLS;

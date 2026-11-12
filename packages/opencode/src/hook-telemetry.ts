@@ -1,4 +1,3 @@
-// implements REQ-opencode-kibi-plugin-v1, REQ-kibi-telemetry-acceptance-gate-v2
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -25,7 +24,6 @@ const EDIT_TOOLS: ReadonlySet<string | undefined> = new Set([
   "multiedit",
 ]);
 
-// implements REQ-opencode-kibi-plugin-v1, REQ-kibi-telemetry-acceptance-gate-v2
 export type OpencodeToolCall = {
   /** Kibi workspace root (the session's worktree). */
   worktree: string;
@@ -41,7 +39,6 @@ const PACKAGE_VERSION = readPackageVersion(
   path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "package.json"),
 );
 
-// implements REQ-opencode-kibi-plugin-v1, REQ-kibi-telemetry-acceptance-gate-v2
 /**
  * Anonymous usage telemetry for each traced tool call and, when opted in
  * with `KIBI_DIAGNOSTIC_MODE`, hook rows for the lookup-before-first-edit

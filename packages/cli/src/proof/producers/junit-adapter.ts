@@ -91,14 +91,12 @@ function bindingIndex(bindings: readonly NativeBinding[]): BindingIndex {
   return { values, ambiguous };
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export function ambiguousNativeBindings(
   bindings: readonly NativeBinding[],
 ): readonly string[] {
   return [...bindingIndex(bindings).ambiguous];
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export function bindingLookup(
   bindings: readonly NativeBinding[],
 ): (nativeId: string) => { symbol_id: string; target: string } | null {
@@ -138,7 +136,6 @@ function outcomeFromJUnitCase(testcase: XmlNode): {
  * provide a complete failed-then-passed sequence. Plain passes remain
  * unavailable and are rejected by the strict first-attempt evaluator.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function convertJUnitXml(
   xml: string,
   bindings: readonly NativeBinding[],

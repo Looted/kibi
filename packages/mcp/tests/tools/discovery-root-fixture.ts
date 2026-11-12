@@ -12,7 +12,6 @@ export interface IsolatedCoreFixture {
   cleanup: () => void;
 }
 
-// implements REQ-002, REQ-013
 export function setupIsolatedCore(): IsolatedCoreFixture {
   const tmpRoot = mkdtempSync(path.join(os.tmpdir(), "kibi-isolated-core-"));
   const isolatedCoreRoot = path.join(tmpRoot, "isolated-core");

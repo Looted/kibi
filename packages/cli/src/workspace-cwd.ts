@@ -77,7 +77,6 @@ function absolutePathArgs(argv: readonly string[], base: string): string[] {
  * the result is the directory to run in and argv with those values made
  * absolute.
  */
-// implements REQ-cli-subdirectory-workspace
 export function resolveWorkspaceCwd(
   argv: readonly string[],
   cwd: string,

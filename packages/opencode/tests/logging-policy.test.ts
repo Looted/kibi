@@ -4,8 +4,6 @@ import type { createSyncScheduler as createSyncSchedulerFactory } from "../src/s
 
 type CreateSyncScheduler = typeof createSyncSchedulerFactory;
 
-// implements REQ-opencode-kibi-plugin-v1
-
 describe("logging policy", () => {
   let logCalls: Array<{ service: string; level: string; message: string }>;
   let errorCalls: string[];
@@ -260,7 +258,6 @@ describe("logging policy", () => {
     });
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   describe("scheduler silence policy", () => {
     test("scheduler sync produces zero console.log/warn output", async () => {
       const { createSyncScheduler } = require("../src/scheduler") as {
@@ -352,7 +349,6 @@ describe("logging policy", () => {
     });
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   describe("session-summary silence policy", () => {
     test("logSummary produces zero console.log/warn output", () => {
       const { SessionTracker } = require("../src/session-tracker") as {
@@ -459,7 +455,6 @@ describe("logging policy", () => {
     });
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   describe(".kb edit and comment-hint silence policy", () => {
     test(".kb edit detection produces zero console.log/warn output", async () => {
       const plugin = require("../src/plugin").default;
@@ -751,7 +746,6 @@ describe("logging policy", () => {
     });
   });
 
-  // implements REQ-opencode-smart-enforcement-v1
   describe("completion reminder silence policy", () => {
     test("completion reminder produces zero console.log/warn output", async () => {
       const plugin = require("../src/plugin").default;
@@ -1005,7 +999,6 @@ describe("logging policy", () => {
       resetSessionTracker();
     });
   });
-  // implements REQ-opencode-kibi-plugin-v1
   describe("failure-routing contract: advisory vs operational", () => {
     test("errorStructuredOnly with client: does NOT call console.error", async () => {
       const appLogCalls: Array<Record<string, unknown>> = [];
@@ -1308,7 +1301,6 @@ describe("logging policy", () => {
       );
     });
   });
-  // implements REQ-opencode-file-context-guidance-v1
   describe("file-operation reminder logging policy", () => {
     test("file-operation reminder produces structured log on emission", async () => {
       const appLogCalls: Array<Record<string, unknown>> = [];

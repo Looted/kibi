@@ -1,4 +1,3 @@
-// implements REQ-kibi-mcp-tool-consolidation
 import { afterEach, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
 import {

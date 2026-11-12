@@ -42,7 +42,6 @@ function isPunctuation(char: string): boolean {
   return PUNCTUATION.test(char);
 }
 
-// implements REQ-kibi-plugin-search-hints
 export function normalize(text: string): string {
   let cleaned = "";
   for (const char of text) {
@@ -56,7 +55,6 @@ export function normalize(text: string): string {
   return cleaned.normalize("NFD").replace(NONSPACING_MARK, "").toLowerCase();
 }
 
-// implements REQ-kibi-plugin-search-hints
 export function preTokenize(normalized: string): string[] {
   const words: string[] = [];
   let current = "";
@@ -76,7 +74,6 @@ export function preTokenize(normalized: string): string[] {
   return words;
 }
 
-// implements REQ-kibi-plugin-search-hints
 export class WordPieceTokenizer {
   private readonly ids: ReadonlyMap<string, number>;
   readonly unkId: number;

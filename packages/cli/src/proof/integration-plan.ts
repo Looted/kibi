@@ -205,7 +205,6 @@ const RUNNER_COMMANDS: ReadonlyArray<
  * (aggregate-run provenance), so it works for every runner without a
  * reporter; a native producer can replace it later through an update plan.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function proposeProofIntegration(
   root: string,
   overrideId?: string,
@@ -294,7 +293,6 @@ function readIntegrationsFile(root: string): {
  * current hash and the hashes of the files the proposal was derived from;
  * `kb_apply_plan` refuses it once either changed.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function buildProofIntegrationPlan(
   root: string,
   options: Readonly<{ update?: string; command?: readonly string[] }> = {},
@@ -378,7 +376,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * named integration. Either is refused when
  * a file the proposal was derived from changed since planning.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function applyProofIntegrationAction(
   action: MigrationAction,
   root: string,

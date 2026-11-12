@@ -13,7 +13,6 @@ async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
   await executor.runJsonInvocation(invocation);
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function registerReportingCommands(program: Command): void {
   program
     .command("check-generated")
@@ -256,7 +255,6 @@ export function registerReportingCommands(program: Command): void {
             });
             return undefined;
           }
-          // implements REQ-kibi-kb-certificates
           if (options.certificates !== undefined) {
             if (
               options.writeCertificates !== undefined ||

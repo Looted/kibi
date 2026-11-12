@@ -15,8 +15,6 @@ import type {
   SideEvidence,
 } from "../../src/traceability/impact-review.js";
 
-// implements REQ-impact-policy-stage-e-content-bound-review
-
 const FP = (n: number) =>
   `sha256:${String(n).repeat(64).slice(0, 64)}` as const;
 const OID = "d".repeat(40);

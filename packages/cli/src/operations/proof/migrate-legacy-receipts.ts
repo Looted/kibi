@@ -26,16 +26,12 @@ import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
 import { executeUpsert } from "../mutation/upsert.js";
 import { removeFrontmatterBlock } from "./receipt-document.js";
 
-// implements REQ-kibi-verification-evidence-contract
 export type MigrateLegacyReceiptsArgs = Readonly<{
   /** Migrate a single test entity only. */
-  // implements REQ-kibi-verification-evidence-contract
   testId?: string;
 }>;
 
-// implements REQ-kibi-verification-evidence-contract
 export type MigrateLegacyReceiptsResult = Readonly<{
-  // implements REQ-kibi-verification-evidence-contract
   migrated: number;
   tests: readonly { readonly testId: string }[];
 }>;
@@ -51,7 +47,6 @@ export type MigrateLegacyReceiptsResult = Readonly<{
  * the authored document and the compiled entity — one block splice, no
  * canonical re-render.
  */
-// implements REQ-kibi-verification-evidence-contract
 export async function executeMigrateLegacyReceipts(
   args: MigrateLegacyReceiptsArgs,
   context: OperationContext,

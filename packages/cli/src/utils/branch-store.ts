@@ -164,7 +164,6 @@ export function inspectBranchStore(
  * provably dead (crashed engine, killed prove run). The next attach will
  * auto-heal; the reason exists so operators see the state before it bites.
  */
-// implements REQ-core-journaled-engine-persistence
 export function storeLockJournalReason(
   storePath: string,
 ): Record<string, unknown> | null {
@@ -193,7 +192,6 @@ export function storeLockJournalReason(
  * held the store, which nothing else shows once the new holder rewrites the
  * ownership journal. Visible for STORE_LOCK_TAKEOVER_VISIBLE_MS.
  */
-// implements REQ-core-journaled-engine-persistence
 export function storeLockTakeoverReason(
   storePath: string,
   now: Date = new Date(),
@@ -265,7 +263,6 @@ function countFiles(directory: string, extension: string): number {
  * entity lanes plus relationship shards. Filesystem only, like
  * inspectBranchStore, so a status read never compiles anything.
  */
-// implements REQ-cli-status-pre-first-sync
 export function countAuthoredKbSources(workspaceRoot: string): number {
   const kbRoot = path.join(workspaceRoot, KB_ROOT);
   return AUTHORED_SOURCE_DIRECTORIES.reduce(
@@ -289,7 +286,6 @@ export type BranchStoreCompilation = Readonly<{
  * attaching to a new branch) but nothing was ever committed into it, so it is
  * empty. A legacy kb.rdf store counts as compiled.
  */
-// implements REQ-cli-status-pre-first-sync
 export function branchStoreCompilation(
   inspection: BranchStoreInspection,
 ): BranchStoreCompilation {
@@ -340,7 +336,6 @@ function journalHoldsGraphData(storePath: string): boolean {
  * check against that store would report each authored relationship as
  * missing; the one fix is `kibi sync`.
  */
-// implements REQ-cli-status-pre-first-sync
 export function uncompiledBranchStoreReason(
   workspaceRoot: string,
   inspection: BranchStoreInspection,

@@ -1,5 +1,4 @@
 % Module: certificate_check
-% implements REQ-kibi-kb-certificates
 %
 % The independent checker behind `kibi verify`.  It states each KB theorem
 % over the facts current requirements name and re-checks a certificate for

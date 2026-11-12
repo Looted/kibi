@@ -1,5 +1,4 @@
 export function isOperationalArtifactPath(pathLike: string): boolean {
-  // implements REQ-001
   const normalized = pathLike.replaceAll("\\", "/");
 
   // Recovery journals and pending-source receipts are runtime-owned

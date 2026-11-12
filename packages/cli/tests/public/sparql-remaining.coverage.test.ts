@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { afterEach, describe, expect, test } from "bun:test";
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
 import { sparqlRemoteSpec } from "../../src/public/operations/specs/sparql.js";

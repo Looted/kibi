@@ -56,7 +56,6 @@ export type CursorCellDependencies = Readonly<{
  * and never feed optimization gates or adoption decisions.
  */
 
-// implements REQ-skillopt-cursor-compat
 export async function runCursorCell(
   options: CursorCellOptions,
   dependencies: CursorCellDependencies = {},

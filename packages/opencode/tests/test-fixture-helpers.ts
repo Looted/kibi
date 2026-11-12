@@ -12,7 +12,6 @@ export interface TempRepo {
 }
 
 export function createTempRepoFromFixture(fixtureName: string): TempRepo {
-  // implements REQ-opencode-smart-enforcement-v1
   const fixturesDir = resolve(__dirname, "fixtures");
   const fixturePath = join(fixturesDir, fixtureName);
 

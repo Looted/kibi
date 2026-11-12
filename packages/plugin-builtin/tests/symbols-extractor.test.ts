@@ -86,7 +86,7 @@ describe("v1 symbol extractor", () => {
     }
   });
 
-  test("extracts every exported declaration kind with its directive text", () => {
+  test("extracts every exported declaration kind", () => {
     const result = createBuiltinTsMorphSymbolExtractor().analyze({
       path: "src/mod.ts",
       content: RICH,
@@ -171,7 +171,18 @@ describe("v1 symbol extractor", () => {
   });
 
   test("skips only the member whose extraction fails", () => {
-    failingMethod(MethodDeclaration.prototype, "getFullText", "method failed");
+    // getEnd is shared by every node and read only while a symbol is built,
+    // so fail it for methods alone.
+    const original = MethodDeclaration.prototype.getEnd;
+    spies.push(
+      spyOn(MethodDeclaration.prototype, "getEnd").mockImplementation(
+        function (this: unknown) {
+          if (this instanceof MethodDeclaration)
+            throw new Error("method failed");
+          return original.call(this as MethodDeclaration);
+        },
+      ),
+    );
     const result = createBuiltinTsMorphSymbolExtractor().analyze({
       path: "src/box.ts",
       content: "export class Box { run() {} size = 1; }",
@@ -259,31 +270,19 @@ describe("v1 symbol extractor", () => {
         content: "",
       }).symbols,
     ).toStrictEqual([
-      { name: "bare", kind: "function", ...span(1, 2), directiveText: "\n" },
-      { name: "Shell", kind: "class", ...span(3, 4), directiveText: "\n" },
-      { name: "NoStart", kind: "class", ...span(5, 6), directiveText: "\n" },
+      { name: "bare", kind: "function", ...span(1, 2) },
+      { name: "Shell", kind: "class", ...span(3, 4) },
+      { name: "NoStart", kind: "class", ...span(5, 6) },
       {
         name: "Flag",
         kind: "enum",
         ...span(6, 7),
-        directiveText: "\n\nenum Flag {}",
       },
       {
         name: "value",
         kind: "variable",
         ...span(8, 9),
-        directiveText: "\nvalue = 1",
       },
-    ]);
-  });
-
-  test("joins several JSDoc blocks with newlines", () => {
-    const result = createBuiltinTsMorphSymbolExtractor().analyze({
-      path: "src/docs.ts",
-      content: "/** one */\n/** two */\nexport function f() {}",
-    });
-    expect(result.symbols.map((symbol) => symbol.directiveText)).toStrictEqual([
-      "/** one */\n/** two */\nexport function f() {}\n/** one */\n/** two */",
     ]);
   });
 
@@ -301,7 +300,6 @@ describe("v1 symbol extractor", () => {
         startColumn: 13,
         endLine: 1,
         endColumn: 18,
-        directiveText: "export const a = 1;\na = 1",
       },
     ]);
   });
@@ -612,7 +610,7 @@ describe("v2 symbol extractor", () => {
   });
 
   test("fails on a member extraction error", async () => {
-    failingMethod(MethodDeclaration.prototype, "getFullText", "method failed");
+    failingMethod(MethodDeclaration.prototype, "getEnd", "method failed");
     const result = await createBuiltinTsMorphSymbolExtractorV2().analyze({
       path: "src/box.ts",
       content: "export class Box { run() {} }",

@@ -1,4 +1,3 @@
-// implements REQ-kb-unowned-file-candidates
 import fs from "node:fs";
 import path from "node:path";
 import { readEntitySummary } from "./knowledge-index.js";
@@ -125,7 +124,6 @@ function stems(list: readonly string[]): ReadonlySet<string> {
   return new Set(list.flatMap(words));
 }
 
-// implements REQ-kb-unowned-file-candidates
 /**
  * The topic words of a workspace path: its directory and file-name words,
  * without layout, language and role words (`src/app/pages/coach-dashboard/
@@ -140,7 +138,6 @@ export function pathTopicWords(relativePath: string): string[] {
   return [...new Set(found)];
 }
 
-// implements REQ-kb-unowned-file-candidates
 export type RequirementHead = {
   id: string;
   title: string;
@@ -216,8 +213,6 @@ export function replacedRequirements(
   }
   return replaced;
 }
-
-// implements REQ-claude-request-topic-candidates
 /**
  * Topic words of the person's request (`Users must not delete the last
  * owner` -> `user`, `delete`, `last`, `owner`), for ranking requirements an
@@ -293,7 +288,6 @@ const REQUEST_FILLER_WORDS = stems([
   "very",
 ]);
 
-// implements REQ-kb-unowned-file-candidates, REQ-claude-request-topic-candidates
 /**
  * Current requirements ranked by how many of the path's topic words their
  * title shares, then by how many of the request's topic words it shares, then
@@ -346,7 +340,6 @@ export function rankRequirementCandidates(
   return scored.slice(0, limit).map((entry) => entry.head);
 }
 
-// implements REQ-kb-unowned-file-candidates, REQ-claude-request-topic-candidates
 /**
  * Candidate requirements for a file no symbol links, read from the canonical
  * requirement documents (`.kb/requirements/*.md`), ranked by the path's words

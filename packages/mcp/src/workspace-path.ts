@@ -63,7 +63,6 @@ export function normalizeRepoRelativePath(
  * Resolve a recorded source path to an absolute path confined under
  * `workspaceRoot`. Returns null for escapes; callers must not read on null.
  */
-// implements REQ-symbol-sourcefile-workspace-confinement
 export function resolveWorkspaceSourceAbsolute(
   workspaceRoot: string,
   sourceFile: string,

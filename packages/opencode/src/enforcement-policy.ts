@@ -1,4 +1,3 @@
-// implements REQ-opencode-worktree-hard-enforcement-v1
 import type { E2eCoverageSignal } from "./e2e-coverage-signals.js";
 import type { FileLifecycle, ReminderKind } from "./file-operation-state.js";
 import type { KbFreshnessEvidence } from "./kb-freshness-state.js";
@@ -327,7 +326,6 @@ function hardBlockText(events: NormalizedPolicyEvent[]): {
   };
 }
 
-// implements REQ-opencode-worktree-hard-enforcement-v1
 export function computeEnforcementPolicy(
   input: EnforcementPolicyInput,
 ): EnforcementPolicyResult {

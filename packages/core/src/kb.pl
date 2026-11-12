@@ -187,7 +187,6 @@ journaled_store(Directory) :-
     ),
     sub_string(Contents, _, _, _, "kibi.rdf-journal.v1").
 
-% implements REQ-core-journaled-engine-persistence
 kb_attach_journaled(Directory) :-
     % kb_attach/1 has created Directory, and rdf_attach_db/2 creates the
     % rdf directory inside it.
@@ -290,7 +289,6 @@ kb_attach_legacy(Directory) :-
 % who attached (pid, workspace, boot id, started at) next to the lock so a
 % later store_locked failure can surface the holder and self-heal when the
 % holder is provably dead (crash, kill, removed worktree).
-% implements REQ-core-journaled-engine-persistence
 
 kb_lock_owner_path(Directory, Path) :-
     atom_concat(Directory, '/.kibi-lock-owner.json', Path).
@@ -338,7 +336,6 @@ kb_throw_store_locked(PersistencyDirectory, Directory, Original) :-
 %% kb_detach
 % Safely detach from KB without persisting pending changes.
 % Call kb_save/0 explicitly before kb_detach/0 when durability is required.
-% implements REQ-009
 kb_detach :-
     % Every step is a no-op when nothing is attached, so detaching an
     % unattached KB needs no separate guard.
@@ -395,7 +392,6 @@ kb_detach :-
 
 %% kb_save
 % Save RDF graph and sync audit log to disk
-% implements REQ-009
 kb_save :-
     (   kb_storage_mode(journaled)
     ->  kb_save_journaled
@@ -456,7 +452,6 @@ kb_sync_checkpoint :-
     kb_mark_dirty,
     kb_save_journaled.
 
-% implements REQ-core-journaled-engine-persistence
 kb_save_journaled_locked(Directory) :-
     ensure_journal_sentinel_current(Directory),
     (   kb_dirty
@@ -648,7 +643,6 @@ kb_storage_export(TargetDirectory) :-
 % Copy a legacy RDF/audit graph into a fresh journaled directory.  The caller
 % publishes the staged directory atomically; this predicate deliberately
 % leaves the source untouched on failure.
-% implements REQ-core-journaled-engine-persistence
 kb_migrate_legacy(SourceDirectory, TargetDirectory) :-
     kb_attached(SourceDirectory),
     kb_storage_mode(legacy),
@@ -1041,7 +1035,6 @@ kb_maybe_check_req_contradiction(Type, Id, SkipContradiction) :-
     ).
 
 %% kb_stage_upsert_mutation(+Type, +Id, +Properties, +Relationships, +SkipContradiction)
-% implements REQ-kibi-operation-interface-parity
 % The RDF mutation and refusal rules of one upsert, shared by the commit, the
 % batch commit and the dry-run preview so all three refuse the same payloads:
 % a relationship whose source or target entity does not exist, an invalid
@@ -1063,7 +1056,6 @@ kb_stage_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
 
 %% kb_preview_upsert_contradiction(+Type, +Properties, +Relationships)
 %% kb_preview_upsert_contradiction(+Type, +Properties, +Relationships, +SkipContradiction)
-% implements REQ-kibi-operation-interface-parity
 % Stage one upsert in a transaction that is always rolled back and run every
 % commit-time refusal rule (kb_stage_upsert_mutation/5) against the staged
 % KB, so a kb_upsert dry run refuses exactly what the commit would refuse:
@@ -1105,7 +1097,6 @@ kb_stage_upserts([
     kb_stage_upserts(Rest, Kinds).
 
 %% kb_commit_upsert_batch(+Entries, -ChangeKinds)
-% implements REQ-core-atomic-upsert-persistence
 % Commit many upserts in one RDF transaction and one journal flush.
 % Entries are upsert(Type, Props, Relationships, SkipContradiction) terms.
 kb_commit_upsert_batch(Entries, ChangeKinds) :-
@@ -1246,7 +1237,6 @@ kb_retract_relationship(RelType, FromId, ToId) :-
 % Remove only entity-to-entity edges. This is used when a relationship shard
 % changes: RDF property literals and audit resources remain untouched, while
 % the current shard contents can be asserted again in one transaction.
-% implements REQ-core-journaled-engine-persistence
 kb_retract_all_relationships :-
     kb_graph(Graph),
     (   kb_storage_mode(journaled)
@@ -1611,7 +1601,6 @@ query_index_ids(TypeFilter, IdFilter, Tags, SourceFilter, Ids) :-
 % Page proof-campaign candidates while reading only contract and binding RDF
 % properties. In particular, do not call kb_entity/3 here: that materializes
 % complete entity properties, including potentially large receipt histories.
-% implements REQ-kibi-verification-evidence-contract
 kb_query_proof_contracts(IdFilter, Limit, Offset, Rows) :-
     integer(Limit),
     integer(Offset),
@@ -1680,7 +1669,6 @@ kb_property_uri(Key, URI) :-
 kb_property_uri(Key, URI) :-
     atom_concat('kb:', Key, URI).
 
-% implements REQ-kibi-verification-evidence-contract
 proof_contract_candidate(none, Id) :-
     kb_graph(Graph),
     kb_property_uri(proof_contract, ContractURI),
@@ -1790,7 +1778,6 @@ kb_list_search_candidates(TypeFilter, Limit, Offset, Rows, Count) :-
 % indexed source contains Source (the kb_query_entities/8 source filter).
 % Source-located search uses it so candidates stay projected rows instead of
 % complete entities.
-% implements REQ-mcp-search-discovery, REQ-kibi-intent-aware-source-discovery
 kb_list_search_candidates(TypeFilter, SourceFilter, Limit, Offset, Rows, Count) :-
     integer(Limit),
     integer(Offset),
@@ -2049,7 +2036,6 @@ kb_assert_audit_event_with_timestamp(TS, Operation, EntityId, Data, Index) :-
 % property_value, observation or meta facts.  A legacy fact without a
 % fact_kind is accepted for either.  Every relationship write runs it, so a
 % write that breaks the pairing is refused with a validation_error.
-% implements REQ-011
 validate_strict_lane_pairing(RelType, _FromId, ToId) :-
     (   strict_lane_target_kinds(RelType, Kinds, Description)
     ->  (   strict_lane_target(ToId, Kinds)
@@ -2097,7 +2083,6 @@ kb_relationship_with_reluri(RelURI, Graph, FromId, ToId) :-
 bound_entity_uri(Id, URI) :- ( var(Id) -> true ; entity_id_to_uri(Id, URI) ).
 
 %% kb_relationship_edges(+Types, +Ids, -Edges)
-% implements REQ-mcp-search-discovery
 % Every [Type, From, To] relationship of one of Types that starts or ends at
 % one of Ids (a set), in the order and with the multiplicity of
 %   findall([T,F,O], (member(T, Types), kb_relationship(T, F, O),
@@ -2128,7 +2113,6 @@ kb_relationship_edges(Types, Ids, Edges) :-
             Edges).
 
 %% kb_negative_path_facts(+Ids, -Rows)
-% implements REQ-kibi-negative-path-facts-marked
 % The negative-path facts among Ids, each as [FactId, Guarded]. A
 % negative-path fact describes a situation that must not happen: a scenario
 % expecting rejection or error assumes it, and no requirement grounds a claim
@@ -2465,7 +2449,6 @@ coverage_gap(Req, missing_test) :-
     has_scenario(Req),
     \+ has_test(Req).
 
-% implements REQ-core-validation-rules
 % Only a current must-priority requirement owes scenario and test coverage.
 must_requirement(Req) :-
     kb_entity(Req, req, Props),
@@ -2683,7 +2666,6 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
         right: Right
     }.
 
-% implements REQ-kibi-truthful-consistency
 % Opposite decisions on the same case: two asserted facts of a predicate
 % whose key arguments determine a closed allow/deny decision argument (the
 % built-in permission_rule, or a project schema that declares key_arguments
@@ -2869,7 +2851,6 @@ req_predicate_index(Index) :-
     ).
 
 %% kb_domain_contradiction_pairs_examined(-Count)
-% implements REQ-search-answer-hygiene
 % How many distinct pairs of requirement facts the domain-contradictions
 % rule compared on the current KB: strict property facts of two current
 % requirements constraining the same subject and property, predicate facts
@@ -2988,7 +2969,6 @@ bind_key_arguments([Position|Positions], ArgsA, ArgsB) :-
 builtin_decision_predicate(default, permission_rule, 4, [1, 2, 3], 4).
 
 %% builtin_predicate_signature(?Name, ?SchemaId, ?ArgumentNames)
-% implements REQ-kibi-query-fact-filters
 % The catalog id and argument names of a built-in decision predicate.  The
 % id is the one kb_model accepts as schemaId; no entity with that id is
 % stored, so a kb_query by id finds nothing.  Keep in step with
@@ -3104,13 +3084,11 @@ fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, Scope, 
 %% canonical_property_tuple(+FactId, -Subject, -Property, -Op, -ValType, -Value, -Unit, -Scope, -Polarity)
 % fact_property_tuple/9 with the quantity converted to its canonical base unit
 % (units.pl). Used only for comparison; the authored fact is never rewritten.
-% implements REQ-kibi-unit-canonicalization
 canonical_property_tuple(FactId, Subject, Property, Op, CanonType, CanonValue, CanonUnit, Scope, Polarity) :-
     fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, Scope, Polarity),
     canonical_quantity(ValType, Value, Unit, CanonType, CanonValue, CanonUnit).
 
 %% comparison_quantity(+ValType, +Value, +Unit, -Type, -CanonValue, -CanonUnit)
-% implements REQ-kibi-truthful-consistency
 % canonical_quantity/6 for comparisons that depend on the value domain.
 % Canonicalization reports any integral value as int, but a value declared
 % `number` keeps real semantics: number gt 0 and number lt 1 do not conflict
@@ -3168,7 +3146,6 @@ predicate_schema_scan(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTyp
     normalize_term_atom_list(ArgumentTypesRaw, ArgumentTypes).
 
 %% predicate_schema_keys(?Namespace, ?Name, ?Arity, -KeyPositions)
-% implements REQ-kibi-truthful-consistency
 % A predicate_schema that declares key_arguments states a functional
 % dependency: the remaining arguments are determined by the key arguments.
 % KeyPositions are the 1-based positions of the named key arguments.  A
@@ -3317,7 +3294,6 @@ property_conflict(Subject, Property, OpA, TypeA, ValA, UnitA, Polarity,
 % integer-valued only when both sides declare int; a mixed int/number pair is
 % compared over the reals so a conflict is never claimed from one side's
 % narrower declaration.
-% implements REQ-kibi-truthful-consistency
 conflict_value_type(int, int, int) :- !.
 conflict_value_type(TypeA, TypeB, number) :-
     is_numeric_type(TypeA),
@@ -3386,7 +3362,6 @@ values_conflict(eq, ValA, eq, ValB, Type) :-
 % eq on a set says exactly those members do. Two includes facts always agree
 % (the members having the property include both sets); includes conflicts
 % with eq only when it names a member the eq set leaves out.
-% implements REQ-kibi-non-numeric-proof-kinds
 values_conflict(includes, Included, eq, Exact, set) :-
     % mutalog-disable-next-line cut_insert: no later clause matches includes against eq
     \+ subtract(Included, Exact, []).
@@ -3399,7 +3374,6 @@ values_conflict(eq, Exact, includes, Included, set) :-
 % the property (eq or includes) when that set names a member outside it;
 % excludes conflicts when the two sets share a member.  subset_of and excludes
 % never conflict with each other or themselves: the empty set satisfies them.
-% implements REQ-kibi-source-proof-kinds
 values_conflict(subset_of, Allowed, Op, Required, set) :-
     % mutalog-disable-next-line cut_insert: no later clause matches subset_of against eq or includes
     memberchk(Op, [eq, includes]),
@@ -3431,7 +3405,6 @@ values_conflict(neq, ValA, eq, ValB, Type) :-
 % not for number.  This covers every operator pair (eq/gt, lte/gt at the same
 % bound, gte/gt, ...) instead of a hand-written table.  neq/neq never
 % conflicts and eq/neq is handled above.
-% implements REQ-kibi-truthful-consistency
 values_conflict(OpA, ValA, OpB, ValB, Type) :-
     % Only the numeric types have integer variables to name.
     type_integer_variables(Type, IntegerVariables),
@@ -3553,8 +3526,9 @@ coerce_timestamp_atom(Val, Atom) :-
 
 %% changed_symbol_missing_req(+Symbol, +MinLinks, -Count)
 % True if Symbol has fewer than MinLinks requirement connections.
-% changed_symbol_req/2 overlay facts (from code-comment directives) are also
-% counted so that `// implements: REQ-001` can satisfy the gate.
+% changed_symbol_req/2 overlay facts carry the implements links the symbol
+% manifest resolves for a changed symbol (including a directory-local
+% symbols.yaml); source code comments never produce one.
 changed_symbol_missing_req(Symbol, MinLinks, Count) :-
     changed_symbol(Symbol),
     \+ executable_test_symbol(Symbol),
@@ -3571,7 +3545,6 @@ changed_symbol_missing_req(Symbol, MinLinks, Count) :-
 % manifest entry changed). It reuses symbol_no_req_coverage/2, so the staged
 % gate and `kibi check` judge coverage identically: a direct req->test edge
 % counts only while the requirement has no scenario.
-% implements REQ-014
 changed_symbol_no_req_coverage(ExtraSymbols, Symbol) :-
     findall(Candidate,
             (   changed_symbol(Candidate)
@@ -3595,7 +3568,6 @@ changed_symbol_violation(Symbol, MinLinks, Count, File, Line, Col, Name) :-
 % Validates that a requirement has no contradictions with current requirements.
 % Called within a transaction after asserting entity and relationships.
 % Throws error(kb_contradiction(Details)) if contradictions are found.
-% implements REQ-011
 % A requirement that ReqId supersedes is no longer current, and every pair
 % joins two current requirements, so a direct supersedes edge from the new
 % requirement to the conflicting one already allows the write.
@@ -3615,7 +3587,6 @@ check_req_contradiction(ReqId) :-
 %% build_contradiction_message(+ReqId, +Pairs, -Message)
 % Build an actionable error message for contradictions.
 % Message includes conflicting req IDs, subject/property details, and remediation hints.
-% implements REQ-011
 build_contradiction_message(ReqId, Pairs, Message) :-
     format(atom(Header), 'Contradiction detected for requirement ~w:', [ReqId]),
     build_contradiction_details(Pairs, Details),

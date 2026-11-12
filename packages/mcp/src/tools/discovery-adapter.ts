@@ -24,7 +24,6 @@ export function createDiscoveryContext(
   prolog: PrologProcess,
   baseContext?: OperationContext,
 ): OperationContext {
-  // implements REQ-kibi-operation-interface-parity
   // Keep this adapter aligned with tools-runtime adaptProlog: indexed discovery
   // and typed status must reach EngineClient command frames (not query-only
   // fallbacks), and AbortSignal must forward for MCP tool cancellation.

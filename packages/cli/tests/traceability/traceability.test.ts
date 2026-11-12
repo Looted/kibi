@@ -138,7 +138,7 @@ describe("symbol-extract", () => {
     expect(Array.isArray(syms)).toBe(true);
   });
 
-  it("parses implements directives and multiple REQs", () => {
+  it("an implements comment adds no requirement link", () => {
     const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
       path: "d.ts",
       content: "// implements REQ-1, REQ-2\nexport function z() {}",
@@ -146,9 +146,7 @@ describe("symbol-extract", () => {
       status: "M",
     };
     const syms = extractSymbolsFromStagedFile(staged);
-    expect(syms[0].reqLinks).toEqual(
-      expect.arrayContaining(["REQ-1", "REQ-2"]),
-    );
+    expect(syms[0].reqLinks).toEqual([]);
   });
 
   it("syntax error in staged file returns empty array", () => {
@@ -236,7 +234,7 @@ describe("symbol-extract", () => {
     expect(symsB[0]?.reqLinks).toContain("REQ-B");
   });
 
-  it("inline directive links take precedence over manifest links", () => {
+  it("manifest links stand when the code carries an implements comment", () => {
     const manifestLookup: ManifestLookup = new Map([
       [
         "file.ts:foo",
@@ -254,8 +252,7 @@ describe("symbol-extract", () => {
     };
     const syms = extractSymbolsFromStagedFile(staged, manifestLookup);
     expect(syms[0]?.id).toBe("SYM-001");
-    expect(syms[0]?.reqLinks).toContain("REQ-INLINE");
-    expect(syms[0]?.reqLinks).not.toContain("REQ-MANIFEST");
+    expect(syms[0]?.reqLinks).toEqual(["REQ-MANIFEST"]);
   });
 
   it("falls back to hash ID when no manifest match exists", () => {

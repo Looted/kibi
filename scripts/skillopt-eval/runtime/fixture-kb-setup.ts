@@ -51,7 +51,6 @@ const COORDINATE_KEYS = [
   "sourceEndColumn",
 ] as const;
 
-// implements REQ-generated-coordinate-persistence
 export function assertSymbolCoordinatesPresent(
   entity: Record<string, unknown>,
   symbolId: string,
@@ -66,7 +65,6 @@ export function assertSymbolCoordinatesPresent(
   }
 }
 
-// implements REQ-generated-coordinate-persistence
 export function assertSymbolCoordinatesAbsent(
   entity: Record<string, unknown>,
   symbolId: string,
@@ -99,7 +97,6 @@ const FIXTURE_SOURCE_PATH = "src/fixture.ts";
 const FIXTURE_TEST_PATH = "tests/fixture-family.test.ts";
 const FIXTURE_TEST_TIMEOUT_MS = 10_000;
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function fixtureCliEnv(workspaceTarget: string): NodeJS.ProcessEnv {
   return {
@@ -121,7 +118,6 @@ function isInteractivePrologEntityTimeout(result: CliResult): boolean {
 // Safe only for this sync failure because publication has not happened and the
 // failed sync cleans its staging path before returning.
 // runStagedCli also terminates the timed-out process and fixture engine first.
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export async function runCliWithRetry(
   command: () => Promise<CliResult>,
@@ -152,7 +148,6 @@ export async function runCliWithRetry(
   return result.stdout;
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function runStagedCli(
   cliRoot: string,
   workspaceTarget: string,
@@ -191,7 +186,6 @@ export async function runStagedCli(
  * production commit path. Only the fixed forced-reassertion flow can repair
  * this state; the target model never gains direct `.kb` access.
  */
-// implements REQ-skillopt-codex-optimization
 export async function setupGeneratedCoordinateDivergence(
   workspaceTarget: string,
   cliRoot: string,
@@ -340,7 +334,6 @@ export async function setupGeneratedCoordinateDivergence(
 }
 
 /** Remove exactly the four coordinate literals via production core. */
-// implements REQ-skillopt-codex-optimization
 export async function stripSymbolCoordinates(
   workspaceTarget: string,
   fullEntity: Record<string, unknown>,
@@ -395,7 +388,6 @@ export async function stripSymbolCoordinates(
 }
 
 /** Shared fixture repository bootstrap: evaluation branch, identity, excludes. */
-// implements REQ-skillopt-codex-optimization
 export async function initFixtureRepository(
   workspaceTarget: string,
 ): Promise<void> {
@@ -447,7 +439,6 @@ async function stageCommitAll(workspaceTarget: string): Promise<void> {
  * init, empty sync, committed. No knowledge entities are fabricated, so
  * kb_plan_bootstrap stays eligible and apply gates remain meaningful.
  */
-// implements REQ-skillopt-codex-optimization
 export async function setupThinRootKb(
   workspaceTarget: string,
   cliRoot: string,
@@ -467,7 +458,6 @@ export async function setupThinRootKb(
   await stageCommitAll(workspaceTarget);
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function runSeededFixtureTest(
   workspaceTarget: string,
   testPath: string = FIXTURE_TEST_PATH,
@@ -511,7 +501,6 @@ export async function runSeededFixtureTest(
  * source-linked symbol pair and its executable coverage test so discovery/query
  * signals have real content without introducing a seeded validation failure.
  */
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export async function setupSeededFreshKb(
   workspaceTarget: string,
@@ -719,7 +708,6 @@ function declaredPredicateSchemas(
  * schemas, so the seed authors each one as a predicate_schema fact with the
  * declared name, arguments and types.
  */
-// implements REQ-skillopt-predicate-first-requirements
 export async function writeDeclaredPredicateSchemas(
   workspaceTarget: string,
 ): Promise<readonly string[]> {
@@ -794,7 +782,6 @@ async function expectOnlyMissingSymbolCoverage(
  * covered_by link to the seeded executable test, so linking coverage is work
  * the agent must do rather than a fact the seed already states.
  */
-// implements REQ-skillopt-codex-optimization
 export async function setupSeededUncoveredKb(
   workspaceTarget: string,
   cliRoot: string,
@@ -810,7 +797,6 @@ export async function setupSeededUncoveredKb(
  * migration (which the MCP-only task forbids) imports them: without this seed
  * every requested relationship is refused because its target does not exist.
  */
-// implements REQ-skillopt-logical-evidence-fidelity
 export function safeMutationEndpointDocuments(
   taskId: string,
 ): Readonly<Record<string, string>> {
@@ -856,7 +842,6 @@ export function safeMutationEndpointDocuments(
  * requested links are writable through MCP. The fixture production symbol
  * itself is not seeded: creating it and linking it is the agent's work.
  */
-// implements REQ-skillopt-logical-evidence-fidelity
 export async function setupSeededSafeMutationKb(
   workspaceTarget: string,
   cliRoot: string,
@@ -873,7 +858,6 @@ export async function setupSeededSafeMutationKb(
  * has not absorbed (probe-verified: kb_status reports syncState=stale with a
  * clean worktree), so staleness-classification signals have real content.
  */
-// implements REQ-skillopt-codex-optimization
 export async function setupSeededStaleKb(
   workspaceTarget: string,
   cliRoot: string,
@@ -901,7 +885,6 @@ export async function setupSeededStaleKb(
  * syncState=stale naming the linked symbol, and a dirty verification
  * snapshot), matching the edit described by changes/uncommitted.patch.
  */
-// implements REQ-skillopt-codex-optimization
 export async function setupSeededDirtyKb(
   workspaceTarget: string,
   cliRoot: string,
@@ -917,7 +900,6 @@ export async function setupSeededDirtyKb(
 }
 
 /** A deliberately incomplete layout for the read-only operator-repair task. */
-// implements REQ-skillopt-codex-optimization
 export async function setupSeededPartialKb(
   workspaceTarget: string,
   cliRoot: string,
@@ -933,7 +915,6 @@ export async function setupSeededPartialKb(
  * each other's foreign term handles (observed as `invalid term_t` during
  * staged upserts when the broker launched first).
  */
-// implements REQ-skillopt-codex-optimization
 export async function stopFixtureEngine(
   workspaceTarget: string,
 ): Promise<void> {
@@ -950,7 +931,6 @@ export async function stopFixtureEngine(
   await daemon.terminate();
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function writeDocuments(
   workspaceTarget: string,
   documents: Readonly<Record<string, string>>,
@@ -963,7 +943,6 @@ export async function writeDocuments(
 }
 
 /** Commit everything, then import it; sync reads the Git source boundary. */
-// implements REQ-skillopt-codex-optimization
 export async function commitAndSync(
   workspaceTarget: string,
   cliRoot: string,
@@ -976,7 +955,6 @@ export async function commitAndSync(
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function initSeededRepository(
   workspaceTarget: string,
   cliRoot: string,
@@ -988,7 +966,6 @@ export async function initSeededRepository(
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function validateSeed(
   workspaceTarget: string,
   cliRoot: string,
@@ -1029,7 +1006,6 @@ function recordField(
   return field as Record<string, unknown>;
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function jsonRoute(
   cliRoot: string,
   workspaceTarget: string,
@@ -1050,7 +1026,6 @@ export async function jsonRoute(
 }
 
 /** The semantic advisor's clause ledger for prose (computed live). */
-// implements REQ-skillopt-codex-optimization
 export async function semanticLedger(
   cliRoot: string,
   workspaceTarget: string,
@@ -1100,7 +1075,6 @@ export async function semanticLedger(
  * production symbol in src/fixture.ts still implementing the superseded v1.
  * The KB is committed, synced and checked clean before the model starts.
  */
-// implements REQ-skillopt-codex-optimization
 export async function setupSeededGovernedAreaKb(
   workspaceTarget: string,
   cliRoot: string,
@@ -1124,7 +1098,6 @@ export async function setupSeededGovernedAreaKb(
  * output; its origin is then stamped as human-approved. A zero-quota
  * property fact and a scenario that expects rejection are seeded beside it.
  */
-// implements REQ-skillopt-codex-optimization
 export async function setupSeededPreconditionKb(
   workspaceTarget: string,
   cliRoot: string,
@@ -1217,7 +1190,6 @@ async function stampHumanOrigin(
  * order that satisfies both bodies, so `kb_check` reports exactly one
  * `unresolved` rule conflict and nothing else.
  */
-// implements REQ-skillopt-codex-optimization
 export async function setupSeededUnresolvedRuleKb(
   workspaceTarget: string,
   cliRoot: string,
@@ -1345,7 +1317,6 @@ export async function setupSeededUnresolvedRuleKb(
  * a proof receipt, and two fully modeled, compatible requirements on the same
  * property (`>= 0` and `<= 1000`). Clause ledgers come from the live advisor.
  */
-// implements REQ-skillopt-codex-optimization
 export async function setupSeededConsistencyKb(
   workspaceTarget: string,
   cliRoot: string,
@@ -1447,7 +1418,6 @@ export async function setupSeededConsistencyKb(
  * in billing cycles, which `kb-consistency-unresolved` reports as
  * undecidable.
  */
-// implements REQ-skillopt-codex-optimization
 export async function setupSeededJointContradictionKb(
   workspaceTarget: string,
   cliRoot: string,

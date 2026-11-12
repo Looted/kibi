@@ -30,10 +30,8 @@ import { describeLockHolderPid } from "./store-lock.js";
  * fallback for errors that never pass through a wrapper (startup failures,
  * older kibi-core versions).
  */
-// implements REQ-core-prolog-process-management
 export const PROLOG_ERROR_TERM_PREFIX = "__KIBI_ERROR__:";
 
-// implements REQ-core-prolog-process-management
 export type PrologErrorCode =
   | "stale_snapshot"
   | "audit_locked"
@@ -43,20 +41,17 @@ export type PrologErrorCode =
   | "contradiction"
   | "validation_error";
 
-// implements REQ-core-prolog-process-management
 export type PrologErrorRelationship = Readonly<{
   relType: string;
   fromType: string;
   toType: string;
 }>;
 
-// implements REQ-core-prolog-process-management
 export type PrologErrorConflict = Readonly<{
   reason: string;
   otherId: string;
 }>;
 
-// implements REQ-core-prolog-process-management
 export type PrologStoreLockOwner = Readonly<{
   pid?: number;
   workspaceRoot?: string;
@@ -84,7 +79,6 @@ export type PrologErrorRecord = Readonly<{
 const ERROR_TERM_LINE = new RegExp(`^${PROLOG_ERROR_TERM_PREFIX}(.+)`, "m");
 
 /** Extract the first structured error term line from raw stderr text. */
-// implements REQ-core-prolog-process-management
 export function extractPrologErrorRecord(
   text: string,
 ): PrologErrorRecord | null {
@@ -94,7 +88,6 @@ export function extractPrologErrorRecord(
 }
 
 /** Parse a written error term such as `error(permission_error(...), Context)`. */
-// implements REQ-core-prolog-process-management
 export function parsePrologErrorTerm(
   termText: string,
 ): PrologErrorRecord | null {
@@ -256,7 +249,6 @@ function parseLockOwner(
  * is best-effort: any malformed content yields a null owner while the lock
  * directory is still surfaced.
  */
-// implements REQ-core-journaled-engine-persistence
 function parseStoreLockedContext(
   contextRaw: string | undefined,
 ): PrologStoreLockedDetail {

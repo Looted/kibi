@@ -3,15 +3,12 @@ import type { RejectionIssue } from "kibi-agent-core/usage-telemetry";
 
 import { schemaIssues } from "./telemetry-details.js";
 
-// implements REQ-kibi-operation-interface-parity
 export type DiagnosticTelemetry = Readonly<Record<string, unknown>>;
 
-// implements REQ-kibi-operation-interface-parity
 export type ValidationResult =
   | { readonly valid: true }
   | { readonly valid: false; readonly errors: readonly string[] };
 
-// implements REQ-kibi-operation-interface-parity
 export type PreparedInputResult =
   | {
       readonly valid: true;
@@ -60,7 +57,6 @@ function formatValidationErrors(errors: readonly ErrorObject[]): string[] {
   });
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function prepareOperationInput(
   input: unknown,
   schema: object,
@@ -95,7 +91,6 @@ export function prepareOperationInput(
     : { valid: true, businessInput, telemetry: telemetryValue };
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function validateAgainstSchema(
   input: unknown,
   schema: object,

@@ -7,8 +7,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import type { SourceSpec } from "../../../src/public/proof-sources.js";
 
-// implements REQ-codex-plugin-package
-
 /**
  * What the published kibi-codex package contains.
  * Each certificate reads a package file and proves one claim of REQ-codex-plugin-package.

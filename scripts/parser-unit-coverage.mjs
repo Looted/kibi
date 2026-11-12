@@ -47,7 +47,6 @@ function sourceFiles(directory) {
   });
 }
 
-// implements REQ-014
 /** Run the existing parser conformance suite and map real worker coverage to TS. */
 export function runParserUnitCoverage(workspacePath, coveragePath) {
   const workspaceRoot = resolve(workspacePath);

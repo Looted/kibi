@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -958,7 +957,6 @@ describe("session memory fallback", () => {
   });
 });
 
-// implements REQ-claude-firm-edit-confirmation
 describe("firm requirement confirmation", () => {
   /** Raw PreToolUse output with the confirmation on. */
   function firmSession(
@@ -1069,7 +1067,6 @@ describe("firm requirement confirmation", () => {
   });
 });
 
-// implements REQ-claude-decision-capture-nudges, REQ-claude-request-topic-candidates
 describe("decision capture", () => {
   const prompt = (fixture: Fixture, text: string, sessionId = "s1") =>
     runHook(
@@ -1348,7 +1345,6 @@ describe("workspace stamp", () => {
   });
 });
 
-// implements REQ-agent-core-edit-snippets
 const claudePluginRoot = path.resolve(import.meta.dir, "..");
 
 type HookCommandRun = { code: number | null; stdout: string; stderr: string };

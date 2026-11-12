@@ -240,7 +240,6 @@ async function entityIdsForCandidate(
  */
 const SOURCE_LOOKUP_BATCH_SIZE = 200;
 
-// implements REQ-core-journaled-engine-persistence
 async function entityIdsForSources(
   prolog: PrologProcess,
   sourceFiles: readonly string[],
@@ -417,7 +416,6 @@ async function tryResetPrologProcess(prolog: PrologProcess): Promise<void> {
 }
 
 /** What the store holds after a sync, by entity type, plus relationships. */
-// implements REQ-cli-sync-summary-kb-totals
 export type StoreTotals = Readonly<{
   entities: Record<string, number>;
   relationships: number;
@@ -427,7 +425,6 @@ export type StoreTotals = Readonly<{
  * Count what the store holds after this sync. Undefined when the store
  * cannot be counted; the summary then shows only what was imported.
  */
-// implements REQ-cli-sync-summary-kb-totals
 export async function queryStoreTotals(
   prolog: Pick<PrologProcess, "query">,
 ): Promise<StoreTotals | undefined> {
@@ -451,7 +448,6 @@ export async function queryStoreTotals(
 }
 
 export async function persistEntities(
-  // implements REQ-009
   prolog: PrologProcess,
   results: ExtractionResult[],
   entityIds: Set<string>,
@@ -772,7 +768,6 @@ export function relationshipFailureMessage(
   return singleError || batchError || "Unknown error";
 }
 
-// implements REQ-core-persistence
 export async function persistRelationships(
   prolog: PrologProcess,
   results: ExtractionResult[],

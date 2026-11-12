@@ -233,7 +233,6 @@ describe("kb_validate_upsert", () => {
       );
     });
 
-    // implements REQ-kibi-operation-interface-parity
     describe("kb_upsert dryRun agrees with the real write", () => {
       async function seed(): Promise<void> {
         await handleKbUpsert(prolog, {

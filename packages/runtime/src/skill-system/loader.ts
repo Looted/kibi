@@ -49,7 +49,6 @@ export function listBundledSkills(): SkillManifest[] {
 export function loadBundledSkill(id: string): SkillBundle {
   return loadBundledSkillFrom(currentBundledSkillsDir(), id);
 }
-// implements REQ-reusable-skill-subsystem
 // covered_by TEST-skill-cli-load-validate
 export function loadBundledSkillFrom(
   skillsDir: string,
@@ -65,7 +64,6 @@ export function readBundledSkillResource(
 ): string {
   return readBundle(loadBundledSkill(id), id, resourcePath);
 }
-// implements REQ-reusable-skill-subsystem
 // covered_by TEST-skill-cli-load-validate
 export function readBundledSkillResourceFrom(
   skillsDir: string,

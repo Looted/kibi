@@ -13,8 +13,6 @@ import { FINGERPRINT_COMPONENT_NAMES } from "../../../src/public/proof-fingerpri
 import { PROVE_PROGRESS_FILE } from "../../../src/commands/prove.js";
 import { PROOF_INTEGRATION_CONFIGURE } from "../../../src/proof/integration-plan.js";
 
-// implements REQ-kibi-proof-receipt-format
-
 /**
  * The receipt versions Kibi reads, the parts of an execution fingerprint, the prove progress file and the integration setup step. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

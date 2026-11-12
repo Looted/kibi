@@ -10,7 +10,6 @@ function toRelationshipPlanRows(
   }));
 }
 
-// implements REQ-002
 export function strictWriteSetToApplyPlan(
   writeSet: StrictWriteSet,
 ): Array<Record<string, unknown>> {
@@ -46,7 +45,6 @@ export function strictWriteSetToApplyPlan(
   ];
 }
 
-// implements REQ-002
 export function writeSetPrimaryEntityId(writeSet: StrictWriteSet): string {
   return writeSet.isStrict ? writeSet.req.id : writeSet.observationFact.id;
 }

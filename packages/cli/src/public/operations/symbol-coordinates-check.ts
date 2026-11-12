@@ -28,7 +28,6 @@ import type { PrologPort } from "./runtime-types.js";
  * kibi sync names it in its refresh output only, so the check reports every
  * such symbol as a warning (advisory, non-blocking).
  */
-// implements REQ-cli-check, REQ-generated-coordinate-persistence
 export const SYMBOL_COORDINATES_MISSING_RULE = "symbol-coordinates-missing";
 
 const SYMBOL_PLACEMENT_QUERY =
@@ -41,7 +40,6 @@ const INACTIVE_STATUSES = new Set([
   "superseded",
 ]);
 
-// implements REQ-cli-check
 export async function collectSymbolCoordinatesMissingViolations(
   prolog: Pick<PrologPort, "query">,
   workspaceRoot: string,

@@ -68,7 +68,6 @@ export class CodexAuthError extends Error {
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 export function assertExistingLoginEnvironment(env: NodeJS.ProcessEnv): void {
   const present = Object.entries(env).filter(
     ([name, value]) =>
@@ -117,7 +116,6 @@ async function readableFile(path: string): Promise<boolean> {
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function prepareExistingLogin(
   options: Readonly<{
     privateCodexHome: string;
@@ -174,7 +172,6 @@ function resolveRealCodexHome(env: NodeJS.ProcessEnv): string {
 // ChatGPT refresh tokens are single-use. Isolated cells copy auth.json into a
 // private CODEX_HOME; without a write-back, the next cell retries the already
 // consumed host refresh token and Codex fails with refresh_token_reused.
-// implements REQ-skillopt-codex-optimization
 export async function persistRefreshedLogin(
   auth: LoginAuthPaths,
 ): Promise<void> {
@@ -200,7 +197,6 @@ export async function persistRefreshedLogin(
   await chmod(hostAuth, 0o600);
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function withCodexAuthLease<T>(
   env: NodeJS.ProcessEnv,
   operation: () => Promise<T>,

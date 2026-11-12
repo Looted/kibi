@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
@@ -391,7 +390,6 @@ describe("agent-core knowledge index", () => {
     expect(readEntitySummary(root, "UNKNOWN-id")).toEqual({ id: "UNKNOWN-id" });
   });
 
-  // implements REQ-kb-decision-firmness, REQ-kb-decision-firmness-from-origin
   test("entity summaries carry firmness, from the origin when unauthored, and snippets label firm and exploratory decisions", () => {
     const root = tempDir("kibi-agent-core-firmness-");
     write(

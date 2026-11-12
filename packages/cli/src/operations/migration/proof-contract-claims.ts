@@ -29,11 +29,9 @@ import {
 } from "./kb-sources.js";
 
 /** Schema 12: pin proves on a certificate contract with one provable claim. */
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export const PROOF_CONTRACT_CLAIMS_PIN_CODE = "proof_contract_claims_pin";
 
 /** Schema 12: certificate contracts a person must bind to their claims. */
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export const PROOF_CONTRACT_CLAIMS_REVIEW_CODE = "proof_contract_claims_review";
 
 /**
@@ -86,7 +84,6 @@ function describeCandidate(candidate: ClaimCandidate): string {
  * What a person reviewing a contract without proves has to do, naming every
  * claim its test reaches and how a certificate of its kind would bind it.
  */
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export function claimReviewInstruction(row: ProofContractClaimsReview): string {
   const factKind =
     row.kind === "exhaustive" || row.kind === "typecheck"
@@ -113,7 +110,6 @@ export function claimReviewInstruction(row: ProofContractClaimsReview): string {
  * block mapping, already names proves, or the edit would not read back as
  * exactly that change.
  */
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export function withProofContractProves(
   content: string,
   keys: readonly string[],
@@ -168,7 +164,6 @@ export function withProofContractProves(
  * obligation for gets that claim pinned in proves; any other is left for a
  * person to bind (review). Read-only.
  */
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export function planProofContractClaimPins(
   workspaceRoot: string,
   rows: readonly ClaimCandidateRow[] | null,
@@ -222,7 +217,6 @@ export function planProofContractClaimPins(
   return { targets, review, skipped };
 }
 
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export function applyProofContractClaimPins(
   workspaceRoot: string,
   rows: readonly ClaimCandidateRow[] | null,
@@ -239,7 +233,6 @@ export function applyProofContractClaimPins(
  * store is attached or the evaluation fails; the migration then pins
  * nothing, and proof-contract-claims lists the contracts.
  */
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export async function readProofContractClaimCandidates(
   workspaceRoot: string,
 ): Promise<readonly ClaimCandidateRow[] | null> {

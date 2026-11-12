@@ -1,4 +1,3 @@
-// implements REQ-kibi-telemetry-agent-signals
 import { describe, expect, test } from "bun:test";
 
 import { KbRejection } from "../src/cli-errors";

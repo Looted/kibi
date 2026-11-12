@@ -8,8 +8,6 @@ import {
 import { SIGNOFF_BRIEF_DIR } from "../../../src/signoff/model.js";
 import { SIGNOFF_MARKDOWN_LIMIT } from "../../../src/signoff/markdown.js";
 
-// implements REQ-kibi-signoff-brief-location
-
 /**
  * Where kibi signoff writes its views and how many rows it shows in chat. Kibi
  * reads both constants itself at ingest, so each certificate is checked against

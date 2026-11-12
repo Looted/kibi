@@ -35,7 +35,6 @@ afterEach(() => {
 });
 
 describe("signoff views in the OpenCode TUI", () => {
-  // implements REQ-kibi-signoff-views
   test("reads the latest questions view and counts open decisions", () => {
     const root = workspace();
     expect(readLatestSignoff(root)).toBeUndefined();

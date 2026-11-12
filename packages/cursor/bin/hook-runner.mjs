@@ -2538,7 +2538,7 @@ function writeGuidance(filePath, context) {
   const guidance = [
     `Kibi impact review: run kb_check({sourceFiles:["${relativePath}"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.`,
     "Check symbol granularity and whether linked requirements, scenarios, and tests still cover the changed behavior.",
-    "Prefer symbol manifest + executable_for or // implements REQ-<area>-<behavior> for traceability."
+    "Record traceability in the symbol manifest (implements for production code, executable_for for test code); code comments are not read."
   ];
   return withAdvisory(context, guidance);
 }

@@ -95,7 +95,6 @@ function setDifference(code: readonly string[], fact: readonly string[]) {
  * The type-level witness Kibi writes for a typecheck claim binding: it
  * compiles only when the domain type has exactly the fact's members.
  */
-// implements REQ-kibi-claim-bound-proofs
 export function setEqualityWitness(
   importPath: string,
   members: readonly string[],
@@ -212,7 +211,6 @@ function constraintText(obligation: NumericObligation): string {
  * that the field exists, `required<i>` that it is required and non-null), so
  * a failed compile says which fields break the claim.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export function requiredFieldsWitness(
   importPath: string,
   typeExpression: string,
@@ -447,7 +445,6 @@ function claimFileCandidates(token: string): string[][] {
  * that name no file (dotted subject keys such as `kibi.cli`) resolve to
  * nothing.
  */
-// implements REQ-kibi-source-proof-kinds
 export function namedClaimFiles(
   workspaceRoot: string,
   texts: readonly string[],
@@ -482,7 +479,6 @@ type SourceScopeCheck = (row: ObligationRow) => Promise<string | null>;
  * read of an environment getter cannot decide a closed claim (eq, subset_of,
  * excludes) about what the code reads, since the other getters are unread.
  */
-// implements REQ-kibi-source-proof-kinds
 async function sourceScopeCheck(
   context: OperationContext,
   prolog: PrologPort,
@@ -563,7 +559,6 @@ async function sourceScopeCheck(
  * intent-scope derivation rests on the knowledge base's own facts alone
  * (the test read no value from the code), so it does not count either.
  */
-// implements REQ-kibi-claim-bound-proofs
 export function receiptEvidenceLevel(
   level: "proved" | "tested",
   bindings: readonly ClaimBinding[] | undefined,
@@ -584,7 +579,6 @@ export function receiptEvidenceLevel(
  * whose fact has no derivation is only attested by the author. Returns
  * undefined for a contract that names no claims.
  */
-// implements REQ-kibi-claim-bound-proofs, REQ-kibi-non-numeric-proof-kinds
 export async function judgeClaimBindings(
   context: OperationContext,
   input: Readonly<{

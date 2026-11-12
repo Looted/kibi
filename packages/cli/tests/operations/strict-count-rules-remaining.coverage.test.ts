@@ -1,4 +1,3 @@
-// implements REQ-mcp-semantic-advisor-preflight
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   detectCountStrictSuggestion,

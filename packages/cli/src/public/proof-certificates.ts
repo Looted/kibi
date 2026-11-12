@@ -40,10 +40,8 @@ import {
 export type { SourceModel, SourceSpec } from "./proof-sources.js";
 
 /** Where `kibi prove` asks a run to leave its certificates. */
-// implements REQ-kibi-code-proof-kinds
 export const PROOF_CERTIFICATES_ENV = "KIBI_PROOF_CERTIFICATES";
 
-// implements REQ-kibi-code-proof-kinds
 export type CodeCertificate = Readonly<Record<string, unknown>> &
   Readonly<{
     version: typeof CODE_CERTIFICATE_VERSION;
@@ -97,7 +95,6 @@ function canonicalString(value: string): string {
  * code_certificates.pl hashes: keys sorted by code point, no whitespace,
  * non-ASCII and control characters as \u escapes of UTF-16 code units.
  */
-// implements REQ-kibi-code-proof-kinds
 export function canonicalCertificateJson(value: unknown): string {
   if (value === null || value === undefined) return "null";
   if (Array.isArray(value))
@@ -115,14 +112,12 @@ export function canonicalCertificateJson(value: unknown): string {
 }
 
 /** The sha256 a receipt records for its certificate. */
-// implements REQ-kibi-code-proof-kinds
 export function certificateDigest(certificate: unknown): string {
   return createHash("sha256")
     .update(canonicalCertificateJson(certificate), "utf8")
     .digest("hex");
 }
 
-// implements REQ-kibi-code-proof-kinds
 export type ExhaustiveResult = Readonly<{
   member: string;
   outcome: "passed" | "failed";
@@ -135,7 +130,6 @@ export type ExhaustiveResult = Readonly<{
  * source, never restate it): Kibi rejects the certificate unless the proof
  * file imports the contract's domain_source symbol.
  */
-// implements REQ-kibi-code-proof-kinds
 export async function exhaustiveCertificate<T>(input: {
   testId: string;
   domain: Readonly<{ symbolId: string; members: Iterable<T> }>;
@@ -170,7 +164,6 @@ export async function exhaustiveCertificate<T>(input: {
 }
 
 /** The members an exhaustive certificate records as failed. */
-// implements REQ-kibi-code-proof-kinds
 export function failedMembers(certificate: CodeCertificate): string[] {
   const results = Array.isArray(certificate.results)
     ? (certificate.results as ExhaustiveResult[])
@@ -187,7 +180,6 @@ export function failedMembers(certificate: CodeCertificate): string[] {
  * member of the domain goes unhandled (an exhaustive switch ending in a
  * `never` assignment, or a mapped type over the domain).
  */
-// implements REQ-kibi-code-proof-kinds
 export function typecheckCertificate(input: {
   testId: string;
   domainSymbolId: string;
@@ -216,7 +208,6 @@ export function typecheckCertificate(input: {
   };
 }
 
-// implements REQ-kibi-code-proof-kinds
 export type ArithmeticConstraint = Readonly<{
   operator: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
   value: number;
@@ -227,7 +218,6 @@ export type ArithmeticConstraint = Readonly<{
  * assumptions must be satisfiable and must entail the claim for every value
  * of the variable, not only the values a test happened to try.
  */
-// implements REQ-kibi-code-proof-kinds
 export function arithmeticCertificate(input: {
   testId: string;
   variable: string;
@@ -250,7 +240,6 @@ export function arithmeticCertificate(input: {
  * An SMT-LIB query whose unsat answer proves the claim (the query asserts
  * the claim's negation). Kibi re-runs the named solver on the query.
  */
-// implements REQ-kibi-code-proof-kinds
 export function smtCertificate(input: {
   testId: string;
   solver: Readonly<{ name: "z3" | "cvc5"; version: string }>;
@@ -271,7 +260,6 @@ const certificateText = (value: unknown) =>
   typeof value === "string" ? value : String(value);
 
 /** A finite domain a rule certificate ranges over. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export type RuleDomain = Readonly<{
   /** The domain's symbol; omit it for a domain the contract reads from a source. */
   symbolId?: string;
@@ -279,7 +267,6 @@ export type RuleDomain = Readonly<{
 }>;
 
 /** A predicate the code decides, and the argument types it takes. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export type RulePredicate = Readonly<{
   symbolId: string;
   argTypes: readonly string[];
@@ -293,7 +280,6 @@ export type RulePredicate = Readonly<{
  * rejects a certificate whose tables differ, then model checks each claim's
  * rule, predicate or set fact against the tables.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function ruleCertificate(input: {
   testId: string;
   domains: Readonly<Record<string, RuleDomain>>;
@@ -366,7 +352,6 @@ export async function ruleCertificate(input: {
 }
 
 /** The calls of a rule certificate that threw or returned a non-boolean. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export function failedCalls(certificate: CodeCertificate): string[] {
   const predicates = (certificate.predicates ?? {}) as Record<
     string,
@@ -402,7 +387,6 @@ function nextStates(next: unknown): unknown[] {
  * same exports at ingest and checks each claim's transitions, reachability,
  * initial and terminal states against the machine.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function stateMachineCertificate(input: {
   testId: string;
   symbolId: string;
@@ -483,7 +467,6 @@ export async function stateMachineCertificate(input: {
  * Kibi reads the same export at ingest and decides the claim exactly: a
  * pattern's language against the fact's, or the string against the fact.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export function regexCertificate(input: {
   testId: string;
   symbolId: string;
@@ -512,7 +495,6 @@ export function regexCertificate(input: {
  * and, optionally, the source (which must be the contract's). A run may also
  * leave nothing: a passed source proof needs no certificate from the test.
  */
-// implements REQ-kibi-source-proof-kinds
 export function sourceCertificate(input: {
   testId: string;
   source?: SourceSpec;
@@ -532,7 +514,6 @@ export function sourceCertificate(input: {
  * a validator. A rule proof whose contract reads a domain from a source
  * uses this to range its predicates over the same members.
  */
-// implements REQ-kibi-source-proof-kinds
 export async function readProjectSource(
   source: SourceSpec,
   workspaceRoot: string = process.cwd(),
@@ -549,7 +530,6 @@ export async function readProjectSource(
  * Leave the certificate where `kibi prove` reads it. Returns the file written,
  * or null outside a `kibi prove` run.
  */
-// implements REQ-kibi-code-proof-kinds
 export function writeCodeCertificate(
   certificate: CodeCertificate,
   env: NodeJS.ProcessEnv = process.env,

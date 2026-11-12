@@ -78,7 +78,6 @@ export interface UsageMetricsReport {
   acceptance: TelemetryAcceptanceReport;
 }
 
-// implements REQ-003
 export async function usageMetricsCommand(
   options: UsageMetricsOptions,
 ): Promise<CommandResult | undefined> {

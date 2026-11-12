@@ -84,7 +84,6 @@ describe("loadKbSyncPaths", () => {
     expect(paths.symbols).toBe(".kb/symbols.yaml");
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   test("falls back to defaults when config JSON is invalid", () => {
     const tmpDir = makeTempDir("kibi-file-filter-invalid-");
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
@@ -205,7 +204,6 @@ describe("shouldHandleFile", () => {
     expect(shouldHandleFile(absPath, "/home/user/project")).toBe(true);
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   test("returns false for files inside .opencode", () => {
     expect(shouldHandleFile(".opencode/kibi.json")).toBe(false);
   });

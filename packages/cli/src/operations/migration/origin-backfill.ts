@@ -34,17 +34,14 @@ import {
 } from "./kb-sources.js";
 
 /** One authored entity the v5 -> v6 migration stamps with an origin. */
-// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export type OriginBackfillTarget = Readonly<{
   id: string;
   type: string;
   path: string;
 }>;
 
-// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export type OriginBackfillSkip = Readonly<{ path: string; reason: string }>;
 
-// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export type OriginBackfillPlan = Readonly<{
   targets: readonly OriginBackfillTarget[];
   /** Files Kibi cannot stamp safely; sync reports most of them anyway. */
@@ -111,7 +108,6 @@ function inspect({
 }
 
 /** Authored Markdown entities that carry no origin yet. Read-only. */
-// implements REQ-cli-schema-migration, REQ-004
 export function planOriginBackfill(workspaceRoot: string): OriginBackfillPlan {
   const targets: OriginBackfillTarget[] = [];
   const skipped: OriginBackfillSkip[] = [];
@@ -124,7 +120,6 @@ export function planOriginBackfill(workspaceRoot: string): OriginBackfillPlan {
 }
 
 /** The origin recorded on entities the v5 -> v6 migration backfills. */
-// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export function migrationOrigin(recordedAt: string): EntityOrigin {
   return {
     kind: "migration",
@@ -138,7 +133,6 @@ export function migrationOrigin(recordedAt: string): EntityOrigin {
  * other byte unchanged, and confirm the frontmatter reads back with the same
  * fields plus that origin. Returns null when the edit would not read back.
  */
-// implements REQ-cli-schema-migration
 export function withBackfilledOrigin(
   content: string,
   origin: EntityOrigin,
@@ -173,7 +167,6 @@ export function withBackfilledOrigin(
   return `${slice.prefix}${text}${slice.suffix}`;
 }
 
-// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export type OriginBackfillResult = Readonly<{
   written: readonly OriginBackfillTarget[];
   skipped: readonly OriginBackfillSkip[];
@@ -186,7 +179,6 @@ export type OriginBackfillResult = Readonly<{
  * Markdown entity without an origin. Idempotent: entities that already carry
  * an origin, including ones stamped by an earlier run, are left alone.
  */
-// implements REQ-cli-schema-migration, REQ-004
 export function applyOriginBackfill(
   workspaceRoot: string,
   recordedAt: string,

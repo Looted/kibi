@@ -154,7 +154,6 @@ async function prepareConfig(
   return { ...auth, env: { ...auth.env, PATH: "/usr/bin:/bin" } };
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function runPreflight(
   config: PreflightConfig,
   dependencies: PreflightDependencies = defaultPreflightDependencies,

@@ -1,4 +1,3 @@
-// implements REQ-014
 import { afterEach, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";

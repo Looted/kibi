@@ -121,7 +121,6 @@ describe("Codex hook runner workspace opt-in", () => {
     ).toEqual({ continue: true });
   });
 
-  // implements REQ-kibi-fresh-clone-setup
   test("SessionStart tells the agent when the checkout has no Kibi hooks", async () => {
     const cwd = createTempRoot("kibi-codex-cwd-");
     optInWorkspace(cwd);
@@ -1090,7 +1089,6 @@ describe("Codex opt-in hook telemetry", () => {
     expect(usageRows(cwd)).toEqual([]);
   });
 
-  // implements REQ-kibi-anonymous-usage-telemetry
   test("sends an anonymous kibi_hook and remembers the session for the workspace", async () => {
     const cwd = linkedWorkspace();
     const pluginData = createTempRoot("kibi-codex-data-");
@@ -1127,7 +1125,6 @@ describe("Codex opt-in hook telemetry", () => {
   });
 });
 
-// implements REQ-agent-core-edit-snippets
 const codexPluginRoot = path.resolve(import.meta.dir, "..");
 
 type HookCommandRun = { code: number | null; stdout: string; stderr: string };
@@ -1784,7 +1781,6 @@ describe("Codex reminders from real payload shapes", () => {
     expect(stop.reason).toContain("src/guard.ts");
   });
 
-  // implements REQ-kibi-anonymous-usage-telemetry
   test("every hook event that decides something queues one kibi_hook, and KIBI_TELEMETRY=0 queues none", async () => {
     const cwd = workspace();
     const telemetryDir = createTempRoot("kibi-codex-telemetry-");
@@ -1908,7 +1904,6 @@ describe("Codex reminders from real payload shapes", () => {
     );
   });
 
-  // implements REQ-kibi-anonymous-usage-telemetry
   test("each hook decision queues its action, path kind and requirement count", async () => {
     const cwd = workspace();
     writeFile(cwd, "src/unlinked.ts", "export const unlinked = 1;\n");

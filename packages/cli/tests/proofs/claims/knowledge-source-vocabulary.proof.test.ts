@@ -10,8 +10,6 @@ import {
   KNOWLEDGE_SOURCE_KINDS,
 } from "../../../src/operations/bootstrap/types.js";
 
-// implements REQ-kibi-knowledge-source-vocabulary
-
 /**
  * The closed lists of knowledge source kinds, authorities and claim kinds. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

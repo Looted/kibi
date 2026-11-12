@@ -43,7 +43,6 @@ import type { RelationshipInput, UpsertInput } from "./types.js";
  * An authored document for an entity the compiled store does not hold: the
  * file the source-first writer would merge an upsert into.
  */
-// implements REQ-kibi-uncompiled-source-visibility
 export type UncompiledAuthoredSource = Readonly<{
   /** Workspace-relative path. */
   path: string;
@@ -63,7 +62,6 @@ export type UncompiledAuthoredSource = Readonly<{
   syncFailure: SourceExtractionFailure | undefined;
 }>;
 
-// implements REQ-kibi-uncompiled-source-semantic-baseline
 function lastSyncFailure(
   context: OperationContext,
   relative: string,
@@ -90,7 +88,6 @@ function errorText(error: unknown): string {
  * entity. A file whose front matter does not parse is refused here: the
  * writer could not merge into it either.
  */
-// implements REQ-kibi-uncompiled-source-visibility
 export async function readUncompiledAuthoredSource(
   context: OperationContext,
   input: UpsertInput,
@@ -152,7 +149,6 @@ export async function readUncompiledAuthoredSource(
  * file: the file's own state is what the write changes, so the stored
  * ledger, origin and firmness checks read it.
  */
-// implements REQ-kibi-uncompiled-source-visibility
 export function authoredEntityLookup(
   source: UncompiledAuthoredSource,
 ): StoredEntityLookup {
@@ -174,7 +170,6 @@ export function authoredEntityLookup(
  * file and the error, because the entity would stay invisible to every
  * store-backed tool. Returns the relationships the written file declares.
  */
-// implements REQ-kibi-uncompiled-source-visibility
 export function assertAuthoredWriteCompiles(
   source: UncompiledAuthoredSource,
   input: UpsertInput,

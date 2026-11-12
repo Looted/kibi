@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
@@ -156,7 +155,6 @@ describe("CLI anonymous usage telemetry", () => {
     expect(queued(env)).toEqual([]);
   });
 
-  // implements REQ-kibi-anonymous-usage-telemetry
   test("kibi telemetry status names the channel, its source and the host its events carry", async () => {
     const env = telemetryEnv({
       KIBI_TELEMETRY_CHANNEL: "agent-test",

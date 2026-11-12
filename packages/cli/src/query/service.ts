@@ -47,12 +47,10 @@ const defaultCodecDeps: QueryCodecDeps = {
 let codecDeps: QueryCodecDeps = defaultCodecDeps;
 
 export function _setQueryCodecDepsForTests(deps: QueryCodecDeps): void {
-  // implements REQ-003
   codecDeps = deps;
 }
 
 export function _resetQueryCodecDepsForTests(): void {
-  // implements REQ-003
   codecDeps = defaultCodecDeps;
 }
 
@@ -71,7 +69,6 @@ export const VALID_ENTITY_TYPES = [
  * Build a Prolog query goal from filters.
  */
 export function buildEntityQueryGoal(filters: QueryFilters): string {
-  // implements REQ-003
   const { type, id, sourceFile } = filters;
 
   if (sourceFile) {
@@ -111,7 +108,6 @@ export async function queryEntities(
   prolog: PrologProcess,
   filters: QueryFilters,
 ): Promise<QueryResult> {
-  // implements REQ-003
   const { tags, limit = 100, offset = 0 } = filters;
 
   const goal = buildEntityQueryGoal(filters);

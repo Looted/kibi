@@ -13,8 +13,6 @@ import {
 } from "../../src/public/proof-certificates.js";
 import { prologCases } from "./prolog-cases.js";
 
-// implements REQ-kibi-evidence-floors
-
 /** Gaps that decide pending re-proof: none, only stale receipts, a real gap. */
 const GAP_SETS = [[], ["stale_proof_receipt"], ["missing_proof_receipt"]];
 const FIRMNESS = [null, "firm", "default", "exploratory"];

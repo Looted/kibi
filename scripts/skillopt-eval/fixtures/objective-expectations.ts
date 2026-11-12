@@ -32,15 +32,12 @@ export type ObjectiveWorkflow = Readonly<{
   forbiddenActions: readonly string[];
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export const PREDICATE_OBJECTIVE_PREFIX = "model_predicate_";
 
-// implements REQ-skillopt-codex-optimization
 export function isPredicateObjective(objectiveCode: string): boolean {
   return objectiveCode.startsWith(PREDICATE_OBJECTIVE_PREFIX);
 }
 
-// implements REQ-skillopt-codex-optimization
 export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
   {
     // ------------------------------------------------------------------
@@ -1084,7 +1081,6 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
   };
 
 /** Objectives whose sanctioned flow removes an entity via kb_delete. */
-// implements REQ-skillopt-codex-optimization
 export const DELETE_OBJECTIVES: ReadonlySet<string> = new Set([
   "legacy_shard_edge_cleanup",
   "relationship_shard_delete",
@@ -1097,7 +1093,6 @@ export const DELETE_OBJECTIVES: ReadonlySet<string> = new Set([
  * Objectives whose dirty worktree is an uncommitted edit to the KB-linked
  * source, staged by the seeded_dirty_kb fixture.
  */
-// implements REQ-skillopt-codex-optimization
 export const DIRTY_SOURCE_OBJECTIVES: ReadonlySet<string> = new Set([
   "inspect_source_impact",
   "determine_completion_outcome",
@@ -1105,7 +1100,6 @@ export const DIRTY_SOURCE_OBJECTIVES: ReadonlySet<string> = new Set([
 ]);
 
 /** Non-bootstrap objectives whose flow applies a migration/recovery plan. */
-// implements REQ-skillopt-codex-optimization
 export const MIGRATION_APPLY_OBJECTIVES: ReadonlySet<string> = new Set([
   "legacy_branch_storage",
   "legacy_migration_postconditions",
@@ -1118,7 +1112,6 @@ export const MIGRATION_APPLY_OBJECTIVES: ReadonlySet<string> = new Set([
 ]);
 
 /** Objectives that must ingest a fresh verification receipt. */
-// implements REQ-skillopt-codex-optimization
 export const RECEIPT_INGEST_OBJECTIVES: ReadonlySet<string> = new Set([
   "contracted_e2e_with_ontology_gap",
   "final_integration_invalidates_receipts",
@@ -1126,7 +1119,6 @@ export const RECEIPT_INGEST_OBJECTIVES: ReadonlySet<string> = new Set([
 ]);
 
 /** Objectives that inspect receipts/coverage without ingesting new runs. */
-// implements REQ-skillopt-codex-optimization
 export const RECEIPT_INSPECT_OBJECTIVES: ReadonlySet<string> = new Set([
   "unchanged_snapshot_receipt_reuse",
   "quality_diagnostic_disposition",

@@ -1,4 +1,3 @@
-// implements REQ-opencode-smart-enforcement-v1, REQ-opencode-worktree-hard-enforcement-v1
 import type { RepoPosture } from "./repo-posture.js";
 
 /**
@@ -10,13 +9,11 @@ import type { RepoPosture } from "./repo-posture.js";
  * - "hard": authoritative root-KB postures may hard-block through durable
  *   hook/check boundaries, even when maintenance guidance is degraded.
  */
-// implements REQ-opencode-worktree-hard-enforcement-v1
 export type EffectiveMode = "advisory" | "strict" | "hard";
 
 /**
  * Inputs required to determine the effective smart-enforcement mode.
  */
-// implements REQ-opencode-worktree-hard-enforcement-v1
 export interface ModeInputs {
   /** Configured smart-enforcement mode. */
   mode: "advisory" | "strict" | "hard";
@@ -41,7 +38,6 @@ const STRICT_ELIGIBLE_POSTURES: ReadonlySet<RepoPosture> = new Set([
  * Only root_active and hybrid_root_plus_vendored are considered authoritative.
  */
 export function isStrictEligible(inputs: ModeInputs): boolean {
-  // implements REQ-opencode-smart-enforcement-v1
   if (inputs.maintenanceDegraded) return false;
 
   if (inputs.requireRootKbForStrict) {
@@ -66,9 +62,7 @@ export function isStrictEligible(inputs: ModeInputs): boolean {
  * - hard config → hard only for authoritative root-KB postures, even when
  *   maintenance is degraded; non-authoritative postures stay advisory
  */
-// implements REQ-opencode-worktree-hard-enforcement-v1
 export function computeEffectiveMode(inputs: ModeInputs): EffectiveMode {
-  // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-worktree-hard-enforcement-v1
   if (inputs.mode === "hard") {
     return STRICT_ELIGIBLE_POSTURES.has(inputs.posture) ? "hard" : "advisory";
   }

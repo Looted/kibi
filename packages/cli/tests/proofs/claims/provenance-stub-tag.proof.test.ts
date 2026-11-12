@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { PROVENANCE_STUB_TAG } from "../../../../cli/src/provenance-stub.js";
 
-// implements REQ-bootstrap-provenance-stub-tag
-
 /**
  * The tag a bootstrap provenance stub carries. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

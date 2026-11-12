@@ -55,7 +55,6 @@ export type BranchErrorCode =
   | "UNKNOWN_ERROR";
 
 export function branchErrorToDiagnostic(
-  // implements REQ-branch-store-recovery-v4
   _code: BranchErrorCode,
   message: string,
   branch?: string,
@@ -137,7 +136,6 @@ export function formatSyncSummary(summary: SyncSummary): string {
 
   // A sync recompiles only changed sources, so what it imported is a delta;
   // the store totals are what the KB holds now.
-  // implements REQ-cli-sync-summary-kb-totals
   const totals = summary.storeTotals;
   if (totals === undefined) {
     lines.push("Entity Counts:");
@@ -200,7 +198,6 @@ export function formatDiagnosticsForMcp(diagnostics: Diagnostic[]): Array<{
   file?: string;
   suggestion?: string;
 }> {
-  // implements REQ-003
   return diagnostics.map((d) => ({
     category: d.category,
     severity: d.severity,

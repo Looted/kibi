@@ -48,7 +48,6 @@ function writeManifest(
 }
 
 describe("migrateCommand", () => {
-  // implements REQ-cli-schema-migration
   test("apply-safe takes the printed hash and says what changed since a plan was printed", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);

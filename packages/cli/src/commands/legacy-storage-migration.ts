@@ -317,7 +317,6 @@ function manifestSymbolIds(filePath: string): Set<string> | null {
  * legacy copy is identical (it is removed), otherwise the conflict and the
  * resolution Kibi can tell.
  */
-// implements REQ-cli-schema-migration
 function classifyExistingDestination(
   cwd: string,
   move: StorageMigrationMove,
@@ -381,7 +380,6 @@ function configuredLaneParents(config: LegacyKbConfig | undefined): string[] {
  * When Kibi cannot tell which file is meant, it moves none and reports the
  * ambiguity instead.
  */
-// implements REQ-cli-schema-migration
 function resolveLegacySymbolsSource(
   cwd: string,
   config: LegacyKbConfig | undefined,
@@ -606,7 +604,6 @@ function gitTrackedFiles(cwd: string): Set<string> | null {
  * rewrites rebind the receipt they find. Covers files a previous,
  * interrupted run moved too. Returns the untracked destinations.
  */
-// implements REQ-cli-schema-migration, REQ-core-atomic-upsert-persistence
 export function writeMovedSourceReceipts(
   cwd: string,
   moves: readonly StorageMigrationMove[],
@@ -633,7 +630,6 @@ export function writeMovedSourceReceipts(
   return untracked;
 }
 
-// implements REQ-cli-schema-migration
 function isEmptySymbolsStub(filePath: string): boolean {
   let content: string;
   try {
@@ -651,7 +647,6 @@ function isEmptySymbolsStub(filePath: string): boolean {
   );
 }
 
-// implements REQ-cli-schema-migration
 function sourceSchemaVersion(
   legacyVersion: number | null,
   existing: { schemaVersion: number } | null,

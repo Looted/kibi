@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import { afterEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
@@ -322,7 +321,6 @@ describe("anonymous usage telemetry host and session", () => {
       }),
     ).toBeUndefined();
 
-    // implements REQ-kibi-anonymous-usage-telemetry
     // Status names the channel and where it comes from.
     expect(
       telemetryChannel({ KIBI_TELEMETRY_CHANNEL: "agent-test" }, installed),

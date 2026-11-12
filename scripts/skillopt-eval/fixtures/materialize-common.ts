@@ -47,7 +47,6 @@ function publicTask(task: FixtureTaskSpec) {
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function writeTargetTask(input: {
   readonly root: string;
   readonly task: FixtureTaskSpec;

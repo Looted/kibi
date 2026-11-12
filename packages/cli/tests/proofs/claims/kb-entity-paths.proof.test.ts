@@ -10,8 +10,6 @@ import {
   LEGACY_CONFIG_PATH_KEYS,
 } from "../../../src/utils/kb-paths.js";
 
-// implements REQ-cli-kb-entity-paths
-
 /**
  * Where each kind of entity lives in a knowledge base, and the lanes an older config could relocate. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

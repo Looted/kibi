@@ -9,7 +9,6 @@ const CONTEXT_ROLES = new Set(["rationale", "example", "subjective"]);
  * The requirement markdown with a semantic inventory contract that matches its
  * prose, so the staged gate and sync accept it as a new requirement.
  */
-// implements REQ-kibi-proposition-complete-ingestion
 export function withSemanticInventory(markdown: string): string {
   const { entity } = extractFromMarkdownString(
     markdown,

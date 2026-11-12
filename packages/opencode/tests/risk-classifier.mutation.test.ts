@@ -8,12 +8,13 @@ function classify(overrides: Partial<ClassifyRiskParams>) {
     hasMustPriority: false,
     hasDurableComment: false,
     fileContent: "",
+    hasManifestLinks: false,
     ...overrides,
   });
 }
 
 const MISSING = [
-  "Code file contains exports without // implements REQ-<area>-<behavior> annotation",
+  "Code file contains exports that no symbol manifest entry links to a requirement with implements",
 ];
 const DURABLE = [
   "Durable knowledge comment detected — traceability review recommended",
@@ -78,7 +79,7 @@ describe("classifyRisk reasons", () => {
 
   test("traced code without a durable comment is a behavior candidate", () => {
     expect(
-      classify({ fileContent: "// implements REQ-a\nexport const x = 1;" }),
+      classify({ fileContent: "export const x = 1;", hasManifestLinks: true }),
     ).toStrictEqual({
       riskClass: "behavior_candidate",
       reasons: [
@@ -97,7 +98,8 @@ describe("classifyRisk reasons", () => {
   test("traced code with a durable comment lists only the comment", () => {
     expect(
       classify({
-        fileContent: "// implements REQ-a\nexport const x = 1;",
+        fileContent: "export const x = 1;",
+        hasManifestLinks: true,
         hasDurableComment: true,
       }),
     ).toStrictEqual({ riskClass: "traceability_candidate", reasons: DURABLE });
@@ -114,10 +116,10 @@ describe("classifyRisk patterns", () => {
     expect(classify({ fileContent }).riskClass).toBe("traceability_candidate");
   });
 
-  test("traceability allows several spaces", () => {
+  test("an implements comment is not traceability", () => {
     expect(
-      classify({ fileContent: "// implements  REQ-a\nexport const x = 1;" })
+      classify({ fileContent: "// implements REQ-a\nexport const x = 1;" })
         .riskClass,
-    ).toBe("behavior_candidate");
+    ).toBe("traceability_candidate");
   });
 });

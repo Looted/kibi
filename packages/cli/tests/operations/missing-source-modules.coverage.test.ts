@@ -1,4 +1,3 @@
-// implements REQ-mcp-semantic-advisor-preflight
 import { describe, expect, test } from "bun:test";
 
 import * as predicateTypes from "../../src/operations/modeling/predicate-types.js";

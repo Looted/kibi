@@ -1,4 +1,3 @@
-// implements REQ-opencode-file-context-guidance-v1
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { getFileLinkedTargetsByType } from "./file-entity-links.js";
@@ -124,7 +123,6 @@ const EXACT_REMINDER =
 const HEURISTIC_REMINDER =
   "- This file may have related e2e coverage. Check the linked e2e tests if this change affects behavior.";
 
-// implements REQ-opencode-file-context-guidance-v1
 export function getE2eCoverageSignal(
   worktree: string,
   filePath: string,

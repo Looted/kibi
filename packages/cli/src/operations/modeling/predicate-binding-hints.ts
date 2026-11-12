@@ -68,12 +68,10 @@ function exampleArguments(example: string): string[] {
  * the requirement's subject key is not a participant, and a schema whose
  * actor the claim never names does not fit the claim.
  */
-// implements REQ-model-predicates-participant-not-subject
 function noParticipantGuidance(type: string): string {
   return `The claim names no ${type}. Bind the participant the claim names (a noun of at most 3 words), never the requirement's subject key; if the claim names no ${type}, this schema does not fit the claim: record_ontology_gap instead.`;
 }
 
-// implements REQ-model-predicates-participant-not-subject
 function unboundReason(
   candidate: PredicateSuggestion,
   name: string,
@@ -126,7 +124,6 @@ function unboundReason(
  * current value was not accepted, so the agent binds from the claim text
  * instead of guessing.
  */
-// implements REQ-model-predicates-binding-placeholders, REQ-model-predicates-requirement-subject-v2, REQ-model-predicates-binding-clauses, REQ-model-predicates-participant-not-subject
 export function buildBindingHints(
   candidate: PredicateSuggestion,
   text: string,
@@ -195,7 +192,6 @@ export function buildBindingHints(
  * Whether the claim text names `value`: its words in order, any separator,
  * with a plural ending allowed on the last word (`guest` names `guests`).
  */
-// implements REQ-model-predicates-participant-not-subject
 function claimNamesValue(text: string, value: string): boolean {
   // The pattern ignores case; empty pieces between separators are dropped.
   const words = value.split(/[\s_.-]/).filter(Boolean);
@@ -214,7 +210,6 @@ function claimNamesValue(text: string, value: string): boolean {
  * clause that opens with a noun ("Administrators who were granted …") may
  * still name the participant in its first words, so it is left to the agent.
  */
-// implements REQ-model-predicates-participant-not-subject
 function clauseIsActivity(clause: string): boolean {
   // Only a clause of several words reaches here, so it has a first word.
   const head = clause
@@ -233,7 +228,6 @@ function clauseIsActivity(clause: string): boolean {
  * example values occurs in the claim text. The agent cannot bind such an
  * argument from the claim, so the schema does not fit the claim.
  */
-// implements REQ-model-predicates-participant-not-subject
 export function unnamedParticipantArguments(
   candidate: PredicateSuggestion,
   text: string,

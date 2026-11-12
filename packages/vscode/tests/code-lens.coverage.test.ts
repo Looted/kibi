@@ -1,4 +1,3 @@
-// implements REQ-vscode-kb-to-source
 import {
   afterAll,
   afterEach,

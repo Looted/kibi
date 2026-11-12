@@ -1,4 +1,3 @@
-// implements REQ-kb-entity-body-context, REQ-kibi-operation-interface-parity
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

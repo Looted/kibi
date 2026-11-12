@@ -1110,7 +1110,6 @@ const PLUGIN_READ_TIMEOUT_MS = 10_000;
  * kibi.reference-extractor.v1 provider. Without one the read is refused with
  * what to install, never answered as empty.
  */
-// implements REQ-kibi-tree-sitter-references
 async function readPluginReferences(
   workspaceRoot: string,
   files: readonly string[],
@@ -1227,7 +1226,6 @@ const CSHARP_WEB_IMPLICIT_USINGS = [
  * directives in any tracked .cs file, `<Using Include>` items and the SDK's
  * implicit usings in any tracked .csproj.
  */
-// implements REQ-kibi-tree-sitter-references
 export function csharpProjectUsings(workspaceRoot: string): string[] {
   let tracked: string[];
   try {
@@ -1278,7 +1276,6 @@ type PrologRead = {
 };
 
 /** Run the SWI-Prolog source reader, which reads terms without running them. */
-// implements REQ-kibi-prolog-source-readers
 function runPrologReader(
   workspaceRoot: string,
   file: string,
@@ -1299,7 +1296,6 @@ function runPrologReader(
 }
 
 /** The prolog reader: one argument of every fact with a functor, in file order. */
-// implements REQ-kibi-prolog-source-readers
 function readPrologTerms(workspaceRoot: string, spec: SourceSpec): SourceCodeEvaluation {
   const file = String(spec.file);
   const read = runPrologReader(workspaceRoot, file, {
@@ -1620,7 +1616,6 @@ function evaluateModule(workspaceRoot: string, spec: SourceSpec): SourceCodeEval
 }
 
 /** The CLI's evaluator for source readers that need code. */
-// implements REQ-kibi-source-proof-kinds
 export const evaluateSourceCode: SourceCodeEvaluator = async (workspaceRoot, spec) => {
   if (spec.reader === "references") return readReferences(workspaceRoot, spec);
   if (spec.reader === "prolog") return readPrologTerms(workspaceRoot, spec);

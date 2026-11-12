@@ -1,21 +1,16 @@
-// implements REQ-skill-behavioral-efficacy
 export const REQUIRED_PROTOTYPE_CALLS = [
   "kb_search",
   "kb_query",
   "kb_check",
 ] as const;
 
-// implements REQ-skill-behavioral-efficacy
 export type PrototypeCall = (typeof REQUIRED_PROTOTYPE_CALLS)[number];
-// implements REQ-skill-behavioral-efficacy
 export type PrototypeFinalState = "expected" | "wrong";
-// implements REQ-skill-behavioral-efficacy
 export type PrototypeFailure =
   | "final_state_mismatch"
   | "missing_required_call"
   | "private_manifest_access";
 
-// implements REQ-skill-behavioral-efficacy
 export type PrototypeScenario = Readonly<{
   id: string;
   finalState: PrototypeFinalState;
@@ -23,7 +18,6 @@ export type PrototypeScenario = Readonly<{
   privateManifestAccess: boolean;
 }>;
 
-// implements REQ-skill-behavioral-efficacy
 export type PrototypeReceipt = Readonly<{
   id: string;
   hard: boolean;
@@ -37,7 +31,6 @@ function missingRequiredCall(calls: readonly string[]): boolean {
   );
 }
 
-// implements REQ-skill-behavioral-efficacy
 export function runPrototype(scenario: PrototypeScenario): PrototypeReceipt {
   if (scenario.privateManifestAccess) {
     return {

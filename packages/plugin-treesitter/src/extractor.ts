@@ -449,7 +449,6 @@ function analysisBudgetMs(requested: number | undefined): number {
  * Create the bounded, offline `kibi.symbol-extractor.v2` implementation.
  * Source bytes are only parsed by Tree-sitter; this provider never executes them.
  */
-// implements REQ-source-analysis-v2
 export function createTreeSitterSymbolExtractor(
   pool: TreeSitterWorkerPool = createTreeSitterWorkerPool(),
 ): SymbolExtractorV2 {
@@ -588,7 +587,6 @@ function referenceRefusal(
  * Java, C# and Rust. Files are parsed by Tree-sitter in the same bounded
  * workers as symbol analysis and are never run or compiled.
  */
-// implements REQ-kibi-tree-sitter-references
 export function createTreeSitterReferenceExtractor(
   pool: TreeSitterWorkerPool = createTreeSitterWorkerPool(),
 ): ReferenceExtractorV1 {
@@ -664,5 +662,4 @@ export function createTreeSitterReferenceExtractor(
   };
 }
 
-// implements REQ-source-analysis-v2
 export { TREE_SITTER_LANGUAGES } from "./catalog.js";

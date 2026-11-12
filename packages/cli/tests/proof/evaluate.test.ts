@@ -210,7 +210,6 @@ describe("parseIntegrationSelector", () => {
 });
 
 describe("own_results_first_attempt success policy", () => {
-  // implements REQ-kibi-verification-evidence-contract
   const own: ProofContract = {
     version: "kibi.proof-contract.v1",
     integration: "self-proof",

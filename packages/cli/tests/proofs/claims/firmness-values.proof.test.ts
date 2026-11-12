@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { FIRMNESS_VALUES } from "../../../src/decision-firmness.js";
 
-// implements REQ-kb-firmness-values
-
 /**
  * The firmness values a decision may carry. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

@@ -1,4 +1,3 @@
-// implements REQ-cursor-kibi-plugin-v1, REQ-claude-code-kibi-plugin-v1
 import { describe, expect, test } from "bun:test";
 
 import {

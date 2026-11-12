@@ -2,7 +2,6 @@ import { isDeepStrictEqual } from "node:util";
 import { z } from "zod";
 import { bootstrapPlanHash } from "../../../packages/cli/src/operations/bootstrap/types";
 
-// implements REQ-skillopt-codex-optimization
 export const ScriptedUserProfileSchema = z
   .object({
     mode: z.enum(["approve", "decline"]),
@@ -40,7 +39,6 @@ export const ScriptedUserProfileSchema = z
   })
   .strict();
 
-// implements REQ-skillopt-codex-optimization
 export const SCRIPTED_USER_TOOL = {
   name: "skillopt_ask_user",
   description:
@@ -62,7 +60,6 @@ function record(value: unknown): value is Record<string, unknown> {
 }
 
 /** Host-owned state; never accepts a target-authored plan as an approval preview. */
-// implements REQ-skillopt-codex-optimization
 export class ScriptedUser {
   private exchanges = 0;
   private generation = 0;

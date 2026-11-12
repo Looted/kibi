@@ -84,7 +84,6 @@ interface InitOptions {
  * recorded; a repository with no recorded choices gets the defaults written
  * down on its first init, so every clone and harness reads the same answer.
  */
-// implements REQ-kibi-fresh-clone-setup
 function settleSetupChoices(
   projectRoot: string,
   options: InitOptions,
@@ -119,7 +118,6 @@ function settleSetupChoices(
 }
 
 /** Keeps the package.json prepare step in line with the hooks choice. */
-// implements REQ-kibi-fresh-clone-setup
 function reconcilePrepareScript(
   projectRoot: string,
   enabled: boolean,
@@ -157,7 +155,6 @@ function reconcilePrepareScript(
  * the hooks directory and prints the manager configuration that runs Kibi's
  * commands for every hook the manager does not visibly cover yet.
  */
-// implements REQ-git-hook-manager-integration
 function reportHookManager(
   manager: DetectedHookManager,
   worktreeRoot: string,
@@ -215,8 +212,6 @@ async function initNextAction(projectRoot: string): Promise<string> {
   }
 }
 
-// implements REQ-cli-init
-// implements REQ-kibi-github-report-integration
 export async function initCommand(
   options: InitOptions,
 ): Promise<{ exitCode: number }> {
@@ -227,7 +222,6 @@ export async function initCommand(
   if (options.printHook !== undefined) {
     // Print-only mode: emit a delegation snippet for a hook Kibi does not
     // own and touch nothing, not even the repository context.
-    // implements REQ-git-hook-effective-install, REQ-git-hook-manager-integration
     const printHook = options.printHook;
     if (printHook !== "all" && !isManagedHookName(printHook)) {
       console.error(
@@ -264,7 +258,6 @@ export async function initCommand(
   // unreadable contexts, and operational Git refusals are rejected before any
   // workspace write — even when KIBI_BRANCH makes a standalone fallback
   // available for genuinely non-repository directories.
-  // implements REQ-git-hook-effective-install
   const resolution = resolveGitRepository(process.cwd());
   if (resolution.status === "git-refused") {
     console.error(`Error: ${resolution.reason}`);

@@ -48,13 +48,11 @@ import type { RelationshipInput } from "./types.js";
  * the journal by the next mutating call.
  */
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export const PLAN_APPLY_JOURNAL_VERSION = "kibi.plan-apply-journal.v1" as const;
 
 const JOURNAL_DIRECTORY = "plan-apply";
 const JOURNAL_ID_PATTERN = /^plan-apply-[a-f0-9]{16}$/;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export type PlanApplyFileWrite = Readonly<{
   /** Workspace-relative path with forward slashes. */
   path: string;
@@ -73,14 +71,12 @@ export type PlanApplyFileWrite = Readonly<{
   after: string | null;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export type PlanApplyStoreEntry = Readonly<{
   entity: Readonly<Record<string, unknown>>;
   relationships: readonly RelationshipInput[];
   skipContradictionCheck: boolean;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export type PlanApplyJournalState =
   /** Journal durable; files may be partly published; store untouched. */
   | "prepared"
@@ -91,7 +87,6 @@ export type PlanApplyJournalState =
   | "committed"
   | "rolled_back";
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export type PlanApplyJournal = Readonly<{
   version: typeof PLAN_APPLY_JOURNAL_VERSION;
   journalId: string;
@@ -122,7 +117,6 @@ export type PlanApplyJournal = Readonly<{
   }>;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export type PlanApplyRecovery = Readonly<{
   journalId: string;
   planHash: string;
@@ -136,17 +130,14 @@ export type PlanApplyRecovery = Readonly<{
   receiptFailure?: string;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export function planApplyJournalId(planHash: string): string {
   return `plan-apply-${planHash.slice(0, 16).toLowerCase()}`;
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export function isPlanApplyJournalId(value: string): boolean {
   return JOURNAL_ID_PATTERN.test(value);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export function contentHash(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -339,13 +330,11 @@ function readJournalFile(journalPath: string): PlanApplyJournal {
 }
 
 /** A journal handle bound to its file. */
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type PlanApplyJournalHandle = {
   readonly journalPath: string;
   journal: PlanApplyJournal;
 };
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /**
  * The terminal-or-absent journal slot for a plan. Returns the existing
  * journal (if any) so the caller can refuse a plan that already committed.
@@ -379,7 +368,6 @@ export function openPlanApplyJournal(
   return { journalId, journalPath, branch: location.branch, existing };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /** Durably record a journal state; the handle tracks the latest record. */
 export function recordPlanApplyJournal(
   handle: PlanApplyJournalHandle,
@@ -401,7 +389,6 @@ export function recordPlanApplyJournal(
   handle.journal = compacted;
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export function createPlanApplyJournal(
   journalPath: string,
   journal: PlanApplyJournal,
@@ -411,7 +398,6 @@ export function createPlanApplyJournal(
 }
 
 /** Bind pending-source receipts to the bytes a committed plan published. */
-// implements REQ-core-journaled-engine-persistence
 export function reconcilePendingSourceReceipts(
   workspaceRoot: string,
   writes: readonly {
@@ -440,7 +426,6 @@ async function currentHash(
   }
 }
 
-// implements REQ-core-journaled-engine-persistence
 /**
  * Replace one workspace file atomically: write a unique staged file in the
  * target directory, fsync it, rename it over the target, then fsync the
@@ -501,7 +486,6 @@ async function setFile(
   else await publishWorkspaceFile(fsPort, absolute, content);
 }
 
-// implements REQ-core-journaled-engine-persistence
 /**
  * Publish every journaled file's after-bytes in journal order. Throws on the
  * first failure; the caller restores the before-bytes from the journal.
@@ -594,7 +578,6 @@ function removeOrphanedStagedFiles(
   }
 }
 
-// implements REQ-core-journaled-engine-persistence
 /** Restore every journaled file's before-bytes (in-process rollback). */
 export async function restoreJournaledFiles(
   fsPort: FilesystemPort,
@@ -612,7 +595,6 @@ export async function restoreJournaledFiles(
   );
 }
 
-// implements REQ-core-journaled-engine-persistence
 /**
  * Fingerprint the store state of the entities a plan touches: their sorted
  * properties and outgoing relationships. Comparing the fingerprint taken
@@ -649,7 +631,6 @@ type RecoveryOptions = Readonly<{
   now?: () => Date;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /**
  * Deterministically finish one journal:
  * - prepared: the store was never asked to commit, so every file is restored
@@ -787,7 +768,6 @@ export async function recoverPlanApplyJournal(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /** Open an explicit journal by id for kb_apply_plan recoveryJournalId. */
 export function openPlanApplyJournalById(
   context: OperationContext,
@@ -813,7 +793,6 @@ export function openPlanApplyJournalById(
   );
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /**
  * Detect and finish every incomplete plan journal of the active branch. Runs
  * at the start of each mutating call that holds the workspace mutation lock,
@@ -854,7 +833,6 @@ export async function recoverPendingPlanApplyJournals(
 }
 
 /** One line per journal a recovery actually changed, for result warnings. */
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export function planRecoveryNotes(
   recoveries: readonly PlanApplyRecovery[],
 ): string[] {
@@ -863,7 +841,6 @@ export function planRecoveryNotes(
     .map((recovery) => recovery.detail);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /**
  * A mutating call that settled an interrupted plan and then failed on its own
  * work still reports the settlement in its failure text. Typed errors keep
@@ -892,7 +869,6 @@ export function withPlanRecoveryNotes(
   return new Error(`${String(error)}${suffix}`);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /**
  * Recover every pending plan journal before another mutation, then refuse
  * that mutation while a recovered plan still has unfinished postcommit work

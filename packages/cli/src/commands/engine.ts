@@ -119,7 +119,6 @@ export interface EngineJanitorOptions {
  * records outlive the window kb_status reports them for. Report-only by default;
  `--apply` executes the clean actions.
  */
-// implements REQ-core-journaled-engine-persistence
 export async function engineJanitorCommand(
   options: EngineJanitorOptions,
 ): Promise<void> {

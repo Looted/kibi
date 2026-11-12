@@ -46,7 +46,6 @@ function schemaVersionOf(text: string | null): number | null {
  * `readBase` and `readStaged` return a file's content in the base and the
  * staged tree, or null when the file does not exist there.
  */
-// implements REQ-cli-migration-first-commit
 export function stagedCommitCarriesMigration(
   readBase: (filePath: string) => string | null,
   readStaged: (filePath: string) => string | null,

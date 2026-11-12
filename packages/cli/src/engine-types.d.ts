@@ -1,6 +1,5 @@
 import type { EngineQueryLimits } from "./engine-limits.js";
 
-// implements REQ-core-journaled-engine-persistence
 export type EngineAttachmentIdentity = Readonly<{
   path: string;
   generation: string;

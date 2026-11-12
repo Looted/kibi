@@ -1,4 +1,3 @@
-// implements REQ-mcp-suggest-predicates
 import { describe, expect, test } from "bun:test";
 
 import { scoreExactPredicates3 } from "../../src/operations/modeling/predicate-score-3.js";

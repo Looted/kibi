@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import {
   afterEach,
   beforeEach,

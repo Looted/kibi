@@ -6,7 +6,6 @@ import {
   stringValue,
 } from "./shared.js";
 
-// implements REQ-mcp-semantic-advisor-preflight, REQ-model-predicates-plan-roundtrip
 /**
  * A review observation the advisor suggests for unresolved prose. The review
  * tags (`review:ambiguity`, `review:ontology-gap`, ...) stay in `tags`: a tag

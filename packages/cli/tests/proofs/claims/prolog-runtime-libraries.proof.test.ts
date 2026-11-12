@@ -8,8 +8,6 @@ import {
 import { REQUIRED_SWIPL_LIBRARIES } from "../../../src/prolog/swipl-resolver.js";
 import { PROLOG_ERROR_TERM_PREFIX } from "../../../src/prolog/error-terms.js";
 
-// implements REQ-prolog-runtime-libraries
-
 /**
  * The SWI-Prolog libraries a runtime must load and the prefix of an engine error line. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

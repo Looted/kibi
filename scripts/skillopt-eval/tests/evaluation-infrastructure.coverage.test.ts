@@ -1,4 +1,3 @@
-// implements REQ-skillopt-codex-optimization
 import { describe, expect, test } from "bun:test";
 import {
   EVALUATION_INFRASTRUCTURE_MARKER,

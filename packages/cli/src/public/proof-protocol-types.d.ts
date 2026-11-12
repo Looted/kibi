@@ -1,4 +1,3 @@
-// implements REQ-kibi-verification-evidence-contract
 export type ProofRunOutcome =
   | "passed"
   | "failed"

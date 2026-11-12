@@ -151,7 +151,6 @@ export function pinnedPackVersions(
  * whose grammar file does not hash to the SHA-256 the plugin pins. Doctor
  * names them so a changed grammar is not shown as healthy.
  */
-// implements REQ-kibi-tree-sitter-language-packs
 export function modifiedPacks(
   workspaceRoot: string | undefined,
 ): ReadonlySet<string> {
@@ -238,7 +237,6 @@ export function languagePackFor(file: string): string | null {
  * in kibi.declinedLanguagePacks is never asked for.
  * Reads file names and package manifests only; never imports a plugin.
  */
-// implements REQ-kibi-tree-sitter-references, REQ-kibi-tree-sitter-language-packs
 export function referenceLanguageSuggestion(
   files: readonly string[],
   config: ProjectKibiConfig,
@@ -396,7 +394,6 @@ export function describeReferenceLanguageSuggestion(
  * ones the tracked KB names. Reads `.gitattributes` through git, the first
  * lines of those sources and the tracked `.kb/` text.
  */
-// implements REQ-kibi-tree-sitter-language-packs
 export function workspacePackRelevance(
   workspaceRoot: string,
   files: readonly string[],
@@ -435,7 +432,6 @@ function manifestDeclaresPlugin(workspaceRoot: string): boolean {
  * `kibi init` and `kibi doctor`, or null when nothing is missing. A project
  * without a package.json is told to create a minimal one first.
  */
-// implements REQ-kibi-tree-sitter-references, REQ-kibi-tree-sitter-language-packs
 export function workspaceReferenceLanguageNote(
   workspaceRoot: string,
 ): string | null {

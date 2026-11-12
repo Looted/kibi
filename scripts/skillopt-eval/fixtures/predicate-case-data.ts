@@ -18,8 +18,6 @@ export function assertMatchingSemanticClass(
   }
 }
 
-// implements REQ-skillopt-predicate-first-requirements
-
 /**
  * Semantically distinct case declarations: seven core cases and five
  * rule-lane cases. Public claims use a factory so the shared publicSchema

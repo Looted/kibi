@@ -1,4 +1,3 @@
-// implements REQ-011, REQ-014
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import * as fs from "node:fs";
 import {
@@ -171,7 +170,6 @@ afterEach(() => {
 
 describe("validateUpsertInput remaining branches", () => {
   test("rejects missing type or id", () => {
-    // implements REQ-011
     expect(() =>
       validateUpsertInput(
         { type: "", id: "REQ-1", properties: { title: "T", status: "open" } },
@@ -187,7 +185,6 @@ describe("validateUpsertInput remaining branches", () => {
   });
 
   test("defaults created_at, updated_at, and source", () => {
-    // implements REQ-011
     const now = new Date("2026-09-05T00:00:00.000Z");
     const validated = validateUpsertInput(
       {
@@ -204,7 +201,6 @@ describe("validateUpsertInput remaining branches", () => {
   });
 
   test("formats additionalProperties, aliases, enums, and next-action hints", () => {
-    // implements REQ-011
     expect(() =>
       validateUpsertInput(
         {
@@ -273,7 +269,6 @@ describe("validateUpsertInput remaining branches", () => {
   });
 
   test("rejects invalid proof receipts and mismatched claim keys", () => {
-    // implements REQ-011
     expect(() =>
       validateUpsertInput(
         {
@@ -405,7 +400,6 @@ describe("validateUpsertInput remaining branches", () => {
   });
 
   test("rejects invalid relationships and re-exports granularity reasons", () => {
-    // implements REQ-011
     expect(() =>
       validateUpsertInput(
         {
@@ -439,7 +433,6 @@ describe("validateUpsertInput remaining branches", () => {
 
 describe("validateAppendOnlyProofReceipts remaining branches", () => {
   test("requires Prolog and treats non-array receipt history as empty", async () => {
-    // implements REQ-011
     await expect(
       validateAppendOnlyProofReceipts(
         { id: "TEST-NOPROLOG", type: "test" },
@@ -463,7 +456,6 @@ describe("validateAppendOnlyProofReceipts remaining branches", () => {
   });
 
   test("filters mixed receipt records and carries history an update omits", async () => {
-    // implements REQ-011
     const previous = [
       null,
       "skip",
@@ -502,7 +494,6 @@ describe("validateAppendOnlyProofReceipts remaining branches", () => {
 
 describe("effectiveRelationships remaining branches", () => {
   test("keeps outgoing edges and drops incoming copies", async () => {
-    // implements REQ-011
     track(
       spyOn(relationshipsModule, "existingRelationships").mockResolvedValue([
         { type: "relates_to", from: "REQ-MERGE", to: "REQ-A" },
@@ -551,7 +542,6 @@ describe("effectiveRelationships remaining branches", () => {
 
 describe("executeUpsert remaining runtime branches", () => {
   test("resolves branch attachment and blocks resolver-reported legacy storage", async () => {
-    // implements REQ-014
     const gitRoot = createGitWorkspace();
     tempDirs.push(gitRoot);
     const created = await executeUpsert(
@@ -612,7 +602,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("skips incomplete relationship tuples and escaped shard paths", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     track(
       spyOn(
@@ -678,7 +667,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("restores an existing shard, skips drifted hashes, and swallows unlink failures", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const shardDir = path.join(root, ".kb", "relationships");
     mkdirSync(shardDir, { recursive: true });
@@ -776,7 +764,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("swallows a second shard restore failure after commit abort", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const shardPath = shardsModule.computeShardPath(
       path.join(root, ".kb"),
@@ -830,7 +817,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("skips source writes that return null and authors existing mdx sources", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     track(
       spyOn(sourceAuthoring, "writeSourceForUpsert").mockResolvedValue(null),
@@ -875,7 +861,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("rethrows OperationError for unsupported json sources and traversal paths", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const jsonExisting = await executeUpsert(
       {
@@ -931,7 +916,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("publishes both document and relationship source writes", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const result = await executeUpsert(
       {
@@ -957,7 +941,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("skips unchanged or missing shard hashes and records modeled readiness", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const shardPath = shardsModule.computeShardPath(
       path.join(root, ".kb"),
@@ -1063,7 +1046,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("invalidates the Prolog cache and wraps non-Error failures", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const invalidateCache = spyOn(
       { fn: () => undefined },
@@ -1108,7 +1090,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("returns committed_with_repairs when a post-commit effect throws a non-Error", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     track(
       spyOn(warningsModule, "scenarioCoverageWarnings").mockRejectedValue(
@@ -1129,7 +1110,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("refreshes canonical symbols and reports missing or unreadable manifests", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const publication = {
       path: path.join(root, ".kb", "symbol-coordinates.yaml"),
@@ -1230,7 +1210,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("rethrows manifest compile failures and missing re-extracted records", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     const publication = {
       path: path.join(root, ".kb", "symbol-coordinates.yaml"),
@@ -1334,7 +1313,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("aggregates coordinate rollback failures and swallows source rollback errors", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     track(
       spyOn(
@@ -1420,7 +1398,6 @@ describe("executeUpsert remaining runtime branches", () => {
   });
 
   test("re-extracts a canonical symbol without a sourceFile overlay", async () => {
-    // implements REQ-014
     const root = makeTempDir();
     track(
       spyOn(
@@ -1469,7 +1446,6 @@ describe("executeUpsert remaining runtime branches", () => {
     expect(result.structuredContent?.created).toBe(1);
   });
   test("warns at write time when Kibi cannot place the symbol in its source", async () => {
-    // implements REQ-generated-coordinate-persistence
     const root = makeTempDir();
     track(
       spyOn(

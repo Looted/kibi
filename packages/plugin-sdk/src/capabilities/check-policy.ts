@@ -8,14 +8,12 @@
  * same document for SDK validation and tooling.
  */
 
-// implements REQ-capability-check-policy
 export const CHECK_POLICY_CONTRACT_VERSION = "kibi.check-policy.v1" as const;
 
 /**
  * Symbols in matching files must implement a current requirement that is
  * grounded (via `requires_predicate`) in one of `requirePredicates`.
  */
-// implements REQ-capability-check-policy
 export interface CheckPolicyOwnershipRule {
   readonly id: string;
   readonly description: string;
@@ -38,7 +36,6 @@ export interface CheckPolicyOwnershipRule {
  * Files implementing a requirement grounded in `patternPredicate` must still
  * contain the markers that `markerPredicate` facts declare for that pattern.
  */
-// implements REQ-capability-check-policy
 export interface CheckPolicyMarkerRule {
   readonly id: string;
   readonly description: string;
@@ -57,7 +54,6 @@ export interface CheckPolicyMarkerRule {
   readonly siblingExtensions?: readonly string[];
 }
 
-// implements REQ-capability-check-policy
 export interface CheckPolicyDocument {
   readonly contractVersion: typeof CHECK_POLICY_CONTRACT_VERSION;
   readonly id: string;
@@ -66,7 +62,6 @@ export interface CheckPolicyDocument {
   readonly markers?: readonly CheckPolicyMarkerRule[];
 }
 
-// implements REQ-capability-check-policy
 export interface CheckPolicyV1 {
   readonly id: string;
   readonly document: CheckPolicyDocument;

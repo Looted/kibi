@@ -17,7 +17,6 @@ type TransactionInput = {
   readonly skipContradictionCheck: boolean;
 };
 
-// implements REQ-kibi-operation-interface-parity
 export function buildUpsertCommitGoal(input: TransactionInput): string {
   const type = String(input.entity.type);
   const relationships = input.relationships.map(
@@ -27,7 +26,6 @@ export function buildUpsertCommitGoal(input: TransactionInput): string {
   return `kb_commit_upsert(${type}, ${buildPropertyList(input.entity)}, [${relationships.join(", ")}], ${input.skipContradictionCheck ? "true" : "false"}, ChangeKind)`;
 }
 
-// implements REQ-kibi-operation-interface-parity
 /**
  * Goal that stages the same entity and relationships the commit goal would,
  * inside a transaction that is always rolled back
@@ -78,7 +76,6 @@ function whatIfEntries(inputs: readonly WhatIfInput[]): string {
   return `[${entries.join(", ")}]`;
 }
 
-// implements REQ-kibi-truthful-consistency
 /**
  * Goal that stages inputs in a rolled-back transaction and returns the
  * contradiction witnesses the KB would then contain, as JSON in JsonString.
@@ -91,7 +88,6 @@ export function buildWhatIfContradictionGoal(
   return `(${ENSURE_CHECKS_LOADED}, call(checks:what_if_contradiction_witnesses_json(${whatIfEntries(inputs)}, JsonString)))`;
 }
 
-// implements REQ-kibi-truthful-consistency
 /**
  * Goal for checks:what_if_analysis_json/2: the current and staged
  * contradiction and scenario-infeasibility witnesses, with the
@@ -104,7 +100,6 @@ export function buildWhatIfAnalysisGoal(
 }
 
 /** One transaction and one journal flush for a receipt campaign. */
-// implements REQ-core-atomic-upsert-persistence
 export function buildUpsertBatchCommitGoal(
   inputs: readonly TransactionInput[],
 ): string {
@@ -114,7 +109,6 @@ export function buildUpsertBatchCommitGoal(
   return `kb_commit_upsert_batch([${inputs.map(upsertBatchEntry).join(", ")}], ChangeKinds)`;
 }
 
-// implements REQ-core-atomic-upsert-persistence
 export function parseUpsertChangeKinds(
   bindings: Readonly<Record<string, string>>,
   count: number,
@@ -135,8 +129,6 @@ export function parseUpsertChangeKinds(
   );
 }
 
-// implements REQ-kibi-operation-interface-parity
-// implements REQ-kibi-telemetry-expected-outcomes
 /**
  * The error a failed store write throws: the formatted message, coded as a
  * rejection when the store refused the entity (a contradiction, an invalid

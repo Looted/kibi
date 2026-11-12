@@ -12,7 +12,6 @@ import {
 } from "./common";
 import { SkillSchema } from "./episode";
 
-// implements REQ-skillopt-codex-optimization
 export const ProposalSchema = boundedContractSchema(
   z
     .object({
@@ -47,7 +46,6 @@ export const ProposalSchema = boundedContractSchema(
     }),
 );
 
-// implements REQ-skillopt-codex-optimization
 export const ApprovalSchema = boundedContractSchema(
   z
     .object({
@@ -67,12 +65,9 @@ export const ApprovalSchema = boundedContractSchema(
     .strict(),
 );
 
-// implements REQ-skillopt-codex-optimization
 export type Proposal = Readonly<z.infer<typeof ProposalSchema>>;
-// implements REQ-skillopt-codex-optimization
 export type Approval = Readonly<z.infer<typeof ApprovalSchema>>;
 
-// implements REQ-skillopt-codex-optimization
 export function assertApprovalMatchesProposal(
   proposal: Proposal,
   approval: Approval,

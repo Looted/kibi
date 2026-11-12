@@ -21,26 +21,21 @@ export function getBranchOverride(): string | undefined {
 }
 
 export function getKbPlPathOverride(): string | undefined {
-  // implements REQ-003
   return getEnvValue("KIBI_KB_PL_PATH");
 }
 
 export function isCliDebugEnabled(): boolean {
-  // implements REQ-003
   return Boolean(getEnvValue("KIBI_DEBUG"));
 }
 
 export function isCliTraceEnabled(): boolean {
-  // implements REQ-003
   return Boolean(getEnvValue("KIBI_TRACE"));
 }
 
 export function isCliTraceOrDebugEnabled(): boolean {
-  // implements REQ-003
   return isCliTraceEnabled() || isCliDebugEnabled();
 }
 
 export function isPrologDebugEnabled(): boolean {
-  // implements REQ-003
   return Boolean(getEnvValue("KIBI_PROLOG_DEBUG"));
 }

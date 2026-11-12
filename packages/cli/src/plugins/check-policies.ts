@@ -31,7 +31,6 @@ import {
 } from "./resolve-package.js";
 
 /** A check policy read from an activated plugin package, as data. */
-// implements REQ-capability-check-policy
 export type ActiveCheckPolicy = Readonly<{
   packageName: string;
   packageVersion: string;
@@ -39,13 +38,11 @@ export type ActiveCheckPolicy = Readonly<{
 }>;
 
 /** Why an activated check policy could not be read. */
-// implements REQ-capability-check-policy
 export type CheckPolicyLoadError = Readonly<{
   packageName: string;
   message: string;
 }>;
 
-// implements REQ-capability-check-policy
 export type CheckPolicyReadResult = Readonly<{
   policies: readonly ActiveCheckPolicy[];
   errors: readonly CheckPolicyLoadError[];
@@ -75,7 +72,6 @@ function policyPath(packageJson: Readonly<Record<string, unknown>>): string {
  * are read; no plugin module is imported, so maintenance paths such as
  * `kb_check` stay free of third-party code.
  */
-// implements REQ-capability-check-policy
 export function readActiveCheckPolicies(
   workspaceRoot: string,
 ): CheckPolicyReadResult {

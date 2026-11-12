@@ -52,7 +52,6 @@ function renderSearchTable(payload: Readonly<Record<string, unknown>>): string {
     const reasons = Array.isArray(match.reasons)
       ? match.reasons.join(", ")
       : "";
-    // implements REQ-kibi-negative-path-facts-marked
     // A negative-path fact's title states a situation that must not happen.
     const title = isFields(match.negativePath)
       ? negativePathTitle(stringifyCell(entity.title))
@@ -395,7 +394,6 @@ function stringifyCell(value: unknown): string {
   return String(value);
 }
 
-// implements REQ-kibi-claim-bound-proofs
 // The evidence level, with how many applicable claims a certificate proves.
 function evidenceCell(item: Record<string, unknown>): string {
   const level = stringifyCell(item.evidenceLevel);
@@ -406,7 +404,6 @@ function evidenceCell(item: Record<string, unknown>): string {
   return `${level}\n${typeof proved === "number" ? proved : 0}/${applicable} claims proved`;
 }
 
-// implements REQ-kibi-evidence-floors
 // The evidence floor and whether the level reaches it; empty without a floor.
 function floorCell(item: Record<string, unknown>): string {
   const floor = item.evidenceFloor;

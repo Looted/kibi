@@ -59,7 +59,6 @@ function readStoredDocument(
  * judged as authored before the write, so dropping its firmness or origin in
  * the same write does not make it editable.
  */
-// implements REQ-kb-firm-decision-edit
 export async function assertFirmDecisionUnchanged(
   input: UpsertInput,
   workspaceRoot: string,

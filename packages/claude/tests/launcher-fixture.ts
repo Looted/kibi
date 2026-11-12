@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 // Shared workspace/fixture helpers for launcher tests. These build a real
 // opt-in workspace with an installable fake `kibi-mcp` package so launcher
 // tests exercise genuine process launches instead of mocked spawns.

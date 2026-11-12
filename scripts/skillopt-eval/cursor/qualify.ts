@@ -29,7 +29,6 @@ function lines(text: string): readonly string[] {
  * through.
  */
 
-// implements REQ-skillopt-cursor-compat
 export async function runCursorQualification(
   dependencies: CursorQualificationDependencies,
 ): Promise<CursorQualificationReceipt> {

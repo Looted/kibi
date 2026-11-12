@@ -1,5 +1,3 @@
-// implements REQ-vscode-traceability
-// implements REQ-cli-canonical-runtime
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import {
   mkdirSync,

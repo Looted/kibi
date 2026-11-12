@@ -1,4 +1,3 @@
-// implements REQ-003, REQ-007
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";

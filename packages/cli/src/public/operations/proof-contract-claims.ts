@@ -26,14 +26,11 @@ import type { OperationContext } from "./runtime-types.js";
  * name the claims it proves; older KBs get the rule with their schema
  * upgrade, whose migration pins proves where the claim is unambiguous.
  */
-// implements REQ-kibi-claim-bound-proofs
 export const CLAIM_BINDING_SCHEMA_VERSION = 12;
 
 /** A certificate-kind proof contract must name provable claims in proves. */
-// implements REQ-kibi-claim-bound-proofs
 export const PROOF_CONTRACT_CLAIMS_RULE = "proof-contract-claims";
 
-// implements REQ-kibi-claim-bound-proofs
 export type ProofContractClaimIssue = Readonly<{
   test_id: string;
   claim_key?: string;
@@ -45,7 +42,6 @@ export type ProofContractClaimIssue = Readonly<{
  * named claim no certificate of its kind could prove. Ignores the schema
  * version, so a migration can read what the rule will report.
  */
-// implements REQ-kibi-claim-bound-proofs
 export async function readProofContractClaimIssues(
   context: OperationContext,
 ): Promise<readonly ProofContractClaimIssue[]> {
@@ -60,7 +56,6 @@ export async function readProofContractClaimIssues(
 }
 
 /** One finding per contract without proves and per unprovable claim key. */
-// implements REQ-kibi-claim-bound-proofs
 export function proofContractClaimViolations(
   issues: readonly ProofContractClaimIssue[],
 ): Violation[] {
@@ -84,7 +79,6 @@ export function proofContractClaimViolations(
 }
 
 /** Evaluate the proof-contract-claims rule from schema 12. */
-// implements REQ-kibi-claim-bound-proofs
 export async function collectProofContractClaimViolations(
   context: OperationContext,
   rules: ReadonlySet<string>,

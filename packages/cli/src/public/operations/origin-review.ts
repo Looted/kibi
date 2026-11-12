@@ -31,21 +31,16 @@ import type { PrologPort } from "./runtime-types.js";
  */
 
 /** An exception without approved_by exempts nothing. */
-// implements REQ-kibi-entity-origin
 export const EXCEPTION_UNAPPROVED_RULE = "exception-unapproved";
 /** An agent recorded an exception approval without human corroboration. */
-// implements REQ-kibi-entity-origin
 export const EXCEPTION_APPROVAL_SELF_ATTESTED_RULE =
   "exception-approval-self-attested";
 /** Agent-authored requirements no human has approved yet. */
-// implements REQ-kibi-entity-origin
 export const AGENT_REQUIREMENT_UNAPPROVED_RULE = "agent-requirement-unapproved";
 /** A human- or agent-authored requirement that records no reason. */
-// implements REQ-core-validation-rules
 export const REQUIREMENT_RATIONALE_MISSING_RULE =
   "requirement-rationale-missing";
 
-// implements REQ-kibi-entity-origin
 export const ORIGIN_REVIEW_RULES = [
   EXCEPTION_UNAPPROVED_RULE,
   EXCEPTION_APPROVAL_SELF_ATTESTED_RULE,
@@ -65,7 +60,6 @@ const RATIONALE_ORIGIN_KINDS = new Set(["human", "agent"]);
  * by id) and then one summary finding, so a large agent-authored KB yields a
  * bounded review queue instead of one warning per requirement.
  */
-// implements REQ-kibi-entity-origin
 export const AGENT_REQUIREMENT_REVIEW_LIMIT = 25;
 
 const CURRENT_REQUIREMENT_STATUSES = new Set([
@@ -78,7 +72,6 @@ const CURRENT_REQUIREMENT_STATUSES = new Set([
 
 type Entity = Readonly<Record<string, unknown>>;
 
-// implements REQ-kibi-entity-origin
 export type OriginReviewInput = Readonly<{
   requirements: readonly Entity[];
   /** `[exception, base]` pairs of `exempts` relationships. */
@@ -97,7 +90,6 @@ const RATIONALE_HEADING = /^#{1,6}[ \t]+(?:rationale|why|context)\b/im;
  * True when a Markdown document (frontmatter ignored) has a heading that
  * starts with "Rationale", "Why" or "Context", at any level.
  */
-// implements REQ-kibi-entity-origin
 export function markdownHasRationaleSection(content: string): boolean {
   // The pattern only matches front matter at the very start.
   const body = content.replace(
@@ -112,7 +104,6 @@ export function markdownHasRationaleSection(content: string): boolean {
  * and report whether it has a Rationale or Why section. Unreadable files
  * count as having none.
  */
-// implements REQ-kibi-entity-origin
 export function rationaleSectionReader(
   workspaceRoot: string,
 ): (entity: Entity) => boolean {
@@ -154,7 +145,6 @@ function isCurrent(entity: Entity, superseded: ReadonlySet<string>): boolean {
 }
 
 /** Evaluate the origin review rules over loaded requirements. */
-// implements REQ-kibi-entity-origin
 export function evaluateOriginReview(
   input: OriginReviewInput,
   rules: ReadonlySet<string> = new Set(ORIGIN_REVIEW_RULES),
@@ -341,7 +331,6 @@ async function reviewRelationships(
 }
 
 /** Load requirements and relationships once and evaluate the selected rules. */
-// implements REQ-kibi-entity-origin
 export async function collectOriginReviewViolations(
   prolog: Pick<PrologPort, "query">,
   rules: ReadonlySet<string>,

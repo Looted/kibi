@@ -1,5 +1,4 @@
 /** Fictional user-owned facts, independent of evaluator rubrics and answers. */
-// implements REQ-skillopt-codex-optimization
 export const BOOTSTRAP_USER_CONTEXT = {
   projectSummary: "A fictional library lending desk tracks loans and returns.",
   knowledgeSources: [
@@ -21,7 +20,6 @@ export const BOOTSTRAP_USER_CONTEXT = {
   ],
 };
 
-// implements REQ-skillopt-codex-optimization
 export function bootstrapUserProfile(mode: "approve" | "decline") {
   return {
     mode,
@@ -31,7 +29,6 @@ export function bootstrapUserProfile(mode: "approve" | "decline") {
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function bootstrapUserMode(
   taskId: string,
 ): "approve" | "decline" | undefined {
@@ -46,7 +43,6 @@ export function bootstrapUserMode(
     : undefined;
 }
 
-// implements REQ-skillopt-codex-optimization
 export function bootstrapDialogueInstruction(
   objective: string,
   split: string,

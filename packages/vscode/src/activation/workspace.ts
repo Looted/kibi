@@ -22,7 +22,6 @@ export function _resetWorkspaceFsDepsForTests(): void {
  * Returns the workspace root path or undefined if not found.
  */
 export function resolveWorkspaceRoot(
-  // implements REQ-vscode-traceability
   output: vscode.OutputChannel,
 ): string | undefined {
   let workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;

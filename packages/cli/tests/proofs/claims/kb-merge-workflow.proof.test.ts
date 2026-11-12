@@ -6,8 +6,6 @@ import {
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
 
-// implements REQ-ci-kb-merge-gate-order
-
 /**
  * The order of the KB merge workflow's resolve steps. Kibi reads the run
  * command of each step in .github/workflows/kb-merge.yml at ingest and checks

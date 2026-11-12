@@ -146,20 +146,17 @@ const QUALIFIED_SOURCE_LANGUAGES = new Set([
  * extension table; callers that need content-aware classification (shebangs,
  * explicit hints, ambiguity) must use classifySource instead.
  */
-// implements REQ-source-analysis-v2
 export function extensionLanguage(filePath: string): string {
   return EXTENSIONS[extensionOf(filePath)]?.language ?? "unknown";
 }
 
 /** True for TypeScript/JavaScript paths handled by the ts-morph analyzer. */
-// implements REQ-source-analysis-v2
 export function isTsJsSourcePath(filePath: string): boolean {
   const language = extensionLanguage(filePath);
   return language === "typescript" || language === "javascript";
 }
 
 /** True for paths whose language has qualified declaration analysis. */
-// implements REQ-source-analysis-v2
 export function isQualifiedSourcePath(filePath: string): boolean {
   const signal = EXTENSIONS[extensionOf(filePath)];
   return (
@@ -174,14 +171,12 @@ export function isQualifiedSourcePath(filePath: string): boolean {
  * shell, ...) and extensionless or unclassified paths have nothing narrower
  * than the whole file to link.
  */
-// implements REQ-source-analysis-v2
 export function hasDeclarationExtractor(filePath: string): boolean {
   const kind = EXTENSIONS[extensionOf(filePath)]?.kind;
   return kind === "language" || kind === "ambiguous";
 }
 
 /** Every classified extension, for parity checks against provider catalogs. */
-// implements REQ-source-analysis-v2
 export function classifiedExtensions(): readonly string[] {
   return Object.keys(EXTENSIONS).sort();
 }
@@ -416,7 +411,6 @@ const PERL_LINE =
  * Resolves a `.pl` file without a shebang to Prolog or Perl when only one of
  * them matches its leading content. Both or neither leaves it ambiguous.
  */
-// implements REQ-multilingual-language-catalog
 function perlOrPrologByContent(content: string): string | undefined {
   const prefix = content.slice(0, MAX_CONTENT_SNIFF_LENGTH);
   const prolog = PROLOG_LINE.test(prefix);
@@ -434,7 +428,6 @@ const CPP_ONLY =
  * construct only C++ has, otherwise C (a C header also parses as C++, but
  * the reverse does not hold, so C is the reading that stays exact).
  */
-// implements REQ-multilingual-language-catalog
 function cOrCppByContent(content: string): string {
   const code = content
     .slice(0, MAX_CONTENT_SNIFF_LENGTH)

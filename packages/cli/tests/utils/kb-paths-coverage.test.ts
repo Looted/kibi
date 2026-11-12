@@ -1,4 +1,3 @@
-// implements REQ-cli-sync
 import { describe, expect, test } from "bun:test";
 import {
   entityLaneForPath,

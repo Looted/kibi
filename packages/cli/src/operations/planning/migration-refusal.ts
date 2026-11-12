@@ -6,7 +6,6 @@
  * reports `outcome: "refused"`, not `reconciliation_required`: there is
  * nothing to reconcile.
  */
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export class MigrationActionRefusedError extends Error {
   constructor(message: string) {
     super(message);

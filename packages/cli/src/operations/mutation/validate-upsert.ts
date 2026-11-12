@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { KbRejection, codedErrorOf } from "../../cli-errors.js";
 import { escapeAtom } from "../../prolog/codec.js";
 import type {
@@ -34,7 +33,6 @@ import { validateUpsertInput } from "./validation.js";
 import { symbolCoverageWarnings } from "./warnings.js";
 import { isBlockingWitness, parseWhatIfAnalysis } from "./what-if.js";
 
-// implements REQ-kibi-entity-id-style
 async function entityExists(prolog: PrologPort, id: string): Promise<boolean> {
   const result = await prolog.query(
     `once(kb_entity('${escapeAtom(id)}', _Type, _Props))`,
@@ -42,7 +40,6 @@ async function entityExists(prolog: PrologPort, id: string): Promise<boolean> {
   return result.success;
 }
 
-// implements REQ-kibi-operation-interface-parity, REQ-kb-entity-body-context
 /**
  * The authored document a real kb_upsert would update, resolved and rendered
  * with the write's own rules (sourceWriteScope and renderSourceWrite) but
@@ -72,7 +69,6 @@ async function previewSourceWrite(
   return relative;
 }
 
-// implements REQ-kibi-operation-interface-parity, REQ-kb-entity-body-context
 /**
  * Without a store there is no write either: only locate the document the
  * write would update, for the context warning. Undefined when the runtime
@@ -93,7 +89,6 @@ function locateSourceDocument(
   return undefined;
 }
 
-// implements REQ-kibi-operation-interface-parity, REQ-kibi-truthful-consistency
 /**
  * The commit goal's own refusal rules, run against a staged and rolled-back
  * copy of the store for every entity type: a relationship whose endpoint
@@ -121,7 +116,6 @@ async function previewCommit(
   }
 }
 
-// implements REQ-model-what-if-planned-facts
 type StagedFacts = Readonly<{
   staged: StagedUpsertState;
   steps: readonly {
@@ -130,7 +124,6 @@ type StagedFacts = Readonly<{
   }[];
 }>;
 
-// implements REQ-model-what-if-planned-facts
 /**
  * Validate the planned facts in order, each against the live store plus the
  * facts before it, exactly as kb_apply_plan validates a plan's steps. The
@@ -200,7 +193,6 @@ function plannedFactUpsert(fact: PlannedFactInput): UpsertInput {
   };
 }
 
-// implements REQ-model-what-if-planned-facts, REQ-kibi-truthful-consistency
 /**
  * The contradiction preview for a payload with planned facts: the facts and
  * the payload are staged together in a rolled-back transaction and the
@@ -373,7 +365,6 @@ function isModuleLoadFailure(error: unknown): boolean {
   return code === "MODULE_NOT_FOUND" || code === "ERR_MODULE_NOT_FOUND";
 }
 
-// implements REQ-kibi-operation-interface-parity, REQ-kibi-truthful-consistency
 /**
  * kb_upsert dryRun:true (and the former kb_validate_upsert preflight). With a
  * store it runs validateUpsertForCommit, the exact validation a real
@@ -422,7 +413,6 @@ export async function executeValidateUpsert(
     if (isModuleLoadFailure(error)) throw error;
     const message = error instanceof Error ? error.message : String(error);
     const errorCode = codedErrorOf(error)?.code;
-    // implements REQ-kibi-telemetry-agent-signals
     // Which refusal this is, as fixed rule ids and schema fields.
     const rejection =
       error instanceof KbRejection

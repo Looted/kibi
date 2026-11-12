@@ -9,7 +9,6 @@ import type {
   SourceAnalysisService,
 } from "./source-analysis-service.js";
 
-// implements REQ-014
 export interface SourceChangeAnalysis {
   path: string;
   before: HostSourceAnalysisResultV2 | null;
@@ -20,7 +19,6 @@ export interface SourceChangeAnalysis {
 const SOURCE_ANALYSIS_CONCURRENCY = 4;
 
 /** Analyze both versions without changing the complete inventory or assigning proof. */
-// implements REQ-014
 export async function analyzeSourceChanges(
   inventory: readonly StagedPath[],
   service: SourceAnalysisService,
@@ -59,7 +57,6 @@ export async function analyzeSourceChanges(
 }
 
 /** Adapt a host result to the shared analysis gate. */
-// implements REQ-source-analysis-v2
 export function gateAnalysis(
   result: HostSourceAnalysisResultV2 | null,
 ): GateAnalysis<HostSourceAnalysisResultV2["uncoveredRanges"][number]> | null {
@@ -73,7 +70,6 @@ export function gateAnalysis(
 }
 
 /** Staged lines of a partially analyzed file that need a file-level review. */
-// implements REQ-source-analysis-v2
 export interface PartialAnalysisReview {
   path: string;
   /** Staged lines inside the gaps and outside every placed declaration. */
@@ -87,7 +83,6 @@ export interface PartialAnalysisReview {
  * analyzer placed. A changed line inside a placed declaration is validated
  * against that symbol instead.
  */
-// implements REQ-source-analysis-v2
 export function partialAnalysisReviews(
   inventory: readonly StagedPath[],
   analyses: ReadonlyMap<string, SourceChangeAnalysis>,
@@ -187,7 +182,6 @@ function mergeLineRanges(ranges: readonly LineSpan[]): LineSpan[] {
  * failed analysis and non-local gaps block; a local gap is left to
  * {@link partialAnalysisReviews}.
  */
-// implements REQ-source-analysis-v2
 export function assertSourceAnalysisGate(
   inventory: readonly StagedPath[],
   analyses: ReadonlyMap<string, SourceChangeAnalysis>,

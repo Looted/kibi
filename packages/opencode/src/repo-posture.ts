@@ -1,4 +1,3 @@
-// implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 

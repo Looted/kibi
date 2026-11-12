@@ -276,3 +276,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc082006b298
+  - type: verified_by
+    from: SCEN-NEG-migrate-inline-implements-edits-source
+    to: TEST-migrate-inline-implements-review
+    created_at: 2026-11-11T06:01:48.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc11c54fa615
+  - type: assumes
+    from: SCEN-NEG-migrate-inline-implements-edits-source
+    to: FACT-NEG-migrate-inline-implements-comment-edited
+    created_at: 2026-11-11T06:03:57.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51dfd4e543f0

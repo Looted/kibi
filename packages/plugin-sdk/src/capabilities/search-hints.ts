@@ -10,10 +10,8 @@
  */
 
 /** Most hints a host may request in one call. */
-// implements REQ-capability-search-hints-v1
 export const SEARCH_HINTS_MAX_LIMIT = 20 as const;
 
-// implements REQ-capability-search-hints-v1
 export interface SearchHintsEntity {
   readonly id: string;
   readonly type: string;
@@ -24,7 +22,6 @@ export interface SearchHintsEntity {
   readonly hash: string;
 }
 
-// implements REQ-capability-search-hints-v1
 export interface SearchHintsInput {
   readonly query: string;
   /** 1..SEARCH_HINTS_MAX_LIMIT. */
@@ -34,7 +31,6 @@ export interface SearchHintsInput {
   readonly cacheDirectory: string;
 }
 
-// implements REQ-capability-search-hints-v1
 export interface SearchHint {
   /** One of the input entity ids. */
   readonly id: string;
@@ -42,12 +38,10 @@ export interface SearchHint {
   readonly score: number;
 }
 
-// implements REQ-capability-search-hints-v1
 export interface SearchHintsResult {
   readonly hints: readonly SearchHint[];
 }
 
-// implements REQ-capability-search-hints-v1
 export interface SearchHintsV1 {
   readonly id: string;
   /** Provider model id copied onto provenance stamps. */

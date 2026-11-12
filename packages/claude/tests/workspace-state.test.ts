@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 // Workspace opt-in resolution and the per-session journal, unit by unit.
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";

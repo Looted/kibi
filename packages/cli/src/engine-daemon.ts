@@ -12,7 +12,6 @@ import {
 // Node 22.14 and earlier do not set `import.meta.main`. The journaled engine
 // client always hosts this file with `node`, so the entry check must work
 // without Bun-only metadata.
-// implements REQ-core-journaled-engine-persistence
 export function isEngineDaemonEntrypoint(
   argv: readonly string[] = process.argv,
   moduleUrl: string = import.meta.url,
@@ -40,7 +39,6 @@ function requiredArg(args: readonly string[], name: string): string {
   return value;
 }
 
-// implements REQ-core-journaled-engine-persistence
 export async function runEngineDaemonCli(
   args: readonly string[] = process.argv.slice(2),
 ): Promise<void> {

@@ -1,4 +1,3 @@
-// implements REQ-kibi-logical-requirement-coverage
 import { afterEach, describe, expect, test } from "bun:test";
 import { analyzeSemanticAdvisorInput } from "../../src/operations/semantic-advisor/analyze-prose.js";
 import { semanticClaimKey } from "../../src/operations/semantic-advisor/clauses.js";

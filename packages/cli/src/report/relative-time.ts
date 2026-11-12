@@ -2,7 +2,6 @@ const MINUTE_SECONDS = 60;
 const HOUR_SECONDS = 3_600;
 const DAY_SECONDS = 86_400;
 
-// implements REQ-kibi-html-health-report
 export function parseTimestamp(value: unknown): Date | undefined {
   if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
   // A blank string parses to NaN like any other non-date.
@@ -11,7 +10,6 @@ export function parseTimestamp(value: unknown): Date | undefined {
   return Number.isFinite(parsed) ? new Date(parsed) : undefined;
 }
 
-// implements REQ-kibi-html-health-report
 export function formatAbsoluteUtc(date: Date): string {
   const year = date.getUTCFullYear().toString().padStart(4, "0");
   const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");

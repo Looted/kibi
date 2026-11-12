@@ -1,4 +1,3 @@
-// implements REQ-opencode-worktree-hard-enforcement-v1
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   advisoryResultFromEvents,

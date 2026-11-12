@@ -8,8 +8,6 @@ import {
   isMustPriorityRequirement,
 } from "../src/requirement-doc";
 
-// implements REQ-opencode-kibi-plugin-v1
-
 describe("requirement-doc", () => {
   let tmpDir: string;
 

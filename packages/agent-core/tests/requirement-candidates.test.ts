@@ -1,4 +1,3 @@
-// implements REQ-kb-unowned-file-candidates, REQ-claude-request-topic-candidates
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import fs from "node:fs";

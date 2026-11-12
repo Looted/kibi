@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// implements REQ-claude-code-kibi-plugin-v1
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -214,7 +213,6 @@ type Workspace = {
 
 type FirmEdit = { path: string; where: string; ids: string[] };
 
-// implements REQ-claude-firm-edit-confirmation
 /**
  * The current firm requirements an edit changes that the person has not yet
  * let an edit change this session.
@@ -243,7 +241,6 @@ function firmEdit(
   };
 }
 
-// implements REQ-claude-firm-edit-confirmation
 /**
  * Put the edit to the person: Claude Code shows the reason in its permission
  * prompt (or, in a run nobody can answer, refuses the call and gives the
@@ -776,7 +773,6 @@ function postToolUse(
   } else {
     const usage = extractMcpKbUsage(toolName, input.toolInput);
     if (usage) recordUsage(usage);
-    // implements REQ-kibi-signoff-views
     if (
       usage?.operation === "kb_upsert" &&
       isRequirementUpsert(input.toolInput)
@@ -803,14 +799,12 @@ function stop(
   const unreminded = state.pendingSource.filter(
     (pending) => !state.reminded.has(pending),
   );
-  // implements REQ-claude-decision-capture-nudges
   // Source changed and nothing was recorded: ask once whether the session
   // held a decision worth keeping, before the context that holds it is gone.
   const capture =
     state.sourceEdited &&
     !state.kbRecorded &&
     !state.notices.has("capture-stop");
-  // implements REQ-kibi-signoff-views
   // Requirements were written and the person has not seen a signoff view:
   // ask once for `kibi signoff` before the work is reported done.
   const signoff =
@@ -841,7 +835,6 @@ function stop(
   return context("Stop", parts.join("\n"));
 }
 
-// implements REQ-claude-decision-capture-nudges, REQ-claude-request-topic-candidates
 /**
  * Remember the request's topic words (for unlinked-file candidates) and,
  * when it reads as a rule or decision, say while the work is still ahead that
@@ -941,7 +934,6 @@ function dispatchHook(
       if (input.source === "compact" || input.source === "clear") {
         appendSessionEvents(workspace.stateDir, [{ kind: "context_reset" }]);
       }
-      // implements REQ-kibi-fresh-clone-setup
       return context(
         "SessionStart",
         [
@@ -955,7 +947,6 @@ function dispatchHook(
       return userPromptSubmit(input, workspace, trace);
     case "PreToolUse": {
       const output = preToolUse(input, workspace, trace);
-      // implements REQ-kibi-telemetry-agent-signals
       // A Kibi skill loaded through the Skill tool or a read of its SKILL.md.
       if (trace.action === undefined) {
         Object.assign(trace, skillLoadTrace(input.toolName, input.toolInput));

@@ -65,7 +65,7 @@ Graph coverage is useful for discovery but is **not semantic proof**.
 
 ## Symbol Traceability
 
-- New or modified symbols must trace to at least one requirement. For test/e2e code prefer the symbol manifest + `executable_for`; inline `// implements REQ-<area>-<behavior>` is acceptable for quick changes.
+- New or modified symbols must trace to at least one requirement through their `.kb/symbols.yaml` entry: `implements` for production code, `executable_for` for test/e2e code. Code comments are never a traceability link; do not add `// implements` comments.
 - `.kb/symbol-coordinates.yaml` is a gitignored cache that every `kibi sync` derives; never commit it. Commit `.kb/symbols.yaml` changes (new, renamed or removed logical symbols) with the code.
 
 ## README and Landing Page

@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { afterEach, describe, expect, test } from "bun:test";
 import { buildPropertyList } from "../../src/operations/mutation/serialization.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";

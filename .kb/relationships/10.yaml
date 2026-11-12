@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f4c1f86df5b
+  - type: implements
+    from: SYM-cli-inline-implements-parse
+    to: REQ-migrate-inline-implements-review
+    created_at: 2026-11-11T05:47:50.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d72bcdc97bf
+  - type: covered_by
+    from: SYM-cli-inline-implements-parse
+    to: TEST-migrate-inline-implements-review
+    created_at: 2026-11-11T05:47:50.803Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c089d3abf62

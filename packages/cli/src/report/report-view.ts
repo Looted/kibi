@@ -34,7 +34,6 @@ export type ReportViewQuery = Readonly<{
   gate: ProofGateKey | "all";
 }>;
 
-// implements REQ-kibi-html-health-report
 export function matchesReportView(
   row: RequirementView,
   view: ReportViewQuery,
@@ -48,7 +47,6 @@ export function matchesReportView(
   return matchesFilter && matchesGate && matchesQuery;
 }
 
-// implements REQ-kibi-html-health-report
 export function reportFilterCounts(
   rows: readonly Pick<RequirementView, "states">[],
 ): Readonly<Record<ReportFilter, number>> {

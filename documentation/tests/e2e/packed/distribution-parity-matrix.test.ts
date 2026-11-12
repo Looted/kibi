@@ -1,4 +1,3 @@
-// implements REQ-kibi-distribution-parity-matrix
 import assert from "node:assert";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";

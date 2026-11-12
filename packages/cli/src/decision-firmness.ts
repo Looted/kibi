@@ -27,26 +27,20 @@
 import { parseBodySections } from "./entity-body-context.js";
 
 /** Firmness values, firmest first. */
-// implements REQ-kb-decision-firmness
 export const FIRMNESS_VALUES = ["firm", "default", "exploratory"] as const;
 
-// implements REQ-kb-decision-firmness
 export type Firmness = (typeof FIRMNESS_VALUES)[number];
 
 /** The firmness of an agent-written decision that does not state one. */
-// implements REQ-kb-decision-firmness
 export const DEFAULT_FIRMNESS: Firmness = "default";
 
 /** Entity types that carry firmness. */
-// implements REQ-kb-decision-firmness
 export const FIRMNESS_TYPES = ["req", "adr"] as const;
 
 /** A supersede must explain itself under a heading starting with this. */
-// implements REQ-kb-decision-firmness
 export const WHY_THIS_CHANGED_HEADING = "Why this changed";
 
 /** The explanation needs at least this many words of prose. */
-// implements REQ-kb-decision-firmness
 export const MIN_WHY_CHANGED_WORDS = 12;
 
 const WHY_THIS_CHANGED = /^why\s+this\s+changed\b/i;
@@ -56,17 +50,14 @@ const WHY_THIS_CHANGED = /^why\s+this\s+changed\b/i;
  * are acknowledged, so a supersede added later to the same entity still has
  * to explain itself.
  */
-// implements REQ-kb-decision-firmness
 export function supersedeAcknowledgement(from: string, to: string): string {
   return `${from} -> ${to}`;
 }
 
-// implements REQ-kb-decision-firmness
 export function isFirmness(value: unknown): value is Firmness {
   return (FIRMNESS_VALUES as readonly unknown[]).includes(value);
 }
 
-// implements REQ-kb-decision-firmness
 export function carriesFirmness(type: unknown): boolean {
   return (FIRMNESS_TYPES as readonly unknown[]).includes(type);
 }
@@ -79,7 +70,6 @@ export function carriesFirmness(type: unknown): boolean {
  * before origins were recorded) is theirs, so it reads as `firm`: an agent
  * asks before changing it. Undefined for types that carry no firmness.
  */
-// implements REQ-kb-decision-firmness, REQ-kb-decision-firmness-from-origin
 export function effectiveFirmness(
   type: unknown,
   value: unknown,
@@ -95,13 +85,11 @@ export function effectiveFirmness(
  * `firmness` value. Rules that judge the author's own marking (a firm decision
  * must cite the person's words) apply only to explicit values.
  */
-// implements REQ-kb-decision-firmness-from-origin
 export function firmnessIsImplicit(type: unknown, value: unknown): boolean {
   return carriesFirmness(type) && !isFirmness(value);
 }
 
 /** The `kind` of an origin record, or undefined when there is none. */
-// implements REQ-kb-decision-firmness-from-origin
 export function originKind(origin: unknown): string | undefined {
   if (origin === null || typeof origin !== "object") return undefined;
   const kind = (origin as { kind?: unknown }).kind;
@@ -112,7 +100,6 @@ export function originKind(origin: unknown): string | undefined {
  * The reference that makes a firm decision traceable to a human's words:
  * `origin.ref`, or `approval_ref` on a requirement.
  */
-// implements REQ-kb-decision-firmness
 export function firmnessRef(entity: {
   type?: unknown;
   origin?: unknown;
@@ -141,7 +128,6 @@ function wordCount(text: string): number {
  * Words of prose under the body's "Why this changed" heading (nested
  * headings included), or 0 when the body has no such section.
  */
-// implements REQ-kb-decision-firmness
 export function whyThisChangedWords(body: string): number {
   // The open section's heading level, 0 outside one (and for the preamble,
   // whose empty heading never matches).

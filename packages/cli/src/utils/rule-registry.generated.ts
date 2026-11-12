@@ -7,7 +7,6 @@
  * JSON source and regenerate.
  */
 
-// implements REQ-006
 export const GENERATED_RULES = [
   {
     name: "must-priority-coverage",

@@ -10,8 +10,6 @@ import {
   MANAGED_HOOK_NAMES,
 } from "../../../src/commands/init-helpers.js";
 
-// implements REQ-git-hook-managed-names
-
 /**
  * The git hooks kibi init manages and the marker that opens its block in each. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

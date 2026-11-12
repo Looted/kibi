@@ -59,7 +59,6 @@ describe("shared modeling operation executors", () => {
     }
   });
 
-  // implements REQ-kibi-truthful-consistency
   test("modelRequirementSpec models a conditional as a typed rule, not a property", async () => {
     const result = await modelRequirementSpec.execute(
       {
@@ -107,7 +106,6 @@ describe("shared modeling operation executors", () => {
     }
   });
 
-  // implements REQ-kibi-truthful-consistency
   test("modelRequirementSpec leaves an untranslatable conditional unresolved", async () => {
     const text =
       "Checkout may happen only when the cart total is positive and the user is verified.";
@@ -136,7 +134,6 @@ describe("shared modeling operation executors", () => {
     ]);
   });
 
-  // implements REQ-kibi-truthful-consistency
   test("modelRequirementSpec keeps a below-threshold observation an open gap", async () => {
     const result = await modelRequirementSpec.execute(
       { text: "Capture this ambiguous discovery note.", confidence: 0.1 },

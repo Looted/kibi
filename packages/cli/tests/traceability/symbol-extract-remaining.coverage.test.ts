@@ -1,4 +1,3 @@
-// implements REQ-cli-staged-impact-enforcement
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -29,7 +28,7 @@ afterEach(() => {
 });
 
 describe("extractSymbolsFromStagedFile leftover script, cache, and hunk branches", () => {
-  test("parses implements lists and filters modified hunks", () => {
+  test("ignores implements comments and filters modified hunks", () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const content = [
@@ -47,9 +46,8 @@ describe("extractSymbolsFromStagedFile leftover script, cache, and hunk branches
     });
     expect(symbols.map((symbol) => symbol.name)).toContain("kept");
     expect(symbols.some((symbol) => symbol.name === "skipped")).toBe(false);
-    expect(symbols[0]?.reqLinks).toEqual(
-      expect.arrayContaining(["REQ-ALPHA", "REQ-BETA"]),
-    );
+    // The comment is not a link: only the symbol manifest gives one.
+    expect(symbols[0]?.reqLinks).toEqual([]);
   });
 
   test("reuses the TTL cache and returns no symbols after expiry recreates a parse failure", () => {
@@ -136,7 +134,7 @@ describe("extractSymbolsFromStagedFile leftover script, cache, and hunk branches
     restores.push(restoreEnv);
     const methodText = spyOn(
       MethodDeclaration.prototype,
-      "getFullText",
+      "getEnd",
     ).mockImplementation(() => {
       throw new Error("method boom");
     });
@@ -166,25 +164,25 @@ export type Alias = string;
     restores.push(restoreEnv);
     const propertyText = spyOn(
       PropertyDeclaration.prototype,
-      "getFullText",
+      "getEnd",
     ).mockImplementation(() => {
       throw new Error("property boom");
     });
     const accessorText = spyOn(
       GetAccessorDeclaration.prototype,
-      "getFullText",
+      "getEnd",
     ).mockImplementation(() => {
       throw new Error("accessor boom");
     });
     const ifaceText = spyOn(
       InterfaceDeclaration.prototype,
-      "getText",
+      "getEnd",
     ).mockImplementation(() => {
       throw new Error("iface boom");
     });
     const aliasText = spyOn(
       TypeAliasDeclaration.prototype,
-      "getText",
+      "getEnd",
     ).mockImplementation(() => {
       throw new Error("alias boom");
     });

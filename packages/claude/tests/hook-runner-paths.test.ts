@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 // Hook decisions pinned exactly: the output, the session journal it leaves,
 // and the usage row it records, for each branch of the runner.
 import { afterEach, describe, expect, test } from "bun:test";
@@ -319,7 +318,6 @@ describe("session start", () => {
     expect(h.journal()).toStrictEqual([]);
   });
 
-  // implements REQ-kibi-fresh-clone-setup
   test("a checkout without Kibi's hooks gets the missing-hooks note on its own line", async () => {
     const fixture = workspace();
     spawnSync("git", ["init", "-q"], { cwd: fixture.root });
@@ -1355,7 +1353,6 @@ describe("hook environment", () => {
   });
 });
 
-// implements REQ-kibi-telemetry-agent-signals
 describe("skill loads", () => {
   test("loading a Kibi skill through the Skill tool is recorded as skill_loaded", async () => {
     const fixture = workspace();

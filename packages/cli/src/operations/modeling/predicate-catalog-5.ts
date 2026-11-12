@@ -7,7 +7,6 @@ import type { PredicateSchemaCandidate } from "./predicate-types.js";
  * authority, request deduplication, async boundaries, canonical
  * identifiers, responsive breakpoints, and operational pauses.
  */
-// implements REQ-mcp-suggest-predicates
 export const PREDICATE_CATALOG_5: PredicateSchemaCandidate[] = [
   {
     id: "FACT-SCHEMA-FAIL-CLOSED-AUTHORIZATION-RULE",
@@ -298,6 +297,5 @@ export const PREDICATE_CATALOG_5: PredicateSchemaCandidate[] = [
       "operational_pause_rule(uploads, new_upload_sessions, existing_and_resumable_sessions)",
     ],
     tags: ["operations", "safety"],
-    // implements REQ-mcp-suggest-predicates
   },
 ];

@@ -161,7 +161,7 @@ describe("symbol traceability", () => {
     expect(reader).not.toHaveBeenCalled();
   });
 
-  test("inline directives replace manifest requirement links", () => {
+  test("a source comment never changes the manifest requirement links", () => {
     noManifests();
     const path = freshPath();
     const lookup: ManifestLookup = new Map([
@@ -175,7 +175,7 @@ describe("symbol traceability", () => {
       [sym("run", 1, 2, { directiveText: "// implements REQ-inline" })],
       lookup,
     );
-    expect(symbol?.reqLinks).toStrictEqual(["REQ-inline"]);
+    expect(symbol?.reqLinks).toStrictEqual(["REQ-m"]);
     expect(symbol?.relationships).toStrictEqual([
       { type: "implements", to: "REQ-m" },
     ]);
@@ -324,35 +324,18 @@ describe("symbol traceability", () => {
   });
 });
 
-describe("requirement directives", () => {
-  test("reads every implements list at a line end", () => {
+describe("source comments", () => {
+  test("an implements comment gives a symbol no requirement link", () => {
     noManifests();
     const directiveText = [
       "// implements REQ-1",
       "// IMPLEMENTS: REQ-2 , REQ-3,REQ-4",
-      "// implements REQ-5 trailing words",
-      "// implements:REQ-1",
-      "/* implements  R_6 */",
-      "// implements",
-      "// implements 7bad",
+      "implements A1, b-2",
     ].join("\n");
     const [symbol] = extract(staged(freshPath()), [
       sym("run", 1, 1, { directiveText }),
     ]);
-    expect(symbol?.reqLinks).toStrictEqual([
-      "REQ-1",
-      "REQ-2",
-      "REQ-3",
-      "REQ-4",
-    ]);
-  });
-
-  test("accepts an implements list as the whole directive", () => {
-    noManifests();
-    const [symbol] = extract(staged(freshPath()), [
-      sym("run", 1, 1, { directiveText: "implements A1, b-2\nimplements C_3" }),
-    ]);
-    expect(symbol?.reqLinks).toStrictEqual(["A1", "b-2", "C_3"]);
+    expect(symbol?.reqLinks).toStrictEqual([]);
   });
 });
 

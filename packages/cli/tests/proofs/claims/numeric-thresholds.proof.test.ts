@@ -10,8 +10,6 @@ import {
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
 
-// implements REQ-kibi-predicate-suggestion-thresholds, REQ-bootstrap-claim-restatement-threshold
-
 /**
  * Numeric thresholds the code exports. Each certificate assumes the value the
  * code holds; Kibi reads the same export again at ingest (the contract's

@@ -83,7 +83,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /** The complete trust decision. SHA identifies provenance; only the snapshot identifies proof. */
-// implements REQ-kibi-verification-evidence-contract
 export function assessProofReuse(input: ReuseInput): ReuseDecision {
   const mergeSnapshot = input.snapshot.hash;
   const intoDevelop = input.baseRef === "develop";
@@ -274,7 +273,6 @@ async function findProofRun(
  * proof has finished. Returns the develop push runs for `sha` that are still
  * queued or running; the caller waits on them instead of re-proving.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function pendingDevelopProofRuns(
   response: unknown,
   sha: string,
@@ -522,7 +520,6 @@ async function decide(outputPath: string): Promise<void> {
     );
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export async function main(argv: readonly string[]): Promise<void> {
   const [command, output] = argv;
   if (!output || (command !== "attest" && command !== "decide"))

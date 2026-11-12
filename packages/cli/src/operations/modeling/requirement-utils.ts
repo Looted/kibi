@@ -1,4 +1,3 @@
-// implements REQ-002
 export function normalizeText(text: string): string {
   const normalized = String(text ?? "").trim();
   if (!normalized) {
@@ -9,7 +8,6 @@ export function normalizeText(text: string): string {
   return normalized;
 }
 
-// implements REQ-002
 export function normalizeOptionalString(
   value: string | undefined,
 ): string | undefined {
@@ -17,7 +15,6 @@ export function normalizeOptionalString(
   return normalized.length > 0 ? normalized : undefined;
 }
 
-// implements REQ-002
 export function normalizeSourceFiles(
   sourceFiles: string[] | undefined,
 ): string[] {
@@ -32,18 +29,15 @@ export function normalizeSourceFiles(
   return normalized;
 }
 
-// implements REQ-002
 export function clampConfidence(confidence: number | undefined): number {
   // Number.isFinite is false for every non-number, so it is the whole guard.
   const numeric = Number.isFinite(confidence) ? (confidence as number) : 0.8;
   return Math.round(Math.min(1, Math.max(0, numeric)) * 100) / 100;
 }
 
-// implements REQ-002
 export function normalizeClaimValue(
   value: unknown,
 ): string | number | boolean | readonly string[] {
-  // implements REQ-kibi-source-proof-kinds
   if (Array.isArray(value)) {
     const members = value.map((member) =>
       typeof member === "string" ? member.trim() : "",
@@ -71,7 +65,6 @@ export function normalizeClaimValue(
   );
 }
 
-// implements REQ-002
 export function stripListPrefix(value: string): string {
   // One separator character is enough to match: the next pattern skips
   // leading whitespace and the final trim drops the rest.
@@ -81,19 +74,16 @@ export function stripListPrefix(value: string): string {
     .trim();
 }
 
-// implements REQ-002
 export function trimSentenceTail(value: string): string {
   return value.replace(/[\s.?!:;]+$/g, "").trim();
 }
 
-// implements REQ-002
 export function cleanSubject(value: string): string {
   const cleaned = trimSentenceTail(stripListPrefix(value));
   // `cleaned` is already trimmed, so dropping the article leaves no edge space.
   return cleaned.replace(/^(?:the|a|an)\s+/i, "") || cleaned;
 }
 
-// implements REQ-002
 export function cleanPredicate(value: string): string {
   return trimSentenceTail(stripListPrefix(value)) || "statement";
 }

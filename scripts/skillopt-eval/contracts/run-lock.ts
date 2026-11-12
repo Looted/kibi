@@ -37,12 +37,10 @@ const DEFAULT_SOURCE_LOCK_PATH = resolve(
   "../../../tools/skillopt/source-lock.json",
 );
 
-// implements REQ-skillopt-codex-optimization
 export function loadSkillOptSourceLock(path = DEFAULT_SOURCE_LOCK_PATH) {
   return SourceLockSchema.parse(JSON.parse(readFileSync(path, "utf8")));
 }
 
-// implements REQ-skillopt-codex-optimization
 export const SKILLOPT_SOURCE_LOCK = loadSkillOptSourceLock();
 
 const ExecutableIdentitySchema = z
@@ -61,7 +59,6 @@ const SkillSurfaceHashesSchema = z
   })
   .strict();
 
-// implements REQ-skillopt-codex-optimization
 export const PricingTableSchema = z
   .object({
     name: z.literal("price-equivalent-estimates"),
@@ -77,7 +74,6 @@ const DirtyStateSchema = z.discriminatedUnion("isDirty", [
   z.object({ isDirty: z.literal(true), diffHash: Sha256Schema }).strict(),
 ]);
 
-// implements REQ-skillopt-codex-optimization
 export function createRunLockSchema(sourceLockPath = DEFAULT_SOURCE_LOCK_PATH) {
   loadSkillOptSourceLock(sourceLockPath);
   return boundedContractSchema(
@@ -177,13 +173,10 @@ export function createRunLockSchema(sourceLockPath = DEFAULT_SOURCE_LOCK_PATH) {
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export const RunLockSchema = createRunLockSchema();
 
-// implements REQ-skillopt-codex-optimization
 export type RunLock = Readonly<z.infer<typeof RunLockSchema>>;
 
-// implements REQ-skillopt-codex-optimization
 export function parseRunLockText(
   text: string,
   sourceLockPath = DEFAULT_SOURCE_LOCK_PATH,
@@ -216,12 +209,10 @@ export function parseRunLockText(
   return lock;
 }
 
-// implements REQ-skillopt-codex-optimization
 export function runLockHash(lock: RunLock): string {
   return contractHash(JsonValueSchema.parse(lock));
 }
 
-// implements REQ-skillopt-codex-optimization
 export function assertRunLockMatches(expected: RunLock, actual: RunLock): void {
   if (expected.dirtyState.isDirty || actual.dirtyState.isDirty) {
     throw new ContractIntegrityError("dirty run lock", "dirtyState");

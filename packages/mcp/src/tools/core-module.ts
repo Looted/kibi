@@ -29,7 +29,6 @@ function isPrologProcess(
   );
 }
 
-// implements REQ-002, REQ-013
 export function resolveCorePlPath(fileName: string): string {
   const override = getCoreModulePathOverride(fileName);
   if (override) {
@@ -42,7 +41,6 @@ export function resolveCorePlPath(fileName: string): string {
   return path.join(path.dirname(kbPlPath), fileName);
 }
 
-// implements REQ-002, REQ-013
 export async function runJsonModuleQuery<T>(
   prolog: PrologProcess | PrologQueryLike,
   fileName: string,
@@ -115,7 +113,6 @@ async function runInteractiveModuleQuery(
   return prolog.query(goal);
 }
 
-// implements REQ-002, REQ-013
 export function toPrologAtom(value?: string): string {
   if (!value) {
     return "none";
@@ -123,7 +120,6 @@ export function toPrologAtom(value?: string): string {
   return `'${escapeAtomContent(value)}'`;
 }
 
-// implements REQ-002, REQ-013
 export function toPrologList(values?: string[]): string {
   return `[${(values ?? []).map((value) => `'${escapeAtomContent(value)}'`).join(",")}]`;
 }

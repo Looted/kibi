@@ -14,7 +14,6 @@ const packageVersion = (
   }
 ).version;
 
-// implements REQ-capability-plugin-protocol-v1
 export {
   createTreeSitterReferenceExtractor,
   createTreeSitterSymbolExtractor,
@@ -23,7 +22,6 @@ export {
 
 const pool = createTreeSitterWorkerPool();
 
-// implements REQ-source-analysis-v2
 /** Default offline Tree-sitter capability plugin. */
 export const kibiPlugin = {
   apiVersion: "kibi.plugin.v1",

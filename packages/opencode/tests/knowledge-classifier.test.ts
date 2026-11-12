@@ -2,8 +2,6 @@ import { describe, it } from "bun:test";
 import { strict as assert } from "node:assert";
 import { classifyKnowledge } from "../src/knowledge-classifier";
 
-// implements REQ-opencode-kibi-plugin-v1
-
 describe("knowledge-classifier classifyKnowledge", () => {
   it("returns null for short text", () => {
     const result = classifyKnowledge("Short comment.");

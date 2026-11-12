@@ -25,7 +25,6 @@ export interface PredicateRule {
   readonly accepts?: (statement: string) => boolean;
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function detectPredicateRules(
   payload: Payload,
   statement: string,
@@ -47,7 +46,6 @@ export function detectPredicateRules(
   return null;
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function commaList(
   value: string,
   separator: RegExp = /,|\band\b/i,

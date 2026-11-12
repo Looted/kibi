@@ -1,4 +1,3 @@
-// implements REQ-mcp-semantic-advisor-preflight
 import { describe, expect, test } from "bun:test";
 import { detectPredicateRules } from "../../src/operations/semantic-advisor/predicate-rule.js";
 import { POLICY_PREDICATE_RULES } from "../../src/operations/semantic-advisor/predicate-rules-policy.js";

@@ -1,4 +1,3 @@
-// implements REQ-cursor-kibi-plugin-v1
 import {
   extractExplicitPathFields as extractSharedExplicitPathFields,
   isKbPath,

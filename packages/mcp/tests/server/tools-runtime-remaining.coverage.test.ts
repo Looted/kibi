@@ -1,4 +1,3 @@
-// implements REQ-002
 import { afterAll, afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

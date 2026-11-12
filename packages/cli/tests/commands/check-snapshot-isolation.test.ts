@@ -30,6 +30,12 @@ function kibi(root: string, ...args: string[]) {
   };
 }
 
+// The helper's requirement link and its test coverage, from the manifest.
+const MANIFEST =
+  "symbols:\n  - id: SYM-snapshot\n    title: owned\n    sourceFile: src/owned.test.ts\n    status: active\n    relationships:\n      - type: implements\n        target: REQ-snapshot\n      - type: covered_by\n        target: TEST-snapshot\n";
+const TEST =
+  "---\nid: TEST-snapshot\ntitle: Snapshot test\nstatus: passing\nlinks:\n  - type: validates\n    target: REQ-snapshot\n---\n\nFixture test: it checks that the owned helper returns its value, so the manifest link has qualifying coverage.\n";
+
 function fixture(): string {
   const root = mkdtempSync(join(tmpdir(), "kibi-check-snapshot-"));
   roots.push(root);
@@ -42,18 +48,19 @@ function fixture(): string {
     ".kb/requirements/REQ-snapshot.md",
     "---\nid: REQ-snapshot\ntitle: Snapshot ownership\nstatus: open\n---\n\nThe test helper has an owner.\n",
   );
-  write(
+  write(root, "src/owned.test.ts", "export function owned() { return 1; }\n");
+  write(root, ".kb/symbols.yaml", MANIFEST);
+  write(root, ".kb/tests/TEST-snapshot.md", TEST);
+  git(
     root,
+    "add",
+    ".kb/tests/TEST-snapshot.md",
+    ".kb/requirements/REQ-snapshot.md",
+    ".kb/symbols.yaml",
     "src/owned.test.ts",
-    "// implements REQ-snapshot\nexport function owned() { return 1; }\n",
   );
-  git(root, "add", ".kb/requirements/REQ-snapshot.md", "src/owned.test.ts");
   git(root, "commit", "-m", "baseline", "--no-verify");
-  write(
-    root,
-    "src/owned.test.ts",
-    "// implements REQ-snapshot\nexport function owned() { return 2; }\n",
-  );
+  write(root, "src/owned.test.ts", "export function owned() { return 2; }\n");
   git(root, "add", "src/owned.test.ts");
   return root;
 }
@@ -92,7 +99,7 @@ describe("public staged check uses one captured code and knowledge tree", () => 
     );
     expect(missingIndexRequirement).toMatchObject({ exitCode: 1 });
     expect(missingIndexRequirement.output).toContain(
-      "absent from the captured knowledge snapshot",
+      "Snapshot relationship has a missing endpoint: SYM-snapshot -> REQ-snapshot",
     );
 
     git(root, "add", ".kb/requirements/REQ-snapshot.md");
@@ -227,12 +234,17 @@ describe("public staged check uses one captured code and knowledge tree", () => 
       ".kb/requirements/REQ-snapshot.md",
       "---\nid: REQ-snapshot\ntitle: Snapshot ownership\nstatus: open\n---\n\nThe test helper has an owner.\n\n## Context\n\nFixture requirement: the first commit of an unborn repository is checked against an empty base tree.\n",
     );
-    write(
+    write(root, "src/owned.test.ts", "export function owned() { return 1; }\n");
+    write(root, ".kb/symbols.yaml", MANIFEST);
+    write(root, ".kb/tests/TEST-snapshot.md", TEST);
+    git(
       root,
+      "add",
+      ".kb/tests/TEST-snapshot.md",
+      ".kb/requirements/REQ-snapshot.md",
+      ".kb/symbols.yaml",
       "src/owned.test.ts",
-      "// implements REQ-snapshot\nexport function owned() { return 1; }\n",
     );
-    git(root, "add", ".kb/requirements/REQ-snapshot.md", "src/owned.test.ts");
 
     const result = kibi(root, "check", "--staged", "--format", "json");
     expect(result).toMatchObject({ exitCode: 0 });

@@ -142,7 +142,6 @@ function localSourcePath(src: string): string | undefined {
   return undefined;
 }
 
-// implements REQ-vscode-traceability
 export class KibiTreeDataProvider
   implements vscode.TreeDataProvider<KibiTreeItem>
 {
@@ -165,7 +164,6 @@ export class KibiTreeDataProvider
     private output?: vscode.OutputChannel,
   ) {}
 
-  // implements REQ-vscode-traceability
   refresh(): void {
     this.loaded = false;
     this.entities = [];
@@ -175,7 +173,6 @@ export class KibiTreeDataProvider
     this._onDidChangeTreeData.fire(undefined);
   }
 
-  // implements REQ-vscode-traceability
   getTreeItem(element: KibiTreeItem): vscode.TreeItem {
     const treeItem = new vscode.TreeItem(
       element.label,
@@ -259,7 +256,6 @@ export class KibiTreeDataProvider
     return null;
   }
 
-  // implements REQ-vscode-traceability
   private async loadEntities(): Promise<void> {
     this.loaded = true;
     const { symbolsPath, coordinatesPath } = resolveSymbolsManifestPaths(
@@ -299,7 +295,6 @@ export class KibiTreeDataProvider
    * Each entity is an rdf:Description block containing kb:type, kb:title, kb:id etc.
    * Supports both prefixed (kb:entity/ID) and full URI (urn:kibi:entity/ID) formats.
    */
-  // implements REQ-vscode-traceability
   private parseRdf(content: string): KbEntity[] {
     const entities: KbEntity[] = [];
 
@@ -350,7 +345,6 @@ export class KibiTreeDataProvider
    * entity blocks, such as
    *   <kb:depends_on rdf:resource="urn:kibi:entity/REQ-002"/>
    */
-  // implements REQ-vscode-traceability
   private parseRdfRelationships(content: string): KbRelationship[] {
     return parseRdfRelationshipsFromRdf(content);
   }
@@ -370,7 +364,6 @@ export class KibiTreeDataProvider
     return m ? (m[1] as string) : "";
   }
 
-  // implements REQ-vscode-traceability
   private resolveConfiguredPath(configuredPath: string): string {
     return path.isAbsolute(configuredPath)
       ? configuredPath
@@ -378,7 +371,6 @@ export class KibiTreeDataProvider
   }
 
   /** Existing documentation directories, by entity type. */
-  // implements REQ-vscode-traceability
   private getDocumentationEntityDirs(): Partial<
     Record<DocumentationEntityType, string>
   > {
@@ -399,7 +391,6 @@ export class KibiTreeDataProvider
     return dirs;
   }
 
-  // implements REQ-vscode-traceability
   private inferEntityTypeFromId(id: string): SupportedEntityType | undefined {
     for (const [type, prefixes] of Object.entries(
       ENTITY_TYPE_PREFIXES,
@@ -412,7 +403,6 @@ export class KibiTreeDataProvider
     return undefined;
   }
 
-  // implements REQ-vscode-traceability
   private getDocumentationPathForEntity(
     id: string,
     type?: string,
@@ -431,7 +421,6 @@ export class KibiTreeDataProvider
     return fs.existsSync(candidate) ? candidate : undefined;
   }
 
-  // implements REQ-vscode-traceability
   private async loadFallbackData(symbolIndex: SymbolIndex): Promise<{
     entities: KbEntity[];
     relationships: KbRelationship[];
@@ -451,7 +440,6 @@ export class KibiTreeDataProvider
     };
   }
 
-  // implements REQ-vscode-traceability
   private buildSymbolFallbackData(symbolIndex: SymbolIndex): {
     entities: KbEntity[];
     relationships: KbRelationship[];
@@ -490,7 +478,6 @@ export class KibiTreeDataProvider
     };
   }
 
-  // implements REQ-vscode-traceability
   private async loadDocumentationFallbackData(): Promise<{
     entities: KbEntity[];
     relationships: KbRelationship[];
@@ -521,7 +508,6 @@ export class KibiTreeDataProvider
     };
   }
 
-  // implements REQ-vscode-traceability
   private async parseDocumentationEntity(
     filePath: string,
     type: DocumentationEntityType,
@@ -555,7 +541,6 @@ export class KibiTreeDataProvider
     };
   }
 
-  // implements REQ-vscode-traceability
   private parseFrontmatter(content: string): Record<string, unknown> {
     const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
     let parsed: unknown;
@@ -571,7 +556,6 @@ export class KibiTreeDataProvider
     return (parsed ?? {}) as Record<string, unknown>;
   }
 
-  // implements REQ-vscode-traceability
   private normalizeTags(tags: unknown): string {
     if (Array.isArray(tags)) {
       return `[${tags.map((tag) => String(tag)).join(", ")}]`;
@@ -584,7 +568,6 @@ export class KibiTreeDataProvider
     return "";
   }
 
-  // implements REQ-vscode-traceability
   private parseFrontmatterLinks(
     fromId: string,
     links: unknown,
@@ -625,7 +608,6 @@ export class KibiTreeDataProvider
     return relationships;
   }
 
-  // implements REQ-vscode-traceability
   private mergeEntities(...collections: KbEntity[][]): KbEntity[] {
     const byId = new Map<string, KbEntity>();
 
@@ -653,7 +635,6 @@ export class KibiTreeDataProvider
     return [...byId.values()];
   }
 
-  // implements REQ-vscode-traceability
   private mergeRelationships(
     ...collections: KbRelationship[][]
   ): KbRelationship[] {
@@ -675,12 +656,10 @@ export class KibiTreeDataProvider
   }
 
   /** Build the entity index (id → entity) for quick lookups in relationship nodes. */
-  // implements REQ-vscode-traceability
   private buildEntityIndex(): Map<string, KbEntity> {
     return new Map(this.entities.map((e) => [e.id, e]));
   }
 
-  // implements REQ-vscode-traceability
   private getRootItems(): KibiTreeItem[] {
     const entityIndex = this.buildEntityIndex();
 
@@ -702,7 +681,6 @@ export class KibiTreeDataProvider
     });
   }
 
-  // implements REQ-vscode-traceability
   private entityToTreeItem(
     e: KbEntity,
     entityIndex: Map<string, KbEntity>,
@@ -752,7 +730,6 @@ export class KibiTreeDataProvider
     };
   }
 
-  // implements REQ-vscode-traceability
   private buildRelationshipChildren(
     entityId: string,
     entityIndex: Map<string, KbEntity>,
@@ -789,18 +766,15 @@ export class KibiTreeDataProvider
     return children;
   }
 
-  // implements REQ-vscode-traceability
   private formatLocationDescription(filePath: string, line?: number): string {
     const relativePath = this.toWorkspaceRelativePath(filePath);
     return line ? `${relativePath}:${line}` : relativePath;
   }
 
-  // implements REQ-vscode-traceability
   private toWorkspaceRelativePath(filePath: string): string {
     return path.relative(this.workspaceRoot, filePath).replace(/\\/g, "/");
   }
 
-  // implements REQ-vscode-traceability
   getNavigationTargetForEntity(
     id: string,
   ): { localPath: string; line?: number | undefined } | undefined {
@@ -837,17 +811,14 @@ export class KibiTreeDataProvider
     return undefined;
   }
 
-  // implements REQ-vscode-traceability
   getEntityCount(type: string): number {
     return this.entities.filter((entity) => entity.type === type).length;
   }
 
-  // implements REQ-vscode-traceability
   getEntityById(id: string): KbEntity | undefined {
     return this.entities.find((entity) => entity.id === id);
   }
 
-  // implements REQ-vscode-traceability
   getFallbackSymbolEntity(symbol: SymbolEntry): KbEntity {
     return {
       id: symbol.id,
@@ -876,7 +847,6 @@ export class KibiTreeDataProvider
    * Now checks if the local path actually exists before returning it.
    * Returns undefined if the path doesn't exist on the filesystem.
    */
-  // implements REQ-vscode-traceability
   getLocalPathForEntity(id: string): string | undefined {
     return this.getNavigationTargetForEntity(id)?.localPath;
   }

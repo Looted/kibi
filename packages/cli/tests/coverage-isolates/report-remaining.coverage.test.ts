@@ -1,4 +1,3 @@
-// implements REQ-kibi-html-health-report
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import * as fsPromises from "node:fs/promises";

@@ -1,4 +1,3 @@
-// implements REQ-claude-hook-usage-telemetry-v2
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -35,7 +34,6 @@ export type HookUsageRow = {
   startedAt: Date;
 };
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Record one hook decision as Claude Code, through the shared recorder. */
 export function appendHookUsage(
   row: HookUsageRow,
@@ -52,7 +50,6 @@ export function appendHookUsage(
   );
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * Remember the session for the workspace and send the anonymous telemetry
  * queue: always on Stop, which runs every turn, so events reach PostHog even

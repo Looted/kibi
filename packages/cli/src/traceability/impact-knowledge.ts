@@ -12,7 +12,6 @@ import { isKnowledgeMarkdown } from "./impact-side-evidence.js";
 import { readSnapshotKnowledge } from "./snapshot-knowledge.js";
 
 /** Captured knowledge rows, semantic fingerprints and requirement scope. */
-// implements REQ-impact-policy-stage-e-content-bound-review
 export type EntityRow = Readonly<{
   id: string;
   type: string;
@@ -108,7 +107,6 @@ function semanticEntityFingerprint(
   return fingerprint({ entity: semantic, relationships });
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function entityRows(
   snapshot: GitChangeSnapshot,
   tree: string,
@@ -158,7 +156,6 @@ export function entityRows(
   return rows;
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function rawKnowledgeFingerprint(
   snapshot: GitChangeSnapshot,
   tree: string,
@@ -181,7 +178,6 @@ export function rawKnowledgeFingerprint(
   return fingerprint(rows);
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function semanticKnowledgeFingerprint(
   rows: ReadonlyMap<string, EntityRow>,
 ): Fingerprint {
@@ -206,7 +202,6 @@ export function semanticKnowledgeFingerprint(
   );
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function requirementScope(
   rows: ReadonlyMap<string, EntityRow>,
   pathCandidates: readonly string[],
@@ -249,7 +244,6 @@ const relationshipSideTables = new WeakMap<
   Map<string, readonly { type: string; to: string }[]>
 >();
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function entityRowsWithRelationships(
   snapshot: GitChangeSnapshot,
   tree: string,

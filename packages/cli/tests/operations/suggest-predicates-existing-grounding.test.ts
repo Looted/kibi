@@ -1,4 +1,3 @@
-// implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-requirement-subject-v2
 import { describe, expect, test } from "bun:test";
 import { handleKbSuggestPredicates } from "../../src/operations/modeling/suggest-predicates.js";
 import { semanticClaimKey } from "../../src/operations/semantic-advisor/clauses.js";

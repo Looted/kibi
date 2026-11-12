@@ -19,7 +19,6 @@ function rows(preview: ReturnType<typeof previewCases>) {
   return preview.cases.map((item) => `${item.constraint}:${item.predicted}`);
 }
 
-// implements REQ-kibi-case-coverage
 // The same cases packages/core/tests/kb.plt expects from cases.pl.
 describe("edge-case preview of a typed claim", () => {
   test("an upper bound yields its boundary, the value past it and zero/one", () => {

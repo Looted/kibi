@@ -1,4 +1,3 @@
-// implements REQ-branch-store-recovery-v4
 import {
   afterAll,
   afterEach,

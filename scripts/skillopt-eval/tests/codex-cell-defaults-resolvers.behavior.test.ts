@@ -1,4 +1,3 @@
-// implements REQ-skillopt-logical-evidence-fidelity
 //
 // Behavior-focused coverage for the per-cell resolvers in
 // runtime/codex-cell-defaults.ts: workflow-signal detection, forbidden-action

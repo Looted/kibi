@@ -1,5 +1,3 @@
-// implements REQ-cursor-kibi-plugin-v1
-// implements REQ-cursor-stop-job-vs-plan
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import fs, {
   mkdirSync,

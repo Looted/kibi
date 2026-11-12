@@ -68,7 +68,6 @@ export class FakeProviderSupervisor {
     return { capability };
   }
 
-  // implements REQ-skillopt-paid-launch-accounting
   forward(value: unknown, outcomeValue: unknown): DebitReceipt {
     const capability = this.parseCapability(value);
     const stored = this.capabilities.get(capability.capabilityId);
@@ -125,7 +124,6 @@ export class FakeProviderSupervisor {
     };
   }
 
-  // implements REQ-skillopt-paid-launch-accounting
   private parseRequest(value: unknown): Request {
     try {
       const request = RequestSchema.parse(value);
@@ -149,7 +147,6 @@ export class FakeProviderSupervisor {
     }
   }
 
-  // implements REQ-skillopt-paid-launch-accounting
   private parseCapability(value: unknown): Capability {
     try {
       return CapabilitySchema.parse(value);
@@ -161,7 +158,6 @@ export class FakeProviderSupervisor {
     }
   }
 
-  // implements REQ-skillopt-paid-launch-accounting
   private parseOutcome(value: unknown): Outcome {
     try {
       return OutcomeSchema.parse(value);
@@ -173,7 +169,6 @@ export class FakeProviderSupervisor {
     }
   }
 
-  // implements REQ-skillopt-paid-launch-accounting
   private capability(request: Request): Capability {
     return {
       capabilityId: createHash("sha256")
@@ -192,7 +187,6 @@ export class FakeProviderSupervisor {
     };
   }
 
-  // implements REQ-skillopt-paid-launch-accounting
   private maxChargeReceipt(
     request: Request,
     status: DebitReceipt["status"],
@@ -210,7 +204,6 @@ export class FakeProviderSupervisor {
     };
   }
 
-  // implements REQ-skillopt-paid-launch-accounting
   private receiptFor(request: Request, outcome: Outcome): DebitReceipt {
     if (outcome.kind === "ambiguous") {
       return this.maxChargeReceipt(request, "ambiguous-max-charged");

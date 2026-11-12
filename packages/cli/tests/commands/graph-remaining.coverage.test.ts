@@ -1,4 +1,3 @@
-// implements REQ-002, REQ-003
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as discovery from "../../src/commands/discovery-shared.js";
 import { graphCommand } from "../../src/commands/graph.js";

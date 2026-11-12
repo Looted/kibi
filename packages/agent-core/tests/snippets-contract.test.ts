@@ -1,4 +1,3 @@
-// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import fs from "node:fs";

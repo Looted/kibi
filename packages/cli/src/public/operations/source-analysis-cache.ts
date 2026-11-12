@@ -39,7 +39,6 @@ import type { HostSourceAnalysisResultV2 } from "../../plugins/source-analysis-s
  * analyzer set, so an entry is keyed by both and the whole cache by the
  * analyzer set. The file lives in the branch store, which is never tracked.
  */
-// implements REQ-cli-check
 export const SOURCE_ANALYSIS_CACHE_FILE = "source-analysis-cache.json";
 const SOURCE_ANALYSIS_CACHE_VERSION = 1;
 
@@ -157,7 +156,6 @@ function readCacheFile(cachePath: string, analyzers: string): CacheFile {
  * fingerprinted or there is no store. Only complete (`ok`) analyses
  * are kept; anything else is computed again.
  */
-// implements REQ-cli-check
 export function openSourceAnalysisCache(
   storeDir: string | undefined,
   workspaceRoot: string,

@@ -12,7 +12,6 @@ import {
 } from "./common";
 import { SkillSchema, VariantSchema } from "./episode";
 
-// implements REQ-skillopt-codex-optimization
 export const LedgerEntrySchema = boundedContractSchema(
   z
     .object({
@@ -49,7 +48,6 @@ export const LedgerEntrySchema = boundedContractSchema(
     }),
 );
 
-// implements REQ-skillopt-codex-optimization
 export const RunStateSchema = boundedContractSchema(
   z
     .object({
@@ -87,7 +85,6 @@ export const RunStateSchema = boundedContractSchema(
     }),
 );
 
-// implements REQ-skillopt-codex-optimization
 export type RunState = Readonly<z.infer<typeof RunStateSchema>>;
 
 const LegacyReportSchema = boundedContractSchema(
@@ -107,7 +104,6 @@ const LegacyReportSchema = boundedContractSchema(
     .strict(),
 );
 
-// implements REQ-skillopt-codex-optimization
 export const ReportV1Schema = boundedContractSchema(
   z
     .object({
@@ -147,9 +143,7 @@ export const ReportV1Schema = boundedContractSchema(
     .strict(),
 );
 
-// implements REQ-skillopt-codex-optimization
 export const ReportSchema = boundedContractSchema(
   z.union([ReportV1Schema, LegacyReportSchema]),
 );
-// implements REQ-skillopt-codex-optimization
 export type Report = Readonly<z.infer<typeof ReportSchema>>;

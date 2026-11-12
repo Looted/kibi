@@ -1,5 +1,3 @@
-// implements REQ-skillopt-predicate-first-requirements
-// implements REQ-skillopt-codex-optimization
 import { describe, expect, test } from "bun:test";
 import {
   buildHeldOutCatalog,

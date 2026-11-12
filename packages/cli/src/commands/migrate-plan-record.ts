@@ -29,7 +29,6 @@ import type { MigrationPlan } from "../public/operations/migration-plan.js";
 const RECORD_FILE = "printed-plans.json";
 const MAX_RECORDS = 8;
 
-// implements REQ-cli-schema-migration
 export type PrintedPlan = Readonly<{
   planHash: string;
   printedAt: string;
@@ -61,7 +60,6 @@ function readRecords(workspaceRoot: string): PrintedPlan[] {
   }
 }
 
-// implements REQ-cli-schema-migration
 /** Remember a plan `kibi migrate` printed; a write failure is ignored. */
 export function recordPrintedPlan(
   workspaceRoot: string,
@@ -95,7 +93,6 @@ export function recordPrintedPlan(
   }
 }
 
-// implements REQ-cli-schema-migration
 /** The printed plan with this hash, if `kibi migrate` printed it here. */
 export function findPrintedPlan(
   workspaceRoot: string,
@@ -122,7 +119,6 @@ function short(value: string | null): string {
   return /^[0-9a-f]{20,}$/i.test(value) ? value.slice(0, 12) : value;
 }
 
-// implements REQ-cli-schema-migration
 /** What differs between a printed plan and the current one, one line each. */
 export function describePlanChange(
   printed: PrintedPlan,

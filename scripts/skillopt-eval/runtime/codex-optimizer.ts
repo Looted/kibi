@@ -61,7 +61,6 @@ function isRepairableBaselineInsertionError(
   ].includes(error.message);
 }
 
-// implements REQ-skillopt-codex-optimization
 export function parseCodexOptimizerBody(lastMessage: string): string {
   const parsed = BodySchema.safeParse(parseJson(lastMessage));
   if (!parsed.success) {
@@ -72,7 +71,6 @@ export function parseCodexOptimizerBody(lastMessage: string): string {
   return body;
 }
 
-// implements REQ-skillopt-codex-optimization
 export function parseBaselineInsertionParagraph(
   lastMessage: string,
   plan: BaselineInsertionPlan,
@@ -92,7 +90,6 @@ export function parseBaselineInsertionParagraph(
   return parsed.data.body;
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function persistCodexOptimizerBody(
   artifactRoot: string,
   sourceWorktree: string,
@@ -127,7 +124,6 @@ export async function persistCodexOptimizerBody(
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function persistBaselineInsertionArtifacts(
   artifactRoot: string,
   sourceWorktree: string,
@@ -209,7 +205,6 @@ export async function persistBaselineInsertionArtifacts(
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function persistCodexOptimizerFailure(
   artifactRoot: string,
   sourceWorktree: string,
@@ -346,7 +341,6 @@ function baselineInsertionRepairPromptFor(
   ].join("\n\n");
 }
 
-// implements REQ-skillopt-codex-optimization
 export type CodexOptimizerOptions = Readonly<{
   sourceWorktree: string;
   artifactRoot: string;
@@ -389,7 +383,6 @@ type CanonicalSkillSurface = Readonly<{
   resourcesHash: string;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export async function validateBaselineInsertionSource(
   options: CodexOptimizerOptions,
 ): Promise<CanonicalSkillSurface> {
@@ -431,7 +424,6 @@ export async function validateBaselineInsertionSource(
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function runCodexSkillOptStep(
   options: CodexOptimizerOptions,
 ): Promise<SkillOptStepResult> {
@@ -570,7 +562,6 @@ export async function runCodexSkillOptStep(
 }
 
 /** One optimizer model call: its process result and final structured message. */
-// implements REQ-skillopt-codex-optimization
 export type OptimizerAttempt = Readonly<{
   result: Readonly<{ exitCode: number; stderr: string }>;
   lastMessage: string;
@@ -582,7 +573,6 @@ export type OptimizerAttempt = Readonly<{
  * `runAttempt`
  * runs one model call on the selected host.
  */
-// implements REQ-skillopt-codex-optimization
 export async function completeSkillOptStep(
   options: CodexOptimizerOptions,
   runAttempt: (prompt: string) => Promise<OptimizerAttempt>,

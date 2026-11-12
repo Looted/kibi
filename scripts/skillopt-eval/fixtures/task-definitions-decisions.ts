@@ -28,7 +28,6 @@ function seededDefinition(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export const DECISIONS_DEFINITIONS: Readonly<Record<string, Definition>> = {
   "stated-rule-capture": seededDefinition(
     "Make fixtureFamily() in src/fixture.ts enforce the rule the person states and keep the knowledge base in step.",
@@ -52,7 +51,6 @@ export const DECISIONS_DEFINITIONS: Readonly<Record<string, Definition>> = {
   ),
 };
 
-// implements REQ-skillopt-codex-optimization
 export const COMMIT_REVIEW_DEFINITIONS: Readonly<Record<string, Definition>> = {
   "staged-impact-missing": seededDefinition(
     "Get the staged change through the Kibi gate.",
@@ -76,14 +74,12 @@ export const COMMIT_REVIEW_DEFINITIONS: Readonly<Record<string, Definition>> = {
   ),
 };
 
-// implements REQ-skillopt-codex-optimization
 export const DECISIONS_SUPPLEMENTAL_DEFINITION: Definition = seededDefinition(
   "Close out a session that changed source without recording it.",
   "unrecorded_change_closeout",
   "write",
 );
 
-// implements REQ-skillopt-codex-optimization
 export const COMMIT_REVIEW_SUPPLEMENTAL_DEFINITION: Definition =
   seededDefinition(
     "Get the staged merge resolution through the Kibi gate.",
@@ -102,7 +98,6 @@ const NO_SHELL =
  * (or the pre-commit hook) on each staged fixture. fixture-readiness tests
  * assert that every quoted line still appears in the real gate output.
  */
-// implements REQ-skillopt-codex-optimization
 export const QUOTED_GATE_OUTPUT = {
   stagedSymbol: [
     "Staged files: 1 total; 1 symbol-level; 0 metadata; 0 file-level; 0 skipped.",
@@ -255,7 +250,6 @@ const SYMBOL_ASK =
  * evaluator-private fragment of the person's words that `origin.ref` must
  * quote; it never reaches the public workspace.
  */
-// implements REQ-skillopt-codex-optimization
 export const DECISION_CASES: Readonly<Record<string, RuleCase>> = {
   "kibi-decisions/stated-rule-capture/train/0": statedRule(
     "from now on fixture family names must be lowercase",
@@ -642,7 +636,6 @@ export const DECISION_CASES: Readonly<Record<string, RuleCase>> = {
 };
 
 /** Fragment of the person's words `origin.ref` must quote, by task ID. */
-// implements REQ-skillopt-codex-optimization
 export function ruleQuoteKey(taskId: string): string | undefined {
   for (const [slot, value] of Object.entries(DECISION_CASES)) {
     const [skill, family, split, index] = slot.split("/") as [

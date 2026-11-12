@@ -27,7 +27,6 @@ export async function safeCleanupProlog(
     | null
     | undefined,
 ): Promise<void> {
-  // implements REQ-003
   // No null guard: a missing handle makes both calls below throw a TypeError,
   // which the best-effort catches already swallow.
   const handle = prolog as NonNullable<typeof prolog>;

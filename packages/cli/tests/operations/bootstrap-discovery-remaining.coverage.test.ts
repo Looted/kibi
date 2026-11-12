@@ -1,4 +1,3 @@
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { OperationError } from "../../src/cli-errors.js";
 import * as activation from "../../src/operations/bootstrap/activation.js";

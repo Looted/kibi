@@ -1,5 +1,4 @@
 import fs from "node:fs";
-// implements REQ-opencode-kibi-plugin-v1
 import path from "node:path";
 import { getKbExistenceTargets } from "./file-filter.js";
 import { detectPosture } from "./repo-posture.js";
@@ -13,7 +12,6 @@ export interface WorkspaceHealth {
 
 const KB_MANIFEST_FILE = ".kb/manifest.json";
 
-// implements REQ-opencode-kibi-plugin-v1
 /**
  * Analyze workspace health for Kibi bootstrap and initialization.
  * Uses detectPosture() for root-scoped classification and delegates

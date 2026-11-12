@@ -1,4 +1,3 @@
-// implements REQ-vscode-sidebar-kb-tree
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";

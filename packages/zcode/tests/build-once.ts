@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 // Shared, serialized package build for tests that need built artifacts
 // (manifest copy check, install/pack smoke tests). Multiple test files can
 // trigger builds; `dist/` is rm-rf'd by the build, so concurrent invocations

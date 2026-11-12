@@ -79,7 +79,6 @@ function isSafePlanText(value: unknown, maxBytes: number): value is string {
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export function validateBaselineInsertionPlan(
   plan: BaselineInsertionPlan,
 ): void {
@@ -140,7 +139,6 @@ function assertNoOptimizationMetadata(paragraph: string): void {
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 export function validateBaselineInsertionParagraph(
   paragraph: string,
   _plan: Pick<BaselineInsertionPlan, "objective">,
@@ -169,7 +167,6 @@ function headingStarts(body: string, anchor: string): number[] {
   return starts;
 }
 
-// implements REQ-skillopt-codex-optimization
 export function validateBaselineInsertionAnchor(
   body: string,
   headingAnchor: string,
@@ -219,7 +216,6 @@ function receiptFor(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function composeBaselineInsertion(
   input: Readonly<{
     baselineBody: string;

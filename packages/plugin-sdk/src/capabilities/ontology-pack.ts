@@ -2,12 +2,9 @@
  * kibi.ontology-pack.v1 — declared predicate schemas and typed match candidates.
  */
 
-// implements REQ-capability-plugin-protocol-v1
 export const ONTOLOGY_POLARITIES = ["assert", "deny"] as const;
-// implements REQ-capability-plugin-protocol-v1
 export type OntologyPolarity = (typeof ONTOLOGY_POLARITIES)[number];
 
-// implements REQ-capability-plugin-protocol-v1
 export interface PredicateSchemaDefinition {
   readonly schemaId: string;
   readonly predicateName: string;
@@ -18,7 +15,6 @@ export interface PredicateSchemaDefinition {
   readonly aliases?: readonly string[];
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface OntologyMatchContext {
   readonly claimKey: string;
   readonly statement: string;
@@ -26,7 +22,6 @@ export interface OntologyMatchContext {
   readonly normative?: boolean;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface OntologyMatchCandidate {
   readonly schemaId: string;
   readonly predicateName: string;
@@ -37,7 +32,6 @@ export interface OntologyMatchCandidate {
   readonly rationale?: string;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface OntologyPackV1 {
   readonly id: string;
   schemas(): readonly PredicateSchemaDefinition[];

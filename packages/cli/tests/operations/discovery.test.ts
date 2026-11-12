@@ -215,7 +215,6 @@ describe("shared discovery operation executors", () => {
     );
   });
 
-  // implements REQ-kibi-query-fact-filters
   test("kb_query asks predicate facts by name with order-free named arguments", async () => {
     // Given: the discovery module answers a typed predicate question.
     const response = {
@@ -289,7 +288,6 @@ describe("shared discovery operation executors", () => {
     expect(text).toContain("has_role(alice, admin)");
   });
 
-  // implements REQ-kibi-query-fact-filters
   test("kb_query routes property, catalog and fact-kind questions and relays suggestions", async () => {
     // Given
     const calls: string[] = [];
@@ -430,7 +428,6 @@ describe("shared discovery operation executors", () => {
     );
   });
 
-  // implements REQ-kibi-query-fact-filters
   test("kb_query rejects malformed typed fact questions before touching Prolog", async () => {
     const query = mock(async (_goal: string) => ({
       success: true,

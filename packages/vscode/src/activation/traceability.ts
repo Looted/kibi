@@ -42,7 +42,6 @@ export function registerTraceability(
     ) => { localPath: string; line?: number | undefined } | undefined;
   },
 ): TraceabilityRegistrationResult {
-  // implements REQ-vscode-traceability
   const relationshipCache = new RelationshipCache();
   const results: TraceabilityRegistrationResult = {
     relationshipCache,

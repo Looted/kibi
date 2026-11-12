@@ -37,17 +37,14 @@ function getTrimmedEnvValue(key: string): string | undefined {
 
 /** Preferred project env file name (`.env.kibi` or `KIBI_ENV_FILE` override). */
 export function getEnvFileName(): string {
-  // implements REQ-002
   return getTrimmedEnvValue("KIBI_ENV_FILE") ?? KIBI_PROJECT_ENV_FILE;
 }
 
 export function isMcpDebugEnabled(): boolean {
-  // implements REQ-002
   return Boolean(getEnvValue("KIBI_MCP_DEBUG"));
 }
 
 export function getBranchOverride(): string | undefined {
-  // implements REQ-002
   // Branch names are identities, not display labels. Preserve the value
   // exactly so the Git-ref validator can reject whitespace or other invalid
   // input instead of silently attaching a different branch.
@@ -56,14 +53,12 @@ export function getBranchOverride(): string | undefined {
 }
 
 export function getKbPlPathOverride(): string | undefined {
-  // implements REQ-002
   return getEnvValue("KIBI_KB_PL_PATH");
 }
 
 export function getCoreModulePathOverride(
   fileName: string,
 ): string | undefined {
-  // implements REQ-002
   const envKey = `KIBI_${fileName.replace(/\W/g, "_").toUpperCase()}_PATH`;
   return getEnvValue(envKey);
 }
@@ -80,7 +75,6 @@ export type LoadEnvResult = {
  * Prefer calling from `startServer()` only.
  */
 export function loadDefaultEnvFile(): LoadEnvResult {
-  // implements REQ-002
   const result = bootstrapKibiEnvironment();
   const keysLoaded = [
     ...result.keysLoadedFromUser,
@@ -96,7 +90,6 @@ export function loadDefaultEnvFile(): LoadEnvResult {
 
 /** @deprecated Prefer bootstrapKibiEnvironment; kept for targeted file tests. */
 export function loadEnvFile(options: {
-  // implements REQ-002
   envFileName: string;
   workspaceRoot: string;
 }): LoadEnvResult {

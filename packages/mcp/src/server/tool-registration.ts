@@ -58,7 +58,6 @@ type ToolRegistration = {
   ) => Promise<unknown>;
 };
 
-// implements REQ-002, REQ-013
 export function registerConfiguredTools<TProlog>(
   server: McpServer,
   runtime: ToolsRuntime<TProlog>,

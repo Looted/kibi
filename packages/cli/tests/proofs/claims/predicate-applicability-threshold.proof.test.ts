@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { STRONG_APPLICABILITY_SCORE } from "../../../src/operations/modeling/predicate-applicability.js";
 
-// implements REQ-predicate-applicability-threshold
-
 /**
  * The score at which a predicate suggestion counts as a strong match. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

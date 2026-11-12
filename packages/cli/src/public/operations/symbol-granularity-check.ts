@@ -51,7 +51,6 @@ import {
  * coarsely while narrower behavioral symbols are available, unless it carries
  * an allowed granularity_reason.
  */
-// implements REQ-cli-check, REQ-cli-staged-impact-enforcement
 export const SYMBOL_GRANULARITY_RULE = "symbol-granularity";
 
 const SYMBOL_ROWS_QUERY =
@@ -67,7 +66,6 @@ function stringField(
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-// implements REQ-cli-check
 async function loadSymbolResults(
   prolog: Pick<PrologPort, "query">,
   workspaceRoot: string,
@@ -144,7 +142,6 @@ async function loadSymbolResults(
  * relationship and no allowed granularity_reason. Other symbols are exempt,
  * so their source files need no analysis.
  */
-// implements REQ-cli-check
 function granularityCandidates(
   results: readonly ExtractionResult[],
 ): ExtractionResult[] {
@@ -156,7 +153,6 @@ function granularityCandidates(
   );
 }
 
-// implements REQ-cli-check
 async function analyzeFiles(
   files: readonly string[],
   results: readonly ExtractionResult[],
@@ -210,7 +206,6 @@ async function analyzeFiles(
   return analyses;
 }
 
-// implements REQ-cli-check
 function granularityViolations(
   candidates: readonly ExtractionResult[],
   sourceSymbolsByFile: ReadonlyMap<string, readonly ExtractedSymbol[]>,
@@ -242,7 +237,6 @@ function granularityViolations(
  * would judge are analyzed; a file the source analyzers cannot fully analyze
  * is skipped.
  */
-// implements REQ-cli-check, REQ-cli-staged-impact-enforcement
 export async function collectSymbolGranularityViolations(
   prolog: Pick<PrologPort, "query">,
   workspaceRoot: string,

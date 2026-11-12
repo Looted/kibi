@@ -47,7 +47,6 @@ function git(workspaceRoot: string, args: readonly string[]): string | null {
 }
 
 /** True when the repository's pre-commit hook runs Kibi's staged check. */
-// implements REQ-kibi-fresh-clone-setup
 export function hasKibiPreCommitGate(workspaceRoot: string): boolean {
   // A successful rev-parse always prints the path (honoring core.hooksPath).
   const resolved = git(workspaceRoot, [
@@ -73,7 +72,6 @@ export function hasKibiPreCommitGate(workspaceRoot: string): boolean {
  * core.hooksPath owns the hooks instead; `kibi doctor` checks those, so they
  * get no note here. Outside a Git work tree there are no hooks to install.
  */
-// implements REQ-kibi-fresh-clone-setup
 export function kibiHooksMissing(workspaceRoot: string): boolean {
   if (!fs.existsSync(path.join(workspaceRoot, ".kb", "manifest.json")))
     return false;
@@ -90,12 +88,10 @@ export function kibiHooksMissing(workspaceRoot: string): boolean {
   return !hasKibiPreCommitGate(workspaceRoot);
 }
 
-// implements REQ-kibi-fresh-clone-setup
 export const MISSING_HOOKS_NOTE =
   "Kibi git hooks are not installed in this checkout (a clone never carries .git/hooks), so commits skip `kibi check --staged` and a branch switch does not recompile the KB. Install them with `npx --no-install kibi hooks install` (or the project's package-manager runner), or by installing the project's dependencies when its prepare script runs it.";
 
 /** The session-start line for a checkout without Kibi's hooks, or null. */
-// implements REQ-kibi-fresh-clone-setup
 export function missingHooksNote(workspaceRoot: string): string | null {
   return kibiHooksMissing(workspaceRoot) ? MISSING_HOOKS_NOTE : null;
 }

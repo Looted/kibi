@@ -4,7 +4,6 @@ import { modelRequirementSpec, suggestPredicatesSpec } from "./modeling.js";
 import { semanticAdvisorSpec } from "./semantic.js";
 import { skillsListSpec, skillsLoadSpec, skillsReadSpec } from "./skills.js";
 
-// implements REQ-kibi-mcp-tool-consolidation
 /**
  * Composite operations keep the agent-facing tool list short. Each one
  * dispatches to an existing operation by `action` or `mode` and returns that
@@ -51,7 +50,6 @@ const EQUIVALENT_PARAMETERS: Readonly<
 /** Routed operations whose `warnings` are `{ kind, message, nextAction }`. */
 const RECORD_WARNING_OPERATIONS = new Set(["kb_model_requirement"]);
 
-// implements REQ-kibi-mcp-tool-consolidation
 /**
  * A composite accepts every route's parameters, so a parameter of another
  * route passes schema validation and the chosen route silently ignores it.
@@ -172,21 +170,18 @@ export async function dispatchComposite(
   };
 }
 
-// implements REQ-kibi-mcp-tool-consolidation
 export const SKILL_ROUTES = {
   list: skillsListSpec,
   load: skillsLoadSpec,
   read: skillsReadSpec,
 } as const;
 
-// implements REQ-kibi-mcp-tool-consolidation
 export const MODEL_ROUTES = {
   analyze: semanticAdvisorSpec,
   requirement: modelRequirementSpec,
   predicates: suggestPredicatesSpec,
 } as const;
 
-// implements REQ-kibi-mcp-tool-consolidation
 export const skillsSpec = {
   name: "kb_skills",
   cliName: "skill",
@@ -210,7 +205,6 @@ export const skillsSpec = {
     dispatchComposite("action", SKILL_ROUTES, input, context),
 } as const satisfies OperationSpec;
 
-// implements REQ-kibi-mcp-tool-consolidation
 export const modelSpec = {
   name: "kb_model",
   cliName: "model",

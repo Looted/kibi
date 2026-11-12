@@ -1,4 +1,3 @@
-// implements REQ-mcp-conditional-input-validation
 import { describe, expect, test } from "bun:test";
 import {
   jsonSchemaToZod,

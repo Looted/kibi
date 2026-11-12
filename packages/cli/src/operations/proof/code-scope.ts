@@ -34,7 +34,6 @@ import { removeFrontmatterBlock } from "./receipt-document.js";
  * Editing any of those symbols' source files changes the binding hash, so the
  * receipt goes stale until the test is proven again on the new code.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function receiptCodeScopeSymbolIds(
   contract: unknown,
   bindings: unknown,
@@ -55,7 +54,6 @@ export function receiptCodeScopeSymbolIds(
 }
 
 /** Map each test id to the symbols linked `covered_by` it, in one query. */
-// implements REQ-kibi-verification-evidence-contract
 export async function loadCoveredBySymbolsByTest(
   prolog: Pick<PrologPort, "query">,
 ): Promise<ReadonlyMap<string, readonly string[]>> {
@@ -92,7 +90,6 @@ function record(value: unknown): Record<string, unknown> | null {
  * same projection, never the raw stored value, or a cosmetic extra key would
  * make every receipt of that test silently fall back to snapshot matching.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function receiptBindingContract(raw: unknown): ProofContract | null {
   const contract = record(raw);
   if (!contract) return null;
@@ -121,7 +118,6 @@ export function receiptBindingContract(raw: unknown): ProofContract | null {
  * is read from stales the receipt even when that symbol is not linked
  * covered_by the test. A symbol already in scope binds as before.
  */
-// implements REQ-kibi-multilingual-code-proofs
 export function contractCodeSymbolIds(contract: ProofContract): string[] {
   const ids = new Set<string>();
   const add = (entry: unknown) => {
@@ -141,7 +137,6 @@ export function contractCodeSymbolIds(contract: ProofContract): string[] {
 }
 
 /** Every project source a contract reads: its source, source counts and source domains. */
-// implements REQ-kibi-source-proof-kinds
 export function contractSources(contract: ProofContract): SourceSpec[] {
   const specs: SourceSpec[] = [];
   if (contract.source !== undefined) specs.push(contract.source as SourceSpec);
@@ -152,7 +147,6 @@ export function contractSources(contract: ProofContract): SourceSpec[] {
   return specs;
 }
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ReceiptBindingInput = Readonly<{
   workspaceRoot: string;
   readFile: (absolutePath: string) => Promise<string>;
@@ -173,7 +167,6 @@ export type ReceiptBindingInput = Readonly<{
  * written on a CI runner and on a developer checkout of the same commit
  * therefore carry the same binding.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export async function currentReceiptBindingHash(
   input: ReceiptBindingInput,
 ): Promise<string | undefined> {
@@ -189,7 +182,6 @@ export async function currentReceiptBindingHash(
  * them never stales a receipt. Receipts written under the earlier binding
  * stay current until the test's own inputs change.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export async function currentReceiptBindingHashes(
   input: ReceiptBindingInput,
 ): Promise<readonly string[] | undefined> {

@@ -1,4 +1,3 @@
-// implements REQ-cli-doctor
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { execFileSync } from "node:child_process";
 import * as childProcess from "node:child_process";
@@ -1086,7 +1085,6 @@ describe("doctorCommand capability plugins", () => {
   }
 
   test("warns when an augment-mode Jev secret is missing", async () => {
-    // implements REQ-cli-doctor
     const cwd = preparedWorkspace();
     writeOkManifest(cwd);
     writeJevActivation(cwd, true);
@@ -1339,8 +1337,6 @@ async function withoutAutoSync<T>(body: () => Promise<T>): Promise<T> {
     else process.env.KIBI_AUTO_SYNC = previous;
   }
 }
-
-// implements REQ-cli-doctor
 describe("doctorCommand branch store", () => {
   test("warns, without failing, when auto-sync compiles the missing store on the next command", async () => {
     const cwd = preparedWorkspace();

@@ -16,7 +16,6 @@ export function assertMaxBytes(pathLike: string, maxBytes: number): void {
   const size = fs.statSync(pathLike).size;
   if (size > maxBytes) throw new SkillOversizeError(pathLike, maxBytes, size);
 }
-// implements REQ-reusable-skill-subsystem
 export function parseSkillBundle(rootDir: string): SkillBundle {
   const path = resolve(rootDir, SKILL_FILE_NAME);
   assertMaxBytes(path, SKILL_MARKDOWN_MAX_BYTES);
@@ -32,7 +31,6 @@ export function parseSkillBundle(rootDir: string): SkillBundle {
     rootDir: resolve(rootDir),
   };
 }
-// implements REQ-reusable-skill-subsystem
 export function validateSkillBundle(pathLike: string): {
   valid: boolean;
   errors: SkillValidationError[];

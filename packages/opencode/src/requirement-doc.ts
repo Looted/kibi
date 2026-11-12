@@ -1,5 +1,3 @@
-// implements REQ-opencode-kibi-plugin-v1
-
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -101,7 +99,6 @@ function readFrontmatter(
  * Handles CRLF line endings, BOM markers, and cross-platform paths.
  */
 export function isMustPriorityRequirement(
-  // implements REQ-opencode-kibi-plugin-v1
   filePath: string,
   worktree?: string,
 ): boolean {
@@ -114,7 +111,6 @@ export function isMustPriorityRequirement(
  * Handles CRLF line endings, BOM markers, and cross-platform paths.
  */
 export function getRequirementPriority(
-  // implements REQ-opencode-kibi-plugin-v1
   filePath: string,
   worktree?: string,
 ): string | null {

@@ -37,7 +37,6 @@ import {
 } from "./kb-sources.js";
 
 /** Schema 11: record the floor of firm requirements that had no proof path. */
-// implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
 export const EVIDENCE_FLOOR_PIN_CODE = "evidence_floor_pin";
 
 /** Pins to write, plus the firm requirements that keep the tested floor. */
@@ -179,7 +178,6 @@ function requirementsWithProofPath(
  * floor; `kept` lists them, since remaining gaps (a stale receipt, a missing
  * covered_by) still show in kibi check. Read-only.
  */
-// implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
 export function planEvidenceFloorPins(
   workspaceRoot: string,
   ladder?: LadderFloorVerdicts | null,
@@ -240,7 +238,6 @@ export function planEvidenceFloorPins(
 }
 
 /** Write the planned floors; returns how many requirements were rewritten. */
-// implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
 export function applyEvidenceFloorPins(
   workspaceRoot: string,
   ladder?: LadderFloorVerdicts | null,
@@ -258,7 +255,6 @@ export function applyEvidenceFloorPins(
  * damaged, another branch's store) or the evaluation fails; the migration
  * then decides from authored receipts alone and says so.
  */
-// implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
 export async function readLadderFloorVerdicts(
   workspaceRoot: string,
 ): Promise<LadderFloorVerdicts | null> {

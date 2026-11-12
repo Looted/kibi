@@ -6,8 +6,6 @@ import path from "node:path";
 import { checkWorkspaceHealth } from "../src/workspace-health";
 import { createTempRepoFromFixture } from "./test-fixture-helpers";
 
-// implements REQ-opencode-kibi-plugin-v1
-
 const CANONICAL_LANES = [
   ".kb/requirements",
   ".kb/scenarios",
