@@ -39,6 +39,10 @@ import {
   isDecisionSetupMode,
   setupDecisionFixture,
 } from "./decision-fixture-setup";
+import {
+  isQualitySetupMode,
+  setupQualityFixture,
+} from "./quality-fixture-setup";
 import { IMPACT_REVIEW_PATH } from "./decision-seeds";
 import {
   FixtureSetupError,
@@ -331,6 +335,12 @@ export async function runCodexCell(
                 await setupThinRootKb(workspace.target, stagingCliRoot);
               } else if (isDecisionSetupMode(setupMode)) {
                 await setupDecisionFixture(
+                  workspace.target,
+                  stagingCliRoot,
+                  setupMode,
+                );
+              } else if (isQualitySetupMode(setupMode)) {
+                await setupQualityFixture(
                   workspace.target,
                   stagingCliRoot,
                   setupMode,

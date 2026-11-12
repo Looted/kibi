@@ -110,10 +110,10 @@ export function validateScreenPlan(options: {
   )
     throw new Error("screen_surface_mismatch");
   // Four core development tasks, plus those of the skill's supplemental
-  // families (at most four more).
+  // families (at most six more).
   if (
     tasks.length < 4 ||
-    tasks.length > 8 ||
+    tasks.length > 10 ||
     tasks.some((task) => task.split !== "development") ||
     new Set(tasks.map((task) => task.id)).size !== tasks.length
   )

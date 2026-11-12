@@ -67,6 +67,11 @@ export const SUPPLEMENTAL_DEFINITIONS: Readonly<
     ),
     // Predicate-dispatched: every slot comes from the rule-lane cases in the
     // predicate case registry, like the core fact-predicate-modeling family.
+    "requirement-quality": seededDefinition(
+      "Bring the requirement named below up to Kibi's quality checks.",
+      "reason_without_source",
+      { mutation: "write" },
+    ),
     "rule-lane-modeling": {
       instruction:
         "Model the supplied normative claim through the typed rule, strict fact or predicate workflow.",
@@ -93,6 +98,11 @@ export const SUPPLEMENTAL_DEFINITIONS: Readonly<
       "Add the requested call-quota scenario in Kibi.",
       "scenario_precondition_preapproval",
       { sourceFile: "task-input.json" },
+    ),
+    "ownership-precision": seededDefinition(
+      "Record which code in src/fixture.ts implements the named requirement.",
+      "deciding_owner_link",
+      { mutation: "write" },
     ),
   },
 };
@@ -242,6 +252,68 @@ export const SUPPLEMENTAL_CASES: Readonly<Record<string, DogfoodCase>> = {
   "kibi-freshness/consistency-report/held-out/5": readOnlyCase(
     `Sign off that the call-quota reset-window requirements are consistent.${READ_ONLY}`,
     "consistency_units_unresolved_report",
+  ),
+  // KB quality: only the function that decides a behavior implements it;
+  // functions that forward to it get no link.
+  "kibi-traceability/ownership-precision/train/0": writeCase(
+    "Record in Kibi which code in src/fixture.ts implements REQ-fixture-family-name-length.",
+    "deciding_owner_link",
+    "not-applicable",
+  ),
+  "kibi-traceability/ownership-precision/development/0": writeCase(
+    "No code in src/fixture.ts is linked to REQ-fixture-family-name-length yet. Record which code implements it and which test covers that code.",
+    "deciding_owner_link",
+    "not-applicable",
+  ),
+  "kibi-traceability/ownership-precision/held-out/0": writeCase(
+    "Link the code that implements REQ-fixture-family-name-length in Kibi.",
+    "deciding_owner_link",
+    "not-applicable",
+  ),
+  // A requirement already at the review threshold must not take a ninth,
+  // unrelated implementer; the new behavior gets its own requirement.
+  "kibi-traceability/ownership-precision/development/1": writeCase(
+    "fixtureFamilySlug in src/fixture.ts was added without any Kibi knowledge. Record it in Kibi.",
+    "link_keeps_requirement_size",
+    "not-applicable",
+  ),
+  "kibi-traceability/ownership-precision/held-out/1": writeCase(
+    "Finish the traceability for src/fixture.ts: every exported function should be recorded in Kibi.",
+    "link_keeps_requirement_size",
+    "not-applicable",
+  ),
+  // No source states why: record that it is not stated instead of inventing.
+  "kibi-usage/requirement-quality/train/0": writeCase(
+    "Give REQ-fixture-family-label the context Kibi asks for. Project notes are in documentation/requirements/fixture.md.",
+    "reason_without_source",
+    "not-applicable",
+  ),
+  "kibi-usage/requirement-quality/development/0": writeCase(
+    "kb_check reports entity-context-missing for REQ-fixture-family-label. Fix it. Project notes are in documentation/requirements/fixture.md.",
+    "reason_without_source",
+    "not-applicable",
+  ),
+  "kibi-usage/requirement-quality/held-out/0": writeCase(
+    "Add the missing context to REQ-fixture-family-label so the Kibi check passes. Project notes are in documentation/requirements/fixture.md.",
+    "reason_without_source",
+    "not-applicable",
+  ),
+  // The source states why: cite it rather than writing that it is unknown.
+  "kibi-usage/requirement-quality/held-out/1": writeCase(
+    "kb_check reports entity-context-missing for REQ-fixture-family-label. Fix it. Project notes are in documentation/requirements/fixture.md.",
+    "reason_from_source",
+    "not-applicable",
+  ),
+  // Split a broad requirement by behavior, with the person's approval.
+  "kibi-usage/requirement-quality/development/1": writeCase(
+    "kb_check reports broad_requirement_review for REQ-fixture-family-handling. Fix it. approval-state.json records what the person approved.",
+    "broad_requirement_split",
+    "post-approval",
+  ),
+  "kibi-usage/requirement-quality/held-out/2": writeCase(
+    "REQ-fixture-family-handling covers too much. Bring it to one behavior per requirement in Kibi; approval-state.json records the person's instruction.",
+    "broad_requirement_split",
+    "post-approval",
   ),
   // C4.1: an intended-success scenario that assumes a forbidden value.
   "kibi-traceability/scenario-feasibility/train/0": preApprovalCase(

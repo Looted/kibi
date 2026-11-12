@@ -115,16 +115,16 @@ const FAMILY_BY_SKILL: Readonly<Record<CanonicalSkill, readonly string[]>> = {
 const SUPPLEMENTAL_FAMILIES_BY_SKILL: Readonly<
   Partial<Record<CanonicalSkill, readonly string[]>>
 > = {
-  "kibi-usage": ["intent-consult", "rule-lane-modeling"],
+  "kibi-usage": ["intent-consult", "rule-lane-modeling", "requirement-quality"],
   "kibi-freshness": ["consistency-report"],
-  "kibi-traceability": ["scenario-feasibility"],
+  "kibi-traceability": ["scenario-feasibility", "ownership-precision"],
   "kibi-bootstrap": ["onboarding-review"],
   "kibi-decisions": ["unrecorded-change-closeout"],
   "kibi-commit-review": ["merge-commit-scope"],
 };
 
 const CORE_FAMILIES_PER_SKILL = 4;
-const MAX_FAMILIES_PER_SKILL = 6;
+const MAX_FAMILIES_PER_SKILL = 7;
 
 /** Core families followed by the skill's supplemental families, if any. */
 export function skillFamilies(skill: CanonicalSkill): readonly string[] {
@@ -155,6 +155,8 @@ const SPLIT_COUNT_OVERRIDES: Readonly<
   Record<string, Readonly<Record<TaskSplit, number>>>
 > = {
   "consistency-report": { train: 3, development: 4, "held-out": 6 },
+  "ownership-precision": { train: 1, development: 2, "held-out": 2 },
+  "requirement-quality": { train: 1, development: 2, "held-out": 3 },
 };
 
 /**
