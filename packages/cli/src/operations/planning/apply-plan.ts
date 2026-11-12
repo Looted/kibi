@@ -3014,15 +3014,21 @@ async function applyMigrationPlan(
     }
   }
   if (!failed && sourcesAwaitSync) {
-    const sync = await syncCommand({ workspaceRoot: context.workspaceRoot });
-    if (!sync.success) {
+    const syncFailure = await syncCommand({
+      workspaceRoot: context.workspaceRoot,
+    }).then(
+      (sync) =>
+        sync.success ? undefined : "kibi sync did not complete successfully",
+      (error: unknown) =>
+        error instanceof Error ? error.message : String(error),
+    );
+    if (syncFailure !== undefined) {
       failed = true;
       failures += 1;
       results.push({
         actionId: "post-apply-sync",
         outcome: "failed",
-        detail:
-          "Recompiling the applied sources (kibi sync) did not complete successfully; run kibi sync.",
+        detail: `Recompiling the applied sources failed (${syncFailure}); run kibi sync.`,
       });
     }
   }
