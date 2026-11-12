@@ -1,5 +1,18 @@
 # kibi-cli
 
+## 2.43.1
+
+### Patch Changes
+
+- 3cce94f: Removing the inline `implements` comments that Kibi stopped reading no longer stalls an agent. An edit that only deletes such comments, whole lines or a comment trailing code, is not treated as a change to a firm requirement, so the editor hooks do not ask a person to confirm it, and `kibi migrate` now prints the comment review with its instruction in the migration section instead of counting it in the quality backlog. This covers replacement edits, whole-file writes and `apply_patch` edits in Claude Code, Codex, Cursor and ZCode. Technically: `removesOnlyDeadImplementsComments` in the shared decision guard compares the edit's old and new text line by line, accepting a line whose code is unchanged and whose trailing comment was cut, and for an `apply_patch` envelope accepts only an `Update File` section for the edited file whose removed lines are all such comments and that adds none (never an added, deleted or moved file, and never a patch it cannot parse); any other change in the same edit keeps the confirmation.
+- 3cce94f: Reading a KB dependency can no longer run code the dependency chose. A `git` or `ref` value in `.kb/dependencies.json` or its lock that starts with `-` is refused, so it cannot reach git as an option such as `--upload-pack`, and a process that serves a dependency checkout ignores the plugins and env files that checkout declares. Technically: dependency URLs and refs are validated on read and passed after `--end-of-options`, fetches run with `protocol.ext.allow=never`, and `readProjectKibiConfig` and the env bootstrap skip the project files when `KIBI_KB_DEPENDENCY` is set.
+- e4145f7: `kibi migrate --apply-safe` compiles the store after it applies an approved source change such as retiring a requirement, so `kibi status` and queries read fresh at once instead of waiting for `kibi sync`. A failed compile is reported as a failed `post-apply-sync` action.
+- 3cce94f: `kb_check` with `sourceFiles`, `staged` or a working-tree diff returns a much smaller result. Each impact diagnostic used to come back three times in the structured result and twice in the text; it is now listed once under `impactDiagnostics`, and the text writes a suggestion shared by many diagnostics once. Technically: `qualityDiagnostics` no longer repeats entries of `impactDiagnostics`, and a migration plan review action for such a diagnostic carries `evidence.diagnostic` as `{ id, entityId, listedIn: "impactDiagnostics" }` instead of a copy.
+- Updated dependencies [3cce94f]
+- Updated dependencies [e4145f7]
+  - kibi-agent-core@0.13.1
+  - kibi-core@0.32.1
+
 ## 2.43.0
 
 ### Minor Changes

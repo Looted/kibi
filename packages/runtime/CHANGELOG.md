@@ -1,5 +1,13 @@
 # kibi-runtime
 
+## 2.31.1
+
+### Patch Changes
+
+- Depend on kibi-core 0.32.1, which carries the `retired-owner-only` fix for mixed past owners.
+- Updated dependencies [e4145f7]
+  - kibi-core@0.32.1
+
 ## 2.31.0
 
 ### Minor Changes
