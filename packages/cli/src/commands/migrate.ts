@@ -279,6 +279,15 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     from: 14,
     to: 15,
   },
+  // Require a definition on every subject fact, no duplicate subjects, and
+  // subjects on every unmodeled claim. No source is rewritten on its own: a
+  // claim's suggested subject is written only once a person approves it
+  // (claim_subject_anchor_suggest); the rest is listed for review.
+  {
+    id: "domain-subjects-v16",
+    from: 15,
+    to: 16,
+  },
 ];
 
 function migrationStepsFor(
