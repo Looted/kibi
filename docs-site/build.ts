@@ -22,6 +22,7 @@
  */
 
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   readFileSync,
@@ -34,8 +35,11 @@ import {
   DOCS,
   type DocPage,
   type DocSection,
+  OG_IMAGE,
   REPORT_PATH,
   SITE_TAGLINE,
+  publishedLandingHref,
+  publishedPageHref,
   sitePagePath,
 } from "./catalog.js";
 import { renderLlmsTxt } from "./llms.js";
@@ -531,8 +535,9 @@ function main(): void {
   // Landing page
   const landing: PageShell = {
     root: "",
-    title: "Kibi",
+    title: "Kibi · Requirements framework for AI coding agents",
     description: SITE_TAGLINE,
+    publishedUrl: publishedLandingHref(),
     section: null,
     navHtml: buildNav(titles, null),
     tocHtml: "",
@@ -556,13 +561,18 @@ function main(): void {
   mkdirSync(outDir, { recursive: true });
   writeFileSync(path.join(outDir, "index.html"), layout(landing));
   writeFileSync(path.join(outDir, "search-index.js"), searchIndexJson);
-  written.push("index.html", "search-index.js");
+  copyFileSync(
+    path.join(REPO_ROOT, OG_IMAGE.source),
+    path.join(outDir, OG_IMAGE.path),
+  );
+  written.push("index.html", "search-index.js", OG_IMAGE.path);
 
   for (const page of pages.values()) {
     const shell: PageShell = {
       root: "../",
       title: `${page.title} · Kibi Docs`,
       description: page.description || page.title,
+      publishedUrl: publishedPageHref(page.spec),
       section: page.spec.section,
       navHtml: buildNav(titles, page),
       tocHtml: buildToc(page),

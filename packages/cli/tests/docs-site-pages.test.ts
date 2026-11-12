@@ -129,6 +129,60 @@ describe("documentation site pages", () => {
     }
   });
 
+  test("every page publishes a large link preview whose URLs share the published origin", async () => {
+    // Loaded at runtime: docs-site/ sits outside this package's tsconfig rootDir.
+    const { PUBLISHED_SITE_ORIGIN } = (await import(
+      path.join(repoRoot, "docs-site/catalog.ts")
+    )) as { PUBLISHED_SITE_ORIGIN: string };
+    const out = mkdtempSync(path.join(tmpdir(), "kibi-docs-site-preview-"));
+    try {
+      expect(runDocsSite(out).status).toBe(0);
+      const image = `${PUBLISHED_SITE_ORIGIN}/og-image.png`;
+      for (const [page, url] of [
+        ["index.html", `${PUBLISHED_SITE_ORIGIN}/`],
+        [
+          "guide/quick-start.html",
+          `${PUBLISHED_SITE_ORIGIN}/guide/quick-start.html`,
+        ],
+        ["reference/cli.html", `${PUBLISHED_SITE_ORIGIN}/reference/cli.html`],
+      ] as const) {
+        const html = readFileSync(path.join(out, page), "utf8");
+        const title = /<title>([^<]+)<\/title>/.exec(html)?.[1];
+        const description = /<meta name="description" content="([^"]*)">/.exec(
+          html,
+        )?.[1];
+        expect(title, page).toBeTruthy();
+        expect(description, page).toBeTruthy();
+        for (const tag of [
+          `<link rel="canonical" href="${url}">`,
+          `<meta property="og:url" content="${url}">`,
+          `<meta property="og:title" content="${title}">`,
+          `<meta property="og:description" content="${description}">`,
+          `<meta property="og:image" content="${image}">`,
+          '<meta property="og:image:width" content="1200">',
+          '<meta property="og:image:height" content="630">',
+          '<meta name="twitter:card" content="summary_large_image">',
+          `<meta name="twitter:title" content="${title}">`,
+          `<meta name="twitter:image" content="${image}">`,
+        ]) {
+          expect(html.split(tag).length - 1, `${page}: ${tag}`).toBe(1);
+        }
+      }
+      // The landing title names what Kibi is, not just the brand.
+      expect(readFileSync(path.join(out, "index.html"), "utf8")).toContain(
+        "<title>Kibi · Requirements framework for AI coding agents</title>",
+      );
+
+      // The image ships beside the pages as a 1200x630 PNG.
+      const png = readFileSync(path.join(out, "og-image.png"));
+      expect(png.subarray(1, 4).toString("latin1")).toBe("PNG");
+      expect(png.readUInt32BE(16)).toBe(1200);
+      expect(png.readUInt32BE(20)).toBe(630);
+    } finally {
+      rmSync(out, { recursive: true, force: true });
+    }
+  });
+
   test("builds without analytics by default and loads Umami scoped to the published host when given a website ID", () => {
     const id = "197fb489-cdd4-4d95-ae8a-119dc6422a45";
     const plain = mkdtempSync(path.join(tmpdir(), "kibi-docs-site-plain-"));

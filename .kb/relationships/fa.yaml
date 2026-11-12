@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-60cce5194010
+  - type: implements
+    from: SYM-docs-site-catalog-publishedOgImageHref
+    to: REQ-docs-site-link-preview
+    created_at: 2026-11-12T18:30:04.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee0d1fa335c9
+  - type: covered_by
+    from: SYM-docs-site-catalog-publishedOgImageHref
+    to: TEST-docs-site-pages
+    created_at: 2026-11-12T18:30:04.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50f85355bd31

@@ -412,3 +412,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9dd4d6672b13
+  - type: constrains
+    from: REQ-docs-site-link-preview
+    to: FACT-docs-site-subject
+    created_at: 2026-11-12T18:27:09.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88cd9ebf4bbe
+  - type: requires_property
+    from: REQ-docs-site-link-preview
+    to: FACT-docs-site-link-preview-tags
+    created_at: 2026-11-12T18:27:09.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bc2acca17e6
+  - type: requires_property
+    from: REQ-docs-site-link-preview
+    to: FACT-docs-site-link-preview-card
+    created_at: 2026-11-12T18:27:09.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-822ffa7e186e
+  - type: requires_property
+    from: REQ-docs-site-link-preview
+    to: FACT-docs-site-link-preview-image
+    created_at: 2026-11-12T18:27:09.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbbcc3819cfa
+  - type: requires_property
+    from: REQ-docs-site-link-preview
+    to: FACT-docs-site-link-preview-url-base
+    created_at: 2026-11-12T18:27:09.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-839b143c3799
+  - type: specified_by
+    from: REQ-docs-site-link-preview
+    to: SCEN-docs-site-link-preview
+    created_at: 2026-11-12T18:27:09.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edf749ce22e8
