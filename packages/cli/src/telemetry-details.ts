@@ -146,6 +146,24 @@ function issuesOf(value: unknown): RejectionIssue[] {
 
 const UPSERT_OPERATIONS = new Set(["kb_upsert", "kb_validate_upsert"]);
 
+/**
+ * The fixed category an engine client attached to an ENGINE_START_FAILED
+ * error (engineStartFailureKind), found through wrapping causes.
+ */
+function engineStartFailure(error: unknown): string | undefined {
+  let current = error;
+  for (let depth = 0; depth < 5 && isRecord(current); depth += 1) {
+    if (
+      current.code === "ENGINE_START_FAILED" &&
+      typeof current.startFailure === "string"
+    ) {
+      return current.startFailure;
+    }
+    current = current.cause;
+  }
+  return undefined;
+}
+
 // implements REQ-kibi-telemetry-agent-signals
 /**
  * The struggle signals of one operation call, from its input, its result
@@ -184,6 +202,8 @@ export function operationTelemetrySignals(input: {
       (data?.valid === false ? data.errorCode : undefined);
     if (typeof code === "string") signals.rejectionCode = code;
   }
+  const startFailure = engineStartFailure(input.error);
+  if (startFailure !== undefined) signals.rejectionCode = startFailure;
   if (input.operation === "kb_search" && data !== undefined) {
     signals.search = true;
     if (typeof data.count === "number") {

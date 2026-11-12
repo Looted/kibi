@@ -335,3 +335,9 @@ export {
   resolveKbDependency,
   withoutKbDependencyArgument,
 } from "kibi-cli/dependencies";
+/**
+ * The fixed telemetry signals of an operation. kibi-mcp reads them here, from
+ * the same bundle that threw the error, so a rejection is recognized by class
+ * and no kibi-cli install is needed beside the server.
+ */
+export { operationTelemetrySignals } from "kibi-cli/telemetry-details";
