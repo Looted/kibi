@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f572bcb27913
+  - type: assumes
+    from: SCEN-NEG-kibi-unapproved-implemented-OLD-UNREPORTED
+    to: FACT-NEG-kibi-unapproved-implemented-OLD-UNREPORTED
+    created_at: 2026-11-12T18:25:28.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-672ac9152b4f
+  - type: verified_by
+    from: SCEN-NEG-kibi-unapproved-implemented-OLD-UNREPORTED
+    to: TEST-kibi-approval-evidence-floor
+    created_at: 2026-11-12T18:25:28.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2cb618944ee

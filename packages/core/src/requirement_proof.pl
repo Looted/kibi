@@ -6,6 +6,7 @@
     requirement_proof_context/4,
     requirement_proof_context/6,
     requirement_proof/4,
+    requirement_review_row/4,
     test_receipt_evidence/4
 ]).
 
@@ -2649,8 +2650,9 @@ evidence_level(Evidence, Level) :-
 %% evidence_floor(+Props, +Level, +Gaps, +Stages, -Floor)
 % The weakest evidence level the requirement accepts and whether its computed
 % level reaches it.  The floor is the requirement's required_evidence, or,
-% when absent, tested for a firm requirement and unverified (no floor)
-% otherwise.  Status is met, below, or pending_reproof: the floor is tested
+% when absent, tested for a firm requirement or one a person approved
+% (origin.approved_by, unless the requirement states its firmness), and
+% unverified (no floor) otherwise.  Source is explicit, firmness or approval.  Status is met, below, or pending_reproof: the floor is tested
 % and every gap only says recorded receipts are older than the code, so
 % re-running kibi prove reaches it without any KB change.
 evidence_floor(Props, Level, Gaps, Stages, _{required: Required, source: Source, status: Status}) :-
@@ -2673,7 +2675,19 @@ required_evidence(Props, Required, explicit) :-
 required_evidence(Props, tested, firmness) :-
     effective_firmness(Props, firm),
     !.
+required_evidence(Props, tested, approval) :-
+    \+ explicit_firmness(Props),
+    origin_field(Props, approved_by, _),
+    !.
 required_evidence(_Props, unverified, firmness).
+
+% The requirement states its firmness itself; an explicit default or
+% exploratory keeps an approved requirement without a floor.
+explicit_firmness(Props) :-
+    memberchk(firmness=Raw, Props),
+    normalize_atom(Raw, Explicit),
+    memberchk(Explicit, [firm, default, exploratory]).
+
 
 evidence_rank(unverified, 0).
 evidence_rank(asserted, 1).
@@ -2763,6 +2777,31 @@ freshness_only_candidate(Candidate) :-
     Candidate.scope == end_to_end,
     forall(member(Reason, [Candidate.reason|Candidate.secondaryReasons]),
            memberchk(Reason, [stale_proof_receipt, receipt_snapshot_mismatch, receipt_contract_mismatch])).
+
+%% requirement_review_row(+Kind, +Props, +Proof, -Row)
+% Rows for the check rules that read a current requirement's proof beside its
+% evidence floor.  Kind unapproved_implemented: a must requirement an agent
+% wrote that no person approved (origin.approved_by) while production symbols
+% implement it; the row carries created_at so the rule can judge its age.
+% Exempt and non-current requirements carry no stages and produce no row.
+requirement_review_row(unapproved_implemented, Props, Proof, Row) :-
+    must_requirement(Props),
+    origin_field(Props, kind, agent),
+    \+ origin_field(Props, approved_by, _),
+    get_dict(proofStages, Proof, Stages),
+    get_dict(productionSymbols, Stages, Stage),
+    get_dict(symbols, Stage, Symbols0),
+    sort(Symbols0, Symbols),
+    Symbols \== [],
+    (   prop_text(Props, created_at, CreatedAt)
+    ->  true
+    ;   CreatedAt = ''
+    ),
+    Row = _{createdAt: CreatedAt, symbols: Symbols}.
+must_requirement(Props) :-
+    memberchk(priority=Raw, Props),
+    normalize_atom(Raw, Priority),
+    Priority == must.
 
 %% human_intent(+Props, -Basis, -Ref)
 % A person stands behind the requirement: someone approved it

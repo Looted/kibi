@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2b696fc5183
+  - type: assumes
+    from: SCEN-CASE-kibi-evidence-floors-UNPINNED-APPROVED
+    to: FACT-CASE-kibi-evidence-floors-UNPINNED-APPROVED
+    created_at: 2026-11-12T18:27:04.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bfa0a6de88f
+  - type: verified_by
+    from: SCEN-CASE-kibi-evidence-floors-UNPINNED-APPROVED
+    to: TEST-kibi-approval-evidence-floor
+    created_at: 2026-11-12T18:27:04.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc17e5f6f1b3

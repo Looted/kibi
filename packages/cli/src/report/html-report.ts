@@ -620,9 +620,11 @@ const FLOOR_STATUS_LABELS: Readonly<Record<string, string>> = {
 function renderFloorChip(floor: EvidenceFloor | undefined): string {
   if (floor === undefined) return "";
   const origin =
-    floor.source === "firmness"
-      ? "the default floor for a firm requirement"
-      : "set by required_evidence";
+    floor.source === "explicit"
+      ? "set by required_evidence"
+      : floor.source === "approval"
+        ? "the default floor for an approved requirement"
+        : "the default floor for a firm requirement";
   const status = FLOOR_STATUS_LABELS[floor.status] ?? humanize(floor.status);
   return ` <span class="evidence-floor evidence-floor--${escapeHtml(floor.status)}" title="Evidence floor: ${escapeHtml(floor.required)}, ${escapeHtml(origin)}">floor ${escapeHtml(floor.required)}${floor.source === "explicit" ? "*" : ""} · ${escapeHtml(status)}</span>`;
 }

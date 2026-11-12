@@ -17,7 +17,7 @@ afterEach(() => {
 
 const MANIFEST = JSON.stringify({
   manifestVersion: 1,
-  schemaVersion: 14,
+  schemaVersion: 15,
   semanticAdvisorBackfill: "not_applicable",
 });
 

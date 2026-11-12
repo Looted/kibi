@@ -17,7 +17,7 @@
 */
 
 import path from "node:path";
-import { effectiveFirmness } from "../../decision-firmness.js";
+import { effectiveFirmness, isFirmness } from "../../decision-firmness.js";
 import type { StatusPayload } from "../../public/operations/discovery-executors.js";
 import {
   type AuthoredEntity,
@@ -39,7 +39,22 @@ import {
 /** Schema 11: record the floor of firm requirements that had no proof path. */
 export const EVIDENCE_FLOOR_PIN_CODE = "evidence_floor_pin";
 
-/** Pins to write, plus the firm requirements that keep the tested floor. */
+/**
+ * Schema 15: record the floor of approved requirements (origin.approved_by,
+ * no explicit firmness) that had no proof path.
+ */
+export const APPROVAL_FLOOR_PIN_CODE = "approval_floor_pin";
+
+/**
+ * Which default tested floors a migration records pins for: `firm` (schema
+ * 11) and `approved` (schema 15). An upgrade across both pins both.
+ */
+export type EvidenceFloorPinScope = Readonly<{
+  firm: boolean;
+  approved: boolean;
+}>;
+
+/** Pins to write, plus the requirements that keep the tested floor. */
 export type EvidenceFloorPlan = BodyContextPlan &
   Readonly<{
     kept: readonly string[];
@@ -170,17 +185,44 @@ function requirementsWithProofPath(
 }
 
 /**
- * Current firm requirements without required_evidence and without a proof
- * path that has passed. From schema 11 a firm requirement needs tested
- * evidence, which these have not reached, so the migration records their
- * floor as asserted in the requirement itself, where a reviewer sees it and
- * can raise it later. Requirements with a passing proof path keep the tested
- * floor; `kept` lists them, since remaining gaps (a stale receipt, a missing
- * covered_by) still show in kibi check. Read-only.
+ * Which default tested floor applies to a requirement without
+ * required_evidence: `firm` (firmness firm, stated or implied by a non-agent
+ * origin), `approved` (no stated firmness and origin.approved_by set, from
+ * schema 15), or undefined when it has no floor.
+ */
+export function defaultTestedFloor(
+  entity: AuthoredEntity,
+): "firm" | "approved" | undefined {
+  if (
+    effectiveFirmness(entity.type, entity.data.firmness, entity.data.origin) ===
+    "firm"
+  )
+    return "firm";
+  if (isFirmness(entity.data.firmness)) return undefined;
+  const origin = entity.data.origin;
+  const approvedBy =
+    origin !== null && typeof origin === "object"
+      ? (origin as { approved_by?: unknown }).approved_by
+      : undefined;
+  return typeof approvedBy === "string" && approvedBy.trim() !== ""
+    ? "approved"
+    : undefined;
+}
+
+/**
+ * Current requirements without required_evidence whose default floor is
+ * tested (firm from schema 11, approved from schema 15, as `scope` selects)
+ * and without a proof path that has passed. These have not reached tested,
+ * so the migration records their floor as asserted in the requirement
+ * itself, where a reviewer sees it and can raise it later. Requirements with
+ * a passing proof path keep the tested floor; `kept` lists them, since
+ * remaining gaps (a stale receipt, a missing covered_by) still show in kibi
+ * check. Read-only.
  */
 export function planEvidenceFloorPins(
   workspaceRoot: string,
   ladder?: LadderFloorVerdicts | null,
+  scope: EvidenceFloorPinScope = { firm: true, approved: false },
 ): EvidenceFloorPlan {
   const files = authoredEntities(workspaceRoot, "requirements").filter(
     ({ entity }) => entity.type === "req",
@@ -195,13 +237,11 @@ export function planEvidenceFloorPins(
     if (
       entity.data.required_evidence !== undefined ||
       entity.data.proof_exempt === true ||
-      !isCurrentAuthoredEntity(entity, superseded) ||
-      effectiveFirmness(
-        entity.type,
-        entity.data.firmness,
-        entity.data.origin,
-      ) !== "firm"
+      !isCurrentAuthoredEntity(entity, superseded)
     )
+      continue;
+    const floor = defaultTestedFloor(entity);
+    if (floor === undefined || !scope[floor === "firm" ? "firm" : "approved"])
       continue;
     // The ladder on the compiled store judges every gap (failed latest
     // receipts, missing coverage or coordinates), so a requirement it puts
@@ -241,8 +281,9 @@ export function planEvidenceFloorPins(
 export function applyEvidenceFloorPins(
   workspaceRoot: string,
   ladder?: LadderFloorVerdicts | null,
+  scope?: EvidenceFloorPinScope,
 ): number {
-  const plan = planEvidenceFloorPins(workspaceRoot, ladder);
+  const plan = planEvidenceFloorPins(workspaceRoot, ladder, scope);
   for (const target of plan.targets)
     writeFileAtomically(path.join(workspaceRoot, target.path), target.after);
   return plan.targets.length;

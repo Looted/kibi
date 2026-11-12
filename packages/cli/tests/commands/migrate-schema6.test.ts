@@ -92,7 +92,7 @@ describe("kibi migrate to schema 6", () => {
     expect(
       JSON.parse(readFileSync(path.join(root, ".kb/manifest.json"), "utf8"))
         .schemaVersion,
-    ).toBe(14);
+    ).toBe(15);
     const result = runKibi(["migrate", "--yes"], root);
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("No migration needed");
@@ -206,7 +206,7 @@ describe("kibi migrate to schema 6", () => {
       expect(
         JSON.parse(readFileSync(path.join(root, ".kb/manifest.json"), "utf8"))
           .schemaVersion,
-      ).toBe(14);
+      ).toBe(15);
       const requirement = frontmatter(
         path.join(root, ".kb/requirements/REQ-upload-resume.md"),
       );
@@ -491,7 +491,7 @@ describe("kibi migrate to schema 6", () => {
       );
       expect(audit).toMatchObject({
         fromVersion: 5,
-        toVersion: 14,
+        toVersion: 15,
         entityOriginBackfill: 4,
         steps: [
           "entity-origin-v6",
@@ -503,6 +503,7 @@ describe("kibi migrate to schema 6", () => {
           "claim-bound-proofs-v12",
           "derived-symbol-coordinates-v13",
           "retired-status-v14",
+          "approval-floor-v15",
         ],
       });
 
