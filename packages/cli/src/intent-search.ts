@@ -228,6 +228,18 @@ export const NON_GOVERNING_STATUSES = new Set([
   "archived",
 ]);
 const NON_GOVERNING_FACTOR = 0.5;
+// A closed requirement with no known successor may be done and still hold,
+// or retired with nothing to replace it; it ranks below a current
+// requirement that matches as well, but stays above weaker ones.
+export const CLOSED_REQUIREMENT_FACTOR = 0.75;
+
+/** True for a requirement whose status is `closed`. */
+export function isClosedRequirement(entity: Record<string, unknown>): boolean {
+  return (
+    entity.type === "req" &&
+    String(entity.status).trim().toLowerCase() === "closed"
+  );
+}
 // A bootstrap provenance stub states no claim: it is demoted and, whatever
 // its score, sorted after every match that is not a stub.
 const PROVENANCE_STUB_FACTOR = 0.25;
@@ -700,6 +712,7 @@ export function scoreEntity(
   const graphScore = Math.min(1, graphEvidence.length / 2);
   const status = String(entity.status).trim().toLowerCase();
   const nonGoverning = NON_GOVERNING_STATUSES.has(status) || superseded;
+  const closed = !nonGoverning && isClosedRequirement(entity);
   const score =
     Math.min(
       1,
@@ -709,10 +722,12 @@ export function scoreEntity(
         graphScore * 0.05,
     ) *
     (nonGoverning ? NON_GOVERNING_FACTOR : 1) *
+    (closed ? CLOSED_REQUIREMENT_FACTOR : 1) *
     (provenanceStub ? PROVENANCE_STUB_FACTOR : 1);
   const reasons: string[] = [];
   if (nonGoverning)
     reasons.push(superseded ? "demoted: superseded" : `demoted: ${status}`);
+  if (closed) reasons.push("demoted: closed");
   if (provenanceStub) reasons.push("demoted: provenance stub");
   if (lexicalScore > 0) reasons.push("intent token match");
   if (matchedFacets.length > 0) reasons.push("semantic facet match");

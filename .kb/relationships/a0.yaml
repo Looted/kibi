@@ -307,3 +307,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-025aeb0bcc79
+  - type: constrains
+    from: REQ-search-closed-requirements-below-current
+    to: FACT-search-closed-requirements-subject
+    created_at: 2026-11-11T17:33:40.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-412fa2cea3a4
+  - type: requires_property
+    from: REQ-search-closed-requirements-below-current
+    to: FACT-search-closed-requirements-ranked-below-current
+    created_at: 2026-11-11T17:33:40.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-350dd710d431
+  - type: requires_property
+    from: REQ-search-closed-requirements-below-current
+    to: FACT-search-closed-requirements-governing-after-current
+    created_at: 2026-11-11T17:33:40.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7035c7de8d4
+  - type: specified_by
+    from: REQ-search-closed-requirements-below-current
+    to: SCEN-search-closed-requirements-below-current
+    created_at: 2026-11-11T17:33:40.240Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27b98e0bdd1c
+  - type: specified_by
+    from: REQ-search-closed-requirements-below-current
+    to: SCEN-NEG-search-closed-requirements-RANKED-AS-CURRENT
+    created_at: 2026-11-11T17:33:40.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-940eb58e867d
+  - type: specified_by
+    from: REQ-search-closed-requirements-below-current
+    to: SCEN-NEG-search-closed-requirements-GOVERNING-FIRST
+    created_at: 2026-11-11T17:33:40.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b077b04e0ba
+  - type: verified_by
+    from: REQ-search-closed-requirements-below-current
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-11T17:33:40.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0110b12bbb5f
+  - type: covered_by
+    from: SYM-kibi-cli-src-intent-search-ts-rankintententities
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-11T17:34:30.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-854ad24d1e21

@@ -1,5 +1,9 @@
 import { type Firmness, effectiveFirmness } from "./decision-firmness.js";
-import type { IntentSearchMatch } from "./intent-search.js";
+import {
+  CLOSED_REQUIREMENT_FACTOR,
+  type IntentSearchMatch,
+  isClosedRequirement,
+} from "./intent-search.js";
 import {
   type NegativePathMarker,
   negativePathTitle,
@@ -206,6 +210,11 @@ const CURRENT_REQ_STATUSES = new Set([
   "active",
   "approved",
 ]);
+/**
+ * Share of the best candidate's score a superseded requirement needs for its
+ * replacement to be proposed.
+ */
+export const SUCCESSOR_PULL_RATIO = 0.8;
 const SUPERSEDED_ADR_STATUSES = new Set([
   "superseded",
   "deprecated",
@@ -1086,8 +1095,14 @@ export async function buildSearchAnswer(
   // follow the chain so the replacement is a candidate too. Every candidate
   // so far is on the first frontier, so its supersedes edges are read there;
   // an empty frontier fetches nothing.
+  // A replacement is only proposed for a predecessor that matched about as
+  // well as the best candidate: a weak match on an old requirement says
+  // little about its replacement, which would otherwise fill a free slot.
   const supersededBy = new Map<string, string>();
   let frontier = byScore();
+  const pullFloor =
+    Math.max(...[...candidates.values()].map((entry) => entry.score)) *
+    SUCCESSOR_PULL_RATIO;
   for (let hop = 0; hop < 3; hop += 1) {
     await graph.fetch({ edges: frontier, rows: frontier });
     for (const edge of graph.edgesOf(frontier))
@@ -1099,6 +1114,7 @@ export async function buildSearchAnswer(
       const replacement = supersededBy.get(id);
       if (replacement === undefined) continue;
       const source = candidates.get(id) as { score: number; via: string };
+      if (source.score < pullFloor) continue;
       if (!candidates.has(replacement)) {
         candidates.set(replacement, {
           score: source.score * 0.95,
@@ -1119,6 +1135,14 @@ export async function buildSearchAnswer(
   type Chosen = { id: string; entity: Row; score: number; via: string };
   const chosen: Chosen[] = [];
   const notGoverning: (SearchAnswerEntity & { supersededBy?: string })[] = [];
+  // A closed requirement reached through a matched fact, scenario or test
+  // ranks as a matched one does: below a current requirement reached as
+  // well. A matched one already carries the factor from the search.
+  for (const [id, candidate] of candidates) {
+    const entity = graph.row(id);
+    if (entity && candidate.via !== "matched" && isClosedRequirement(entity))
+      candidate.score *= CLOSED_REQUIREMENT_FACTOR;
+  }
   const ordered = [...candidates.entries()].sort(
     ([leftId, left], [rightId, right]) =>
       right.score - left.score || leftId.localeCompare(rightId),
