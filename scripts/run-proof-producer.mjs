@@ -253,13 +253,16 @@ export function proofStepConcurrency(env = process.env) {
 
 /**
  * Identical argv is one execution. Contracts that declare it share that
- * attempt; a different flag is a different command.
+ * attempt; a different flag is a different command. A group records the
+ * groups of the steps declared before it in each of its contracts (`after`),
+ * since a later step may read what an earlier one built.
  */
 export function groupProofSteps(selected) {
   const pending = [];
   const groups = [];
   const byKey = new Map();
   for (const entry of selected) {
+    let previous = null;
     for (const [index, argv] of entry.steps.entries()) {
       const key = JSON.stringify(argv);
       const slot = {
@@ -270,14 +273,43 @@ export function groupProofSteps(selected) {
       pending.push(slot);
       let group = byKey.get(key);
       if (!group) {
-        group = { key, command: argv, slots: [] };
+        group = { key, command: argv, slots: [], after: new Set() };
         byKey.set(key, group);
         groups.push(group);
       }
       group.slots.push(slot);
+      if (previous !== null && previous !== key) group.after.add(previous);
+      previous = key;
     }
   }
   return { pending, groups };
+}
+
+/**
+ * `groups` in their preferred order, except that a group comes after the
+ * groups it runs after. Where contracts order the same commands both ways,
+ * the earlier preferred group goes first. Each group's `waitFor` lists the
+ * groups before it that it must wait for, so a pool working through the
+ * order never waits on a group it has not started.
+ */
+export function orderProofGroups(groups) {
+  const placed = new Set();
+  const order = [];
+  const remaining = [...groups];
+  while (remaining.length > 0) {
+    let index = remaining.findIndex((group) =>
+      [...group.after].every(
+        (key) => placed.has(key) || !remaining.some((g) => g.key === key),
+      ),
+    );
+    // A cycle: break it at the group preferred first.
+    if (index < 0) index = 0;
+    const [group] = remaining.splice(index, 1);
+    group.waitFor = [...group.after].filter((key) => placed.has(key));
+    placed.add(group.key);
+    order.push(group);
+  }
+  return order;
 }
 
 const UNIT_TEST_RESULTS_VERSION = "kibi.unit-test-results.v1";
@@ -524,15 +556,37 @@ export async function runProofProducer(options = {}) {
   }
   // Steps whose evidence may be reused go last, so the evidence they can
   // reuse (the unit results ledger, or earlier steps of this run) is ready.
-  const ordered = [
+  // A step a contract declares after another still starts only once that
+  // one has finished, however many run at a time.
+  const ordered = orderProofGroups([
     ...groups.filter((group) => group.files === null),
     // Wider steps first, so a later narrower step can reuse their pass.
     ...groups
       .filter((group) => group.files !== null)
       .sort((a, b) => b.files.length - a.files.length),
-  ];
+  ]);
+  const finished = new Map();
+  for (const group of ordered) {
+    let done;
+    finished.set(
+      group.key,
+      new Promise((resolve) => {
+        done = resolve;
+      }),
+    );
+    group.done = done;
+  }
 
   const executed = await mapPool(ordered, concurrency, async (group) => {
+    await Promise.all(group.waitFor.map((key) => finished.get(key)));
+    try {
+      return await runGroup(group);
+    } finally {
+      group.done();
+    }
+  });
+
+  async function runGroup(group) {
     const shared =
       group.slots.length > 1 ? ` (shared by ${group.slots.length} tests)` : "";
     const first = group.slots[0];
@@ -561,7 +615,7 @@ export async function runProofProducer(options = {}) {
       reuse.recordPassed(group.files);
     }
     return result;
-  });
+  }
 
   const resultByKey = new Map(
     ordered.map((group, index) => [group.key, executed[index]]),

@@ -49,6 +49,7 @@ import {
 } from "../bootstrap/types.js";
 import { validateBootstrapPayload } from "../bootstrap/validation.js";
 import {
+  MIGRATION_SYNC_CODE,
   SCHEMA6_APPROVABLE_REVIEW_CODES,
   SCHEMA6_AUTOMATIC_CODES,
   applySchema6MigrationAction,
@@ -2976,6 +2977,10 @@ async function applyMigrationPlan(
   // Failures that changed nothing (a precondition refused the action).
   let refusals = 0;
   let failures = 0;
+  // An approved review rewrites authored sources but plans no sync of its
+  // own; unless a later action compiled the store, it is recompiled once at
+  // the end so status, check and coverage read the applied sources.
+  let sourcesAwaitSync = false;
   for (const action of actions) {
     if (failed) {
       results.push({
@@ -2993,6 +2998,10 @@ async function applyMigrationPlan(
         outcome: "applied",
         detail: detail ?? `Applied ${action.code}.`,
       });
+      if (STORE_COMPILING_MIGRATION_CODES.has(action.code))
+        sourcesAwaitSync = false;
+      else if (SCHEMA6_APPROVABLE_REVIEW_CODES.has(action.code))
+        sourcesAwaitSync = true;
     } catch (error) {
       failed = true;
       failures += 1;
@@ -3001,6 +3010,19 @@ async function applyMigrationPlan(
         actionId: action.id,
         outcome: "failed",
         detail: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  if (!failed && sourcesAwaitSync) {
+    const sync = await syncCommand({ workspaceRoot: context.workspaceRoot });
+    if (!sync.success) {
+      failed = true;
+      failures += 1;
+      results.push({
+        actionId: "post-apply-sync",
+        outcome: "failed",
+        detail:
+          "Recompiling the applied sources (kibi sync) did not complete successfully; run kibi sync.",
       });
     }
   }
@@ -3143,6 +3165,13 @@ async function applyMigrationPlan(
  * Run one approved migration action. Returns a detail line for the action
  * result when the executor reports what it changed.
  */
+/** Migration actions that compile the branch store from its sources. */
+const STORE_COMPILING_MIGRATION_CODES: ReadonlySet<string> = new Set([
+  MIGRATION_SYNC_CODE,
+  FRESHNESS_RESYNC,
+  BRANCH_STORE_NOT_COMPILED,
+]);
+
 async function applyMigrationAction(
   action: MigrationAction,
   context: OperationContext,

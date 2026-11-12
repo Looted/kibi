@@ -1372,6 +1372,22 @@ var DEAD_IMPLEMENTS_LINE = /^\s*(?:\/\/+|#+|%+|\/\*+|\*|--)\s*(?:implements|Impl
 function isDeadImplementsComment(line) {
   return DEAD_IMPLEMENTS_LINE.test(line);
 }
+var TRAILING_DEAD_IMPLEMENTS = /^\s*(?:\/\/+|#+|%+|\/\*+|--)\s*(?:implements|Implements|IMPLEMENTS)(?:\s*:\s*|\s+)[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+(?:\s*,\s*[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+)*\s*(?:\*\/)?\s*$/;
+function quotesClosed(code) {
+  const unescaped = code.replace(/\\./g, "");
+  return ["'", '"', "`"].every((quote) => unescaped.split(quote).length % 2 === 1);
+}
+function removesTrailingDeadImplementsComment(before, after) {
+  const code = after.trimEnd();
+  if (code.trim() === "" || !before.startsWith(code))
+    return false;
+  const cut = before.slice(code.length);
+  if (!TRAILING_DEAD_IMPLEMENTS.test(cut))
+    return false;
+  if (!/^\s/.test(cut) && !code.endsWith(";"))
+    return false;
+  return quotesClosed(code);
+}
 function removesOnlyDeadComments(before, after) {
   const kept = before.split(`
 `);
@@ -1380,10 +1396,14 @@ function removesOnlyDeadComments(before, after) {
   let removed = 0;
   let next = 0;
   for (const line of kept) {
-    if (wanted[next] === line) {
+    const target = wanted[next];
+    if (target === line) {
       next += 1;
     } else if (isDeadImplementsComment(line)) {
       removed += 1;
+    } else if (target !== undefined && removesTrailingDeadImplementsComment(line, target)) {
+      removed += 1;
+      next += 1;
     } else {
       return false;
     }
@@ -1423,11 +1443,19 @@ function patchSectionRemovesOnlyDeadComments(section) {
   if (section.kind !== "Update" || section.moved)
     return false;
   let removed = 0;
-  for (const line of section.lines) {
+  const lines = section.lines;
+  for (let index = 0;index < lines.length; index += 1) {
+    const line = lines[index];
     if (line.startsWith("-")) {
-      if (!isDeadImplementsComment(line.slice(1)))
+      const replacement = lines[index + 1];
+      if (isDeadImplementsComment(line.slice(1))) {
+        removed += 1;
+      } else if (replacement?.startsWith("+") && removesTrailingDeadImplementsComment(line.slice(1), replacement.slice(1))) {
+        removed += 1;
+        index += 1;
+      } else {
         return false;
-      removed += 1;
+      }
     } else if (!(line.startsWith(" ") || line.startsWith("@@") || line === "" || line === "*** End of File")) {
       return false;
     }

@@ -73,17 +73,66 @@ export function isDeadImplementsComment(line: string): boolean {
   return DEAD_IMPLEMENTS_LINE.test(line);
 }
 
-/** True when `after` is `before` with one or more dead comment lines removed. */
+/**
+ * A dead `implements` comment that trails code, from the whitespace (or the
+ * code's own `;`) before its comment marker to the end of the line.
+ */
+const TRAILING_DEAD_IMPLEMENTS =
+  /^\s*(?:\/\/+|#+|%+|\/\*+|--)\s*(?:implements|Implements|IMPLEMENTS)(?:\s*:\s*|\s+)[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+(?:\s*,\s*[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+)*\s*(?:\*\/)?\s*$/;
+
+/**
+ * Whether every quote character in `code` is closed: an even count of each
+ * unescaped `'`, `"` and backquote. Text that fails may end inside a string,
+ * where the "comment" after it would be part of the string.
+ */
+function quotesClosed(code: string): boolean {
+  const unescaped = code.replace(/\\./g, "");
+  return ["'", '"', "`"].every(
+    (quote) => unescaped.split(quote).length % 2 === 1,
+  );
+}
+
+/**
+ * True when `after` is the line `before` with only a trailing dead
+ * `implements` comment cut off: the code before it is kept exactly (trailing
+ * whitespace aside), and it closes every quote it opens, so the cut text
+ * cannot be part of a string.
+ */
+export function removesTrailingDeadImplementsComment(
+  before: string,
+  after: string,
+): boolean {
+  const code = after.trimEnd();
+  if (code.trim() === "" || !before.startsWith(code)) return false;
+  const cut = before.slice(code.length);
+  if (!TRAILING_DEAD_IMPLEMENTS.test(cut)) return false;
+  // The marker needs whitespace or the code's own `;` before it, as for
+  // `x(); // implements REQ-a` or `x();// implements REQ-a`.
+  if (!/^\s/.test(cut) && !code.endsWith(";")) return false;
+  return quotesClosed(code);
+}
+
+/**
+ * True when `after` is `before` with one or more dead comments removed:
+ * whole comment lines, or comments cut off the end of a code line.
+ */
 function removesOnlyDeadComments(before: string, after: string): boolean {
   const kept = before.split("\n");
   const wanted = after.split("\n");
   let removed = 0;
   let next = 0;
   for (const line of kept) {
-    if (wanted[next] === line) {
+    const target = wanted[next];
+    if (target === line) {
       next += 1;
     } else if (isDeadImplementsComment(line)) {
       removed += 1;
+    } else if (
+      target !== undefined &&
+      removesTrailingDeadImplementsComment(line, target)
+    ) {
+      removed += 1;
+      next += 1;
     } else {
       return false;
     }
@@ -133,15 +182,32 @@ function parsePatchSections(patch: string): PatchSection[] | undefined {
 
 /**
  * True for an `Update File` section that stays in place, removes at least
- * one line, removes only dead comment lines and adds none.
+ * one dead comment, and changes nothing else: each removed line is a dead
+ * comment line, or a code line directly replaced by itself without its
+ * trailing dead comment.
  */
 function patchSectionRemovesOnlyDeadComments(section: PatchSection): boolean {
   if (section.kind !== "Update" || section.moved) return false;
   let removed = 0;
-  for (const line of section.lines) {
+  const lines = section.lines;
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index] as string;
     if (line.startsWith("-")) {
-      if (!isDeadImplementsComment(line.slice(1))) return false;
-      removed += 1;
+      const replacement = lines[index + 1];
+      if (isDeadImplementsComment(line.slice(1))) {
+        removed += 1;
+      } else if (
+        replacement?.startsWith("+") &&
+        removesTrailingDeadImplementsComment(
+          line.slice(1),
+          replacement.slice(1),
+        )
+      ) {
+        removed += 1;
+        index += 1;
+      } else {
+        return false;
+      }
     } else if (
       !(
         line.startsWith(" ") ||

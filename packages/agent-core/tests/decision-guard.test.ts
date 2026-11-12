@@ -22,6 +22,7 @@ import {
   markDecisionFlag,
   recordRequest,
   removesOnlyDeadImplementsComments,
+  removesTrailingDeadImplementsComment,
   requestWords,
   rulePromptNote,
   settleFirmRequirements,
@@ -151,6 +152,35 @@ describe("dead implements comments", () => {
     expect(only({ command: "sed -i /implements/d a.py" })).toBe(false);
   });
 
+  test("a trailing comment cut off a code line is recognized", () => {
+    const cut = removesTrailingDeadImplementsComment;
+    expect(cut("total += 1; // implements REQ-a", "total += 1;")).toBe(true);
+    expect(cut("total += 1;// implements REQ-a", "total += 1;")).toBe(true);
+    expect(cut("x = f()  # implements: REQ-a, REQ-b", "x = f()")).toBe(true);
+    expect(cut("go(). % implements REQ-a", "go(). ")).toBe(true);
+    expect(cut('s = "a" /* implements REQ-a */', 's = "a"')).toBe(true);
+    // The code changed, the cut is no implements comment, the comment sits
+    // inside a string, the marker touches the code, or no code is left.
+    expect(cut("total += 1; // implements REQ-a", "total += 2;")).toBe(false);
+    expect(cut("total += 1; // keep REQ-a", "total += 1;")).toBe(false);
+    expect(cut('s = "a // implements REQ-a"', 's = "a')).toBe(false);
+    expect(cut("s = 'a # implements REQ-a'", "s = 'a")).toBe(false);
+    expect(cut("x#implements REQ-a", "x")).toBe(false);
+    expect(cut("// implements REQ-a", "")).toBe(false);
+    expect(
+      removesOnlyDeadImplementsComments("/nonexistent", {
+        old_string: "a();\nb(); // implements REQ-a\n// implements REQ-b\nc();",
+        new_string: "a();\nb();\nc();",
+      }),
+    ).toBe(true);
+    expect(
+      removesOnlyDeadImplementsComments("/nonexistent", {
+        old_string: 'b("x // implements REQ-a")',
+        new_string: 'b("x',
+      }),
+    ).toBe(false);
+  });
+
   test("a whole-file write is compared with the file on disk", () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-guard-"));
     dirs.push(dir);
@@ -210,6 +240,47 @@ describe("dead implements comments", () => {
           ),
         ),
       ).toBe(true);
+    });
+
+    test("a code line replaced by itself without its trailing comment counts", () => {
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts",
+            "@@",
+            "-export const f = () => 1; // implements REQ-a",
+            "+export const f = () => 1;",
+            "-// implements REQ-b",
+          ),
+        ),
+      ).toBe(true);
+      // A replacement that also changes the code, or an added line alone.
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts",
+            "-export const f = () => 1; // implements REQ-a",
+            "+export const f = () => 2;",
+          ),
+        ),
+      ).toBe(false);
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts",
+            "-export const s = 'x // implements REQ-a';",
+            "+export const s = 'x",
+          ),
+        ),
+      ).toBe(false);
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts",
+            "-export const f = () => 1; // implements REQ-a",
+          ),
+        ),
+      ).toBe(false);
     });
 
     test("a section that also changes code, adds a line or removes nothing is not", () => {

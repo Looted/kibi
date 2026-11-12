@@ -7595,5 +7595,17 @@
         "./packages/cli/tests/env/bootstrap.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-step-order",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./scripts/tests/run-proof-producer.test.mjs"
+      ]
+    ]
   }
 ]

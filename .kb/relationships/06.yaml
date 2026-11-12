@@ -143,3 +143,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-021cc4bc406d
+  - type: constrains
+    from: REQ-proof-step-order
+    to: FACT-SUBJ-kibi-proof-producers
+    created_at: 2026-11-12T16:07:25.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fe27b78f7f5
+  - type: requires_property
+    from: REQ-proof-step-order
+    to: FACT-proof-step-order-earlier-steps-finish
+    created_at: 2026-11-12T16:07:25.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-780fb282d109
+  - type: specified_by
+    from: REQ-proof-step-order
+    to: SCEN-proof-step-order
+    created_at: 2026-11-12T16:09:32.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1582592e3f1
+  - type: specified_by
+    from: REQ-proof-step-order
+    to: SCEN-NEG-proof-step-order-OUT-OF-ORDER
+    created_at: 2026-11-12T16:09:32.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8588396e5f6
+  - type: verified_by
+    from: REQ-proof-step-order
+    to: TEST-proof-step-order
+    created_at: 2026-11-12T16:09:32.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dff4a92f9b2f
