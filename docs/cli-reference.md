@@ -947,7 +947,7 @@ Verifies environment setup and diagnostics.
 - Validates `.kb/manifest.json` syntax
 - Recognizes leftover `.kb/config.json` and recommends `kibi migrate --yes`
 - Checks git repository presence
-- Checks the current branch's KB store ("Branch store"): it fails when `.kb/` holds authored sources but the store is missing or empty (journal sequence 0, nothing compiled), naming `kibi sync`; an incomplete or unreadable store points at `kibi branch recover`
+- Checks the current branch's KB store ("Branch store"): when `.kb/` holds authored sources but the store is missing or empty (journal sequence 0, nothing compiled), it warns that the next Kibi query or check compiles it when auto-sync is on (`kibi.setup.autoSync`, the default), and fails naming `kibi sync` when auto-sync is off (`KIBI_AUTO_SYNC=0` or `autoSync: false`) or the attachment is read-only, detached or awaiting migration; an incomplete or unreadable store points at `kibi branch recover`
 - Verifies git hooks are installed and executable, reading them from the directory Git uses (`git rev-parse --git-path hooks`). Missing hooks are a warning (`!`, `"warning": true` in JSON, counted in the top-level `warnings`), not a failure: without them a new branch is not compiled on checkout and commits skip `kibi check --staged`
 - When a hook manager owns the hooks (lefthook, husky, the pre-commit framework), reads the commands from its configuration instead of the generated hook files. A hook whose configuration visibly runs Kibi's commands passes; one that does not (for example because it calls a task runner) is a warning with `kibi init --print-hook <hook> --format <manager>` as the remediation, since doctor cannot see through the runner
 - Otherwise treats a hook without a kibi-managed section as the project's own hook (hand-written, husky, lefthook, ...). A custom pre-commit passes when it runs both `kibi check-generated --staged --changed-only` and `kibi check --staged` (via `kibi`, `npx kibi`, `node_modules/.bin/kibi` or `"$KIBI_BIN"`; commented lines do not count), and a custom post-rewrite passes when it runs `kibi sync`. Otherwise the check fails and the remediation shows what to delegate to and `kibi init --print-hook <hook>`, because `kibi init` never edits a custom hook
@@ -972,7 +972,7 @@ artifacts are executing.
 - SWI-Prolog not found → Add the platform package it names, or see the [install guide](install.md#which-swi-prolog-kibi-uses)
 - `.kb/` missing → Run `kibi init`
 - Git hooks missing (warning) → Run `kibi init`
-- Branch store not compiled → Run `kibi sync`
+- Branch store not compiled with auto-sync off → Run `kibi sync`
 - Kibi-managed hook section without kibi CLI resolution → Run `kibi init` to regenerate it
 - Custom (non-Kibi) pre-commit hook does not run `kibi check-generated --staged --changed-only` and `kibi check --staged` → Add both to the hook; `kibi init --print-hook pre-commit` prints a ready-to-paste snippet. Re-running `kibi init` does not help, because init never edits a custom hook. An unmarked file that is an old Kibi template can instead be deleted so `kibi init` reinstalls it
 - Kibi-managed hook sections outdated for this CLI → Run `kibi init` to refresh them (hooks are shared by every worktree of the repository)

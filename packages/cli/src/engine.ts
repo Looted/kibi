@@ -886,6 +886,57 @@ function connectSocket(
  */
 const DAEMON_EXIT_GRACE_MS = 1000;
 
+/**
+ * Why an engine daemon failed to start, as a fixed category for telemetry:
+ * the error's own code when it has one (for example `swipl_not_found`),
+ * else a category read from the known daemon failures, else
+ * `daemon_error`. Never the message itself.
+ */
+export function engineStartFailureKind(error: unknown): string {
+  const code = (error as { code?: unknown } | null | undefined)?.code;
+  if (typeof code === "string" && /^[A-Za-z0-9_]{1,60}$/.test(code)) {
+    return code.toLowerCase();
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  if (/already listening/i.test(message)) return "already_listening";
+  if (/store_locked/i.test(message)) return "store_locked";
+  if (/journal/i.test(message)) return "journal_unreadable";
+  if (/failed to load kibi .*module|module load failed/i.test(message)) {
+    return "prolog_module_load_failed";
+  }
+  if (/failed to attach branch kb/i.test(message))
+    return "branch_attach_failed";
+  if (/invalid kibi engine branch name/i.test(message)) return "invalid_branch";
+  return "daemon_error";
+}
+
+/**
+ * The diagnostic a daemon that failed to start leaves for its client: one
+ * JSON line with the fixed failure kind and the message.
+ */
+export function engineStartDiagnostic(error: unknown): string {
+  return `${JSON.stringify({
+    kind: engineStartFailureKind(error),
+    message: error instanceof Error ? error.message : String(error),
+  })}\n`;
+}
+
+/** Reads a daemon diagnostic; plain text (an older daemon) has no kind. */
+export function parseEngineStartDiagnostic(text: string): {
+  kind: string;
+  message: string;
+} {
+  try {
+    const parsed = JSON.parse(text) as { kind?: unknown; message?: unknown };
+    if (typeof parsed.kind === "string" && typeof parsed.message === "string") {
+      return { kind: parsed.kind, message: parsed.message };
+    }
+  } catch {
+    // Not JSON: the whole text is the message.
+  }
+  return { kind: engineStartFailureKind(new Error(text)), message: text };
+}
+
 async function connectWithRetry(
   socketPath: string,
   timeoutMs: number,
@@ -898,15 +949,20 @@ async function connectWithRetry(
   while (Date.now() < deadline) {
     const errorPath = engineSidecarPath(socketPath, ".error");
     if (existsSync(errorPath)) {
+      let failure: { kind: string; message: string } | null;
       try {
         const diagnostic = readFileSync(errorPath, "utf8").trim();
-        if (diagnostic) throw new Error(diagnostic);
+        failure = diagnostic ? parseEngineStartDiagnostic(diagnostic) : null;
       } catch (error) {
+        failure = {
+          kind: "diagnostic_unreadable",
+          message: error instanceof Error ? error.message : String(error),
+        };
+      }
+      if (failure !== null) {
         throw Object.assign(
-          new Error(
-            `Kibi engine failed to start: ${error instanceof Error ? error.message : String(error)}`,
-          ),
-          { code: "ENGINE_START_FAILED" },
+          new Error(`Kibi engine failed to start: ${failure.message}`),
+          { code: "ENGINE_START_FAILED", startFailure: failure.kind },
         );
       }
     }
@@ -920,7 +976,7 @@ async function connectWithRetry(
           new Error(
             `Kibi engine exited (${exit}) before it accepted connections at ${socketPath}`,
           ),
-          { code: "ENGINE_START_FAILED" },
+          { code: "ENGINE_START_FAILED", startFailure: "daemon_exited" },
         );
       }
     }

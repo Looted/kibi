@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import {
+  existsSync,
   mkdtempSync,
   readFileSync,
   realpathSync,
@@ -28,6 +29,20 @@ const packageNames = [
 ] as const;
 type PackageName = (typeof packageNames)[number];
 
+/**
+ * What a project that adds only the MCP server installs: its own dependency
+ * closure, without kibi-cli beside it.
+ */
+const mcpOnlyPackageNames = [
+  "core",
+  "plugin-sdk",
+  "agent-core",
+  "plugin-builtin",
+  "swipl",
+  "runtime",
+  "mcp",
+] as const satisfies readonly PackageName[];
+
 async function resolveReleaseTarballs(): Promise<Record<PackageName, string>> {
   const tarballs = await packAll();
   return Object.fromEntries(
@@ -38,6 +53,7 @@ async function resolveReleaseTarballs(): Promise<Record<PackageName, string>> {
 function writeConsumerManifest(
   dir: string,
   tarballs: Record<PackageName, string>,
+  names: readonly PackageName[] = packageNames,
 ): void {
   writeFileSync(
     join(dir, "package.json"),
@@ -47,7 +63,7 @@ function writeConsumerManifest(
         private: true,
         type: "module",
         dependencies: Object.fromEntries(
-          packageNames.map((pkg) => [`kibi-${pkg}`, `file:${tarballs[pkg]}`]),
+          names.map((pkg) => [`kibi-${pkg}`, `file:${tarballs[pkg]}`]),
         ),
       },
       null,
@@ -63,14 +79,17 @@ function writeConsumerManifest(
     join(dir, "pnpm-workspace.yaml"),
     [
       "overrides:",
-      ...packageNames.map((pkg) => `  kibi-${pkg}: "file:${tarballs[pkg]}"`),
+      ...names.map((pkg) => `  kibi-${pkg}: "file:${tarballs[pkg]}"`),
       "",
     ].join("\n"),
     "utf8",
   );
 }
 
-function verifyConsumer(dir: string, packageManager: "npm" | "pnpm"): void {
+function installConsumer(
+  dir: string,
+  packageManager: "npm" | "pnpm",
+): NodeJS.ProcessEnv {
   const args =
     packageManager === "npm"
       ? ["install", "--no-audit"]
@@ -96,6 +115,11 @@ function verifyConsumer(dir: string, packageManager: "npm" | "pnpm"): void {
       stdio: "pipe",
     },
   );
+  return pnpmEnv;
+}
+
+function verifyConsumer(dir: string, packageManager: "npm" | "pnpm"): void {
+  const pnpmEnv = installConsumer(dir, packageManager);
   const probe = execFileSync(
     "node",
     [
@@ -216,6 +240,60 @@ describe("release package contracts", { concurrency: false }, () => {
       tempDirs.push(dir);
       writeConsumerManifest(dir, tarballs);
       verifyConsumer(dir, "npm");
+    },
+  );
+
+  it(
+    "starts the packed MCP server without kibi-cli installed beside it",
+    { timeout: 300_000 },
+    async () => {
+      const tarballs = await resolveReleaseTarballs();
+      const dir = mkdtempSync(join(tmpdir(), "kibi-release-mcp-only-"));
+      tempDirs.push(dir);
+      writeConsumerManifest(dir, tarballs, mcpOnlyPackageNames);
+      const env = installConsumer(dir, "npm");
+      assert.ok(
+        !existsSync(join(dir, "node_modules", "kibi-cli")),
+        "the MCP-only consumer must not install kibi-cli",
+      );
+      const probe = execFileSync(
+        "node",
+        ["--input-type=module", "-e", "import 'kibi-mcp';"],
+        { cwd: dir, encoding: "utf8", env, stdio: "pipe" },
+      );
+      assert.equal(probe, "");
+      // The launcher itself, as a host starts it: answer initialize over
+      // stdio and exit when stdin closes.
+      const reply = execFileSync(
+        "node",
+        [join(dir, "node_modules", "kibi-mcp", "bin", "kibi-mcp")],
+        {
+          cwd: dir,
+          encoding: "utf8",
+          env: { ...env, KIBI_TELEMETRY: "0" },
+          input: `${JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "initialize",
+            params: {
+              protocolVersion: "2025-06-18",
+              capabilities: {},
+              clientInfo: { name: "release-contract", version: "0.0.0" },
+            },
+          })}\n`,
+          stdio: "pipe",
+          timeout: 60_000,
+        },
+      );
+      const initialized = reply
+        .split("\n")
+        .filter((line) => line.trim().startsWith("{"))
+        .map((line) => JSON.parse(line) as { id?: unknown; result?: unknown })
+        .find((message) => message.id === 1);
+      assert.ok(
+        initialized?.result !== undefined,
+        `kibi-mcp did not answer initialize: ${reply}`,
+      );
     },
   );
 
